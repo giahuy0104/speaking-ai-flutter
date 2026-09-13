@@ -31,6 +31,18 @@ void main() {
       v4CompletionPrompt(V4CompletionStage.courseRelearnLevel),
       'Bạn muốn học lại Level 1, Level 2 hay Level 3?',
     );
+    expect(
+      v4CompletionPrompt(
+        V4CompletionStage.lessonEnd,
+        currentLesson: 1,
+        nextLesson: 2,
+      ),
+      'Bạn muốn học Bài 2 hay học lại Bài 1?',
+    );
+    expect(
+      v4CompletionPrompt(V4CompletionStage.topicEnd, topicNumber: 3),
+      'Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 3?',
+    );
   });
 
   test('resolves spoken V4 choices within the active completion stage', () {

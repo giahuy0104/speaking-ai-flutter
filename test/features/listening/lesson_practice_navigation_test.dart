@@ -7,6 +7,7 @@ import 'package:ai_speaking_flutter_app/features/listening/application/lesson_me
 import 'package:ai_speaking_flutter_app/features/listening/data/listening_progress_store.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_catalog.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
+import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_challenge_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_practice_screen.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/material.dart';
@@ -170,7 +171,7 @@ void main() {
     'V4 marks the lesson complete only after its authored challenge finishes',
     (tester) async {
       await _usePhoneSurface(tester);
-      final store = _MemoryProgressStore();
+      final store = _MemoryProgressStore()..completedSentences = 1;
       final mediaService = _SilentMediaService(
         existingRecordingPath: 'C:\\recordings\\saved-v4-attempt.m4a',
       );
@@ -186,48 +187,50 @@ void main() {
           completionChoiceRecognizer: _FixedCompletionChoiceRecognizer(
             'Dừng lại',
           ),
+          initialResumeStage: ListeningResumeStage.challenge,
         ),
       );
       await tester.pumpAndSettle();
 
       expect(await store.hasCompletedV4LessonActivity(lesson.id), isFalse);
-      final continueButton = find.byKey(const Key('continue-lesson-sentence'));
-      await tester.ensureVisible(continueButton);
-      await tester.tap(continueButton);
-      await tester.pump();
-      await tester.pump();
-
       final challenge = find.byKey(const Key('lesson-challenge-screen'));
       expect(challenge, findsOneWidget);
       expect(await store.hasCompletedV4LessonActivity(lesson.id), isFalse);
       final startsBeforeCompletion = mediaService.startRecordingCount;
 
-      Navigator.of(tester.element(challenge)).pop(true);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 250));
+      final challengeWidget = tester.widget<LessonChallengeScreen>(
+        find.byType(LessonChallengeScreen),
+      );
+      await challengeWidget.onChallengeResolved!(
+        challengeWidget.challenges.single,
+        true,
+      );
+
+      Navigator.of(
+        tester.element(find.byType(LessonChallengeScreen)),
+      ).pop(true);
+      await tester.pumpAndSettle();
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)),
+      );
+      await tester.pumpAndSettle();
 
       expect(await store.hasCompletedV4LessonActivity(lesson.id), isTrue);
       expect(store.completedSentences, lesson.sentences.length);
-      expect(find.byKey(const Key('v4-choice-relearn')), findsOneWidget);
-      expect(mediaService.startRecordingCount, startsBeforeCompletion + 1);
-      expect(mediaService.recording, isTrue);
-
-      await tester.pump(const Duration(milliseconds: 6100));
-      await tester.pump(const Duration(milliseconds: 300));
-      await tester.pump(const Duration(milliseconds: 300));
-
-      expect(find.byKey(const Key('v4-choice-relearn')), findsNothing);
-      expect(mediaService.recording, isFalse);
+      expect(
+        mediaService.startRecordingCount,
+        greaterThan(startsBeforeCompletion),
+      );
     },
   );
 
-  testWidgets('V4 skips an interrupted song and continues the completed flow', (
+  testWidgets('V4 resumes an interrupted song from its beginning', (
     tester,
   ) async {
     await _usePhoneSurface(tester);
     final store = _MemoryProgressStore();
     final lesson = _v4Lesson(withSong: true);
-    store.completedV4LessonActivities.add(lesson.id);
+    store.challengeProcessed = true;
     final mediaService = _SilentMediaService(
       existingRecordingPath: 'C:\\recordings\\saved-v4-attempt.m4a',
     );
@@ -245,12 +248,11 @@ void main() {
         initialResumeStage: ListeningResumeStage.song,
       ),
     );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('v4-song-stage-screen')), findsNothing);
-    expect(mediaService.playedUris, isNot(contains(lesson.songAudioUri)));
-    expect(find.byKey(const Key('v4-choice-relearn')), findsOneWidget);
+    expect(mediaService.playedUris, contains(lesson.songAudioUri));
+    expect(await store.hasCompletedV4LessonActivity(lesson.id), isTrue);
     expect(store.resumeStage, ListeningResumeStage.completed);
   });
 
@@ -456,15 +458,6 @@ ListeningLessonContent _v4Lesson({bool withSong = false}) {
         correctVietnamese: 'Chào buổi sáng.',
         targetId: 'v4-target-1',
       ),
-      const ListeningChallengeContent(
-        id: 'v4-challenge-2',
-        format: 'VI_TO_EN',
-        prompt: 'Chào buổi tối.',
-        choices: <String>['Good night.', 'Good morning.'],
-        correctAnswer: 'Good night.',
-        correctVietnamese: 'Chào buổi tối.',
-        targetId: 'v4-target-2',
-      ),
     ],
     sentences: <ListeningSentenceContent>[
       const ListeningSentenceContent(
@@ -490,7 +483,12 @@ class _MemoryProgressStore extends ListeningProgressStore {
   final Set<String> completedV4LessonActivities = <String>{};
   ListeningResumeStage resumeStage = ListeningResumeStage.core;
   final Set<String> earnedStars = <String>{};
+  final Map<int, ListeningSessionResult> sessionResults =
+      <int, ListeningSessionResult>{};
   bool coreStarted = false;
+  bool challengeProcessed = false;
+  int? currentChallengeIndex;
+  int challengeRotationMask = 0;
 
   @override
   Future<bool> hasStartedLessonCore(String lessonId) async => coreStarted;
@@ -518,12 +516,68 @@ class _MemoryProgressStore extends ListeningProgressStore {
   Future<Set<int>> readNeedsPracticeSentences(String lessonId) async => <int>{};
 
   @override
+  Future<Map<int, ListeningSessionResult>> readSessionResults(
+    String lessonId,
+  ) async => Map<int, ListeningSessionResult>.of(sessionResults);
+
+  @override
+  Future<ListeningSessionResult> readSessionResult(
+    String lessonId,
+    int sentenceIndex,
+  ) async => sessionResults[sentenceIndex] ?? ListeningSessionResult.pending;
+
+  @override
+  Future<void> saveSessionResult(
+    String lessonId,
+    int sentenceIndex,
+    ListeningSessionResult result,
+  ) async {
+    if (sessionResults[sentenceIndex] == ListeningSessionResult.achieved &&
+        result != ListeningSessionResult.achieved) {
+      return;
+    }
+    sessionResults[sentenceIndex] = result;
+  }
+
+  @override
   Future<bool> hasCompletedV4LessonActivity(String lessonId) async =>
       completedV4LessonActivities.contains(lessonId);
 
   @override
   Future<Set<String>> readCompletedV4LessonActivities() async =>
       Set<String>.of(completedV4LessonActivities);
+
+  @override
+  Future<bool> hasProcessedLessonChallenge(String lessonId) async =>
+      challengeProcessed;
+
+  @override
+  Future<void> markLessonChallengeProcessed(String lessonId) async {
+    challengeProcessed = true;
+  }
+
+  @override
+  Future<int?> readCurrentChallengeIndex(String lessonId) async =>
+      currentChallengeIndex;
+
+  @override
+  Future<void> saveCurrentChallengeIndex(String lessonId, int index) async {
+    currentChallengeIndex = index;
+  }
+
+  @override
+  Future<int> readChallengeRotationMask(String lessonId) async =>
+      challengeRotationMask;
+
+  @override
+  Future<void> markChallengeUsed(
+    String lessonId, {
+    required int index,
+    required int challengeCount,
+  }) async {
+    challengeRotationMask |= 1 << index;
+    currentChallengeIndex = null;
+  }
 
   @override
   Future<ListeningResumeStage> readResumeStage(String lessonId) async =>

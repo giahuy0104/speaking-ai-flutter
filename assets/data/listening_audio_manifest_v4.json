@@ -42,14 +42,14 @@
       "audioId": "CHALLENGE_INTRO",
       "kind": "systemPrompt",
       "locale": "vi-VN",
-      "sourceText": "Tiếp theo là hai câu thử thách nhé.",
+      "sourceText": "Tiếp theo là một câu thử thách nhé.",
       "qaStatus": "PENDING_TTS"
     },
     {
       "audioId": "SONG_PREALERT",
       "kind": "systemPrompt",
       "locale": "vi-VN",
-      "sourceText": "Tiếp theo là hai câu thử thách. Xong rồi mình nghe bài hát [SONG_TITLE] nhé.",
+      "sourceText": "Tiếp theo là một câu thử thách. Xong rồi mình nghe bài hát [SONG_TITLE] nhé.",
       "qaStatus": "PENDING_TTS"
     },
     {

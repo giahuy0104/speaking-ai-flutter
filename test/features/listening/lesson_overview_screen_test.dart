@@ -46,7 +46,7 @@ void main() {
     );
   });
 
-  testWidgets('V4 announces an interrupted role-play separately', (
+  testWidgets('legacy role-play resume migrates to the single Challenge', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -74,10 +74,11 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('Mình tiếp tục đoạn hội thoại nhé.'), findsOneWidget);
+    expect(find.text('Mình tiếp tục câu thử thách nhé.'), findsOneWidget);
+    expect(find.textContaining('đoạn hội thoại'), findsNothing);
   });
 
-  testWidgets('V4 does not announce replay for an interrupted song', (
+  testWidgets('V4 restarts an interrupted Song from the beginning', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -105,11 +106,10 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('Mình tiếp tục phần tiếp theo nhé.'), findsOneWidget);
-    expect(find.text('Mình nghe lại bài hát từ đầu nhé.'), findsNothing);
+    expect(find.text('Mình nghe lại bài hát nhé.'), findsOneWidget);
   });
 
-  testWidgets('relearn ages 3-10 skips Hook and announces every missing slot', (
+  testWidgets('relearn counts only Core Star slots for ages 3-10', (
     tester,
   ) async {
     final mediaService = _OverviewMediaService();
@@ -145,17 +145,13 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(
-      find.text(
-        'Bài này bạn còn 2 Ngôi sao chưa chinh phục. Mình cùng thử nhé!',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text('Mình học lại bài My Daily Routine nhé.'), findsOneWidget);
+    expect(find.textContaining('Ngôi sao'), findsNothing);
     expect(find.textContaining('Mình cùng nghe bài này nhé.'), findsNothing);
     expect(mediaService.playedUris, isEmpty);
   });
 
-  testWidgets('relearn ages 11-15 uses the older-child missing-Star line', (
+  testWidgets('relearn counts only Core Star slots for ages 11-15', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -183,10 +179,8 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(
-      find.text('Bài này bạn còn 1 Ngôi sao chưa chinh phục.'),
-      findsOneWidget,
-    );
+    expect(find.text('Mình học lại bài My Daily Routine nhé.'), findsOneWidget);
+    expect(find.textContaining('Ngôi sao'), findsNothing);
     expect(find.textContaining('Mình cùng thử nhé!'), findsNothing);
   });
 

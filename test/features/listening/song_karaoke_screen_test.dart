@@ -304,7 +304,13 @@ void main() {
     );
     await tester.pump();
     await tester.tap(find.byKey(const Key('skip-lesson-intro')));
-    await tester.pumpAndSettle();
+    for (
+      var attempt = 0;
+      attempt < 12 && find.byType(LessonPracticeScreen).evaluate().isEmpty;
+      attempt += 1
+    ) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
 
     expect(find.byType(SongKaraokeScreen), findsNothing);
     expect(find.byType(LessonReviewScreen), findsNothing);

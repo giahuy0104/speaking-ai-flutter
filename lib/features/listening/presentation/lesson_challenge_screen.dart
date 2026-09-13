@@ -37,6 +37,7 @@ class LessonChallengeScreen extends StatefulWidget {
     this.onStarEarnedWithResult,
     this.onStarEarnedWithAudioResult,
     this.onNeedsPractice,
+    this.onChallengeResolved,
     this.onRolePlayCompleted,
     this.showRolePlayOpeningHint = true,
     this.startAfterRolePlay = false,
@@ -72,6 +73,11 @@ class LessonChallengeScreen extends StatefulWidget {
     String vietnamese,
   )?
   onNeedsPractice;
+  final Future<void> Function(
+    ListeningChallengeContent challenge,
+    bool correct,
+  )?
+  onChallengeResolved;
   final Future<void> Function()? onRolePlayCompleted;
   final bool showRolePlayOpeningHint;
   final bool startAfterRolePlay;
@@ -104,9 +110,9 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   Timer? _promptCompletionTimer;
   Completer<void>? _promptCompletionWaiter;
   bool _pausedForMainAssistant = false;
-  int _newRolePlayStars = 0;
+  bool _pausedAfterNoResponse = false;
+  int _invalidResponseCount = 0;
   String? _activeAttemptAudioPath;
-  String? _latestCorrectAudioPath;
   ActiveLearningModuleRegistry? _activeModuleRegistry;
   Object? _activeModuleRegistration;
 
@@ -259,6 +265,10 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     switch (command) {
       case ActiveLearningCommand.resume:
         _pausedForMainAssistant = false;
+        if (_pausedAfterNoResponse) {
+          await _resumeAfterNoResponse();
+          return const ActiveLearningCommandResult.handled();
+        }
         await _playCurrentPrompt();
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.stop:
@@ -288,7 +298,10 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     }
   }
 
-  Future<void> _playCurrentPrompt({bool allowBusy = false}) async {
+  Future<void> _playCurrentPrompt({
+    bool allowBusy = false,
+    bool openMicrophone = true,
+  }) async {
     if (_pausedForMainAssistant ||
         !mounted ||
         _recording ||
@@ -343,7 +356,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       return;
     }
     if (!_shouldAutomaticallyRecord) return;
-    await _startRecording();
+    if (openMicrophone) await _startRecording();
   }
 
   Future<void> _replayCurrent() async {
@@ -431,6 +444,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
 
   Future<void> _startRecording() async {
     if (_pausedForMainAssistant ||
+        _pausedAfterNoResponse ||
         (_inRolePlay &&
             _rolePlayTurn?.speaker == ListeningRolePlaySpeaker.homi) ||
         _recording ||
@@ -445,7 +459,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       _busy = true;
       _message = null;
     });
-    _latestCorrectAudioPath = null;
     try {
       await _prompt.stop();
       var usesIosSpeech = false;
@@ -556,9 +569,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
           acceptedVariants: _acceptedRecognitionVariants,
           requireAllExpectedTokens: false,
         );
-        if (outcome == LessonAttemptOutcome.good) {
-          _latestCorrectAudioPath = recording.filePath;
-        }
       }
       if (!mounted || _pausedForMainAssistant || request != _request) return;
       if (outcome != LessonAttemptOutcome.unclear &&
@@ -612,10 +622,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
           )
           ? LessonAttemptOutcome.good
           : LessonAttemptOutcome.retry;
-      if (outcome == LessonAttemptOutcome.good) {
-        _latestCorrectAudioPath =
-            capture.recordedAudio?.filePath ?? _activeAttemptAudioPath;
-      }
       return outcome;
     } on StreamingSpeechInputException catch (error) {
       debugPrint(
@@ -631,28 +637,57 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
 
   Future<bool> _applyOutcome(LessonAttemptOutcome outcome) async {
     if (outcome == LessonAttemptOutcome.good) {
-      if (_inRolePlay) {
-        if (await _awardStar()) _newRolePlayStars += 1;
-        return _advance();
-      }
+      _invalidResponseCount = 0;
       await _speakFeedback(LessonFeedbackKind.correct);
       if (_pausedForMainAssistant) return false;
-      await _awardStar();
+      await _notifyChallengeResolved(correct: true);
       return _advance();
     }
     if (outcome == LessonAttemptOutcome.unclear) {
       await _speakFeedback(LessonFeedbackKind.asr);
-      return mounted;
+      return _handleInvalidResponse();
     }
     if (outcome == LessonAttemptOutcome.noResponse) {
       await _speakFeedback(LessonFeedbackKind.noResponse);
-      return mounted;
+      return _handleInvalidResponse();
     }
+    _invalidResponseCount = 0;
     if (_attemptNumber >= 2) {
       return _giveAnswerAndAdvance(skip: false);
     }
     await _speakFeedback(LessonFeedbackKind.retry);
+    if (!mounted || _pausedForMainAssistant) return false;
+    await _playCurrentPrompt(allowBusy: true, openMicrophone: false);
     return mounted;
+  }
+
+  bool _handleInvalidResponse() {
+    if (!mounted || _pausedForMainAssistant) return false;
+    _invalidResponseCount += 1;
+    if (_invalidResponseCount < 2) return true;
+    setState(() {
+      _pausedAfterNoResponse = true;
+      _message = 'Mình tạm dừng nhé.';
+    });
+    unawaited(_speakPromptAndWait('Mình tạm dừng nhé.'));
+    return false;
+  }
+
+  Future<void> _resumeAfterNoResponse() async {
+    if (!mounted) return;
+    setState(() {
+      _pausedAfterNoResponse = false;
+      _invalidResponseCount = 0;
+      _attemptNumber = 0;
+      _message = null;
+    });
+    await _playCurrentPrompt();
+  }
+
+  Future<void> _notifyChallengeResolved({required bool correct}) async {
+    final callback = widget.onChallengeResolved;
+    if (callback == null || _inRolePlay) return;
+    await callback(_challenge, correct);
   }
 
   Future<void> _speakFeedback(LessonFeedbackKind kind) async {
@@ -667,49 +702,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     } catch (_) {
       // The written feedback remains visible; recording still resumes so a
       // temporary TTS outage never forces the child to use the phone.
-    }
-  }
-
-  Future<bool> _awardStar() async {
-    final callbackWithAudioResult = widget.onStarEarnedWithAudioResult;
-    if (callbackWithAudioResult != null) {
-      try {
-        final stableId = _inRolePlay
-            ? 'roleplay:${_rolePlayTurnIndex + 1}'
-            : 'challenge:${_challengeIndex + 1}';
-        return await callbackWithAudioResult(
-          stableId,
-          _expectedEnglish,
-          _expectedVietnamese,
-          _latestCorrectAudioPath,
-        );
-      } catch (_) {
-        return false;
-      }
-    }
-    final callbackWithResult = widget.onStarEarnedWithResult;
-    if (callbackWithResult != null) {
-      try {
-        final stableId = _inRolePlay
-            ? 'roleplay:${_rolePlayTurnIndex + 1}'
-            : 'challenge:${_challengeIndex + 1}';
-        return await callbackWithResult(
-          stableId,
-          _expectedEnglish,
-          _expectedVietnamese,
-        );
-      } catch (_) {
-        return false;
-      }
-    }
-    final callback = widget.onStarEarned;
-    if (callback == null) return false;
-    try {
-      await callback(_attemptId, _expectedEnglish, _expectedVietnamese);
-      return true;
-    } catch (_) {
-      // Local Star persistence must never interrupt the speaking flow.
-      return false;
     }
   }
 
@@ -728,6 +720,8 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     if (!skip) {
       await _saveNeedsPractice();
       if (!mounted || _pausedForMainAssistant) return false;
+      await _notifyChallengeResolved(correct: false);
+      if (!mounted || _pausedForMainAssistant) return false;
     }
     return _advance();
   }
@@ -742,34 +736,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       await callback(stableId, _expectedEnglish, _expectedVietnamese);
     } catch (_) {
       // Vocabulary persistence must never interrupt the authored lesson.
-    }
-  }
-
-  Future<void> _skipCurrent() async {
-    if (_busy || _playingPrompt) return;
-    setState(() => _busy = true);
-    var shouldOpenMicrophoneAgain = false;
-    try {
-      if (_recording) {
-        _recordingAutoStopTimer?.cancel();
-        _recordingAutoStopTimer = null;
-        if (_recordingUsesIosSpeech && widget.iosSpeechInput != null) {
-          await widget.iosSpeechInput!.cancel().catchError((Object _) {});
-        } else {
-          await widget.mediaService.cancelRecording().catchError((Object _) {});
-        }
-        if (!mounted) return;
-        setState(() {
-          _recording = false;
-          _recordingUsesIosSpeech = false;
-        });
-      }
-      shouldOpenMicrophoneAgain = await _giveAnswerAndAdvance(skip: true);
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-    if (shouldOpenMicrophoneAgain && mounted && !_recording) {
-      await _startRecording();
     }
   }
 
@@ -797,11 +763,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         // Progress persistence must not block the authored challenge.
       }
       try {
-        await _speakPromptAndWait(
-          _newRolePlayStars > 0
-              ? 'Bạn đã hoàn thành đoạn hội thoại và có thêm $_newRolePlayStars Ngôi sao.'
-              : 'Bạn đã hoàn thành đoạn hội thoại rồi.',
-        );
+        await _speakPromptAndWait('Bạn đã hoàn thành đoạn hội thoại rồi.');
       } catch (_) {
         // The challenge still starts if the summary cannot be spoken.
       }
@@ -1004,7 +966,8 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
                       children: <Widget>[
                         FilledButton(
                           key: const Key('lesson-challenge-record-button'),
-                          onPressed: _busy || _playingPrompt
+                          onPressed:
+                              _busy || _playingPrompt || _pausedAfterNoResponse
                               ? null
                               : (_recording ? _stopRecording : _startRecording),
                           style: FilledButton.styleFrom(
@@ -1034,14 +997,17 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
                             ],
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        TextButton(
-                          key: const Key('lesson-challenge-skip-button'),
-                          onPressed: _busy || _playingPrompt
-                              ? null
-                              : _skipCurrent,
-                          child: const Text('Bỏ qua'),
-                        ),
+                        if (_pausedAfterNoResponse) ...<Widget>[
+                          const SizedBox(height: 10),
+                          FilledButton.tonalIcon(
+                            key: const Key(
+                              'challenge-resume-after-no-response',
+                            ),
+                            onPressed: _resumeAfterNoResponse,
+                            icon: const Icon(Icons.mic_rounded),
+                            label: const Text('Thử lại mic'),
+                          ),
+                        ],
                       ],
                     ),
                   if (_inRolePlay) ...<Widget>[

@@ -224,19 +224,15 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
       final lesson = widget.lesson;
       final topicContent = widget.topicContent;
       final String text;
-      if (resumeStage == ListeningResumeStage.rolePlay) {
-        text = 'Mình tiếp tục đoạn hội thoại nhé.';
-      } else if (resumeStage == ListeningResumeStage.challenge) {
-        text = 'Mình làm lại phần thử thách nhé.';
-      } else if (resumeStage == ListeningResumeStage.mission) {
-        text = 'Mình tiếp tục Nhiệm vụ cuối Level nhé.';
-      } else if (resumeStage == ListeningResumeStage.reinforcement) {
-        text = 'Mình luyện nhanh vài phần trước nhé.';
+      if (resumeStage == ListeningResumeStage.challenge ||
+          resumeStage == ListeningResumeStage.rolePlay ||
+          resumeStage == ListeningResumeStage.mission ||
+          resumeStage == ListeningResumeStage.reinforcement) {
+        text = 'Mình tiếp tục câu thử thách nhé.';
       } else if (resumeStage == ListeningResumeStage.song) {
-        // A song is optional enrichment after the lesson has already been
-        // completed. If it was interrupted, continue after it instead of
-        // resuming or replaying a partial song.
-        text = 'Mình tiếp tục phần tiếp theo nhé.';
+        text = 'Mình nghe lại bài hát ${lesson.songTitle ?? ''} nhé.'
+            .replaceAll(RegExp(r'\s+'), ' ')
+            .trim();
       } else if (isInProgress) {
         text = 'Mình học tiếp bài ${lesson.titleEn} nhé.';
       } else if (widget.relearnFromBeginning ||
@@ -245,13 +241,9 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
         final earnedStars = await widget.progressStore.readEarnedStars(
           lesson.id,
         );
-        final hasMissionStarSlots =
-            await widget.progressStore.hasLessonMissionStarSlots(lesson.id) ||
-            LessonStarFlow.hasEarnedMissionStar(earnedStars);
         final remainingStars = LessonStarFlow.remainingStarCount(
           lesson,
           earnedStars,
-          includeMission: hasMissionStarSlots,
         );
         text = remainingStars > 0
             ? widget.startAge <= 10

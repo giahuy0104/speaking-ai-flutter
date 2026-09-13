@@ -47,9 +47,9 @@ void main() {
         expect(targets, hasLength(601));
         expect(
           lessons.expand((lesson) => lesson.challengeBank),
-          hasLength(872),
+          hasLength(601),
         );
-        expect(levels.expand((level) => level.missionBank), hasLength(180));
+        expect(levels.expand((level) => level.missionBank), isEmpty);
 
         expect(
           groups
@@ -70,11 +70,12 @@ void main() {
           ),
           isTrue,
         );
-        expect(levels.every((level) => level.missionBank.length == 12), isTrue);
         expect(lessons.every((lesson) => lesson.entry != null), isTrue);
         expect(lessons.every((lesson) => lesson.usesV4Flow), isTrue);
         expect(
-          lessons.every((lesson) => lesson.challengeBank.length == 8),
+          lessons.every(
+            (lesson) => lesson.challengeBank.length == lesson.sentences.length,
+          ),
           isTrue,
         );
       },
@@ -105,64 +106,41 @@ void main() {
       }
     });
 
-    test(
-      'keeps every authored challenge and mission tied to a core target',
-      () {
-        final targetById = <String, ListeningSentenceContent>{
-          for (final target in targets) target.id: target,
-        };
+    test('keeps exactly one authored challenge tied to every Core target', () {
+      final targetById = <String, ListeningSentenceContent>{
+        for (final target in targets) target.id: target,
+      };
 
-        expect(targetById, hasLength(601));
-        for (final lesson in lessons) {
-          for (final challenge in lesson.challengeBank) {
-            final target = targetById[challenge.targetId];
-            expect(
-              target,
-              isNotNull,
-              reason: 'Unknown target: ${challenge.id}',
-            );
-            expect(challenge.choices, hasLength(2), reason: challenge.id);
-            expect(
-              challenge.choices,
-              contains(challenge.correctAnswer),
-              reason: challenge.id,
-            );
-            final expected =
-                target!.id.startsWith(RegExp(r'C(?:35|67)-L1-T01-'))
-                ? target.english.replaceFirst(RegExp(r'^[A-Z]\.\s*'), '')
-                : target.english;
-            expect(
-              expected,
-              challenge.correctAnswer,
-              reason: 'Challenge ${challenge.id} changed its authored target.',
-            );
-          }
+      expect(targetById, hasLength(601));
+      for (final lesson in lessons) {
+        expect(lesson.challengeBank, hasLength(lesson.sentences.length));
+        expect(
+          lesson.challengeBank.map((item) => item.targetId).toSet(),
+          lesson.sentences.map((item) => item.id).toSet(),
+          reason: lesson.id,
+        );
+        for (final challenge in lesson.challengeBank) {
+          final target = targetById[challenge.targetId];
+          expect(target, isNotNull, reason: 'Unknown target: ${challenge.id}');
+          expect(challenge.choices, hasLength(2), reason: challenge.id);
+          expect(
+            challenge.choices,
+            contains(challenge.correctAnswer),
+            reason: challenge.id,
+          );
+          final expected = target!.id.startsWith(RegExp(r'C(?:35|67)-L1-T01-'))
+              ? target.english.replaceFirst(RegExp(r'^[A-Z]\.\s*'), '')
+              : target.english;
+          expect(
+            expected,
+            challenge.correctAnswer,
+            reason: 'Challenge ${challenge.id} changed its authored target.',
+          );
         }
+      }
 
-        for (final level in levels) {
-          for (final mission in level.missionBank) {
-            final target = targetById[mission.coverageTargetId];
-            expect(target, isNotNull, reason: 'Unknown target: ${mission.id}');
-            expect(mission.choices, hasLength(2), reason: mission.id);
-            expect(
-              mission.choices,
-              contains(mission.correctAnswer),
-              reason: mission.id,
-            );
-            final expected =
-                target!.id.startsWith(RegExp(r'C(?:35|67)-L1-T01-'))
-                ? target.english.replaceFirst(RegExp(r'^[A-Z]\.\s*'), '')
-                : target.english;
-            expect(
-              expected,
-              mission.correctAnswer,
-              reason: 'Mission ${mission.id} changed its authored target.',
-            );
-            expect(level.topicNumbers, contains(mission.topicNumber));
-          }
-        }
-      },
-    );
+      expect(levels.expand((level) => level.missionBank), isEmpty);
+    });
 
     test('removes the listen-first pass and adds the approved Core cues', () {
       expect(
@@ -183,7 +161,7 @@ void main() {
       }
     });
 
-    test('preserves the V4 role-play and song placements', () async {
+    test('removes role-play and preserves the five song placements', () async {
       final rolePlayLessons = lessons
           .where((lesson) => lesson.rolePlay != null)
           .toList(growable: false);
@@ -191,34 +169,7 @@ void main() {
           .where((lesson) => lesson.songTitle != null)
           .toList(growable: false);
 
-      expect(rolePlayLessons, hasLength(10));
-      expect(
-        rolePlayLessons.map((lesson) => lesson.id).toSet(),
-        equals(const <String>{
-          'c810-l1-t02-b02',
-          'c810-l2-t04-b03',
-          'c810-l3-t07-b02',
-          'c810-l3-t08-b02',
-          'c1112-l3-t07-b02',
-          'c1112-l3-t08-b02',
-          'c1315-l1-t03-b01',
-          'c1315-l3-t07-b02',
-          'c1315-l3-t08-b02',
-          'c1315-l3-t09-b02',
-        }),
-      );
-      for (final lesson in rolePlayLessons) {
-        final coreEnglish = lesson.sentences
-            .map((sentence) => sentence.english)
-            .toSet();
-        final turns = lesson.rolePlay!.turns;
-        expect(turns, isNotEmpty, reason: lesson.id);
-        expect(
-          turns.every((turn) => coreEnglish.contains(turn.english)),
-          isTrue,
-          reason: 'Role-play ${lesson.id} must use only its lesson targets.',
-        );
-      }
+      expect(rolePlayLessons, isEmpty);
 
       expect(songLessons, hasLength(5));
       expect(
@@ -267,7 +218,7 @@ void main() {
 
       expect(
         entryFor('SONG_PREALERT')['sourceText'],
-        'Tiếp theo là hai câu thử thách. Xong rồi mình nghe bài hát [SONG_TITLE] nhé.',
+        'Tiếp theo là một câu thử thách. Xong rồi mình nghe bài hát [SONG_TITLE] nhé.',
       );
       expect(
         entryFor('SONG_START_CUE')['sourceText'],

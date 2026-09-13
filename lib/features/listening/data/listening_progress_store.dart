@@ -6,11 +6,19 @@ enum ListeningResumeStage {
   core,
   challenge,
   song,
+  // Legacy persisted values are retained only so V4 installations migrate
+  // safely. The redesigned runtime never writes these stages.
   mission,
   reinforcement,
   completed,
-  // Appended to preserve the persisted indexes of every existing stage.
   rolePlay,
+}
+
+enum ListeningSessionResult {
+  pending,
+  achieved,
+  notAchievedPending,
+  skippedPending,
 }
 
 class ListeningTopicSelectionCheckpoint {
@@ -32,8 +40,17 @@ class ListeningProgressStore {
       '__listening-learning-guide-opened-v2';
   static const String _needsPracticeMarker = '::needs-practice::';
   static const String _levelMissionPassedMarker = '::level-mission-passed';
-  static const String _v4LessonActivityPassedMarker =
+  static const String _legacyV4LessonActivityPassedMarker =
       '::v4-lesson-activity-passed';
+  static const String _lessonCompletedMarker = '::lesson-completed-v5';
+  static const String _challengeProcessedMarker = '::challenge-processed-v5';
+  static const String _sessionResultMarker = '::session-result-v5::';
+  static const String _currentChallengeIndexSuffix =
+      '::current-challenge-index-v5';
+  static const String _challengeRotationMaskSuffix =
+      '::challenge-rotation-mask-v5';
+  static const String _levelCompletionEventSuffix =
+      '::level-completion-event-created-v5';
   static const String _resumeStageSuffix = '::resume-stage';
   static const String _coreStartedSuffix = '::core-started';
   static const String _missionSelectedMarker = '::mission-selected::';
@@ -64,7 +81,13 @@ class ListeningProgressStore {
           key.contains(_skippedMarker) ||
           key.contains(_needsPracticeMarker) ||
           key.endsWith(_levelMissionPassedMarker) ||
-          key.endsWith(_v4LessonActivityPassedMarker) ||
+          key.endsWith(_legacyV4LessonActivityPassedMarker) ||
+          key.endsWith(_lessonCompletedMarker) ||
+          key.endsWith(_challengeProcessedMarker) ||
+          key.contains(_sessionResultMarker) ||
+          key.endsWith(_currentChallengeIndexSuffix) ||
+          key.endsWith(_challengeRotationMaskSuffix) ||
+          key.endsWith(_levelCompletionEventSuffix) ||
           key.endsWith(_resumeStageSuffix) ||
           key.endsWith(_coreStartedSuffix) ||
           key.contains(_missionSelectedMarker) ||
@@ -206,42 +229,172 @@ class ListeningProgressStore {
     await _writeRaw(progress);
   }
 
-  /// V4 lessons are complete only after the learner finishes both authored
-  /// end-of-lesson challenges. Core sentence progress remains separate so a
-  /// learner who leaves during the challenge resumes at the final sentence
-  /// instead of being shown as having completed the lesson or topic.
+  /// A redesigned lesson is complete only after every Core is processed, its
+  /// single Challenge is processed, and the optional Song is played/skipped.
+  /// This historical marker is intentionally preserved during Relearn.
   Future<Set<String>> readCompletedV4LessonActivities() async {
     final progress = await _readRaw();
-    return progress.entries
+    final completed = progress.entries
         .where(
           (entry) =>
-              entry.value == 1 &&
-              entry.key.endsWith(_v4LessonActivityPassedMarker),
+              entry.value == 1 && entry.key.endsWith(_lessonCompletedMarker),
         )
         .map(
           (entry) => entry.key.substring(
             0,
-            entry.key.length - _v4LessonActivityPassedMarker.length,
+            entry.key.length - _lessonCompletedMarker.length,
           ),
         )
         .where((lessonId) => lessonId.isNotEmpty)
         .toSet();
+    // V4 wrote the activity marker after Challenge, then moved Resume to
+    // completed only after Song/Mission. Requiring both safely migrates only
+    // genuinely completed historical lessons.
+    for (final entry in progress.entries) {
+      if (entry.value != 1 ||
+          !entry.key.endsWith(_legacyV4LessonActivityPassedMarker)) {
+        continue;
+      }
+      final lessonId = entry.key.substring(
+        0,
+        entry.key.length - _legacyV4LessonActivityPassedMarker.length,
+      );
+      if (progress['$lessonId$_resumeStageSuffix'] ==
+          ListeningResumeStage.completed.index) {
+        completed.add(lessonId);
+      }
+    }
+    return completed;
   }
 
   Future<bool> hasCompletedV4LessonActivity(String lessonId) async {
     final progress = await _readRaw();
-    return progress['$lessonId$_v4LessonActivityPassedMarker'] == 1;
+    return progress['$lessonId$_lessonCompletedMarker'] == 1 ||
+        (progress['$lessonId$_legacyV4LessonActivityPassedMarker'] == 1 &&
+            progress['$lessonId$_resumeStageSuffix'] ==
+                ListeningResumeStage.completed.index);
   }
 
   Future<void> markV4LessonActivityCompleted(String lessonId) async {
     final progress = await _readRaw();
-    progress['$lessonId$_v4LessonActivityPassedMarker'] = 1;
+    progress['$lessonId$_lessonCompletedMarker'] = 1;
+    progress.remove('$lessonId$_currentChallengeIndexSuffix');
     await _writeRaw(progress);
   }
 
   Future<void> clearV4LessonActivityCompleted(String lessonId) async {
     final progress = await _readRaw();
-    progress.remove('$lessonId$_v4LessonActivityPassedMarker');
+    progress.remove('$lessonId$_lessonCompletedMarker');
+    await _writeRaw(progress);
+  }
+
+  Future<bool> hasProcessedLessonChallenge(String lessonId) async {
+    final progress = await _readRaw();
+    return progress['$lessonId$_challengeProcessedMarker'] == 1 ||
+        progress['$lessonId$_legacyV4LessonActivityPassedMarker'] == 1;
+  }
+
+  Future<void> markLessonChallengeProcessed(String lessonId) async {
+    final progress = await _readRaw();
+    progress['$lessonId$_challengeProcessedMarker'] = 1;
+    await _writeRaw(progress);
+  }
+
+  Future<ListeningSessionResult> readSessionResult(
+    String lessonId,
+    int sentenceIndex,
+  ) async {
+    final raw =
+        (await _readRaw())['$lessonId$_sessionResultMarker$sentenceIndex'];
+    if (raw == null || raw < 0 || raw >= ListeningSessionResult.values.length) {
+      return ListeningSessionResult.pending;
+    }
+    return ListeningSessionResult.values[raw];
+  }
+
+  Future<Map<int, ListeningSessionResult>> readSessionResults(
+    String lessonId,
+  ) async {
+    final progress = await _readRaw();
+    final prefix = '$lessonId$_sessionResultMarker';
+    final results = <int, ListeningSessionResult>{};
+    for (final entry in progress.entries) {
+      if (!entry.key.startsWith(prefix)) continue;
+      final index = int.tryParse(entry.key.substring(prefix.length));
+      if (index == null ||
+          entry.value < 0 ||
+          entry.value >= ListeningSessionResult.values.length) {
+        continue;
+      }
+      results[index] = ListeningSessionResult.values[entry.value];
+    }
+    return results;
+  }
+
+  Future<void> saveSessionResult(
+    String lessonId,
+    int sentenceIndex,
+    ListeningSessionResult result,
+  ) async {
+    final progress = await _readRaw();
+    final key = '$lessonId$_sessionResultMarker$sentenceIndex';
+    final previous = progress[key];
+    // An achieved Core cannot be downgraded by a later replay in this session.
+    if (previous == ListeningSessionResult.achieved.index &&
+        result != ListeningSessionResult.achieved) {
+      return;
+    }
+    progress[key] = result.index;
+    await _writeRaw(progress);
+  }
+
+  Future<int?> readCurrentChallengeIndex(String lessonId) async {
+    final value = (await _readRaw())['$lessonId$_currentChallengeIndexSuffix'];
+    return value == null || value < 0 ? null : value;
+  }
+
+  Future<void> saveCurrentChallengeIndex(String lessonId, int index) async {
+    final progress = await _readRaw();
+    progress['$lessonId$_currentChallengeIndexSuffix'] = index;
+    await _writeRaw(progress);
+  }
+
+  Future<int> readChallengeRotationMask(String lessonId) async {
+    return (await _readRaw())['$lessonId$_challengeRotationMaskSuffix'] ?? 0;
+  }
+
+  Future<void> markChallengeUsed(
+    String lessonId, {
+    required int index,
+    required int challengeCount,
+  }) async {
+    if (index < 0 || challengeCount <= 0 || challengeCount > 30) return;
+    final progress = await _readRaw();
+    final key = '$lessonId$_challengeRotationMaskSuffix';
+    var mask = progress[key] ?? 0;
+    final fullMask = (1 << challengeCount) - 1;
+    if ((mask & fullMask) == fullMask) mask = 0;
+    progress[key] = mask | (1 << index);
+    progress.remove('$lessonId$_currentChallengeIndexSuffix');
+    await _writeRaw(progress);
+  }
+
+  Future<void> resetLessonRun(String lessonId) async {
+    final progress = await _readRaw();
+    progress
+      ..remove('$lessonId$_challengeProcessedMarker')
+      ..remove('$lessonId$_currentChallengeIndexSuffix')
+      ..remove('$lessonId$_coreStartedSuffix')
+      ..remove('$lessonId$_resumeSuffix')
+      ..remove('$lessonId$_resumeStageSuffix');
+    progress.removeWhere(
+      (key, _) =>
+          key.startsWith('$lessonId$_sessionResultMarker') ||
+          key.startsWith('$lessonId$_skippedMarker') ||
+          key.startsWith('$lessonId$_needsPracticeMarker'),
+    );
+    progress['$lessonId$_resumeSuffix'] = 0;
+    progress['$lessonId$_resumeStageSuffix'] = ListeningResumeStage.core.index;
     await _writeRaw(progress);
   }
 
@@ -252,7 +405,13 @@ class ListeningProgressStore {
         value >= ListeningResumeStage.values.length) {
       return ListeningResumeStage.core;
     }
-    return ListeningResumeStage.values[value];
+    final stage = ListeningResumeStage.values[value];
+    return switch (stage) {
+      ListeningResumeStage.mission ||
+      ListeningResumeStage.reinforcement ||
+      ListeningResumeStage.rolePlay => ListeningResumeStage.challenge,
+      _ => stage,
+    };
   }
 
   Future<void> saveResumeStage(
@@ -481,6 +640,16 @@ class ListeningProgressStore {
     return true;
   }
 
+  /// Returns true only for the first historical completion of this Level.
+  Future<bool> markLevelCompletionEventCreated(String levelId) async {
+    final progress = await _readRaw();
+    final key = '$levelId$_levelCompletionEventSuffix';
+    if (progress[key] == 1) return false;
+    progress[key] = 1;
+    await _writeRaw(progress);
+    return true;
+  }
+
   Future<void> saveLesson(String lessonId, int completedSentences) async {
     final progress = await _readRaw();
     final previous = progress[lessonId] ?? 0;
@@ -495,16 +664,19 @@ class ListeningProgressStore {
   Future<void> resetLessonsForRelearn(Iterable<String> lessonIds) async {
     final progress = await _readRaw();
     for (final lessonId in lessonIds.where((id) => id.trim().isNotEmpty)) {
-      progress.remove(lessonId);
-      progress.remove('$lessonId$_resumeSuffix');
-      progress.remove('$lessonId$_v4LessonActivityPassedMarker');
-      progress.remove('$lessonId$_resumeStageSuffix');
+      // Relearn is a new run, not a rollback of historical completion.
+      progress['$lessonId$_resumeSuffix'] = 0;
+      progress['$lessonId$_resumeStageSuffix'] =
+          ListeningResumeStage.core.index;
+      progress.remove('$lessonId$_challengeProcessedMarker');
+      progress.remove('$lessonId$_currentChallengeIndexSuffix');
       progress.remove('$lessonId$_coreStartedSuffix');
       progress['$lessonId$_lessonRelearnPendingSuffix'] = 1;
       progress.removeWhere(
         (key, _) =>
             key.startsWith('$lessonId$_skippedMarker') ||
-            key.startsWith('$lessonId$_needsPracticeMarker'),
+            key.startsWith('$lessonId$_needsPracticeMarker') ||
+            key.startsWith('$lessonId$_sessionResultMarker'),
       );
     }
     await _writeRaw(progress);
@@ -516,19 +688,22 @@ class ListeningProgressStore {
   }) async {
     final progress = await _readRaw();
     for (final lessonId in lessonIds.where((id) => id.trim().isNotEmpty)) {
-      progress.remove(lessonId);
-      progress.remove('$lessonId$_resumeSuffix');
-      progress.remove('$lessonId$_v4LessonActivityPassedMarker');
-      progress.remove('$lessonId$_resumeStageSuffix');
+      progress['$lessonId$_resumeSuffix'] = 0;
+      progress['$lessonId$_resumeStageSuffix'] =
+          ListeningResumeStage.core.index;
+      progress.remove('$lessonId$_challengeProcessedMarker');
+      progress.remove('$lessonId$_currentChallengeIndexSuffix');
       progress.remove('$lessonId$_coreStartedSuffix');
       progress['$lessonId$_lessonRelearnPendingSuffix'] = 1;
       progress.removeWhere(
         (key, _) =>
             key.startsWith('$lessonId$_skippedMarker') ||
-            key.startsWith('$lessonId$_needsPracticeMarker'),
+            key.startsWith('$lessonId$_needsPracticeMarker') ||
+            key.startsWith('$lessonId$_sessionResultMarker'),
       );
     }
-    progress.remove('$levelId$_levelMissionPassedMarker');
+    // Historical progression must remain stable while an older Level is
+    // being relearned.
     progress.removeWhere(
       (key, _) =>
           key.startsWith('$levelId$_missionSelectedMarker') ||

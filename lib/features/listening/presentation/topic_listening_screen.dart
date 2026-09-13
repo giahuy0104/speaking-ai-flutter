@@ -96,7 +96,6 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
   Map<String, int> _lessonProgress = const <String, int>{};
   Set<String> _completedV4LessonActivities = const <String>{};
   Set<String> _startedLessonIds = const <String>{};
-  Set<String> _passedLevelIds = const <String>{};
   late final LessonMediaService _historyMediaService;
   late final VoicePromptService _voicePromptService;
   late final bool _ownsVoicePromptService;
@@ -413,7 +412,6 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
         _lessonProgress = progress.lessonProgress;
         _completedV4LessonActivities = progress.completedV4LessonActivities;
         _startedLessonIds = progress.startedLessonIds;
-        _passedLevelIds = progress.passedLevelIds;
       });
       if (widget.initialVoiceTarget != null) {
         unawaited(_openInitialVoiceTarget());
@@ -438,29 +436,13 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     final completedActivitiesFuture = widget.progressStore
         .readCompletedV4LessonActivities();
     final startedLessonsFuture = widget.progressStore.readStartedLessonCores();
-    final group = catalog.groups.firstWhere(
-      (candidate) =>
-          candidate.startAge == _catalog.startAge &&
-          candidate.endAge == _catalog.endAge,
-    );
-    final passedLevelFlagsFuture = Future.wait<bool>(
-      group.levels.map(
-        (level) => widget.progressStore.hasPassedLevelMission(level.id),
-      ),
-    );
     final lessonProgress = await lessonProgressFuture;
     final completedV4LessonActivities = await completedActivitiesFuture;
     final startedLessonIds = await startedLessonsFuture;
-    final passedLevelFlags = await passedLevelFlagsFuture;
-    final passedLevelIds = <String>{
-      for (var index = 0; index < group.levels.length; index += 1)
-        if (passedLevelFlags[index]) group.levels[index].id,
-    };
     return _ListeningProgressSnapshot(
       lessonProgress: lessonProgress,
       completedV4LessonActivities: completedV4LessonActivities,
       startedLessonIds: startedLessonIds,
-      passedLevelIds: passedLevelIds,
     );
   }
 
@@ -473,7 +455,6 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
       _lessonProgress = progress.lessonProgress;
       _completedV4LessonActivities = progress.completedV4LessonActivities;
       _startedLessonIds = progress.startedLessonIds;
-      _passedLevelIds = progress.passedLevelIds;
     });
     return progress;
   }
@@ -528,7 +509,12 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
       );
       final level = group.level(content.levelNumber);
       return level != null &&
-          !ListeningCurriculumFlow.levelUnlocked(group, level, _passedLevelIds);
+          !ListeningCurriculumFlow.levelUnlocked(
+            group,
+            level,
+            _lessonProgress,
+            _completedV4LessonActivities,
+          );
     } catch (_) {
       return false;
     }
@@ -550,7 +536,8 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     );
     final currentLevel = ListeningCurriculumFlow.currentUnlockedLevelNumber(
       group,
-      _passedLevelIds,
+      _lessonProgress,
+      _completedV4LessonActivities,
     );
     final hasStarted =
         _lessonProgress.values.any((value) => value > 0) ||
@@ -662,11 +649,13 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           !ListeningCurriculumFlow.levelUnlocked(
             contentGroup,
             level,
-            _passedLevelIds,
+            _lessonProgress,
+            _completedV4LessonActivities,
           )) {
         final current = ListeningCurriculumFlow.currentUnlockedLevelNumber(
           contentGroup,
-          _passedLevelIds,
+          _lessonProgress,
+          _completedV4LessonActivities,
         );
         final message = 'Bạn cần hoàn thành Level $current trước nhé.';
         if (mounted) {
@@ -681,7 +670,6 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
         lessonProgress: _lessonProgress,
         completedV4LessonActivities: _completedV4LessonActivities,
         startedLessonIds: _startedLessonIds,
-        passedLevelIds: _passedLevelIds,
       );
       final state = ListeningCurriculumFlow.topicState(
         content,
@@ -845,13 +833,11 @@ class _ListeningProgressSnapshot {
     required this.lessonProgress,
     required this.completedV4LessonActivities,
     required this.startedLessonIds,
-    required this.passedLevelIds,
   });
 
   final Map<String, int> lessonProgress;
   final Set<String> completedV4LessonActivities;
   final Set<String> startedLessonIds;
-  final Set<String> passedLevelIds;
 }
 
 class _CenteredSection extends StatelessWidget {

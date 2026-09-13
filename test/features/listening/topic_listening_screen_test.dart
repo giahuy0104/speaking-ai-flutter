@@ -406,11 +406,7 @@ void main() {
         (lesson) => lesson.id == 'c810-l1-t02-b02',
       );
       expect(classroomTalk.titleEn, 'Classroom Talk');
-      expect(classroomTalk.rolePlay?.scenarioVi, 'Bạn đang ở trước cửa lớp.');
-      expect(
-        classroomTalk.rolePlay?.turns.map((turn) => turn.english),
-        <String>['Can I come in?', 'Yes, come in.', 'Thank you.'],
-      );
+      expect(classroomTalk.rolePlay, isNull);
 
       final advanced = content.topic(startAge: 13, endAge: 15, topicNumber: 3);
       expect(advanced.titleVi, 'Nêu ý kiến');

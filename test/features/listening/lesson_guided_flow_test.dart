@@ -320,7 +320,7 @@ void main() {
       (message) => message == 'vi-VN|Đúng rồi!',
     );
     final firstStarIndex = voicePrompts.spoken.indexWhere(
-      (message) => message.contains('Bạn vừa nhận một Ngôi sao!'),
+      (message) => message.contains('Bạn vừa nhận Ngôi sao đầu tiên!'),
     );
     expect(praiseIndex, greaterThanOrEqualTo(0));
     expect(firstStarIndex, greaterThan(praiseIndex));
@@ -2463,8 +2463,15 @@ class _MemoryProgressStore extends ListeningProgressStore {
   int completed = 0;
   bool learningGuideOpened = false;
   bool coreStarted = false;
+  bool challengeProcessed = false;
+  ListeningResumeStage resumeStage = ListeningResumeStage.core;
   final Set<int> needsPractice = <int>{};
   final Set<String> earnedStars = <String>{};
+  final Set<String> completedActivities = <String>{};
+  final Map<int, ListeningSessionResult> sessionResults =
+      <int, ListeningSessionResult>{};
+  int? currentChallengeIndex;
+  int challengeRotationMask = 0;
 
   @override
   Future<Map<String, int>> readAll() async => <String, int>{};
@@ -2511,6 +2518,30 @@ class _MemoryProgressStore extends ListeningProgressStore {
       Set<int>.of(needsPractice);
 
   @override
+  Future<Map<int, ListeningSessionResult>> readSessionResults(
+    String lessonId,
+  ) async => Map<int, ListeningSessionResult>.of(sessionResults);
+
+  @override
+  Future<ListeningSessionResult> readSessionResult(
+    String lessonId,
+    int sentenceIndex,
+  ) async => sessionResults[sentenceIndex] ?? ListeningSessionResult.pending;
+
+  @override
+  Future<void> saveSessionResult(
+    String lessonId,
+    int sentenceIndex,
+    ListeningSessionResult result,
+  ) async {
+    if (sessionResults[sentenceIndex] == ListeningSessionResult.achieved &&
+        result != ListeningSessionResult.achieved) {
+      return;
+    }
+    sessionResults[sentenceIndex] = result;
+  }
+
+  @override
   Future<void> saveNeedsPracticeSentence(
     String lessonId,
     int sentenceIndex,
@@ -2536,7 +2567,68 @@ class _MemoryProgressStore extends ListeningProgressStore {
       earnedStars.add(starId);
 
   @override
+  Future<Set<String>> readEarnedStars(String scopeId) async =>
+      Set<String>.of(earnedStars);
+
+  @override
   Future<int> readTotalEarnedStars() async => earnedStars.length;
+
+  @override
+  Future<bool> hasCompletedV4LessonActivity(String lessonId) async =>
+      completedActivities.contains(lessonId);
+
+  @override
+  Future<Set<String>> readCompletedV4LessonActivities() async =>
+      Set<String>.of(completedActivities);
+
+  @override
+  Future<void> markV4LessonActivityCompleted(String lessonId) async {
+    completedActivities.add(lessonId);
+  }
+
+  @override
+  Future<bool> hasProcessedLessonChallenge(String lessonId) async =>
+      challengeProcessed;
+
+  @override
+  Future<void> markLessonChallengeProcessed(String lessonId) async {
+    challengeProcessed = true;
+  }
+
+  @override
+  Future<ListeningResumeStage> readResumeStage(String lessonId) async =>
+      resumeStage;
+
+  @override
+  Future<void> saveResumeStage(
+    String lessonId,
+    ListeningResumeStage stage,
+  ) async {
+    resumeStage = stage;
+  }
+
+  @override
+  Future<int?> readCurrentChallengeIndex(String lessonId) async =>
+      currentChallengeIndex;
+
+  @override
+  Future<void> saveCurrentChallengeIndex(String lessonId, int index) async {
+    currentChallengeIndex = index;
+  }
+
+  @override
+  Future<int> readChallengeRotationMask(String lessonId) async =>
+      challengeRotationMask;
+
+  @override
+  Future<void> markChallengeUsed(
+    String lessonId, {
+    required int index,
+    required int challengeCount,
+  }) async {
+    challengeRotationMask |= 1 << index;
+    currentChallengeIndex = null;
+  }
 
   @override
   Future<void> saveLesson(String lessonId, int completedSentences) async {

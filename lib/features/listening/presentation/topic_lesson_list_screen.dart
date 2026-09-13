@@ -439,13 +439,10 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
         ? _mediaService.unlockPlaybackForUserGesture()
         : null;
     if (startFromBeginning) {
-      await widget.progressStore.saveCurrentSentence(lesson.id, 0);
       if (lesson.usesV4Flow) {
-        await widget.progressStore.clearV4LessonActivityCompleted(lesson.id);
-        await widget.progressStore.saveResumeStage(
-          lesson.id,
-          ListeningResumeStage.core,
-        );
+        await widget.progressStore.resetLessonRun(lesson.id);
+      } else {
+        await widget.progressStore.saveCurrentSentence(lesson.id, 0);
       }
     }
     await unlockFuture;

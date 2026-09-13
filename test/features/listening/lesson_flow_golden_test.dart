@@ -362,6 +362,7 @@ void main() {
           mediaService: mediaService,
           guideAudioLibrary: _silentGuideAudioLibrary(),
           voicePromptService: const _GoldenVoicePromptService(),
+          initialResumeStage: ListeningResumeStage.challenge,
         ),
       ),
     );
@@ -370,10 +371,6 @@ void main() {
       find.byType(LessonPracticeScreen),
       const <AssetImage>[AssetImage('assets/images/mascot/penguin-speak.png')],
     );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const Key('continue-lesson-sentence')));
-    await tester.pump();
     await tester.pumpAndSettle();
     expect(find.byType(LessonChallengeScreen), findsOneWidget);
     await _precache(
@@ -622,6 +619,46 @@ class _GoldenProgressStore extends ListeningProgressStore {
 
   @override
   Future<Set<int>> readNeedsPracticeSentences(String lessonId) async => <int>{};
+
+  @override
+  Future<Map<int, ListeningSessionResult>> readSessionResults(
+    String lessonId,
+  ) async => <int, ListeningSessionResult>{};
+
+  @override
+  Future<ListeningSessionResult> readSessionResult(
+    String lessonId,
+    int sentenceIndex,
+  ) async => ListeningSessionResult.pending;
+
+  @override
+  Future<void> saveSessionResult(
+    String lessonId,
+    int sentenceIndex,
+    ListeningSessionResult result,
+  ) async {}
+
+  @override
+  Future<bool> hasProcessedLessonChallenge(String lessonId) async => false;
+
+  @override
+  Future<void> markLessonChallengeProcessed(String lessonId) async {}
+
+  @override
+  Future<int?> readCurrentChallengeIndex(String lessonId) async => null;
+
+  @override
+  Future<void> saveCurrentChallengeIndex(String lessonId, int index) async {}
+
+  @override
+  Future<int> readChallengeRotationMask(String lessonId) async => 0;
+
+  @override
+  Future<void> markChallengeUsed(
+    String lessonId, {
+    required int index,
+    required int challengeCount,
+  }) async {}
 
   @override
   Future<void> saveSkippedSentence(String lessonId, int sentenceIndex) async {}

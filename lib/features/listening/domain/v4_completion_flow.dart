@@ -22,15 +22,28 @@ enum V4CompletionAction {
   relearnLevel3,
 }
 
-String v4CompletionPrompt(V4CompletionStage stage, {int? nextLevel}) {
+String v4CompletionPrompt(
+  V4CompletionStage stage, {
+  int? currentLesson,
+  int? nextLesson,
+  int? topicNumber,
+  int? nextLevel,
+}) {
   return switch (stage) {
     V4CompletionStage.lessonEnd =>
-      'Bạn muốn học bài tiếp theo hay học lại bài này?',
-    V4CompletionStage.topicEnd => 'Bạn muốn học chủ đề khác hay học lại?',
+      currentLesson != null && nextLesson != null
+          ? 'Bạn muốn học Bài $nextLesson hay học lại Bài $currentLesson?'
+          : 'Bạn muốn học bài tiếp theo hay học lại bài này?',
+    V4CompletionStage.topicEnd =>
+      topicNumber != null
+          ? 'Bạn muốn chọn Chủ đề khác hay học lại Chủ đề $topicNumber?'
+          : 'Bạn muốn học chủ đề khác hay học lại?',
     V4CompletionStage.topicEndOneRemaining =>
       'Bạn còn một Chủ đề chưa học. Bạn muốn học tiếp hay học lại?',
     V4CompletionStage.topicRelearnScope =>
-      'Bạn muốn học lại toàn bộ chủ đề hay chỉ học lại bài này?',
+      topicNumber != null && currentLesson != null
+          ? 'Bạn muốn học lại toàn bộ Chủ đề $topicNumber hay chỉ học lại Bài $currentLesson?'
+          : 'Bạn muốn học lại toàn bộ chủ đề hay chỉ học lại bài này?',
     V4CompletionStage.nextLevel =>
       'Bạn muốn bắt đầu Level ${nextLevel ?? ''} hay dừng lại?'.replaceAll(
         'Level  ',

@@ -115,14 +115,15 @@ void main() {
     expect(find.text('Nghe và trả lời'), findsNothing);
   });
 
-  testWidgets('role-play defers praise until its end summary', (tester) async {
+  testWidgets('legacy role-play cannot award a Star', (tester) async {
     await _usePhoneSurface(tester);
     final voicePrompt = _RecordingVoicePromptService();
+    var starCallbacks = 0;
     await tester.pumpWidget(
       _subject(
         startAge: 8,
         voicePromptService: voicePrompt,
-        onStarEarned: (_, _, _) async {},
+        onStarEarned: (_, _, _) async => starCallbacks += 1,
       ),
     );
     await tester.pump();
@@ -131,11 +132,12 @@ void main() {
     await tester.tap(find.byKey(const Key('lesson-challenge-record-button')));
     await _pumpChallengeTransition(tester);
 
-    expect(voicePrompt.spoken, isNot(contains('vi-VN|Great!')));
+    expect(voicePrompt.spoken, contains('vi-VN|Great!'));
     expect(
       voicePrompt.spoken,
-      contains('vi-VN|Bạn đã hoàn thành đoạn hội thoại và có thêm 1 Ngôi sao.'),
+      contains('vi-VN|Bạn đã hoàn thành đoạn hội thoại rồi.'),
     );
+    expect(starCallbacks, 0);
     expect(find.text('Thử thách nghe'), findsOneWidget);
   });
 
@@ -180,115 +182,66 @@ void main() {
     },
   );
 
-  testWidgets(
-    'automatically opens the H20 microphone again for challenge two',
-    (tester) async {
-      await _usePhoneSurface(tester);
-      final mediaService = _FakeLessonMediaService();
-      final earnedStars = <String>[];
-      await tester.pumpWidget(
-        _subject(
-          startAge: 7,
-          mediaService: mediaService,
-          onStarEarned: (targetId, _, _) async => earnedStars.add(targetId),
-          challenges: const <ListeningChallengeContent>[
-            ListeningChallengeContent(
-              id: 'challenge-1',
-              format: 'VI_TO_EN',
-              prompt: 'Where is the library?',
-              choices: <String>['Go straight.', 'It is five dollars.'],
-              correctAnswer: 'Go straight.',
-              correctVietnamese: 'Đi thẳng.',
-              targetId: 'target-1',
-            ),
-            ListeningChallengeContent(
-              id: 'challenge-2',
-              format: 'VI_TO_EN',
-              prompt: 'How are you?',
-              choices: <String>['I am fine.', 'I am eight.'],
-              correctAnswer: 'I am fine.',
-              correctVietnamese: 'Con khỏe.',
-              targetId: 'target-2',
-            ),
-          ],
-        ),
-      );
-      await tester.pump();
-      await tester.pump();
+  testWidgets('multiple legacy inputs never award Challenge Stars', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final mediaService = _FakeLessonMediaService();
+    final earnedStars = <String>[];
+    await tester.pumpWidget(
+      _subject(
+        startAge: 7,
+        mediaService: mediaService,
+        onStarEarned: (targetId, _, _) async => earnedStars.add(targetId),
+        challenges: const <ListeningChallengeContent>[
+          ListeningChallengeContent(
+            id: 'challenge-1',
+            format: 'VI_TO_EN',
+            prompt: 'Where is the library?',
+            choices: <String>['Go straight.', 'It is five dollars.'],
+            correctAnswer: 'Go straight.',
+            correctVietnamese: 'Đi thẳng.',
+            targetId: 'target-1',
+          ),
+          ListeningChallengeContent(
+            id: 'challenge-2',
+            format: 'VI_TO_EN',
+            prompt: 'How are you?',
+            choices: <String>['I am fine.', 'I am eight.'],
+            correctAnswer: 'I am fine.',
+            correctVietnamese: 'Con khỏe.',
+            targetId: 'target-2',
+          ),
+        ],
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
 
-      expect(mediaService.selectedOutputPreparations, 1);
-      expect(mediaService.recordingStarts, 1);
-      expect(find.text('Dừng và chấm'), findsOneWidget);
+    expect(mediaService.selectedOutputPreparations, 1);
+    expect(mediaService.recordingStarts, 1);
+    expect(find.text('Dừng và chấm'), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('lesson-challenge-record-button')));
-      await _pumpChallengeTransition(tester);
+    await tester.tap(find.byKey(const Key('lesson-challenge-record-button')));
+    await _pumpChallengeTransition(tester);
 
-      expect(find.text('Câu 2/2'), findsOneWidget);
-      // Correct feedback is spoken before the second authored question.
-      expect(mediaService.selectedOutputPreparations, 3);
-      expect(mediaService.recordingStarts, 2);
-      expect(earnedStars, <String>['challenge-1']);
-      expect(find.text('Dừng và chấm'), findsOneWidget);
-    },
-  );
+    expect(find.text('Câu 2/2'), findsOneWidget);
+    // Correct feedback is spoken before the second authored question.
+    expect(mediaService.selectedOutputPreparations, 3);
+    expect(mediaService.recordingStarts, 2);
+    expect(earnedStars, isEmpty);
+    expect(find.text('Dừng và chấm'), findsOneWidget);
+  });
 
-  testWidgets(
-    'skip cancels recording, gives the answer, and opens challenge two',
-    (tester) async {
-      await _usePhoneSurface(tester);
-      final mediaService = _FakeLessonMediaService();
-      final evaluator = _QueuedAttemptEvaluator(<LessonAttemptOutcome>[]);
-      final voicePrompt = _RecordingVoicePromptService();
-      final earnedStars = <String>[];
-      await tester.pumpWidget(
-        _subject(
-          startAge: 7,
-          mediaService: mediaService,
-          attemptEvaluator: evaluator,
-          voicePromptService: voicePrompt,
-          onStarEarned: (starId, _, _) async => earnedStars.add(starId),
-          challenges: const <ListeningChallengeContent>[
-            ListeningChallengeContent(
-              id: 'challenge-1',
-              format: 'VI_TO_EN',
-              prompt: 'Where is the library?',
-              choices: <String>['Go straight.', 'It is five dollars.'],
-              correctAnswer: 'Go straight.',
-              correctVietnamese: 'Đi thẳng.',
-              targetId: 'target-1',
-            ),
-            ListeningChallengeContent(
-              id: 'challenge-2',
-              format: 'VI_TO_EN',
-              prompt: 'How are you?',
-              choices: <String>['I am fine.', 'I am eight.'],
-              correctAnswer: 'I am fine.',
-              correctVietnamese: 'Con khỏe.',
-              targetId: 'target-2',
-            ),
-          ],
-        ),
-      );
-      await tester.pump();
-      await tester.pump();
+  testWidgets('Challenge has no Skip action', (tester) async {
+    await _usePhoneSurface(tester);
+    await tester.pumpWidget(_subject(startAge: 7));
+    await tester.pump();
+    await tester.pump();
 
-      final skip = find.byKey(const Key('lesson-challenge-skip-button'));
-      await tester.ensureVisible(skip);
-      await tester.tap(skip);
-      await _pumpChallengeTransition(tester);
-
-      expect(find.text('Câu 2/2'), findsOneWidget);
-      expect(evaluator.evaluationCalls, 0);
-      expect(earnedStars, isEmpty);
-      expect(
-        voicePrompt.spoken,
-        containsAllInOrder(<String>[
-          'vi-VN|Được rồi. HOMI nói mẫu nhé.',
-          'en-US|Go straight.',
-        ]),
-      );
-    },
-  );
+    expect(find.byKey(const Key('lesson-challenge-skip-button')), findsNothing);
+    expect(find.textContaining('Bỏ qua'), findsNothing);
+  });
 
   testWidgets(
     'opens the H20 microphone when iOS TTS omits its finish callback',

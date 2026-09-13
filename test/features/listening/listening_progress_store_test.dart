@@ -115,51 +115,54 @@ void main() {
     },
   );
 
-  test('V4 resume stage and partial mission answers survive restart', () async {
-    final fixture = await _ProgressFixture.create();
-    addTearDown(fixture.dispose);
+  test(
+    'legacy stages migrate to Challenge while old data remains readable',
+    () async {
+      final fixture = await _ProgressFixture.create();
+      addTearDown(fixture.dispose);
 
-    await fixture.store.saveResumeStage(
-      'lesson-last',
-      ListeningResumeStage.mission,
-    );
-    await fixture.store.saveMissionSelection('level-1', <String>[
-      'm1',
-      'm2',
-      'm3',
-      'm4',
-    ]);
-    await fixture.store.saveMissionAnswer('level-1', 'm1', correct: true);
-    await fixture.store.saveMissionAnswer('level-1', 'm2', correct: false);
-    await fixture.store.saveMissionWeakTargets('level-1', <String>{'t2'});
-    await fixture.store.saveMissionAttempt('level-1', 1);
+      await fixture.store.saveResumeStage(
+        'lesson-last',
+        ListeningResumeStage.mission,
+      );
+      await fixture.store.saveMissionSelection('level-1', <String>[
+        'm1',
+        'm2',
+        'm3',
+        'm4',
+      ]);
+      await fixture.store.saveMissionAnswer('level-1', 'm1', correct: true);
+      await fixture.store.saveMissionAnswer('level-1', 'm2', correct: false);
+      await fixture.store.saveMissionWeakTargets('level-1', <String>{'t2'});
+      await fixture.store.saveMissionAttempt('level-1', 1);
 
-    expect(
-      await fixture.store.readResumeStage('lesson-last'),
-      ListeningResumeStage.mission,
-    );
-    expect(await fixture.store.readMissionSelection('level-1'), <String>[
-      'm1',
-      'm2',
-      'm3',
-      'm4',
-    ]);
-    expect(await fixture.store.readMissionAnswers('level-1'), <String, bool>{
-      'm1': true,
-      'm2': false,
-    });
-    expect(await fixture.store.readMissionWeakTargets('level-1'), <String>{
-      't2',
-    });
-    expect(await fixture.store.readMissionAttempt('level-1'), 1);
-    expect(await fixture.store.readAll(), isEmpty);
+      expect(
+        await fixture.store.readResumeStage('lesson-last'),
+        ListeningResumeStage.challenge,
+      );
+      expect(await fixture.store.readMissionSelection('level-1'), <String>[
+        'm1',
+        'm2',
+        'm3',
+        'm4',
+      ]);
+      expect(await fixture.store.readMissionAnswers('level-1'), <String, bool>{
+        'm1': true,
+        'm2': false,
+      });
+      expect(await fixture.store.readMissionWeakTargets('level-1'), <String>{
+        't2',
+      });
+      expect(await fixture.store.readMissionAttempt('level-1'), 1);
+      expect(await fixture.store.readAll(), isEmpty);
 
-    await fixture.store.clearMissionSession('level-1');
-    expect(await fixture.store.readMissionSelection('level-1'), isEmpty);
-    expect(await fixture.store.readMissionAnswers('level-1'), isEmpty);
-    expect(await fixture.store.readMissionWeakTargets('level-1'), isEmpty);
-    expect(await fixture.store.readMissionAttempt('level-1'), 0);
-  });
+      await fixture.store.clearMissionSession('level-1');
+      expect(await fixture.store.readMissionSelection('level-1'), isEmpty);
+      expect(await fixture.store.readMissionAnswers('level-1'), isEmpty);
+      expect(await fixture.store.readMissionWeakTargets('level-1'), isEmpty);
+      expect(await fixture.store.readMissionAttempt('level-1'), 0);
+    },
+  );
 
   test('first core sentence start persists without changing totals', () async {
     final fixture = await _ProgressFixture.create();
@@ -171,6 +174,60 @@ void main() {
     expect(await fixture.store.hasStartedLessonCore('lesson-first'), isTrue);
     expect(await fixture.store.readAll(), isEmpty);
   });
+
+  test(
+    'session achievement cannot be downgraded by navigation or replay',
+    () async {
+      final fixture = await _ProgressFixture.create();
+      addTearDown(fixture.dispose);
+
+      await fixture.store.saveSessionResult(
+        'lesson-session',
+        0,
+        ListeningSessionResult.achieved,
+      );
+      await fixture.store.saveSessionResult(
+        'lesson-session',
+        0,
+        ListeningSessionResult.skippedPending,
+      );
+
+      expect(
+        await fixture.store.readSessionResult('lesson-session', 0),
+        ListeningSessionResult.achieved,
+      );
+      expect(await fixture.store.readAll(), isEmpty);
+    },
+  );
+
+  test(
+    'Challenge selection survives interruption and rotates after processing',
+    () async {
+      final fixture = await _ProgressFixture.create();
+      addTearDown(fixture.dispose);
+
+      await fixture.store.saveCurrentChallengeIndex('lesson-challenge', 2);
+      expect(
+        await fixture.store.readCurrentChallengeIndex('lesson-challenge'),
+        2,
+      );
+
+      await fixture.store.markChallengeUsed(
+        'lesson-challenge',
+        index: 2,
+        challengeCount: 4,
+      );
+      expect(
+        await fixture.store.readCurrentChallengeIndex('lesson-challenge'),
+        isNull,
+      );
+      expect(
+        await fixture.store.readChallengeRotationMask('lesson-challenge'),
+        4,
+      );
+      expect(await fixture.store.readAll(), isEmpty);
+    },
+  );
 
   test(
     'stars are idempotent and course completion event is one-shot',
@@ -249,12 +306,18 @@ void main() {
       lessonIds: const <String>['lesson-1', 'lesson-2'],
     );
 
-    expect(await fixture.store.readAll(), isEmpty);
+    expect(await fixture.store.readAll(), <String, int>{
+      'lesson-1': 3,
+      'lesson-2': 3,
+    });
     expect(await fixture.store.readStartedLessonCores(), isEmpty);
-    expect(await fixture.store.readCompletedV4LessonActivities(), isEmpty);
+    expect(await fixture.store.readCompletedV4LessonActivities(), <String>{
+      'lesson-1',
+      'lesson-2',
+    });
     expect(await fixture.store.hasLessonPendingRelearn('lesson-1'), isTrue);
     expect(await fixture.store.hasLessonPendingRelearn('lesson-2'), isTrue);
-    expect(await fixture.store.hasPassedLevelMission('level-1'), isFalse);
+    expect(await fixture.store.hasPassedLevelMission('level-1'), isTrue);
     expect(await fixture.store.readMissionSelection('level-1'), isEmpty);
     expect(await fixture.store.readEarnedStars('lesson-1'), <String>{
       'core:t1',

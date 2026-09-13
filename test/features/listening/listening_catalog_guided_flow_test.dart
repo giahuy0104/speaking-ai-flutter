@@ -20,17 +20,12 @@ void main() {
       final challenges = lessons
           .expand((lesson) => lesson.challengeBank)
           .toList(growable: false);
-      final missions = catalog.groups
-          .expand((group) => group.levels)
-          .expand((level) => level.missionBank)
-          .toList(growable: false);
 
       expect(catalog.groups, hasLength(5));
       expect(topics, hasLength(50));
       expect(lessons, hasLength(109));
       expect(targets, hasLength(601));
-      expect(challenges, hasLength(872));
-      expect(missions, hasLength(180));
+      expect(challenges, hasLength(601));
       expect(
         lessons.where((lesson) => !lesson.usesV4Flow),
         isEmpty,
@@ -43,9 +38,11 @@ void main() {
             'A V4 target must not silently fall back to the legacy manual flow.',
       );
       expect(
-        lessons.every((lesson) => lesson.challengeBank.length == 8),
+        lessons.every(
+          (lesson) => lesson.challengeBank.length == lesson.sentences.length,
+        ),
         isTrue,
-        reason: 'The authored bank contains eight eligible checks per lesson.',
+        reason: 'Every Core has exactly one fixed authored Challenge.',
       );
       expect(
         targets.every(
@@ -64,6 +61,11 @@ void main() {
 
       for (final lesson in lessons) {
         final targetIds = lesson.sentences.map((target) => target.id).toSet();
+        expect(
+          lesson.challengeBank.map((challenge) => challenge.targetId).toSet(),
+          targetIds,
+          reason: lesson.id,
+        );
         for (final challenge in lesson.challengeBank) {
           expect(challenge.id, isNotEmpty, reason: lesson.id);
           expect(challenge.prompt, isNotEmpty, reason: challenge.id);
@@ -84,22 +86,7 @@ void main() {
           reason: '${group.startAge}-${group.endAge}',
         );
         for (final level in group.levels) {
-          expect(level.missionBank, hasLength(12), reason: level.id);
-          final coverageTargetIds = group.topics
-              .where((topic) => level.topicNumbers.contains(topic.number))
-              .expand((topic) => topic.lessons)
-              .expand((lesson) => lesson.sentences)
-              .map((target) => target.id)
-              .toSet();
-          for (final mission in level.missionBank) {
-            expect(mission.choices, hasLength(2), reason: mission.id);
-            expect(mission.choices, contains(mission.correctAnswer));
-            expect(
-              coverageTargetIds,
-              contains(mission.coverageTargetId),
-              reason: mission.id,
-            );
-          }
+          expect(level.missionBank, isEmpty, reason: level.id);
         }
       }
 
@@ -141,7 +128,7 @@ void main() {
     },
   );
 
-  test('V4 keeps songs and role plays as authored lesson metadata', () async {
+  test('redesign keeps songs and removes role plays', () async {
     final catalog = await AssetListeningContentRepository().load();
     final topics = catalog.groups
         .expand((group) => group.topics)
@@ -160,19 +147,6 @@ void main() {
       'c67-l3-t08-b01': "Let's Play Together",
       'c810-l1-t01-b02': 'My Busy Day',
     };
-    const expectedRolePlayLessons = <String, String>{
-      'c810-l1-t02-b02': 'Classroom Talk',
-      'c810-l2-t04-b03': 'Ask the Way',
-      'c810-l3-t07-b02': 'How Much?',
-      'c810-l3-t08-b02': 'Help a Friend',
-      'c1112-l3-t07-b02': 'Make a Plan',
-      'c1112-l3-t08-b02': 'Ask the Price',
-      'c1315-l1-t03-b01': 'My Opinion',
-      'c1315-l3-t07-b02': 'Ask for Info',
-      'c1315-l3-t08-b02': 'My Order',
-      'c1315-l3-t09-b02': 'My Choice',
-    };
-
     expect(songs, expectedSongs);
     expect(
       topics.expand((topic) => topic.songs),
@@ -185,33 +159,6 @@ void main() {
     final rolePlayLessons = lessons
         .where((lesson) => lesson.rolePlay != null)
         .toList(growable: false);
-    expect(rolePlayLessons, hasLength(10));
-    expect({
-      for (final lesson in rolePlayLessons) lesson.id: lesson.titleEn,
-    }, expectedRolePlayLessons);
-    for (final lesson in rolePlayLessons) {
-      final rolePlay = lesson.rolePlay!;
-      expect(rolePlay.scenarioVi, isNotEmpty, reason: lesson.id);
-      expect(rolePlay.turns, isNotEmpty, reason: lesson.id);
-      expect(
-        rolePlay.turns.any(
-          (turn) => turn.speaker == ListeningRolePlaySpeaker.child,
-        ),
-        isTrue,
-        reason: lesson.id,
-      );
-      expect(
-        rolePlay.turns.any(
-          (turn) => turn.speaker == ListeningRolePlaySpeaker.homi,
-        ),
-        isTrue,
-        reason: lesson.id,
-      );
-      expect(
-        rolePlay.turns.every((turn) => turn.english.trim().isNotEmpty),
-        isTrue,
-        reason: lesson.id,
-      );
-    }
+    expect(rolePlayLessons, isEmpty);
   });
 }

@@ -33,7 +33,7 @@ void main() {
     expect(v4SongPrealertAudioId, 'SONG_PREALERT');
     expect(
       v4SongPrealert('Count with Me'),
-      'Tiếp theo là hai câu thử thách. Xong rồi mình nghe bài hát Count with Me nhé.',
+      'Tiếp theo là một câu thử thách. Xong rồi mình nghe bài hát Count with Me nhé.',
     );
     expect(prompts.spoken, <String>['Bây giờ cùng nghe Count with Me nhé.']);
     expect(find.byKey(const Key('v4-song-stage-screen')), findsOneWidget);

@@ -69,7 +69,7 @@ void main() {
     );
   });
 
-  test('mission eligibility depends on every topic, not numeric order', () {
+  test('level completion depends on every topic, not numeric order', () {
     final progress = <String, int>{
       for (final number in <int>[1, 2])
         for (final lesson in topics[number - 1].lessons) lesson.id: 1,
@@ -99,15 +99,27 @@ void main() {
     );
   });
 
-  test('the next Level unlocks only after the previous mission passes', () {
+  test('the next Level unlocks only after all previous topics complete', () {
     expect(
-      ListeningCurriculumFlow.levelUnlocked(group, levels[1], const <String>{}),
+      ListeningCurriculumFlow.levelUnlocked(
+        group,
+        levels[1],
+        const <String, int>{},
+        const <String>{},
+      ),
       isFalse,
     );
+    final progress = <String, int>{
+      for (final topic in topics.take(3))
+        for (final lesson in topic.lessons) lesson.id: 1,
+    };
     expect(
-      ListeningCurriculumFlow.levelUnlocked(group, levels[1], const <String>{
-        'level-1',
-      }),
+      ListeningCurriculumFlow.levelUnlocked(
+        group,
+        levels[1],
+        progress,
+        const <String>{},
+      ),
       isTrue,
     );
   });

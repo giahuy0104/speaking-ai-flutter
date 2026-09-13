@@ -94,10 +94,18 @@ abstract final class ListeningCurriculumFlow {
 
   static int currentUnlockedLevelNumber(
     ListeningContentAgeGroup group,
-    Set<String> passedLevelIds,
+    Map<String, int> progress,
+    Set<String> completedActivities,
   ) {
     for (final level in group.levels) {
-      if (!passedLevelIds.contains(level.id)) return level.number;
+      if (!allTopicsInLevelCompleted(
+        group,
+        level,
+        progress,
+        completedActivities,
+      )) {
+        return level.number;
+      }
     }
     return group.levels.isEmpty ? 1 : group.levels.last.number;
   }
@@ -105,11 +113,19 @@ abstract final class ListeningCurriculumFlow {
   static bool levelUnlocked(
     ListeningContentAgeGroup group,
     ListeningLevelContent level,
-    Set<String> passedLevelIds,
+    Map<String, int> progress,
+    Set<String> completedActivities,
   ) {
     for (final previous in group.levels) {
       if (previous.number >= level.number) break;
-      if (!passedLevelIds.contains(previous.id)) return false;
+      if (!allTopicsInLevelCompleted(
+        group,
+        previous,
+        progress,
+        completedActivities,
+      )) {
+        return false;
+      }
     }
     return true;
   }

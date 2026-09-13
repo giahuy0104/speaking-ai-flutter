@@ -16,7 +16,7 @@ void main() {
 
   test('keeps the exact V4.1 Challenge and Mission introductions', () {
     expect(v4ChallengeIntroAudioId, 'CHALLENGE_INTRO');
-    expect(v4ChallengeIntro, 'Tiếp theo là hai câu thử thách nhé.');
+    expect(v4ChallengeIntro, 'Tiếp theo là một câu thử thách nhé.');
     expect(v4MissionIntroAudioId, 'MISSION_INTRO');
     expect(
       v4MissionIntro,
