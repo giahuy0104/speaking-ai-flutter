@@ -90,7 +90,68 @@ List<ArchitectureViolation> checkArchitectureBoundaries(Directory root) {
     }
   }
 
+  _checkProductionComposition(root, violations);
+
   return violations;
+}
+
+void _checkProductionComposition(
+  Directory root,
+  List<ArchitectureViolation> violations,
+) {
+  final appSource = _readSource(root, 'lib/app/ai_speaking_app.dart');
+  final homeSource = _readSource(
+    root,
+    'lib/features/home/presentation/home_learning_shell.dart',
+  );
+  if (appSource == null || homeSource == null) return;
+
+  const requiredHomeConnections = <String, String>{
+    'voiceNavigationController': 'MAIN voice navigation controller',
+    'onChildAgeChanged': 'child-age persistence callback',
+    'onActiveLearningExitCommitted': 'active-learning session handoff',
+    'onMainSpeakingModeStarted': 'MAIN speaking-session handoff',
+    'onScreenMainPressed': 'screen MAIN action',
+    'onVocabularyVoiceChoiceRequested': 'vocabulary voice-choice callback',
+    'onModalVisibilityChanged': 'global modal visibility coordination',
+    'privacyConsentGranted': 'privacy consent state',
+    'voiceAccessEnabled': 'voice-access state',
+    'onRequestVoiceAccess': 'voice permission recovery action',
+    'onManagePrivacyConsent': 'privacy management action',
+    'onRevokePrivacyConsent': 'privacy revocation action',
+    'onboardingStore': 'first-use onboarding persistence',
+  };
+  for (final connection in requiredHomeConnections.entries) {
+    final argument = RegExp('${connection.key}\\s*:');
+    if (!argument.hasMatch(appSource)) {
+      violations.add(
+        ArchitectureViolation(
+          file: 'lib/app/ai_speaking_app.dart',
+          message:
+              'production HomeLearningShell is missing ${connection.value} (${connection.key})',
+        ),
+      );
+    }
+  }
+
+  final vocabularyFallback = RegExp(
+    r'widget\.vocabularySuggestionProvider\s*\?\?\s*'
+    r'_authoredVocabularySuggestionProvider\.call',
+  );
+  if (!vocabularyFallback.hasMatch(homeSource)) {
+    violations.add(
+      const ArchitectureViolation(
+        file: 'lib/features/home/presentation/home_learning_shell.dart',
+        message:
+            'production vocabulary suggestions need an authored-content fallback',
+      ),
+    );
+  }
+}
+
+String? _readSource(Directory root, String relativePath) {
+  final file = File(_join(root.path, relativePath));
+  return file.existsSync() ? file.readAsStringSync() : null;
 }
 
 Iterable<String> _resolvedImports(

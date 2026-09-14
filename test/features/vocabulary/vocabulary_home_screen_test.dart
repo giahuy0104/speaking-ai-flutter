@@ -106,6 +106,61 @@ void main() {
     expect(find.text('Quả táo'), findsOneWidget);
   });
 
+  testWidgets('offers to add the text entered in the visible search field', (
+    tester,
+  ) async {
+    final store = _MemoryVocabularyStore();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: DisplayLanguageScope(
+          language: DisplayLanguage.vietnamese,
+          child: VocabularyHomeScreen(
+            isReady: true,
+            store: store,
+            voicePromptService: const _FakeVoicePromptService(),
+            translator: (_) async => const VocabularyTranslation(
+              englishText: 'Cat',
+              vietnameseText: 'Con mèo',
+            ),
+            suggestionProvider: (_, _) async => const <VocabularyTranslation>[
+              VocabularyTranslation(
+                englishText: 'It is a cat.',
+                vietnameseText: 'Đó là con mèo.',
+              ),
+            ],
+            onReturnToConversation: () {},
+            onHistory: () {},
+            onSettings: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('vocabulary-search-field')),
+      'con mèo',
+    );
+    await tester.pump();
+
+    expect(find.byKey(const Key('add-vocabulary-from-search')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('add-vocabulary-from-search')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('Cat'), findsOneWidget);
+    expect(find.text('It is a cat.'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('confirm-vocabulary-suggestions')));
+    await tester.pumpAndSettle();
+
+    expect(store.entries, hasLength(1));
+    expect(store.entries.single.word, 'Cat');
+    expect(find.byKey(const Key('add-vocabulary-from-search')), findsNothing);
+  });
+
   testWidgets('shows lesson sentences in Stars and Review collections', (
     tester,
   ) async {

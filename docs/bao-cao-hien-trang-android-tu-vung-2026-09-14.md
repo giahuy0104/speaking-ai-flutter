@@ -2,52 +2,47 @@
 
 **Ngày kiểm tra:** 14/09/2026  
 **Phạm vi:** nhánh hiện tại, APK production hiện có, luồng thêm từ vựng và luồng dịch liên tục trên Android  
-**Trạng thái tài liệu:** báo cáo kiểm tra; chưa bao gồm thay đổi sửa lỗi
+**Trạng thái tài liệu:** đã cập nhật sau khi sửa lỗi trên worktree hiện tại
 
 ## 1. Tóm tắt điều hành
 
-Hiện tại có hai kết luận chính:
+Kết luận sau khi sửa và kiểm tra lại:
 
-1. **Bộ từ vựng có vấn đề về UI và nối dependency.** Ô nhập đang hiển thị trong bộ từ vựng chỉ làm nhiệm vụ tìm kiếm. Luồng thêm từ và chọn gợi ý vẫn tồn tại nhưng nằm sau nút `+`. Ngoài ra, provider tạo gợi ý linh hoạt đã được khai báo ở các widget trung gian nhưng chưa được app gốc truyền vào, nên production nhận giá trị `null`.
+1. **Vấn đề Bộ từ vựng đã được xử lý.** Ô nhập hiện có CTA thêm từ, hỗ trợ gửi từ bàn phím, tái sử dụng đúng luồng chọn gợi ý và có provider mặc định dựa trên nội dung học theo độ tuổi.
 2. **Dịch liên tục trên Android production mặc định dùng Android SpeechRecognizer.** Cloudflare Batch Chunks không phải đường nhận dạng giọng nói mặc định trong cấu hình production hiện tại. Báo cáo chậm khoảng 4 giây chưa có bằng chứng là do Batch Chunks; độ trễ có thể là tổng của thời gian chốt transcript Android, xử lý dịch/TTS tại backend và tải audio.
 
-Chưa có thay đổi chức năng nào được thực hiện trong đợt kiểm tra này.
+Ngoài phạm vi ban đầu, đợt rà soát composition còn phát hiện `SharedPreferencesOnboardingProgressStore` không còn được truyền từ app root. Dây nối này đã được khôi phục và được đưa vào architecture checker để tránh tái diễn.
 
 ## 2. Trạng thái repository và APK hiện tại
 
 | Hạng mục | Giá trị |
 |---|---|
 | Nhánh | `codex/audio-session-modularization` |
-| HEAD | `c7fe7b1` — `fix(device): defer BLE feedback during assistant audio` |
+| HEAD nền | `d26e5ed` — `update` |
 | Phiên bản Flutter | `1.0.5+7` |
 | APK production | `build/app/outputs/flutter-apk/app-release.apk` |
 | Kích thước APK | `167,642,536 bytes` |
 | Thời điểm file APK | `13/09/2026 23:01:44` |
 | SHA-256 | `F0567B620811F31B6CF3A8700EA998314F346659350B3F90E25EBABD10C86196` |
 
-Working tree hiện có các thay đổi chưa commit từ công việc micro/voice navigation trước đó:
-
-- `android/app/src/main/kotlin/com/innotrik/aispeaking/AndroidSpeechRecognizerBridge.kt`
-- `lib/app/ai_speaking_app.dart`
-- `lib/features/voice_navigation/application/voice_navigation_controller.dart`
-- `test/features/voice_navigation/voice_navigation_controller_test.dart`
+Working tree hiện có các thay đổi chưa commit cho luồng từ vựng, provider nội dung theo độ tuổi, khôi phục onboarding và kiểm tra composition production. APK release nêu trên được tạo trước các thay đổi này nên chưa chứa bản sửa.
 
 ## 3. Hiện trạng Bộ từ vựng
 
-### 3.1. Hành vi hiện tại
+### 3.1. Hành vi trước khi sửa
 
-Ô nhập trong màn chi tiết bộ từ vựng được tạo bởi `_buildSearchField`. Ô này:
+Trước thay đổi hiện tại, ô nhập trong màn chi tiết bộ từ vựng được tạo bởi `_buildSearchField`. Ô này:
 
 - dùng `_searchController`;
 - có nhãn `Tìm từ vựng…`;
 - chỉ lọc các mục đã lưu theo `word` và `meaning`;
 - không có `onSubmitted`, nút thêm hoặc lời gọi provider gợi ý.
 
-Vì vậy, khi người dùng nhập một từ mới vào ô này, giao diện chỉ trả về trạng thái không tìm thấy từ phù hợp. Đây là hành vi tìm kiếm đúng theo code hiện tại, nhưng không phù hợp với trải nghiệm người dùng mong đợi là nhập để được đề xuất thêm từ.
+Vì vậy, khi người dùng nhập một từ mới vào ô này, giao diện trước đó chỉ trả về trạng thái không tìm thấy từ phù hợp. Đây là hành vi tìm kiếm đúng theo code cũ, nhưng không phù hợp với trải nghiệm người dùng mong đợi là nhập để được đề xuất thêm từ.
 
-### 3.2. Luồng thêm từ vẫn còn
+### 3.2. Luồng thêm từ cũ vẫn còn
 
-Luồng thêm từ hiện nằm sau nút `+` ở header:
+Luồng thêm từ cũ nằm sau nút `+` ở header:
 
 1. Mở `_AddVocabularyDialog`.
 2. Nhập từ tiếng Anh hoặc tiếng Việt.
@@ -58,11 +53,11 @@ Luồng thêm từ hiện nằm sau nút `+` ở header:
 
 Do đó chức năng thêm từ không bị xóa hoàn toàn; nó bị tách khỏi ô nhập chính và trở nên khó nhận biết.
 
-### 3.3. Dependency tạo gợi ý chưa được nối đến app production
+### 3.3. Dependency tạo gợi ý bị thiếu trước khi sửa
 
-`VocabularyHomeScreen` hỗ trợ `suggestionProvider`, và `HomeLearningShell` cũng có trường `vocabularySuggestionProvider`. Tuy nhiên, tại nơi app gốc tạo `HomeLearningShell`, trường này không được truyền vào.
+`VocabularyHomeScreen` hỗ trợ `suggestionProvider`, và `HomeLearningShell` cũng có trường `vocabularySuggestionProvider`. Trước thay đổi hiện tại, app gốc không truyền provider và `HomeLearningShell` cũng không có fallback production.
 
-Kết quả:
+Kết quả trước khi sửa:
 
 - `widget.suggestionProvider` trong production là `null`;
 - danh sách vẫn có thể chứa bản dịch chính;
@@ -79,7 +74,7 @@ Kết quả:
 
 Kết luận: vấn đề không phát sinh trực tiếp từ commit phân bổ lại kiến trúc ngày 12/09. Phần UI đã tách từ trước, còn provider bị thiếu dây nối từ lúc tính năng gợi ý được tích hợp.
 
-### 3.5. Khoảng trống kiểm thử
+### 3.5. Khoảng trống kiểm thử trước khi sửa
 
 Các test hiện tại kiểm tra việc:
 
@@ -94,6 +89,16 @@ Chưa có test cho:
 - CTA `Thêm từ này` khi tìm kiếm không có kết quả;
 - provider được nối đầy đủ từ `AiSpeakingApp` đến `VocabularyHomeScreen`;
 - gợi ý động hoạt động trong cấu hình production.
+
+### 3.6. Trạng thái sau khi sửa
+
+- Ô nhập có hint `Tìm hoặc thêm từ vựng…`.
+- Khi có nội dung, suffix CTA `Đề xuất để thêm từ này` xuất hiện.
+- Phím hoàn tất trên bàn phím và CTA cùng gọi một luồng thêm từ.
+- Nút `+` vẫn hoạt động và dùng chung hàm xử lý.
+- Provider mặc định tìm trong topic, bài học và câu đã biên soạn cho đúng/nhóm tuổi gần nhất; không phát sinh phụ thuộc ngược từ module từ vựng sang module nghe.
+- Widget test mới xác nhận hành trình `con mèo` → đề xuất `Cat`/`It is a cat.` → chọn → lưu.
+- Android emulator API 36 xác nhận CTA xuất hiện đúng sau khi gõ `cat`.
 
 ## 4. Hiện trạng dịch liên tục trên Android
 
@@ -184,11 +189,11 @@ ASR finalize | Backend translation/TTS | Audio loading/playback
 
 ## 5. Kết quả kiểm thử trong đợt kiểm tra
 
-Đã chạy và đạt:
+Kết quả mới nhất sau khi sửa:
 
 ```text
-flutter test test/features/vocabulary/vocabulary_home_screen_test.dart
-Kết quả: 6/6 test passed
+Các test trọng điểm architecture, Home shell, provider và Vocabulary
+Kết quả: 29 test passed
 ```
 
 ```text
@@ -205,24 +210,30 @@ Kết quả: passed
 
 Các test chứng minh code đang phân biệt đúng hai đường Android native và BLE Batch, nhưng chưa thay thế được phép đo trên thiết bị thật.
 
+Ngoài ra:
+
+- `flutter analyze`: pass, không có issue.
+- `dart run tool/check_architecture_boundaries.dart`: pass.
+- Toàn bộ 105 file test non-golden theo bộ lọc CI: pass.
+- Android debug build/cài/chạy: pass trên Pixel 8 emulator, Android API 36.
+
 ## 6. Mức độ ưu tiên và rủi ro
 
 | Vấn đề | Mức độ | Ảnh hưởng |
 |---|---|---|
-| Ô nhập bộ từ vựng chỉ tìm kiếm, không gợi ý thêm | Cao | Người dùng tưởng chức năng thêm từ đã mất |
-| `vocabularySuggestionProvider` không được nối | Cao | Production thiếu gợi ý linh hoạt ngoài catalog |
+| Ô nhập bộ từ vựng chỉ tìm kiếm, không gợi ý thêm | Đã xử lý | Còn cần xác nhận lại trên máy tester thật |
+| `vocabularySuggestionProvider` không được nối | Đã xử lý | Có fallback từ nội dung học theo độ tuổi và guard kiến trúc |
 | Chưa xác định thành phần gây độ trễ 4 giây | Cao | Trải nghiệm dịch liên tục chậm, khó khoanh vùng nguyên nhân |
 | Thiếu integration test cấp app cho provider | Trung bình | Lỗi nối dependency có thể tái diễn |
 | Thiếu log từ đúng APK/thiết bị tester | Trung bình | Không thể so sánh định lượng với nhánh cũ |
 
 ## 7. Hướng xử lý đề xuất
 
-### Ưu tiên 1 — Khôi phục trải nghiệm thêm từ
+### Ưu tiên 1 — Hoàn tất xác minh bản sửa từ vựng
 
-- Tách rõ hai trạng thái `Tìm kiếm` và `Thêm từ`, hoặc cho ô hiện tại hiển thị CTA `Thêm “...”` khi không có kết quả.
-- Khi chọn thêm, tái sử dụng `_showAddDialog`/luồng chuẩn bị đề xuất hiện có.
-- Nối provider thật từ `AiSpeakingApp` đến `HomeLearningShell` và `VocabularyHomeScreen`.
-- Thêm integration test từ app root, không chỉ test widget độc lập.
+- Chạy smoke test trên đúng máy Android của người kiểm thử.
+- Chạy với backend release để xác nhận bản dịch chính, danh sách đề xuất và thời gian phản hồi.
+- Review/commit worktree rồi build lại APK; không dùng APK release cũ để nghiệm thu thay đổi này.
 
 ### Ưu tiên 2 — Đo chính xác độ trễ Android
 

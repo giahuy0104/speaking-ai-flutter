@@ -636,12 +636,34 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   Widget _buildSearchField(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final query = _searchController.text.trim();
     return TextField(
+      key: const Key('vocabulary-search-field'),
       controller: _searchController,
       focusNode: _searchFocusNode,
+      textInputAction: TextInputAction.done,
+      onSubmitted: query.isEmpty || _translating
+          ? null
+          : (_) => unawaited(_addVocabularyFromSearch()),
       decoration: InputDecoration(
-        hintText: context.tr('Tìm từ vựng…', '搜索词汇…'),
+        hintText: context.tr('Tìm hoặc thêm từ vựng…', '搜索或添加词汇…'),
         prefixIcon: const Icon(Icons.search_rounded),
+        suffixIcon: query.isEmpty
+            ? null
+            : _translating
+            ? const Padding(
+                padding: EdgeInsets.all(14),
+                child: SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2.2),
+                ),
+              )
+            : IconButton(
+                key: const Key('add-vocabulary-from-search'),
+                onPressed: () => unawaited(_addVocabularyFromSearch()),
+                icon: const Icon(Icons.add_circle_rounded),
+                tooltip: context.tr('Đề xuất để thêm từ này', '获取建议并添加'),
+              ),
         filled: true,
         fillColor: isDark
             ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.92)
@@ -893,6 +915,17 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       return;
     }
 
+    await _addVocabulary(normalized);
+  }
+
+  Future<void> _addVocabularyFromSearch() async {
+    final normalized = _searchController.text.trim();
+    if (normalized.isEmpty || _translating) return;
+    _searchFocusNode.unfocus();
+    await _addVocabulary(normalized);
+  }
+
+  Future<void> _addVocabulary(String normalized) async {
     setState(() => _translating = true);
     try {
       final usedToday = await widget.store.parentAddCountForDay(DateTime.now());

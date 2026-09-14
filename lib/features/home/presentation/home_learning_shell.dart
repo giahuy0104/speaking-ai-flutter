@@ -25,6 +25,7 @@ import '../../vocabulary/domain/vocabulary_entry.dart';
 import '../../vocabulary/presentation/vocabulary_home_screen.dart';
 import '../../voice_navigation/application/voice_navigation_controller.dart';
 import '../../voice_navigation/application/voice_navigation_intent_resolver.dart';
+import '../application/authored_vocabulary_suggestion_provider.dart';
 import '../application/background_learning_coordinator.dart';
 
 class HomeLearningShell extends StatefulWidget {
@@ -88,6 +89,8 @@ class HomeLearningShell extends StatefulWidget {
 class _HomeLearningShellState extends State<HomeLearningShell>
     with WidgetsBindingObserver {
   late final PageController _pageController;
+  late final AuthoredVocabularySuggestionProvider
+  _authoredVocabularySuggestionProvider;
   int _page = 0;
   bool _openingTopics = false;
   Completer<void>? _topicRouteClosedCompleter;
@@ -121,6 +124,12 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _pageController = PageController();
+    _authoredVocabularySuggestionProvider =
+        AuthoredVocabularySuggestionProvider(
+          loadCatalog: () =>
+              widget.listeningContentFuture ??
+              AssetListeningContentRepository().load(),
+        );
     _backgroundLearningCoordinator = BackgroundLearningCoordinator(
       session:
           widget.backgroundLearningSession ??
@@ -281,7 +290,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                             onRequestVoiceChoice:
                                 widget.onVocabularyVoiceChoiceRequested,
                             suggestionProvider:
-                                widget.vocabularySuggestionProvider,
+                                widget.vocabularySuggestionProvider ??
+                                _authoredVocabularySuggestionProvider.call,
                             translator: (input) async {
                               final translation = await widget.controller
                                   .translateVocabulary(input);

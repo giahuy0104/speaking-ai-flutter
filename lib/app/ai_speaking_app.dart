@@ -41,8 +41,9 @@ import '../features/listening/application/android_runtime_platform.dart';
 import '../features/listening/domain/listening_catalog.dart';
 import '../features/listening/domain/listening_content.dart';
 import '../features/listening/presentation/listening_route_names.dart';
-import '../features/onboarding/presentation/startup_setup_screen.dart';
+import '../features/onboarding/application/onboarding_progress_store.dart';
 import '../features/onboarding/application/parent_setup_progress_store.dart';
+import '../features/onboarding/presentation/startup_setup_screen.dart';
 import '../features/privacy/data/privacy_consent_store.dart';
 import '../features/settings/data/child_age_store.dart';
 import '../features/voice_navigation/application/main_speaking_fallback_flow.dart';
@@ -2007,6 +2008,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                       unawaited(_requestStartupPermissions()),
                   onManagePrivacyConsent: () => unawaited(_showPrivacySetup()),
                   onRevokePrivacyConsent: _revokePrivacyConsent,
+                  onboardingStore:
+                      const SharedPreferencesOnboardingProgressStore(),
                 ),
               ),
             )
