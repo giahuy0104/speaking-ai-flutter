@@ -343,6 +343,73 @@ void main() {
   );
 
   test(
+    'Android MAIN recovers a transient recognizer timeout without showing a mic error',
+    () async {
+      final speechInput = _TransientFailureNavigationSpeechInput(
+        failuresRemaining: 1,
+      );
+      final controller = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: _FakeVoicePromptService(),
+        commandWindowDuration: const Duration(seconds: 1),
+      );
+
+      expect(await controller.activateFromMainButton(), isTrue);
+      await _waitUntil(() => controller.isListening);
+
+      speechInput.emitCompleted();
+      await _waitUntil(
+        () => speechInput.events.where((event) => event == 'start').length == 2,
+      );
+
+      expect(controller.isListening, isTrue);
+      expect(controller.isMainButtonSessionActive, isTrue);
+      expect(controller.lastErrorMessage, isNull);
+
+      await controller.pause();
+      controller.dispose();
+      await speechInput.dispose();
+    },
+  );
+
+  test(
+    'repeated Android timeouts use the normal spoken no-speech retry',
+    () async {
+      final speechInput = _TransientFailureNavigationSpeechInput(
+        failuresRemaining: 2,
+      );
+      final voicePrompt = _FakeVoicePromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: voicePrompt,
+        commandWindowDuration: const Duration(seconds: 1),
+      );
+
+      expect(await controller.activateFromMainButton(), isTrue);
+      await _waitUntil(() => controller.isListening);
+
+      speechInput.emitCompleted();
+      await _waitUntil(
+        () => speechInput.events.where((event) => event == 'start').length == 2,
+      );
+      speechInput.emitCompleted();
+      await _waitUntil(
+        () => voicePrompt.spokenTexts.contains(
+          MainVoiceAssistantFlow.noSpeechRetryPrompt,
+        ),
+      );
+
+      expect(controller.lastErrorMessage, isNull);
+      expect(controller.isMainButtonSessionActive, isTrue);
+      expect(controller.isListening, isTrue);
+
+      await controller.pause();
+      controller.dispose();
+      await speechInput.dispose();
+    },
+  );
+
+  test(
     'Main stops automatic retries and exposes the microphone error',
     () async {
       final speechInput = _FailingNavigationSpeechInput(failuresRemaining: 10);
@@ -1288,6 +1355,25 @@ class _FakeNavigationSpeechInput
     await _partialTextController.close();
     await _alternativeTextController.close();
     await _diagnosticsController.close();
+  }
+}
+
+class _TransientFailureNavigationSpeechInput
+    extends _FakeNavigationSpeechInput {
+  _TransientFailureNavigationSpeechInput({required this.failuresRemaining});
+
+  int failuresRemaining;
+
+  @override
+  Future<StreamingSpeechCapture> stop() async {
+    if (failuresRemaining > 0) {
+      failuresRemaining -= 1;
+      throw const StreamingSpeechInputException(
+        'Chưa nghe thấy giọng nói.',
+        code: 'ANDROID_SPEECH_6',
+      );
+    }
+    return super.stop();
   }
 }
 

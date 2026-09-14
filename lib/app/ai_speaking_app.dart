@@ -957,7 +957,13 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     );
     final AndroidStreamingSpeechInput? streamingSpeechInput =
         supportsAndroidNativeSpeech
-        ? AndroidStreamingSpeechInput(preferOnDevice: true)
+        // MAIN listens for Vietnamese commands. Do not force Android's offline
+        // hint here: language-pack setup is optional and may still be pending or
+        // unsupported, and several OEM recognizers fail immediately when vi-VN
+        // is requested offline without a ready local model. The standard
+        // recognizer can still choose an installed local model itself while
+        // retaining its network-capable fallback.
+        ? AndroidStreamingSpeechInput()
         : supportsAppleNativeSpeech
         ? IOSStreamingSpeechInput(
             audioRouteControl: nativeSpeechHfpAudioControl,

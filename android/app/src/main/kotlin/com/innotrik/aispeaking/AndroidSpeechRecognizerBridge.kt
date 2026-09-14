@@ -434,15 +434,15 @@ class AndroidSpeechRecognizerBridge(
                 putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
                 putExtra(
                     RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,
-                    if (commandMode) 450L else 800L,
+                    if (commandMode) 700L else 800L,
                 )
                 putExtra(
                     RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,
-                    if (commandMode) 500L else 700L,
+                    if (commandMode) 900L else 700L,
                 )
                 putExtra(
                     RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,
-                    if (commandMode) 650L else 900L,
+                    if (commandMode) 1200L else 900L,
                 )
                 putExtra(
                     RecognizerIntent.EXTRA_CALLING_PACKAGE,

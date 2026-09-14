@@ -127,6 +127,7 @@ class VoiceNavigationController extends ChangeNotifier {
   bool _disposed = false;
   int _generation = 0;
   int _mainNoSpeechRetryCount = 0;
+  int _mainPrematureCompletionRecoveryCount = 0;
   String? _mainNoSpeechRetryPromptOverride;
   String? _mainNoSpeechExitPromptOverride;
   Object? _lastError;
@@ -290,6 +291,7 @@ class VoiceNavigationController extends ChangeNotifier {
       _lastError = null;
       _buttonCommandSession = true;
       _mainNoSpeechRetryCount = 0;
+      _mainPrematureCompletionRecoveryCount = 0;
       _mainNoSpeechRetryPromptOverride = noSpeechRetryPrompt;
       _mainNoSpeechExitPromptOverride = noSpeechExitPrompt;
       _continuousRequested = true;
@@ -336,6 +338,7 @@ class VoiceNavigationController extends ChangeNotifier {
     _continuousRequested = false;
     _buttonCommandSession = false;
     _mainNoSpeechRetryCount = 0;
+    _mainPrematureCompletionRecoveryCount = 0;
     _mainAssistantFlow.reset();
     final endingGeneration = _generation;
     _generation += 1;
@@ -485,6 +488,7 @@ class VoiceNavigationController extends ChangeNotifier {
     _buttonCommandSession = false;
     _continuousRequested = false;
     _mainNoSpeechRetryCount = 0;
+    _mainPrematureCompletionRecoveryCount = 0;
     _mainAssistantFlow.reset();
     // The MAIN controller is the sole owner of the native turn. Apple Speech
     // may start, stop, or be replaced several times while the assistant asks
@@ -596,6 +600,7 @@ class VoiceNavigationController extends ChangeNotifier {
         : null;
     diagnostics?.reportNativeSpeechStage('prompt_done');
     _awaitingCommand = true;
+    _mainPrematureCompletionRecoveryCount = 0;
     notifyListeners();
     return true;
   }
@@ -692,6 +697,7 @@ class VoiceNavigationController extends ChangeNotifier {
     _buttonCommandSession = false;
     _continuousRequested = false;
     _mainNoSpeechRetryCount = 0;
+    _mainPrematureCompletionRecoveryCount = 0;
     _mainNoSpeechRetryPromptOverride = null;
     _mainNoSpeechExitPromptOverride = null;
     _mainAssistantFlow.reset();
@@ -819,6 +825,7 @@ class VoiceNavigationController extends ChangeNotifier {
         _buttonCommandSession = false;
         _continuousRequested = false;
         _mainNoSpeechRetryCount = 0;
+        _mainPrematureCompletionRecoveryCount = 0;
         _mainAssistantFlow.reset();
         await _endNativeMainTurn(
           'microphone_start_failed',
@@ -1075,6 +1082,23 @@ class VoiceNavigationController extends ChangeNotifier {
       await _handleCaptureCandidates(capture, generation);
     } catch (error) {
       if (!_disposed && generation == _generation) {
+        if (_isRecoverableMainCommandCompletion(error)) {
+          _lastError = null;
+          if (_mainPrematureCompletionRecoveryCount == 0) {
+            // Android may close the first SpeechRecognizer turn while the
+            // lesson recorder/audio route is still settling. Reopen it once
+            // without showing the terminal "Thử lại mic" state.
+            _mainPrematureCompletionRecoveryCount = 1;
+            return;
+          }
+
+          // A second early completion is real silence/no-match for this prompt.
+          // Feed it through MAIN's normal spoken retry/exit flow instead of
+          // surfacing a fatal microphone error.
+          _finishing = false;
+          await _handleMainCommandTimeout(generation);
+          return;
+        }
         _lastError = error;
         _continuousRequested = false;
         if (_buttonCommandSession) {
@@ -1082,6 +1106,7 @@ class VoiceNavigationController extends ChangeNotifier {
           _buttonCommandSession = false;
           _continuousRequested = false;
           _mainNoSpeechRetryCount = 0;
+          _mainPrematureCompletionRecoveryCount = 0;
           _mainAssistantFlow.reset();
         }
       }
@@ -1092,6 +1117,34 @@ class VoiceNavigationController extends ChangeNotifier {
         notifyListeners();
       }
     }
+  }
+
+  bool _isRecoverableMainCommandCompletion(Object error) {
+    if (!_buttonCommandSession || !_awaitingCommand) return false;
+    if (error is! StreamingSpeechInputException) return false;
+
+    final code = error.code?.toUpperCase();
+    const recoverableCodes = <String>{
+      // Android SpeechRecognizer.ERROR_AUDIO / ERROR_CLIENT /
+      // ERROR_SPEECH_TIMEOUT / ERROR_NO_MATCH / ERROR_RECOGNIZER_BUSY.
+      'ANDROID_SPEECH_3',
+      'ANDROID_SPEECH_5',
+      'ANDROID_SPEECH_6',
+      'ANDROID_SPEECH_7',
+      'ANDROID_SPEECH_8',
+      // Semantic equivalents used by test doubles and other native bridges.
+      'SPEECH_AUDIO',
+      'SPEECH_CLIENT',
+      'SPEECH_TIMEOUT',
+      'SPEECH_NO_MATCH',
+      'SPEECH_RECOGNIZER_BUSY',
+    };
+    if (code != null && recoverableCodes.contains(code)) return true;
+
+    final message = error.message.toLowerCase();
+    return code == null &&
+        (message.contains('không nghe rõ') ||
+            message.contains('chưa nghe thấy giọng nói'));
   }
 
   void _restartAfterCompletedFinish(int generation) {
