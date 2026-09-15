@@ -455,7 +455,7 @@ void main() {
     await speechInput.dispose();
   });
 
-  test('Main button keeps listening through age, topic and lesson', () async {
+  test('Main hands spoken age to the Level-aware topic screen', () async {
     final speechInput = _FakeNavigationSpeechInput();
     final voicePrompt = _FakeVoicePromptService();
     final controller = VoiceNavigationController(
@@ -475,29 +475,19 @@ void main() {
       isTrue,
     );
     expect(await controller.dispatchRecognizedText('Con 6 tuổi'), isTrue);
-    expect(
-      await controller.dispatchRecognizedText('Con muốn học chủ đề số 3'),
-      isTrue,
-    );
 
     expect(receivedIntents, hasLength(1));
     expect(receivedIntents.single.childAge, 6);
-    expect(receivedIntents.single.topicNumber, 3);
-    expect(controller.isMainButtonSessionActive, isTrue);
-    expect(await controller.dispatchRecognizedText('Con học bài số 1'), isTrue);
+    expect(receivedIntents.single.topicNumber, isNull);
+    expect(
+      receivedIntents.single.destination,
+      VoiceNavigationDestination.topics,
+    );
 
     expect(voicePrompt.spokenTexts, <String>[
       MainVoiceAssistantFlow.openingPrompt,
       'Con mấy tuổi',
-      'Có 10 chủ đề. Con muốn học chủ đề số mấy',
-      'Có 2 bài học. Con muốn học bài số mấy',
-      'Bắt đầu học thôi con',
     ]);
-    expect(receivedIntents, hasLength(2));
-    expect(receivedIntents.last.childAge, 6);
-    expect(receivedIntents.last.topicNumber, 3);
-    expect(receivedIntents.last.lessonNumber, 1);
-    expect(receivedIntents.last.openLesson, isTrue);
     expect(controller.isMainButtonSessionActive, isFalse);
     expect(controller.continuousRequested, isFalse);
 
@@ -506,7 +496,7 @@ void main() {
   });
 
   test(
-    'saved age lets MAIN go directly from feature to topic number',
+    'saved age lets MAIN open Level selection without the legacy total',
     () async {
       final speechInput = _FakeNavigationSpeechInput();
       final voicePrompt = _FakeVoicePromptService();
@@ -530,16 +520,15 @@ void main() {
 
       expect(voicePrompt.spokenTexts, <String>[
         MainVoiceAssistantFlow.openingPrompt,
-        'Có 10 chủ đề. Con muốn học chủ đề số mấy',
       ]);
       expect(voicePrompt.spokenTexts, isNot(contains('Con mấy tuổi')));
-
-      expect(
-        await controller.dispatchRecognizedText('Con muốn học chủ đề số 3'),
-        isTrue,
-      );
       expect(receivedIntents.single.childAge, 6);
-      expect(receivedIntents.single.topicNumber, 3);
+      expect(receivedIntents.single.topicNumber, isNull);
+      expect(
+        receivedIntents.single.destination,
+        VoiceNavigationDestination.topics,
+      );
+      expect(controller.isMainButtonSessionActive, isFalse);
 
       controller.dispose();
       await speechInput.dispose();
@@ -561,14 +550,17 @@ void main() {
     controller.setIntentHandler(receivedIntents.add);
 
     expect(
-      await controller.activateTopicSelectionAfterCompletion(
+      await controller.activateLevelTopicSelection(
         childAge: 6,
+        levelNumber: 1,
+        topicNumbers: const <int>[1, 2, 3],
         completedTopicNumbers: const <int>[3, 5],
+        announceLevel: false,
       ),
       isTrue,
     );
     expect(voicePrompt.spokenTexts, <String>[
-      'Có 10 chủ đề. Con muốn học chủ đề số mấy',
+      'Có 3 Chủ đề. Bạn muốn học Chủ đề số mấy?',
     ]);
     expect(controller.isMainButtonSessionActive, isTrue);
 
@@ -579,24 +571,56 @@ void main() {
     expect(receivedIntents, isEmpty);
     expect(
       voicePrompt.spokenTexts.last,
-      'Chủ đề số 3 con đã học rồi. Con có muốn học lại không?',
+      'Chủ đề 3 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?',
     );
 
     expect(await controller.dispatchRecognizedText('Có'), isTrue);
     expect(receivedIntents.single.topicNumber, 3);
-    expect(
-      voicePrompt.spokenTexts.last,
-      'Có 2 bài học. Con muốn học bài số mấy',
-    );
-
-    expect(await controller.dispatchRecognizedText('Bài số 1'), isTrue);
-    expect(receivedIntents.last.openLesson, isTrue);
-    expect(receivedIntents.last.lessonNumber, 1);
-    expect(voicePrompt.spokenTexts.last, 'Bắt đầu học thôi con');
+    expect(receivedIntents.single.relearnTopic, isTrue);
 
     controller.dispose();
     await speechInput.dispose();
   });
+
+  test(
+    'completed Course Level choice is handled by the MAIN microphone',
+    () async {
+      final speechInput = _FakeNavigationSpeechInput();
+      final voicePrompt = _FakeVoicePromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: voicePrompt,
+        mainAssistantFlow: MainVoiceAssistantFlow(
+          contentLoader: _loadMainAssistantContent,
+        ),
+        restartDelay: const Duration(milliseconds: 1),
+      );
+      final receivedIntents = <VoiceNavigationIntent>[];
+      controller.setIntentHandler(receivedIntents.add);
+
+      expect(
+        await controller.activateCourseRelearnLevelSelection(
+          childAge: 6,
+          levelNumbers: const <int>[1, 2, 3],
+        ),
+        isTrue,
+      );
+      expect(
+        voicePrompt.spokenTexts.last,
+        MainVoiceAssistantFlow.courseRelearnLevelPrompt,
+      );
+
+      expect(
+        await controller.dispatchRecognizedText('Học lại Level 3'),
+        isTrue,
+      );
+      expect(receivedIntents.single.levelNumber, 3);
+      expect(receivedIntents.single.relearnLevel, isTrue);
+
+      controller.dispose();
+      await speechInput.dispose();
+    },
+  );
 
   test('speaking command opens the other-learning voice menu', () async {
     final speechInput = _FakeNavigationSpeechInput();

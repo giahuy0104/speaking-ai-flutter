@@ -99,13 +99,27 @@ void main() {
       registry.dispose();
     },
   );
+
+  test('slow command handoff never overlays the removed busy prompt', () async {
+    final commandGate = Completer<void>();
+    final registry = ActiveLearningModuleRegistry(
+      operationTimeout: const Duration(milliseconds: 5),
+    );
+    registry.register(_FakeActiveModule(commandGate: commandGate));
+    final result = await registry.execute(ActiveLearningCommand.nextItem);
+    expect(result.status, ActiveLearningCommandStatus.busy);
+    expect(result.spokenReply, isNull);
+    commandGate.complete();
+    registry.dispose();
+  });
 }
 
 class _FakeActiveModule implements ActiveLearningModuleController {
-  _FakeActiveModule({this.onPause, this.pauseGate});
+  _FakeActiveModule({this.onPause, this.pauseGate, this.commandGate});
 
   final void Function()? onPause;
   final Completer<void>? pauseGate;
+  final Completer<void>? commandGate;
   int pauses = 0;
   bool paused = false;
   final List<ActiveLearningCommand> commands = <ActiveLearningCommand>[];
@@ -122,6 +136,7 @@ class _FakeActiveModule implements ActiveLearningModuleController {
     ActiveLearningCommand command,
   ) async {
     commands.add(command);
+    await commandGate?.future;
     if (command == ActiveLearningCommand.stop) {
       paused = true;
     } else if (command == ActiveLearningCommand.resume) {

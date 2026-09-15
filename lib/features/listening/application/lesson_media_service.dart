@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:record/record.dart';
 
 import '../../../core/audio/audio_input.dart';
+import '../../../core/audio/audio_gain.dart';
 import '../../../core/audio/audio_playback_service.dart';
 import '../../../core/audio/audio_turn_coordinator.dart';
 import '../../../core/audio/hfp_audio_control.dart';
@@ -57,6 +58,18 @@ class LessonMediaService {
 
   AudioRecorder get _activeRecorder => _recorder ??= AudioRecorder();
 
+  /// Local volume samples for endpoint detection while a lesson is recording.
+  /// Observing this stream does not start another recorder or change the
+  /// selected phone/HFP input.
+  Stream<double> get recordingAmplitudeDbfs {
+    // Test doubles and callers that do not own an active recorder should not
+    // start the record plugin's periodic amplitude monitor.
+    if (_recordingStartedAt == null) return const Stream<double>.empty();
+    return _activeRecorder
+        .onAmplitudeChanged(const Duration(milliseconds: 90))
+        .map((amplitude) => amplitude.current);
+  }
+
   AudioPlaybackService get _activePlayback =>
       _playbackService ??= JustAudioPlaybackService(
         audioTurnCoordinator: _audioTurnCoordinator,
@@ -98,9 +111,19 @@ class LessonMediaService {
   Future<void> play(
     Uri uri, {
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = androidSpeechBoostDb,
   }) async {
+    await _setPlaybackGain(playbackGainDb);
     await _preparePlaybackRoute(route);
     await _activePlayback.play(uri);
+  }
+
+  Future<void> _setPlaybackGain(double gainDb) async {
+    final playback = _activePlayback;
+    if (playback is PlaybackGainAwareAudioPlaybackService) {
+      await (playback as PlaybackGainAwareAudioPlaybackService)
+          .setPlaybackGainDb(gainDb);
+    }
   }
 
   Stream<bool> get playbackPlayingStream => _activePlayback.playingStream;
@@ -147,8 +170,10 @@ class LessonMediaService {
     Uri uri, {
     Duration timeout = const Duration(seconds: 45),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = androidSpeechBoostDb,
   }) async {
     final playback = _activePlayback;
+    await _setPlaybackGain(playbackGainDb);
     await _preparePlaybackRoute(route);
     final completed = Completer<void>();
     final previousCompletion = _activePlaybackCompletion;

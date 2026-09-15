@@ -5,6 +5,38 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  test(
+    'translation style stays per utterance and leaves prompt defaults intact',
+    () async {
+      const channel = MethodChannel('test_translation_style');
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            calls.add(call);
+            return null;
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null),
+      );
+      const service = MethodChannelVoicePromptService(channel: channel);
+      await service.speakAndWaitStyled(
+        'I like apples.',
+        locale: 'en-US',
+        speechRate: 0.85,
+        pitch: 1.05,
+      );
+      await service.speakAndWait('Giỏi lắm!');
+      final styled = calls.first.arguments as Map<Object?, Object?>;
+      expect(styled['speechRate'], 0.85);
+      expect(styled['pitch'], 1.05);
+      expect(styled['forceMediaPlayback'], true);
+      final normal = calls.last.arguments as Map<Object?, Object?>;
+      expect(normal.containsKey('speechRate'), false);
+      expect(normal.containsKey('pitch'), false);
+    },
+  );
+
   test('sends the Vietnamese retry prompt through the native bridge', () async {
     const channel = MethodChannel('test_voice_prompt');
     MethodCall? receivedCall;

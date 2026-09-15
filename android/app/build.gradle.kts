@@ -33,6 +33,13 @@ android {
         versionName = flutter.versionName
     }
 
+    lint {
+        // Flutter regenerates local.properties on Windows using a path syntax
+        // that Gradle accepts but Android Lint's PropertyEscape check rejects.
+        // Keep every app/source check enabled and ignore only that generated file rule.
+        disable += "PropertyEscape"
+    }
+
     signingConfigs {
         if (hasReleaseSigning) {
             create("release") {

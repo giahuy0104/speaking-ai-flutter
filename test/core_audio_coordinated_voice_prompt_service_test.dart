@@ -76,9 +76,16 @@ void main() {
 
     await service.speakAndWaitOnSelectedMediaOutput('English', locale: 'en-US');
     await service.playSpeechReadyCue();
+    await service.speakAndWaitStyled(
+      'Translation',
+      locale: 'en-US',
+      speechRate: 0.85,
+      pitch: 1.05,
+    );
 
     expect(delegate.selectedPrompts, <String>['en-US|English']);
     expect(delegate.readyCueCalls, 1);
+    expect(delegate.styles, ['en-US|Translation|0.85|1.05']);
   });
 }
 
@@ -121,7 +128,9 @@ class _CapabilityPromptService
     implements
         VoicePromptService,
         SelectedMediaOutputVoicePromptService,
+        StyledMediaOutputVoicePromptService,
         SpeechReadyCuePlayer {
+  final styles = <String>[];
   final List<String> selectedPrompts = <String>[];
   int readyCueCalls = 0;
 
@@ -149,4 +158,14 @@ class _CapabilityPromptService
 
   @override
   Future<void> dispose() async {}
+
+  @override
+  Future<void> speakAndWaitStyled(
+    String text, {
+    required String locale,
+    required double speechRate,
+    required double pitch,
+  }) async {
+    styles.add('$locale|$text|$speechRate|$pitch');
+  }
 }

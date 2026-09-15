@@ -15,10 +15,12 @@ class VoiceNavigationIntent {
     required this.matchedPhrase,
     this.topicNumber,
     this.lessonNumber,
+    this.levelNumber,
     this.childAge,
     this.openLesson = false,
     this.relearnTopic = false,
     this.relearnLesson = false,
+    this.relearnLevel = false,
     this.enterMainSpeakingMode = false,
   });
 
@@ -27,10 +29,12 @@ class VoiceNavigationIntent {
   final String matchedPhrase;
   final int? topicNumber;
   final int? lessonNumber;
+  final int? levelNumber;
   final int? childAge;
   final bool openLesson;
   final bool relearnTopic;
   final bool relearnLesson;
+  final bool relearnLevel;
   final bool enterMainSpeakingMode;
 }
 

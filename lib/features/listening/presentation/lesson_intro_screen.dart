@@ -128,6 +128,14 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
         request != _introPlaybackRequest) {
       return;
     }
+    if (widget.lesson.usesV4Flow &&
+        (_resumeStage == ListeningResumeStage.waitingForChoice ||
+            _resumeStage == ListeningResumeStage.completed)) {
+      if (widget.autoAdvance && !_movingForward) {
+        await _openLesson();
+      }
+      return;
+    }
     // An authored intro clip may contain the first-time Hook. Relearn always
     // uses the dynamic Star line prepared above so the Hook cannot leak back in.
     final uri = _usesGuideV2 && widget.relearnFromBeginning

@@ -5,12 +5,42 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../domain/vocabulary_entry.dart';
 
+class VocabularyTodayView {
+  const VocabularyTodayView({
+    required this.dayKey,
+    required this.entryIds,
+    required this.createdAt,
+  });
+
+  factory VocabularyTodayView.fromJson(Map<String, Object?> json) =>
+      VocabularyTodayView(
+        dayKey: json['dayKey'] as String? ?? '',
+        entryIds: (json['entryIds'] as List<Object?>? ?? const <Object?>[])
+            .whereType<String>()
+            .toList(growable: false),
+        createdAt:
+            DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0),
+      );
+
+  final String dayKey;
+  final List<String> entryIds;
+  final DateTime createdAt;
+
+  Map<String, Object?> toJson() => <String, Object?>{
+    'dayKey': dayKey,
+    'entryIds': entryIds,
+    'createdAt': createdAt.toIso8601String(),
+  };
+}
+
 class VocabularyStore {
   const VocabularyStore();
 
   static const _key = 'innotrik.vocabulary.v1';
   static const _parentAddCountKeyPrefix =
       'innotrik.vocabulary-parent-add-count.v2.';
+  static const _todayViewKey = 'innotrik.vocabulary-today-view.v4';
   static const int parentDailyLimit = 5;
   static const Set<String> _legacyStarterIds = <String>{
     'family',
@@ -41,8 +71,13 @@ class VocabularyStore {
       final migrated = entries
           .where((entry) => !_legacyStarterIds.contains(entry.id))
           .toList(growable: false);
-      if (migrated.length != entries.length) {
-        await write(migrated);
+      final normalized = jsonEncode(
+        migrated.map((entry) => entry.toJson()).toList(),
+      );
+      if (normalized != encoded) {
+        // Rewrite legacy vocabulary.v1 data in place.  Do not emit a change
+        // event while reading: listeners may otherwise recursively reload.
+        await preferences.setString(_key, normalized);
       }
       return migrated;
     } catch (_) {
@@ -63,39 +98,228 @@ class VocabularyStore {
     final entries = (await read())
         .where((entry) => entry.isParentAdded)
         .toList(growable: false);
-    return entries..sort((a, b) => b.addedAt.compareTo(a.addedAt));
+    return entries..sort((a, b) => a.addedAt.compareTo(b.addedAt));
   }
 
   Future<List<VocabularyEntry>> pendingParentEntries() async {
     final entries = (await read())
-        .where(
-          (entry) =>
-              entry.isParentAdded &&
-              entry.status == VocabularyLearningStatus.unlearned,
-        )
+        .where((entry) => entry.isWaitingParent || entry.isTodayParent)
         .toList(growable: false);
     return entries..sort((a, b) => a.addedAt.compareTo(b.addedAt));
   }
 
   Future<List<VocabularyEntry>> learnedParentEntries() async {
     final entries = (await read())
-        .where((entry) => entry.isParentAdded && entry.isLearnedWell)
+        .where((entry) => entry.isUnlockedParent)
         .toList(growable: false);
-    return entries..sort((a, b) => b.addedAt.compareTo(a.addedAt));
+    return entries..sort((a, b) => a.addedAt.compareTo(b.addedAt));
+  }
+
+  Future<VocabularyTodayView?> readTodayView() async {
+    try {
+      final raw = (await SharedPreferences.getInstance()).getString(
+        _todayViewKey,
+      );
+      if (raw == null || raw.isEmpty) return null;
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, Object?>) return null;
+      final view = VocabularyTodayView.fromJson(decoded);
+      return view.dayKey.isEmpty || view.entryIds.isEmpty ? null : view;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<List<VocabularyEntry>> todayEntries() async {
+    final view = await readTodayView();
+    if (view == null) return const <VocabularyEntry>[];
+    final byId = <String, VocabularyEntry>{
+      for (final entry in await read()) entry.id: entry,
+    };
+    return view.entryIds
+        .map((id) => byId[id])
+        .whereType<VocabularyEntry>()
+        .toList(growable: false);
+  }
+
+  /// Creates TODAY_VIEW once, keeps it fixed for the local day, and returns an
+  /// unfinished view from an earlier day before considering new waiting work.
+  Future<VocabularyTodayView?> prepareTodayView({DateTime? now}) async {
+    final currentTime = now ?? DateTime.now();
+    final today = _dayKey(currentTime);
+    var entries = await read();
+    final existing = await readTodayView();
+    if (existing != null && existing.dayKey == today) {
+      final byId = <String, VocabularyEntry>{
+        for (final entry in entries) entry.id: entry,
+      };
+      final retainedIds = existing.entryIds.where(byId.containsKey).toList();
+      final retained = VocabularyTodayView(
+        dayKey: existing.dayKey,
+        entryIds: retainedIds,
+        createdAt: existing.createdAt,
+      );
+      if (retainedIds.isEmpty) {
+        await _clearTodayView();
+      } else if (retainedIds.length != existing.entryIds.length) {
+        await _writeTodayView(retained);
+      }
+      return retainedIds.isEmpty ? null : retained;
+    }
+
+    final byId = <String, VocabularyEntry>{
+      for (final entry in entries) entry.id: entry,
+    };
+    final carry = <VocabularyEntry>[];
+    if (existing != null) {
+      for (final id in existing.entryIds) {
+        final entry = byId[id];
+        if (entry != null &&
+            entry.isParentAdded &&
+            entry.todayStatus != TodayVocabularyStatus.heard) {
+          carry.add(entry);
+        }
+      }
+    } else {
+      carry.addAll(
+        entries.where(
+          (entry) =>
+              entry.isTodayParent &&
+              entry.todayStatus != TodayVocabularyStatus.heard,
+        ),
+      );
+    }
+    carry.sort((a, b) => a.addedAt.compareTo(b.addedAt));
+    if (carry.length > parentDailyLimit) {
+      carry.removeRange(parentDailyLimit, carry.length);
+    }
+    final carryIds = carry.map((entry) => entry.id).toSet();
+    final oldViewIds = existing?.entryIds.toSet() ?? const <String>{};
+    entries = entries
+        .map((entry) {
+          if (carryIds.contains(entry.id)) {
+            return entry.copyWith(
+              parentState: ParentVocabularyState.today,
+              todayDayKey: today,
+            );
+          }
+          if (oldViewIds.contains(entry.id) &&
+              entry.isTodayParent &&
+              entry.todayStatus == TodayVocabularyStatus.heard &&
+              !entry.isUnlockedParent) {
+            return entry.copyWith(
+              parentState: ParentVocabularyState.waiting,
+              todayDayKey: null,
+            );
+          }
+          return entry;
+        })
+        .toList(growable: false);
+
+    final candidates =
+        entries
+            .where(
+              (entry) =>
+                  entry.isWaitingParent &&
+                  entry.todayStatus != TodayVocabularyStatus.heard &&
+                  !carryIds.contains(entry.id),
+            )
+            .toList()
+          ..sort((a, b) => a.addedAt.compareTo(b.addedAt));
+    final selected = candidates
+        .take(parentDailyLimit - carry.length)
+        .toList(growable: false);
+    if (carry.isEmpty && selected.isEmpty) {
+      await _clearTodayView();
+      await write(entries);
+      return null;
+    }
+    final selectedIds = selected.map((entry) => entry.id).toSet();
+    final newBatchId =
+        'parent-batch:$today:${currentTime.microsecondsSinceEpoch}';
+    entries = entries
+        .map(
+          (entry) => selectedIds.contains(entry.id)
+              ? entry.copyWith(
+                  parentState: ParentVocabularyState.today,
+                  todayStatus: TodayVocabularyStatus.notHeard,
+                  todayDayKey: today,
+                  originBatchId: entry.originBatchId ?? newBatchId,
+                )
+              : entry,
+        )
+        .toList(growable: false);
+    await write(entries);
+    final view = VocabularyTodayView(
+      dayKey: today,
+      entryIds: <String>[
+        ...carry.map((entry) => entry.id),
+        ...selected.map((entry) => entry.id),
+      ],
+      createdAt: currentTime,
+    );
+    await _writeTodayView(view);
+    return view;
+  }
+
+  /// Marks one listen-only item HEARD. The complete origin batch moves to the
+  /// parent library atomically only after every item in that batch is HEARD.
+  Future<bool> markTodayHeard(String entryId, {DateTime? now}) async {
+    final entries = await read();
+    final target = entries.where((entry) => entry.id == entryId).firstOrNull;
+    if (target == null || !target.isParentAdded) return false;
+    final heardAt = now ?? DateTime.now();
+    final batchId = target.originBatchId ?? target.id;
+    var updated = entries
+        .map(
+          (entry) => entry.id == entryId
+              ? entry.copyWith(
+                  todayStatus: TodayVocabularyStatus.heard,
+                  lastPracticedAt: heardAt,
+                )
+              : entry,
+        )
+        .toList(growable: false);
+    final batch = updated.where(
+      (entry) =>
+          entry.isParentAdded && (entry.originBatchId ?? entry.id) == batchId,
+    );
+    final unlock =
+        batch.isNotEmpty &&
+        batch.every(
+          (entry) => entry.todayStatus == TodayVocabularyStatus.heard,
+        );
+    if (unlock) {
+      updated = updated
+          .map(
+            (entry) =>
+                entry.isParentAdded &&
+                    (entry.originBatchId ?? entry.id) == batchId
+                ? entry.copyWith(
+                    parentState: ParentVocabularyState.unlocked,
+                    status: VocabularyLearningStatus.learnedWell,
+                    collection: VocabularyCollection.saved,
+                    unlockedAt: entry.unlockedAt ?? heardAt,
+                    introducedAt: entry.introducedAt ?? heardAt,
+                  )
+                : entry,
+          )
+          .toList(growable: false);
+    }
+    await write(updated);
+    return unlock;
   }
 
   Future<List<VocabularyEntry>> reviewEntries() async {
     final entries =
-        (await read()).where((entry) => entry.needsPractice).toList()
+        (await read())
+            .where((entry) => entry.needsPractice && !entry.isParentAdded)
+            .toList()
           ..sort((a, b) => a.addedAt.compareTo(b.addedAt));
     final byTarget = <String, VocabularyEntry>{};
     for (final entry in entries) {
       final target = _normalizedText(entry.word);
-      final previous = byTarget[target];
-      if (previous == null ||
-          (entry.isParentAdded && !previous.isParentAdded)) {
-        byTarget[target] = entry;
-      }
+      byTarget.putIfAbsent(target, () => entry);
     }
     final deduplicated = byTarget.values.toList();
     deduplicated.sort((a, b) => a.addedAt.compareTo(b.addedAt));
@@ -104,10 +328,15 @@ class VocabularyStore {
 
   Future<List<VocabularyEntry>> starEntries() async {
     final entries = (await read())
-        .where((entry) => entry.isStar)
+        .where(
+          (entry) =>
+              entry.isStar &&
+              entry.source == VocabularySource.topicCore &&
+              (entry.correctAudioPath?.trim().isNotEmpty ?? false),
+        )
         .toList(growable: false);
     return entries..sort(
-      (a, b) => (b.earnedAt ?? b.addedAt).compareTo(a.earnedAt ?? a.addedAt),
+      (a, b) => (a.earnedAt ?? a.addedAt).compareTo(b.earnedAt ?? b.addedAt),
     );
   }
 
@@ -130,6 +359,7 @@ class VocabularyStore {
   Future<List<VocabularyEntry>> addParentEntries(
     List<VocabularyTranslation> selections, {
     DateTime? now,
+    int childAge = 5,
   }) async {
     if (selections.isEmpty) {
       return read();
@@ -150,7 +380,7 @@ class VocabularyStore {
     final entries = await read();
     final batch = <String>[];
     for (final selection in selections) {
-      _validateTranslation(selection);
+      _validateTranslation(selection, childAge: childAge);
       final english = selection.englishText.trim();
       final normalized = _normalizedText(english);
       final duplicate = entries
@@ -177,6 +407,12 @@ class VocabularyStore {
           addedAt: createdAt.add(Duration(microseconds: index)),
           source: VocabularySource.parent,
           status: VocabularyLearningStatus.unlearned,
+          contentKind: VocabularyEntry.inferContentKind(
+            selections[index].englishText,
+          ),
+          parentState: ParentVocabularyState.waiting,
+          todayStatus: null,
+          originBatchId: null,
         ),
     ];
     final updated = <VocabularyEntry>[...additions.reversed, ...entries];
@@ -189,8 +425,11 @@ class VocabularyStore {
     return updated;
   }
 
-  Future<void> validateParentCandidate(VocabularyTranslation candidate) async {
-    _validateTranslation(candidate);
+  Future<void> validateParentCandidate(
+    VocabularyTranslation candidate, {
+    int childAge = 5,
+  }) async {
+    _validateTranslation(candidate, childAge: childAge);
     final duplicate = (await read())
         .where(
           (entry) => _isSameOrNearDuplicate(entry.word, candidate.englishText),
@@ -205,13 +444,14 @@ class VocabularyStore {
   /// parent. A bad AI/curated option therefore cannot be selected or saved.
   Future<List<VocabularyTranslation>> filterParentSuggestions(
     Iterable<VocabularyTranslation> candidates, {
-    int limit = 4,
+    int limit = 3,
+    int childAge = 5,
   }) async {
     final entries = await read();
     final result = <VocabularyTranslation>[];
     for (final candidate in candidates) {
       try {
-        _validateTranslation(candidate);
+        _validateTranslation(candidate, childAge: childAge);
       } on VocabularyValidationException {
         continue;
       }
@@ -222,7 +462,11 @@ class VocabularyStore {
       }
       if (result.any(
         (item) =>
-            _isSameOrNearDuplicate(item.englishText, candidate.englishText),
+            _isSameOrNearDuplicate(item.englishText, candidate.englishText) &&
+            _isSameOrNearDuplicate(
+              item.vietnameseText,
+              candidate.vietnameseText,
+            ),
       )) {
         continue;
       }
@@ -242,7 +486,15 @@ class VocabularyStore {
             return entry;
           }
           changed = true;
-          return entry.copyWith(learningStartedAt: startedAt);
+          return entry.copyWith(
+            learningStartedAt: startedAt,
+            parentState: entry.isParentAdded
+                ? ParentVocabularyState.unlocked
+                : entry.parentState,
+            unlockedAt: entry.isParentAdded
+                ? entry.unlockedAt ?? startedAt
+                : entry.unlockedAt,
+          );
         })
         .toList(growable: false);
     if (changed) {
@@ -256,10 +508,56 @@ class VocabularyStore {
     if (entry == null) {
       return;
     }
-    if (!entry.canParentEdit) {
+    if (!entry.canParentDelete) {
       throw const VocabularyLockedException();
     }
-    await write(entries.where((item) => item.id != entryId).toList());
+    var updated = entries.where((item) => item.id != entryId).toList();
+    final view = await readTodayView();
+    if (view == null || !view.entryIds.contains(entryId)) {
+      await write(updated);
+      return;
+    }
+    final retainedIds = view.entryIds.where((id) => id != entryId).toList();
+    final replacement =
+        updated
+            .where(
+              (item) =>
+                  item.isWaitingParent &&
+                  item.todayStatus != TodayVocabularyStatus.heard &&
+                  !retainedIds.contains(item.id),
+            )
+            .toList()
+          ..sort((a, b) => a.addedAt.compareTo(b.addedAt));
+    if (replacement.isNotEmpty && retainedIds.length < parentDailyLimit) {
+      final next = replacement.first;
+      final backfillBatchId =
+          'parent-batch:${view.dayKey}:${DateTime.now().microsecondsSinceEpoch}';
+      retainedIds.add(next.id);
+      updated = updated
+          .map(
+            (item) => item.id == next.id
+                ? item.copyWith(
+                    parentState: ParentVocabularyState.today,
+                    todayStatus: TodayVocabularyStatus.notHeard,
+                    todayDayKey: view.dayKey,
+                    originBatchId: item.originBatchId ?? backfillBatchId,
+                  )
+                : item,
+          )
+          .toList(growable: false);
+    }
+    await write(updated);
+    if (retainedIds.isEmpty) {
+      await _clearTodayView();
+    } else {
+      await _writeTodayView(
+        VocabularyTodayView(
+          dayKey: view.dayKey,
+          entryIds: retainedIds,
+          createdAt: view.createdAt,
+        ),
+      );
+    }
   }
 
   Future<void> updateParentEntry({
@@ -542,7 +840,10 @@ class VocabularyStore {
     return previous.last;
   }
 
-  static void _validateTranslation(VocabularyTranslation value) {
+  static void _validateTranslation(
+    VocabularyTranslation value, {
+    int childAge = 5,
+  }) {
     final english = value.englishText.trim();
     final vietnamese = value.vietnameseText.trim();
     if (english.isEmpty || vietnamese.isEmpty) {
@@ -555,6 +856,32 @@ class VocabularyStore {
         'Nội dung quá dài. Ba mẹ hãy chọn một câu ngắn hơn.',
       );
     }
+    final maxEnglishWords = childAge <= 5
+        ? 10
+        : childAge <= 10
+        ? 16
+        : 24;
+    if (english.split(RegExp(r'\s+')).length > maxEnglishWords) {
+      throw const VocabularyValidationException(
+        'Câu này hơi dài so với độ tuổi của con. Ba mẹ chọn câu ngắn hơn nhé.',
+      );
+    }
+    final safeText = _normalizedText('$english $vietnamese');
+    const blockedTerms = <String>{
+      'fuck',
+      'shit',
+      'bitch',
+      'địt',
+      'đụ',
+      'lồn',
+      'cặc',
+    };
+    final tokens = safeText.split(' ').toSet();
+    if (blockedTerms.any(tokens.contains)) {
+      throw const VocabularyValidationException(
+        'Nội dung này chưa phù hợp với trẻ em. Ba mẹ chọn nội dung khác nhé.',
+      );
+    }
   }
 
   static bool _isSameLocalDay(DateTime a, DateTime b) =>
@@ -564,6 +891,17 @@ class VocabularyStore {
       '${value.year.toString().padLeft(4, '0')}-'
       '${value.month.toString().padLeft(2, '0')}-'
       '${value.day.toString().padLeft(2, '0')}';
+
+  Future<void> _writeTodayView(VocabularyTodayView view) async {
+    await (await SharedPreferences.getInstance()).setString(
+      _todayViewKey,
+      jsonEncode(view.toJson()),
+    );
+  }
+
+  Future<void> _clearTodayView() async {
+    await (await SharedPreferences.getInstance()).remove(_todayViewKey);
+  }
 }
 
 class VocabularyValidationException implements Exception {

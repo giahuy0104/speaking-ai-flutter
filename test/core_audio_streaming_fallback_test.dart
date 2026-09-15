@@ -46,28 +46,90 @@ void main() {
     expect(buffer.byteLength, 0);
   });
 
-  test('vocabulary translation uses the backend text pipeline', () async {
-    final repository = _FallbackRepository();
-    final controller = ConversationController(
-      audioInput: _FakeChunkedInput(
-        available: true,
-        bluetooth: false,
-        label: 'Phone',
-      ),
-      playbackService: const _FakePlaybackService(),
-      repository: repository,
-      childAge: 6,
-      initialAsrMode: AsrMode.batchChunks,
-    );
+  test(
+    'vocabulary translation uses the zero-token on-device pipeline',
+    () async {
+      final repository = _FallbackRepository();
+      final translator = _FakeOfflineTranslator(translatedText: 'Cat');
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Phone',
+        ),
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        offlineVietnameseEnglishTranslator: translator,
+        childAge: 6,
+        initialAsrMode: AsrMode.batchChunks,
+      );
 
-    final translation = await controller.translateVocabulary('con mèo');
+      final translation = await controller.translateVocabulary('con mèo');
 
-    expect(repository.streamingCapture?.sourceText, 'con mèo');
-    expect(repository.streamingCapture?.asrMode, 'text');
-    expect(translation.vietnameseText, 'Con muốn uống nước');
-    expect(translation.englishText, 'Can I have some water?');
-    controller.dispose();
-  });
+      expect(repository.streamingCapture, isNull);
+      expect(translation.vietnameseText, 'con mèo');
+      expect(translation.englishText, 'Cat');
+      controller.dispose();
+    },
+  );
+
+  test(
+    'English vocabulary sentences translate to Vietnamese on device',
+    () async {
+      final repository = _FallbackRepository();
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Phone',
+        ),
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        offlineEnglishVietnameseTranslator: _FakeEnglishVietnameseTranslator(),
+        childAge: 6,
+        initialAsrMode: AsrMode.batchChunks,
+      );
+
+      final translation = await controller.translateVocabulary(
+        'I like red apples.',
+      );
+
+      expect(repository.streamingCapture, isNull);
+      expect(translation.englishText, 'I like red apples.');
+      expect(translation.vietnameseText, 'Con thích những quả táo đỏ.');
+      controller.dispose();
+    },
+  );
+
+  test(
+    'Vietnamese vocabulary without diacritics translates in the correct direction',
+    () async {
+      final repository = _FallbackRepository();
+      final vietnameseTranslator = _FakeOfflineTranslator(
+        translatedText: 'Cat',
+      );
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Phone',
+        ),
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        offlineVietnameseEnglishTranslator: vietnameseTranslator,
+        offlineEnglishVietnameseTranslator: _FakeEnglishVietnameseTranslator(),
+        childAge: 6,
+        initialAsrMode: AsrMode.batchChunks,
+      );
+
+      final translation = await controller.translateVocabulary('con meo');
+
+      expect(translation.englishText, 'Cat');
+      expect(translation.vietnameseText, 'con meo');
+      expect(vietnameseTranslator.inputs, <String>['con meo']);
+      controller.dispose();
+    },
+  );
 
   test('conversation waits for the navigation recognizer handoff', () async {
     var navigationReleased = false;
@@ -2928,6 +2990,19 @@ class _FakeOfflineTranslator implements OfflineVietnameseEnglishTranslator {
     inputs.add(vietnameseText);
     return translatedText;
   }
+
+  @override
+  Future<void> close() async {}
+}
+
+class _FakeEnglishVietnameseTranslator
+    implements OfflineEnglishVietnameseTranslator {
+  @override
+  Future<bool> modelsReady() async => true;
+
+  @override
+  Future<String> translate(String englishText) async =>
+      'Con thích những quả táo đỏ.';
 
   @override
   Future<void> close() async {}

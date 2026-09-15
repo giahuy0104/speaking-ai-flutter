@@ -191,12 +191,12 @@ class HfpAudioBridge(
         if (!hasBluetoothFeature()) {
             phase = "unsupported"
             statusMessage = "Điện thoại không hỗ trợ Bluetooth HFP."
-        } else if (adapter?.isEnabled != true) {
-            phase = "error"
-            statusMessage = "Hãy bật Bluetooth trên điện thoại."
         } else if (!hasConnectPermission()) {
             phase = "permissionRequired"
             statusMessage = "Cần quyền Thiết bị ở gần/Bluetooth."
+        } else if (!isAdapterEnabled()) {
+            phase = "error"
+            statusMessage = "Hãy bật Bluetooth trên điện thoại."
         } else {
             refreshSelectedDeviceStatus()
         }
@@ -361,10 +361,11 @@ class HfpAudioBridge(
         previousAudioMode = audioManager.mode
         audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val selectedAddress = safeAddress(device)
                 val communicationDevice =
                     audioManager.availableCommunicationDevices.firstOrNull {
                         it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO &&
-                            addressesMatch(it.address, device.address)
+                            addressesMatch(it.address, selectedAddress)
                     } ?: audioManager.availableCommunicationDevices.firstOrNull {
                         it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
                     }
@@ -473,12 +474,18 @@ class HfpAudioBridge(
         }
 
     private fun isHeadsetConnected(device: BluetoothDevice): Boolean {
-        val profileConnected = connectedHeadsets().any { it.address == device.address }
-        if (profileConnected) return true
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return false
-        return audioManager.availableCommunicationDevices.any {
-            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO &&
-                addressesMatch(it.address, device.address)
+        if (!hasConnectPermission()) return false
+        return try {
+            val address = device.address
+            val profileConnected = connectedHeadsets().any { it.address == address }
+            if (profileConnected) return true
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return false
+            audioManager.availableCommunicationDevices.any {
+                it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO &&
+                    addressesMatch(it.address, address)
+            }
+        } catch (_: SecurityException) {
+            false
         }
     }
 
@@ -486,18 +493,38 @@ class HfpAudioBridge(
         device: BluetoothDevice,
         connectedAddresses: Set<String>,
     ): Boolean {
-        if (connectedAddresses.contains(device.address)) return true
-        val hasHfpUuid = device.uuids?.any { HFP_UUIDS.contains(it.uuid) } == true
-        if (hasHfpUuid) return true
-        return device.bluetoothClass?.majorDeviceClass ==
-            android.bluetooth.BluetoothClass.Device.Major.AUDIO_VIDEO
+        if (!hasConnectPermission()) return false
+        return try {
+            if (connectedAddresses.contains(device.address)) return true
+            val hasHfpUuid = device.uuids?.any { HFP_UUIDS.contains(it.uuid) } == true
+            hasHfpUuid ||
+                device.bluetoothClass?.majorDeviceClass ==
+                android.bluetooth.BluetoothClass.Device.Major.AUDIO_VIDEO
+        } catch (_: SecurityException) {
+            // BLUETOOTH_CONNECT can be revoked while a scan result is being
+            // evaluated. Treat the device as unavailable instead of crashing.
+            false
+        }
     }
 
     private fun safeName(device: BluetoothDevice): String =
         try {
-            device.name?.trim().takeUnless { it.isNullOrEmpty() } ?: device.address
+            device.name?.trim().takeUnless { it.isNullOrEmpty() }
+                ?: safeAddress(device)
+                ?: "Thiết bị HFP"
         } catch (_: SecurityException) {
-            device.address
+            "Thiết bị HFP"
+        }
+
+    private fun safeAddress(device: BluetoothDevice): String? =
+        if (!hasConnectPermission()) {
+            null
+        } else {
+            try {
+                device.address
+            } catch (_: SecurityException) {
+                null
+            }
         }
 
     private fun addressesMatch(
@@ -516,17 +543,24 @@ class HfpAudioBridge(
             appContext.checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) ==
             PackageManager.PERMISSION_GRANTED
 
+    private fun isAdapterEnabled(): Boolean =
+        try {
+            adapter?.isEnabled == true
+        } catch (_: SecurityException) {
+            false
+        }
+
     private fun ensureBluetoothReady(result: MethodChannel.Result): Boolean {
         if (!hasBluetoothFeature() || adapter == null) {
             fail(result, "HFP_UNSUPPORTED", "Điện thoại không hỗ trợ Bluetooth HFP.")
             return false
         }
-        if (adapter.isEnabled != true) {
-            fail(result, "BLUETOOTH_DISABLED", "Hãy bật Bluetooth trên điện thoại.")
-            return false
-        }
         if (!hasConnectPermission()) {
             fail(result, "BLUETOOTH_PERMISSION", "Chưa cấp quyền Bluetooth.")
+            return false
+        }
+        if (!isAdapterEnabled()) {
+            fail(result, "BLUETOOTH_DISABLED", "Hãy bật Bluetooth trên điện thoại.")
             return false
         }
         return true
@@ -547,7 +581,7 @@ class HfpAudioBridge(
         mapOf(
             "type" to "status",
             "phase" to phase,
-            "deviceId" to selectedDevice?.address,
+            "deviceId" to selectedDevice?.let(::safeAddress),
             "deviceName" to selectedDevice?.let(::safeName),
             "message" to statusMessage,
             "sampleRate" to 16000,
@@ -611,7 +645,9 @@ class HfpAudioBridge(
         pendingPermissionResult = null
         mainHandler.removeCallbacks(audioRouteTimeout)
         runCatching { appContext.unregisterReceiver(bluetoothReceiver) }
-        headset?.let { adapter?.closeProfileProxy(BluetoothProfile.HEADSET, it) }
+        headset?.let { proxy ->
+            runCatching { adapter?.closeProfileProxy(BluetoothProfile.HEADSET, proxy) }
+        }
         headset = null
         eventSink = null
         methodChannel.setMethodCallHandler(null)

@@ -1,4 +1,9 @@
+import 'dart:async';
+
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
+import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
+import 'package:ai_speaking_flutter_app/core/audio/learning_audio_dependencies.dart';
+import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_guide_audio_library.dart';
@@ -9,11 +14,143 @@ import 'package:ai_speaking_flutter_app/features/listening/domain/listening_cata
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_challenge_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_practice_screen.dart';
+import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_intro_screen.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  testWidgets('leaving during completion ting releases the already-open mic', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final store = _MemoryProgressStore()
+      ..completedSentences = 1
+      ..challengeProcessed = true
+      ..pendingCompletionChoice = ListeningPendingChoiceStage.lessonEnd
+      ..resumeStage = ListeningResumeStage.waitingForChoice;
+    final speech = _CompletionCommandSpeechInput();
+    addTearDown(speech.dispose);
+    final cueGate = Completer<void>();
+    final voice = _ReadyCueVoicePromptService(() {}, cueGate: cueGate);
+    await tester.pumpWidget(
+      _subject(
+        _v4Lesson(),
+        store,
+        const Key('dispose-at-ting'),
+        controller: _LearningAudioDependencies(speech),
+        mediaService: _SilentMediaService(),
+        voicePromptService: voice,
+        initialResumeStage: ListeningResumeStage.waitingForChoice,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(speech.commandStarts, 1);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+    expect(speech.cancels, 1);
+    cueGate.complete();
+    await tester.pumpAndSettle();
+    expect(speech.stops, 0);
+  });
+
+  for (final choice in [('Học lại', 1, true), ('Bài 2', 2, false)]) {
+    testWidgets(
+      'Android end-of-lesson "$choice" opens the selected learning flow',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        await _usePhoneSurface(tester);
+        final lesson = _v4Lesson();
+        final next = _v4Lesson(number: 2);
+        final store = _MemoryProgressStore()
+          ..completedSentences = 1
+          ..challengeProcessed = true
+          ..pendingCompletionChoice = ListeningPendingChoiceStage.lessonEnd
+          ..resumeStage = ListeningResumeStage.waitingForChoice;
+        final speech = _CompletionCommandSpeechInput(choice.$1);
+        addTearDown(speech.dispose);
+        await tester.pumpWidget(
+          _subject(
+            lesson,
+            store,
+            Key('native-choice-${choice.$2}'),
+            mediaService: _SilentMediaService(),
+            voicePromptService: _SilentVoicePromptService(),
+            controller: _LearningAudioDependencies(speech),
+            topicContent: ListeningTopicContent(
+              id: 'topic-1',
+              number: 1,
+              titleVi: 'Chủ đề 1',
+              titleEn: 'Topic 1',
+              lessons: [lesson, next],
+            ),
+            initialResumeStage: ListeningResumeStage.waitingForChoice,
+          ),
+        );
+        await tester.pumpAndSettle();
+        speech.partial.add(choice.$1);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 701));
+        await tester.pump();
+        final intro = tester.widget<LessonIntroScreen>(
+          find.byType(LessonIntroScreen),
+        );
+        expect(intro.lesson.number, choice.$2);
+        expect(intro.relearnFromBeginning, choice.$3);
+        expect(store.pendingCompletionChoice, isNull);
+        expect(speech.stops, 1);
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump();
+      },
+    );
+  }
+
+  testWidgets('Android completion arms command ASR before ting, not Core mic', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final store = _MemoryProgressStore()
+      ..completedSentences = 1
+      ..challengeProcessed = true
+      ..pendingCompletionChoice = ListeningPendingChoiceStage.lessonEnd
+      ..resumeStage = ListeningResumeStage.waitingForChoice;
+    final speech = _CompletionCommandSpeechInput();
+    addTearDown(speech.dispose);
+    final media = _SilentMediaService();
+    final voice = _ReadyCueVoicePromptService(() {
+      expect(speech.commandStarts, 1);
+      expect(media.startRecordingCount, 0);
+    });
+    await tester.pumpWidget(
+      _subject(
+        _v4Lesson(),
+        store,
+        const Key('native-completion'),
+        mediaService: media,
+        voicePromptService: voice,
+        controller: _LearningAudioDependencies(speech),
+        initialResumeStage: ListeningResumeStage.waitingForChoice,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(speech.commandStarts, 1);
+    expect(voice.readyCues, 1);
+    expect(media.startRecordingCount, 0);
+    expect(
+      store.pendingCompletionChoice,
+      ListeningPendingChoiceStage.lessonEnd,
+    );
+    speech.partial.add('Dừng lại');
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 701));
+    await tester.pumpAndSettle();
+    expect(speech.stops, 1);
+    expect(store.pendingCompletionChoice, isNull);
+    expect(store.resumeStage, ListeningResumeStage.completed);
+    expect(find.byKey(const ValueKey<String>('v4-choice-stop')), findsNothing);
+  });
+
   testWidgets(
     'next does not autoplay and previous plays praise without sentence audio',
     (tester) async {
@@ -167,6 +304,36 @@ void main() {
     expect(store.completedSentences, 1);
   });
 
+  testWidgets('V4 resume ignores an archived attempt and restarts EN-VI-mic', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final store = _MemoryProgressStore();
+    final mediaService = _SilentMediaService(
+      existingRecordingPath: 'C:\\recordings\\previous-v4-attempt.m4a',
+    );
+    final voice = _RecordingVoicePromptService();
+    final lesson = _v4Lesson();
+
+    await tester.pumpWidget(
+      _subject(
+        lesson,
+        store,
+        const Key('v4-core-resume-with-archive'),
+        mediaService: mediaService,
+        voicePromptService: voice,
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump();
+
+    expect(voice.spoken, contains('Good morning.'));
+    expect(voice.spoken, contains('Chào buổi sáng.'));
+    expect(mediaService.recording, isTrue);
+    expect(mediaService.startRecordingCount, 1);
+  });
+
   testWidgets(
     'V4 marks the lesson complete only after its authored challenge finishes',
     (tester) async {
@@ -224,6 +391,70 @@ void main() {
     },
   );
 
+  testWidgets('V4 resumes the exact completion choice after interruption', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final store = _MemoryProgressStore()
+      ..completedSentences = 1
+      ..challengeProcessed = true
+      ..resumeStage = ListeningResumeStage.waitingForChoice
+      ..pendingCompletionChoice = ListeningPendingChoiceStage.lessonEnd;
+    store.completedV4LessonActivities.add('navigation-test-lesson');
+    final mediaService = _SilentMediaService();
+    final voicePromptService = _RecordingVoicePromptService();
+
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: _subject(
+          _v4Lesson(),
+          store,
+          const Key('v4-waiting-choice-resume'),
+          mediaService: mediaService,
+          voicePromptService: voicePromptService,
+          completionChoiceRecognizer: const _FixedCompletionChoiceRecognizer(
+            'Dừng lại',
+          ),
+          initialResumeStage: ListeningResumeStage.waitingForChoice,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('lesson-challenge-screen')), findsNothing);
+    expect(
+      voicePromptService.spoken,
+      containsAllInOrder(<String>[
+        'Bạn đã hoàn thành Bài 1 rồi!',
+        'Bạn muốn học bài tiếp theo hay học lại bài này?',
+      ]),
+    );
+    expect(mediaService.startRecordingCount, 1);
+    expect(
+      store.pendingCompletionChoice,
+      ListeningPendingChoiceStage.lessonEnd,
+    );
+    expect(store.resumeStage, ListeningResumeStage.waitingForChoice);
+
+    expect(await registry.pauseForMainAssistant(), isTrue);
+    expect(
+      (await registry.execute(ActiveLearningCommand.resume)).wasHandled,
+      isTrue,
+    );
+    await tester.pump();
+    expect(mediaService.startRecordingCount, 2);
+    expect(mediaService.startedSentenceIds.last, contains('completion-choice'));
+
+    await tester.tap(find.byKey(const ValueKey<String>('v4-choice-stop')));
+    await tester.pumpAndSettle();
+
+    expect(store.pendingCompletionChoice, isNull);
+    expect(store.resumeStage, ListeningResumeStage.completed);
+  });
+
   testWidgets('V4 resumes an interrupted song from its beginning', (
     tester,
   ) async {
@@ -253,6 +484,12 @@ void main() {
     expect(find.byKey(const Key('v4-song-stage-screen')), findsNothing);
     expect(mediaService.playedUris, contains(lesson.songAudioUri));
     expect(await store.hasCompletedV4LessonActivity(lesson.id), isTrue);
+    expect(store.resumeStage, ListeningResumeStage.waitingForChoice);
+    expect(store.pendingCompletionChoice, ListeningPendingChoiceStage.topicEnd);
+
+    await tester.tap(find.byKey(const ValueKey<String>('v4-choice-stop')));
+    await tester.pumpAndSettle();
+
     expect(store.resumeStage, ListeningResumeStage.completed);
   });
 
@@ -380,6 +617,8 @@ Widget _subject(
   LessonMediaService? mediaService,
   LessonGuideAudioLibrary? guideAudioLibrary,
   VoicePromptService? voicePromptService,
+  LearningAudioDependencies? controller,
+  ListeningTopicContent? topicContent,
   LessonCompletionChoiceRecognizer? completionChoiceRecognizer,
   ListeningResumeStage initialResumeStage = ListeningResumeStage.core,
 }) {
@@ -403,6 +642,8 @@ Widget _subject(
       progressStore: store,
       mediaService: mediaService ?? _SilentMediaService(),
       voicePromptService: voicePromptService,
+      controller: controller,
+      topicContent: topicContent,
       completionChoiceRecognizer: completionChoiceRecognizer,
       initialResumeStage: initialResumeStage,
       guideAudioLibrary:
@@ -434,11 +675,13 @@ ListeningLessonContent _lessonWithSentences(int count) {
   );
 }
 
-ListeningLessonContent _v4Lesson({bool withSong = false}) {
+ListeningLessonContent _v4Lesson({bool withSong = false, int number = 1}) {
   return ListeningLessonContent(
-    id: 'navigation-test-lesson',
-    code: 'C35-L1-T01-B01',
-    number: 1,
+    id: number == 1
+        ? 'navigation-test-lesson'
+        : 'navigation-test-lesson-$number',
+    code: 'C35-L1-T01-B0$number',
+    number: number,
     titleVi: 'Bài V4',
     titleEn: 'V4 lesson',
     intro: '',
@@ -489,6 +732,17 @@ class _MemoryProgressStore extends ListeningProgressStore {
   bool challengeProcessed = false;
   int? currentChallengeIndex;
   int challengeRotationMask = 0;
+  ListeningPendingChoiceStage? pendingCompletionChoice;
+
+  @override
+  Future<bool> hasLessonPendingRelearn(String lessonId) async => false;
+
+  @override
+  Future<void> resetLessonRun(String lessonId) async {
+    currentSentence = 0;
+    challengeProcessed = false;
+    resumeStage = ListeningResumeStage.core;
+  }
 
   @override
   Future<bool> hasStartedLessonCore(String lessonId) async => coreStarted;
@@ -590,6 +844,28 @@ class _MemoryProgressStore extends ListeningProgressStore {
   ) async => resumeStage = stage;
 
   @override
+  Future<void> savePendingCompletionChoice(
+    String lessonId,
+    ListeningPendingChoiceStage stage,
+  ) async {
+    pendingCompletionChoice = stage;
+    resumeStage = ListeningResumeStage.waitingForChoice;
+  }
+
+  @override
+  Future<ListeningPendingChoiceStage?> readPendingCompletionChoice(
+    String lessonId,
+  ) async => pendingCompletionChoice;
+
+  @override
+  Future<void> clearPendingCompletionChoice(String lessonId) async {
+    pendingCompletionChoice = null;
+    if (resumeStage == ListeningResumeStage.waitingForChoice) {
+      resumeStage = ListeningResumeStage.completed;
+    }
+  }
+
+  @override
   Future<bool> awardStar(String scopeId, String starId) async =>
       earnedStars.add(starId);
 
@@ -643,6 +919,7 @@ class _SilentMediaService extends LessonMediaService {
   final List<Uri> playedUris = <Uri>[];
   bool recording = false;
   int startRecordingCount = 0;
+  final List<String> startedSentenceIds = <String>[];
 
   @override
   Future<void> preparePhoneSpeakerOutput() async {}
@@ -674,6 +951,7 @@ class _SilentMediaService extends LessonMediaService {
   }) async {
     recording = true;
     startRecordingCount += 1;
+    startedSentenceIds.add(sentenceId ?? '');
   }
 
   @override
@@ -694,6 +972,7 @@ class _SilentMediaService extends LessonMediaService {
   Future<void> play(
     Uri uri, {
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
   }) async => playedUris.add(uri);
 
   @override
@@ -701,6 +980,7 @@ class _SilentMediaService extends LessonMediaService {
     Uri uri, {
     Duration timeout = const Duration(seconds: 15),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
   }) async => playedUris.add(uri);
 
   @override
@@ -724,6 +1004,19 @@ class _SilentVoicePromptService implements VoicePromptService {
   Future<void> dispose() async {}
 }
 
+class _RecordingVoicePromptService extends _SilentVoicePromptService {
+  final List<String> spoken = <String>[];
+
+  @override
+  Future<void> speak(String text, {String locale = 'vi-VN'}) async {
+    spoken.add(text);
+  }
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) =>
+      speak(text, locale: locale);
+}
+
 class _FixedCompletionChoiceRecognizer
     implements LessonCompletionChoiceRecognizer {
   const _FixedCompletionChoiceRecognizer(this.transcript);
@@ -735,6 +1028,79 @@ class _FixedCompletionChoiceRecognizer
 
   @override
   Future<void> dispose() async {}
+}
+
+class _LearningAudioDependencies implements LearningAudioDependencies {
+  _LearningAudioDependencies(this.learningSpeechInput);
+  @override
+  final StreamingSpeechInput learningSpeechInput;
+  @override
+  AudioTurnCoordinator? get audioTurnCoordinator => null;
+  @override
+  HfpAudioControl? createLearningAudioRouteControl() => null;
+}
+
+class _CompletionCommandSpeechInput
+    implements StreamingSpeechInput, CommandStreamingSpeechInput {
+  _CompletionCommandSpeechInput([this.transcript = 'Dừng lại']);
+  final String transcript;
+  final partial = StreamController<String>.broadcast();
+  int commandStarts = 0;
+  int stops = 0;
+  int cancels = 0;
+  @override
+  String get label => 'test command ASR';
+  @override
+  Stream<double> get amplitudeDbfs => const Stream<double>.empty();
+  @override
+  Stream<void> get completed => const Stream<void>.empty();
+  @override
+  Stream<String> get partialText => partial.stream;
+  @override
+  Future<bool> checkAvailability() async => true;
+  @override
+  Future<void> start() async => fail('Completion must use command recognition');
+  @override
+  Future<void> startCommandRecognition() async {
+    commandStarts++;
+  }
+
+  @override
+  Future<StreamingSpeechCapture> stop() async {
+    stops++;
+    return StreamingSpeechCapture(
+      sourceText: transcript,
+      duration: Duration(seconds: 1),
+      inputLabel: 'test',
+      confidence: 0.95,
+      firstResultMs: 100,
+      finalAfterStopMs: 0,
+    );
+  }
+
+  @override
+  Future<void> cancel() async {
+    cancels++;
+  }
+
+  @override
+  Future<void> dispose() async {
+    await partial.close();
+  }
+}
+
+class _ReadyCueVoicePromptService extends _SilentVoicePromptService
+    implements SpeechReadyCuePlayer {
+  _ReadyCueVoicePromptService(this.onCue, {this.cueGate});
+  final Completer<void>? cueGate;
+  final VoidCallback onCue;
+  int readyCues = 0;
+  @override
+  Future<void> playSpeechReadyCue() async {
+    readyCues++;
+    onCue();
+    await cueGate?.future;
+  }
 }
 
 Future<void> _usePhoneSurface(WidgetTester tester) async {

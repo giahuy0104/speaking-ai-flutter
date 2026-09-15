@@ -12,6 +12,14 @@ enum ListeningResumeStage {
   reinforcement,
   completed,
   rolePlay,
+  waitingForChoice,
+}
+
+enum ListeningPendingChoiceStage {
+  lessonEnd,
+  topicEnd,
+  topicEndOneRemaining,
+  nextLevel,
 }
 
 enum ListeningSessionResult {
@@ -52,6 +60,7 @@ class ListeningProgressStore {
   static const String _levelCompletionEventSuffix =
       '::level-completion-event-created-v5';
   static const String _resumeStageSuffix = '::resume-stage';
+  static const String _pendingChoiceStageSuffix = '::pending-choice-stage-v5';
   static const String _coreStartedSuffix = '::core-started';
   static const String _missionSelectedMarker = '::mission-selected::';
   static const String _missionAnswerMarker = '::mission-answer::';
@@ -89,6 +98,7 @@ class ListeningProgressStore {
           key.endsWith(_challengeRotationMaskSuffix) ||
           key.endsWith(_levelCompletionEventSuffix) ||
           key.endsWith(_resumeStageSuffix) ||
+          key.endsWith(_pendingChoiceStageSuffix) ||
           key.endsWith(_coreStartedSuffix) ||
           key.contains(_missionSelectedMarker) ||
           key.contains(_missionAnswerMarker) ||
@@ -423,6 +433,40 @@ class ListeningProgressStore {
     await _writeRaw(progress);
   }
 
+  Future<void> savePendingCompletionChoice(
+    String lessonId,
+    ListeningPendingChoiceStage stage,
+  ) async {
+    final progress = await _readRaw();
+    progress['$lessonId$_resumeStageSuffix'] =
+        ListeningResumeStage.waitingForChoice.index;
+    progress['$lessonId$_pendingChoiceStageSuffix'] = stage.index;
+    await _writeRaw(progress);
+  }
+
+  Future<ListeningPendingChoiceStage?> readPendingCompletionChoice(
+    String lessonId,
+  ) async {
+    final value = (await _readRaw())['$lessonId$_pendingChoiceStageSuffix'];
+    if (value == null ||
+        value < 0 ||
+        value >= ListeningPendingChoiceStage.values.length) {
+      return null;
+    }
+    return ListeningPendingChoiceStage.values[value];
+  }
+
+  Future<void> clearPendingCompletionChoice(String lessonId) async {
+    final progress = await _readRaw();
+    progress.remove('$lessonId$_pendingChoiceStageSuffix');
+    if (progress['$lessonId$_resumeStageSuffix'] ==
+        ListeningResumeStage.waitingForChoice.index) {
+      progress['$lessonId$_resumeStageSuffix'] =
+          ListeningResumeStage.completed.index;
+    }
+    await _writeRaw(progress);
+  }
+
   Future<bool> hasStartedLessonCore(String lessonId) async {
     final progress = await _readRaw();
     return progress['$lessonId$_coreStartedSuffix'] == 1;
@@ -640,6 +684,10 @@ class ListeningProgressStore {
     return true;
   }
 
+  Future<bool> hasCourseCompletionEventCreated(String courseId) async {
+    return (await _readRaw())['$courseId$_courseCompletionEventSuffix'] == 1;
+  }
+
   /// Returns true only for the first historical completion of this Level.
   Future<bool> markLevelCompletionEventCreated(String levelId) async {
     final progress = await _readRaw();
@@ -648,6 +696,10 @@ class ListeningProgressStore {
     progress[key] = 1;
     await _writeRaw(progress);
     return true;
+  }
+
+  Future<bool> hasLevelCompletionEventCreated(String levelId) async {
+    return (await _readRaw())['$levelId$_levelCompletionEventSuffix'] == 1;
   }
 
   Future<void> saveLesson(String lessonId, int completedSentences) async {
@@ -668,6 +720,7 @@ class ListeningProgressStore {
       progress['$lessonId$_resumeSuffix'] = 0;
       progress['$lessonId$_resumeStageSuffix'] =
           ListeningResumeStage.core.index;
+      progress.remove('$lessonId$_pendingChoiceStageSuffix');
       progress.remove('$lessonId$_challengeProcessedMarker');
       progress.remove('$lessonId$_currentChallengeIndexSuffix');
       progress.remove('$lessonId$_coreStartedSuffix');
@@ -691,6 +744,7 @@ class ListeningProgressStore {
       progress['$lessonId$_resumeSuffix'] = 0;
       progress['$lessonId$_resumeStageSuffix'] =
           ListeningResumeStage.core.index;
+      progress.remove('$lessonId$_pendingChoiceStageSuffix');
       progress.remove('$lessonId$_challengeProcessedMarker');
       progress.remove('$lessonId$_currentChallengeIndexSuffix');
       progress.remove('$lessonId$_coreStartedSuffix');

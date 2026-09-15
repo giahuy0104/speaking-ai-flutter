@@ -407,6 +407,7 @@ class _OverviewMediaService extends LessonMediaService {
     Uri uri, {
     Duration timeout = const Duration(seconds: 45),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
   }) async {
     playedUris.add(uri);
   }

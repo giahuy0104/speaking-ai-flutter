@@ -8,21 +8,21 @@ import '../../../app/homi_ui.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
 import '../../../core/audio/streaming_speech_input.dart';
+import '../../../core/audio/audio_gain.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/active_learning_module.dart';
 import '../../../l10n/display_language.dart';
 import '../application/lesson_attempt_evaluator.dart';
 import '../application/lesson_media_service.dart';
+import '../application/lesson_recording_endpoint_detector.dart';
 import '../domain/lesson_guide_flow.dart';
 import '../domain/listening_content.dart';
 
-/// Runs the authored V4 end-of-lesson activity.
+/// Runs the single authored Challenge selected for the current Core.
 ///
-/// Each challenge keeps the two options written by the curriculum team, but
-/// the microphone is the answer control: a child must say the English answer,
-/// rather than selecting A/B.  When V4 supplies a role-play, it is
-/// completed immediately before the two challenges and only the child's turns
-/// are recorded and scored.
+/// Legacy role-play data remains readable during migration but is deliberately
+/// ignored by this runtime. The microphone is the answer control: a child must
+/// say the English answer rather than selecting A/B.
 class LessonChallengeScreen extends StatefulWidget {
   const LessonChallengeScreen({
     required this.language,
@@ -38,9 +38,6 @@ class LessonChallengeScreen extends StatefulWidget {
     this.onStarEarnedWithAudioResult,
     this.onNeedsPractice,
     this.onChallengeResolved,
-    this.onRolePlayCompleted,
-    this.showRolePlayOpeningHint = true,
-    this.startAfterRolePlay = false,
     super.key,
   });
 
@@ -78,9 +75,6 @@ class LessonChallengeScreen extends StatefulWidget {
     bool correct,
   )?
   onChallengeResolved;
-  final Future<void> Function()? onRolePlayCompleted;
-  final bool showRolePlayOpeningHint;
-  final bool startAfterRolePlay;
 
   @override
   State<LessonChallengeScreen> createState() => _LessonChallengeScreenState();
@@ -88,7 +82,6 @@ class LessonChallengeScreen extends StatefulWidget {
 
 class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     implements ActiveLearningModuleController {
-  static const Duration _automaticAnswerWindow = Duration(seconds: 6);
   static const Duration _promptCompletionTimeout = Duration(seconds: 10);
 
   late final LessonAttemptEvaluator _attemptEvaluator;
@@ -96,8 +89,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
 
   VoicePromptService? _voicePromptService;
   bool _ownsVoicePromptService = false;
-  bool _rolePlayCompleted = false;
-  int _rolePlayTurnIndex = 0;
   int _challengeIndex = 0;
   int _attemptNumber = 0;
   bool _playingPrompt = false;
@@ -106,12 +97,15 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   bool _busy = false;
   String? _message;
   int _request = 0;
-  Timer? _recordingAutoStopTimer;
+  final LessonRecordingEndpointDetector _recordingEndpointDetector =
+      LessonRecordingEndpointDetector();
   Timer? _promptCompletionTimer;
   Completer<void>? _promptCompletionWaiter;
   bool _pausedForMainAssistant = false;
   bool _pausedAfterNoResponse = false;
   int _invalidResponseCount = 0;
+  final Map<LessonFeedbackKind, int> _feedbackVariationIndexes =
+      <LessonFeedbackKind, int>{};
   String? _activeAttemptAudioPath;
   ActiveLearningModuleRegistry? _activeModuleRegistry;
   Object? _activeModuleRegistration;
@@ -123,29 +117,8 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   @override
   bool get isPausedForMain => _pausedForMainAssistant;
 
-  bool get _hasRolePlay {
-    final rolePlay = widget.lesson.rolePlay;
-    return widget.startAge >= 8 &&
-        rolePlay != null &&
-        rolePlay.turns.isNotEmpty;
-  }
-
-  bool get _inRolePlay => _hasRolePlay && !_rolePlayCompleted;
-
-  ListeningRolePlayTurn? get _rolePlayTurn {
-    if (!_inRolePlay) return null;
-    final turns = widget.lesson.rolePlay!.turns;
-    if (_rolePlayTurnIndex >= turns.length) return null;
-    return turns[_rolePlayTurnIndex];
-  }
-
   ListeningChallengeContent get _challenge =>
       widget.challenges[_challengeIndex];
-
-  /// A HOMI line is playback-only. Every challenge and child role-play line
-  /// opens the selected H20 microphone as soon as the coach prompt ends.
-  bool get _shouldAutomaticallyRecord =>
-      !_inRolePlay || _rolePlayTurn?.speaker == ListeningRolePlaySpeaker.child;
 
   bool get _usesIosOnDeviceRecognition =>
       !kIsWeb &&
@@ -162,7 +135,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   @override
   void initState() {
     super.initState();
-    _rolePlayCompleted = widget.startAfterRolePlay;
     _ownsAttemptEvaluator = widget.attemptEvaluator == null;
     _attemptEvaluator =
         widget.attemptEvaluator ?? createDefaultLessonAttemptEvaluator();
@@ -187,13 +159,14 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
 
   @override
   void dispose() {
+    final wasPlayingPrompt = _playingPrompt;
+    final wasRecording = _recording || _recordingUsesIosSpeech;
     final registration = _activeModuleRegistration;
     if (registration != null) {
       _activeModuleRegistry?.unregister(registration);
     }
     _request += 1;
-    _recordingAutoStopTimer?.cancel();
-    _recordingAutoStopTimer = null;
+    _recordingEndpointDetector.cancel();
     _promptCompletionTimer?.cancel();
     _promptCompletionTimer = null;
     final promptWaiter = _promptCompletionWaiter;
@@ -201,8 +174,14 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     if (promptWaiter != null && !promptWaiter.isCompleted) {
       promptWaiter.complete();
     }
-    unawaited(widget.mediaService.stopPlayback());
-    if (_recording || _recordingUsesIosSpeech) {
+    // The parent lesson reuses these services immediately after a successful
+    // Challenge pop to announce the completion choice and open its mic. Do not
+    // let this disposed route stop that new turn; only tear down work that was
+    // actually active on this route.
+    if (wasPlayingPrompt) {
+      unawaited(widget.mediaService.stopPlayback());
+    }
+    if (wasRecording) {
       if (_recordingUsesIosSpeech && widget.iosSpeechInput != null) {
         unawaited(widget.iosSpeechInput!.cancel());
       } else {
@@ -213,7 +192,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     if (prompt != null) {
       if (_ownsVoicePromptService) {
         unawaited(prompt.dispose());
-      } else {
+      } else if (wasPlayingPrompt) {
         unawaited(prompt.stop());
       }
     }
@@ -228,8 +207,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   Future<void> pauseForMainAssistant() async {
     _pausedForMainAssistant = true;
     _request += 1;
-    _recordingAutoStopTimer?.cancel();
-    _recordingAutoStopTimer = null;
+    _recordingEndpointDetector.cancel();
     _promptCompletionTimer?.cancel();
     _promptCompletionTimer = null;
     final waiter = _promptCompletionWaiter;
@@ -309,7 +287,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       return;
     }
     final request = ++_request;
-    final isHomiTurn = _rolePlayTurn?.speaker == ListeningRolePlaySpeaker.homi;
     setState(() {
       _playingPrompt = true;
       _message = null;
@@ -321,18 +298,9 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       // automatic microphone opening can be lost during route renegotiation.
       await widget.mediaService.prepareSelectedLessonOutput();
       if (!mounted || request != _request) return;
-      final turn = _rolePlayTurn;
-      if (turn != null) {
-        if (turn.speaker == ListeningRolePlaySpeaker.homi) {
-          await _speakPromptAndWait(turn.english, locale: 'en-US');
-        } else {
-          await _speakPromptAndWait('Bạn nói câu này nhé.');
-        }
-      } else {
-        await _speakPromptAndWait(_challenge.prompt);
-        if (!mounted || request != _request) return;
-        await _speakPromptAndWait('Bạn nói đáp án bằng tiếng Anh nhé.');
-      }
+      await _speakPromptAndWait(_challenge.prompt);
+      if (!mounted || request != _request) return;
+      await _speakPromptAndWait('Bạn nói đáp án bằng tiếng Anh nhé.');
     } catch (_) {
       // The written prompt and recording controls stay available when TTS is
       // temporarily unavailable.
@@ -348,21 +316,12 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         (_busy && !allowBusy)) {
       return;
     }
-    // A HOMI turn is playback-only and moves forward as soon as the authored
-    // line finishes. The child must never be asked to press a button or speak
-    // on behalf of HOMI.
-    if (isHomiTurn) {
-      await _advance();
-      return;
-    }
-    if (!_shouldAutomaticallyRecord) return;
     if (openMicrophone) await _startRecording();
   }
 
   Future<void> _replayCurrent() async {
     if (_recording) {
-      _recordingAutoStopTimer?.cancel();
-      _recordingAutoStopTimer = null;
+      _recordingEndpointDetector.cancel();
       if (_recordingUsesIosSpeech && widget.iosSpeechInput != null) {
         await widget.iosSpeechInput!.cancel().catchError((Object _) {});
       } else {
@@ -374,28 +333,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         _recordingUsesIosSpeech = false;
       });
     }
-    final previousHomiEnglish =
-        _rolePlayTurn?.speaker == ListeningRolePlaySpeaker.child
-        ? _previousHomiEnglish
-        : null;
-    if (previousHomiEnglish == null) {
-      await _playCurrentPrompt();
-      return;
-    }
-    final request = ++_request;
-    setState(() {
-      _playingPrompt = true;
-      _message = null;
-    });
-    try {
-      await widget.mediaService.prepareSelectedLessonOutput();
-      if (!mounted || request != _request) return;
-      await _speakPromptAndWait(previousHomiEnglish, locale: 'en-US');
-    } finally {
-      if (mounted && request == _request) {
-        setState(() => _playingPrompt = false);
-      }
-    }
+    await _playCurrentPrompt();
   }
 
   Future<void> _speakPromptAndWait(
@@ -445,8 +383,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   Future<void> _startRecording() async {
     if (_pausedForMainAssistant ||
         _pausedAfterNoResponse ||
-        (_inRolePlay &&
-            _rolePlayTurn?.speaker == ListeningRolePlaySpeaker.homi) ||
         _recording ||
         _busy ||
         _playingPrompt ||
@@ -455,12 +391,19 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     }
     final expected = _expectedEnglish;
     if (expected.isEmpty) return;
+    final request = _request;
     setState(() {
       _busy = true;
       _message = null;
     });
     try {
       await _prompt.stop();
+      final prompt = _voicePromptService;
+      final cueBeforeStart =
+          !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+      if (cueBeforeStart && prompt is SpeechReadyCuePlayer) {
+        await (prompt as SpeechReadyCuePlayer).playSpeechReadyCue();
+      }
       var usesIosSpeech = false;
       final iosSpeechInput = _usesIosOnDeviceRecognition
           ? widget.iosSpeechInput
@@ -507,7 +450,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
           saveToHistory: false,
         );
       }
-      if (!mounted) {
+      if (!mounted || _pausedForMainAssistant || request != _request) {
         if (usesIosSpeech) {
           await iosSpeechInput?.cancel().catchError((Object _) {});
         } else {
@@ -515,17 +458,29 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         }
         return;
       }
+      if (!cueBeforeStart && prompt is SpeechReadyCuePlayer) {
+        await (prompt as SpeechReadyCuePlayer).playSpeechReadyCue();
+      }
+      if (!mounted || _pausedForMainAssistant || request != _request) return;
       setState(() {
         _recording = true;
         _recordingUsesIosSpeech = usesIosSpeech;
         _busy = false;
       });
-      _recordingAutoStopTimer?.cancel();
-      _recordingAutoStopTimer = Timer(
-        _automaticAnswerWindow,
-        () => unawaited(_stopRecording()),
+      final streamingIosSpeechInput = iosSpeechInput is StreamingSpeechInput
+          ? iosSpeechInput as StreamingSpeechInput
+          : null;
+      final amplitudeDbfs = usesIosSpeech
+          ? streamingIosSpeechInput?.amplitudeDbfs
+          : widget.mediaService.recordingAmplitudeDbfs;
+      _recordingEndpointDetector.start(
+        amplitudeDbfs: amplitudeDbfs,
+        onEndpoint: (_) {
+          if (mounted && _recording) unawaited(_stopRecording());
+        },
       );
     } catch (error) {
+      _recordingEndpointDetector.cancel();
       if (!mounted) return;
       setState(() {
         _recordingUsesIosSpeech = false;
@@ -543,18 +498,29 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   Future<void> _stopRecording() async {
     if (!_recording || _busy || !mounted) return;
     final request = _request;
-    _recordingAutoStopTimer?.cancel();
-    _recordingAutoStopTimer = null;
+    _recordingEndpointDetector.cancel();
     setState(() => _busy = true);
     var shouldOpenMicrophoneAgain = false;
     try {
       final usesIosSpeech = _recordingUsesIosSpeech;
       final LessonAttemptOutcome outcome;
+      LessonRecording? completedRecording;
       final evaluatedAttemptNumber = _attemptNumber + 1;
       if (usesIosSpeech) {
-        outcome = await _stopAndScoreIosOnDevice();
+        final result = await _stopAndScoreIosOnDevice();
+        outcome = result.$1;
+        completedRecording = result.$2;
       } else {
         final recording = await widget.mediaService.stopRecording();
+        completedRecording = recording;
+        if (!mounted || _pausedForMainAssistant || request != _request) {
+          return;
+        }
+        setState(() {
+          _recording = false;
+          _recordingUsesIosSpeech = false;
+        });
+        await _playAttemptRecordingToCompletion(recording);
         if (!mounted || _pausedForMainAssistant || request != _request) {
           return;
         }
@@ -571,6 +537,14 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         );
       }
       if (!mounted || _pausedForMainAssistant || request != _request) return;
+      if (usesIosSpeech && completedRecording != null) {
+        setState(() {
+          _recording = false;
+          _recordingUsesIosSpeech = false;
+        });
+        await _playAttemptRecordingToCompletion(completedRecording);
+        if (!mounted || _pausedForMainAssistant || request != _request) return;
+      }
       if (outcome != LessonAttemptOutcome.unclear &&
           outcome != LessonAttemptOutcome.noResponse) {
         _attemptNumber = evaluatedAttemptNumber;
@@ -601,16 +575,49 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     }
   }
 
-  Future<LessonAttemptOutcome> _stopAndScoreIosOnDevice() async {
+  Future<void> _playAttemptRecordingToCompletion(
+    LessonRecording recording,
+  ) async {
+    final parsed = Uri.tryParse(recording.filePath);
+    final uri = parsed != null && parsed.hasScheme
+        ? parsed
+        : Uri.file(recording.filePath);
+    final requestedTimeout = recording.duration + const Duration(seconds: 5);
+    final timeout = requestedTimeout < const Duration(seconds: 10)
+        ? const Duration(seconds: 10)
+        : requestedTimeout;
+    try {
+      await widget.mediaService.playToCompletion(
+        uri,
+        timeout: timeout,
+        playbackGainDb: lessonRecordingPlaybackGainDb,
+      );
+    } catch (error) {
+      // A playback problem must not discard the answer or prevent scoring.
+      debugPrint('HOMI challenge attempt playback failed: $error');
+    }
+  }
+
+  Future<(LessonAttemptOutcome, LessonRecording?)>
+  _stopAndScoreIosOnDevice() async {
     final speechInput = widget.iosSpeechInput;
-    if (speechInput == null) return LessonAttemptOutcome.unclear;
+    if (speechInput == null) return (LessonAttemptOutcome.unclear, null);
     try {
       final capture = await speechInput.stop();
+      final recordedAudio = capture.recordedAudio;
+      final recording = recordedAudio == null
+          ? null
+          : LessonRecording(
+              filePath: recordedAudio.filePath,
+              duration: recordedAudio.duration,
+            );
       final candidates = <String>{
         capture.sourceText,
         ...capture.alternatives,
       }.where((candidate) => candidate.trim().isNotEmpty);
-      if (candidates.isEmpty) return LessonAttemptOutcome.noResponse;
+      if (candidates.isEmpty) {
+        return (LessonAttemptOutcome.noResponse, recording);
+      }
       final outcome =
           candidates.any(
             (candidate) => matchesRecognizedLessonEnglish(
@@ -622,16 +629,16 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
           )
           ? LessonAttemptOutcome.good
           : LessonAttemptOutcome.retry;
-      return outcome;
+      return (outcome, recording);
     } on StreamingSpeechInputException catch (error) {
       debugPrint(
         'HOMI iOS challenge recognition returned no usable speech: '
         'code=${error.code ?? 'unknown'}',
       );
-      return LessonAttemptOutcome.unclear;
+      return (LessonAttemptOutcome.unclear, null);
     } catch (error) {
       debugPrint('HOMI iOS challenge recognition failed locally: $error');
-      return LessonAttemptOutcome.unclear;
+      return (LessonAttemptOutcome.unclear, null);
     }
   }
 
@@ -644,12 +651,14 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       return _advance();
     }
     if (outcome == LessonAttemptOutcome.unclear) {
+      if (!_acceptInvalidResponseOrPause()) return false;
       await _speakFeedback(LessonFeedbackKind.asr);
-      return _handleInvalidResponse();
+      return true;
     }
     if (outcome == LessonAttemptOutcome.noResponse) {
+      if (!_acceptInvalidResponseOrPause()) return false;
       await _speakFeedback(LessonFeedbackKind.noResponse);
-      return _handleInvalidResponse();
+      return true;
     }
     _invalidResponseCount = 0;
     if (_attemptNumber >= 2) {
@@ -657,13 +666,17 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     }
     await _speakFeedback(LessonFeedbackKind.retry);
     if (!mounted || _pausedForMainAssistant) return false;
+    // Challenge retries repeat the authored question (including its choices),
+    // not the correct answer used by the Core imitation flow.
     await _playCurrentPrompt(allowBusy: true, openMicrophone: false);
-    return mounted;
+    return mounted && !_pausedForMainAssistant;
   }
 
-  bool _handleInvalidResponse() {
+  bool _acceptInvalidResponseOrPause() {
     if (!mounted || _pausedForMainAssistant) return false;
     _invalidResponseCount += 1;
+    // Open one complete retry window. A second unusable result pauses directly
+    // and must not be preceded by another invitation to speak.
     if (_invalidResponseCount < 2) return true;
     setState(() {
       _pausedAfterNoResponse = true;
@@ -686,14 +699,17 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
 
   Future<void> _notifyChallengeResolved({required bool correct}) async {
     final callback = widget.onChallengeResolved;
-    if (callback == null || _inRolePlay) return;
+    if (callback == null) return;
     await callback(_challenge, correct);
   }
 
   Future<void> _speakFeedback(LessonFeedbackKind kind) async {
+    final index = _feedbackVariationIndexes[kind] ?? 0;
+    _feedbackVariationIndexes[kind] = index + 1;
     final message = LessonAgeFeedbackLibrary.message(
       age: widget.startAge,
       kind: kind,
+      variationIndex: index,
     );
     if (mounted) setState(() => _message = message);
     try {
@@ -706,9 +722,11 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   }
 
   Future<bool> _giveAnswerAndAdvance({required bool skip}) async {
-    await _speakFeedback(
-      skip ? LessonFeedbackKind.skip : LessonFeedbackKind.give,
-    );
+    if (skip) {
+      await _speakFeedback(LessonFeedbackKind.skip);
+    } else {
+      await _speakFeedback(LessonFeedbackKind.give);
+    }
     if (!mounted || _pausedForMainAssistant) return false;
     try {
       await widget.mediaService.prepareSelectedLessonOutput();
@@ -729,9 +747,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   Future<void> _saveNeedsPractice() async {
     final callback = widget.onNeedsPractice;
     if (callback == null) return;
-    final stableId = _inRolePlay
-        ? 'roleplay:${_rolePlayTurnIndex + 1}'
-        : 'challenge:${_challengeIndex + 1}';
+    final stableId = 'challenge:${_challengeIndex + 1}';
     try {
       await callback(stableId, _expectedEnglish, _expectedVietnamese);
     } catch (_) {
@@ -741,36 +757,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
 
   Future<bool> _advance() async {
     if (_pausedForMainAssistant) return false;
-    if (_inRolePlay) {
-      final nextIndex = _rolePlayTurnIndex + 1;
-      if (nextIndex < widget.lesson.rolePlay!.turns.length) {
-        setState(() {
-          _rolePlayTurnIndex = nextIndex;
-          _attemptNumber = 0;
-          _message = null;
-        });
-        await _playCurrentPrompt(allowBusy: true);
-        return true;
-      }
-      setState(() {
-        _rolePlayCompleted = true;
-        _attemptNumber = 0;
-        _message = null;
-      });
-      try {
-        await widget.onRolePlayCompleted?.call();
-      } catch (_) {
-        // Progress persistence must not block the authored challenge.
-      }
-      try {
-        await _speakPromptAndWait('Bạn đã hoàn thành đoạn hội thoại rồi.');
-      } catch (_) {
-        // The challenge still starts if the summary cannot be spoken.
-      }
-      await _playCurrentPrompt(allowBusy: true);
-      return true;
-    }
-
     if (_challengeIndex < widget.challenges.length - 1) {
       setState(() {
         _challengeIndex += 1;
@@ -784,29 +770,11 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     return false;
   }
 
-  Future<void> _restartRolePlay() async {
-    if (!_hasRolePlay || _busy || _recording) return;
-    setState(() {
-      _rolePlayTurnIndex = 0;
-      _attemptNumber = 0;
-      _message = null;
-    });
-    await _playCurrentPrompt();
-  }
+  String get _expectedEnglish => _challenge.correctAnswer;
 
-  String get _expectedEnglish {
-    final turn = _rolePlayTurn;
-    return turn?.english ?? _challenge.correctAnswer;
-  }
-
-  String get _expectedVietnamese {
-    final turn = _rolePlayTurn;
-    return turn?.vietnamese ?? _challenge.correctVietnamese;
-  }
+  String get _expectedVietnamese => _challenge.correctVietnamese;
 
   Iterable<String> get _acceptedRecognitionVariants {
-    final turn = _rolePlayTurn;
-    if (turn != null) return <String>[turn.english];
     for (final sentence in widget.lesson.sentences) {
       if (sentence.id == _challenge.targetId) {
         return sentence.recognitionVariants;
@@ -815,28 +783,9 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     return const <String>[];
   }
 
-  String get _attemptId {
-    final turn = _rolePlayTurn;
-    return turn == null
-        ? _challenge.id
-        : '${widget.lesson.id}-roleplay-${_rolePlayTurnIndex + 1}';
-  }
+  String get _attemptId => _challenge.id;
 
-  String? get _previousHomiEnglish {
-    if (!_inRolePlay || _rolePlayTurnIndex <= 0) return null;
-    final turns = widget.lesson.rolePlay!.turns;
-    for (var index = _rolePlayTurnIndex - 1; index >= 0; index -= 1) {
-      if (turns[index].speaker == ListeningRolePlaySpeaker.homi) {
-        final value = turns[index].english.trim();
-        return value.isEmpty ? null : value;
-      }
-    }
-    return null;
-  }
-
-  int get _recordingNumber {
-    return _inRolePlay ? _rolePlayTurnIndex + 1 : 100 + _challengeIndex + 1;
-  }
+  int get _recordingNumber => 100 + _challengeIndex + 1;
 
   String _friendlyError(Object error) {
     if (error is StreamingSpeechInputException &&
@@ -853,14 +802,8 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final turn = _rolePlayTurn;
-    final isHomiTurn = turn?.speaker == ListeningRolePlaySpeaker.homi;
-    final rolePlay = widget.lesson.rolePlay;
-    final totalSteps =
-        widget.challenges.length + (_hasRolePlay ? rolePlay!.turns.length : 0);
-    final currentStep = _inRolePlay
-        ? _rolePlayTurnIndex
-        : (_hasRolePlay ? rolePlay!.turns.length : 0) + _challengeIndex;
+    final totalSteps = widget.challenges.length;
+    final currentStep = _challengeIndex;
     final progress = totalSteps == 0 ? 0.0 : (currentStep / totalSteps);
 
     return DisplayLanguageScope(
@@ -904,15 +847,10 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Text(
-                    _inRolePlay ? 'Đoạn hội thoại' : 'Thử thách nghe',
-                    style: theme.textTheme.headlineMedium,
-                  ),
+                  Text('Thử thách nghe', style: theme.textTheme.headlineMedium),
                   const SizedBox(height: 8),
                   Text(
-                    _inRolePlay
-                        ? rolePlay!.scenarioVi
-                        : 'Câu ${_challengeIndex + 1}/${widget.challenges.length}',
+                    'Câu ${_challengeIndex + 1}/${widget.challenges.length}',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
@@ -921,16 +859,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
                   const SizedBox(height: 18),
                   Expanded(
                     child: SingleChildScrollView(
-                      child: _inRolePlay
-                          ? _RolePlayCard(
-                              turn: turn!,
-                              openingHint:
-                                  widget.showRolePlayOpeningHint &&
-                                      _rolePlayTurnIndex == 0
-                                  ? rolePlay!.openingHint
-                                  : null,
-                            )
-                          : _ChallengeCard(challenge: _challenge),
+                      child: _ChallengeCard(challenge: _challenge),
                     ),
                   ),
                   if (_message != null) ...<Widget>[
@@ -945,139 +874,58 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
                     ),
                   ],
                   const SizedBox(height: 14),
-                  if (_inRolePlay && isHomiTurn)
-                    Semantics(
-                      liveRegion: true,
-                      child: Text(
-                        _playingPrompt
-                            ? 'HOMI đang nói…'
-                            : 'HOMI chuẩn bị câu tiếp theo…',
-                        key: const Key('lesson-role-play-homi-status'),
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w700,
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      FilledButton(
+                        key: const Key('lesson-challenge-record-button'),
+                        onPressed:
+                            _busy || _playingPrompt || _pausedAfterNoResponse
+                            ? null
+                            : (_recording ? _stopRecording : _startRecording),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size.fromHeight(64),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              HomiUi.controlRadius,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            if (_recording || _busy)
+                              HomiWaveform(
+                                active: true,
+                                width: 48,
+                                height: 24,
+                                color: theme.colorScheme.onPrimary,
+                              )
+                            else
+                              const Icon(Icons.mic_rounded, size: 28),
+                            const SizedBox(width: 10),
+                            Text(
+                              _recording ? 'Dừng và chấm' : 'Nói câu trả lời',
+                            ),
+                          ],
                         ),
                       ),
-                    )
-                  else
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        FilledButton(
-                          key: const Key('lesson-challenge-record-button'),
-                          onPressed:
-                              _busy || _playingPrompt || _pausedAfterNoResponse
-                              ? null
-                              : (_recording ? _stopRecording : _startRecording),
-                          style: FilledButton.styleFrom(
-                            minimumSize: const Size.fromHeight(64),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                HomiUi.controlRadius,
-                              ),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              if (_recording || _busy)
-                                HomiWaveform(
-                                  active: true,
-                                  width: 48,
-                                  height: 24,
-                                  color: theme.colorScheme.onPrimary,
-                                )
-                              else
-                                const Icon(Icons.mic_rounded, size: 28),
-                              const SizedBox(width: 10),
-                              Text(
-                                _recording ? 'Dừng và chấm' : 'Nói câu trả lời',
-                              ),
-                            ],
-                          ),
+                      if (_pausedAfterNoResponse) ...<Widget>[
+                        const SizedBox(height: 10),
+                        FilledButton.tonalIcon(
+                          key: const Key('challenge-resume-after-no-response'),
+                          onPressed: _resumeAfterNoResponse,
+                          icon: const Icon(Icons.mic_rounded),
+                          label: const Text('Thử lại mic'),
                         ),
-                        if (_pausedAfterNoResponse) ...<Widget>[
-                          const SizedBox(height: 10),
-                          FilledButton.tonalIcon(
-                            key: const Key(
-                              'challenge-resume-after-no-response',
-                            ),
-                            onPressed: _resumeAfterNoResponse,
-                            icon: const Icon(Icons.mic_rounded),
-                            label: const Text('Thử lại mic'),
-                          ),
-                        ],
                       ],
-                    ),
-                  if (_inRolePlay) ...<Widget>[
-                    const SizedBox(height: 8),
-                    TextButton.icon(
-                      onPressed: _busy || _recording ? null : _restartRolePlay,
-                      icon: const Icon(Icons.restart_alt_rounded),
-                      label: const Text('Làm lại đoạn hội thoại'),
-                    ),
-                  ],
+                    ],
+                  ),
                 ],
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _RolePlayCard extends StatelessWidget {
-  const _RolePlayCard({required this.turn, this.openingHint});
-
-  final ListeningRolePlayTurn turn;
-  final String? openingHint;
-
-  @override
-  Widget build(BuildContext context) {
-    final isChild = turn.speaker == ListeningRolePlaySpeaker.child;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    return HomiSurface(
-      padding: const EdgeInsets.all(22),
-      color: isChild && !isDark ? AppColors.lavenderSoft : null,
-      borderColor: isChild
-          ? (isDark ? theme.colorScheme.outline : AppColors.periwinkle)
-          : null,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            isChild ? 'Lượt của bạn' : 'HOMI nói',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: isChild
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 14),
-          Text(turn.english, style: theme.textTheme.titleLarge),
-          if (isChild) ...<Widget>[
-            const SizedBox(height: 8),
-            Text(
-              turn.vietnamese,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            if (openingHint != null && openingHint!.isNotEmpty) ...<Widget>[
-              const SizedBox(height: 14),
-              Text(
-                'Gợi ý: $openingHint',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ],
-        ],
       ),
     );
   }

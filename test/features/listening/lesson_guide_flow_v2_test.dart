@@ -44,6 +44,21 @@ void main() {
       LessonAgeFeedbackLibrary.message(age: 15, kind: LessonFeedbackKind.asr),
       'HOMI chưa nghe rõ. Thử lại nhé.',
     );
+    expect(
+      LessonAgeFeedbackLibrary.messages(
+        age: 4,
+        kind: LessonFeedbackKind.correct,
+      ),
+      <String>['Đúng rồi!', 'Giỏi lắm!', 'Tốt lắm!'],
+    );
+    expect(
+      LessonAgeFeedbackLibrary.message(
+        age: 4,
+        kind: LessonFeedbackKind.correct,
+        variationIndex: 4,
+      ),
+      'Giỏi lắm!',
+    );
   });
 
   test('defines the authoritative common guide prompts', () {

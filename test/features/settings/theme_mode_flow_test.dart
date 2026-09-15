@@ -168,6 +168,7 @@ void main() {
       MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
+        builder: _disableAnimations,
         home: Scaffold(body: SettingsSheet(controller: controller)),
       ),
     );
@@ -235,6 +236,7 @@ void main() {
       MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
+        builder: _disableAnimations,
         home: Scaffold(body: SettingsSheet(controller: controller)),
       ),
     );
@@ -276,6 +278,7 @@ void main() {
       MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
+        builder: _disableAnimations,
         home: Scaffold(body: SettingsSheet(controller: controller)),
       ),
     );
@@ -353,6 +356,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: buildAppTheme(),
+        builder: _disableAnimations,
         home: Scaffold(body: SettingsSheet(controller: controller)),
       ),
     );
@@ -405,6 +409,11 @@ Future<void> _usePhoneSurface(WidgetTester tester) async {
   await tester.binding.setSurfaceSize(const Size(390, 844));
   addTearDown(() => tester.binding.setSurfaceSize(null));
 }
+
+Widget _disableAnimations(BuildContext context, Widget? child) => MediaQuery(
+  data: MediaQuery.of(context).copyWith(disableAnimations: true),
+  child: child!,
+);
 
 Future<void> _loadGoldenFonts() async {
   final roboto = FontLoader('Roboto')

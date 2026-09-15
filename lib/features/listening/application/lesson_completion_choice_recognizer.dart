@@ -34,6 +34,9 @@ class LessonCompletionChoiceResolver {
         _contains(value, 'hoc bai tiep') ||
         _contains(value, 'bai ke tiep') ||
         _contains(value, 'tiep theo') ||
+        _contains(value, 'di tiep') ||
+        _contains(value, 'tiep tuc') ||
+        _contains(value, 'hoc tiep') ||
         _contains(value, 'next lesson') ||
         _contains(value, 'next one')) {
       return LessonCompletionChoice.nextLesson;
@@ -148,7 +151,15 @@ class BackendLessonCompletionChoiceRecognizer
         'Máy chủ chưa xử lý được câu trả lời. Con thử lại nhé.',
       );
     }
-    final transcript = decoded is Map<String, dynamic>
+    // Translation fallback can return both the original Vietnamese and English.
+    // Resolve the original command first instead of silently changing languages.
+    final sourceTranscript = decoded is Map<String, dynamic>
+        ? decoded['sourceText'] ?? decoded['vietnameseText']
+        : null;
+    final transcript =
+        sourceTranscript is String && sourceTranscript.trim().isNotEmpty
+        ? sourceTranscript
+        : decoded is Map<String, dynamic>
         ? decoded[transcriptField]
         : null;
     if (transcript is! String || transcript.trim().isEmpty) {

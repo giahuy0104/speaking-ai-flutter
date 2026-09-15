@@ -188,6 +188,7 @@ void main() {
       find.byType(LessonPracticeScreen),
       const <AssetImage>[
         AssetImage('assets/images/learning-minimal-sky-background.png'),
+        AssetImage('assets/images/mascot/penguin-speak.png'),
       ],
     );
     await tester.pumpAndSettle();
@@ -526,6 +527,7 @@ class _GoldenMediaService extends LessonMediaService {
   Future<void> play(
     Uri uri, {
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
   }) async {}
 
   @override
@@ -533,6 +535,7 @@ class _GoldenMediaService extends LessonMediaService {
     Uri uri, {
     Duration timeout = const Duration(seconds: 45),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
   }) async {}
 
   @override

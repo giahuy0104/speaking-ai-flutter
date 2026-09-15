@@ -82,6 +82,22 @@ abstract interface class PlaybackRateAwareAudioPlaybackService {
   void setPlaybackRate(double rate);
 }
 
+/// Optional Android capability for temporarily lifting quiet child recordings
+/// without changing the volume of authored clips or synthesized prompts.
+abstract interface class PlaybackGainAwareAudioPlaybackService {
+  Future<void> setPlaybackGainDb(double gainDb);
+}
+
+class _DefaultAudioPlayer {
+  const _DefaultAudioPlayer({
+    required this.player,
+    required this.loudnessEnhancer,
+  });
+
+  final AudioPlayer player;
+  final AndroidLoudnessEnhancer? loudnessEnhancer;
+}
+
 class JustAudioPlaybackService
     implements
         AudioPlaybackService,
@@ -90,7 +106,8 @@ class JustAudioPlaybackService
         UserGestureAudioPlaybackService,
         DirectUserGestureAudioPlaybackService,
         CommunicationRouteAwareAudioPlaybackService,
-        PlaybackRateAwareAudioPlaybackService {
+        PlaybackRateAwareAudioPlaybackService,
+        PlaybackGainAwareAudioPlaybackService {
   static Future<void>? _assetCacheRefresh;
   static const MethodChannel _backgroundLearningChannel = MethodChannel(
     'ailingo_background_learning',
@@ -99,15 +116,33 @@ class JustAudioPlaybackService
   // without pushing typical voice recordings into heavy clipping.
   static const double androidPlaybackGainDb = androidSpeechBoostDb;
 
-  JustAudioPlaybackService({
+  factory JustAudioPlaybackService({
     AudioPlayer? player,
     DeviceAudioCache? cache,
     AudioTurnCoordinator? audioTurnCoordinator,
     AudioTurnOwner audioTurnOwner = AudioTurnOwner.legacy,
+  }) {
+    final defaults = player == null ? _createDefaultPlayer() : null;
+    return JustAudioPlaybackService._(
+      player: player ?? defaults!.player,
+      androidLoudnessEnhancer: defaults?.loudnessEnhancer,
+      cache: cache,
+      audioTurnCoordinator: audioTurnCoordinator,
+      audioTurnOwner: audioTurnOwner,
+    );
+  }
+
+  JustAudioPlaybackService._({
+    required AudioPlayer player,
+    required AndroidLoudnessEnhancer? androidLoudnessEnhancer,
+    DeviceAudioCache? cache,
+    AudioTurnCoordinator? audioTurnCoordinator,
+    required AudioTurnOwner audioTurnOwner,
   }) : _cache = cache ?? DeviceAudioCache(),
        _ownsCache = cache == null,
        _browserPlayback = createBrowserAudioPlayback(),
-       _player = player ?? _createDefaultPlayer(),
+       _player = player,
+       _androidLoudnessEnhancer = androidLoudnessEnhancer,
        _audioTurnCoordinator = audioTurnCoordinator,
        _audioTurnOwner = audioTurnOwner {
     _audioSession = AudioSession.instance;
@@ -118,31 +153,36 @@ class JustAudioPlaybackService
     }
   }
 
-  static AudioPlayer _createDefaultPlayer() {
+  static _DefaultAudioPlayer _createDefaultPlayer() {
     final androidEffects = <AndroidAudioEffect>[];
+    AndroidLoudnessEnhancer? loudnessEnhancer;
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      final loudnessEnhancer = AndroidLoudnessEnhancer();
+      loudnessEnhancer = AndroidLoudnessEnhancer();
       // These setters update the effect's initial configuration synchronously
       // while the player is inactive, so playback starts with the boost ready.
       unawaited(loudnessEnhancer.setTargetGain(androidPlaybackGainDb));
       unawaited(loudnessEnhancer.setEnabled(true));
       androidEffects.add(loudnessEnhancer);
     }
-    return AudioPlayer(
-      audioPipeline: AudioPipeline(androidAudioEffects: androidEffects),
-      audioLoadConfiguration: const AudioLoadConfiguration(
-        androidLoadControl: AndroidLoadControl(
-          minBufferDuration: Duration(milliseconds: 600),
-          maxBufferDuration: Duration(seconds: 8),
-          bufferForPlaybackDuration: Duration(milliseconds: 180),
-          bufferForPlaybackAfterRebufferDuration: Duration(milliseconds: 500),
-          prioritizeTimeOverSizeThresholds: true,
+    return _DefaultAudioPlayer(
+      player: AudioPlayer(
+        audioPipeline: AudioPipeline(androidAudioEffects: androidEffects),
+        audioLoadConfiguration: const AudioLoadConfiguration(
+          androidLoadControl: AndroidLoadControl(
+            minBufferDuration: Duration(milliseconds: 600),
+            maxBufferDuration: Duration(seconds: 8),
+            bufferForPlaybackDuration: Duration(milliseconds: 180),
+            bufferForPlaybackAfterRebufferDuration: Duration(milliseconds: 500),
+            prioritizeTimeOverSizeThresholds: true,
+          ),
         ),
       ),
+      loudnessEnhancer: loudnessEnhancer,
     );
   }
 
   final AudioPlayer _player;
+  final AndroidLoudnessEnhancer? _androidLoudnessEnhancer;
   final BrowserAudioPlayback? _browserPlayback;
   final DeviceAudioCache _cache;
   final bool _ownsCache;
@@ -158,6 +198,14 @@ class JustAudioPlaybackService
   int _preloadRevision = 0;
   bool _communicationRouteActive = false;
   double _playbackRate = 1.0;
+
+  @override
+  Future<void> setPlaybackGainDb(double gainDb) async {
+    final enhancer = _androidLoudnessEnhancer;
+    if (enhancer == null) return;
+    await enhancer.setTargetGain(gainDb.clamp(0.0, 12.0).toDouble());
+    await enhancer.setEnabled(true);
+  }
 
   @override
   void setPlaybackRate(double rate) {

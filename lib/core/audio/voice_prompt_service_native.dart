@@ -12,6 +12,7 @@ class MethodChannelVoicePromptService
         SpeechReadyCuePlayer,
         PhoneSpeakerVoicePromptService,
         SelectedMediaOutputVoicePromptService,
+        StyledMediaOutputVoicePromptService,
         MainTurnVoicePromptService {
   const MethodChannelVoicePromptService({
     MethodChannel channel = const MethodChannel('ailingo_voice_prompt'),
@@ -84,6 +85,8 @@ class MethodChannelVoicePromptService
     required String locale,
     bool forcePhoneSpeaker = false,
     bool forceMediaPlayback = false,
+    double? speechRate,
+    double? pitch,
   }) async {
     if (text.trim().isEmpty) {
       return;
@@ -95,6 +98,8 @@ class MethodChannelVoicePromptService
         'gainDb': androidSpeechBoostDb,
         'forcePhoneSpeaker': forcePhoneSpeaker,
         'forceMediaPlayback': forceMediaPlayback,
+        'speechRate': ?speechRate,
+        'pitch': ?pitch,
       });
     } on MissingPluginException {
       // The prompt is supplementary. The visible message remains available on
@@ -104,6 +109,21 @@ class MethodChannelVoicePromptService
       // recognition retry into another user-facing error.
     }
   }
+
+  @override
+  Future<void> speakAndWaitStyled(
+    String text, {
+    required String locale,
+    required double speechRate,
+    required double pitch,
+  }) => _invokeSpeak(
+    'speakAndWait',
+    text,
+    locale: locale,
+    forceMediaPlayback: true,
+    speechRate: speechRate,
+    pitch: pitch,
+  );
 
   @override
   Future<void> playSpeechReadyCue() async {

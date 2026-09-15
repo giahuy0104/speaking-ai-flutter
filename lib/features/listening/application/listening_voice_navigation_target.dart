@@ -10,19 +10,23 @@ class ListeningVoiceNavigationTarget {
     required this.openLesson,
     this.topicNumber,
     this.lessonNumber,
+    this.levelNumber,
     this.childAge,
     this.fallbackTopicIndex,
     this.relearnTopic = false,
     this.relearnLesson = false,
+    this.relearnLevel = false,
   });
 
   final String recognizedText;
   final bool openLesson;
   final int? topicNumber;
   final int? lessonNumber;
+  final int? levelNumber;
   final int? childAge;
   final bool relearnTopic;
   final bool relearnLesson;
+  final bool relearnLevel;
 
   /// The topic currently visible when a child only says "Mở bài 2".
   final int? fallbackTopicIndex;

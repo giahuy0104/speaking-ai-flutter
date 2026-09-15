@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/app_theme.dart';
 import '../../../app/learning_scenery.dart';
@@ -10,8 +11,13 @@ import '../../../core/device/active_learning_module.dart';
 import '../../../core/navigation/active_learning_navigation.dart';
 import '../../../l10n/display_language.dart';
 import '../../listening/application/lesson_media_service.dart';
+import '../../listening/domain/lesson_guide_flow.dart';
+import '../application/vocabulary_audio_service.dart';
+import '../application/local_vocabulary_suggestion_provider.dart';
+import '../application/vocabulary_fixed_prompt_audio_service.dart';
 import '../data/vocabulary_session_store.dart';
 import '../data/vocabulary_store.dart';
+import '../domain/vocabulary_dictionary.dart';
 import '../domain/vocabulary_entry.dart';
 import '../domain/vocabulary_flow_v3.dart';
 import 'vocabulary_practice_screen.dart';
@@ -36,6 +42,10 @@ class VocabularyHomeScreen extends StatefulWidget {
     this.audioDependencies,
     this.translator,
     this.suggestionProvider,
+    this.curriculumDuplicateChecker,
+    this.dictionaryProvider,
+    this.vocabularyAudioService,
+    this.fixedPromptAudioService,
     this.childAge = 5,
     this.autoStartToday = false,
     this.onRequestVoiceChoice,
@@ -54,6 +64,10 @@ class VocabularyHomeScreen extends StatefulWidget {
   final LearningAudioDependencies? audioDependencies;
   final VocabularyTranslator? translator;
   final VocabularySuggestionProvider? suggestionProvider;
+  final VocabularyCurriculumDuplicateChecker? curriculumDuplicateChecker;
+  final VocabularyDictionaryProvider? dictionaryProvider;
+  final VocabularyContentAudioService? vocabularyAudioService;
+  final VocabularyFixedPromptAudioService? fixedPromptAudioService;
   final int childAge;
   final bool autoStartToday;
   final Future<void> Function({
@@ -75,7 +89,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   late final bool _ownsVoicePromptService;
   late final LessonMediaService _mediaService;
   late final bool _ownsMediaService;
+  late final VocabularyFixedPromptAudioService _fixedPromptAudioService;
+  VocabularyContentAudioService? _vocabularyAudioService;
+  late final bool _ownsVocabularyAudioService;
   List<VocabularyEntry> _entries = const <VocabularyEntry>[];
+  List<String> _todayViewEntryIds = const <String>[];
   _VocabularyJourney? _selectedJourney;
   bool _loading = true;
   bool _deleteMode = false;
@@ -85,17 +103,17 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   bool _startingToday = false;
   bool _todayOffered = false;
   bool _playingCollection = false;
+  int _playbackGeneration = 0;
+  Future<void>? _playbackNavigationCleanup;
   bool _playbackInterrupted = false;
   List<VocabularyEntry> _playbackQueue = const <VocabularyEntry>[];
   int _playbackIndex = 0;
+  int _playbackBlockStartIndex = 0;
+  int _playbackBlockEndExclusive = 0;
   String? _playbackBranch;
   int _nextPlaybackIndex = 0;
-  VocabularyEntry? _lastPlayedEntry;
-  _VocabularyJourney? _pendingPlaybackScopeJourney;
-  bool _scopeSheetOpen = false;
   bool _waitingForPlaybackContinuation = false;
-  bool _starVoiceIntroSpoken = false;
-  int _starPlayedCount = 0;
+  bool _awaitingPlaybackEndChoice = false;
   ActiveLearningModuleRegistry? _activeLearningRegistry;
   Object? _activeLearningRegistration;
 
@@ -118,6 +136,32 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
           audioTurnCoordinator: widget.audioDependencies?.audioTurnCoordinator,
           audioTurnOwner: AudioTurnOwner.vocabulary,
         );
+    _fixedPromptAudioService =
+        widget.fixedPromptAudioService ??
+        AssetFirstVocabularyFixedPromptAudioService(
+          mediaService: _mediaService,
+        );
+    _ownsVocabularyAudioService =
+        widget.vocabularyAudioService == null &&
+        widget.dictionaryProvider != null;
+    _vocabularyAudioService = widget.vocabularyAudioService;
+    if (_vocabularyAudioService == null && widget.dictionaryProvider != null) {
+      _vocabularyAudioService = VocabularyAudioService(
+        dictionaryProvider: widget.dictionaryProvider!,
+        playToCompletion: _mediaService.playToCompletion,
+        nativeSpeakAndWait: (text, locale) => _speakOnSelectedOutput(
+          text,
+          locale: locale,
+          allowFixedPrompt: false,
+        ),
+        stopPlayback: () async {
+          await Future.wait<void>(<Future<void>>[
+            _mediaService.stopPlayback().catchError((Object _) {}),
+            _voicePromptService.stop().catchError((Object _) {}),
+          ]);
+        },
+      );
+    }
     _searchController.addListener(_refreshSearch);
     _storeSubscription = widget.store.changes.listen((_) => unawaited(_load()));
     unawaited(_load());
@@ -155,6 +199,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       ..dispose();
     _searchFocusNode.dispose();
     _storeSubscription?.cancel();
+    if (_ownsVocabularyAudioService) {
+      _vocabularyAudioService?.dispose();
+    }
     if (_ownsVoicePromptService) {
       unawaited(_voicePromptService.dispose());
     }
@@ -196,6 +243,8 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     await Future.wait<void>(<Future<void>>[
       _voicePromptService.stop().catchError((Object _) {}),
       _mediaService.stopPlayback().catchError((Object _) {}),
+      if (_vocabularyAudioService != null)
+        _vocabularyAudioService!.stop().catchError((Object _) {}),
     ]);
   }
 
@@ -213,7 +262,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       case ActiveLearningCommand.resume:
         _pausedForMainAssistant = false;
         if (_playbackInterrupted) {
-          unawaited(_resumePlayback());
+          unawaited(_resumePlayback(announceResume: true));
         } else if (_waitingForPlaybackContinuation) {
           unawaited(_continuePlayback());
         }
@@ -224,16 +273,13 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         unawaited(_playJourney(_VocabularyJourney.family));
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.vocabularyPracticeAgain:
-        _pausedForMainAssistant = false;
-        final replayEntry = _lastPlayedEntry;
-        if (_selectedJourney == _VocabularyJourney.family &&
-            replayEntry != null &&
-            replayEntry.isParentAdded) {
-          _playbackInterrupted = false;
-          unawaited(_practiceEntryAgain(replayEntry));
-        } else {
-          unawaited(_startReview());
+        if (_awaitingPlaybackEndChoice && _selectedJourney != null) {
+          _pausedForMainAssistant = false;
+          unawaited(_restartCompletedPlayback());
+          return const ActiveLearningCommandResult.handled();
         }
+        _pausedForMainAssistant = false;
+        unawaited(_startReview());
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.vocabularyStars:
         _pausedForMainAssistant = false;
@@ -242,26 +288,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.vocabularyLatest:
       case ActiveLearningCommand.vocabularyAll:
-        _pausedForMainAssistant = false;
-        final scope = command == ActiveLearningCommand.vocabularyLatest
-            ? _VocabularyPlaybackScope.latest
-            : _VocabularyPlaybackScope.all;
-        if (_scopeSheetOpen) {
-          Navigator.of(context).pop(scope);
-          return const ActiveLearningCommandResult.handled();
-        }
-        final pendingJourney = _pendingPlaybackScopeJourney;
-        if (pendingJourney != null) {
-          unawaited(_playJourney(pendingJourney, requestedScope: scope));
-          return const ActiveLearningCommandResult.handled();
-        }
-        if (_selectedJourney == _VocabularyJourney.stars) {
-          unawaited(_switchStarBranch(scope));
-          return const ActiveLearningCommandResult.handled();
-        }
         return const ActiveLearningCommandResult.unavailable();
       case ActiveLearningCommand.replayCurrent:
-        if (_playbackQueue.isEmpty) {
+        if (_playbackQueue.isEmpty ||
+            _waitingForPlaybackContinuation ||
+            _awaitingPlaybackEndChoice) {
           return const ActiveLearningCommandResult.unavailable();
         }
         _pausedForMainAssistant = false;
@@ -269,6 +300,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         unawaited(_resumePlayback());
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.exitToHome:
+        if (!_waitingForPlaybackContinuation && !_awaitingPlaybackEndChoice) {
+          return const ActiveLearningCommandResult.unavailable();
+        }
         _pausedForMainAssistant = false;
         unawaited(_leavePlaybackForOtherContent());
         return const ActiveLearningCommandResult.handled();
@@ -278,11 +312,29 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
           unawaited(_continuePlayback());
           return const ActiveLearningCommandResult.handled();
         }
-        return const ActiveLearningCommandResult.unavailable();
+        if (_playbackQueue.isEmpty || _awaitingPlaybackEndChoice) {
+          return const ActiveLearningCommandResult.unavailable();
+        }
+        unawaited(_moveToNextPlaybackItem());
+        return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.previousItem:
+        if (_playbackQueue.isEmpty ||
+            _waitingForPlaybackContinuation ||
+            _awaitingPlaybackEndChoice) {
+          return const ActiveLearningCommandResult.unavailable();
+        }
+        _pausedForMainAssistant = false;
+        unawaited(_moveToPreviousPlaybackItem());
+        return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.nextLesson:
       case ActiveLearningCommand.previousLesson:
+        return const ActiveLearningCommandResult.unavailable();
       case ActiveLearningCommand.restart:
+        if (_awaitingPlaybackEndChoice && _selectedJourney != null) {
+          _pausedForMainAssistant = false;
+          unawaited(_restartCompletedPlayback());
+          return const ActiveLearningCommandResult.handled();
+        }
         return const ActiveLearningCommandResult.unavailable();
     }
   }
@@ -394,7 +446,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                       flex: 6,
                       child: _JourneyCopy(
                         title: context.tr('Ba mẹ đã thêm', '家长添加'),
-                        count: context.tr('$savedCount từ', '$savedCount 个词'),
+                        count: context.tr(
+                          '$savedCount nội dung',
+                          '$savedCount 项内容',
+                        ),
                         countColor: AppColors.accentPink,
                       ),
                     ),
@@ -451,8 +506,8 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                               child: _JourneyCopy(
                                 title: context.tr('Ngôi sao', '小星星'),
                                 count: context.tr(
-                                  '$starCount từ yêu thích',
-                                  '$starCount 个收藏词',
+                                  '$starCount nội dung yêu thích',
+                                  '$starCount 项收藏内容',
                                 ),
                                 countColor: AppColors.accentPink,
                               ),
@@ -487,8 +542,8 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                       child: _JourneyCopy(
                         title: context.tr('Luyện lại', '复习'),
                         count: context.tr(
-                          '$reviewCount từ cần ôn',
-                          '$reviewCount 个待复习词',
+                          '$reviewCount nội dung cần ôn',
+                          '$reviewCount 项待复习内容',
                         ),
                         countColor: AppColors.accentPink,
                       ),
@@ -521,7 +576,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                 children: <Widget>[
                   IconButton.filledTonal(
                     key: const Key('vocabulary-back-to-journeys'),
-                    onPressed: _closeJourney,
+                    onPressed: () => unawaited(_leavePlaybackForOtherContent()),
                     icon: const Icon(Icons.arrow_back_rounded),
                     tooltip: context.tr('Quay lại', '返回'),
                     style: IconButton.styleFrom(
@@ -561,7 +616,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                     ),
                     tooltip: _deleteMode
                         ? context.tr('Đóng chế độ xóa', '退出删除模式')
-                        : context.tr('Xóa từ vựng', '删除词汇'),
+                        : context.tr('Xóa nội dung', '删除内容'),
                     style: IconButton.styleFrom(
                       backgroundColor: isDark
                           ? theme.colorScheme.surfaceContainerHighest
@@ -578,12 +633,33 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                 ],
               ),
               const SizedBox(height: 18),
+              if (journey == _VocabularyJourney.family) ...<Widget>[
+                _buildParentSchedule(context),
+                const SizedBox(height: 16),
+              ],
               _buildSearchField(context),
+              if (journey == _VocabularyJourney.family) ...<Widget>[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.tonalIcon(
+                    key: const Key('add-vocabulary-action'),
+                    onPressed: _translating ? null : _showAddDialog,
+                    icon: _translating
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2.2),
+                          )
+                        : const Icon(Icons.add_rounded),
+                    label: Text(context.tr('Thêm từ hoặc câu mới', '添加新单词或句子')),
+                  ),
+                ),
+              ],
               const SizedBox(height: 22),
               Text(
                 context.tr(
-                  '${visibleEntries.length} từ đã lưu',
-                  '已保存 ${visibleEntries.length} 个词',
+                  '${visibleEntries.length} nội dung đã lưu',
+                  '已保存 ${visibleEntries.length} 项内容',
                 ),
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: isDark
@@ -641,28 +717,18 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       key: const Key('vocabulary-search-field'),
       controller: _searchController,
       focusNode: _searchFocusNode,
-      textInputAction: TextInputAction.done,
-      onSubmitted: query.isEmpty || _translating
-          ? null
-          : (_) => unawaited(_addVocabularyFromSearch()),
+      textInputAction: TextInputAction.search,
+      onSubmitted: (_) => _searchFocusNode.unfocus(),
       decoration: InputDecoration(
-        hintText: context.tr('Tìm hoặc thêm từ vựng…', '搜索或添加词汇…'),
+        hintText: context.tr('Tìm trong bộ từ vựng…', '在词汇中搜索…'),
         prefixIcon: const Icon(Icons.search_rounded),
         suffixIcon: query.isEmpty
             ? null
-            : _translating
-            ? const Padding(
-                padding: EdgeInsets.all(14),
-                child: SizedBox.square(
-                  dimension: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2.2),
-                ),
-              )
             : IconButton(
-                key: const Key('add-vocabulary-from-search'),
-                onPressed: () => unawaited(_addVocabularyFromSearch()),
-                icon: const Icon(Icons.add_circle_rounded),
-                tooltip: context.tr('Đề xuất để thêm từ này', '获取建议并添加'),
+                key: const Key('clear-vocabulary-search'),
+                onPressed: _searchController.clear,
+                icon: const Icon(Icons.close_rounded),
+                tooltip: context.tr('Xóa nội dung tìm kiếm', '清除搜索内容'),
               ),
         filled: true,
         fillColor: isDark
@@ -682,6 +748,115 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         ),
         contentPadding: const EdgeInsets.symmetric(vertical: 17),
       ),
+    );
+  }
+
+  Widget _buildParentSchedule(BuildContext context) {
+    final byId = <String, VocabularyEntry>{
+      for (final entry in _entries) entry.id: entry,
+    };
+    final today = _todayViewEntryIds
+        .map((id) => byId[id])
+        .whereType<VocabularyEntry>()
+        .toList(growable: false);
+    final waiting = _entries.where((entry) => entry.isWaitingParent).toList()
+      ..sort((a, b) => a.addedAt.compareTo(b.addedAt));
+
+    Widget section({
+      required Key key,
+      required String title,
+      required List<VocabularyEntry> entries,
+      required String emptyText,
+      required bool isToday,
+    }) {
+      return Container(
+        key: key,
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.fromLTRB(14, 12, 8, 8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              '$title (${entries.length})',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            if (entries.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Text(emptyText),
+              )
+            else
+              for (final entry in entries)
+                ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(entry.word),
+                  subtitle: Text(entry.meaning),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      if (isToday)
+                        Icon(
+                          entry.todayStatus == TodayVocabularyStatus.heard
+                              ? Icons.check_circle_rounded
+                              : Icons.schedule_rounded,
+                          color:
+                              entry.todayStatus == TodayVocabularyStatus.heard
+                              ? AppColors.success
+                              : Theme.of(context).colorScheme.primary,
+                        ),
+                      if (!isToday && entry.canParentEdit)
+                        IconButton(
+                          key: ValueKey<String>('edit-waiting-${entry.id}'),
+                          onPressed: () => unawaited(_editParentEntry(entry)),
+                          icon: const Icon(Icons.edit_outlined),
+                          tooltip: context.tr('Sửa', '编辑'),
+                        ),
+                      if (entry.canParentDelete)
+                        IconButton(
+                          key: ValueKey<String>('delete-queued-${entry.id}'),
+                          onPressed: () => unawaited(_delete(entry)),
+                          icon: const Icon(Icons.delete_outline_rounded),
+                          tooltip: context.tr('Xóa', '删除'),
+                        ),
+                    ],
+                  ),
+                ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: <Widget>[
+        section(
+          key: const Key('vocabulary-today-view'),
+          title: context.tr('Hôm nay', '今天'),
+          entries: today,
+          emptyText: context.tr(
+            'Danh sách sẽ được tạo khi con bắt đầu học.',
+            '孩子开始学习时会创建列表。',
+          ),
+          isToday: true,
+        ),
+        section(
+          key: const Key('vocabulary-waiting-queue'),
+          title: context.tr('Hàng chờ', '等待队列'),
+          entries: waiting,
+          emptyText: context.tr('Chưa có nội dung đang chờ.', '暂无等待内容。'),
+          isToday: false,
+        ),
+      ],
     );
   }
 
@@ -716,8 +891,8 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                 padding: const EdgeInsets.symmetric(vertical: 70),
                 child: Text(
                   context.tr(
-                    'Chưa có từ phù hợp. Con thử tìm từ khác nhé.',
-                    '没有匹配的词，试试其他关键词。',
+                    'Chưa có nội dung phù hợp. Con thử tìm nội dung khác nhé.',
+                    '没有匹配的内容，请尝试其他关键词。',
                   ),
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -817,9 +992,13 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     final entries = _entries
         .where(
           (entry) => switch (journey) {
-            _VocabularyJourney.family => entry.isParentAdded,
-            _VocabularyJourney.stars => entry.isStar,
-            _VocabularyJourney.review => entry.needsPractice,
+            _VocabularyJourney.family => entry.isUnlockedParent,
+            _VocabularyJourney.stars =>
+              entry.isStar &&
+                  entry.source == VocabularySource.topicCore &&
+                  (entry.correctAudioPath?.trim().isNotEmpty ?? false),
+            _VocabularyJourney.review =>
+              entry.needsPractice && !entry.isParentAdded,
           },
         )
         .toList();
@@ -842,20 +1021,22 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         return a.addedAt.compareTo(b.addedAt);
       }
       if (journey == _VocabularyJourney.stars) {
-        return (b.earnedAt ?? b.addedAt).compareTo(a.earnedAt ?? a.addedAt);
+        return (a.earnedAt ?? a.addedAt).compareTo(b.earnedAt ?? b.addedAt);
       }
-      return b.addedAt.compareTo(a.addedAt);
+      return a.addedAt.compareTo(b.addedAt);
     });
     return entries;
   }
 
   Future<void> _load() async {
     final entries = await widget.store.read();
+    final todayView = await widget.store.readTodayView();
     if (!mounted) {
       return;
     }
     setState(() {
       _entries = entries;
+      _todayViewEntryIds = todayView?.entryIds ?? const <String>[];
       _loading = false;
     });
     if (widget.isActive && widget.autoStartToday && !_todayOffered) {
@@ -888,7 +1069,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     if (normalized == null || normalized.isEmpty) return;
     setState(() => _translating = true);
     try {
-      final translated = await _translateVocabulary(normalized);
+      final translated = (await _translateVocabulary(normalized)).primary;
       await widget.store.updateParentEntry(
         entryId: entry.id,
         value: translated,
@@ -918,13 +1099,6 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     await _addVocabulary(normalized);
   }
 
-  Future<void> _addVocabularyFromSearch() async {
-    final normalized = _searchController.text.trim();
-    if (normalized.isEmpty || _translating) return;
-    _searchFocusNode.unfocus();
-    await _addVocabulary(normalized);
-  }
-
   Future<void> _addVocabulary(String normalized) async {
     setState(() => _translating = true);
     try {
@@ -933,14 +1107,28 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       if (remaining <= 0) {
         throw const VocabularyDailyLimitException(remaining: 0);
       }
-      final translated = await _translateVocabulary(normalized);
+      final resolution = await _translateVocabulary(normalized);
       final selections = await _prepareParentChoices(
         input: normalized,
-        translated: translated,
+        translated: resolution.primary,
+        initialSuggestions: resolution.alternatives,
+        partOfSpeech: resolution.partOfSpeech,
         maxSelections: remaining.clamp(1, 3),
       );
       if (selections == null || selections.isEmpty) return;
-      final entries = await widget.store.addParentEntries(selections);
+      final curriculumDuplicateChecker = widget.curriculumDuplicateChecker;
+      if (curriculumDuplicateChecker != null) {
+        for (final selection in selections) {
+          if (await curriculumDuplicateChecker(selection)) {
+            throw const VocabularyTopicDuplicateException();
+          }
+        }
+      }
+      final entries = await widget.store.addParentEntries(
+        selections,
+        childAge: widget.childAge,
+      );
+      _prefetchParentAudio(selections);
       if (!mounted) {
         return;
       }
@@ -963,8 +1151,8 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         SnackBar(
           content: Text(
             context.tr(
-              'Chưa dịch được từ này. Con kiểm tra mạng rồi thử lại nhé.',
-              '暂时无法翻译这个词，请检查网络后重试。',
+              'Chưa xử lý được nội dung này. Ba mẹ thử lại nhé.',
+              '暂时无法处理此内容，请重试。',
             ),
           ),
         ),
@@ -974,6 +1162,19 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         setState(() => _translating = false);
       }
     }
+  }
+
+  void _prefetchParentAudio(List<VocabularyTranslation> selections) {
+    final audioService = _vocabularyAudioService;
+    if (audioService == null) return;
+    unawaited(() async {
+      for (final selection in selections) {
+        await Future.wait<void>(<Future<void>>[
+          audioService.prefetch(selection.englishText, locale: 'en-US'),
+          audioService.prefetch(selection.vietnameseText, locale: 'vi-VN'),
+        ]);
+      }
+    }());
   }
 
   Future<void> _maybeStartToday() async {
@@ -1005,6 +1206,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       await _runPracticeSession(
         session,
         announceInitialIntro: activeBeforeEntry?.id != session.id,
+        announceInitialResume: activeBeforeEntry?.id == session.id,
       );
     } finally {
       _startingToday = false;
@@ -1030,18 +1232,20 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     await _runPracticeSession(
       session,
       announceInitialIntro: active?.id != session.id,
+      announceInitialResume: active?.id == session.id,
     );
   }
 
   Future<void> _runPracticeSession(
     VocabularyPracticeSession first, {
     bool announceInitialIntro = true,
+    bool announceInitialResume = false,
   }) async {
     if (_openingPractice || !mounted) return;
     _openingPractice = true;
     var session = first;
     var announceIntro = announceInitialIntro;
-    final reviewedThisCycle = <String>{};
+    var announceResume = announceInitialResume;
     try {
       while (true) {
         if (!mounted) return;
@@ -1057,12 +1261,31 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
             mediaService: _mediaService,
             audioDependencies: widget.audioDependencies,
             voicePromptService: _voicePromptService,
+            vocabularyAudioService: _vocabularyAudioService,
+            fixedPromptAudioService: _fixedPromptAudioService,
             onRequestVoiceChoice: widget.onRequestVoiceChoice,
             announceIntro: announceIntro,
+            announceResume: announceResume,
           ),
         );
         if (!mounted) return;
         await _load();
+        if (result == VocabularyPracticeResult.parentAdded ||
+            result == VocabularyPracticeResult.stars) {
+          final active = await widget.sessionStore.readActive();
+          if (session.mode == VocabularyPracticeMode.today && active == null) {
+            await widget.sessionStore.suppressToday(DateTime.now());
+          } else if (session.mode == VocabularyPracticeMode.review &&
+              active == null) {
+            await widget.sessionStore.endReviewSession();
+          }
+          final journey = result == VocabularyPracticeResult.stars
+              ? _VocabularyJourney.stars
+              : _VocabularyJourney.family;
+          _openJourney(journey);
+          await _playJourney(journey);
+          return;
+        }
         if (result != VocabularyPracticeResult.continueLearning) {
           final active = await widget.sessionStore.readActive();
           if (session.mode == VocabularyPracticeMode.today && active == null) {
@@ -1070,26 +1293,19 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
             await _speakAndRequestChoice(VocabularyFlowV3.menu);
           } else if (session.mode == VocabularyPracticeMode.review &&
               active == null) {
+            await widget.sessionStore.endReviewSession();
             await _speakAndRequestChoice(VocabularyFlowV3.reviewOtherMenu);
           }
           return;
         }
-        if (session.mode == VocabularyPracticeMode.review) {
-          reviewedThisCycle.addAll(session.entryIds);
-        }
         final next = switch (session.mode) {
           VocabularyPracticeMode.today =>
-            await widget.sessionStore.prepareToday(
-              widget.store,
-              forceNextGroup: true,
-            ),
+            await widget.sessionStore.prepareTodayReplay(widget.store),
           VocabularyPracticeMode.review =>
             await widget.sessionStore.prepareReview(
               widget.store,
               forceNextGroup: true,
-              excludeEntryIds: reviewedThisCycle,
             ),
-          VocabularyPracticeMode.speakAgain => null,
         };
         if (next == null) {
           final prompt = session.mode == VocabularyPracticeMode.today
@@ -1100,25 +1316,23 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         }
         session = next;
         announceIntro = false;
+        announceResume = false;
       }
     } finally {
       _openingPractice = false;
     }
   }
 
-  Future<void> _playJourney(
-    _VocabularyJourney journey, {
-    _VocabularyPlaybackScope? requestedScope,
-    bool directBranchSwitch = false,
-  }) async {
+  Future<void> _playJourney(_VocabularyJourney journey) async {
+    final generation = _playbackGeneration;
+    await _playbackNavigationCleanup;
+    if (!mounted || generation != _playbackGeneration) return;
     if (_playingCollection || !mounted) return;
     if (await _resumeBlockingPracticeIfNeeded()) return;
+    if (!mounted || generation != _playbackGeneration) return;
 
     _openJourney(journey);
-    var entries = _entriesForJourney(journey);
-    if (journey == _VocabularyJourney.family) {
-      entries = entries.where((entry) => entry.isLearnedWell).toList();
-    }
+    final entries = _entriesForJourney(journey);
     if (entries.isEmpty) {
       await _speakAndRequestChoice(
         journey == _VocabularyJourney.family
@@ -1128,113 +1342,39 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       return;
     }
 
-    var scope = requestedScope;
-    if (entries.length > VocabularyFlowV3.groupSize && scope == null) {
-      _pendingPlaybackScopeJourney = journey;
-      final prompt = journey == _VocabularyJourney.family
-          ? VocabularyFlowV3.parentScopeChoice
-          : VocabularyFlowV3.starScopeChoice(entries.length);
-      await _speakOnSelectedOutput(prompt);
-      if (!mounted) return;
-      _scopeSheetOpen = true;
-      unawaited(
-        _requestVoiceChoice(
-          noSpeechRetryPrompt: journey == _VocabularyJourney.stars
-              ? VocabularyFlowV3.starScopeRetry
-              : null,
-          noSpeechExitPrompt: journey == _VocabularyJourney.stars
-              ? VocabularyFlowV3.stopHere
-              : null,
-        ),
-      );
-      scope = await showModalBottomSheet<_VocabularyPlaybackScope>(
-        context: context,
-        builder: (context) => SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(prompt, style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 18),
-                ListTile(
-                  leading: const Icon(Icons.fiber_new_rounded),
-                  title: Text(
-                    journey == _VocabularyJourney.family
-                        ? 'Nội dung mới nhất'
-                        : 'Ngôi sao mới nhất',
-                  ),
-                  onTap: () =>
-                      Navigator.pop(context, _VocabularyPlaybackScope.latest),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.playlist_play_rounded),
-                  title: const Text('Nghe lại tất cả'),
-                  onTap: () =>
-                      Navigator.pop(context, _VocabularyPlaybackScope.all),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-      _scopeSheetOpen = false;
-      _pendingPlaybackScopeJourney = null;
-      if (scope == null || !mounted) return;
-    }
-
-    scope ??= _VocabularyPlaybackScope.all;
-    final flowScope = scope == _VocabularyPlaybackScope.latest
-        ? VocabularyPlaybackScope.latest
-        : VocabularyPlaybackScope.all;
     final flowJourney = journey == _VocabularyJourney.family
         ? VocabularyJourneyKind.parentAdded
         : VocabularyJourneyKind.stars;
     final queue = VocabularyFlowV3.orderedForPlayback(
       entries,
       journey: flowJourney,
-      scope: flowScope,
     );
-    final playAll = scope == _VocabularyPlaybackScope.all;
-    final branch = '${journey.name}:${playAll ? 'all' : 'latest'}';
-    var start = 0;
-    if (playAll) {
-      start = await widget.sessionStore.readPlaybackCheckpoint(branch);
-      if (start >= queue.length) start = 0;
-    }
+    final branch = '${journey.name}:ordered';
+    final start = VocabularyFlowV3.playbackStartIndex(
+      checkpoint: await widget.sessionStore.readPlaybackCheckpoint(branch),
+      total: queue.length,
+    );
 
-    if (directBranchSwitch) {
-      await _speakOnSelectedOutput(
-        scope == _VocabularyPlaybackScope.latest
-            ? VocabularyFlowV3.switchToLatestStars
-            : VocabularyFlowV3.switchToAllStars,
-      );
-    } else if (entries.length <= VocabularyFlowV3.groupSize) {
+    if (start > 0) {
+      await _speakOnSelectedOutput(VocabularyFlowV3.resumeStars);
+    } else {
       await _speakOnSelectedOutput(
         journey == _VocabularyJourney.family
             ? VocabularyFlowV3.parentSmallIntro
-            : VocabularyFlowV3.starSmallIntro(entries.length),
+            : VocabularyFlowV3.starIntro,
       );
-    } else if (journey == _VocabularyJourney.stars && start > 0) {
-      await _speakOnSelectedOutput(VocabularyFlowV3.resumeStars);
-    } else {
-      await _speakOnSelectedOutput(VocabularyFlowV3.startPlayback);
-    }
-    if (journey == _VocabularyJourney.family &&
-        await widget.sessionStore.recordParentPlaybackEntry()) {
-      await _speakOnSelectedOutput(VocabularyFlowV3.parentSpeakAgainGuide);
     }
 
     _waitingForPlaybackContinuation = false;
-    _starVoiceIntroSpoken = false;
-    _starPlayedCount = 0;
-    _lastPlayedEntry = null;
+    _awaitingPlaybackEndChoice = false;
+    if (!mounted || generation != _playbackGeneration) return;
     await _playQueue(
       queue,
       startIndex: start,
       branch: branch,
-      checkpoint: playAll,
+      checkpoint: true,
       journey: journey,
+      announceStarVoice: journey == _VocabularyJourney.stars,
     );
   }
 
@@ -1259,19 +1399,35 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     required bool checkpoint,
     required _VocabularyJourney journey,
     int startIndex = 0,
+    bool announceStarVoice = false,
+    int? blockStartIndex,
   }) async {
+    final pendingGeneration = _playbackGeneration;
+    await _playbackNavigationCleanup;
+    if (!mounted || pendingGeneration != _playbackGeneration) return;
     if (_playingCollection || entries.isEmpty) return;
+    final generation = ++_playbackGeneration;
     _playbackQueue = entries;
     _playbackIndex = startIndex;
+    _playbackBlockStartIndex = blockStartIndex ?? startIndex;
+    _playbackBlockEndExclusive = VocabularyFlowV3.playbackBlockEnd(
+      start: _playbackBlockStartIndex,
+      total: entries.length,
+    );
     _playbackBranch = branch;
     _nextPlaybackIndex = startIndex;
     _playbackInterrupted = false;
     _waitingForPlaybackContinuation = false;
+    _awaitingPlaybackEndChoice = false;
     if (mounted) setState(() => _playingCollection = true);
     try {
-      var playedInGroup = 0;
-      for (var index = startIndex; index < entries.length; index++) {
+      for (
+        var index = startIndex;
+        index < _playbackBlockEndExclusive;
+        index++
+      ) {
         _playbackIndex = index;
+        if (generation != _playbackGeneration) return;
         if (_pausedForMainAssistant) {
           _playbackInterrupted = true;
           return;
@@ -1279,7 +1435,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         final played = await _speakVocabularyEntry(
           entries[index],
           journey: journey,
+          announceStarVoice: announceStarVoice && index == startIndex,
+          generation: generation,
         );
+        if (generation != _playbackGeneration) return;
         if (_pausedForMainAssistant) {
           _playbackInterrupted = true;
           return;
@@ -1289,34 +1448,26 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         }
         _nextPlaybackIndex = index + 1;
         if (!played) continue;
-        _lastPlayedEntry = entries[index];
-        playedInGroup += 1;
-        if (playedInGroup >= VocabularyFlowV3.groupSize &&
-            branch.endsWith(':latest')) {
-          _waitingForPlaybackContinuation = false;
-          await _speakAndRequestChoice(
-            journey == _VocabularyJourney.stars
-                ? VocabularyFlowV3.starFinished
-                : VocabularyFlowV3.parentFinished,
-          );
-          return;
-        }
-        if (playedInGroup >= VocabularyFlowV3.groupSize &&
-            index + 1 < entries.length) {
-          _waitingForPlaybackContinuation = true;
-          await _speakAndRequestChoice(
-            journey == _VocabularyJourney.stars
-                ? VocabularyFlowV3.starGroupCompletion
-                : VocabularyFlowV3.parentGroupCompletion,
-          );
-          return;
-        }
-      }
-      if (checkpoint) {
-        await widget.sessionStore.clearPlaybackCheckpoint(branch);
       }
       _playbackInterrupted = false;
+      if (_playbackBlockEndExclusive < entries.length) {
+        _nextPlaybackIndex = _playbackBlockEndExclusive;
+        _waitingForPlaybackContinuation = true;
+        await _speakAndRequestChoice(
+          journey == _VocabularyJourney.stars
+              ? VocabularyFlowV3.starGroupCompletion
+              : VocabularyFlowV3.parentGroupCompletion,
+        );
+        return;
+      }
+      if (checkpoint) {
+        await widget.sessionStore.savePlaybackCheckpoint(
+          branch,
+          entries.length,
+        );
+      }
       _waitingForPlaybackContinuation = false;
+      _awaitingPlaybackEndChoice = !branch.startsWith('single:');
       if (!branch.startsWith('single:')) {
         await _speakAndRequestChoice(
           journey == _VocabularyJourney.stars
@@ -1325,46 +1476,51 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         );
       }
     } catch (error) {
+      if (generation != _playbackGeneration) return;
       if (_pausedForMainAssistant) {
         _playbackInterrupted = true;
       } else {
         _showMessage(_friendlyPlaybackError(error));
       }
     } finally {
-      if (mounted) setState(() => _playingCollection = false);
+      if (mounted && generation == _playbackGeneration) {
+        setState(() => _playingCollection = false);
+      }
     }
   }
 
   Future<bool> _speakVocabularyEntry(
     VocabularyEntry entry, {
     required _VocabularyJourney journey,
-    bool replay = false,
+    bool announceStarVoice = false,
+    required int generation,
   }) async {
-    final path = entry.correctAudioPath?.trim();
+    final path = journey == _VocabularyJourney.stars
+        ? entry.correctAudioPath?.trim()
+        : null;
     if (journey == _VocabularyJourney.stars && (path == null || path.isEmpty)) {
       debugPrint('VOCABULARY_STAR_AUDIO_MISSING slot=${entry.starSlotId}');
       return false;
     }
     await _mediaService.prepareSelectedLessonOutput();
-    if (journey == _VocabularyJourney.stars &&
-        !replay &&
-        _starPlayedCount > 0) {
-      final cue =
-          VocabularyFlowV3.starNextCues[(_starPlayedCount - 1) %
-              VocabularyFlowV3.starNextCues.length];
-      await _speakOnSelectedOutput(cue);
+    if (generation != _playbackGeneration || _pausedForMainAssistant) {
+      return false;
     }
-    await _speakOnSelectedOutput(entry.word, locale: 'en-US');
-    if (_pausedForMainAssistant) return false;
-    await _speakOnSelectedOutput(entry.meaning, locale: 'vi-VN');
-    if (_pausedForMainAssistant) return false;
-    if (journey == _VocabularyJourney.stars &&
-        !replay &&
-        !_starVoiceIntroSpoken) {
-      _starVoiceIntroSpoken = true;
-      await _speakOnSelectedOutput(VocabularyFlowV3.starVoiceIntro);
+    await _speakVocabularyText(entry, entry.word, locale: 'en-US');
+    if (generation != _playbackGeneration || _pausedForMainAssistant) {
+      return false;
+    }
+    await _speakVocabularyText(entry, entry.meaning, locale: 'vi-VN');
+    if (generation != _playbackGeneration || _pausedForMainAssistant) {
+      return false;
     }
     if (path == null || path.isEmpty) return true;
+    if (announceStarVoice) {
+      await _speakOnSelectedOutput(VocabularyFlowV3.starMyVoice);
+      if (generation != _playbackGeneration || _pausedForMainAssistant) {
+        return false;
+      }
+    }
     final uri = path.startsWith('http://') || path.startsWith('https://')
         ? Uri.parse(path)
         : Uri.file(path);
@@ -1379,27 +1535,27 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       }
       rethrow;
     }
-    if (journey == _VocabularyJourney.stars && !replay) {
-      _starPlayedCount += 1;
-    }
     return true;
   }
 
-  Future<void> _resumePlayback() async {
-    for (var attempt = 0; attempt < 20 && _playingCollection; attempt++) {
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-    }
+  Future<void> _resumePlayback({bool announceResume = false}) async {
+    await _waitForPlaybackToSettle();
     if (!_playbackInterrupted || _playbackQueue.isEmpty || _playingCollection) {
       return;
     }
     final queue = _playbackQueue;
     final branch = _playbackBranch ?? 'resume';
     _playbackInterrupted = false;
+    if (announceResume) {
+      await _speakOnSelectedOutput(VocabularyFlowV3.resumeStars);
+      if (_pausedForMainAssistant) return;
+    }
     await _playQueue(
       queue,
       startIndex: _playbackIndex,
       branch: branch,
-      checkpoint: branch.endsWith(':all'),
+      checkpoint: !branch.startsWith('single:'),
+      blockStartIndex: _playbackBlockStartIndex,
       journey: branch.startsWith('stars:')
           ? _VocabularyJourney.stars
           : _VocabularyJourney.family,
@@ -1416,11 +1572,121 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       _playbackQueue,
       startIndex: start,
       branch: branch,
-      checkpoint: branch.endsWith(':all'),
+      checkpoint: !branch.startsWith('single:'),
+      blockStartIndex: start,
       journey: branch.startsWith('stars:')
           ? _VocabularyJourney.stars
           : _VocabularyJourney.family,
+      announceStarVoice: branch.startsWith('stars:'),
     );
+  }
+
+  Future<void> _moveToPreviousPlaybackItem() async {
+    await _waitForPlaybackToSettle();
+    if (_playingCollection || _playbackQueue.isEmpty) return;
+    final branch = _playbackBranch ?? '';
+    final atBlockStart = _playbackIndex <= _playbackBlockStartIndex;
+    final target = atBlockStart ? _playbackBlockStartIndex : _playbackIndex - 1;
+    _playbackInterrupted = false;
+    if (atBlockStart) {
+      const firstPrevious = LessonGuidePrompt(
+        audioCode: 'CORE_FIRST_PREVIOUS',
+        text: 'Đây là câu đầu tiên. Mình nghe lại nhé.',
+      );
+      final authored = await _fixedPromptAudioService.playAudioCodeIfAvailable(
+        firstPrevious.audioCode,
+      );
+      if (!authored) {
+        await _speakOnSelectedOutput(
+          firstPrevious.text,
+          allowFixedPrompt: false,
+        );
+      }
+    }
+    if (_pausedForMainAssistant) return;
+    if (!branch.startsWith('single:')) {
+      await widget.sessionStore.savePlaybackCheckpoint(branch, target);
+    }
+    await _playQueue(
+      _playbackQueue,
+      startIndex: target,
+      branch: branch,
+      checkpoint: !branch.startsWith('single:'),
+      journey: branch.startsWith('stars:')
+          ? _VocabularyJourney.stars
+          : _VocabularyJourney.family,
+      blockStartIndex: _playbackBlockStartIndex,
+    );
+  }
+
+  Future<void> _moveToNextPlaybackItem() async {
+    await _waitForPlaybackToSettle();
+    if (_playingCollection || _playbackQueue.isEmpty) return;
+    final branch = _playbackBranch ?? '';
+    final next = (_playbackIndex + 1).clamp(0, _playbackQueue.length);
+    _playbackInterrupted = false;
+    if (!branch.startsWith('single:')) {
+      await widget.sessionStore.savePlaybackCheckpoint(branch, next);
+    }
+    if (next >= _playbackBlockEndExclusive) {
+      await _completePlaybackBlockFromCommand(next);
+      return;
+    }
+    await _playQueue(
+      _playbackQueue,
+      startIndex: next,
+      branch: branch,
+      checkpoint: !branch.startsWith('single:'),
+      journey: branch.startsWith('stars:')
+          ? _VocabularyJourney.stars
+          : _VocabularyJourney.family,
+      blockStartIndex: _playbackBlockStartIndex,
+    );
+  }
+
+  Future<void> _completePlaybackBlockFromCommand(int nextIndex) async {
+    final journey = (_playbackBranch ?? '').startsWith('stars:')
+        ? _VocabularyJourney.stars
+        : _VocabularyJourney.family;
+    _playbackIndex = nextIndex.clamp(0, _playbackQueue.length);
+    _nextPlaybackIndex = _playbackIndex;
+    _waitingForPlaybackContinuation = _playbackIndex < _playbackQueue.length;
+    _awaitingPlaybackEndChoice = !_waitingForPlaybackContinuation;
+    await _speakAndRequestChoice(
+      _waitingForPlaybackContinuation
+          ? (journey == _VocabularyJourney.stars
+                ? VocabularyFlowV3.starGroupCompletion
+                : VocabularyFlowV3.parentGroupCompletion)
+          : (journey == _VocabularyJourney.stars
+                ? VocabularyFlowV3.starFinished
+                : VocabularyFlowV3.parentFinished),
+    );
+  }
+
+  Future<void> _restartCompletedPlayback() async {
+    final journey = _selectedJourney;
+    if (journey == null || _playbackQueue.isEmpty) return;
+    _awaitingPlaybackEndChoice = false;
+    _waitingForPlaybackContinuation = false;
+    final branch = _playbackBranch ?? '${journey.name}:ordered';
+    if (!branch.startsWith('single:')) {
+      await widget.sessionStore.savePlaybackCheckpoint(branch, 0);
+    }
+    await _playQueue(
+      _playbackQueue,
+      startIndex: 0,
+      branch: branch,
+      checkpoint: !branch.startsWith('single:'),
+      journey: journey,
+      blockStartIndex: 0,
+      announceStarVoice: journey == _VocabularyJourney.stars,
+    );
+  }
+
+  Future<void> _waitForPlaybackToSettle() async {
+    for (var attempt = 0; attempt < 100 && _playingCollection; attempt++) {
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
   }
 
   Future<bool> _resumeBlockingPracticeIfNeeded() async {
@@ -1429,55 +1695,38 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     if (active.mode == VocabularyPracticeMode.today) {
       await _speakOnSelectedOutput(VocabularyFlowV3.finishActiveGroupFirst);
     }
-    await _runPracticeSession(active, announceInitialIntro: false);
+    await _runPracticeSession(
+      active,
+      announceInitialIntro: false,
+      announceInitialResume: true,
+    );
     return true;
   }
 
-  Future<void> _practiceEntryAgain(VocabularyEntry entry) async {
-    if (_openingPractice || !mounted) return;
-    await Future.wait<void>(<Future<void>>[
-      _voicePromptService.stop().catchError((Object _) {}),
-      _mediaService.stopPlayback().catchError((Object _) {}),
-    ]);
-    final session = await widget.sessionStore.prepareSpeakAgain(entry);
-    if (!mounted) return;
-    final language = DisplayLanguageScope.of(context);
-    await pushForActiveLearning<VocabularyPracticeResult>(
-      context,
-      (_) => VocabularyPracticeScreen(
-        language: language,
-        childAge: widget.childAge,
-        session: session,
-        store: widget.store,
-        sessionStore: widget.sessionStore,
-        mediaService: _mediaService,
-        audioDependencies: widget.audioDependencies,
-        voicePromptService: _voicePromptService,
-        onRequestVoiceChoice: widget.onRequestVoiceChoice,
-      ),
-    );
-    if (!mounted) return;
-    await _load();
-    final queueIndex = _playbackQueue.indexWhere(
-      (candidate) => candidate.id == entry.id,
-    );
-    if (queueIndex >= 0) {
-      _nextPlaybackIndex = queueIndex + 1;
-      await _continuePlayback();
-    }
-  }
-
   Future<void> _leavePlaybackForOtherContent() async {
+    if (_playbackNavigationCleanup != null) return;
     final journey = _selectedJourney;
+    // Touch and MAIN use the same cancellation boundary. Update the screen
+    // immediately, while an old audio callback can no longer advance its queue.
+    _playbackGeneration++;
     _playbackInterrupted = false;
     _waitingForPlaybackContinuation = false;
-    _pendingPlaybackScopeJourney = null;
-    await Future.wait<void>(<Future<void>>[
+    _awaitingPlaybackEndChoice = false;
+    _playingCollection = false;
+    _closeJourney();
+    final cleanup = Future.wait<void>(<Future<void>>[
       _voicePromptService.stop().catchError((Object _) {}),
       _mediaService.stopPlayback().catchError((Object _) {}),
-    ]);
-    if (!mounted) return;
-    _closeJourney();
+      if (_vocabularyAudioService != null)
+        _vocabularyAudioService!.stop().catchError((Object _) {}),
+    ]).then<void>((_) {});
+    _playbackNavigationCleanup = cleanup;
+    try {
+      await cleanup;
+    } finally {
+      _playbackNavigationCleanup = null;
+    }
+    if (!mounted || _selectedJourney != null) return;
     await _speakAndRequestChoice(
       journey == _VocabularyJourney.family
           ? VocabularyFlowV3.parentOtherMenu
@@ -1491,7 +1740,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     await _speakOnSelectedOutput(prompt);
     if (!mounted) return;
     if (_playingCollection) setState(() => _playingCollection = false);
-    await _requestVoiceChoice();
+    await _requestVoiceChoice(
+      noSpeechRetryPrompt: prompt,
+      noSpeechExitPrompt: VocabularyFlowV3.pauseAfterNoResponse,
+    );
   }
 
   Future<void> _requestVoiceChoice({
@@ -1510,12 +1762,23 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   Future<List<VocabularyTranslation>?> _prepareParentChoices({
     required String input,
     required VocabularyTranslation translated,
+    List<VocabularyTranslation> initialSuggestions =
+        const <VocabularyTranslation>[],
+    String? partOfSpeech,
     required int maxSelections,
   }) async {
     VocabularyValidationException? originalError;
     var originalAccepted = true;
     try {
-      await widget.store.validateParentCandidate(translated);
+      await widget.store.validateParentCandidate(
+        translated,
+        childAge: widget.childAge,
+      );
+      final curriculumDuplicateChecker = widget.curriculumDuplicateChecker;
+      if (curriculumDuplicateChecker != null &&
+          await curriculumDuplicateChecker(translated)) {
+        throw const VocabularyTopicDuplicateException();
+      }
     } on VocabularyDuplicateException {
       rethrow;
     } on VocabularyTopicDuplicateException {
@@ -1527,24 +1790,36 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
     final candidates = <VocabularyTranslation>[
       if (originalAccepted) translated,
+      ...initialSuggestions,
       ..._approvedSuggestionsFor(translated),
     ];
-    final targetOptionCount = originalAccepted ? 4 : 3;
-    var options = await widget.store.filterParentSuggestions(
+    const targetOptionCount = 3;
+    var options = await _filterParentSuggestions(
       candidates,
       limit: targetOptionCount,
+      childAge: widget.childAge,
     );
     final provider = widget.suggestionProvider;
     if (provider != null && options.length < targetOptionCount) {
       try {
-        final aiSuggestions = await provider(input, widget.childAge);
-        options = await widget.store.filterParentSuggestions(
-          <VocabularyTranslation>[...options, ...aiSuggestions],
+        final authoredSuggestions = await provider(input, widget.childAge);
+        options = await _filterParentSuggestions(
+          <VocabularyTranslation>[...options, ...authoredSuggestions],
           limit: targetOptionCount,
+          childAge: widget.childAge,
         );
       } catch (error) {
         debugPrint('VOCABULARY_SUGGESTION_FALLBACK_FAILED error=$error');
       }
+    }
+    if (options.length < targetOptionCount) {
+      final localSuggestions = const LocalVocabularySuggestionProvider()
+          .suggest(base: translated, partOfSpeech: partOfSpeech);
+      options = await _filterParentSuggestions(
+        <VocabularyTranslation>[...options, ...localSuggestions],
+        limit: targetOptionCount,
+        childAge: widget.childAge,
+      );
     }
     if (options.isEmpty) {
       if (originalError != null) throw originalError;
@@ -1560,6 +1835,31 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         maxSelections: maxSelections,
       ),
     );
+  }
+
+  Future<List<VocabularyTranslation>> _filterParentSuggestions(
+    Iterable<VocabularyTranslation> candidates, {
+    required int limit,
+    required int childAge,
+  }) async {
+    final candidateList = candidates.toList(growable: false);
+    final locallyValid = await widget.store.filterParentSuggestions(
+      candidateList,
+      limit: candidateList.length,
+      childAge: childAge,
+    );
+    final curriculumDuplicateChecker = widget.curriculumDuplicateChecker;
+    if (curriculumDuplicateChecker == null) {
+      return locallyValid.take(limit).toList(growable: false);
+    }
+    final result = <VocabularyTranslation>[];
+    for (final candidate in locallyValid) {
+      if (!await curriculumDuplicateChecker(candidate)) {
+        result.add(candidate);
+        if (result.length >= limit) break;
+      }
+    }
+    return result;
   }
 
   List<VocabularyTranslation> _approvedSuggestionsFor(
@@ -1655,24 +1955,6 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         const <VocabularyTranslation>[];
   }
 
-  Future<void> _switchStarBranch(_VocabularyPlaybackScope scope) async {
-    _playbackInterrupted = false;
-    _waitingForPlaybackContinuation = false;
-    await Future.wait<void>(<Future<void>>[
-      _voicePromptService.stop().catchError((Object _) {}),
-      _mediaService.stopPlayback().catchError((Object _) {}),
-    ]);
-    for (var attempt = 0; attempt < 30 && _playingCollection; attempt++) {
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-    }
-    if (!mounted || _playingCollection) return;
-    await _playJourney(
-      _VocabularyJourney.stars,
-      requestedScope: scope,
-      directBranchSwitch: true,
-    );
-  }
-
   void _showMessage(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(
@@ -1688,7 +1970,13 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   Future<void> _speakOnSelectedOutput(
     String text, {
     String locale = 'vi-VN',
+    bool allowFixedPrompt = true,
   }) async {
+    if (allowFixedPrompt &&
+        locale.toLowerCase().startsWith('vi') &&
+        await _fixedPromptAudioService.playPromptIfAvailable(text)) {
+      return;
+    }
     final promptService = _voicePromptService;
     if (promptService is SelectedMediaOutputVoicePromptService) {
       await (promptService as SelectedMediaOutputVoicePromptService)
@@ -1698,7 +1986,22 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     await promptService.speakAndWait(text, locale: locale);
   }
 
-  Future<VocabularyTranslation> _translateVocabulary(String input) async {
+  Future<void> _speakVocabularyText(
+    VocabularyEntry entry,
+    String text, {
+    required String locale,
+  }) async {
+    final audio = _vocabularyAudioService;
+    if (entry.isParentAdded && audio != null) {
+      await audio.speakAndWait(text, locale: locale);
+      return;
+    }
+    await _speakOnSelectedOutput(text, locale: locale, allowFixedPrompt: false);
+  }
+
+  Future<_VocabularyTranslationResolution> _translateVocabulary(
+    String input,
+  ) async {
     const pairs = <String, VocabularyTranslation>{
       'apple': VocabularyTranslation(
         englishText: 'Apple',
@@ -1752,7 +2055,42 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     final normalized = input.toLowerCase();
     final known = pairs[normalized];
     if (known != null) {
-      return known;
+      return _VocabularyTranslationResolution(primary: known);
+    }
+
+    if (!_containsVietnameseCharacters(input)) {
+      final dictionary = widget.dictionaryProvider;
+      if (dictionary != null) {
+        try {
+          final result = await dictionary.lookupEnglish(input);
+          if (result != null && result.definitions.isNotEmpty) {
+            final seenMeanings = <String>{};
+            final meanings = result.definitions
+                .map(
+                  (definition) => VocabularyTranslation(
+                    englishText: _capitalize(result.english),
+                    vietnameseText: _capitalize(definition.vietnamese),
+                  ),
+                )
+                .where(
+                  (translation) => seenMeanings.add(
+                    _normalizedVocabularyText(translation.vietnameseText),
+                  ),
+                )
+                .take(2)
+                .toList(growable: false);
+            if (meanings.isNotEmpty) {
+              return _VocabularyTranslationResolution(
+                primary: meanings.first,
+                alternatives: meanings.skip(1).toList(growable: false),
+                partOfSpeech: result.definitions.first.partOfSpeech,
+              );
+            }
+          }
+        } catch (error) {
+          debugPrint('VOCABULARY_DICTIONARY_LOOKUP_FAILED error=$error');
+        }
+      }
     }
 
     final translator = widget.translator;
@@ -1769,9 +2107,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     if (englishText.isEmpty || _containsVietnameseCharacters(englishText)) {
       throw StateError('Bản dịch tiếng Anh không hợp lệ.');
     }
-    return VocabularyTranslation(
-      englishText: englishText,
-      vietnameseText: vietnameseText,
+    return _VocabularyTranslationResolution(
+      primary: VocabularyTranslation(
+        englishText: englishText,
+        vietnameseText: vietnameseText,
+      ),
     );
   }
 
@@ -1791,9 +2131,19 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       .trim();
 }
 
-enum _VocabularyJourney { family, stars, review }
+class _VocabularyTranslationResolution {
+  const _VocabularyTranslationResolution({
+    required this.primary,
+    this.alternatives = const <VocabularyTranslation>[],
+    this.partOfSpeech,
+  });
 
-enum _VocabularyPlaybackScope { latest, all }
+  final VocabularyTranslation primary;
+  final List<VocabularyTranslation> alternatives;
+  final String? partOfSpeech;
+}
+
+enum _VocabularyJourney { family, stars, review }
 
 class _VocabularyHeader extends StatelessWidget {
   const _VocabularyHeader({
@@ -1945,14 +2295,14 @@ class _VocabularyHeader extends StatelessWidget {
               _VocabularyHeaderButton(
                 key: const Key('search-vocabulary-button'),
                 icon: Icons.search_rounded,
-                tooltip: context.tr('Tìm từ vựng', '搜索词汇'),
+                tooltip: context.tr('Tìm nội dung', '搜索内容'),
                 onPressed: onSearchPressed,
               ),
               const SizedBox(width: 8),
               _VocabularyHeaderButton(
                 key: const Key('add-vocabulary-button'),
                 icon: Icons.add_rounded,
-                tooltip: context.tr('Thêm từ vựng', '添加词汇'),
+                tooltip: context.tr('Thêm nội dung', '添加内容'),
                 onPressed: onAddPressed,
                 loading: adding,
               ),
@@ -2201,7 +2551,9 @@ class _VocabularyRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${_statusLabel(context)} • ${_dateLabel(context)}',
+                  entry.isStar
+                      ? '${context.tr('Ngôi sao', '星星')} • ${_dateLabel(context)}'
+                      : _dateLabel(context),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                     fontSize: 10,
@@ -2230,7 +2582,7 @@ class _VocabularyRow extends StatelessWidget {
             ),
             tooltip: deleteMode
                 ? canDelete
-                      ? context.tr('Xóa từ này', '删除此词')
+                      ? context.tr('Xóa nội dung này', '删除此内容')
                       : context.tr('Nội dung đã bắt đầu học', '内容已开始学习')
                 : context.tr('Nghe phát âm', '播放发音'),
             color: deleteMode
@@ -2267,18 +2619,6 @@ class _VocabularyRow extends StatelessWidget {
     }
     return context.tr('Đã lưu $days ngày trước', '$days 天前保存');
   }
-
-  String _statusLabel(BuildContext context) {
-    if (entry.isStar) return context.tr('Ngôi sao', '星星');
-    return switch (entry.status) {
-      VocabularyLearningStatus.unlearned => context.tr('Chưa học', '未学习'),
-      VocabularyLearningStatus.needsPractice => context.tr(
-        'Cần luyện lại',
-        '需复习',
-      ),
-      VocabularyLearningStatus.learnedWell => context.tr('Đã học tốt', '掌握良好'),
-    };
-  }
 }
 
 class _VocabularySuggestionDialog extends StatefulWidget {
@@ -2298,6 +2638,40 @@ class _VocabularySuggestionDialog extends StatefulWidget {
 class _VocabularySuggestionDialogState
     extends State<_VocabularySuggestionDialog> {
   final Set<int> _selectedIndexes = <int>{0};
+  late final List<TextEditingController> _englishControllers;
+  late final List<TextEditingController> _vietnameseControllers;
+
+  @override
+  void initState() {
+    super.initState();
+    _englishControllers = <TextEditingController>[
+      for (final option in widget.options)
+        TextEditingController(text: option.englishText),
+    ];
+    _vietnameseControllers = <TextEditingController>[
+      for (final option in widget.options)
+        TextEditingController(text: option.vietnameseText),
+    ];
+    for (final controller in <TextEditingController>[
+      ..._englishControllers,
+      ..._vietnameseControllers,
+    ]) {
+      controller.addListener(_refresh);
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final controller in <TextEditingController>[
+      ..._englishControllers,
+      ..._vietnameseControllers,
+    ]) {
+      controller
+        ..removeListener(_refresh)
+        ..dispose();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2310,30 +2684,72 @@ class _VocabularySuggestionDialogState
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text('Ba mẹ chọn tối đa ${widget.maxSelections} nội dung.'),
+              Text(
+                'Ba mẹ chọn tối đa ${widget.maxSelections.clamp(1, 3)} nội dung '
+                'và có thể sửa trước khi thêm.',
+              ),
               const SizedBox(height: 10),
               for (var index = 0; index < widget.options.length; index++)
-                CheckboxListTile(
+                Card(
                   key: ValueKey<String>('vocabulary-suggestion-$index'),
-                  value: _selectedIndexes.contains(index),
-                  controlAffinity: ListTileControlAffinity.leading,
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(widget.options[index].englishText),
-                  subtitle: Text(widget.options[index].vietnameseText),
-                  onChanged: (selected) {
-                    if (selected == true &&
-                        _selectedIndexes.length >= widget.maxSelections) {
-                      return;
-                    }
-                    setState(() {
-                      if (selected == true) {
-                        _selectedIndexes.add(index);
-                      } else {
-                        _selectedIndexes.remove(index);
-                      }
-                    });
-                  },
+                  margin: const EdgeInsets.only(bottom: 10),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(4, 8, 12, 12),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Checkbox(
+                          value: _selectedIndexes.contains(index),
+                          onChanged: (selected) =>
+                              _toggleSelection(index, selected),
+                        ),
+                        Expanded(
+                          child: Column(
+                            children: <Widget>[
+                              TextField(
+                                key: ValueKey<String>(
+                                  'vocabulary-suggestion-english-$index',
+                                ),
+                                controller: _englishControllers[index],
+                                decoration: const InputDecoration(
+                                  labelText: 'Tiếng Anh',
+                                  isDense: true,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              TextField(
+                                key: ValueKey<String>(
+                                  'vocabulary-suggestion-vietnamese-$index',
+                                ),
+                                controller: _vietnameseControllers[index],
+                                decoration: const InputDecoration(
+                                  labelText: 'Tiếng Việt',
+                                  isDense: true,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  key: const Key('vocabulary-minhqnd-attribution'),
+                  onPressed: () => unawaited(
+                    launchUrl(
+                      Uri.parse('https://dict.minhqnd.com/'),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                  ),
+                  icon: const Icon(Icons.info_outline_rounded, size: 18),
+                  label: const Text(
+                    'Nguồn từ điển và phát âm: @minhqnd (CC BY-SA 4.0)',
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -2345,16 +2761,61 @@ class _VocabularySuggestionDialogState
         ),
         FilledButton(
           key: const Key('confirm-vocabulary-suggestions'),
-          onPressed: _selectedIndexes.isEmpty
+          onPressed: !_canSubmit
               ? null
               : () => Navigator.of(context).pop(<VocabularyTranslation>[
-                  for (final index in _selectedIndexes) widget.options[index],
+                  for (final index in _selectedIndexes.toList()..sort())
+                    VocabularyTranslation(
+                      englishText: _englishControllers[index].text.trim(),
+                      vietnameseText: _vietnameseControllers[index].text.trim(),
+                    ),
                 ]),
           child: const Text('Thêm vào hàng chờ'),
         ),
       ],
     );
   }
+
+  bool get _canSubmit =>
+      _selectedIndexes.isNotEmpty &&
+      _selectedIndexes.every(
+        (index) =>
+            _englishControllers[index].text.trim().isNotEmpty &&
+            _vietnameseControllers[index].text.trim().isNotEmpty,
+      );
+
+  void _toggleSelection(int index, bool? selected) {
+    final sameEnglishSelections = selected == true
+        ? _selectedIndexes.where(
+            (selectedIndex) =>
+                selectedIndex != index &&
+                _normalizedSuggestionEnglish(
+                      _englishControllers[selectedIndex].text,
+                    ) ==
+                    _normalizedSuggestionEnglish(
+                      _englishControllers[index].text,
+                    ),
+          )
+        : const Iterable<int>.empty();
+    if (selected == true &&
+        _selectedIndexes.length - sameEnglishSelections.length >=
+            widget.maxSelections.clamp(1, 3)) {
+      return;
+    }
+    setState(() {
+      if (selected == true) {
+        _selectedIndexes.removeAll(sameEnglishSelections);
+        _selectedIndexes.add(index);
+      } else {
+        _selectedIndexes.remove(index);
+      }
+    });
+  }
+
+  String _normalizedSuggestionEnglish(String value) =>
+      value.trim().toLowerCase().replaceAll(RegExp(r"[^a-z0-9']+"), ' ');
+
+  void _refresh() => setState(() {});
 }
 
 class _AddVocabularyDialog extends StatefulWidget {
@@ -2406,7 +2867,7 @@ class _AddVocabularyDialogState extends State<_AddVocabularyDialog> {
                 child: Text(
                   widget.editing
                       ? context.tr('Sửa nội dung', '编辑内容')
-                      : context.tr('Thêm từ vựng', '添加词汇'),
+                      : context.tr('Thêm nội dung học', '添加学习内容'),
                   style: theme.textTheme.headlineMedium?.copyWith(
                     color: theme.colorScheme.onSurface,
                     fontSize: 23,
@@ -2419,15 +2880,16 @@ class _AddVocabularyDialogState extends State<_AddVocabularyDialog> {
                 controller: _controller,
                 autofocus: true,
                 minLines: 1,
-                maxLines: 1,
+                maxLines: 3,
+                textInputAction: TextInputAction.done,
                 style: TextStyle(
                   color: theme.colorScheme.onSurface,
                   fontSize: 13,
                 ),
                 decoration: InputDecoration(
                   hintText: context.tr(
-                    'Nhập từ tiếng Anh hoặc tiếng Việt',
-                    '输入英文或越南文',
+                    'Nhập từ, cụm từ hoặc câu ngắn',
+                    '输入单词、短语或短句',
                   ),
                   filled: true,
                   fillColor: isDark
@@ -2461,8 +2923,8 @@ class _AddVocabularyDialogState extends State<_AddVocabularyDialog> {
               const SizedBox(height: 8),
               Text(
                 context.tr(
-                  'Có thể nhập một từ hoặc cụm từ ngắn.',
-                  '可以输入一个单词或短语。',
+                  'Có thể nhập bằng tiếng Anh hoặc tiếng Việt.',
+                  '可以输入英文或越南文。',
                 ),
                 maxLines: 1,
                 style: theme.textTheme.bodyMedium?.copyWith(
@@ -2491,10 +2953,10 @@ class _AddVocabularyDialogState extends State<_AddVocabularyDialog> {
                           ),
                           TextSpan(
                             text: context.tr(
-                              '• Nhập “apple” để thêm trực tiếp.\n'
-                                  '• Nhập “quả táo” để gợi ý từ tiếng Anh tương ứng.',
-                              '• 输入 “apple” 可直接添加。\n'
-                                  '• 输入越南文可匹配对应英文。',
+                              '• “apple” → “I like this apple.”\n'
+                                  '• Có thể nhập câu ngắn như “Con thích quả táo đỏ”.',
+                              '• “apple” → “I like this apple.”\n'
+                                  '• 也可以输入一个简短句子。',
                             ),
                           ),
                         ],

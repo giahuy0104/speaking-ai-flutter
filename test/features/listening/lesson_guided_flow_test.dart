@@ -197,6 +197,39 @@ void main() {
     expect(voicePrompts.spoken, isNot(contains('vi-VN|Nói theo cô nhé.')));
   });
 
+  testWidgets('V4 falls back to local TTS when authored EN-VI audio fails', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final mediaService = _FailingAuthoredAudioMediaService();
+    final voicePrompts = _ReadyCueVoicePromptService();
+
+    await tester.pumpWidget(
+      _subject(
+        _lesson(
+          v4: true,
+          sentenceAudioUri: Uri.parse('https://example.test/english.mp3'),
+          vietnameseAudioUri: Uri.parse('https://example.test/vietnamese.mp3'),
+        ),
+        mediaService,
+        guideAudioLibrary: _silentGuideAudioLibrary(),
+        voicePromptService: voicePrompts,
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+
+    expect(
+      voicePrompts.spoken,
+      containsAllInOrder(<String>[
+        'en-US|Sentence 1',
+        'vi-VN|Câu 1',
+        'vi-VN|Bạn nói lại nhé.',
+      ]),
+    );
+    expect(mediaService.recording, isTrue);
+    expect(mediaService.startedSentenceIds, hasLength(1));
+  });
+
   testWidgets('V2 automatically stops a child recording after six seconds', (
     tester,
   ) async {
@@ -358,6 +391,40 @@ void main() {
 
     expect(evaluator.evaluationCalls, 1);
     expect(mediaService.playedUris.last.toString(), contains('latest.m4a'));
+  });
+
+  testWidgets('V4 also replays the child recording before scoring', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final mediaService = _BlockingAttemptPlaybackMediaService();
+    final evaluator = _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
+      LessonAttemptOutcome.good,
+    ]);
+
+    await tester.pumpWidget(
+      _subject(
+        _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+        mediaService,
+        guideAudioLibrary: _silentGuideAudioLibrary(),
+        attemptEvaluator: evaluator,
+        voicePromptService: _FakeVoicePromptService(),
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+    expect(mediaService.recording, isTrue);
+
+    await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+    await tester.pump();
+    await mediaService.recordingPlaybackStarted.future;
+
+    expect(evaluator.evaluationCalls, 0);
+    mediaService.finishRecordingPlayback();
+    await _pumpGuidedSpeechTurn(tester);
+
+    expect(evaluator.evaluationCalls, 1);
+    expect(mediaService.playedUris.last.toString(), contains('latest.m4a'));
+    expect(mediaService.lastRecordingPlaybackGainDb, 12.0);
   });
 
   testWidgets('keeps an injected lesson evaluator caller-owned', (
@@ -626,7 +693,7 @@ void main() {
     },
   );
 
-  testWidgets('V2 keeps the same sentence after two unclear recordings', (
+  testWidgets('V4 pauses directly after the second unclear recording turn', (
     tester,
   ) async {
     await _usePhoneSurface(tester);
@@ -640,7 +707,7 @@ void main() {
     ]);
     await tester.pumpWidget(
       _subject(
-        _lesson(code: 'A035_T01_L01', sentenceCount: 2),
+        _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
         mediaService,
         guideAudioLibrary: _silentGuideAudioLibrary(),
         progressStore: progressStore,
@@ -654,19 +721,23 @@ void main() {
     await tester.tap(find.byKey(const Key('record-lesson-sentence')));
     await _pumpGuidedSpeechTurn(tester);
     expect(mediaService.recording, isTrue);
+    expect(mediaService.startedSentenceIds, hasLength(2));
     expect(find.text('Sentence 1'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('record-lesson-sentence')));
     await _pumpGuidedSpeechTurn(tester);
 
     expect(find.text('Sentence 1'), findsOneWidget);
-    expect(mediaService.recording, isTrue);
+    expect(find.text('Sentence 1'), findsOneWidget);
+    expect(mediaService.recording, isFalse);
+    expect(mediaService.startedSentenceIds, hasLength(2));
+    expect(find.byKey(const Key('resume-after-no-response')), findsOneWidget);
     expect(progressStore.needsPractice, isEmpty);
     expect(
       voicePrompts.spoken.where(
-        (message) => message == 'vi-VN|Cô chưa nghe rõ. Con nói lại nhé.',
+        (message) => message == 'vi-VN|HOMI chưa nghe rõ. Bạn nói lại nhé.',
       ),
-      hasLength(2),
+      hasLength(1),
     );
 
     await tester.pumpWidget(const SizedBox.shrink());
@@ -2186,6 +2257,7 @@ class _GuidedMediaService extends LessonMediaService {
   final List<String> deletedLessonIds = <String>[];
   int selectedOutputPreparationCount = 0;
   int phoneOutputPreparationCount = 0;
+  double? lastRecordingPlaybackGainDb;
 
   @override
   Future<void> preparePhoneSpeakerOutput() async {
@@ -2244,6 +2316,7 @@ class _GuidedMediaService extends LessonMediaService {
   Future<void> play(
     Uri uri, {
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
   }) async {
     playedUris.add(uri);
   }
@@ -2253,8 +2326,12 @@ class _GuidedMediaService extends LessonMediaService {
     Uri uri, {
     Duration timeout = const Duration(seconds: 15),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
   }) async {
     playedUris.add(uri);
+    if (uri.toString().contains('latest.m4a')) {
+      lastRecordingPlaybackGainDb = playbackGainDb;
+    }
   }
 
   @override
@@ -2262,6 +2339,21 @@ class _GuidedMediaService extends LessonMediaService {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _FailingAuthoredAudioMediaService extends _GuidedMediaService {
+  @override
+  Future<void> playToCompletion(
+    Uri uri, {
+    Duration timeout = const Duration(seconds: 15),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+  }) async {
+    playedUris.add(uri);
+    if (uri.scheme == 'https') {
+      throw StateError('Authored audio unavailable.');
+    }
+  }
 }
 
 class _ControlledLessonAudioMediaService extends _GuidedMediaService {
@@ -2273,6 +2365,7 @@ class _ControlledLessonAudioMediaService extends _GuidedMediaService {
     Uri uri, {
     Duration timeout = const Duration(seconds: 15),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
   }) async {
     playedUris.add(uri);
     if (uri.scheme == 'asset') {
@@ -2315,11 +2408,13 @@ class _BlockingAttemptPlaybackMediaService extends _GuidedMediaService {
     Uri uri, {
     Duration timeout = const Duration(seconds: 15),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
   }) async {
     playedUris.add(uri);
     if (!uri.toString().contains('latest.m4a')) {
       return;
     }
+    lastRecordingPlaybackGainDb = playbackGainDb;
     if (!recordingPlaybackStarted.isCompleted) {
       recordingPlaybackStarted.complete();
     }
@@ -2376,6 +2471,7 @@ class _ControlledIntroMediaService extends LessonMediaService {
     Uri uri, {
     Duration timeout = const Duration(seconds: 45),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
   }) {
     playedUri = uri;
     playbackRoute = route;
@@ -2400,6 +2496,7 @@ class _FailingIntroMediaService extends LessonMediaService {
     Uri uri, {
     Duration timeout = const Duration(seconds: 45),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
   }) async {
     throw StateError('Playback failed.');
   }
@@ -2423,6 +2520,7 @@ class _ControlledNextIntroMediaService extends _GuidedMediaService {
     Uri uri, {
     Duration timeout = const Duration(seconds: 45),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
   }) async {
     playedUris.add(uri);
     if (uri != nextIntroUri) {

@@ -23,8 +23,9 @@ void main() {
     VoidCallback? onVoiceNavigationResume,
     Future<ListeningContentCatalog>? contentFuture,
     ListeningProgressStore? progressStore,
-    TopicSelectionAfterCompletionPrompt? onTopicSelectionAfterCompletion,
     TopicLessonSelectionPrompt? onLessonSelectionRequested,
+    LevelTopicSelectionPrompt? onLevelTopicSelectionRequested,
+    CourseRelearnLevelSelectionPrompt? onCourseRelearnLevelSelectionRequested,
     ValueChanged<int>? onChildAgeChanged,
     Future<bool> Function()? onRequestParentAccess,
     Future<void> Function()? onMainPressed,
@@ -46,8 +47,10 @@ void main() {
           onVoiceNavigationResume: onVoiceNavigationResume,
           contentFuture: contentFuture,
           progressStore: progressStore ?? _MemoryProgressStore(),
-          onTopicSelectionAfterCompletion: onTopicSelectionAfterCompletion,
           onLessonSelectionRequested: onLessonSelectionRequested,
+          onLevelTopicSelectionRequested: onLevelTopicSelectionRequested,
+          onCourseRelearnLevelSelectionRequested:
+              onCourseRelearnLevelSelectionRequested,
           onChildAgeChanged: onChildAgeChanged,
           onRequestParentAccess: onRequestParentAccess,
           onMainPressed: onMainPressed,
@@ -274,6 +277,32 @@ void main() {
     expect(await progressStore.readLesson(topic.lessons.first.id), 0);
   });
 
+  testWidgets('completed Course asks MAIN to choose a Level for relearn', (
+    tester,
+  ) async {
+    final content = await AssetListeningContentRepository().load();
+    final progressStore = _MemoryProgressStore()..courseCompleted = true;
+    int? requestedAge;
+    List<int>? requestedLevels;
+
+    await tester.pumpWidget(
+      buildSubject(
+        childAge: 6,
+        contentFuture: Future<ListeningContentCatalog>.value(content),
+        progressStore: progressStore,
+        onCourseRelearnLevelSelectionRequested:
+            ({required childAge, required levelNumbers}) async {
+              requestedAge = childAge;
+              requestedLevels = levelNumbers;
+            },
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(requestedAge, 6);
+    expect(requestedLevels, <int>[1, 2, 3]);
+  });
+
   testWidgets(
     'does not report a V4 topic complete until its authored activities finish',
     (tester) async {
@@ -490,6 +519,7 @@ void main() {
 
 class _MemoryProgressStore extends ListeningProgressStore {
   bool coreStarted = false;
+  bool courseCompleted = false;
   ListeningTopicSelectionCheckpoint? checkpoint;
 
   @override
@@ -524,6 +554,22 @@ class _MemoryProgressStore extends ListeningProgressStore {
   @override
   Future<void> markV4LessonActivityCompleted(String lessonId) async {
     _completedV4LessonActivities.add(lessonId);
+  }
+
+  @override
+  Future<bool> isCourseCompleted(String courseId) async => courseCompleted;
+
+  @override
+  Future<void> markCourseCompleted(String courseId) async {
+    courseCompleted = true;
+  }
+
+  @override
+  Future<void> resetLevelForRelearn({
+    required String levelId,
+    required Iterable<String> lessonIds,
+  }) async {
+    await resetLessonsForRelearn(lessonIds);
   }
 
   @override

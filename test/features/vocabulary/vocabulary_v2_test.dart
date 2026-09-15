@@ -112,55 +112,52 @@ void main() {
     },
   );
 
-  test(
-    'stars dedupe by slot while allowing the same target in two slots',
-    () async {
-      const store = VocabularyStore();
-      final first = DateTime(2026, 9, 10, 8);
+  test('stars dedupe by Core slot and exclude non-Core sources', () async {
+    const store = VocabularyStore();
+    final first = DateTime(2026, 9, 10, 8);
 
-      await store.upsertLessonSentence(
-        lessonCode: 'A035_T01_L01',
-        sentenceId: 'S1',
-        english: 'Hello',
-        vietnamese: 'Xin chào',
-        collection: VocabularyCollection.star,
-        source: VocabularySource.topicCore,
-        starSlotId: 'A035_T01_L01:core:S1',
-        correctAudioPath: '/audio/first.wav',
-        occurredAt: first,
-      );
-      await store.upsertLessonSentence(
-        lessonCode: 'A035_T01_L01',
-        sentenceId: 'S1',
-        english: 'Hello',
-        vietnamese: 'Xin chào',
-        collection: VocabularyCollection.star,
-        source: VocabularySource.topicCore,
-        starSlotId: 'A035_T01_L01:core:S1',
-        correctAudioPath: '/audio/updated.wav',
-        occurredAt: first.add(const Duration(minutes: 1)),
-      );
-      await store.upsertLessonSentence(
-        lessonCode: 'A035_T01_L01',
-        sentenceId: 'S1',
-        english: 'Hello',
-        vietnamese: 'Xin chào',
-        collection: VocabularyCollection.star,
-        source: VocabularySource.topicChallenge,
-        starSlotId: 'A035_T01_L01:challenge:1',
-        occurredAt: first.add(const Duration(minutes: 2)),
-      );
+    await store.upsertLessonSentence(
+      lessonCode: 'A035_T01_L01',
+      sentenceId: 'S1',
+      english: 'Hello',
+      vietnamese: 'Xin chào',
+      collection: VocabularyCollection.star,
+      source: VocabularySource.topicCore,
+      starSlotId: 'A035_T01_L01:core:S1',
+      correctAudioPath: '/audio/first.wav',
+      occurredAt: first,
+    );
+    await store.upsertLessonSentence(
+      lessonCode: 'A035_T01_L01',
+      sentenceId: 'S1',
+      english: 'Hello',
+      vietnamese: 'Xin chào',
+      collection: VocabularyCollection.star,
+      source: VocabularySource.topicCore,
+      starSlotId: 'A035_T01_L01:core:S1',
+      correctAudioPath: '/audio/updated.wav',
+      occurredAt: first.add(const Duration(minutes: 1)),
+    );
+    await store.upsertLessonSentence(
+      lessonCode: 'A035_T01_L01',
+      sentenceId: 'S1',
+      english: 'Hello',
+      vietnamese: 'Xin chào',
+      collection: VocabularyCollection.star,
+      source: VocabularySource.topicChallenge,
+      starSlotId: 'A035_T01_L01:challenge:1',
+      occurredAt: first.add(const Duration(minutes: 2)),
+    );
 
-      final stars = await store.starEntries();
-      expect(stars, hasLength(2));
-      expect(
-        stars
-            .singleWhere((entry) => entry.starSlotId == 'A035_T01_L01:core:S1')
-            .correctAudioPath,
-        '/audio/updated.wav',
-      );
-    },
-  );
+    final stars = await store.starEntries();
+    expect(stars, hasLength(1));
+    expect(
+      stars
+          .singleWhere((entry) => entry.starSlotId == 'A035_T01_L01:core:S1')
+          .correctAudioPath,
+      '/audio/updated.wav',
+    );
+  });
 
   test(
     'review merges duplicate targets and a pass clears every topic retry',

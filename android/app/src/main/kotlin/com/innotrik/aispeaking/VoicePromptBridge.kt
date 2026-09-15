@@ -28,6 +28,8 @@ class VoicePromptBridge(
         val locale: String,
         val gainDb: Double,
         val completion: MethodChannel.Result?,
+        val speechRate: Float = 0.92f,
+        val pitch: Float = 1.0f,
     )
 
     private val appContext = context.applicationContext
@@ -91,7 +93,8 @@ class VoicePromptBridge(
             )
         }
         pendingPrompt?.let {
-            speak(it.text, it.locale, it.gainDb, completion = it.completion)
+            speak(it.text, it.locale, it.gainDb, completion = it.completion,
+                speechRate = it.speechRate, pitch = it.pitch)
         }
         pendingPrompt = null
     }
@@ -122,6 +125,10 @@ class VoicePromptBridge(
                         locale.ifEmpty { "vi-VN" },
                         gainDb,
                         completion = result,
+                        speechRate = (call.argument<Number>("speechRate")?.toFloat() ?: 0.92f)
+                            .coerceIn(0.5f, 1.5f),
+                        pitch = (call.argument<Number>("pitch")?.toFloat() ?: 1.0f)
+                            .coerceIn(0.8f, 1.2f),
                     )
                 }
             }
@@ -144,10 +151,12 @@ class VoicePromptBridge(
         localeTag: String,
         gainDb: Double,
         completion: MethodChannel.Result? = null,
+        speechRate: Float = 0.92f,
+        pitch: Float = 1.0f,
     ) {
         if (!initialized) {
             completePendingPrompt()
-            pendingPrompt = PendingPrompt(text, localeTag, gainDb, completion)
+            pendingPrompt = PendingPrompt(text, localeTag, gainDb, completion, speechRate, pitch)
             return
         }
         val engine = textToSpeech
@@ -161,6 +170,10 @@ class VoicePromptBridge(
         clearSynthesizedPrompt()
         releasePromptPlayback()
         val requestedLocale = Locale.forLanguageTag(localeTag)
+        // Reset every utterance: translation style cannot leak into Core,
+        // Challenge, vocabulary, or the MAIN assistant's feedback.
+        engine.setSpeechRate(speechRate)
+        engine.setPitch(pitch)
         val languageResult = engine.setLanguage(requestedLocale)
         if (
             languageResult == TextToSpeech.LANG_MISSING_DATA ||
@@ -352,7 +365,7 @@ class VoicePromptBridge(
 
     private fun playSpeechReadyCue(result: MethodChannel.Result) {
         completeReadyCue()
-        val generator = try {
+        var generator = try {
             readyCueGenerator ?: ToneGenerator(AudioManager.STREAM_MUSIC, 85).also {
                 readyCueGenerator = it
             }
@@ -360,15 +373,39 @@ class VoicePromptBridge(
             result.error("READY_CUE_UNAVAILABLE", error.message, null)
             return
         }
-        if (!generator.startTone(ToneGenerator.TONE_PROP_BEEP, 170)) {
-            result.error("READY_CUE_UNAVAILABLE", "Unable to play the ready cue.", null)
-            return
+        val toneStarted = try {
+            generator.startTone(ToneGenerator.TONE_PROP_BEEP, 120)
+        } catch (_: RuntimeException) {
+            false
+        }
+        if (!toneStarted) {
+            // OEM audio-route changes can leave a cached ToneGenerator stale.
+            // Recreate it once instead of silently losing alternate mic cues.
+            runCatching { generator.release() }
+            readyCueGenerator = null
+            generator = try {
+                ToneGenerator(AudioManager.STREAM_MUSIC, 85).also {
+                    readyCueGenerator = it
+                }
+            } catch (error: RuntimeException) {
+                result.error("READY_CUE_UNAVAILABLE", error.message, null)
+                return
+            }
+            val retryStarted = try {
+                generator.startTone(ToneGenerator.TONE_PROP_BEEP, 120)
+            } catch (_: RuntimeException) {
+                false
+            }
+            if (!retryStarted) {
+                result.error("READY_CUE_UNAVAILABLE", "Unable to play the ready cue.", null)
+                return
+            }
         }
         readyCueResult = result
-        // Include a short gap so the microphone never records the tail of the tone.
+        // Complete after the tone tail; callers arm VAD only after this cue.
         val completion = Runnable { completeReadyCue() }
         readyCueCompletion = completion
-        mainHandler.postDelayed(completion, 260L)
+        mainHandler.postDelayed(completion, 150L)
     }
 
     private fun completeReadyCue() {

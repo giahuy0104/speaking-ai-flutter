@@ -97,6 +97,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   );
   final OfflineVietnameseEnglishTranslator _offlineTranslator =
       MlKitOfflineVietnameseEnglishTranslator();
+  final OfflineEnglishVietnameseTranslator _offlineVocabularyTranslator =
+      MlKitOfflineEnglishVietnameseTranslator();
   final AppleOfflineSpeechAssetService _appleOfflineSpeechAssetService =
       const AppleOfflineSpeechAssetService();
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
@@ -1041,6 +1043,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       offlineVietnameseEnglishTranslator: supportsNativeSpeech
           ? _offlineTranslator
           : null,
+      offlineEnglishVietnameseTranslator: supportsNativeSpeech
+          ? _offlineVocabularyTranslator
+          : null,
       vietnameseTranscriptCorrector: supportsNativeSpeech
           ? AssetVietnameseTranscriptCorrector()
           : null,
@@ -1056,16 +1061,20 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       initialAsrMode: supportsNativeSpeech
           ? AsrMode.androidStreaming
           : AsrMode.batchChunks,
-      // Android SpeechRecognizer does not guarantee onBufferReceived(), so a
-      // successful transcript can otherwise have no audio file to archive.
-      // Record the turn once with HOMI's recorder, then feed that same WAV to
-      // Android SpeechRecognizer and archive it after the response succeeds.
-      // This remains Android-only; successful Apple Native Speech turns do not
-      // upload raw audio.
-      recordAndroidAudioForArchive: supportsAndroidNativeSpeech,
+      // Keep continuous translation on Android's live SpeechRecognizer path.
+      // Recording a WAV first and injecting it only after stop adds the 4-5s
+      // delay reported on devices. Cloudflare batch remains a failure fallback.
+      recordAndroidAudioForArchive: false,
       voiceDataProcessingAllowed: () => _voiceAccessEnabled,
       networkTransportAvailable: NetworkAvailability.hasTransport,
-      beforeRecordingStart: voiceNavigationController?.pause,
+      beforeRecordingStart: () async {
+        // A MAIN translation handoff arrives only after navigation ASR has
+        // finalized its command. Calling pause() from inside that same finish
+        // callback waits on itself and can cancel the newly opening Android
+        // recognizer. Manual conversation turns still drain navigation first.
+        if (_mainSpeakingSessionController.isActive) return;
+        await voiceNavigationController?.pause();
+      },
       recognizedSpeechCommandMatcher: _matchesMainSpeakingCommand,
       onRecognizedSpeechCommand: _handleMainSpeakingCommand,
     );
@@ -1552,7 +1561,6 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     // MAIN interruption. Do not let the paused lesson resume after the
     // conversation screen has already taken ownership of audio.
     _appFlowCoordinator.forgetPausedModule();
-    await _voiceNavigationController?.pause();
     if (!mounted || !_voiceAccessEnabled) {
       return;
     }
@@ -1913,6 +1921,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     unawaited(_aiv0BleFeedbackSubscription?.cancel());
     unawaited(_audioTurnDiagnosticSubscription?.cancel());
     unawaited(_offlineTranslator.close());
+    unawaited(_offlineVocabularyTranslator.close());
     _controller?.removeListener(_synchronizeMainSpeakingSession);
     _controller?.removeListener(_synchronizeDeviceConnectionFeedback);
     _mainSpeakingSessionController.removeListener(
@@ -1989,6 +1998,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                   controller: controller,
                   config: _config,
                   voiceNavigationController: _voiceNavigationController,
+                  speakingSessionController: _mainSpeakingSessionController,
                   themeMode: _themeMode,
                   onThemeModeChanged: _setThemeMode,
                   onChildAgeChanged: _setChildAge,

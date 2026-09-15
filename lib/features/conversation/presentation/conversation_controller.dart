@@ -21,6 +21,7 @@ import '../../../core/device/h20_connection_state.dart';
 import '../../../core/device/main_button_coordinator.dart';
 import '../../../l10n/display_language.dart';
 import '../application/conversation_settings_port.dart';
+import '../application/conversation_recording_endpoint_policy.dart';
 import '../application/continuous_translation_session.dart';
 import '../application/offline_language_service.dart';
 import '../application/vietnamese_transcript_corrector.dart';
@@ -44,7 +45,7 @@ class ConversationController extends ChangeNotifier
         ConversationSettingsPort,
         LearningAudioDependencies,
         MainAssistantAudioState {
-  static const double translatedSpeechPlaybackRate = 0.57;
+  static const double translatedSpeechPlaybackRate = 0.85;
 
   ConversationController({
     required AudioInput audioInput,
@@ -59,6 +60,7 @@ class ConversationController extends ChangeNotifier
     OfflineIntentRecognizer? offlineIntentRecognizer,
     OfflineVietnameseSpeechRecognizer? offlineVietnameseSpeechRecognizer,
     OfflineVietnameseEnglishTranslator? offlineVietnameseEnglishTranslator,
+    OfflineEnglishVietnameseTranslator? offlineEnglishVietnameseTranslator,
     VietnameseTranscriptCorrector? vietnameseTranscriptCorrector,
     DisplayLanguageStore? displayLanguageStore,
     required int childAge,
@@ -91,6 +93,7 @@ class ConversationController extends ChangeNotifier
        _offlineIntentRecognizer = offlineIntentRecognizer,
        _offlineVietnameseSpeechRecognizer = offlineVietnameseSpeechRecognizer,
        _offlineVietnameseEnglishTranslator = offlineVietnameseEnglishTranslator,
+       _offlineEnglishVietnameseTranslator = offlineEnglishVietnameseTranslator,
        _vietnameseTranscriptCorrector = vietnameseTranscriptCorrector,
        _displayLanguageStore = displayLanguageStore,
        _childAge = childAge,
@@ -238,6 +241,7 @@ class ConversationController extends ChangeNotifier
   final OfflineIntentRecognizer? _offlineIntentRecognizer;
   final OfflineVietnameseSpeechRecognizer? _offlineVietnameseSpeechRecognizer;
   final OfflineVietnameseEnglishTranslator? _offlineVietnameseEnglishTranslator;
+  final OfflineEnglishVietnameseTranslator? _offlineEnglishVietnameseTranslator;
   final VietnameseTranscriptCorrector? _vietnameseTranscriptCorrector;
   final DisplayLanguageStore? _displayLanguageStore;
   int _childAge;
@@ -278,6 +282,7 @@ class ConversationController extends ChangeNotifier
   StreamSubscription<OfflineIntentHypothesis>?
   _offlineIntentHypothesisSubscription;
   Timer? _partialPreviewTimer;
+  Timer? _partialSpeechEndpointTimer;
   Timer? _silenceTimer;
   Timer? _noSpeechTimer;
   Timer? _maximumDurationTimer;
@@ -287,6 +292,8 @@ class ConversationController extends ChangeNotifier
   DateTime? _recordingStartedAt;
   DateTime? _stoppedAt;
   DateTime? _responseReceivedAt;
+  DateTime? _lastVoiceActiveAt;
+  String _latestEndpointTranscript = '';
   bool _stopInProgress = false;
   bool _speechDetected = false;
   bool _stopOnSilence = true;
@@ -958,44 +965,92 @@ class ConversationController extends ChangeNotifier
       throw StateError('Hãy hoàn tất lượt giao tiếp trước khi thêm từ vựng.');
     }
 
-    try {
-      final preview = await _repository.previewStreamingText(
-        sourceText: normalized,
-        context: context,
-        childAge: _childAge,
-      );
-      final previewEnglish = preview?.englishText.trim() ?? '';
-      if (previewEnglish.isNotEmpty) {
-        return (englishText: previewEnglish, vietnameseText: normalized);
+    final containsVietnamese = _looksLikeVietnameseVocabularyInput(normalized);
+    if (containsVietnamese) {
+      final translator = _offlineVietnameseEnglishTranslator;
+      if (translator == null) {
+        throw StateError('Chưa có bộ dịch Việt–Anh trên thiết bị.');
       }
-    } catch (error) {
-      debugPrint('Vocabulary preview failed; using full translation: $error');
+      final english = (await translator.translate(normalized)).trim();
+      if (english.isEmpty) {
+        throw StateError('Bộ dịch trên thiết bị chưa trả về tiếng Anh.');
+      }
+      return (englishText: english, vietnameseText: normalized);
     }
 
-    final result = await _repository.processStreamingText(
-      capture: StreamingSpeechCapture(
-        sourceText: normalized,
-        duration: Duration.zero,
-        inputLabel: 'Nhập từ vựng',
-        confidence: 1,
-        firstResultMs: 0,
-        finalAfterStopMs: 0,
-        asrMode: 'text',
-      ),
-      context: context,
-      childAge: _childAge,
-      vadSilenceMs: vadSilenceMs,
-    );
-    final englishText = result.englishText.trim();
-    if (englishText.isEmpty) {
-      throw StateError('Backend không trả về bản dịch tiếng Anh.');
+    final translator = _offlineEnglishVietnameseTranslator;
+    if (translator == null) {
+      throw StateError('Chưa có bộ dịch Anh–Việt trên thiết bị.');
     }
-    return (
-      englishText: englishText,
-      vietnameseText: result.vietnameseText.trim().isEmpty
-          ? normalized
-          : result.vietnameseText.trim(),
-    );
+    final vietnamese = (await translator.translate(normalized)).trim();
+    if (vietnamese.isEmpty) {
+      throw StateError('Bộ dịch trên thiết bị chưa trả về tiếng Việt.');
+    }
+    return (englishText: normalized, vietnameseText: vietnamese);
+  }
+
+  bool _looksLikeVietnameseVocabularyInput(String value) {
+    if (RegExp(
+      r'[ăâđêôơưáàảãạấầẩẫậắằẳẵặéèẻẽẹếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúùủũụứừửữựýỳỷỹỵ]',
+      caseSensitive: false,
+    ).hasMatch(value)) {
+      return true;
+    }
+
+    final tokens = value
+        .toLowerCase()
+        .replaceAll(RegExp(r"[^a-z0-9']+"), ' ')
+        .trim()
+        .split(' ')
+        .where((token) => token.isNotEmpty)
+        .toSet();
+    if (tokens.isEmpty) return false;
+
+    // ASCII-only Vietnamese is common on parent keyboards. Keep the fallback
+    // deliberately conservative: ambiguous words such as "me", "to", "ban"
+    // and "con" do not decide the language on their own.
+    const strongVietnameseTokens = <String>{
+      'anh',
+      'ba',
+      'banh',
+      'bo',
+      'but',
+      'cam',
+      'chao',
+      'chi',
+      'cho',
+      'chuoi',
+      'com',
+      'dep',
+      'dinh',
+      'dua',
+      'em',
+      'gia',
+      'giao',
+      'hom',
+      'khong',
+      'lop',
+      'meo',
+      'minh',
+      'muon',
+      'nha',
+      'nuoc',
+      'ong',
+      'pho',
+      'qua',
+      'rat',
+      'sach',
+      'sua',
+      'tao',
+      'thich',
+      'toi',
+      'troi',
+      'truong',
+      'vui',
+      'xin',
+      'yeu',
+    };
+    return tokens.any(strongVietnameseTokens.contains);
   }
 
   Future<void> onPrimaryAction() =>
@@ -1295,6 +1350,7 @@ class ConversationController extends ChangeNotifier
     _preparingMicrophone = false;
     _continuousTranslationSession.cancelInteraction();
     _partialPreviewTimer?.cancel();
+    _partialSpeechEndpointTimer?.cancel();
     _previewGeneration += 1;
     _silenceTimer?.cancel();
     _noSpeechTimer?.cancel();
@@ -1921,7 +1977,9 @@ class ConversationController extends ChangeNotifier
       await _playbackService.stop();
       if (await abandonCancelledRecordingStart()) return;
       final readyCuePlayer = _voicePromptService;
-      if (readyCuePlayer is SpeechReadyCuePlayer) {
+      final cueBeforeStart =
+          !_isWebRuntime && defaultTargetPlatform == TargetPlatform.iOS;
+      if (cueBeforeStart && readyCuePlayer is SpeechReadyCuePlayer) {
         await (readyCuePlayer as SpeechReadyCuePlayer).playSpeechReadyCue();
         if (await abandonCancelledRecordingStart()) return;
       }
@@ -1937,6 +1995,9 @@ class ConversationController extends ChangeNotifier
       _lastTurnEndReason = null;
       _noisyRecording = false;
       _voiceActivityDetector.reset();
+      _lastVoiceActiveAt = null;
+      _latestEndpointTranscript = '';
+      _partialSpeechEndpointTimer?.cancel();
       _stopInProgress = false;
       _realtimeConnectionGeneration += 1;
       _realtimeConnectionFuture = null;
@@ -2137,6 +2198,10 @@ class ConversationController extends ChangeNotifier
 
       if (await abandonCancelledRecordingStart()) return;
 
+      if (!cueBeforeStart && readyCuePlayer is SpeechReadyCuePlayer) {
+        await (readyCuePlayer as SpeechReadyCuePlayer).playSpeechReadyCue();
+        if (await abandonCancelledRecordingStart()) return;
+      }
       _recordingStartedAt = DateTime.now();
       phase = ConversationPhase.recording;
       _preparingMicrophone = false;
@@ -2536,6 +2601,7 @@ class ConversationController extends ChangeNotifier
         _registerSpeechDetection();
       }
       if (activity.voiceActive) {
+        _lastVoiceActiveAt = DateTime.now();
         _batchSpeechGate?.markVoiceActive();
         _adaptiveWebUpload?.markSpeculativeVoiceActive();
         _silenceTimer?.cancel();
@@ -2547,7 +2613,7 @@ class ConversationController extends ChangeNotifier
         _batchSpeechGate?.markVoiceInactive();
         _adaptiveWebUpload?.markSpeculativeVoiceInactive();
         _silenceTimer = Timer(
-          Duration(milliseconds: vadSilenceMs),
+          _translationQuietWindow(),
           () => unawaited(stopRecording(manual: false)),
         );
       }
@@ -2561,10 +2627,19 @@ class ConversationController extends ChangeNotifier
       return;
     }
     final normalized = sourceText.trim().replaceAll(RegExp(r'\s+'), ' ');
+    if (normalized.isEmpty) {
+      return;
+    }
+    _latestEndpointTranscript = normalized;
+    // A native partial is strong speech evidence even when the child says only
+    // one word (for example "apple"). Some Android recognizers stop emitting
+    // RMS updates before they publish a delayed final result, so arm the quiet
+    // endpoint before applying the stricter preview threshold below.
+    _registerSpeechDetection(confirmDetector: true);
+    _schedulePartialSpeechEndpoint();
     if (normalized.length < 5 || normalized.split(' ').length < 2) {
       return;
     }
-    _registerSpeechDetection(confirmDetector: true);
     if (_matchesRecognizedSpeechCommand(normalized) && !_stopInProgress) {
       // Android can recognize "Dừng lại" before the platform emits its final
       // result. Seal this turn immediately so ambient audio is not kept alive.
@@ -2591,6 +2666,49 @@ class ConversationController extends ChangeNotifier
         ),
       );
     });
+  }
+
+  void _schedulePartialSpeechEndpoint() {
+    _partialSpeechEndpointTimer?.cancel();
+    if (!_stopOnSilence || !_usingStreamingSpeech) return;
+    // Short answers need less trailing silence; longer sentences retain room
+    // for natural pauses. Live RMS activity still cancels/defer this endpoint.
+    final quietWindow = _translationQuietWindow();
+    _partialSpeechEndpointTimer = Timer(
+      quietWindow,
+      () => _finishStablePartialAfterQuietWindow(quietWindow),
+    );
+  }
+
+  Duration _translationQuietWindow() =>
+      _usingStreamingSpeech && _latestEndpointTranscript.isNotEmpty
+      ? ConversationRecordingEndpointPolicy.quietWindow(
+          _latestEndpointTranscript,
+          baseSilenceMs: vadSilenceMs,
+        )
+      : Duration(milliseconds: vadSilenceMs);
+
+  void _finishStablePartialAfterQuietWindow(Duration quietWindow) {
+    _partialSpeechEndpointTimer = null;
+    if (phase != ConversationPhase.recording ||
+        !_usingStreamingSpeech ||
+        !_stopOnSilence ||
+        !_speechDetected ||
+        _stopInProgress) {
+      return;
+    }
+    final lastVoiceActiveAt = _lastVoiceActiveAt;
+    if (lastVoiceActiveAt != null) {
+      final quietFor = DateTime.now().difference(lastVoiceActiveAt);
+      if (quietFor < quietWindow) {
+        _partialSpeechEndpointTimer = Timer(
+          quietWindow - quietFor,
+          () => _finishStablePartialAfterQuietWindow(quietWindow),
+        );
+        return;
+      }
+    }
+    unawaited(stopRecording(manual: false));
   }
 
   void _onSpeculativeBatchPreview(ConversationPreview preview) {
@@ -2653,6 +2771,7 @@ class ConversationController extends ChangeNotifier
     _stopInProgress = true;
     _adaptiveWebUpload?.markStopRequested(manual: manual);
     _partialPreviewTimer?.cancel();
+    _partialSpeechEndpointTimer?.cancel();
     _previewGeneration += 1;
     _silenceTimer?.cancel();
     _noSpeechTimer?.cancel();
@@ -3606,7 +3725,17 @@ class ConversationController extends ChangeNotifier
     }
     if (turnGeneration != _conversationTurnGeneration) return;
     try {
-      if (promptService is SelectedMediaOutputVoicePromptService) {
+      if (!_isWebRuntime &&
+          defaultTargetPlatform == TargetPlatform.android &&
+          promptService is StyledMediaOutputVoicePromptService) {
+        await (promptService as StyledMediaOutputVoicePromptService)
+            .speakAndWaitStyled(
+              text,
+              locale: 'en-US',
+              speechRate: translatedSpeechPlaybackRate,
+              pitch: 1.05,
+            );
+      } else if (promptService is SelectedMediaOutputVoicePromptService) {
         await (promptService as SelectedMediaOutputVoicePromptService)
             .speakAndWaitOnSelectedMediaOutput(text, locale: 'en-US');
       } else {
@@ -3956,6 +4085,7 @@ class ConversationController extends ChangeNotifier
     _noSpeechTimer?.cancel();
     _maximumDurationTimer?.cancel();
     _partialPreviewTimer?.cancel();
+    _partialSpeechEndpointTimer?.cancel();
     _offlineFallbackTimer?.cancel();
     _processingStageTimer?.cancel();
     _h20HardwareRecordingTimer?.cancel();

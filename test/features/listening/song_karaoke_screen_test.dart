@@ -487,6 +487,7 @@ class _KaraokeMediaService extends LessonMediaService {
   Future<void> play(
     Uri uri, {
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
   }) async {
     playCalls += 1;
     playing = true;
@@ -500,6 +501,7 @@ class _KaraokeMediaService extends LessonMediaService {
     Uri uri, {
     Duration timeout = const Duration(seconds: 45),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
   }) async {
     playToCompletionCalls += 1;
   }

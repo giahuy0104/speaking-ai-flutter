@@ -164,6 +164,40 @@ void main() {
     },
   );
 
+  test(
+    'pending completion choice survives interruption and clears atomically',
+    () async {
+      final fixture = await _ProgressFixture.create();
+      addTearDown(fixture.dispose);
+
+      await fixture.store.savePendingCompletionChoice(
+        'lesson-choice',
+        ListeningPendingChoiceStage.nextLevel,
+      );
+
+      expect(
+        await fixture.store.readResumeStage('lesson-choice'),
+        ListeningResumeStage.waitingForChoice,
+      );
+      expect(
+        await fixture.store.readPendingCompletionChoice('lesson-choice'),
+        ListeningPendingChoiceStage.nextLevel,
+      );
+      expect(await fixture.store.readAll(), isEmpty);
+
+      await fixture.store.clearPendingCompletionChoice('lesson-choice');
+
+      expect(
+        await fixture.store.readResumeStage('lesson-choice'),
+        ListeningResumeStage.completed,
+      );
+      expect(
+        await fixture.store.readPendingCompletionChoice('lesson-choice'),
+        isNull,
+      );
+    },
+  );
+
   test('first core sentence start persists without changing totals', () async {
     final fixture = await _ProgressFixture.create();
     addTearDown(fixture.dispose);
@@ -254,6 +288,10 @@ void main() {
       expect(
         await fixture.store.markCourseCompletionEventCreated('11-12'),
         isFalse,
+      );
+      expect(
+        await fixture.store.hasCourseCompletionEventCreated('11-12'),
+        isTrue,
       );
       expect(await fixture.store.readAll(), isEmpty);
     },

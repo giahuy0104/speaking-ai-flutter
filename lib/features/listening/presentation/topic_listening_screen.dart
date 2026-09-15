@@ -16,15 +16,10 @@ import '../data/listening_progress_store.dart';
 import '../domain/listening_catalog.dart';
 import '../domain/listening_content.dart';
 import '../domain/listening_curriculum_flow.dart';
+import '../domain/v4_completion_flow.dart';
 import 'lesson_recording_history_sheet.dart';
 import 'listening_route_names.dart';
 import 'topic_lesson_list_screen.dart';
-
-typedef TopicSelectionAfterCompletionPrompt =
-    Future<void> Function({
-      required int childAge,
-      required List<int> completedTopicNumbers,
-    });
 
 typedef TopicLessonSelectionPrompt =
     Future<void> Function({
@@ -43,6 +38,12 @@ typedef LevelTopicSelectionPrompt =
       required bool announceLevel,
     });
 
+typedef CourseRelearnLevelSelectionPrompt =
+    Future<void> Function({
+      required int childAge,
+      required List<int> levelNumbers,
+    });
+
 class TopicListeningScreen extends StatefulWidget {
   const TopicListeningScreen({
     required this.language,
@@ -54,9 +55,9 @@ class TopicListeningScreen extends StatefulWidget {
     this.onVoiceNavigationResume,
     this.initialVoiceTarget,
     this.onTopicSelected,
-    this.onTopicSelectionAfterCompletion,
     this.onLessonSelectionRequested,
     this.onLevelTopicSelectionRequested,
+    this.onCourseRelearnLevelSelectionRequested,
     this.onChildAgeChanged,
     this.onRequestParentAccess,
     this.contentFuture,
@@ -74,9 +75,10 @@ class TopicListeningScreen extends StatefulWidget {
   final VoidCallback? onVoiceNavigationResume;
   final ListeningVoiceNavigationTarget? initialVoiceTarget;
   final ValueChanged<int>? onTopicSelected;
-  final TopicSelectionAfterCompletionPrompt? onTopicSelectionAfterCompletion;
   final TopicLessonSelectionPrompt? onLessonSelectionRequested;
   final LevelTopicSelectionPrompt? onLevelTopicSelectionRequested;
+  final CourseRelearnLevelSelectionPrompt?
+  onCourseRelearnLevelSelectionRequested;
   final ValueChanged<int>? onChildAgeChanged;
   final Future<bool> Function()? onRequestParentAccess;
   final Future<ListeningContentCatalog>? contentFuture;
@@ -413,7 +415,19 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
         _completedV4LessonActivities = progress.completedV4LessonActivities;
         _startedLessonIds = progress.startedLessonIds;
       });
-      if (widget.initialVoiceTarget != null) {
+      final courseId = '${_catalog.startAge}-${_catalog.endAge}';
+      final courseCompleted = await widget.progressStore.isCourseCompleted(
+        courseId,
+      );
+      if (!mounted) return;
+      if (courseCompleted && widget.initialVoiceTarget?.relearnLevel != true) {
+        final group = catalog.groups.firstWhere(
+          (candidate) =>
+              candidate.startAge == _catalog.startAge &&
+              candidate.endAge == _catalog.endAge,
+        );
+        unawaited(_startCourseRelearnLevelSelection(group));
+      } else if (widget.initialVoiceTarget != null) {
         unawaited(_openInitialVoiceTarget());
       } else {
         unawaited(_resumeTopicSelectionIfNeeded(catalog));
@@ -550,6 +564,79 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     );
   }
 
+  Future<void> _startCourseRelearnLevelSelection(
+    ListeningContentAgeGroup group,
+  ) async {
+    final levelNumbers = group.levels.map((level) => level.number).toList()
+      ..sort();
+    if (levelNumbers.isEmpty || !mounted) return;
+    final callback = widget.onCourseRelearnLevelSelectionRequested;
+    if (callback != null) {
+      await callback(childAge: _catalog.startAge, levelNumbers: levelNumbers);
+      return;
+    }
+
+    final prompt = v4CompletionPrompt(V4CompletionStage.courseRelearnLevel);
+    await _voicePromptService.speakAndWait(prompt);
+    if (!mounted) return;
+    final selected = await showModalBottomSheet<int>(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Text(
+                prompt,
+                textAlign: TextAlign.center,
+                style: Theme.of(sheetContext).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 20),
+              for (final levelNumber in levelNumbers) ...<Widget>[
+                FilledButton.icon(
+                  key: ValueKey<String>('course-relearn-level-$levelNumber'),
+                  onPressed: () => Navigator.of(sheetContext).pop(levelNumber),
+                  icon: const Icon(Icons.replay_rounded),
+                  label: Text('Học lại Level $levelNumber'),
+                ),
+                const SizedBox(height: 10),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+    if (selected == null || !mounted) return;
+    await _beginRelearnLevel(group, selected);
+  }
+
+  Future<void> _beginRelearnLevel(
+    ListeningContentAgeGroup group,
+    int levelNumber,
+  ) async {
+    final level = group.level(levelNumber);
+    if (level == null) return;
+    final lessonIds = group.topics
+        .where((topic) => level.topicNumbers.contains(topic.number))
+        .expand((topic) => topic.lessons)
+        .map((lesson) => lesson.id);
+    await widget.progressStore.resetLevelForRelearn(
+      levelId: level.id,
+      lessonIds: lessonIds,
+    );
+    await _reloadProgress();
+    if (!mounted) return;
+    await _startLevelTopicSelection(
+      group,
+      levelNumber: level.number,
+      announceLevel: true,
+    );
+  }
+
   Future<void> _startLevelTopicSelection(
     ListeningContentAgeGroup group, {
     required int levelNumber,
@@ -599,6 +686,17 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
       return;
     }
     _initialVoiceTargetHandled = true;
+    if (target.relearnLevel && target.levelNumber != null) {
+      final catalog = await _contentFuture;
+      if (!mounted) return;
+      final group = catalog.groups.firstWhere(
+        (candidate) =>
+            candidate.startAge == _catalog.startAge &&
+            candidate.endAge == _catalog.endAge,
+      );
+      await _beginRelearnLevel(group, target.levelNumber!);
+      return;
+    }
     final topicIndex = target.resolveTopicIndex(_catalog);
     if (topicIndex == null) {
       return;

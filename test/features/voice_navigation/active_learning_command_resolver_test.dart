@@ -1,5 +1,6 @@
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/active_learning_command_resolver.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/controlled_speech_lexicon.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -27,5 +28,13 @@ void main() {
   test('does not treat lesson content as a control command', () {
     expect(resolver.resolve('Monday Tuesday off we go'), isNull);
     expect(resolver.resolve('Con thích học tiếng Anh'), isNull);
+  });
+
+  test('maps skip to next item only inside Vocabulary', () {
+    expect(
+      resolver.resolve('Bỏ qua', state: ControlledSpeechState.vocabulary),
+      ActiveLearningCommand.nextItem,
+    );
+    expect(resolver.resolve('Bỏ qua'), isNull);
   });
 }

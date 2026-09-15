@@ -4,15 +4,52 @@ import '../../vocabulary/domain/vocabulary_entry.dart';
 /// Bridges authored learning content into the vocabulary feature without
 /// coupling vocabulary presentation to listening implementation details.
 class AuthoredVocabularySuggestionProvider {
-  const AuthoredVocabularySuggestionProvider({required this.loadCatalog});
+  AuthoredVocabularySuggestionProvider({required this.loadCatalog});
 
   final Future<ListeningContentCatalog> Function() loadCatalog;
+  Future<ListeningContentCatalog>? _catalogFuture;
+
+  Future<ListeningContentCatalog> _catalog() =>
+      _catalogFuture ??= loadCatalog();
+
+  Future<bool> containsInCurriculum(VocabularyTranslation candidate) async {
+    final target = _normalized(candidate.englishText);
+    if (target.isEmpty) return false;
+    final catalog = await _catalog();
+
+    bool matches(String english) => _normalized(english) == target;
+
+    for (final group in catalog.groups) {
+      for (final topic in group.topics) {
+        for (final lesson in <ListeningLessonContent>[
+          ...topic.lessons,
+          ...topic.songs,
+        ]) {
+          for (final sentence in <ListeningSentenceContent>[
+            ...lesson.sentences,
+            ...lesson.karaokeLines,
+          ]) {
+            if (matches(sentence.english)) return true;
+          }
+          for (final challenge in lesson.challengeBank) {
+            if (matches(challenge.correctAnswer)) return true;
+          }
+        }
+      }
+      for (final level in group.levels) {
+        for (final mission in level.missionBank) {
+          if (matches(mission.correctAnswer)) return true;
+        }
+      }
+    }
+    return false;
+  }
 
   Future<List<VocabularyTranslation>> call(String input, int childAge) async {
     final query = _normalized(input);
     if (query.length < 2) return const <VocabularyTranslation>[];
 
-    final catalog = await loadCatalog();
+    final catalog = await _catalog();
     final group = _groupForAge(catalog.groups, childAge);
     if (group == null) return const <VocabularyTranslation>[];
 

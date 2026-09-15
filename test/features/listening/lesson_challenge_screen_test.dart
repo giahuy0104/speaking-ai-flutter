@@ -14,152 +14,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets(
-    'HOMI role-play turn is playback-only and advances to the child microphone',
-    (tester) async {
-      await _usePhoneSurface(tester);
-      final mediaService = _FakeLessonMediaService();
-      final voicePrompt = _RecordingVoicePromptService();
-
-      await tester.pumpWidget(
-        _subject(
-          startAge: 8,
-          lesson: _homiFirstLesson,
-          mediaService: mediaService,
-          voicePromptService: voicePrompt,
-        ),
-      );
-      await tester.pump();
-      await tester.pump();
-
-      expect(voicePrompt.spoken, contains('en-US|Good morning.'));
-      expect(find.text('Can I come in?'), findsOneWidget);
-      expect(
-        find.byKey(const Key('lesson-challenge-record-button')),
-        findsOneWidget,
-      );
-      expect(mediaService.recordingStarts, 1);
-      expect(find.text('Tiếp tục'), findsNothing);
-    },
-  );
-
-  testWidgets('challenge resume skips the already completed role-play', (
-    tester,
-  ) async {
-    await _usePhoneSurface(tester);
-    final mediaService = _FakeLessonMediaService();
-    final voicePrompt = _RecordingVoicePromptService();
-
-    await tester.pumpWidget(
-      _subject(
-        startAge: 8,
-        lesson: _homiFirstLesson,
-        mediaService: mediaService,
-        voicePromptService: voicePrompt,
-        startAfterRolePlay: true,
-      ),
-    );
-    await tester.pump();
-    await tester.pump();
-
-    expect(find.text('Thử thách nghe'), findsOneWidget);
-    expect(voicePrompt.spoken, isNot(contains('en-US|Good morning.')));
-    expect(mediaService.recordingStarts, 1);
-  });
-
-  testWidgets('a HOMI turn between child turns never stalls or opens its mic', (
-    tester,
-  ) async {
-    await _usePhoneSurface(tester);
-    final mediaService = _FakeLessonMediaService();
-    final voicePrompt = _RecordingVoicePromptService();
-
-    await tester.pumpWidget(
-      _subject(
-        startAge: 8,
-        lesson: _childHomiChildLesson,
-        mediaService: mediaService,
-        voicePromptService: voicePrompt,
-      ),
-    );
-    await tester.pump();
-    await tester.pump();
-    expect(mediaService.recordingStarts, 1);
-
-    await tester.tap(find.byKey(const Key('lesson-challenge-record-button')));
-    await _pumpChallengeTransition(tester);
-
-    expect(voicePrompt.spoken, contains('en-US|Please sit down.'));
-    expect(find.text('Thank you.'), findsOneWidget);
-    // One recording for each child turn; the intervening HOMI turn owns none.
-    expect(mediaService.recordingStarts, 2);
-  });
-
-  testWidgets('shows the authored role-play before challenges from age eight', (
-    tester,
-  ) async {
-    await _usePhoneSurface(tester);
-
-    await tester.pumpWidget(_subject(startAge: 8));
-    await tester.pump();
-    await tester.pump();
-
-    expect(find.byKey(const Key('lesson-challenge-screen')), findsOneWidget);
-    expect(find.text('Đoạn hội thoại'), findsOneWidget);
-    expect(find.text('Lượt của bạn'), findsOneWidget);
-    expect(find.text('Can I come in?'), findsOneWidget);
-    expect(
-      find.byKey(const Key('lesson-challenge-record-button')),
-      findsOneWidget,
-    );
-    expect(find.text('Dừng và chấm'), findsOneWidget);
-    expect(find.text('Nghe và trả lời'), findsNothing);
-  });
-
-  testWidgets('legacy role-play cannot award a Star', (tester) async {
-    await _usePhoneSurface(tester);
-    final voicePrompt = _RecordingVoicePromptService();
-    var starCallbacks = 0;
-    await tester.pumpWidget(
-      _subject(
-        startAge: 8,
-        voicePromptService: voicePrompt,
-        onStarEarned: (_, _, _) async => starCallbacks += 1,
-      ),
-    );
-    await tester.pump();
-    await tester.pump();
-
-    await tester.tap(find.byKey(const Key('lesson-challenge-record-button')));
-    await _pumpChallengeTransition(tester);
-
-    expect(voicePrompt.spoken, contains('vi-VN|Great!'));
-    expect(
-      voicePrompt.spoken,
-      contains('vi-VN|Bạn đã hoàn thành đoạn hội thoại rồi.'),
-    );
-    expect(starCallbacks, 0);
-    expect(find.text('Thử thách nghe'), findsOneWidget);
-  });
-
-  testWidgets('relearn hides the authored role-play opening hint', (
-    tester,
-  ) async {
-    await _usePhoneSurface(tester);
-    await tester.pumpWidget(
-      _subject(startAge: 8, showRolePlayOpeningHint: false),
-    );
-    await tester.pump();
-    await tester.pump();
-
-    expect(find.text('Can I...'), findsNothing);
-  });
-
-  testWidgets(
-    'skips role-play below age eight and keeps both authored choices',
+    'ignores legacy role-play data and keeps the authored Challenge choices',
     (tester) async {
       await _usePhoneSurface(tester);
 
-      await tester.pumpWidget(_subject(startAge: 7));
+      await tester.pumpWidget(_subject(startAge: 8));
       await tester.pump();
       await tester.pump();
 
@@ -385,11 +244,111 @@ void main() {
       voicePrompt.spoken,
       containsAllInOrder(<String>[
         'vi-VN|Bạn thử lại nhé.',
+        'vi-VN|Where is the library?',
+        'vi-VN|Bạn nói đáp án bằng tiếng Anh nhé.',
         'vi-VN|HOMI nói mẫu nhé.',
         'en-US|Go straight.',
       ]),
     );
+    expect(
+      voicePrompt.spoken.where((text) => text == 'en-US|Go straight.'),
+      hasLength(1),
+    );
+    expect(mediaService.completedPlaybackUris, hasLength(2));
+    expect(mediaService.completedPlaybackGains, everyElement(12.0));
   });
+
+  testWidgets('pauses directly after the second unusable response', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final mediaService = _FakeLessonMediaService();
+    final evaluator = _QueuedAttemptEvaluator(<LessonAttemptOutcome>[
+      LessonAttemptOutcome.noResponse,
+      LessonAttemptOutcome.unclear,
+    ]);
+    await tester.pumpWidget(
+      _subject(
+        startAge: 7,
+        mediaService: mediaService,
+        attemptEvaluator: evaluator,
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    await tester.pump(const Duration(seconds: 6));
+    await _pumpChallengeTransition(tester);
+    expect(mediaService.recordingStarts, 2);
+    expect(
+      find.byKey(const Key('challenge-resume-after-no-response')),
+      findsNothing,
+    );
+
+    await tester.pump(const Duration(seconds: 6));
+    await _pumpChallengeTransition(tester);
+    expect(mediaService.recordingStarts, 2);
+    expect(
+      find.byKey(const Key('challenge-resume-after-no-response')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets(
+    'second answer correct gets correct feedback without HOMI sample',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final mediaService = _FakeLessonMediaService();
+      final evaluator = _QueuedAttemptEvaluator(<LessonAttemptOutcome>[
+        LessonAttemptOutcome.retry,
+        LessonAttemptOutcome.good,
+      ]);
+      final voicePrompt = _RecordingVoicePromptService();
+      await tester.pumpWidget(
+        _subject(
+          startAge: 7,
+          mediaService: mediaService,
+          attemptEvaluator: evaluator,
+          voicePromptService: voicePrompt,
+          challenges: const <ListeningChallengeContent>[
+            ListeningChallengeContent(
+              id: 'challenge-1',
+              format: 'VI_TO_EN',
+              prompt: 'Where is the library?',
+              choices: <String>['Go straight.', 'It is five dollars.'],
+              correctAnswer: 'Go straight.',
+              correctVietnamese: 'Đi thẳng.',
+              targetId: 'target-1',
+            ),
+            ListeningChallengeContent(
+              id: 'challenge-2',
+              format: 'VI_TO_EN',
+              prompt: 'How are you?',
+              choices: <String>['I am fine.', 'I am eight.'],
+              correctAnswer: 'I am fine.',
+              correctVietnamese: 'Con khỏe.',
+              targetId: 'target-2',
+            ),
+          ],
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      await tester.pump(const Duration(seconds: 6));
+      await _pumpChallengeTransition(tester);
+      expect(mediaService.recordingStarts, 2);
+
+      await tester.pump(const Duration(seconds: 6));
+      await _pumpChallengeTransition(tester);
+
+      expect(find.text('Câu 2/2'), findsOneWidget);
+      expect(voicePrompt.spoken, contains('vi-VN|Đúng rồi!'));
+      expect(voicePrompt.spoken, isNot(contains('vi-VN|HOMI nói mẫu nhé.')));
+      expect(evaluator.evaluationCalls, 2);
+      expect(mediaService.completedPlaybackUris, hasLength(2));
+    },
+  );
 
   testWidgets('iOS scores a challenge on device without calling the backend', (
     tester,
@@ -492,9 +451,6 @@ Widget _subject({
   LessonEnglishSpeechInput? iosSpeechInput,
   Future<void> Function(String, String, String)? onStarEarned,
   Future<void> Function(String, String, String)? onNeedsPractice,
-  Future<void> Function()? onRolePlayCompleted,
-  bool showRolePlayOpeningHint = true,
-  bool startAfterRolePlay = false,
 }) {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -522,69 +478,9 @@ Widget _subject({
       iosSpeechInput: iosSpeechInput,
       onStarEarned: onStarEarned,
       onNeedsPractice: onNeedsPractice,
-      onRolePlayCompleted: onRolePlayCompleted,
-      showRolePlayOpeningHint: showRolePlayOpeningHint,
-      startAfterRolePlay: startAfterRolePlay,
     ),
   );
 }
-
-const _homiFirstLesson = ListeningLessonContent(
-  id: 'homi-first-role-play',
-  number: 1,
-  titleVi: 'Hội thoại kiểm tra',
-  titleEn: 'Role-play test',
-  intro: '',
-  outro: '',
-  estimatedMinutes: 1,
-  sentences: <ListeningSentenceContent>[],
-  rolePlay: ListeningRolePlayContent(
-    scenarioVi: 'Trong lớp học',
-    turns: <ListeningRolePlayTurn>[
-      ListeningRolePlayTurn(
-        speaker: ListeningRolePlaySpeaker.homi,
-        english: 'Good morning.',
-        vietnamese: 'Chào buổi sáng.',
-      ),
-      ListeningRolePlayTurn(
-        speaker: ListeningRolePlaySpeaker.child,
-        english: 'Can I come in?',
-        vietnamese: 'Con vào được không?',
-      ),
-    ],
-  ),
-);
-
-const _childHomiChildLesson = ListeningLessonContent(
-  id: 'child-homi-child-role-play',
-  number: 1,
-  titleVi: 'Hội thoại kiểm tra',
-  titleEn: 'Role-play test',
-  intro: '',
-  outro: '',
-  estimatedMinutes: 1,
-  sentences: <ListeningSentenceContent>[],
-  rolePlay: ListeningRolePlayContent(
-    scenarioVi: 'Trong lớp học',
-    turns: <ListeningRolePlayTurn>[
-      ListeningRolePlayTurn(
-        speaker: ListeningRolePlaySpeaker.child,
-        english: 'Can I come in?',
-        vietnamese: 'Con vào được không?',
-      ),
-      ListeningRolePlayTurn(
-        speaker: ListeningRolePlaySpeaker.homi,
-        english: 'Please sit down.',
-        vietnamese: 'Mời con ngồi.',
-      ),
-      ListeningRolePlayTurn(
-        speaker: ListeningRolePlaySpeaker.child,
-        english: 'Thank you.',
-        vietnamese: 'Con cảm ơn.',
-      ),
-    ],
-  ),
-);
 
 ListeningLessonContent _lesson() {
   return const ListeningLessonContent(
@@ -615,6 +511,8 @@ class _FakeLessonMediaService extends LessonMediaService {
   int recordingStops = 0;
   int selectedOutputPreparations = 0;
   int nativeCaptureHandoffs = 0;
+  final List<Uri> completedPlaybackUris = <Uri>[];
+  final List<double> completedPlaybackGains = <double>[];
 
   @override
   Future<void> cancelRecording() async {}
@@ -624,6 +522,17 @@ class _FakeLessonMediaService extends LessonMediaService {
 
   @override
   Future<void> stopPlayback() async {}
+
+  @override
+  Future<void> playToCompletion(
+    Uri uri, {
+    Duration timeout = const Duration(seconds: 45),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+  }) async {
+    completedPlaybackUris.add(uri);
+    completedPlaybackGains.add(playbackGainDb);
+  }
 
   @override
   Future<void> prepareSelectedLessonOutput() async {

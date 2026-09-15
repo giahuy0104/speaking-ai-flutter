@@ -7,55 +7,127 @@ enum LessonFeedbackKind { correct, retry, give, noResponse, asr, skip }
 /// Reuses the approved V4 feedback library without inventing new praise or
 /// retry wording in individual lesson screens.
 abstract final class LessonAgeFeedbackLibrary {
-  static String message({required int age, required LessonFeedbackKind kind}) {
+  static List<String> messages({
+    required int age,
+    required LessonFeedbackKind kind,
+  }) {
     if (age <= 5) {
       return switch (kind) {
-        LessonFeedbackKind.correct => 'Đúng rồi!',
-        LessonFeedbackKind.retry => 'Mình thử lại nhé.',
-        LessonFeedbackKind.give => 'HOMI nói mẫu nhé.',
-        LessonFeedbackKind.noResponse => 'Bạn thử nói nhé.',
-        LessonFeedbackKind.asr => 'HOMI chưa nghe rõ. Bạn nói lại nhé.',
-        LessonFeedbackKind.skip => 'Được rồi. HOMI nói mẫu nhé.',
+        LessonFeedbackKind.correct => const <String>[
+          'Đúng rồi!',
+          'Giỏi lắm!',
+          'Tốt lắm!',
+        ],
+        LessonFeedbackKind.retry => const <String>[
+          'Mình thử lại nhé.',
+          'Nghe lại rồi thử nhé.',
+        ],
+        LessonFeedbackKind.give => const <String>[
+          'HOMI nói mẫu nhé.',
+          'Mình nghe câu đúng nhé.',
+        ],
+        LessonFeedbackKind.noResponse => const <String>[
+          'Bạn thử nói nhé.',
+          'Mình thử một lần nhé.',
+        ],
+        LessonFeedbackKind.asr => const <String>[
+          'HOMI chưa nghe rõ. Bạn nói lại nhé.',
+        ],
+        LessonFeedbackKind.skip => const <String>[
+          'Được rồi. HOMI nói mẫu nhé.',
+        ],
       };
     }
     if (age <= 7) {
       return switch (kind) {
-        LessonFeedbackKind.correct => 'Giỏi lắm!',
-        LessonFeedbackKind.retry => 'Bạn thử lại nhé.',
-        LessonFeedbackKind.give => 'HOMI nói mẫu nhé.',
-        LessonFeedbackKind.noResponse => 'Bạn thử trả lời nhé.',
-        LessonFeedbackKind.asr => 'HOMI chưa nghe rõ. Bạn nói lại nhé.',
-        LessonFeedbackKind.skip => 'Được rồi. HOMI nói mẫu nhé.',
+        LessonFeedbackKind.correct => const <String>['Đúng rồi!', 'Giỏi lắm!'],
+        LessonFeedbackKind.retry => const <String>[
+          'Bạn thử lại nhé.',
+          'Nghe lại rồi thử nhé.',
+        ],
+        LessonFeedbackKind.give => const <String>[
+          'HOMI nói mẫu nhé.',
+          'Mình nghe câu đúng nhé.',
+        ],
+        LessonFeedbackKind.noResponse => const <String>['Bạn thử trả lời nhé.'],
+        LessonFeedbackKind.asr => const <String>[
+          'HOMI chưa nghe rõ. Bạn nói lại nhé.',
+        ],
+        LessonFeedbackKind.skip => const <String>[
+          'Được rồi. HOMI nói mẫu nhé.',
+        ],
       };
     }
     if (age <= 10) {
       return switch (kind) {
-        LessonFeedbackKind.correct => 'Great!',
-        LessonFeedbackKind.retry => 'Thử lại nhé.',
-        LessonFeedbackKind.give => 'HOMI nói đáp án nhé.',
-        LessonFeedbackKind.noResponse => 'Bạn thử trả lời nhé.',
-        LessonFeedbackKind.asr => 'HOMI chưa nghe rõ. Bạn nói lại nhé.',
-        LessonFeedbackKind.skip => 'Được. Nghe câu đúng nhé.',
+        LessonFeedbackKind.correct => const <String>[
+          'Great!',
+          'Good job!',
+          'Đúng rồi!',
+        ],
+        LessonFeedbackKind.retry => const <String>[
+          'Thử lại nhé.',
+          'Nghe lại rồi thử nhé.',
+        ],
+        LessonFeedbackKind.give => const <String>[
+          'HOMI nói đáp án nhé.',
+          'Nghe câu đúng nhé.',
+        ],
+        LessonFeedbackKind.noResponse => const <String>['Bạn thử trả lời nhé.'],
+        LessonFeedbackKind.asr => const <String>[
+          'HOMI chưa nghe rõ. Bạn nói lại nhé.',
+        ],
+        LessonFeedbackKind.skip => const <String>['Được. Nghe câu đúng nhé.'],
       };
     }
     if (age <= 12) {
       return switch (kind) {
-        LessonFeedbackKind.correct => 'Great.',
-        LessonFeedbackKind.retry => 'Thử lại nhé.',
-        LessonFeedbackKind.give => 'Nghe câu đúng nhé.',
-        LessonFeedbackKind.noResponse => 'Bạn thử trả lời nhé.',
-        LessonFeedbackKind.asr => 'HOMI chưa nghe rõ. Bạn nói lại nhé.',
-        LessonFeedbackKind.skip => 'Được. Nghe câu đúng nhé.',
+        LessonFeedbackKind.correct => const <String>[
+          'Great!',
+          'Exactly.',
+          'Nice.',
+        ],
+        LessonFeedbackKind.retry => const <String>['Thử lại nhé.'],
+        LessonFeedbackKind.give => const <String>[
+          'Nghe câu đúng nhé.',
+          'HOMI nói mẫu nhé.',
+        ],
+        LessonFeedbackKind.noResponse => const <String>['Bạn thử trả lời nhé.'],
+        LessonFeedbackKind.asr => const <String>[
+          'HOMI chưa nghe rõ. Bạn nói lại nhé.',
+        ],
+        LessonFeedbackKind.skip => const <String>['Được. Nghe câu đúng nhé.'],
       };
     }
     return switch (kind) {
-      LessonFeedbackKind.correct => 'Exactly.',
-      LessonFeedbackKind.retry => 'Try again.',
-      LessonFeedbackKind.give => 'Nghe câu đúng nhé.',
-      LessonFeedbackKind.noResponse => 'Bạn thử trả lời nhé.',
-      LessonFeedbackKind.asr => 'HOMI chưa nghe rõ. Thử lại nhé.',
-      LessonFeedbackKind.skip => 'Được. Nghe câu đúng nhé.',
+      LessonFeedbackKind.correct => const <String>[
+        'Exactly.',
+        'Nice.',
+        'Good.',
+      ],
+      LessonFeedbackKind.retry => const <String>[
+        'Try again.',
+        'One more time.',
+      ],
+      LessonFeedbackKind.give => const <String>[
+        'Nghe câu đúng nhé.',
+        'HOMI nói mẫu nhé.',
+      ],
+      LessonFeedbackKind.noResponse => const <String>['Bạn thử trả lời nhé.'],
+      LessonFeedbackKind.asr => const <String>[
+        'HOMI chưa nghe rõ. Thử lại nhé.',
+      ],
+      LessonFeedbackKind.skip => const <String>['Được. Nghe câu đúng nhé.'],
     };
+  }
+
+  static String message({
+    required int age,
+    required LessonFeedbackKind kind,
+    int variationIndex = 0,
+  }) {
+    final approved = messages(age: age, kind: kind);
+    return approved[variationIndex % approved.length];
   }
 }
 

@@ -83,6 +83,14 @@ abstract interface class OfflineVietnameseEnglishTranslator {
   Future<void> close();
 }
 
+abstract interface class OfflineEnglishVietnameseTranslator {
+  Future<bool> modelsReady();
+
+  Future<String> translate(String englishText);
+
+  Future<void> close();
+}
+
 abstract interface class OfflineTranslationAdapter {
   Future<bool> isModelDownloaded(String languageCode);
 
@@ -273,6 +281,103 @@ class MlKitOfflineVietnameseEnglishTranslator
       await _adapter.close();
     } on MissingPluginException {
       // The service may be disposed by a widget test without a native host.
+    }
+  }
+}
+
+/// On-device English-to-Vietnamese companion used by parent-authored
+/// vocabulary sentences. It shares ML Kit's downloaded language models with
+/// [MlKitOfflineVietnameseEnglishTranslator] and never consumes AI tokens.
+class MlKitOfflineEnglishVietnameseTranslator
+    implements OfflineEnglishVietnameseTranslator {
+  MlKitOfflineEnglishVietnameseTranslator({bool? enabled})
+    : _enabled =
+          enabled ??
+          (!kIsWeb &&
+              (defaultTargetPlatform == TargetPlatform.android ||
+                  defaultTargetPlatform == TargetPlatform.iOS)),
+      _modelManager = OnDeviceTranslatorModelManager(),
+      _translator = OnDeviceTranslator(
+        sourceLanguage: TranslateLanguage.english,
+        targetLanguage: TranslateLanguage.vietnamese,
+      );
+
+  static const MethodChannel _iosModelChannel = MethodChannel(
+    'homi_offline_translation_models',
+  );
+
+  final bool _enabled;
+  final OnDeviceTranslatorModelManager _modelManager;
+  final OnDeviceTranslator _translator;
+  bool _closed = false;
+
+  bool get _usesIosNativeBridge =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
+  @override
+  Future<bool> modelsReady() async {
+    if (!_enabled || _closed) return false;
+    try {
+      if (_usesIosNativeBridge) {
+        final states = await Future.wait<bool>(<Future<bool>>[
+          _iosModelChannel
+              .invokeMethod<bool>('model.status', <String, dynamic>{
+                'locale': 'en',
+              })
+              .then((value) => value ?? false),
+          _iosModelChannel
+              .invokeMethod<bool>('model.status', <String, dynamic>{
+                'locale': 'vi',
+              })
+              .then((value) => value ?? false),
+        ]);
+        return states.every((ready) => ready);
+      }
+      final states = await Future.wait<bool>(<Future<bool>>[
+        _modelManager.isModelDownloaded('en'),
+        _modelManager.isModelDownloaded('vi'),
+      ]);
+      return states.every((ready) => ready);
+    } on MissingPluginException {
+      return false;
+    } on PlatformException {
+      return false;
+    }
+  }
+
+  @override
+  Future<String> translate(String englishText) async {
+    final source = englishText.trim();
+    if (source.isEmpty) return '';
+    if (!await modelsReady()) {
+      throw PlatformException(
+        code: 'OFFLINE_TRANSLATION_MODEL_UNAVAILABLE',
+        message: 'English and Vietnamese translation models are not installed.',
+      );
+    }
+    if (_usesIosNativeBridge) {
+      return (await _iosModelChannel.invokeMethod<String>(
+                'translate',
+                <String, dynamic>{
+                  'locale': 'en',
+                  'targetLocale': 'vi',
+                  'text': source,
+                },
+              ) ??
+              '')
+          .trim();
+    }
+    return (await _translator.translateText(source)).trim();
+  }
+
+  @override
+  Future<void> close() async {
+    if (_closed) return;
+    _closed = true;
+    try {
+      await _translator.close();
+    } on MissingPluginException {
+      // Widget tests and unsupported hosts do not register the ML Kit plugin.
     }
   }
 }

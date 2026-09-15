@@ -12,6 +12,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import androidx.annotation.RequiresApi
 import io.flutter.plugin.common.MethodChannel
 
 /** Parent-visible association flow for the H20 companion device. */
@@ -149,16 +150,23 @@ class HomiCompanionDeviceManager(private val host: HomiAndroidHost) {
             )
             return true
         }
-        val associatedId = requestedDeviceId ?: extractDeviceAddress(data)
+        val associatedId = requestedDeviceId ?: if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            extractDeviceAddress(data)
+        } else {
+            null
+        }
         if (associatedId != null) observePresence(associatedId)
         pending?.success(status(associatedId))
         return true
     }
 
     @Suppress("DEPRECATION")
-    private fun associatedAddresses(): List<String> = runCatching {
-        manager?.associations?.toList().orEmpty()
-    }.getOrDefault(emptyList())
+    private fun associatedAddresses(): List<String> {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return emptyList()
+        return runCatching {
+            manager?.associations?.toList().orEmpty()
+        }.getOrDefault(emptyList())
+    }
 
     @Suppress("DEPRECATION")
     private fun observePresence(deviceId: String) {
@@ -167,6 +175,7 @@ class HomiCompanionDeviceManager(private val host: HomiAndroidHost) {
     }
 
     @Suppress("DEPRECATION")
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun extractDeviceAddress(data: Intent?): String? {
         if (data == null) return null
         val device = data.getParcelableExtra<android.bluetooth.BluetoothDevice>(

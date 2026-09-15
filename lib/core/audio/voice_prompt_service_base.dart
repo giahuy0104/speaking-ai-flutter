@@ -36,6 +36,16 @@ abstract interface class SelectedMediaOutputVoicePromptService {
   });
 }
 
+/// Per-utterance style; never changes the defaults of other learning prompts.
+abstract interface class StyledMediaOutputVoicePromptService {
+  Future<void> speakAndWaitStyled(
+    String text, {
+    required String locale,
+    required double speechRate,
+    required double pitch,
+  });
+}
+
 /// Optional native capability that brackets one physical/virtual MAIN turn.
 /// The iOS implementation uses this boundary to keep one AVAudioSession owner
 /// from the first prompt through the final speech result.

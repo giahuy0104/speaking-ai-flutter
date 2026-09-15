@@ -237,7 +237,11 @@ class BackgroundLearningService : Service() {
         val notification = buildNotification()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             var serviceTypes = ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
-            if (allowMicrophone && hasRecordAudioPermission()) {
+            if (
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+                allowMicrophone &&
+                hasRecordAudioPermission()
+            ) {
                 serviceTypes = serviceTypes or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
             }
             if (hasBluetoothRuntimePermission()) {

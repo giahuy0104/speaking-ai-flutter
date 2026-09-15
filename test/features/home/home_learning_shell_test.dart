@@ -7,6 +7,7 @@ import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:ai_speaking_flutter_app/core/platform/background_learning_session.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/data/demo_conversation_repository.dart';
+import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_screen.dart';
 import 'package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart';
@@ -708,6 +709,12 @@ void main() {
       await voiceNavigationController.dispatchRecognizedText('Con 6 tuổi'),
       isTrue,
     );
+    // The topic screen now resolves the current Level from real progress, then
+    // re-opens MAIN with only that Level's topic numbers (1, 2, 3 here).
+    for (var index = 0; index < 20; index += 1) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byType(TopicListeningScreen), findsOneWidget);
     expect(
       await voiceNavigationController.dispatchRecognizedText(
         'Con muốn học chủ đề số 3',
@@ -744,6 +751,7 @@ void main() {
         speechInput: speechInput,
         ownsSpeechInput: true,
       );
+      final speakingSessionController = MainSpeakingSessionController();
       final controller = _controller();
       var didStartMainSpeakingMode = false;
 
@@ -751,6 +759,7 @@ void main() {
         _app(
           controller,
           voiceNavigationController: voiceNavigationController,
+          speakingSessionController: speakingSessionController,
           onMainSpeakingModeStarted: () async {
             didStartMainSpeakingMode = true;
           },
@@ -774,6 +783,7 @@ void main() {
 
       controller.dispose();
       voiceNavigationController.dispose();
+      speakingSessionController.dispose();
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );
@@ -788,40 +798,53 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     final speechInput = _FakeStreamingSpeechInput();
-    final voiceNavigationController = VoiceNavigationController(
-      speechInput: speechInput,
-      ownsSpeechInput: true,
+    final speakingSessionController = MainSpeakingSessionController();
+    late final VoiceNavigationController voiceNavigationController;
+    final controller = _controller(
+      streamingSpeechInput: speechInput,
+      beforeRecordingStart: () async {
+        if (speakingSessionController.isActive) return;
+        await voiceNavigationController.pause();
+      },
     );
-    final controller = _controller();
+    voiceNavigationController = VoiceNavigationController(
+      speechInput: speechInput,
+      ownsSpeechInput: false,
+    );
     var didStartContinuousMode = false;
 
     await tester.pumpWidget(
       _app(
         controller,
         voiceNavigationController: voiceNavigationController,
+        speakingSessionController: speakingSessionController,
         onMainSpeakingModeStarted: () async {
           didStartContinuousMode = true;
+          speakingSessionController.enter();
+          await controller.startRecording(
+            noSpeechTimeout: const Duration(seconds: 6),
+            speakNoSpeechPrompt: false,
+          );
         },
       ),
     );
     await tester.pumpAndSettle();
 
     expect(await voiceNavigationController.activateFromMainButton(), isTrue);
-    expect(
-      await voiceNavigationController.dispatchRecognizedText(
-        'Dịch sang tiếng Anh',
-      ),
-      isTrue,
-    );
+    speechInput.emitPartial('Dịch sang tiếng Anh');
     await tester.pump(const Duration(milliseconds: 700));
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
     expect(didStartContinuousMode, isTrue);
-    expect(controller.isRecording, isFalse);
+    expect(controller.isRecording, isTrue);
+    expect(speechInput.cancelCount, 1);
+    expect(speechInput.startCount, 2);
 
     controller.dispose();
     voiceNavigationController.dispose();
+    speakingSessionController.dispose();
+    await speechInput.dispose();
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -839,6 +862,7 @@ void main() {
         speechInput: speechInput,
         ownsSpeechInput: true,
       );
+      final speakingSessionController = MainSpeakingSessionController();
       final controller = _controller();
       final handoff = Completer<void>();
       var handoffCount = 0;
@@ -849,11 +873,13 @@ void main() {
         _app(
           controller,
           voiceNavigationController: voiceNavigationController,
+          speakingSessionController: speakingSessionController,
           listeningContentFuture: AssetListeningContentRepository(
             bundle: rootBundle,
           ).load(),
           onActiveLearningExitCommitted: () => exitCommitted = true,
           onMainSpeakingModeStarted: () async {
+            speakingSessionController.enter();
             exitWasCommittedWhenHandoffStarted = exitCommitted;
             handoffCount += 1;
             await handoff.future;
@@ -902,6 +928,7 @@ void main() {
 
       controller.dispose();
       voiceNavigationController.dispose();
+      speakingSessionController.dispose();
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );
@@ -925,6 +952,7 @@ Widget _app(
   final home = HomeLearningShell(
     controller: controller,
     voiceNavigationController: voiceNavigationController,
+    speakingSessionController: speakingSessionController,
     listeningContentFuture: listeningContentFuture,
     listeningProgressStore: _HomeListeningProgressStore(),
     onActiveLearningExitCommitted: onActiveLearningExitCommitted,
@@ -968,6 +996,9 @@ class _HomeListeningProgressStore extends ListeningProgressStore {
 
   @override
   Future<bool> hasPassedLevelMission(String levelId) async => false;
+
+  @override
+  Future<bool> isCourseCompleted(String courseId) async => false;
 
   @override
   Future<ListeningTopicSelectionCheckpoint?> readTopicSelectionCheckpoint(
@@ -1056,12 +1087,20 @@ class _FakeBackgroundLearningSession
   Future<void> dispose() => _events.close();
 }
 
-ConversationController _controller() {
+ConversationController _controller({
+  StreamingSpeechInput? streamingSpeechInput,
+  Future<void> Function()? beforeRecordingStart,
+}) {
   return ConversationController(
     audioInput: _FakeAudioInput(),
+    streamingSpeechInput: streamingSpeechInput,
     playbackService: const _FakePlaybackService(),
     repository: const DemoConversationRepository(),
     childAge: 6,
+    initialAsrMode: streamingSpeechInput == null
+        ? null
+        : AsrMode.androidStreaming,
+    beforeRecordingStart: beforeRecordingStart,
   );
 }
 
@@ -1108,6 +1147,10 @@ class _FakeStreamingSpeechInput implements StreamingSpeechInput {
   @override
   Future<void> cancel() async {
     cancelCount += 1;
+  }
+
+  void emitPartial(String text) {
+    _partialTextController.add(text);
   }
 
   @override

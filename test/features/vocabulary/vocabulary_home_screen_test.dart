@@ -1,10 +1,15 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
+import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_audio_service.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_store.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_dictionary.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_flow_v3.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +19,61 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
+  });
+
+  testWidgets('touch back changes UI immediately and cancels old audio queue', (
+    tester,
+  ) async {
+    final audio = _BlockingVocabularyAudioService();
+    final store = _MemoryVocabularyStore([
+      for (final word in ['Apple', 'Banana'])
+        VocabularyEntry(
+          id: word,
+          word: word,
+          meaning: 'Nghĩa $word',
+          addedAt: DateTime(2026, 9, 10),
+          status: VocabularyLearningStatus.learnedWell,
+          source: VocabularySource.parent,
+          parentState: ParentVocabularyState.unlocked,
+        ),
+    ]);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: DisplayLanguageScope(
+          language: DisplayLanguage.vietnamese,
+          child: VocabularyHomeScreen(
+            isReady: true,
+            store: store,
+            mediaService: _ImmediateLessonMediaService(),
+            voicePromptService: const _FakeVoicePromptService(),
+            vocabularyAudioService: audio,
+            onReturnToConversation: () {},
+            onHistory: () {},
+            onSettings: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+    await tester.pumpAndSettle();
+    final play = find.byKey(const ValueKey<String>('vocabulary-family-action'));
+    await tester.ensureVisible(play);
+    await tester.tap(play);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(audio.spoken, ['en-US:Apple']);
+    final back = find.byKey(const Key('vocabulary-back-to-journeys'));
+    await tester.ensureVisible(back);
+    await tester.tap(back);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('vocabulary-family-card')), findsOneWidget);
+    expect(audio.stopCalls, 1);
+    // Simulate a slow platform stop. Neither UI nor the next item waits on it.
+    audio.stopGate.complete();
+    await tester.pumpAndSettle();
+    expect(audio.spoken, ['en-US:Apple']);
   });
 
   testWidgets('opens the three vocabulary journeys from the redesigned home', (
@@ -67,6 +127,7 @@ void main() {
     tester,
   ) async {
     final store = _MemoryVocabularyStore();
+    final audioService = _RecordingVocabularyAudioService();
     await tester.pumpWidget(
       MaterialApp(
         theme: buildAppTheme(),
@@ -76,6 +137,7 @@ void main() {
             isReady: true,
             store: store,
             voicePromptService: const _FakeVoicePromptService(),
+            vocabularyAudioService: audioService,
             onReturnToConversation: () {},
             onHistory: () {},
             onSettings: () {},
@@ -87,6 +149,12 @@ void main() {
 
     await tester.tap(find.byKey(const Key('add-vocabulary-button')));
     await tester.pumpAndSettle();
+
+    expect(find.text('Thêm nội dung học'), findsOneWidget);
+    expect(
+      find.text('Có thể nhập bằng tiếng Anh hoặc tiếng Việt.'),
+      findsOneWidget,
+    );
     await tester.enterText(
       find.byKey(const Key('add-vocabulary-field')),
       'quả táo',
@@ -104,9 +172,63 @@ void main() {
     expect(store.entries.first.meaning, 'Quả táo');
     expect(find.text('Apple'), findsOneWidget);
     expect(find.text('Quả táo'), findsOneWidget);
+    expect(audioService.prefetched, <String>['en-US:Apple', 'vi-VN:Quả táo']);
   });
 
-  testWidgets('offers to add the text entered in the visible search field', (
+  testWidgets('rejects content found anywhere in the Topic curriculum', (
+    tester,
+  ) async {
+    final store = _MemoryVocabularyStore();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: DisplayLanguageScope(
+          language: DisplayLanguage.vietnamese,
+          child: VocabularyHomeScreen(
+            isReady: true,
+            store: store,
+            voicePromptService: const _FakeVoicePromptService(),
+            translator: (_) async => const VocabularyTranslation(
+              englishText: 'I will be a doctor.',
+              vietnameseText: 'Con sẽ là bác sĩ.',
+            ),
+            curriculumDuplicateChecker: (candidate) async =>
+                candidate.englishText == 'I will be a doctor.',
+            onReturnToConversation: () {},
+            onHistory: () {},
+            onSettings: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('add-vocabulary-button')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('add-vocabulary-field')),
+      'Con sẽ là bác sĩ',
+    );
+    await tester.pump();
+    final confirm = find.byKey(const Key('confirm-add-vocabulary'));
+    await tester.ensureVisible(confirm);
+    await tester.tap(confirm);
+    await tester.pumpAndSettle();
+
+    expect(store.entries, isEmpty);
+    expect(
+      find.text(
+        'Nội dung này đã có trong phần Chủ đề. Bạn thêm nội dung khác nhé.',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('confirm-vocabulary-suggestions')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('keeps search separate from the dedicated add flow', (
     tester,
   ) async {
     final store = _MemoryVocabularyStore();
@@ -146,19 +268,113 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.byKey(const Key('add-vocabulary-from-search')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('add-vocabulary-from-search')));
+    expect(find.byKey(const Key('add-vocabulary-from-search')), findsNothing);
+    expect(find.byKey(const Key('clear-vocabulary-search')), findsOneWidget);
+    expect(find.byKey(const Key('add-vocabulary-action')), findsOneWidget);
+
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pump();
+    expect(find.byKey(const Key('add-vocabulary-field')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('add-vocabulary-action')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('add-vocabulary-field')),
+      'con mèo',
+    );
+    await tester.pump();
+    final confirmAdd = find.byKey(const Key('confirm-add-vocabulary'));
+    await tester.ensureVisible(confirmAdd);
+    await tester.tap(confirmAdd);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text('Cat'), findsOneWidget);
     expect(find.text('It is a cat.'), findsOneWidget);
+    expect(
+      find.byKey(const Key('vocabulary-minhqnd-attribution')),
+      findsOneWidget,
+    );
+    await tester.enterText(
+      find.byKey(const Key('vocabulary-suggestion-english-0')),
+      'Kitten',
+    );
+    await tester.enterText(
+      find.byKey(const Key('vocabulary-suggestion-vietnamese-0')),
+      'Mèo con',
+    );
+    await tester.pump();
     await tester.tap(find.byKey(const Key('confirm-vocabulary-suggestions')));
     await tester.pumpAndSettle();
 
     expect(store.entries, hasLength(1));
-    expect(store.entries.single.word, 'Cat');
+    expect(store.entries.single.word, 'Kitten');
+    expect(store.entries.single.meaning, 'Mèo con');
     expect(find.byKey(const Key('add-vocabulary-from-search')), findsNothing);
+  });
+
+  testWidgets('shows distinct dictionary meanings for the parent to choose', (
+    tester,
+  ) async {
+    final store = _MemoryVocabularyStore();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: DisplayLanguageScope(
+          language: DisplayLanguage.vietnamese,
+          child: VocabularyHomeScreen(
+            isReady: true,
+            store: store,
+            voicePromptService: const _FakeVoicePromptService(),
+            dictionaryProvider: _FakeVocabularyDictionaryProvider(
+              result: const VocabularyDictionaryResult(
+                english: 'mad',
+                definitions: <VocabularyDictionaryDefinition>[
+                  VocabularyDictionaryDefinition(
+                    vietnamese: 'Tức giận',
+                    partOfSpeech: 'Tính từ',
+                  ),
+                  VocabularyDictionaryDefinition(
+                    vietnamese: 'Điên rồ',
+                    partOfSpeech: 'Tính từ',
+                  ),
+                  VocabularyDictionaryDefinition(
+                    vietnamese: 'Cuồng nhiệt',
+                    partOfSpeech: 'Tính từ',
+                  ),
+                ],
+              ),
+            ),
+            suggestionProvider: (_, _) async => const <VocabularyTranslation>[],
+            onReturnToConversation: () {},
+            onHistory: () {},
+            onSettings: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('add-vocabulary-button')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('add-vocabulary-field')),
+      'mad',
+    );
+    await tester.pump();
+    final confirm = find.byKey(const Key('confirm-add-vocabulary'));
+    await tester.ensureVisible(confirm);
+    await tester.tap(confirm);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(
+      find.byKey(const Key('confirm-vocabulary-suggestions')),
+      findsOneWidget,
+    );
+    expect(find.text('Tức giận'), findsOneWidget);
+    expect(find.text('Điên rồ'), findsOneWidget);
+    expect(find.text('I am mad.'), findsOneWidget);
   });
 
   testWidgets('shows lesson sentences in Stars and Review collections', (
@@ -176,7 +392,9 @@ void main() {
         meaning: 'Con là An',
         addedAt: now,
         collection: VocabularyCollection.star,
+        source: VocabularySource.topicCore,
         sourceSentenceId: 'S1',
+        correctAudioPath: '/audio/star.wav',
       ),
       VocabularyEntry(
         id: 'review',
@@ -184,6 +402,7 @@ void main() {
         meaning: 'Đây là cặp của con',
         addedAt: now,
         collection: VocabularyCollection.review,
+        source: VocabularySource.topicCore,
         sourceSentenceId: 'S2',
       ),
     ]);
@@ -205,8 +424,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('1 từ yêu thích'), findsOneWidget);
-    expect(find.text('1 từ cần ôn'), findsOneWidget);
+    expect(find.text('1 nội dung yêu thích'), findsOneWidget);
+    expect(find.text('1 nội dung cần ôn'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('vocabulary-stars-card')));
     await tester.pumpAndSettle();
@@ -246,7 +465,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('0 từ yêu thích'), findsOneWidget);
+    expect(find.text('0 nội dung yêu thích'), findsOneWidget);
 
     await store.upsertLessonSentence(
       lessonCode: 'A035_T01_L01',
@@ -254,10 +473,125 @@ void main() {
       english: "I'm An",
       vietnamese: 'Con là An',
       collection: VocabularyCollection.star,
+      correctAudioPath: '/audio/star.wav',
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('1 từ yêu thích'), findsOneWidget);
+    expect(find.text('1 nội dung yêu thích'), findsOneWidget);
+  });
+
+  testWidgets('Parent Added is oldest-first without legacy learning labels', (
+    tester,
+  ) async {
+    final store = _MemoryVocabularyStore(<VocabularyEntry>[
+      VocabularyEntry(
+        id: 'new',
+        word: 'New content',
+        meaning: 'Nội dung mới',
+        addedAt: DateTime(2026, 9, 15),
+        source: VocabularySource.parent,
+        status: VocabularyLearningStatus.learnedWell,
+        parentState: ParentVocabularyState.unlocked,
+      ),
+      VocabularyEntry(
+        id: 'old',
+        word: 'Old content',
+        meaning: 'Nội dung cũ',
+        addedAt: DateTime(2026, 9, 14),
+        source: VocabularySource.parent,
+        status: VocabularyLearningStatus.learnedWell,
+        parentState: ParentVocabularyState.unlocked,
+      ),
+    ]);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: DisplayLanguageScope(
+          language: DisplayLanguage.vietnamese,
+          child: VocabularyHomeScreen(
+            isReady: true,
+            store: store,
+            voicePromptService: const _FakeVoicePromptService(),
+            onReturnToConversation: () {},
+            onHistory: () {},
+            onSettings: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.getTopLeft(find.text('Old content')).dy,
+      lessThan(tester.getTopLeft(find.text('New content')).dy),
+    );
+    expect(find.text('Đã học tốt'), findsNothing);
+    expect(find.text('2 nội dung đã lưu'), findsOneWidget);
+  });
+
+  testWidgets('announces the child voice at the start of every Star block', (
+    tester,
+  ) async {
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final voice = _RecordingVoicePromptService();
+    final media = _ImmediateLessonMediaService();
+    final now = DateTime(2026, 9, 15);
+    final store = _MemoryVocabularyStore(
+      List<VocabularyEntry>.generate(
+        6,
+        (index) => VocabularyEntry(
+          id: 'star-$index',
+          word: 'Sentence ${index + 1}',
+          meaning: 'Câu ${index + 1}',
+          addedAt: now.add(Duration(minutes: index)),
+          earnedAt: now.add(Duration(minutes: index)),
+          collection: VocabularyCollection.star,
+          source: VocabularySource.topicCore,
+          correctAudioPath: 'C:\\audio\\star-$index.wav',
+        ),
+      ),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: ActiveLearningModuleScope(
+          registry: registry,
+          child: DisplayLanguageScope(
+            language: DisplayLanguage.vietnamese,
+            child: VocabularyHomeScreen(
+              isReady: true,
+              isActive: true,
+              store: store,
+              mediaService: media,
+              voicePromptService: voice,
+              onReturnToConversation: () {},
+              onHistory: () {},
+              onSettings: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-stars-card')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-stars-action')));
+    await tester.pumpAndSettle();
+
+    expect(
+      voice.spokenTexts.where((text) => text == VocabularyFlowV3.starMyVoice),
+      hasLength(1),
+    );
+    final next = await registry.execute(ActiveLearningCommand.nextItem);
+    expect(next.wasHandled, isTrue);
+    await tester.pumpAndSettle();
+    expect(
+      voice.spokenTexts.where((text) => text == VocabularyFlowV3.starMyVoice),
+      hasLength(2),
+    );
   });
 
   testWidgets(
@@ -311,9 +645,8 @@ void main() {
       expect(find.text('Cat'), findsOneWidget);
       expect(find.text('Con mèo'), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.volume_up_rounded));
-      await tester.pump();
-
+      expect(find.byKey(const Key('vocabulary-waiting-queue')), findsOneWidget);
+      expect(find.byIcon(Icons.volume_up_rounded), findsNothing);
       expect(voice.spokenTexts, isEmpty);
       expect(voice.locales, isEmpty);
     },
@@ -395,6 +728,74 @@ class _FakeVoicePromptService implements VoicePromptService {
   Future<void> dispose() async {}
 }
 
+class _FakeVocabularyDictionaryProvider
+    implements VocabularyDictionaryProvider {
+  const _FakeVocabularyDictionaryProvider({required this.result});
+
+  final VocabularyDictionaryResult? result;
+
+  @override
+  Future<VocabularyDictionaryResult?> lookupEnglish(String text) async =>
+      result;
+
+  @override
+  Uri ttsUri(String text, {required String locale}) =>
+      Uri.parse('https://example.test/tts');
+
+  @override
+  void dispose() {}
+}
+
+class _RecordingVocabularyAudioService
+    implements VocabularyContentAudioService {
+  final List<String> prefetched = <String>[];
+
+  @override
+  Future<void> prefetch(String text, {required String locale}) async {
+    prefetched.add('$locale:$text');
+  }
+
+  @override
+  Future<VocabularyAudioSource> speakAndWait(
+    String text, {
+    required String locale,
+  }) async => VocabularyAudioSource.nativeTts;
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  void dispose() {}
+}
+
+class _BlockingVocabularyAudioService implements VocabularyContentAudioService {
+  final spoken = <String>[];
+  final stopGate = Completer<void>();
+  final speechGate = Completer<void>();
+  int stopCalls = 0;
+  @override
+  Future<void> prefetch(String text, {required String locale}) async {}
+  @override
+  Future<VocabularyAudioSource> speakAndWait(
+    String text, {
+    required String locale,
+  }) async {
+    spoken.add('$locale:$text');
+    await speechGate.future;
+    return VocabularyAudioSource.nativeTts;
+  }
+
+  @override
+  Future<void> stop() async {
+    stopCalls++;
+    await stopGate.future;
+    if (!speechGate.isCompleted) speechGate.complete();
+  }
+
+  @override
+  void dispose() {}
+}
+
 class _RecordingVoicePromptService implements VoicePromptService {
   final List<String> spokenTexts = <String>[];
   final List<String> locales = <String>[];
@@ -414,4 +815,20 @@ class _RecordingVoicePromptService implements VoicePromptService {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _ImmediateLessonMediaService extends LessonMediaService {
+  @override
+  Future<void> prepareSelectedLessonOutput() async {}
+
+  @override
+  Future<void> playToCompletion(
+    Uri uri, {
+    Duration timeout = const Duration(seconds: 15),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+  }) async {}
+
+  @override
+  Future<void> stopPlayback() async {}
 }

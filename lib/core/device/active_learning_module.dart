@@ -158,9 +158,9 @@ class ActiveLearningModuleRegistry extends ChangeNotifier {
     try {
       return await active.handleMainCommand(command).timeout(_operationTimeout);
     } on TimeoutException {
-      return const ActiveLearningCommandResult.busy(
-        spokenReply: 'Bài học đang xử lý. Con thử lại sau một chút nhé.',
-      );
+      // The command may still be completing its prompt/native handoff. Do not
+      // overlay that valid flow with a second, unrelated spoken busy prompt.
+      return const ActiveLearningCommandResult.busy();
     } catch (_) {
       return const ActiveLearningCommandResult.busy();
     }

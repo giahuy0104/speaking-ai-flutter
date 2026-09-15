@@ -21,10 +21,12 @@ import '../../onboarding/presentation/user_onboarding_tour.dart';
 import '../../../core/privacy/parental_gate.dart';
 import '../../settings/presentation/history_sheet.dart';
 import '../../settings/presentation/settings_sheet.dart';
+import '../../vocabulary/data/minhqnd_dictionary_provider.dart';
 import '../../vocabulary/domain/vocabulary_entry.dart';
 import '../../vocabulary/presentation/vocabulary_home_screen.dart';
 import '../../voice_navigation/application/voice_navigation_controller.dart';
 import '../../voice_navigation/application/voice_navigation_intent_resolver.dart';
+import '../../voice_navigation/application/main_speaking_session_controller.dart';
 import '../application/authored_vocabulary_suggestion_provider.dart';
 import '../application/background_learning_coordinator.dart';
 
@@ -33,6 +35,7 @@ class HomeLearningShell extends StatefulWidget {
     required this.controller,
     required this.config,
     this.voiceNavigationController,
+    this.speakingSessionController,
     this.themeMode = ThemeMode.system,
     this.onThemeModeChanged,
     this.onChildAgeChanged,
@@ -58,6 +61,7 @@ class HomeLearningShell extends StatefulWidget {
   final ConversationController controller;
   final AppConfig config;
   final VoiceNavigationController? voiceNavigationController;
+  final MainSpeakingSessionController? speakingSessionController;
   final ThemeMode themeMode;
   final ValueChanged<ThemeMode>? onThemeModeChanged;
   final ValueChanged<int>? onChildAgeChanged;
@@ -91,6 +95,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   late final PageController _pageController;
   late final AuthoredVocabularySuggestionProvider
   _authoredVocabularySuggestionProvider;
+  late final MinhqndDictionaryProvider _vocabularyDictionaryProvider;
   int _page = 0;
   bool _openingTopics = false;
   Completer<void>? _topicRouteClosedCompleter;
@@ -130,6 +135,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
               widget.listeningContentFuture ??
               AssetListeningContentRepository().load(),
         );
+    _vocabularyDictionaryProvider = MinhqndDictionaryProvider();
     _backgroundLearningCoordinator = BackgroundLearningCoordinator(
       session:
           widget.backgroundLearningSession ??
@@ -217,6 +223,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     widget.voiceNavigationController?.setIntentHandler(null);
     unawaited(widget.voiceNavigationController?.pause());
     _backgroundLearningCoordinator.dispose();
+    _vocabularyDictionaryProvider.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -292,6 +299,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                             suggestionProvider:
                                 widget.vocabularySuggestionProvider ??
                                 _authoredVocabularySuggestionProvider.call,
+                            curriculumDuplicateChecker:
+                                _authoredVocabularySuggestionProvider
+                                    .containsInCurriculum,
+                            dictionaryProvider: _vocabularyDictionaryProvider,
                             translator: (input) async {
                               final translation = await widget.controller
                                   .translateVocabulary(input);
@@ -348,7 +359,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
   Duration get _motionDuration => MediaQuery.disableAnimationsOf(context)
       ? Duration.zero
-      : const Duration(milliseconds: 420);
+      : const Duration(milliseconds: 220);
 
   void _attachVoiceNavigationHandler() {
     widget.voiceNavigationController?.setIntentHandler(
@@ -376,6 +387,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           )) &&
       !_voiceNavigationPausedForOverlay &&
       !_tutorialActive &&
+      !(widget.speakingSessionController?.isActive ?? false) &&
       !widget.controller.isBusy &&
       !widget.controller.isPlaybackPlaying &&
       widget.controller.isInputAvailable;
@@ -387,6 +399,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     // iOS MAIN turn whenever BLE/HFP diagnostics notified the conversation
     // controller -- often only a few milliseconds after beginMainTurn().
     if (!_continuousVoiceNavigationEnabled) {
+      _voiceNavigationRestartTimer?.cancel();
+      return;
+    }
+    if (widget.speakingSessionController?.isActive ?? false) {
       _voiceNavigationRestartTimer?.cancel();
       return;
     }
@@ -484,16 +500,6 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
     switch (intent.destination) {
       case VoiceNavigationDestination.conversation:
-        if (intent.enterMainSpeakingMode) {
-          // Closing the listening route resumes Android's optional wake-word
-          // listener. Cancel that old owner before the conversation feature
-          // takes the shared recognizer, otherwise both starts can cross and
-          // the translation screen is left visible without a live microphone.
-          await _prepareVoiceNavigationForMainSpeakingHandoff();
-          if (!mounted) {
-            return;
-          }
-        }
         _showConversation();
         if (intent.enterMainSpeakingMode) {
           await widget.onMainSpeakingModeStarted?.call();
@@ -501,22 +507,32 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       case VoiceNavigationDestination.vocabulary:
         _showVocabulary();
       case VoiceNavigationDestination.topics:
+        final opensCurrentLevelSelection =
+            intent.topicNumber == null &&
+            intent.levelNumber == null &&
+            !intent.openLesson;
         final fallbackTopicIndex = _activeVoiceTopicIndex;
         final target = ListeningVoiceNavigationTarget(
           recognizedText: intent.recognizedText,
           openLesson: intent.openLesson,
           topicNumber: intent.topicNumber,
           lessonNumber: intent.lessonNumber,
+          levelNumber: intent.levelNumber,
           childAge: intent.childAge,
           relearnTopic: intent.relearnTopic,
           relearnLesson: intent.relearnLesson,
+          relearnLevel: intent.relearnLevel,
           fallbackTopicIndex: fallbackTopicIndex,
         );
         if (_openingTopics) {
           await _closeTopicListeningIfNeeded();
         }
         if (mounted) {
-          unawaited(_openTopicListening(initialVoiceTarget: target));
+          unawaited(
+            _openTopicListening(
+              initialVoiceTarget: opensCurrentLevelSelection ? null : target,
+            ),
+          );
         }
       case VoiceNavigationDestination.history:
         _showHistory();
@@ -534,11 +550,6 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     if (closed != null) {
       await closed;
     }
-  }
-
-  Future<void> _prepareVoiceNavigationForMainSpeakingHandoff() async {
-    _voiceNavigationRestartTimer?.cancel();
-    await widget.voiceNavigationController?.pause();
   }
 
   void _showVoiceNavigationMessage(String message) {
@@ -804,14 +815,6 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                       completedLessonNumbers: completedLessonNumbers,
                     );
               },
-          onTopicSelectionAfterCompletion:
-              ({required childAge, required completedTopicNumbers}) async {
-                await widget.voiceNavigationController
-                    ?.activateTopicSelectionAfterCompletion(
-                      childAge: childAge,
-                      completedTopicNumbers: completedTopicNumbers,
-                    );
-              },
           onLevelTopicSelectionRequested:
               ({
                 required childAge,
@@ -827,6 +830,14 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                       topicNumbers: topicNumbers,
                       completedTopicNumbers: completedTopicNumbers,
                       announceLevel: announceLevel,
+                    );
+              },
+          onCourseRelearnLevelSelectionRequested:
+              ({required childAge, required levelNumbers}) async {
+                await widget.voiceNavigationController
+                    ?.activateCourseRelearnLevelSelection(
+                      childAge: childAge,
+                      levelNumbers: levelNumbers,
                     );
               },
           contentFuture: widget.listeningContentFuture,

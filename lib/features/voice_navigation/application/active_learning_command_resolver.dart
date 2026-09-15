@@ -54,6 +54,10 @@ class ActiveLearningCommandResolver {
     if (value.isEmpty) {
       return null;
     }
+    if (state == ControlledSpeechState.vocabulary &&
+        (_has(value, 'bo qua') || _has(value, 'qua noi dung nay'))) {
+      return ActiveLearningCommand.nextItem;
+    }
     if (_has(value, 'dung lai') || _has(value, 'tam dung') || value == 'dung') {
       return ActiveLearningCommand.stop;
     }

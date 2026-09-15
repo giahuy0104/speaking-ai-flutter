@@ -5,7 +5,53 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../domain/vocabulary_entry.dart';
 import 'vocabulary_store.dart';
 
-enum VocabularyPracticeMode { today, review, speakAgain }
+enum VocabularyPracticeMode { today, review }
+
+class VocabularyReviewSessionSnapshot {
+  const VocabularyReviewSessionSnapshot({
+    required this.id,
+    required this.entryIds,
+    required this.triedEntryIds,
+    required this.createdAt,
+  });
+
+  factory VocabularyReviewSessionSnapshot.fromJson(Map<String, Object?> json) =>
+      VocabularyReviewSessionSnapshot(
+        id: json['id'] as String? ?? '',
+        entryIds: (json['entryIds'] as List<Object?>? ?? const <Object?>[])
+            .whereType<String>()
+            .toList(growable: false),
+        triedEntryIds:
+            (json['triedEntryIds'] as List<Object?>? ?? const <Object?>[])
+                .whereType<String>()
+                .toSet(),
+        createdAt:
+            DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0),
+      );
+
+  final String id;
+  final List<String> entryIds;
+  final Set<String> triedEntryIds;
+  final DateTime createdAt;
+
+  bool get isValid => id.isNotEmpty && entryIds.isNotEmpty;
+
+  VocabularyReviewSessionSnapshot copyWith({Set<String>? triedEntryIds}) =>
+      VocabularyReviewSessionSnapshot(
+        id: id,
+        entryIds: entryIds,
+        triedEntryIds: triedEntryIds ?? this.triedEntryIds,
+        createdAt: createdAt,
+      );
+
+  Map<String, Object?> toJson() => <String, Object?>{
+    'id': id,
+    'entryIds': entryIds,
+    'triedEntryIds': triedEntryIds.toList(growable: false),
+    'createdAt': createdAt.toIso8601String(),
+  };
+}
 
 class VocabularyPracticeSession {
   const VocabularyPracticeSession({
@@ -87,11 +133,11 @@ class VocabularySessionStore {
   const VocabularySessionStore();
 
   static const _activeKey = 'innotrik.vocabulary-active-session.v2';
+  static const _reviewSnapshotKey =
+      'innotrik.vocabulary-review-session-snapshot.v4';
   static const _todaySuppressedKey = 'innotrik.vocabulary-today-suppressed.v2';
   static const _playbackCheckpointPrefix =
       'innotrik.vocabulary-playback-checkpoint.v2.';
-  static const _parentPlaybackEntryCountKey =
-      'innotrik.vocabulary-parent-playback-entry-count.v3';
   static const _lastVocabularyEntryDayKey =
       'innotrik.vocabulary-last-entry-day.v3';
 
@@ -103,6 +149,10 @@ class VocabularySessionStore {
       }
       final decoded = jsonDecode(raw);
       if (decoded is! Map<String, Object?>) {
+        return null;
+      }
+      if (decoded['mode'] == 'speakAgain') {
+        await clearActive();
         return null;
       }
       final session = VocabularyPracticeSession.fromJson(decoded);
@@ -123,39 +173,103 @@ class VocabularySessionStore {
     await (await SharedPreferences.getInstance()).remove(_activeKey);
   }
 
+  Future<VocabularyReviewSessionSnapshot?> readReviewSessionSnapshot() async {
+    try {
+      final raw = (await SharedPreferences.getInstance()).getString(
+        _reviewSnapshotKey,
+      );
+      if (raw == null || raw.isEmpty) return null;
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, Object?>) return null;
+      final snapshot = VocabularyReviewSessionSnapshot.fromJson(decoded);
+      return snapshot.isValid ? snapshot : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _saveReviewSessionSnapshot(
+    VocabularyReviewSessionSnapshot snapshot,
+  ) async {
+    await (await SharedPreferences.getInstance()).setString(
+      _reviewSnapshotKey,
+      jsonEncode(snapshot.toJson()),
+    );
+  }
+
+  Future<void> endReviewSession() async {
+    final preferences = await SharedPreferences.getInstance();
+    final active = await readActive();
+    if (active?.mode == VocabularyPracticeMode.review) {
+      await preferences.remove(_activeKey);
+    }
+    await preferences.remove(_reviewSnapshotKey);
+  }
+
   Future<VocabularyPracticeSession?> prepareToday(
     VocabularyStore vocabularyStore, {
     DateTime? now,
     bool forceNextGroup = false,
   }) async {
     final currentTime = now ?? DateTime.now();
-    final today = _dayKey(currentTime);
     final active = await readActive();
-    if (!forceNextGroup &&
-        active?.mode == VocabularyPracticeMode.today &&
-        active?.dayKey == today) {
+    if (active?.mode == VocabularyPracticeMode.today) {
       return _reconcile(active!, vocabularyStore);
     }
     if (!forceNextGroup && await isTodaySuppressed(currentTime)) {
       return null;
     }
-    final pending = await vocabularyStore.pendingParentEntries();
-    if (pending.isEmpty) {
+    final view = await vocabularyStore.prepareTodayView(now: currentTime);
+    if (view == null) {
+      await clearActive();
+      return null;
+    }
+    final entries = await vocabularyStore.todayEntries();
+    final entryIds = entries
+        .where((entry) => entry.todayStatus != TodayVocabularyStatus.heard)
+        .map((entry) => entry.id)
+        .toList(growable: false);
+    if (entryIds.isEmpty) {
       await clearActive();
       return null;
     }
     final session = VocabularyPracticeSession(
-      id: 'today:$today:${currentTime.microsecondsSinceEpoch}',
+      id: 'today:${view.dayKey}:${currentTime.microsecondsSinceEpoch}',
       mode: VocabularyPracticeMode.today,
-      entryIds: pending
-          .take(5)
-          .map((entry) => entry.id)
-          .toList(growable: false),
+      entryIds: entryIds,
       currentIndex: 0,
       results: const <String, bool>{},
       correctAudioPaths: const <String, String>{},
       createdAt: currentTime,
-      dayKey: today,
+      dayKey: view.dayKey,
+    );
+    await saveActive(session);
+    return session;
+  }
+
+  Future<VocabularyPracticeSession?> prepareTodayReplay(
+    VocabularyStore vocabularyStore, {
+    DateTime? now,
+  }) async {
+    final view = await vocabularyStore.readTodayView();
+    if (view == null) return null;
+    final availableIds = (await vocabularyStore.read())
+        .map((entry) => entry.id)
+        .toSet();
+    final entryIds = view.entryIds
+        .where(availableIds.contains)
+        .toList(growable: false);
+    if (entryIds.isEmpty) return null;
+    final currentTime = now ?? DateTime.now();
+    final session = VocabularyPracticeSession(
+      id: 'today-replay:${view.dayKey}:${currentTime.microsecondsSinceEpoch}',
+      mode: VocabularyPracticeMode.today,
+      entryIds: entryIds,
+      currentIndex: 0,
+      results: const <String, bool>{},
+      correctAudioPaths: const <String, String>{},
+      createdAt: currentTime,
+      dayKey: view.dayKey,
     );
     await saveActive(session);
     return session;
@@ -165,26 +279,45 @@ class VocabularySessionStore {
     VocabularyStore vocabularyStore, {
     DateTime? now,
     bool forceNextGroup = false,
-    Set<String> excludeEntryIds = const <String>{},
   }) async {
     final active = await readActive();
     if (!forceNextGroup && active?.mode == VocabularyPracticeMode.review) {
       return _reconcile(active!, vocabularyStore);
     }
-    final entries = (await vocabularyStore.reviewEntries())
-        .where((entry) => !excludeEntryIds.contains(entry.id))
+    final currentTime = now ?? DateTime.now();
+    var snapshot = await readReviewSessionSnapshot();
+    if (snapshot == null) {
+      final entryIds = (await vocabularyStore.reviewEntries())
+          .map((entry) => entry.id)
+          .toList(growable: false);
+      if (entryIds.isEmpty) return null;
+      snapshot = VocabularyReviewSessionSnapshot(
+        id: 'review:${currentTime.microsecondsSinceEpoch}',
+        entryIds: entryIds,
+        triedEntryIds: const <String>{},
+        createdAt: currentTime,
+      );
+      await _saveReviewSessionSnapshot(snapshot);
+    }
+    final availableIds = (await vocabularyStore.reviewEntries())
+        .map((entry) => entry.id)
+        .toSet();
+    final entryIds = snapshot.entryIds
+        .where(
+          (id) =>
+              availableIds.contains(id) &&
+              !snapshot!.triedEntryIds.contains(id),
+        )
+        .take(5)
         .toList(growable: false);
-    if (entries.isEmpty) {
+    if (entryIds.isEmpty) {
+      await endReviewSession();
       return null;
     }
-    final currentTime = now ?? DateTime.now();
     final session = VocabularyPracticeSession(
-      id: 'review:${currentTime.microsecondsSinceEpoch}',
+      id: '${snapshot.id}:block:${snapshot.triedEntryIds.length}',
       mode: VocabularyPracticeMode.review,
-      entryIds: entries
-          .take(5)
-          .map((entry) => entry.id)
-          .toList(growable: false),
+      entryIds: entryIds,
       currentIndex: 0,
       results: const <String, bool>{},
       correctAudioPaths: const <String, String>{},
@@ -194,22 +327,27 @@ class VocabularySessionStore {
     return session;
   }
 
-  Future<VocabularyPracticeSession> prepareSpeakAgain(
-    VocabularyEntry entry, {
-    DateTime? now,
-  }) async {
-    final currentTime = now ?? DateTime.now();
-    final session = VocabularyPracticeSession(
-      id: 'speak-again:${entry.id}:${currentTime.microsecondsSinceEpoch}',
-      mode: VocabularyPracticeMode.speakAgain,
-      entryIds: <String>[entry.id],
-      currentIndex: 0,
-      results: const <String, bool>{},
-      correctAudioPaths: const <String, String>{},
-      createdAt: currentTime,
+  Future<void> completeReviewBlock(Iterable<String> entryIds) async {
+    final snapshot = await readReviewSessionSnapshot();
+    if (snapshot != null) {
+      await _saveReviewSessionSnapshot(
+        snapshot.copyWith(
+          triedEntryIds: <String>{...snapshot.triedEntryIds, ...entryIds},
+        ),
+      );
+    }
+    await clearActive();
+  }
+
+  Future<bool> hasPendingReviewEntries(VocabularyStore vocabularyStore) async {
+    final snapshot = await readReviewSessionSnapshot();
+    if (snapshot == null) return false;
+    final availableIds = (await vocabularyStore.reviewEntries())
+        .map((entry) => entry.id)
+        .toSet();
+    return snapshot.entryIds.any(
+      (id) => availableIds.contains(id) && !snapshot.triedEntryIds.contains(id),
     );
-    await saveActive(session);
-    return session;
   }
 
   Future<VocabularyPracticeSession?> _reconcile(
@@ -224,14 +362,15 @@ class VocabularySessionStore {
             0,
             session.entryIds.length - 1,
           )];
-    final entryIds = session.entryIds
+    var entryIds = session.entryIds
         .where(available.contains)
         .toList(growable: true);
-    if (session.mode == VocabularyPracticeMode.today && entryIds.length < 5) {
-      final pending = await vocabularyStore.pendingParentEntries();
-      for (final entry in pending) {
-        if (entryIds.length >= 5) break;
-        if (!entryIds.contains(entry.id)) entryIds.add(entry.id);
+    if (session.mode == VocabularyPracticeMode.today) {
+      final view = await vocabularyStore.readTodayView();
+      if (view != null) {
+        entryIds = view.entryIds
+            .where(available.contains)
+            .toList(growable: true);
       }
     }
     if (entryIds.isEmpty) {
@@ -302,15 +441,6 @@ class VocabularySessionStore {
     }
     await preferences.setString(_lastVocabularyEntryDayKey, today);
     return true;
-  }
-
-  /// Returns true only for the first two deliberate entries into
-  /// "Ba mẹ đã thêm". Resuming an existing playback never calls this method.
-  Future<bool> recordParentPlaybackEntry() async {
-    final preferences = await SharedPreferences.getInstance();
-    final count = preferences.getInt(_parentPlaybackEntryCountKey) ?? 0;
-    await preferences.setInt(_parentPlaybackEntryCountKey, count + 1);
-    return count < 2;
   }
 
   static String _dayKey(DateTime value) =>

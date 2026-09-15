@@ -32,6 +32,7 @@ void main() {
       MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
+        builder: _disableAnimations,
         home: ConversationScreen(
           controller: controller,
           onOpenHistory: _noopCallback,
@@ -71,6 +72,7 @@ void main() {
       MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
+        builder: _disableAnimations,
         home: ConversationScreen(
           controller: controller,
           onOpenHistory: _noopCallback,
@@ -110,6 +112,7 @@ void main() {
       MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
+        builder: _disableAnimations,
         home: ConversationScreen(
           controller: controller,
           onOpenHistory: _noopCallback,
@@ -153,6 +156,7 @@ void main() {
       MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
+        builder: _disableAnimations,
         home: ConversationScreen(
           controller: controller,
           onOpenHistory: _noopCallback,
@@ -180,6 +184,7 @@ void main() {
       MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
+        builder: _disableAnimations,
         home: const TopicListeningScreen(
           language: DisplayLanguage.vietnamese,
           childAge: 6,
@@ -215,6 +220,11 @@ void main() {
 void _noopCallback() {}
 
 Future<void> _noopMainPress() async {}
+
+Widget _disableAnimations(BuildContext context, Widget? child) => MediaQuery(
+  data: MediaQuery.of(context).copyWith(disableAnimations: true),
+  child: child!,
+);
 
 Future<void> _precacheConversationAssets(WidgetTester tester) async {
   await tester.runAsync(() async {

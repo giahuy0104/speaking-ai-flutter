@@ -15,6 +15,7 @@ import android.speech.RecognitionSupportCallback
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
+import androidx.annotation.RequiresApi
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
@@ -438,11 +439,11 @@ class AndroidSpeechRecognizerBridge(
                 )
                 putExtra(
                     RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,
-                    if (commandMode) 900L else 700L,
+                    if (commandMode) 900L else 550L,
                 )
                 putExtra(
                     RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,
-                    if (commandMode) 1200L else 900L,
+                    if (commandMode) 1200L else 700L,
                 )
                 putExtra(
                     RecognizerIntent.EXTRA_CALLING_PACKAGE,
@@ -579,6 +580,7 @@ class AndroidSpeechRecognizerBridge(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun beginFileRecognition(
         audioFile: File,
         wavAudio: WavAudio,
@@ -694,8 +696,10 @@ class AndroidSpeechRecognizerBridge(
             recognizer = try {
                 val created = when (requestedMode) {
                     RecognizerMode.STANDARD -> SpeechRecognizer.createSpeechRecognizer(appContext)
-                    RecognizerMode.ON_DEVICE ->
+                    RecognizerMode.ON_DEVICE -> {
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return false
                         SpeechRecognizer.createOnDeviceSpeechRecognizer(appContext)
+                    }
                 }
                 created.also {
                     it.setRecognitionListener(this)

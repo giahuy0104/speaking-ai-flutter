@@ -2,6 +2,16 @@ enum VocabularyCollection { saved, star, review }
 
 enum VocabularyLearningStatus { unlearned, needsPractice, learnedWell }
 
+/// The shape of a parent-authored learning target.  It is persisted so audio
+/// and scoring can choose the right strategy without guessing on every load.
+enum VocabularyContentKind { word, phrase, sentence }
+
+/// Parent content moves through these explicit buckets.  The legacy
+/// `collection/status` fields remain for topic Stars/Review compatibility.
+enum ParentVocabularyState { waiting, today, unlocked }
+
+enum TodayVocabularyStatus { notHeard, heard }
+
 enum VocabularySource {
   parent,
   topicCore,
@@ -27,6 +37,12 @@ class VocabularyEntry {
     this.learningStartedAt,
     this.lastPracticedAt,
     this.earnedAt,
+    this.contentKind = VocabularyContentKind.word,
+    this.parentState,
+    this.todayStatus,
+    this.originBatchId,
+    this.todayDayKey,
+    this.unlockedAt,
   });
 
   static const Object _unset = Object();
@@ -49,12 +65,27 @@ class VocabularyEntry {
   final DateTime? learningStartedAt;
   final DateTime? lastPracticedAt;
   final DateTime? earnedAt;
+  final VocabularyContentKind contentKind;
+  final ParentVocabularyState? parentState;
+  final TodayVocabularyStatus? todayStatus;
+  final String? originBatchId;
+  final String? todayDayKey;
+  final DateTime? unlockedAt;
 
-  bool get isParentAdded =>
-      source == VocabularySource.parent &&
-      (collection == VocabularyCollection.saved ||
-          learningStartedAt != null ||
-          status != VocabularyLearningStatus.unlearned);
+  bool get isParentAdded => source == VocabularySource.parent;
+  ParentVocabularyState? get effectiveParentState => !isParentAdded
+      ? null
+      : parentState ??
+            ((status != VocabularyLearningStatus.unlearned ||
+                    introducedAt != null ||
+                    learningStartedAt != null)
+                ? ParentVocabularyState.unlocked
+                : ParentVocabularyState.waiting);
+  bool get isWaitingParent =>
+      effectiveParentState == ParentVocabularyState.waiting;
+  bool get isTodayParent => effectiveParentState == ParentVocabularyState.today;
+  bool get isUnlockedParent =>
+      effectiveParentState == ParentVocabularyState.unlocked;
   bool get isStar => collection == VocabularyCollection.star;
   bool get needsPractice =>
       status == VocabularyLearningStatus.needsPractice ||
@@ -62,10 +93,10 @@ class VocabularyEntry {
   bool get isLearnedWell =>
       status == VocabularyLearningStatus.learnedWell ||
       collection == VocabularyCollection.star;
-  bool get canParentEdit =>
-      isParentAdded &&
-      status == VocabularyLearningStatus.unlearned &&
-      learningStartedAt == null;
+  bool get canParentEdit => isWaitingParent;
+  bool get canParentDelete =>
+      isWaitingParent ||
+      (isTodayParent && todayStatus == TodayVocabularyStatus.notHeard);
 
   VocabularyEntry copyWith({
     String? word,
@@ -81,6 +112,12 @@ class VocabularyEntry {
     Object? learningStartedAt = _unset,
     Object? lastPracticedAt = _unset,
     Object? earnedAt = _unset,
+    VocabularyContentKind? contentKind,
+    Object? parentState = _unset,
+    Object? todayStatus = _unset,
+    Object? originBatchId = _unset,
+    Object? todayDayKey = _unset,
+    Object? unlockedAt = _unset,
   }) => VocabularyEntry(
     id: id,
     word: word ?? this.word,
@@ -113,9 +150,26 @@ class VocabularyEntry {
     earnedAt: identical(earnedAt, _unset)
         ? this.earnedAt
         : earnedAt as DateTime?,
+    contentKind: contentKind ?? this.contentKind,
+    parentState: identical(parentState, _unset)
+        ? this.parentState
+        : parentState as ParentVocabularyState?,
+    todayStatus: identical(todayStatus, _unset)
+        ? this.todayStatus
+        : todayStatus as TodayVocabularyStatus?,
+    originBatchId: identical(originBatchId, _unset)
+        ? this.originBatchId
+        : originBatchId as String?,
+    todayDayKey: identical(todayDayKey, _unset)
+        ? this.todayDayKey
+        : todayDayKey as String?,
+    unlockedAt: identical(unlockedAt, _unset)
+        ? this.unlockedAt
+        : unlockedAt as DateTime?,
   );
 
   Map<String, Object?> toJson() => <String, Object?>{
+    'schemaVersion': 4,
     'id': id,
     'word': word,
     'meaning': meaning,
@@ -133,6 +187,12 @@ class VocabularyEntry {
     if (lastPracticedAt != null)
       'lastPracticedAt': lastPracticedAt!.toIso8601String(),
     if (earnedAt != null) 'earnedAt': earnedAt!.toIso8601String(),
+    'contentKind': contentKind.name,
+    if (parentState != null) 'parentState': parentState!.name,
+    if (todayStatus != null) 'todayStatus': todayStatus!.name,
+    if (originBatchId != null) 'originBatchId': originBatchId,
+    if (todayDayKey != null) 'todayDayKey': todayDayKey,
+    if (unlockedAt != null) 'unlockedAt': unlockedAt!.toIso8601String(),
   };
 
   factory VocabularyEntry.fromJson(Map<String, Object?> json) {
@@ -159,6 +219,25 @@ class VocabularyEntry {
               : VocabularyLearningStatus.unlearned,
       },
     );
+    final contentKind = VocabularyContentKind.values.firstWhere(
+      (value) => value.name == json['contentKind'],
+      orElse: () => inferContentKind(json['word'] as String? ?? ''),
+    );
+    final explicitParentState = ParentVocabularyState.values
+        .where((value) => value.name == json['parentState'])
+        .firstOrNull;
+    final legacyLearningStartedAt = _readDate(json['learningStartedAt']);
+    final parentState = source != VocabularySource.parent
+        ? null
+        : explicitParentState ??
+              ((status != VocabularyLearningStatus.unlearned ||
+                      introducedAt != null ||
+                      legacyLearningStartedAt != null)
+                  ? ParentVocabularyState.unlocked
+                  : ParentVocabularyState.waiting);
+    final todayStatus = TodayVocabularyStatus.values
+        .where((value) => value.name == json['todayStatus'])
+        .firstOrNull;
     return VocabularyEntry(
       id: json['id'] as String,
       word: json['word'] as String,
@@ -176,10 +255,30 @@ class VocabularyEntry {
               : null),
       correctAudioPath: json['correctAudioPath'] as String?,
       introducedAt: introducedAt,
-      learningStartedAt: _readDate(json['learningStartedAt']),
+      learningStartedAt: legacyLearningStartedAt,
       lastPracticedAt: _readDate(json['lastPracticedAt']),
       earnedAt: _readDate(json['earnedAt']),
+      contentKind: contentKind,
+      parentState: parentState,
+      todayStatus: parentState == ParentVocabularyState.today
+          ? todayStatus ?? TodayVocabularyStatus.notHeard
+          : todayStatus,
+      originBatchId: json['originBatchId'] as String?,
+      todayDayKey: json['todayDayKey'] as String?,
+      unlockedAt: _readDate(json['unlockedAt']),
     );
+  }
+
+  static VocabularyContentKind inferContentKind(String value) {
+    final text = value.trim();
+    if (text.isEmpty) return VocabularyContentKind.word;
+    final tokens = text.split(RegExp(r'\s+'));
+    if (tokens.length > 5 || RegExp(r'[.!?…]$').hasMatch(text)) {
+      return VocabularyContentKind.sentence;
+    }
+    return tokens.length == 1
+        ? VocabularyContentKind.word
+        : VocabularyContentKind.phrase;
   }
 
   static DateTime? _readDate(Object? value) =>
@@ -204,3 +303,8 @@ typedef VocabularyTranslator =
 /// outside the vocabulary flow; Android and iOS consume the same result.
 typedef VocabularySuggestionProvider =
     Future<List<VocabularyTranslation>> Function(String input, int childAge);
+
+/// Checks parent-authored content against the complete published curriculum,
+/// including targets that have not been learned or copied into local storage.
+typedef VocabularyCurriculumDuplicateChecker =
+    Future<bool> Function(VocabularyTranslation candidate);

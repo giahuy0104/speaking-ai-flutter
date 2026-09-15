@@ -8,17 +8,38 @@ import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/main_button_coordinator.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/data/demo_conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/application/vietnamese_transcript_corrector.dart';
+import 'package:ai_speaking_flutter_app/features/conversation/application/conversation_recording_endpoint_policy.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('translation quiet window adapts to short versus long speech', () {
+    for (final item in <(String, int)>[
+      ('apple', 500),
+      ('Con muốn uống nước', 600),
+      ('Con muốn đi chơi ở công viên cùng với ba mẹ', 800),
+    ]) {
+      expect(
+        ConversationRecordingEndpointPolicy.quietWindow(
+          item.$1,
+          baseSilenceMs: 700,
+        ),
+        Duration(milliseconds: item.$2),
+      );
+    }
+    expect(ConversationController.translatedSpeechPlaybackRate, 0.85);
+  });
+
   test(
     'Main speaking turn waits for its configured no-speech timeout',
     () async {
-      final promptService = _FakeVoicePromptService();
+      final audioInput = _SilentAudioInput();
+      final promptService = _FakeVoicePromptService(
+        onReadyCue: () => expect(audioInput.startCount, greaterThan(0)),
+      );
       final controller = ConversationController(
-        audioInput: _SilentAudioInput(),
+        audioInput: audioInput,
         playbackService: const _FakePlaybackService(),
         voicePromptService: promptService,
         repository: const DemoConversationRepository(),
@@ -196,10 +217,64 @@ void main() {
       expect(controller.result?.vietnameseText, 'Con rửa tay xong rồi');
     },
   );
+
+  test(
+    'Android partial transcript ends the turn after a quiet window even without further RMS events',
+    () async {
+      final speechInput = _PartialOnlyStreamingSpeechInput();
+      final controller = ConversationController(
+        audioInput: _SilentAudioInput(),
+        streamingSpeechInput: speechInput,
+        playbackService: const _FakePlaybackService(),
+        repository: const DemoConversationRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+        webRuntimeOverride: false,
+      );
+      addTearDown(controller.dispose);
+      controller.setVadSilence(400);
+
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(seconds: 5),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      speechInput.emitPartial('Con muốn đi công viên');
+      await Future<void>.delayed(const Duration(milliseconds: 550));
+
+      expect(speechInput.stopCount, 1);
+      expect(controller.isRecording, isFalse);
+    },
+  );
+
+  test('one-word Android partial also ends after the quiet window', () async {
+    final speechInput = _PartialOnlyStreamingSpeechInput();
+    final controller = ConversationController(
+      audioInput: _SilentAudioInput(),
+      streamingSpeechInput: speechInput,
+      playbackService: const _FakePlaybackService(),
+      repository: const DemoConversationRepository(),
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+      webRuntimeOverride: false,
+    );
+    addTearDown(controller.dispose);
+    controller.setVadSilence(400);
+
+    await controller.startRecording(
+      noSpeechTimeout: const Duration(seconds: 5),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    speechInput.emitPartial('apple');
+    await Future<void>.delayed(const Duration(milliseconds: 550));
+
+    expect(speechInput.stopCount, 1);
+    expect(controller.isRecording, isFalse);
+  });
 }
 
 class _SilentAudioInput implements ChunkedAudioInput {
   int cancelCount = 0;
+  int startCount = 0;
 
   @override
   String get label => 'Mic kiểm thử';
@@ -217,10 +292,14 @@ class _SilentAudioInput implements ChunkedAudioInput {
   Stream<Uint8List> get audioChunks => const Stream<Uint8List>.empty();
 
   @override
-  Future<void> start() async {}
+  Future<void> start() async {
+    startCount += 1;
+  }
 
   @override
-  Future<void> startChunked() async {}
+  Future<void> startChunked() async {
+    startCount += 1;
+  }
 
   @override
   Future<AudioCapture> stop() async => const AudioCapture(
@@ -307,11 +386,14 @@ class _ControllablePlaybackService implements AudioPlaybackService {
 
 class _FakeVoicePromptService
     implements VoicePromptService, SpeechReadyCuePlayer {
+  _FakeVoicePromptService({this.onReadyCue});
+  final void Function()? onReadyCue;
   final List<String> spokenTexts = <String>[];
   int readyCueCount = 0;
 
   @override
   Future<void> playSpeechReadyCue() async {
+    onReadyCue?.call();
     readyCueCount += 1;
   }
 
@@ -367,6 +449,52 @@ class _ImmediateStreamingSpeechInput implements StreamingSpeechInput {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _PartialOnlyStreamingSpeechInput implements StreamingSpeechInput {
+  final StreamController<String> _partials = StreamController<String>.broadcast(
+    sync: true,
+  );
+  int stopCount = 0;
+
+  void emitPartial(String text) => _partials.add(text);
+
+  @override
+  String get label => 'ASR Android partial-only';
+
+  @override
+  Stream<double> get amplitudeDbfs => const Stream<double>.empty();
+
+  @override
+  Stream<void> get completed => const Stream<void>.empty();
+
+  @override
+  Stream<String> get partialText => _partials.stream;
+
+  @override
+  Future<bool> checkAvailability() async => true;
+
+  @override
+  Future<void> start() async {}
+
+  @override
+  Future<StreamingSpeechCapture> stop() async {
+    stopCount += 1;
+    return const StreamingSpeechCapture(
+      sourceText: 'Con muốn đi công viên',
+      duration: Duration(seconds: 1),
+      inputLabel: 'ASR Android partial-only',
+      confidence: 0.9,
+      firstResultMs: 100,
+      finalAfterStopMs: 20,
+    );
+  }
+
+  @override
+  Future<void> cancel() async {}
+
+  @override
+  Future<void> dispose() => _partials.close();
 }
 
 class _NoSpeechStreamingSpeechInput implements StreamingSpeechInput {

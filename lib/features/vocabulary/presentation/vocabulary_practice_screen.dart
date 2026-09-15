@@ -12,13 +12,21 @@ import '../../../core/device/active_learning_module.dart';
 import '../../../l10n/display_language.dart';
 import '../../listening/application/lesson_attempt_evaluator.dart';
 import '../../listening/application/lesson_media_service.dart';
+import '../../listening/application/lesson_recording_endpoint_detector.dart';
 import '../../listening/domain/lesson_guide_flow.dart';
+import '../application/vocabulary_audio_service.dart';
+import '../application/vocabulary_fixed_prompt_audio_service.dart';
 import '../data/vocabulary_session_store.dart';
 import '../data/vocabulary_store.dart';
 import '../domain/vocabulary_entry.dart';
 import '../domain/vocabulary_flow_v3.dart';
 
-enum VocabularyPracticeResult { continueLearning, otherContent }
+enum VocabularyPracticeResult {
+  continueLearning,
+  otherContent,
+  parentAdded,
+  stars,
+}
 
 class VocabularyPracticeScreen extends StatefulWidget {
   const VocabularyPracticeScreen({
@@ -30,10 +38,14 @@ class VocabularyPracticeScreen extends StatefulWidget {
     required this.mediaService,
     this.audioDependencies,
     this.attemptEvaluator,
+    this.recordingEndpointDetector,
     this.voicePromptService,
+    this.vocabularyAudioService,
+    this.fixedPromptAudioService,
     this.samplePause = const Duration(seconds: 2),
     this.autoStart = true,
     this.announceIntro = true,
+    this.announceResume = false,
     this.onRequestVoiceChoice,
     super.key,
   });
@@ -46,10 +58,14 @@ class VocabularyPracticeScreen extends StatefulWidget {
   final LessonMediaService mediaService;
   final LearningAudioDependencies? audioDependencies;
   final LessonAttemptEvaluator? attemptEvaluator;
+  final LessonRecordingEndpointDetector? recordingEndpointDetector;
   final VoicePromptService? voicePromptService;
+  final VocabularyContentAudioService? vocabularyAudioService;
+  final VocabularyFixedPromptAudioService? fixedPromptAudioService;
   final Duration samplePause;
   final bool autoStart;
   final bool announceIntro;
+  final bool announceResume;
   final Future<void> Function({
     String? noSpeechRetryPrompt,
     String? noSpeechExitPrompt,
@@ -63,8 +79,6 @@ class VocabularyPracticeScreen extends StatefulWidget {
 
 class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     implements ActiveLearningModuleController {
-  static const _recordingLimit = Duration(seconds: 6);
-
   late VocabularyPracticeSession _session;
   late final LessonAttemptEvaluator _attemptEvaluator;
   late final bool _ownsAttemptEvaluator;
@@ -79,9 +93,13 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   bool _busy = false;
   bool _recording = false;
   bool _paused = false;
+  bool _pausedAfterNoResponse = false;
   bool _completed = false;
+  bool _reviewHasMore = true;
+  int _invalidResponseCount = 0;
+  late bool _resumeAnnouncementPending;
   String _message = '';
-  Timer? _recordingTimer;
+  late final LessonRecordingEndpointDetector _recordingEndpointDetector;
   ActiveLearningModuleRegistry? _activeRegistry;
   Object? _activeRegistration;
 
@@ -112,9 +130,12 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   void initState() {
     super.initState();
     _session = widget.session;
+    _resumeAnnouncementPending = widget.announceResume;
     _ownsAttemptEvaluator = widget.attemptEvaluator == null;
     _attemptEvaluator =
         widget.attemptEvaluator ?? createDefaultLessonAttemptEvaluator();
+    _recordingEndpointDetector =
+        widget.recordingEndpointDetector ?? LessonRecordingEndpointDetector();
     _ownsVoicePromptService = widget.voicePromptService == null;
     _voicePromptService =
         widget.voicePromptService ??
@@ -142,7 +163,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   @override
   void dispose() {
     _generation += 1;
-    _recordingTimer?.cancel();
+    _recordingEndpointDetector.cancel();
     if (_activeRegistry != null && _activeRegistration != null) {
       _activeRegistry!.unregister(_activeRegistration!);
     }
@@ -192,16 +213,12 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       _loading = false;
       _message = _isToday
           ? VocabularyFlowV3.todayIntro
-          : _isReview
-          ? VocabularyFlowV3.reviewIntro
-          : 'Mình cùng nói lại nhé.';
+          : VocabularyFlowV3.reviewIntro;
     });
     if (widget.autoStart) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          unawaited(
-            _startCurrent(includeIntro: widget.announceIntro && !_isSpeakAgain),
-          );
+          unawaited(_startCurrent(includeIntro: widget.announceIntro));
         }
       });
     }
@@ -209,48 +226,69 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
 
   bool get _isToday => _session.mode == VocabularyPracticeMode.today;
   bool get _isReview => _session.mode == VocabularyPracticeMode.review;
-  bool get _isSpeakAgain => _session.mode == VocabularyPracticeMode.speakAgain;
 
   Future<void> _startCurrent({bool includeIntro = false}) async {
-    if (!mounted || _loading || _completed || _busy || _recording || _paused) {
+    if (!mounted ||
+        _loading ||
+        _completed ||
+        _busy ||
+        _recording ||
+        _paused ||
+        _pausedAfterNoResponse) {
       return;
     }
     final generation = ++_generation;
     final entry = _entry;
+    final includeResume = !includeIntro && _resumeAnnouncementPending;
+    _resumeAnnouncementPending = false;
     setState(() {
       _busy = true;
       _message = includeIntro
           ? (_isToday
                 ? VocabularyFlowV3.todayIntro
-                : _isReview
-                ? VocabularyFlowV3.reviewIntro
-                : 'Mình cùng nói lại nhé.')
+                : VocabularyFlowV3.reviewIntro)
+          : includeResume
+          ? (_isToday
+                ? VocabularyFlowV3.todayResume
+                : VocabularyFlowV3.reviewResume)
+          : _isToday
+          ? 'Con nghe nhé.'
           : 'Con nghe kỹ rồi nói lại nhé.';
     });
     try {
-      if (_isToday) {
-        await widget.store.markLearningStarted(entry.id);
-      }
       await widget.mediaService.prepareSelectedLessonOutput();
       if (includeIntro) {
         await _speakAndWait(
+          _isToday ? VocabularyFlowV3.todayIntro : VocabularyFlowV3.reviewIntro,
+        );
+      }
+      if (includeResume) {
+        await _speakAndWait(
           _isToday
-              ? VocabularyFlowV3.todayIntro
-              : _isReview
-              ? VocabularyFlowV3.reviewIntro
-              : 'Mình cùng nói lại nhé.',
+              ? VocabularyFlowV3.todayResume
+              : VocabularyFlowV3.reviewResume,
         );
       }
       if (!_isCurrent(generation, entry.id)) return;
-      await _speakAndWait(entry.word, locale: 'en-US');
+      await _speakVocabularyText(entry, entry.word, locale: 'en-US');
       if (widget.samplePause > Duration.zero) {
         await Future<void>.delayed(widget.samplePause);
       }
       if (!_isCurrent(generation, entry.id)) return;
-      await _speakAndWait(entry.meaning, locale: 'vi-VN');
+      await _speakVocabularyText(entry, entry.meaning, locale: 'vi-VN');
       if (!_isCurrent(generation, entry.id)) return;
+      if (_isToday) {
+        await widget.store.markTodayHeard(entry.id);
+        if (!_isCurrent(generation, entry.id)) return;
+        setState(() {
+          _busy = false;
+          _message = 'Đã nghe xong.';
+        });
+        await _advance();
+        return;
+      }
       final cue = LessonGuideFlowV2.coreSpeakCue(_cueCursor++);
-      await _speakAndWait(cue.text);
+      await _playLessonPrompt(cue);
       if (!_isCurrent(generation, entry.id)) return;
       setState(() => _busy = false);
       await _startRecording(generation: generation, entry: entry);
@@ -267,7 +305,9 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     required int generation,
     required VocabularyEntry entry,
   }) async {
-    if (!_isCurrent(generation, entry.id) || _recording) {
+    if (!_isCurrent(generation, entry.id) ||
+        _recording ||
+        _pausedAfterNoResponse) {
       return;
     }
     setState(() {
@@ -275,7 +315,9 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       _message = 'Đang mở micro…';
     });
     try {
-      if (_voicePromptService is SpeechReadyCuePlayer) {
+      final cueBeforeStart =
+          !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+      if (cueBeforeStart && _voicePromptService is SpeechReadyCuePlayer) {
         await (_voicePromptService as SpeechReadyCuePlayer)
             .playSpeechReadyCue();
       }
@@ -306,17 +348,28 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         await _cancelCapture();
         return;
       }
+      if (!cueBeforeStart && _voicePromptService is SpeechReadyCuePlayer) {
+        await (_voicePromptService as SpeechReadyCuePlayer)
+            .playSpeechReadyCue();
+      }
+      if (!_isCurrent(generation, entry.id)) return;
       setState(() {
         _recording = true;
         _busy = false;
         _message = 'Đến lượt bạn.';
       });
-      _recordingTimer?.cancel();
-      _recordingTimer = Timer(
-        _recordingLimit,
-        () => unawaited(_stopRecording()),
+      _recordingEndpointDetector.start(
+        amplitudeDbfs:
+            _iosSpeechInput?.amplitudeDbfs ??
+            widget.mediaService.recordingAmplitudeDbfs,
+        onEndpoint: (_) {
+          if (mounted && _recording && !_paused) {
+            unawaited(_stopRecording());
+          }
+        },
       );
     } catch (error) {
+      _recordingEndpointDetector.cancel();
       if (!_isCurrent(generation, entry.id)) return;
       setState(() {
         _recording = false;
@@ -330,8 +383,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     if (!_recording || _busy || _paused) {
       return;
     }
-    _recordingTimer?.cancel();
-    _recordingTimer = null;
+    _recordingEndpointDetector.cancel();
     final generation = _generation;
     final entry = _entry;
     setState(() {
@@ -417,6 +469,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   }) async {
     switch (outcome) {
       case LessonAttemptOutcome.good:
+        _invalidResponseCount = 0;
         final results = Map<String, bool>.of(_session.results)
           ..[entry.id] = true;
         final paths = Map<String, String>.of(_session.correctAudioPaths);
@@ -434,11 +487,19 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
           kind: LessonFeedbackKind.correct,
         );
         setState(() => _message = feedback);
-        await _speakAndWait(feedback);
+        await _playLessonPrompt(
+          LessonGuidePrompt(audioCode: 'CORRECT', text: feedback),
+        );
         if (!_isCurrent(generation, entry.id)) return;
         await _advance();
         return;
       case LessonAttemptOutcome.unclear:
+        if (!await _acceptInvalidResponseOrPause(
+          generation: generation,
+          entry: entry,
+        )) {
+          return;
+        }
         final feedback = LessonAgeFeedbackLibrary.message(
           age: widget.childAge,
           kind: LessonFeedbackKind.asr,
@@ -447,11 +508,19 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
           _busy = false;
           _message = feedback;
         });
-        await _speakAndWait(feedback);
+        await _playLessonPrompt(
+          LessonGuidePrompt(audioCode: 'ASR', text: feedback),
+        );
         if (!_isCurrent(generation, entry.id)) return;
         await _startRecording(generation: generation, entry: entry);
         return;
       case LessonAttemptOutcome.noResponse:
+        if (!await _acceptInvalidResponseOrPause(
+          generation: generation,
+          entry: entry,
+        )) {
+          return;
+        }
         final feedback = LessonAgeFeedbackLibrary.message(
           age: widget.childAge,
           kind: LessonFeedbackKind.noResponse,
@@ -460,11 +529,15 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
           _busy = false;
           _message = feedback;
         });
-        await _speakAndWait(feedback);
+        await _playLessonPrompt(
+          LessonGuidePrompt(audioCode: 'NO_RESPONSE', text: feedback),
+        );
         if (!_isCurrent(generation, entry.id)) return;
         await _startRecording(generation: generation, entry: entry);
         return;
       case LessonAttemptOutcome.retry:
+      case LessonAttemptOutcome.needsPractice:
+        _invalidResponseCount = 0;
         if (_attemptNumber < 2) {
           _attemptNumber = 2;
           setState(() {
@@ -474,17 +547,46 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
               kind: LessonFeedbackKind.retry,
             );
           });
-          await _speakAndWait(_message);
+          await _playLessonPrompt(
+            LessonGuidePrompt(audioCode: 'RETRY', text: _message),
+          );
           if (!_isCurrent(generation, entry.id)) return;
-          await _startCurrent();
+          await _speakVocabularyText(entry, entry.word, locale: 'en-US');
+          if (!_isCurrent(generation, entry.id)) return;
+          await _startRecording(generation: generation, entry: entry);
           return;
         }
         await _recordNeedsPractice(entry, generation: generation);
         return;
-      case LessonAttemptOutcome.needsPractice:
-        await _recordNeedsPractice(entry, generation: generation);
-        return;
     }
+  }
+
+  Future<bool> _acceptInvalidResponseOrPause({
+    required int generation,
+    required VocabularyEntry entry,
+  }) async {
+    _invalidResponseCount += 1;
+    if (_invalidResponseCount < 2) return true;
+    if (!_isCurrent(generation, entry.id)) return false;
+    setState(() {
+      _busy = false;
+      _recording = false;
+      _pausedAfterNoResponse = true;
+      _message = VocabularyFlowV3.pauseAfterNoResponse;
+    });
+    await _speakAndWait(VocabularyFlowV3.pauseAfterNoResponse);
+    return false;
+  }
+
+  Future<void> _resumeAfterNoResponse() async {
+    if (!mounted || !_pausedAfterNoResponse) return;
+    setState(() {
+      _pausedAfterNoResponse = false;
+      _invalidResponseCount = 0;
+      _attemptNumber = 1;
+      _message = VocabularyFlowV3.reviewResume;
+    });
+    await _startCurrent();
   }
 
   Future<void> _recordNeedsPractice(
@@ -496,7 +598,9 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       kind: LessonFeedbackKind.give,
     );
     setState(() => _message = giveFeedback);
-    await _speakAndWait(giveFeedback);
+    await _playLessonPrompt(
+      LessonGuidePrompt(audioCode: 'GIVE', text: giveFeedback),
+    );
     if (!_isCurrent(generation, entry.id)) return;
     await _speakAndWait(entry.word, locale: 'en-US');
     if (!_isCurrent(generation, entry.id)) return;
@@ -510,26 +614,39 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
 
   Future<void> _advance() async {
     if (_index == _entries.length - 1) {
-      await widget.store.commitPracticeResults(
-        results: _session.results,
-        correctAudioPaths: _session.correctAudioPaths,
-      );
-      await widget.sessionStore.clearActive();
-      if (!mounted) return;
-      if (_isSpeakAgain) {
-        Navigator.of(context).pop(VocabularyPracticeResult.otherContent);
-        return;
+      var reviewHasMore = false;
+      if (!_isToday) {
+        await widget.store.commitPracticeResults(
+          results: _session.results,
+          correctAudioPaths: _session.correctAudioPaths,
+        );
+        await widget.sessionStore.completeReviewBlock(_session.entryIds);
+        reviewHasMore = await widget.sessionStore.hasPendingReviewEntries(
+          widget.store,
+        );
+        if (!reviewHasMore) {
+          await widget.sessionStore.endReviewSession();
+        }
+      } else {
+        await widget.sessionStore.clearActive();
       }
+      if (!mounted) return;
       setState(() {
         _busy = false;
         _recording = false;
         _completed = true;
+        _reviewHasMore = reviewHasMore;
         _message = _isToday
             ? VocabularyFlowV3.todayCompletion
-            : VocabularyFlowV3.reviewGroupCompletion;
+            : reviewHasMore
+            ? VocabularyFlowV3.reviewGroupCompletion
+            : VocabularyFlowV3.reviewCycleFinished;
       });
       await _speakAndWait(_message);
-      await widget.onRequestVoiceChoice?.call();
+      await widget.onRequestVoiceChoice?.call(
+        noSpeechRetryPrompt: _message,
+        noSpeechExitPrompt: VocabularyFlowV3.pauseAfterNoResponse,
+      );
       return;
     }
     final nextIndex = _index + 1;
@@ -539,6 +656,8 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     setState(() {
       _index = nextIndex;
       _attemptNumber = 1;
+      _invalidResponseCount = 0;
+      _pausedAfterNoResponse = false;
       _busy = false;
       _recording = false;
     });
@@ -548,13 +667,13 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   bool _isCurrent(int generation, String entryId) =>
       mounted &&
       !_paused &&
+      !_pausedAfterNoResponse &&
       !_completed &&
       generation == _generation &&
       _entry.id == entryId;
 
   Future<void> _cancelCapture() async {
-    _recordingTimer?.cancel();
-    _recordingTimer = null;
+    _recordingEndpointDetector.cancel();
     if (_usesIosNativeRecognition) {
       await _iosSpeechInput!.cancel().catchError((Object _) {});
     } else {
@@ -569,8 +688,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     _generation += 1;
     final wasRecording = _recording;
     _recording = false;
-    _recordingTimer?.cancel();
-    _recordingTimer = null;
+    _recordingEndpointDetector.cancel();
     if (mounted) {
       setState(() {
         _busy = false;
@@ -586,9 +704,13 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     ]);
   }
 
-  Future<void> _resume({bool replay = true}) async {
+  Future<void> _resume({bool replay = true, bool announceResume = true}) async {
     if (!_paused || _completed) return;
     _paused = false;
+    _pausedAfterNoResponse = false;
+    _invalidResponseCount = 0;
+    if (_isReview) _attemptNumber = 1;
+    _resumeAnnouncementPending = announceResume;
     if (mounted) {
       setState(() => _message = 'Mình tiếp tục nhé.');
     }
@@ -606,14 +728,51 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     }
     if (_completed) {
       _paused = false;
-      if (command == ActiveLearningCommand.resume ||
-          command == ActiveLearningCommand.nextItem) {
+      if (_isToday && command == ActiveLearningCommand.resume) {
+        // MAIN resumes a paused owner automatically after a silent command
+        // window. Completion is a waiting-for-choice state, not replay consent.
+        setState(() => _message = VocabularyFlowV3.todayCompletion);
+        return const ActiveLearningCommandResult.handled();
+      }
+      if (command == ActiveLearningCommand.vocabularyParentAdded) {
+        _finish(VocabularyPracticeResult.parentAdded);
+        return const ActiveLearningCommandResult.handled();
+      }
+      if (command == ActiveLearningCommand.vocabularyStars) {
+        _finish(VocabularyPracticeResult.stars);
+        return const ActiveLearningCommandResult.handled();
+      }
+      if (_isToday &&
+          (command == ActiveLearningCommand.vocabularyPracticeAgain ||
+              command == ActiveLearningCommand.restart ||
+              command == ActiveLearningCommand.replayCurrent)) {
         _finish(VocabularyPracticeResult.continueLearning);
         return const ActiveLearningCommandResult.handled();
+      }
+      if ((command == ActiveLearningCommand.resume ||
+              command == ActiveLearningCommand.nextItem) &&
+          !_isToday &&
+          _reviewHasMore) {
+        _finish(VocabularyPracticeResult.continueLearning);
+        return const ActiveLearningCommandResult.handled();
+      }
+      if (!_isToday &&
+          !_reviewHasMore &&
+          (command == ActiveLearningCommand.resume ||
+              command == ActiveLearningCommand.nextItem)) {
+        setState(() => _message = VocabularyFlowV3.reviewCycleFinished);
+        return const ActiveLearningCommandResult.unavailable(
+          spokenReply: VocabularyFlowV3.reviewCycleFinished,
+        );
       }
       if (command == ActiveLearningCommand.exitToHome) {
         _finish(VocabularyPracticeResult.otherContent);
         return const ActiveLearningCommandResult.handled();
+      }
+      if (_isToday && command == ActiveLearningCommand.nextItem) {
+        return const ActiveLearningCommandResult.unavailable(
+          spokenReply: VocabularyFlowV3.todayCompletion,
+        );
       }
     }
     switch (command) {
@@ -627,23 +786,33 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.replayCurrent:
         if (!_paused) await pauseForMainAssistant();
-        await _resume();
+        await _resume(announceResume: false);
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.previousItem:
-        if (_recording || _busy || _index == 0) {
+        if (_isReview || _recording || _busy) {
           return const ActiveLearningCommandResult.unavailable();
         }
+        final atFirst = _index == 0;
         _generation += 1;
         setState(() {
-          _index -= 1;
+          _paused = false;
+          if (!atFirst) _index -= 1;
           _attemptNumber = 1;
         });
         _session = _session.copyWith(currentIndex: _index);
         await widget.sessionStore.saveActive(_session);
+        if (atFirst) {
+          await _playLessonPrompt(
+            const LessonGuidePrompt(
+              audioCode: 'CORE_FIRST_PREVIOUS',
+              text: 'Đây là câu đầu tiên. Mình nghe lại nhé.',
+            ),
+          );
+        }
         await _startCurrent();
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.exitToHome:
-        if (_isToday) {
+        if (!_completed) {
           return const ActiveLearningCommandResult.unavailable(
             spokenReply: VocabularyFlowV3.finishActiveGroupFirst,
           );
@@ -791,6 +960,18 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   }
 
   Widget _buildPracticeAction(BuildContext context) {
+    if (_pausedAfterNoResponse) {
+      return FilledButton.icon(
+        key: const Key('vocabulary-resume-after-no-response'),
+        onPressed: () => unawaited(_resumeAfterNoResponse()),
+        icon: const Icon(Icons.mic_rounded),
+        label: const Text('Thử lại mic'),
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(240, 58),
+          textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+        ),
+      );
+    }
     final enabled = !_busy && !_paused;
     return FilledButton.icon(
       key: const Key('vocabulary-practice-main-action'),
@@ -799,10 +980,18 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
           : _recording
           ? () => unawaited(_stopRecording())
           : () => unawaited(_startCurrent()),
-      icon: Icon(_recording ? Icons.stop_rounded : Icons.mic_rounded),
+      icon: Icon(
+        _isToday
+            ? Icons.play_arrow_rounded
+            : _recording
+            ? Icons.stop_rounded
+            : Icons.mic_rounded,
+      ),
       label: Text(
         _paused
             ? 'Đang tạm dừng'
+            : _isToday
+            ? 'Bắt đầu nghe'
             : _recording
             ? 'Con nói xong'
             : 'Nghe và nói lại',
@@ -815,6 +1004,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   }
 
   Widget _buildCompletionActions(BuildContext context) {
+    final canContinue = _isToday || _reviewHasMore;
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 560),
       child: Row(
@@ -826,15 +1016,17 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
               child: const Text('Học nội dung khác'),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: FilledButton(
-              key: const Key('vocabulary-continue-learning'),
-              onPressed: () =>
-                  _finish(VocabularyPracticeResult.continueLearning),
-              child: Text(_isToday ? 'Học tiếp' : 'Luyện tiếp'),
+          if (canContinue) ...<Widget>[
+            const SizedBox(width: 12),
+            Expanded(
+              child: FilledButton(
+                key: const Key('vocabulary-continue-learning'),
+                onPressed: () =>
+                    _finish(VocabularyPracticeResult.continueLearning),
+                child: Text(_isToday ? 'Học lại' : 'Học tiếp'),
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -862,7 +1054,17 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     }
   }
 
-  Future<void> _speakAndWait(String text, {String locale = 'vi-VN'}) async {
+  Future<void> _speakAndWait(
+    String text, {
+    String locale = 'vi-VN',
+    bool allowFixedPrompt = true,
+  }) async {
+    if (allowFixedPrompt &&
+        locale.toLowerCase().startsWith('vi') &&
+        await widget.fixedPromptAudioService?.playPromptIfAvailable(text) ==
+            true) {
+      return;
+    }
     final promptService = _voicePromptService;
     if (!kIsWeb && promptService is SelectedMediaOutputVoicePromptService) {
       await (promptService as SelectedMediaOutputVoicePromptService)
@@ -870,5 +1072,28 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       return;
     }
     await promptService.speakAndWait(text, locale: locale);
+  }
+
+  Future<void> _playLessonPrompt(LessonGuidePrompt prompt) async {
+    if (await widget.fixedPromptAudioService?.playAudioCodeIfAvailable(
+          prompt.audioCode,
+        ) ==
+        true) {
+      return;
+    }
+    await _speakAndWait(prompt.text, allowFixedPrompt: false);
+  }
+
+  Future<void> _speakVocabularyText(
+    VocabularyEntry entry,
+    String text, {
+    required String locale,
+  }) async {
+    final audio = widget.vocabularyAudioService;
+    if (entry.isParentAdded && audio != null) {
+      await audio.speakAndWait(text, locale: locale);
+      return;
+    }
+    await _speakAndWait(text, locale: locale, allowFixedPrompt: false);
   }
 }

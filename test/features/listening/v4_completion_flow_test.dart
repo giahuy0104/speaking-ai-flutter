@@ -16,20 +16,12 @@ void main() {
       'Bạn còn một Chủ đề chưa học. Bạn muốn học tiếp hay học lại?',
     );
     expect(
-      v4CompletionPrompt(V4CompletionStage.topicRelearnScope),
-      'Bạn muốn học lại toàn bộ chủ đề hay chỉ học lại bài này?',
-    );
-    expect(
       v4CompletionPrompt(V4CompletionStage.nextLevel, nextLevel: 2),
       'Bạn muốn bắt đầu Level 2 hay dừng lại?',
     );
     expect(
-      v4CompletionPrompt(V4CompletionStage.courseEnd),
-      'Bạn muốn học khóa mới hay học lại?',
-    );
-    expect(
       v4CompletionPrompt(V4CompletionStage.courseRelearnLevel),
-      'Bạn muốn học lại Level 1, Level 2 hay Level 3?',
+      'Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?',
     );
     expect(
       v4CompletionPrompt(
@@ -60,10 +52,7 @@ void main() {
       V4CompletionAction.relearnCurrentLesson,
     );
     expect(
-      resolver.resolve(
-        'Học lại toàn bộ chủ đề',
-        stage: V4CompletionStage.topicRelearnScope,
-      ),
+      resolver.resolve('Học lại chủ đề', stage: V4CompletionStage.topicEnd),
       V4CompletionAction.relearnTopic,
     );
     expect(
@@ -92,4 +81,71 @@ void main() {
       isNull,
     );
   });
+
+  test('does not navigate on prompt echo or replay of a different lesson', () {
+    for (final text in <String>[
+      'Bạn muốn học Bài 2 hay học lại Bài 1?',
+      'Học lại Bài 2',
+      'Học tiếp hay học lại',
+    ]) {
+      expect(
+        const V4CompletionChoiceResolver().resolve(
+          text,
+          stage: V4CompletionStage.lessonEnd,
+          currentLesson: 1,
+          nextLesson: 2,
+        ),
+        isNull,
+      );
+    }
+  });
+
+  test(
+    'understands the actual numbered choices and short continue answers',
+    () {
+      const resolver = V4CompletionChoiceResolver();
+      for (final text in <String>[
+        'Bài 2',
+        'Bài số hai',
+        'Đi tiếp',
+        'Tiếp tục',
+      ]) {
+        expect(
+          resolver.resolve(
+            text,
+            stage: V4CompletionStage.lessonEnd,
+            currentLesson: 1,
+            nextLesson: 2,
+          ),
+          V4CompletionAction.nextLesson,
+        );
+      }
+      expect(
+        resolver.resolve(
+          'Bài một',
+          stage: V4CompletionStage.lessonEnd,
+          currentLesson: 1,
+          nextLesson: 2,
+        ),
+        V4CompletionAction.relearnCurrentLesson,
+      );
+      for (final text in <String>['Chủ đề khác', 'Học tiếp', 'Đi tiếp']) {
+        expect(
+          resolver.resolve(text, stage: V4CompletionStage.topicEnd),
+          V4CompletionAction.nextTopic,
+        );
+      }
+      expect(
+        resolver.resolve(
+          'I want to practice again',
+          stage: V4CompletionStage.lessonEnd,
+        ),
+        V4CompletionAction.relearnCurrentLesson,
+      );
+      expect(
+        resolver.resolve('The next lesson', stage: V4CompletionStage.lessonEnd),
+        V4CompletionAction.nextLesson,
+      );
+    },
+  );
 }

@@ -9,6 +9,7 @@ class CoordinatedVoicePromptService
         SpeechReadyCuePlayer,
         PhoneSpeakerVoicePromptService,
         SelectedMediaOutputVoicePromptService,
+        StyledMediaOutputVoicePromptService,
         MainTurnVoicePromptService {
   CoordinatedVoicePromptService({
     required VoicePromptService delegate,
@@ -63,6 +64,29 @@ class CoordinatedVoicePromptService
     return delegate is SpeechReadyCuePlayer
         ? (delegate as SpeechReadyCuePlayer).playSpeechReadyCue()
         : Future<void>.value();
+  });
+
+  @override
+  Future<void> speakAndWaitStyled(
+    String text, {
+    required String locale,
+    required double speechRate,
+    required double pitch,
+  }) => _runPrompt(() {
+    final delegate = _delegate;
+    if (delegate is StyledMediaOutputVoicePromptService) {
+      return (delegate as StyledMediaOutputVoicePromptService)
+          .speakAndWaitStyled(
+            text,
+            locale: locale,
+            speechRate: speechRate,
+            pitch: pitch,
+          );
+    }
+    return delegate is SelectedMediaOutputVoicePromptService
+        ? (delegate as SelectedMediaOutputVoicePromptService)
+              .speakAndWaitOnSelectedMediaOutput(text, locale: locale)
+        : delegate.speakAndWait(text, locale: locale);
   });
 
   Future<void> _runPrompt(Future<void> Function() action) async {

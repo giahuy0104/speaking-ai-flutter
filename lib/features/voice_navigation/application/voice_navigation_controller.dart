@@ -220,19 +220,6 @@ class VoiceNavigationController extends ChangeNotifier {
     );
   }
 
-  /// Continues the guided topic journey after the child completes a topic.
-  Future<bool> activateTopicSelectionAfterCompletion({
-    required int childAge,
-    required List<int> completedTopicNumbers,
-  }) async {
-    return _activateMainAssistantFlow(
-      () => _mainAssistantFlow.beginTopicSelectionAfterCompletion(
-        childAge: childAge,
-        completedTopicNumbers: completedTopicNumbers,
-      ),
-    );
-  }
-
   Future<bool> activateLevelTopicSelection({
     required int childAge,
     required int levelNumber,
@@ -247,6 +234,18 @@ class VoiceNavigationController extends ChangeNotifier {
         topicNumbers: topicNumbers,
         completedTopicNumbers: completedTopicNumbers,
         announceLevel: announceLevel,
+      ),
+    );
+  }
+
+  Future<bool> activateCourseRelearnLevelSelection({
+    required int childAge,
+    required List<int> levelNumbers,
+  }) async {
+    return _activateMainAssistantFlow(
+      () => _mainAssistantFlow.beginCourseRelearnLevelSelection(
+        childAge: childAge,
+        levelNumbers: levelNumbers,
       ),
     );
   }
@@ -485,10 +484,10 @@ class VoiceNavigationController extends ChangeNotifier {
       return true;
     }
 
-    _buttonCommandSession = false;
-    _continuousRequested = false;
-    _mainNoSpeechRetryCount = 0;
-    _mainPrematureCompletionRecoveryCount = 0;
+    await _suspendForExternalSpeechHandoff();
+    if (_disposed || generation != _generation) {
+      return false;
+    }
     _mainAssistantFlow.reset();
     // The MAIN controller is the sole owner of the native turn. Apple Speech
     // may start, stop, or be replaced several times while the assistant asks
@@ -510,6 +509,32 @@ class VoiceNavigationController extends ChangeNotifier {
     }
     notifyListeners();
     return true;
+  }
+
+  /// Stops only the navigation-side recognition lifecycle before another
+  /// feature takes ownership of the shared native recognizer.
+  ///
+  /// Unlike [pause], this method never waits for `_finishInProgress`. It is
+  /// intentionally called from inside that finish operation, where waiting on
+  /// the same future would deadlock the MAIN -> continuous-translation handoff.
+  Future<void> _suspendForExternalSpeechHandoff() async {
+    _continuousRequested = false;
+    _buttonCommandSession = false;
+    _mainNoSpeechRetryCount = 0;
+    _mainPrematureCompletionRecoveryCount = 0;
+    _cancelTimers();
+    _awaitingCommand = false;
+    _acknowledgingWakeWord = false;
+    final shouldCancelInput = _starting || _listening;
+    _starting = false;
+    _listening = false;
+    _speechDetected = false;
+    if (shouldCancelInput) {
+      await _boundedCleanup(_speechInput.cancel());
+    }
+    if (!_disposed) {
+      notifyListeners();
+    }
   }
 
   Future<bool> _acknowledgeWakeWord(
@@ -575,7 +600,9 @@ class VoiceNavigationController extends ChangeNotifier {
     }
     try {
       final readyCuePlayer = _voicePromptService;
-      if (readyCuePlayer is SpeechReadyCuePlayer) {
+      if ((defaultTargetPlatform != TargetPlatform.android ||
+              !_buttonCommandSession) &&
+          readyCuePlayer is SpeechReadyCuePlayer) {
         // AudioServices completion is not guaranteed to arrive promptly while
         // iOS is switching a Bluetooth HFP route after prompt playback. Never
         // let a missing ready-cue callback prevent Apple Speech from opening.
@@ -775,6 +802,22 @@ class VoiceNavigationController extends ChangeNotifier {
       );
       if (_disposed || !_continuousRequested || generation != _generation) {
         await _boundedCleanup(_speechInput.cancel());
+        return;
+      }
+      if (defaultTargetPlatform == TargetPlatform.android &&
+          _awaitingCommand &&
+          _voicePromptService is SpeechReadyCuePlayer) {
+        try {
+          await (_voicePromptService as SpeechReadyCuePlayer)
+              .playSpeechReadyCue()
+              .timeout(_speechReadyCueTimeout);
+        } catch (error) {
+          // Capture is already ready. A missing cue completion must not cancel
+          // this valid command window or force another microphone start.
+          _lastError = error;
+        }
+      }
+      if (_disposed || !_continuousRequested || generation != _generation) {
         return;
       }
       _starting = false;
