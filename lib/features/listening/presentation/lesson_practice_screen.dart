@@ -545,26 +545,15 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         );
       case ActiveLearningCommand.resume:
         _pausedForMainAssistant = false;
-        if (_pausedAfterNoResponse) {
-          await _resumeAfterNoResponse();
-          return const ActiveLearningCommandResult.handled();
-        }
-        _guidedSequenceStarted = false;
-        setState(() {
-          // Resuming from MAIN always creates a fresh attempt. Keeping the
-          // previous path here made the guided sequence return early and left
-          // the microphone closed after "Cùng học tiếp nhé".
-          _recordingPath = null;
-          _recordingDuration = null;
-          _message = null;
-          _showSkip = false;
-        });
-        await _startRecording();
+        // The full EN -> VI -> cue sequence can exceed the registry's command
+        // timeout. Hand ownership back immediately and let the screen finish
+        // its guarded sequence under the lesson lifecycle ticket.
+        unawaited(_resumeCoreAfterMain());
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.replayCurrent:
         _pausedForMainAssistant = false;
         _guidedSequenceStarted = false;
-        await _playSample();
+        unawaited(_playSample());
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.nextItem:
         if (widget.lesson.usesV4Flow &&
@@ -574,16 +563,16 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           );
         }
         _pausedForMainAssistant = false;
-        await _advanceToNext(autoPlaySentence: true);
+        unawaited(_advanceToNext(autoPlaySentence: true));
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.previousItem:
         if (_sentenceIndex == 0) {
           _pausedForMainAssistant = false;
-          await _previous(autoPlaySentence: true);
+          unawaited(_previous(autoPlaySentence: true));
           return const ActiveLearningCommandResult.handled();
         }
         _pausedForMainAssistant = false;
-        await _previous(autoPlaySentence: true);
+        unawaited(_previous(autoPlaySentence: true));
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.nextLesson:
         final nextLesson = _nextLessonInTopic;
@@ -608,7 +597,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.restart:
         _pausedForMainAssistant = false;
-        await _restartCurrentLesson();
+        unawaited(_restartCurrentLesson());
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.vocabularyParentAdded:
       case ActiveLearningCommand.vocabularyPracticeAgain:
@@ -624,6 +613,33 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         Navigator.of(context).popUntil((route) => route.isFirst);
         return const ActiveLearningCommandResult.handled();
     }
+  }
+
+  Future<void> _resumeCoreAfterMain() async {
+    if (!_usesGuideV2) {
+      await _startRecording();
+      return;
+    }
+    if (widget.lesson.usesV4Flow) {
+      await _playPrompt(
+        LessonGuidePrompt(
+          audioCode: 'RESUME_CORE',
+          text:
+              'Mình học tiếp Bài ${widget.lesson.number}: '
+              '${widget.lesson.titleVi} nhé.',
+        ),
+      );
+    }
+    if (_pausedAfterNoResponse) {
+      await _resumeAfterNoResponse();
+      return;
+    }
+    // A resumed Core turn is a new attempt and must always replay the complete
+    // EN -> VI -> cue sequence before opening the microphone.
+    await _activateCurrentSentence(
+      autoPlay: true,
+      restoreExistingRecording: false,
+    );
   }
 
   Future<void> _runVirtualLessonCommand(ActiveLearningCommand command) async {
@@ -1211,13 +1227,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       } catch (_) {
         // The successful recording remains usable even if progress sync fails.
       }
-      await _playAttemptRecordingToCompletion(recording);
-      if (!mounted ||
-          _pausedForMainAssistant ||
-          !_lessonSession.isCurrentRecordingLifecycle(recordingGeneration)) {
-        return;
-      }
-      setState(() => _mediaBusy = false);
       if (_usesGuideV2) {
         final evaluationRequest = _lessonSession.beginAttemptEvaluation();
         final evaluatedSentenceIndex = _sentenceIndex;
@@ -1226,8 +1235,37 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         setState(() => _evaluatingAttempt = true);
         var shouldOpenMicrophoneAgain = false;
         try {
-          shouldOpenMicrophoneAgain = await _evaluateAttempt(
-            recording,
+          LessonAttemptOutcome? evaluatedOutcome;
+          // Recognition/scoring and child-voice replay are independent. Start
+          // them together, but apply feedback only after replay has completed
+          // so assistant audio can never overlap the child's voice.
+          await Future.wait<void>(<Future<void>>[
+            _playAttemptRecordingToCompletion(recording),
+            _attemptEvaluator
+                .evaluate(
+                  lessonCode: widget.lesson.code,
+                  sentenceId: evaluatedSentence.id,
+                  expectedEnglish: evaluatedSentence.english,
+                  recordingPath: recording.filePath,
+                  recordingDuration: recording.duration,
+                  attemptNumber: evaluatedAttemptNumber,
+                  childAge: widget.startAge,
+                  acceptedVariants: evaluatedSentence.recognitionVariants,
+                  requireAllExpectedTokens:
+                      evaluatedSentence.requiresAllExpectedTokens,
+                )
+                .then<void>((outcome) => evaluatedOutcome = outcome),
+          ]);
+          if (!_isCurrentEvaluation(
+            evaluationRequest,
+            evaluatedSentenceIndex,
+            evaluatedSentence.id,
+          )) {
+            return;
+          }
+          setState(() => _mediaBusy = false);
+          shouldOpenMicrophoneAgain = await _applyAttemptOutcome(
+            evaluatedOutcome!,
             evaluationRequest: evaluationRequest,
             sentenceIndex: evaluatedSentenceIndex,
             sentence: evaluatedSentence,
@@ -1247,6 +1285,13 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           );
         }
       } else {
+        await _playAttemptRecordingToCompletion(recording);
+        if (!mounted ||
+            _pausedForMainAssistant ||
+            !_lessonSession.isCurrentRecordingLifecycle(recordingGeneration)) {
+          return;
+        }
+        setState(() => _mediaBusy = false);
         _showPraiseFireworks();
         unawaited(_playGuideCue(LessonGuideCue.praise));
       }
@@ -1397,36 +1442,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         sentenceId: evaluatedSentence.id,
       );
     }
-  }
-
-  Future<bool> _evaluateAttempt(
-    LessonRecording recording, {
-    required int evaluationRequest,
-    required int sentenceIndex,
-    required ListeningSentenceContent sentence,
-    required int attemptNumber,
-  }) async {
-    final outcome = await _attemptEvaluator.evaluate(
-      lessonCode: widget.lesson.code,
-      sentenceId: sentence.id,
-      expectedEnglish: sentence.english,
-      recordingPath: recording.filePath,
-      recordingDuration: recording.duration,
-      attemptNumber: attemptNumber,
-      childAge: widget.startAge,
-      acceptedVariants: sentence.recognitionVariants,
-      requireAllExpectedTokens: sentence.requiresAllExpectedTokens,
-    );
-    if (!_isCurrentEvaluation(evaluationRequest, sentenceIndex, sentence.id)) {
-      return false;
-    }
-    return _applyAttemptOutcome(
-      outcome,
-      evaluationRequest: evaluationRequest,
-      sentenceIndex: sentenceIndex,
-      sentence: sentence,
-      attemptNumber: attemptNumber,
-    );
   }
 
   Future<bool> _applyAttemptOutcome(
@@ -1889,7 +1904,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     return VocabularySource.topicCore;
   }
 
-  Future<void> _continue() => _advanceToNext(autoPlaySentence: false);
+  Future<void> _continue() => _advanceToNext(autoPlaySentence: true);
 
   Future<void> _advanceToNext({required bool autoPlaySentence}) async {
     if (_recording || _mediaBusy) {
@@ -1953,7 +1968,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     await _activateCurrentSentence(autoPlay: autoPlaySentence);
   }
 
-  Future<void> _previous({bool autoPlaySentence = false}) async {
+  Future<void> _previous({bool autoPlaySentence = true}) async {
     if (_sentenceIndex == 0) {
       if (!widget.lesson.usesV4Flow) return;
       await _markCurrentSkippedIfPending();

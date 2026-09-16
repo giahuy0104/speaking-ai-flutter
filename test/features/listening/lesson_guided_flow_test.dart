@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
+import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_attempt_evaluator.dart';
@@ -303,7 +304,7 @@ void main() {
       (await registry.execute(ActiveLearningCommand.resume)).wasHandled,
       isTrue,
     );
-    await tester.pump();
+    await _pumpGuidedSpeechTurn(tester);
     expect(registry.isActiveModulePaused, isFalse);
     expect(mediaService.recording, isTrue);
     expect(mediaService.startedSentenceIds, hasLength(2));
@@ -322,6 +323,52 @@ void main() {
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
+  });
+
+  testWidgets('V4 MAIN resume replays RESUME_CORE then EN-VI before mic', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final mediaService = _GuidedMediaService();
+    final voicePrompts = _ReadyCueVoicePromptService();
+
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: _subject(
+          _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+          mediaService,
+          guideAudioLibrary: _silentGuideAudioLibrary(),
+          voicePromptService: voicePrompts,
+        ),
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+    voicePrompts.spoken.clear();
+
+    expect(
+      (await registry.execute(ActiveLearningCommand.stop)).wasHandled,
+      isTrue,
+    );
+    expect(
+      (await registry.execute(ActiveLearningCommand.resume)).wasHandled,
+      isTrue,
+    );
+    await _pumpGuidedSpeechTurn(tester);
+
+    expect(
+      voicePrompts.spoken,
+      containsAllInOrder(<String>[
+        'vi-VN|Mình học tiếp Bài 1: Bài hướng dẫn nhé.',
+        'en-US|Sentence 1',
+        'vi-VN|Câu 1',
+        'vi-VN|Bạn nói lại nhé.',
+      ]),
+    );
+    expect(mediaService.recording, isTrue);
+    expect(mediaService.startedSentenceIds, hasLength(2));
   });
 
   testWidgets('V4 praises before explaining the first earned star', (
@@ -360,7 +407,7 @@ void main() {
     expect(progressStore.earnedStars, contains('core:GUIDED-FLOW_S1'));
   });
 
-  testWidgets('plays the stopped recording completely before scoring', (
+  testWidgets('scores while replay runs but waits to apply the result', (
     tester,
   ) async {
     await _usePhoneSurface(tester);
@@ -385,7 +432,8 @@ void main() {
     await tester.pump();
     await mediaService.recordingPlaybackStarted.future;
 
-    expect(evaluator.evaluationCalls, 0);
+    expect(evaluator.evaluationCalls, 1);
+    expect(find.text('Sentence 1'), findsOneWidget);
     mediaService.finishRecordingPlayback();
     await _pumpGuidedSpeechTurn(tester);
 
@@ -418,13 +466,17 @@ void main() {
     await tester.pump();
     await mediaService.recordingPlaybackStarted.future;
 
-    expect(evaluator.evaluationCalls, 0);
+    expect(evaluator.evaluationCalls, 1);
+    expect(find.text('Sentence 1'), findsOneWidget);
     mediaService.finishRecordingPlayback();
     await _pumpGuidedSpeechTurn(tester);
 
     expect(evaluator.evaluationCalls, 1);
     expect(mediaService.playedUris.last.toString(), contains('latest.m4a'));
-    expect(mediaService.lastRecordingPlaybackGainDb, 12.0);
+    expect(
+      mediaService.lastRecordingPlaybackGainDb,
+      lessonRecordingPlaybackGainDb,
+    );
   });
 
   testWidgets('keeps an injected lesson evaluator caller-owned', (
@@ -1806,8 +1858,10 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      expect(voicePrompt.spoken, hasLength(1));
-      expect(voicePrompt.spoken.single, contains('Hôm nay mình'));
+      expect(voicePrompt.spoken, hasLength(3));
+      expect(voicePrompt.spoken.first, contains('Hôm nay mình'));
+      expect(voicePrompt.spoken[1], 'en-US|Guided lesson');
+      expect(voicePrompt.spoken.last, startsWith('vi-VN|'));
       expect(mediaService.selectedOutputPreparationCount, 1);
       expect(find.textContaining('Không thể phát lời mở đầu'), findsNothing);
 

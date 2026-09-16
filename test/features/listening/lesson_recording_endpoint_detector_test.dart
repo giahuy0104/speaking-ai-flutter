@@ -111,6 +111,36 @@ void main() {
     ]);
   });
 
+  testWidgets(
+    'short flat HFP speech ends on silence instead of waiting for six seconds',
+    (tester) async {
+      final amplitudes = StreamController<double>.broadcast(sync: true);
+      addTearDown(amplitudes.close);
+      var now = DateTime(2026);
+      final reasons = <LessonRecordingEndpointReason>[];
+      final detector = LessonRecordingEndpointDetector(now: () => now);
+      detector.start(amplitudeDbfs: amplitudes.stream, onEndpoint: reasons.add);
+
+      amplitudes
+        ..add(-60)
+        ..add(-60)
+        ..add(-60);
+      now = now.add(const Duration(milliseconds: 150));
+      amplitudes.add(-20);
+      now = now.add(const Duration(milliseconds: 280));
+      amplitudes.add(-20);
+      expect(detector.speechDetected, isTrue);
+
+      now = now.add(const Duration(milliseconds: 90));
+      amplitudes.add(-60);
+      await tester.pump(const Duration(milliseconds: 700));
+
+      expect(reasons, <LessonRecordingEndpointReason>[
+        LessonRecordingEndpointReason.silence,
+      ]);
+    },
+  );
+
   testWidgets('cancel prevents both silence and maximum callbacks', (
     tester,
   ) async {

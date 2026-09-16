@@ -123,7 +123,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('vocabulary-stars-card')));
     await tester.pumpAndSettle();
-    expect(find.text('Ngôi sao của con'), findsOneWidget);
+    expect(find.text('Ngôi sao của bạn'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('vocabulary-back-to-journeys')));
     await tester.pumpAndSettle();
@@ -179,13 +179,17 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('search-vocabulary-button')), findsOneWidget);
+      expect(find.byKey(const Key('search-vocabulary-button')), findsNothing);
+      expect(
+        find.byKey(const Key('vocabulary-home-back-button')),
+        findsOneWidget,
+      );
       expect(find.byKey(const Key('add-vocabulary-button')), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('vocabulary-stars-card')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Ngôi sao của con'), findsOneWidget);
+      expect(find.text('Ngôi sao của bạn'), findsOneWidget);
       expect(find.byKey(const Key('search-vocabulary-button')), findsNothing);
       expect(find.byKey(const Key('add-vocabulary-button')), findsNothing);
       expect(find.byKey(const Key('vocabulary-search-field')), findsOneWidget);
@@ -293,6 +297,7 @@ void main() {
       find.text('Có thể nhập bằng tiếng Anh hoặc tiếng Việt.'),
       findsOneWidget,
     );
+    expect(find.text('Ví dụ:'), findsNothing);
     await tester.enterText(
       find.byKey(const Key('add-vocabulary-field')),
       'quả táo',
@@ -459,6 +464,25 @@ void main() {
       'Mèo con',
     );
     await tester.pump();
+    final saveFirstSuggestion = find.byKey(
+      const Key('save-vocabulary-suggestion-0'),
+    );
+    expect(saveFirstSuggestion, findsOneWidget);
+    await tester.ensureVisible(saveFirstSuggestion);
+    await tester.tap(saveFirstSuggestion);
+    await tester.pump();
+    expect(
+      tester
+          .widget<Checkbox>(
+            find.byKey(
+              const ValueKey<String>('select-vocabulary-suggestion-0'),
+            ),
+          )
+          .value,
+      isTrue,
+    );
+    expect(find.byKey(const Key('save-vocabulary-suggestion-0')), findsNothing);
+    expect(find.text('It is a cat.'), findsOneWidget);
     await tester.tap(find.byKey(const Key('confirm-vocabulary-suggestions')));
     await tester.pumpAndSettle();
 
@@ -472,6 +496,7 @@ void main() {
     tester,
   ) async {
     final store = _MemoryVocabularyStore();
+    final audioService = _RecordingVocabularyAudioService();
     await tester.pumpWidget(
       MaterialApp(
         theme: buildAppTheme(),
@@ -481,6 +506,7 @@ void main() {
             isReady: true,
             store: store,
             voicePromptService: const _FakeVoicePromptService(),
+            vocabularyAudioService: audioService,
             dictionaryProvider: _FakeVocabularyDictionaryProvider(
               result: const VocabularyDictionaryResult(
                 english: 'mad',
@@ -540,6 +566,31 @@ void main() {
     expect(find.text('Tức giận'), findsOneWidget);
     expect(find.text('Điên rồ'), findsOneWidget);
     expect(find.text('I am mad.'), findsOneWidget);
+
+    for (final index in <int>[1, 2]) {
+      final checkbox = find.byKey(
+        ValueKey<String>('select-vocabulary-suggestion-$index'),
+      );
+      await tester.ensureVisible(checkbox);
+      await tester.tap(checkbox);
+      await tester.pump();
+    }
+    expect(find.text('3/3 đã chọn'), findsOneWidget);
+    for (var index = 0; index < 3; index++) {
+      expect(
+        tester
+            .widget<Checkbox>(
+              find.byKey(
+                ValueKey<String>('select-vocabulary-suggestion-$index'),
+              ),
+            )
+            .value,
+        isTrue,
+      );
+    }
+    await tester.tap(find.byKey(const Key('confirm-vocabulary-suggestions')));
+    await tester.pumpAndSettle();
+    expect(store.entries, hasLength(3));
   });
 
   testWidgets('shows lesson sentences in Stars and Review collections', (
@@ -596,6 +647,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text("I'm An"), findsOneWidget);
     expect(find.text('This is my bag'), findsNothing);
+    expect(
+      tester
+          .widget<Text>(
+            find.byKey(const ValueKey<String>('vocabulary-order-star')),
+          )
+          .data,
+      '1',
+    );
 
     await tester.tap(find.byKey(const Key('vocabulary-back-to-journeys')));
     await tester.pumpAndSettle();
@@ -604,6 +663,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('This is my bag'), findsOneWidget);
     expect(find.text("I'm An"), findsNothing);
+    expect(
+      tester
+          .widget<Text>(
+            find.byKey(const ValueKey<String>('vocabulary-order-review')),
+          )
+          .data,
+      '1',
+    );
   });
 
   testWidgets('refreshes collection counts after a lesson saves a sentence', (
@@ -694,6 +761,40 @@ void main() {
     );
     expect(find.text('Đã học tốt'), findsNothing);
     expect(find.text('2 nội dung đã lưu'), findsOneWidget);
+    expect(
+      tester
+          .widget<Text>(
+            find.byKey(const ValueKey<String>('vocabulary-order-old')),
+          )
+          .data,
+      '1',
+    );
+    expect(
+      tester
+          .widget<Text>(
+            find.byKey(const ValueKey<String>('vocabulary-order-new')),
+          )
+          .data,
+      '2',
+    );
+
+    await tester.enterText(
+      find.byKey(const Key('vocabulary-search-field')),
+      'New content',
+    );
+    await tester.pump();
+    expect(
+      tester
+          .widget<Text>(
+            find.byKey(const ValueKey<String>('vocabulary-order-new')),
+          )
+          .data,
+      '1',
+    );
+    expect(
+      find.byKey(const ValueKey<String>('vocabulary-order-old')),
+      findsNothing,
+    );
   });
 
   testWidgets('edits both English and Vietnamese in the waiting queue', (
@@ -945,7 +1046,7 @@ void main() {
     final stars = await registry.execute(ActiveLearningCommand.vocabularyStars);
     await tester.pumpAndSettle();
     expect(stars.wasHandled, isTrue);
-    expect(find.text('Ngôi sao của con'), findsOneWidget);
+    expect(find.text('Ngôi sao của bạn'), findsOneWidget);
   });
 }
 

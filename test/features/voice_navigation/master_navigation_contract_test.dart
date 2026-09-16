@@ -218,6 +218,38 @@ void main() {
     );
   });
 
+  test('ambiguous next means next Core item, not resume current item', () {
+    const resolver = ActiveLearningCommandResolver();
+    expect(
+      resolver.resolve('Tiếp theo', node: ActiveLearningVoiceNode.core),
+      ActiveLearningCommand.nextItem,
+    );
+    expect(
+      resolver.resolve('Tiếp theo', node: ActiveLearningVoiceNode.parent),
+      ActiveLearningCommand.nextItem,
+    );
+    expect(
+      resolver.resolve('Tiếp theo', node: ActiveLearningVoiceNode.challenge),
+      ActiveLearningCommand.resume,
+    );
+  });
+
+  test('deprecated replay-or-stop prompt is silent for Challenge', () async {
+    final flow = MainVoiceAssistantFlow();
+    const context = _VoiceContext(ActiveLearningVoiceNode.challenge, '');
+
+    expect(
+      flow.beginActiveLearning(
+        kind: ActiveLearningModuleKind.listeningLesson,
+        voiceContext: context,
+      ),
+      isEmpty,
+    );
+    final turn = await flow.handle('Tiếp tục');
+    expect(turn.activeLearningCommand, ActiveLearningCommand.resume);
+    expect(turn.promptText, isEmpty);
+  });
+
   test(
     'active context supplies help and stop without touching study data',
     () async {

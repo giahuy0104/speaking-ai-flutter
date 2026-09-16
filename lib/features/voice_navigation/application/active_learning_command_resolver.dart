@@ -146,8 +146,9 @@ class ActiveLearningCommandResolver {
         'CONTINUE_BLOCK': ActiveLearningCommand.resume,
       },
       _ => <String, ActiveLearningCommand>{
-        'LISTEN_AGAIN': ActiveLearningCommand.replayCurrent,
-        'RESUME_ACTIVITY': ActiveLearningCommand.resume,
+        // "Tiếp theo" exists in both NEXT_ITEM and ACTIVE_RESUME in the
+        // authored catalog. In Core/Parent/Star it means the next item; only a
+        // paused node without next-item support may interpret it as resume.
         if (node != ActiveLearningVoiceNode.challenge &&
             node != ActiveLearningVoiceNode.review)
           'PREVIOUS_ITEM': ActiveLearningCommand.previousItem,
@@ -159,6 +160,8 @@ class ActiveLearningCommandResolver {
             node == ActiveLearningVoiceNode.parent ||
             node == ActiveLearningVoiceNode.star)
           'SKIP_ITEM': ActiveLearningCommand.nextItem,
+        'LISTEN_AGAIN': ActiveLearningCommand.replayCurrent,
+        'RESUME_ACTIVITY': ActiveLearningCommand.resume,
       },
     };
     for (final entry in choices.entries) {

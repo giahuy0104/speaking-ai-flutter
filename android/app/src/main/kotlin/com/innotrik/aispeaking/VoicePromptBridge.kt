@@ -365,8 +365,9 @@ class VoicePromptBridge(
 
     private fun playSpeechReadyCue(result: MethodChannel.Result) {
         completeReadyCue()
+        val streamType = readyCueStreamType()
         var generator = try {
-            readyCueGenerator ?: ToneGenerator(AudioManager.STREAM_MUSIC, 85).also {
+            ToneGenerator(streamType, 100).also {
                 readyCueGenerator = it
             }
         } catch (error: RuntimeException) {
@@ -379,12 +380,12 @@ class VoicePromptBridge(
             false
         }
         if (!toneStarted) {
-            // OEM audio-route changes can leave a cached ToneGenerator stale.
-            // Recreate it once instead of silently losing alternate mic cues.
+            // Recreate once instead of silently losing the cue on an OEM route
+            // transition. The first instance is never reused across turns.
             runCatching { generator.release() }
             readyCueGenerator = null
             generator = try {
-                ToneGenerator(AudioManager.STREAM_MUSIC, 85).also {
+                ToneGenerator(streamType, 100).also {
                     readyCueGenerator = it
                 }
             } catch (error: RuntimeException) {
@@ -408,10 +409,31 @@ class VoicePromptBridge(
         mainHandler.postDelayed(completion, 150L)
     }
 
+    private fun readyCueStreamType(): Int {
+        val audioManager = appContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        @Suppress("DEPRECATION")
+        val bluetoothScoOn = audioManager.isBluetoothScoOn
+        // The cue is played after H20 recording starts. STREAM_MUSIC may then
+        // remain on the phone while the active SCO route carries voice-call
+        // audio, which made the "ting" intermittent on the headset.
+        return if (
+            audioManager.mode == AudioManager.MODE_IN_COMMUNICATION ||
+                bluetoothScoOn
+        ) {
+            AudioManager.STREAM_VOICE_CALL
+        } else {
+            AudioManager.STREAM_MUSIC
+        }
+    }
+
     private fun completeReadyCue() {
         readyCueCompletion?.let(mainHandler::removeCallbacks)
         readyCueCompletion = null
-        readyCueGenerator?.stopTone()
+        readyCueGenerator?.let { generator ->
+            runCatching { generator.stopTone() }
+            runCatching { generator.release() }
+        }
+        readyCueGenerator = null
         val completion = readyCueResult
         readyCueResult = null
         completion?.success(null)
@@ -439,7 +461,5 @@ class VoicePromptBridge(
         methodChannel.setMethodCallHandler(null)
         textToSpeech?.shutdown()
         textToSpeech = null
-        readyCueGenerator?.release()
-        readyCueGenerator = null
     }
 }

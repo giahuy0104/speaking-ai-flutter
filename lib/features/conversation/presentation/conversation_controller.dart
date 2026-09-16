@@ -2686,7 +2686,7 @@ class ConversationController extends ChangeNotifier
           _latestEndpointTranscript,
           baseSilenceMs: vadSilenceMs,
         )
-      : Duration(milliseconds: vadSilenceMs);
+      : Duration(milliseconds: (vadSilenceMs - 150).clamp(400, 700).toInt());
 
   void _finishStablePartialAfterQuietWindow(Duration quietWindow) {
     _partialSpeechEndpointTimer = null;
@@ -3314,7 +3314,7 @@ class ConversationController extends ChangeNotifier
     } on TimeoutException {
       await _playbackService.stop().catchError((Object _) {});
       throw const PlaybackException(
-        'Không thể chuẩn bị âm thanh trong thời gian cho phép. Con thử lại nhé.',
+        'Không thể chuẩn bị âm thanh trong thời gian cho phép. Bạn thử lại nhé.',
       );
     }
   }
@@ -3327,7 +3327,7 @@ class ConversationController extends ChangeNotifier
     } on TimeoutException {
       await _playbackService.stop().catchError((Object _) {});
       throw const PlaybackException(
-        'Không thể chuẩn bị âm thanh trong thời gian cho phép. Con thử lại nhé.',
+        'Không thể chuẩn bị âm thanh trong thời gian cho phép. Bạn thử lại nhé.',
       );
     }
   }
@@ -3365,7 +3365,7 @@ class ConversationController extends ChangeNotifier
       // the timed-out SCO request cannot reopen after MAIN has moved on.
       await control.stopAudioRoute().catchError((Object _) {});
       throw const PlaybackException(
-        'Không thể chuẩn bị âm thanh H20 trong thời gian cho phép. Con thử lại nhé.',
+        'Không thể chuẩn bị âm thanh H20 trong thời gian cho phép. Bạn thử lại nhé.',
       );
     }
   }
@@ -3680,7 +3680,7 @@ class ConversationController extends ChangeNotifier
         final directMetrics = await directStart.timeout(
           _audioPreparationTimeout,
           onTimeout: () => throw const PlaybackException(
-            'Không thể chuẩn bị âm thanh trong thời gian cho phép. Con thử lại nhé.',
+            'Không thể chuẩn bị âm thanh trong thời gian cho phép. Bạn thử lại nhé.',
           ),
         );
         gestureMetrics = directMetrics;
@@ -4037,7 +4037,7 @@ class ConversationController extends ChangeNotifier
   }
 
   static const _unclearSpeechMessage =
-      'Cô chưa nghe thấy con nói. Con nói lại nhé.';
+      'Cô chưa nghe thấy bạn nói. Bạn nói lại nhé.';
 
   void _handleConversationError(Object error) {
     if (error is CodedConversationException &&
@@ -4070,7 +4070,7 @@ class ConversationController extends ChangeNotifier
     if (error is PlatformException &&
         (error.code == '561017449' ||
             (error.message?.contains('561017449') ?? false))) {
-      return 'Âm thanh đang chuyển từ nghe sang nói. Con thử lại nhé.';
+      return 'Âm thanh đang chuyển từ nghe sang nói. Bạn thử lại nhé.';
     }
     return error.toString().replaceFirst('Exception: ', '');
   }

@@ -9,7 +9,7 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
-  test('deleting parent entries restores the available daily quota', () async {
+  test('deleting waiting entries restores queue capacity', () async {
     const store = VocabularyStore();
     final now = DateTime(2026, 9, 10, 8);
 
@@ -56,6 +56,42 @@ void main() {
       ], now: now.add(const Duration(minutes: 4))),
       throwsA(isA<VocabularyDailyLimitException>()),
     );
+  });
+
+  test('waiting queue capacity is enforced across calendar days', () async {
+    const store = VocabularyStore();
+    final firstDay = DateTime(2026, 9, 10, 8);
+    final secondDay = DateTime(2026, 9, 11, 8);
+
+    final entries = await store.addParentEntries(const <VocabularyTranslation>[
+      VocabularyTranslation(englishText: 'Apple', vietnameseText: 'Quả táo'),
+      VocabularyTranslation(englishText: 'Banana', vietnameseText: 'Quả chuối'),
+      VocabularyTranslation(englishText: 'Orange', vietnameseText: 'Quả cam'),
+    ], now: firstDay);
+    await store.addParentEntries(const <VocabularyTranslation>[
+      VocabularyTranslation(
+        englishText: 'School',
+        vietnameseText: 'Trường học',
+      ),
+      VocabularyTranslation(
+        englishText: 'Teacher',
+        vietnameseText: 'Giáo viên',
+      ),
+    ], now: firstDay.add(const Duration(minutes: 1)));
+
+    expect(await store.parentWaitingCount(), 5);
+    expect(
+      () => store.addParentEntries(const <VocabularyTranslation>[
+        VocabularyTranslation(englishText: 'Friend', vietnameseText: 'Bạn bè'),
+      ], now: secondDay),
+      throwsA(isA<VocabularyDailyLimitException>()),
+    );
+
+    await store.deleteParentEntry(entries.first.id);
+    await store.addParentEntries(const <VocabularyTranslation>[
+      VocabularyTranslation(englishText: 'Friend', vietnameseText: 'Bạn bè'),
+    ], now: secondDay);
+    expect(await store.parentWaitingCount(), 5);
   });
 
   test('a parent entry locks as soon as learning starts', () async {

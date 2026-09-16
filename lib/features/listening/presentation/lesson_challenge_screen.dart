@@ -87,7 +87,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       ActiveLearningVoiceNode.challenge;
 
   @override
-  String get mainVoicePrompt => 'Bạn muốn nghe lại hay dừng lại?';
+  String get mainVoicePrompt => '';
   static const Duration _promptCompletionTimeout = Duration(seconds: 10);
 
   late final LessonAttemptEvaluator _attemptEvaluator;
@@ -250,10 +250,14 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       case ActiveLearningCommand.resume:
         _pausedForMainAssistant = false;
         if (_pausedAfterNoResponse) {
-          await _resumeAfterNoResponse();
+          unawaited(_resumeAfterNoResponse());
           return const ActiveLearningCommandResult.handled();
         }
-        await _playCurrentPrompt();
+        unawaited(_playCurrentPrompt(announceResume: true));
+        return const ActiveLearningCommandResult.handled();
+      case ActiveLearningCommand.replayCurrent:
+        _pausedForMainAssistant = false;
+        unawaited(_replayCurrent());
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.stop:
         await pauseForMainAssistant();
@@ -264,7 +268,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         await pauseForMainAssistant();
         if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
         return const ActiveLearningCommandResult.handled();
-      case ActiveLearningCommand.replayCurrent:
       case ActiveLearningCommand.nextItem:
       case ActiveLearningCommand.previousItem:
       case ActiveLearningCommand.nextLesson:
@@ -285,6 +288,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   Future<void> _playCurrentPrompt({
     bool allowBusy = false,
     bool openMicrophone = true,
+    bool announceResume = false,
   }) async {
     if (_pausedForMainAssistant ||
         !mounted ||
@@ -304,6 +308,10 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       // automatic microphone opening can be lost during route renegotiation.
       await widget.mediaService.prepareSelectedLessonOutput();
       if (!mounted || request != _request) return;
+      if (announceResume) {
+        await _speakPromptAndWait('Mình tiếp tục câu thử thách nhé.');
+        if (!mounted || request != _request) return;
+      }
       await _speakPromptAndWait(_challenge.prompt);
       if (!mounted || request != _request) return;
       await _speakPromptAndWait('Bạn nói đáp án bằng tiếng Anh nhé.');
@@ -526,21 +534,27 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
           _recording = false;
           _recordingUsesIosSpeech = false;
         });
-        await _playAttemptRecordingToCompletion(recording);
+        LessonAttemptOutcome? evaluatedOutcome;
+        await Future.wait<void>(<Future<void>>[
+          _playAttemptRecordingToCompletion(recording),
+          _attemptEvaluator
+              .evaluate(
+                lessonCode: widget.lesson.code,
+                sentenceId: _attemptId,
+                expectedEnglish: _expectedEnglish,
+                recordingPath: recording.filePath,
+                recordingDuration: recording.duration,
+                attemptNumber: evaluatedAttemptNumber,
+                childAge: widget.startAge,
+                acceptedVariants: _acceptedRecognitionVariants,
+                requireAllExpectedTokens: false,
+              )
+              .then<void>((value) => evaluatedOutcome = value),
+        ]);
         if (!mounted || _pausedForMainAssistant || request != _request) {
           return;
         }
-        outcome = await _attemptEvaluator.evaluate(
-          lessonCode: widget.lesson.code,
-          sentenceId: _attemptId,
-          expectedEnglish: _expectedEnglish,
-          recordingPath: recording.filePath,
-          recordingDuration: recording.duration,
-          attemptNumber: evaluatedAttemptNumber,
-          childAge: widget.startAge,
-          acceptedVariants: _acceptedRecognitionVariants,
-          requireAllExpectedTokens: false,
-        );
+        outcome = evaluatedOutcome!;
       }
       if (!mounted || _pausedForMainAssistant || request != _request) return;
       if (usesIosSpeech && completedRecording != null) {
@@ -700,7 +714,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       _attemptNumber = 0;
       _message = null;
     });
-    await _playCurrentPrompt();
+    await _playCurrentPrompt(announceResume: true);
   }
 
   Future<void> _notifyChallengeResolved({required bool correct}) async {

@@ -213,7 +213,7 @@ void main() {
   });
 
   testWidgets(
-    'next does not autoplay and previous plays praise without sentence audio',
+    'next and previous both restart the selected sentence from its sample',
     (tester) async {
       await _usePhoneSurface(tester);
       final store = _MemoryProgressStore();
@@ -239,17 +239,22 @@ void main() {
       await tester.tap(find.byKey(const Key('continue-lesson-sentence')));
       await tester.pumpAndSettle();
       expect(find.text('Sentence 2'), findsOneWidget);
-      expect(mediaService.playedUris, <Uri>[lesson.sentences.first.audioUri!]);
+      expect(mediaService.playedUris, <Uri>[
+        lesson.sentences.first.audioUri!,
+        lesson.sentences[1].audioUri!,
+      ]);
 
       await tester.tap(find.byKey(const Key('previous-lesson-sentence')));
       await tester.pumpAndSettle();
       expect(find.text('Sentence 1'), findsOneWidget);
       expect(mediaService.playedUris, <Uri>[
         lesson.sentences.first.audioUri!,
+        lesson.sentences[1].audioUri!,
         Uri(
           scheme: 'asset',
           path: '/assets/audio/A-3-5/GUIDE_PRAISE/praise.mp3',
         ),
+        lesson.sentences.first.audioUri!,
       ]);
     },
   );

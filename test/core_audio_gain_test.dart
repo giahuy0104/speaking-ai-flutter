@@ -5,13 +5,16 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
-    'child recording playback is 50 percent louder than its former level',
+    'child recording playback is 2.5 times louder than its former level',
     () {
-      const previousGainDb = 12.0;
-      final expectedGainDb = previousGainDb + 20 * math.log(1.5) / math.ln10;
+      const previousGainDb = 15.521825181113627;
+      final expectedGainDb = previousGainDb + 20 * math.log(2.5) / math.ln10;
 
       expect(lessonRecordingPlaybackGainDb, closeTo(expectedGainDb, 1e-12));
-      expect(lessonRecordingPlaybackGainDb, lessThan(androidMaxPlaybackGainDb));
+      expect(
+        lessonRecordingPlaybackGainDb,
+        lessThanOrEqualTo(androidMaxPlaybackGainDb),
+      );
     },
   );
 }

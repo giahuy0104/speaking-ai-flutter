@@ -42,6 +42,7 @@ class VocabularyStore {
       'innotrik.vocabulary-parent-add-count.v2.';
   static const _todayViewKey = 'innotrik.vocabulary-today-view.v4';
   static const int parentDailyLimit = 5;
+  static const int parentWaitingLimit = 5;
   static const Set<String> _legacyStarterIds = <String>{
     'family',
     'school',
@@ -357,6 +358,12 @@ class VocabularyStore {
     return count;
   }
 
+  /// The add limit is the number of editable, not-yet-scheduled items in the
+  /// waiting queue. Deleting one immediately frees one slot, regardless of how
+  /// many add operations the parent performed earlier that day.
+  Future<int> parentWaitingCount() async =>
+      (await read()).where((entry) => entry.isWaitingParent).length;
+
   Future<List<VocabularyEntry>> addParentEntries(
     List<VocabularyTranslation> selections, {
     DateTime? now,
@@ -371,19 +378,21 @@ class VocabularyStore {
       );
     }
     final createdAt = now ?? DateTime.now();
-    final usedToday = await parentAddCountForDay(createdAt);
-    if (usedToday + selections.length > parentDailyLimit) {
+    final entries = await read();
+    final waitingCount = entries.where((entry) => entry.isWaitingParent).length;
+    if (waitingCount + selections.length > parentWaitingLimit) {
       throw VocabularyDailyLimitException(
-        remaining: (parentDailyLimit - usedToday).clamp(0, parentDailyLimit),
+        remaining: (parentWaitingLimit - waitingCount).clamp(
+          0,
+          parentWaitingLimit,
+        ),
       );
     }
 
-    final entries = await read();
-    final batch = <String>[];
+    final batch = <VocabularyTranslation>[];
     for (final selection in selections) {
       _validateTranslation(selection, childAge: childAge);
       final english = selection.englishText.trim();
-      final normalized = _normalizedText(english);
       final duplicate = entries
           .where((entry) => _isSameOrNearDuplicate(entry.word, english))
           .firstOrNull;
@@ -393,10 +402,17 @@ class VocabularyStore {
         }
         throw const VocabularyDuplicateException();
       }
-      if (batch.any((item) => _isSameOrNearDuplicate(item, normalized))) {
+      if (batch.any(
+        (item) =>
+            _isSameOrNearDuplicate(item.englishText, english) &&
+            _isSameOrNearDuplicate(
+              item.vietnameseText,
+              selection.vietnameseText,
+            ),
+      )) {
         throw const VocabularyDuplicateException();
       }
-      batch.add(normalized);
+      batch.add(selection);
     }
 
     final additions = <VocabularyEntry>[
@@ -418,11 +434,6 @@ class VocabularyStore {
     ];
     final updated = <VocabularyEntry>[...additions.reversed, ...entries];
     await write(updated);
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.setInt(
-      '$_parentAddCountKeyPrefix${_dayKey(createdAt)}',
-      usedToday + additions.length,
-    );
     return updated;
   }
 
@@ -928,7 +939,9 @@ class VocabularyTopicDuplicateException extends VocabularyValidationException {
 
 class VocabularyDailyLimitException extends VocabularyValidationException {
   const VocabularyDailyLimitException({required this.remaining})
-    : super('Ba mẹ đã dùng hết số nội dung có thể thêm hôm nay.');
+    : super(
+        'Danh sách chờ đã đủ 5 nội dung. Ba mẹ có thể xóa bớt rồi thêm mới.',
+      );
 
   final int remaining;
 }

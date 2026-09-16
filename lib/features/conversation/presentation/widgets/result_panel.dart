@@ -36,7 +36,7 @@ class ResultPanel extends StatelessWidget {
             icon: Icons.chat_bubble_rounded,
             label: context.tr('Câu tiếng Việt', '越南语句子'),
             text: currentResult?.vietnameseText,
-            placeholder: context.tr('Câu con nói sẽ hiện ở đây', '你说的句子会显示在这里'),
+            placeholder: context.tr('Câu bạn nói sẽ hiện ở đây', '你说的句子会显示在这里'),
           ),
           const _TranslationConnector(),
           _TranslationSection(

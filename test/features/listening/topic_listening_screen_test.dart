@@ -151,6 +151,18 @@ void main() {
 
     expect(find.text('Từ vựng theo chữ cái'), findsOneWidget);
     expect(find.text('ABC Words'), findsOneWidget);
+    final englishTopicTitle = tester.widget<Text>(find.text('ABC Words'));
+    final vietnameseTopicTitle = tester.widget<Text>(
+      find.text('Từ vựng theo chữ cái'),
+    );
+    expect(
+      tester.getTopLeft(find.text('ABC Words')).dy,
+      lessThan(tester.getTopLeft(find.text('Từ vựng theo chữ cái')).dy),
+    );
+    expect(
+      englishTopicTitle.style?.fontSize,
+      greaterThan(vietnameseTopicTitle.style?.fontSize ?? 0),
+    );
 
     await tester.tap(find.byKey(const ValueKey('topic-action-6-7-0')));
     await tester.pump();

@@ -1494,11 +1494,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
 
     if (_activeLearningModules.isActiveModulePaused) {
-      try {
-        await _controller?.speakAssistantPrompt('Cùng học tiếp nhé');
-      } catch (_) {
-        // A prompt failure must not leave the lesson permanently paused.
-      }
+      // The active module owns its approved resume script. Speaking a generic
+      // acknowledgement here used to prepend "Cùng học tiếp nhé" to
+      // RESUME_CORE/RESUME_CHALLENGE and made the authored navigation line play
+      // twice on the physical/screen MAIN long-press path.
       final resumed = await _activeLearningModules.execute(
         ActiveLearningCommand.resume,
       );

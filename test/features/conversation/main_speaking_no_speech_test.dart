@@ -16,9 +16,9 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('translation quiet window adapts to short versus long speech', () {
     for (final item in <(String, int)>[
-      ('apple', 500),
-      ('Con muốn uống nước', 600),
-      ('Con muốn đi chơi ở công viên cùng với ba mẹ', 800),
+      ('apple', 400),
+      ('Con muốn uống nước', 500),
+      ('Con muốn đi chơi ở công viên cùng với ba mẹ', 700),
     ]) {
       expect(
         ConversationRecordingEndpointPolicy.quietWindow(
@@ -124,7 +124,7 @@ void main() {
       expect(controller.phase, ConversationPhase.idle);
       expect(controller.lastTurnEndReason, ConversationTurnEndReason.noSpeech);
       expect(promptService.spokenTexts, <String>[
-        'Cô chưa nghe thấy con nói. Con nói lại nhé.',
+        'Cô chưa nghe thấy bạn nói. Bạn nói lại nhé.',
       ]);
     },
   );

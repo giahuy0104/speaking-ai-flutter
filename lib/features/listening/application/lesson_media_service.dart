@@ -495,6 +495,10 @@ class LessonMediaService {
               context == null) {
             throw const LessonMediaException('Chưa có bản ghi đang thực hiện.');
           }
+          // Capture the audible end before the plugin finalizes and flushes the
+          // file. On slower Android devices that finalization can take about a
+          // second; including it made a six-second recording appear as seven.
+          final stoppedAt = DateTime.now();
           final recordedPath = await recorder.stop();
           _recordingStartedAt = null;
           _activePath = null;
@@ -508,7 +512,7 @@ class LessonMediaService {
           }
           final recording = LessonRecording(
             filePath: resolvedPath,
-            duration: DateTime.now().difference(startedAt),
+            duration: stoppedAt.difference(startedAt),
           );
           if (context.saveToHistory) {
             final createdAt = DateTime.now();

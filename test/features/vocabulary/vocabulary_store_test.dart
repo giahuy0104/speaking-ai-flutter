@@ -181,6 +181,32 @@ void main() {
   );
 
   test(
+    'allows one English word with distinct Vietnamese meanings in a batch',
+    () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      const store = VocabularyStore();
+
+      final entries = await store.addParentEntries(
+        const <VocabularyTranslation>[
+          VocabularyTranslation(englishText: 'Mad', vietnameseText: 'Tức giận'),
+          VocabularyTranslation(englishText: 'Mad', vietnameseText: 'Điên rồ'),
+          VocabularyTranslation(
+            englishText: 'I am mad.',
+            vietnameseText: 'Tôi đang tức giận.',
+          ),
+        ],
+        now: DateTime(2026, 9, 16, 9),
+      );
+
+      expect(entries, hasLength(3));
+      expect(
+        entries.map((entry) => entry.meaning),
+        containsAll(<String>['Tức giận', 'Điên rồ', 'Tôi đang tức giận.']),
+      );
+    },
+  );
+
+  test(
     'marks parent vocabulary as introduced and persists the state',
     () async {
       SharedPreferences.setMockInitialValues(<String, Object>{

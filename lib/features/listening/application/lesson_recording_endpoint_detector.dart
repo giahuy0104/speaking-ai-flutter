@@ -39,6 +39,13 @@ class LessonRecordingEndpointDetector {
   bool _speechDetected = false;
   bool _endpointSent = false;
   int _generation = 0;
+  DateTime? _sustainedVoiceStartedAt;
+
+  /// HFP AGC can flatten a short child's utterance enough that the adaptive
+  /// detector sees almost no dB variation. A clearly elevated signal sustained
+  /// for this window is still speech, while being well below the detector's
+  /// steady-noise promotion window.
+  static const Duration _flatSpeechConfirmation = Duration(milliseconds: 270);
 
   bool get speechDetected => _speechDetected;
 
@@ -53,6 +60,7 @@ class LessonRecordingEndpointDetector {
     _onEndpoint = onEndpoint;
     _speechDetected = false;
     _endpointSent = false;
+    _sustainedVoiceStartedAt = null;
 
     if (amplitudeDbfs != null) {
       _amplitudeSubscription = amplitudeDbfs.listen(
@@ -71,6 +79,7 @@ class LessonRecordingEndpointDetector {
     _generation += 1;
     _endpointSent = true;
     _onEndpoint = null;
+    _sustainedVoiceStartedAt = null;
     _silenceTimer?.cancel();
     _silenceTimer = null;
     _maximumTimer?.cancel();
@@ -86,6 +95,7 @@ class LessonRecordingEndpointDetector {
     if (_endpointSent) return;
     _voiceActivityDetector.confirmSpeech();
     _speechDetected = true;
+    _sustainedVoiceStartedAt = null;
     _silenceTimer?.cancel();
     _silenceTimer = null;
     _scheduleSilenceEndpoint(_generation);
@@ -100,7 +110,21 @@ class LessonRecordingEndpointDetector {
     );
     if (activity.speechStarted) _speechDetected = true;
 
-    if (activity.voiceActive) {
+    if (!_speechDetected && !activity.isCalibrating) {
+      if (dbfs >= activity.startThresholdDbfs) {
+        final elevatedAt = _sustainedVoiceStartedAt ??= _now();
+        if (_now().difference(elevatedAt) >= _flatSpeechConfirmation) {
+          _voiceActivityDetector.confirmSpeech();
+          _speechDetected = true;
+          _sustainedVoiceStartedAt = null;
+        }
+      } else {
+        _sustainedVoiceStartedAt = null;
+      }
+    }
+
+    if (activity.voiceActive ||
+        (_speechDetected && dbfs >= activity.stopThresholdDbfs)) {
       _silenceTimer?.cancel();
       _silenceTimer = null;
       return;
@@ -130,6 +154,7 @@ class LessonRecordingEndpointDetector {
     if (subscription != null) unawaited(subscription.cancel());
     final callback = _onEndpoint;
     _onEndpoint = null;
+    _sustainedVoiceStartedAt = null;
     callback?.call(reason);
   }
 }

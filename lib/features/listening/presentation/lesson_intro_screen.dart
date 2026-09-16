@@ -146,12 +146,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
         await widget.mediaService.prepareSelectedLessonOutput();
         final prompt = _activeVoicePromptService;
         final text = _guideText ?? widget.lesson.intro;
-        if (!kIsWeb && prompt is SelectedMediaOutputVoicePromptService) {
-          await (prompt as SelectedMediaOutputVoicePromptService)
-              .speakAndWaitOnSelectedMediaOutput(text);
-        } else {
-          await prompt.speakAndWait(text);
-        }
+        await _speakIntroPrompt(prompt, text, request: request);
       } catch (error, stackTrace) {
         debugPrint(
           'Lesson intro fallback failed for ${widget.lesson.id}: $error',
@@ -200,6 +195,47 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
     }
   }
 
+  Future<void> _speakIntroPrompt(
+    VoicePromptService prompt,
+    String text, {
+    required int request,
+  }) async {
+    final englishTitle = widget.lesson.titleEn.trim();
+    final titleIndex = englishTitle.isEmpty ? -1 : text.indexOf(englishTitle);
+    if (titleIndex < 0) {
+      await _speakOnLessonOutput(prompt, text, locale: 'vi-VN');
+      return;
+    }
+
+    final beforeTitle = text.substring(0, titleIndex).trim();
+    final afterTitle = text.substring(titleIndex + englishTitle.length).trim();
+    for (final part in <({String text, String locale})>[
+      (text: beforeTitle, locale: 'vi-VN'),
+      (text: englishTitle, locale: 'en-US'),
+      (text: afterTitle, locale: 'vi-VN'),
+    ]) {
+      if (part.text.isEmpty ||
+          !mounted ||
+          _pausedForMainAssistant ||
+          request != _introPlaybackRequest) {
+        continue;
+      }
+      await _speakOnLessonOutput(prompt, part.text, locale: part.locale);
+    }
+  }
+
+  Future<void> _speakOnLessonOutput(
+    VoicePromptService prompt,
+    String text, {
+    required String locale,
+  }) {
+    if (!kIsWeb && prompt is SelectedMediaOutputVoicePromptService) {
+      return (prompt as SelectedMediaOutputVoicePromptService)
+          .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
+    }
+    return prompt.speakAndWait(text, locale: locale);
+  }
+
   Future<void> _prepareGuideText() async {
     final completed = await widget.progressStore.readLesson(widget.lesson.id);
     final currentSentence = await widget.progressStore.readCurrentSentence(
@@ -242,7 +278,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
             .replaceAll(RegExp(r'\s+'), ' ')
             .trim();
       } else if (isInProgress) {
-        text = 'Mình học tiếp bài ${lesson.titleVi} nhé.';
+        text = 'Mình học tiếp bài $_lessonTitleForGuide nhé.';
       } else if (widget.relearnFromBeginning ||
           (completed >= lesson.sentences.length &&
               lesson.sentences.isNotEmpty)) {
@@ -257,15 +293,15 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
             ? widget.startAge <= 10
                   ? 'Bài này bạn còn $remainingStars Ngôi sao chưa chinh phục. Mình cùng thử nhé!'
                   : 'Bài này bạn còn $remainingStars Ngôi sao chưa chinh phục.'
-            : 'Mình học lại bài ${lesson.titleVi} nhé.';
+            : 'Mình học lại bài $_lessonTitleForGuide nhé.';
       } else {
         final isFirstLessonInTopic = lesson.number == 1;
         final topicLead = isFirstLessonInTopic && topicContent != null
             ? 'Chủ đề ${topicContent.number}. '
             : '';
         final lessonLead = isFirstLessonInTopic
-            ? 'Bài đầu tiên là ${lesson.titleVi}. '
-            : 'Bài này là ${lesson.titleVi}. ';
+            ? 'Bài đầu tiên là $_lessonTitleForGuide. '
+            : 'Bài này là $_lessonTitleForGuide. ';
         text = '$topicLead$lessonLead${lesson.entry?.text ?? ''} Bắt đầu nhé.'
             .replaceAll(RegExp(r'\s+'), ' ')
             .trim();
@@ -280,7 +316,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
     }
     final prompt = LessonGuideFlowV2.entry(
       lessonCode: widget.lesson.code,
-      lessonTitleVi: widget.lesson.titleVi,
+      lessonTitle: _lessonTitleForGuide,
       kind: !opened
           ? LessonEntryGuideKind.first
           : isInProgress
@@ -290,6 +326,11 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
     if (mounted && !_pausedForMainAssistant) {
       setState(() => _guideText = prompt.text);
     }
+  }
+
+  String get _lessonTitleForGuide {
+    final englishTitle = widget.lesson.titleEn.trim();
+    return englishTitle.isEmpty ? widget.lesson.titleVi.trim() : englishTitle;
   }
 
   void _showIntroPlaybackFailure() {
@@ -353,51 +394,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
                                   icon: const Icon(Icons.arrow_back_rounded),
                                   tooltip: context.tr('Quay lại', '返回'),
                                 ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: <Widget>[
-                                      Text(
-                                        'Bài ${widget.lesson.number} · ${widget.lesson.titleVi}',
-                                        key: const Key(
-                                          'lesson-intro-vietnamese-title',
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.center,
-                                        style: theme.textTheme.titleSmall
-                                            ?.copyWith(
-                                              color: isDark
-                                                  ? colorScheme.onSurface
-                                                  : AppColors.indigoDark,
-                                              fontWeight: FontWeight.w800,
-                                            ),
-                                      ),
-                                      const SizedBox(height: 1),
-                                      Text(
-                                        widget.lesson.titleEn,
-                                        key: const Key(
-                                          'lesson-intro-english-title',
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.center,
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                              color: isDark
-                                                  ? colorScheme.primary
-                                                  : AppColors.indigo.withValues(
-                                                      alpha: 0.78,
-                                                    ),
-                                              fontStyle: FontStyle.italic,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
+                                const Spacer(),
                                 TextButton(
                                   key: const Key('skip-lesson-intro'),
                                   onPressed: _openLesson,

@@ -157,9 +157,7 @@ void main() {
     await tester.pump();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 700));
-    final authoredGuide = find.textContaining(
-      'Bài đầu tiên là Các chữ cái từ A đến I',
-    );
+    final authoredGuide = find.textContaining('Bài đầu tiên là A to I Letters');
     for (
       var attempt = 0;
       attempt < 20 && authoredGuide.evaluate().isEmpty;
@@ -168,6 +166,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
     }
     expect(authoredGuide, findsOneWidget);
+    expect(
+      find.byKey(const Key('lesson-intro-vietnamese-title')),
+      findsNothing,
+    );
+    expect(find.byKey(const Key('lesson-intro-english-title')), findsNothing);
 
     await expectLater(
       find.byType(LessonIntroScreen),

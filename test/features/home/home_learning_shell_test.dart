@@ -58,25 +58,36 @@ void main() {
     final topicTabRect = tester.getRect(
       find.byKey(const Key('topic-listening-edge-tab')),
     );
-    expect(vocabularyTabRect.size, const Size(50, 176));
-    expect(topicTabRect.size, const Size(50, 176));
-    expect(topicTabRect.top, vocabularyTabRect.top);
-    expect(vocabularyTabRect.top, closeTo(844 * 0.32, 0.01));
+    expect(vocabularyTabRect.width, closeTo(50, 0.01));
+    expect(vocabularyTabRect.height, closeTo(176, 0.01));
+    expect(topicTabRect.width, closeTo(50, 0.01));
+    expect(topicTabRect.height, closeTo(176, 0.01));
+    expect(topicTabRect.top - vocabularyTabRect.top, closeTo(18, 0.01));
+    expect(vocabularyTabRect.top, closeTo(844 * 0.27, 0.01));
     expect(find.byKey(const Key('conversation-bottom-tab')), findsNothing);
     expect(find.byKey(const Key('main-voice-assistant-button')), findsNothing);
     expect(find.byKey(const Key('history-bottom-tab')), findsNothing);
     expect(find.text('Câu tiếng Việt'), findsOneWidget);
     expect(find.text('Câu tiếng Anh'), findsOneWidget);
+    expect(find.text('Con nói tiếng Việt'), findsNothing);
+    expect(find.text('Mình sẽ giúp nói bằng tiếng Anh'), findsNothing);
+    expect(find.text('Câu bạn nói sẽ hiện ở đây'), findsOneWidget);
     expect(find.byKey(const Key('topic-listening-shortcut')), findsNothing);
     expect(find.text('50 chủ đề'), findsNothing);
 
     await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
     await tester.pumpAndSettle();
     expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
+    expect(
+      find.byKey(const Key('vocabulary-home-back-button')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('search-vocabulary-button')), findsNothing);
+    expect(find.byKey(const Key('vocabulary-landing-homi')), findsOneWidget);
     expect(find.byKey(const Key('vocabulary-edge-tab')), findsNothing);
     expect(find.byKey(const Key('topic-listening-edge-tab')), findsNothing);
 
-    await tester.tap(find.byKey(const Key('vocabulary-practice-button')));
+    await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
     await tester.pumpAndSettle();
     expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
 

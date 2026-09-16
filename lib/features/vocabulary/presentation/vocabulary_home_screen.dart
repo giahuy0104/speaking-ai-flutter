@@ -407,10 +407,8 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
               _VocabularyHeader(
                 isReady: widget.isReady,
                 onBrandPressed: widget.onReturnToConversation,
-                onSearchPressed: _openSearch,
                 onAddPressed: _translating ? null : _showAddDialog,
                 adding: _translating,
-                showSearchAction: _selectedJourney == null,
                 showAddAction:
                     _selectedJourney == null ||
                     _selectedJourney == _VocabularyJourney.family,
@@ -469,7 +467,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
               child: Column(
                 children: <Widget>[
                   Text(
-                    context.tr('Từ vựng của con', '孩子的词汇'),
+                    context.tr('Từ vựng của bạn', '你的词汇'),
                     textAlign: TextAlign.center,
                     style: theme.textTheme.displaySmall?.copyWith(
                       color: titleColor,
@@ -488,7 +486,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    context.tr('Chọn hành trình của con', '选择你的学习旅程'),
+                    context.tr('Chọn hành trình của bạn', '选择你的学习旅程'),
                     textAlign: TextAlign.center,
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: isDark
@@ -596,6 +594,19 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  SizedBox(height: compact ? 18 : 24),
+                  Semantics(
+                    image: true,
+                    label: context.tr('HOMI đồng hành cùng bạn', 'HOMI 陪伴你学习'),
+                    child: Image.asset(
+                      MascotAssets.wave,
+                      key: const Key('vocabulary-landing-homi'),
+                      height: compact ? 86 : 104,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.high,
+                      excludeFromSemantics: true,
                     ),
                   ),
                 ],
@@ -709,7 +720,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         'HOMI 陪你听喜爱的内容',
       ),
       _VocabularyJourney.review => context.tr(
-        'HOMI sẵn sàng luyện lại cùng con',
+        'HOMI sẵn sàng luyện lại cùng bạn',
         'HOMI 准备陪你复习',
       ),
     };
@@ -934,6 +945,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
               ),
               child: _VocabularyRow(
                 entry: entries[index],
+                order: index + 1,
                 canPlay:
                     !entries[index].isParentAdded ||
                     entries[index].isLearnedWell,
@@ -966,12 +978,12 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                 child: Text(
                   journey == _VocabularyJourney.family
                       ? context.tr(
-                          'Chưa có nội dung phù hợp. Con thử tìm nội dung khác nhé.',
+                          'Chưa có nội dung phù hợp. Bạn thử tìm nội dung khác nhé.',
                           '没有匹配的内容，请尝试其他关键词。',
                         )
                       : journey == _VocabularyJourney.stars
                       ? context.tr(
-                          'Con chưa có nội dung yêu thích.',
+                          'Bạn chưa có nội dung yêu thích.',
                           '还没有收藏内容。',
                         )
                       : context.tr(
@@ -994,6 +1006,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                 ) ...<Widget>[
                   _VocabularyRow(
                     entry: entries[index],
+                    order: index + 1,
                     canPlay:
                         !entries[index].isParentAdded ||
                         entries[index].isLearnedWell,
@@ -1010,26 +1023,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     );
   }
 
-  void _openJourney(_VocabularyJourney journey, {bool focusSearch = false}) {
+  void _openJourney(_VocabularyJourney journey) {
     setState(() {
       _selectedJourney = journey;
       _searchController.clear();
     });
-    if (focusSearch) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _searchFocusNode.requestFocus();
-        }
-      });
-    }
-  }
-
-  void _openSearch() {
-    if (_selectedJourney == null) {
-      _openJourney(_VocabularyJourney.family, focusSearch: true);
-      return;
-    }
-    _searchFocusNode.requestFocus();
   }
 
   void _closeJourney() {
@@ -1044,7 +1042,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   String _journeyTitle(BuildContext context, _VocabularyJourney journey) {
     return switch (journey) {
       _VocabularyJourney.family => context.tr('Ba mẹ đã thêm', '家长添加'),
-      _VocabularyJourney.stars => context.tr('Ngôi sao của con', '我的星星'),
+      _VocabularyJourney.stars => context.tr('Ngôi sao của bạn', '我的星星'),
       _VocabularyJourney.review => context.tr('Luyện lại', '复习'),
     };
   }
@@ -1170,8 +1168,8 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   Future<void> _addVocabulary(String normalized) async {
     setState(() => _translating = true);
     try {
-      final usedToday = await widget.store.parentAddCountForDay(DateTime.now());
-      final remaining = VocabularyStore.parentDailyLimit - usedToday;
+      final waitingCount = await widget.store.parentWaitingCount();
+      final remaining = VocabularyStore.parentWaitingLimit - waitingCount;
       if (remaining <= 0) {
         throw const VocabularyDailyLimitException(remaining: 0);
       }
@@ -2383,19 +2381,15 @@ class _VocabularyHeader extends StatelessWidget {
   const _VocabularyHeader({
     required this.isReady,
     required this.onBrandPressed,
-    required this.onSearchPressed,
     required this.onAddPressed,
     required this.adding,
-    required this.showSearchAction,
     required this.showAddAction,
   });
 
   final bool isReady;
   final VoidCallback onBrandPressed;
-  final VoidCallback onSearchPressed;
   final VoidCallback? onAddPressed;
   final bool adding;
-  final bool showSearchAction;
   final bool showAddAction;
 
   @override
@@ -2409,13 +2403,22 @@ class _VocabularyHeader extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 560),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(22, 14, 16, 4),
+          padding: const EdgeInsets.fromLTRB(12, 14, 16, 4),
           child: Row(
             children: <Widget>[
+              KeyedSubtree(
+                key: const Key('vocabulary-practice-button'),
+                child: _VocabularyHeaderButton(
+                  key: const Key('vocabulary-home-back-button'),
+                  icon: Icons.arrow_back_rounded,
+                  tooltip: context.tr('Về trang chủ', '返回主页'),
+                  onPressed: onBrandPressed,
+                ),
+              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: InkWell(
-                  key: const Key('vocabulary-practice-button'),
-                  onTap: onBrandPressed,
+                  onTap: null,
                   borderRadius: BorderRadius.circular(36),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 2),
@@ -2529,15 +2532,6 @@ class _VocabularyHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              if (showSearchAction) ...<Widget>[
-                const SizedBox(width: 7),
-                _VocabularyHeaderButton(
-                  key: const Key('search-vocabulary-button'),
-                  icon: Icons.search_rounded,
-                  tooltip: context.tr('Tìm nội dung', '搜索内容'),
-                  onPressed: onSearchPressed,
-                ),
-              ],
               if (showAddAction) ...<Widget>[
                 const SizedBox(width: 8),
                 _VocabularyHeaderButton(
@@ -2738,12 +2732,14 @@ class _JourneyCopy extends StatelessWidget {
 class _VocabularyRow extends StatelessWidget {
   const _VocabularyRow({
     required this.entry,
+    required this.order,
     required this.canPlay,
     required this.onPlay,
     this.statusLabel,
   });
 
   final VocabularyEntry entry;
+  final int order;
   final bool canPlay;
   final VoidCallback onPlay;
   final String? statusLabel;
@@ -2756,19 +2752,37 @@ class _VocabularyRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: <Widget>[
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: isDark
-                  ? theme.colorScheme.surfaceContainerHighest
-                  : AppColors.lavender,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              _icon,
-              color: isDark ? theme.colorScheme.primary : AppColors.indigo,
-              size: 25,
+          Semantics(
+            label: context.tr('Mục số $order', '第 $order 项'),
+            child: ExcludeSemantics(
+              child: Container(
+                width: 46,
+                height: 46,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? theme.colorScheme.surfaceContainerHighest
+                      : AppColors.lavender,
+                  shape: BoxShape.circle,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(7),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      '$order',
+                      key: ValueKey<String>('vocabulary-order-${entry.id}'),
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: isDark
+                            ? theme.colorScheme.primary
+                            : AppColors.indigo,
+                        fontWeight: FontWeight.w900,
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -2851,15 +2865,6 @@ class _VocabularyRow extends StatelessWidget {
     );
   }
 
-  IconData get _icon {
-    return switch (entry.word.toLowerCase()) {
-      'family' => Icons.family_restroom_rounded,
-      'school' => Icons.school_rounded,
-      'happy' => Icons.sentiment_very_satisfied_rounded,
-      _ => Icons.auto_stories_rounded,
-    };
-  }
-
   String _dateLabel(BuildContext context) {
     final days = DateTime.now().difference(entry.addedAt).inDays;
     if (days <= 0) {
@@ -2893,6 +2898,7 @@ class _VocabularySuggestionDialogState
   late final List<TextEditingController> _vietnameseControllers;
   late final List<FocusNode> _englishFocusNodes;
   late final List<FocusNode> _vietnameseFocusNodes;
+  int? _editingIndex;
 
   @override
   void initState() {
@@ -2985,11 +2991,17 @@ class _VocabularySuggestionDialogState
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          context.tr(
-                            'Chọn tối đa $maxSelections nội dung. Nhấn biểu '
-                                'tượng bút để chỉnh sửa trước khi thêm.',
-                            '最多选择 $maxSelections 项。添加前可点铅笔图标修改。',
-                          ),
+                          _editingIndex == null
+                              ? context.tr(
+                                  'Chọn tối đa $maxSelections nội dung. Nhấn '
+                                      'biểu tượng bút để chỉnh sửa trước khi '
+                                      'thêm.',
+                                  '最多选择 $maxSelections 项。添加前可点铅笔图标修改。',
+                                )
+                              : context.tr(
+                                  'Chỉnh sửa hai ô bên dưới rồi nhấn Lưu.',
+                                  '请修改下方两个输入框，然后点保存。',
+                                ),
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -3014,34 +3026,39 @@ class _VocabularySuggestionDialogState
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     for (var index = 0; index < widget.options.length; index++)
-                      _buildSuggestionCard(context, index),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: TextButton.icon(
-                        key: const Key('vocabulary-minhqnd-attribution'),
-                        onPressed: () => unawaited(
-                          launchUrl(
-                            Uri.parse('https://dict.minhqnd.com/'),
-                            mode: LaunchMode.externalApplication,
+                      if (_editingIndex == null || _editingIndex == index)
+                        _buildSuggestionCard(context, index),
+                    if (_editingIndex == null)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          key: const Key('vocabulary-minhqnd-attribution'),
+                          onPressed: () => unawaited(
+                            launchUrl(
+                              Uri.parse('https://dict.minhqnd.com/'),
+                              mode: LaunchMode.externalApplication,
+                            ),
                           ),
-                        ),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 10,
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 10,
+                            ),
+                            alignment: Alignment.centerLeft,
                           ),
-                          alignment: Alignment.centerLeft,
-                        ),
-                        icon: const Icon(Icons.info_outline_rounded, size: 18),
-                        label: Text(
-                          context.tr(
-                            'Nguồn từ điển và phát âm: @minhqnd '
-                                '(CC BY-SA 4.0)',
-                            '词典及发音来源：@minhqnd (CC BY-SA 4.0)',
+                          icon: const Icon(
+                            Icons.info_outline_rounded,
+                            size: 18,
+                          ),
+                          label: Text(
+                            context.tr(
+                              'Nguồn từ điển và phát âm: @minhqnd '
+                                  '(CC BY-SA 4.0)',
+                              '词典及发音来源：@minhqnd (CC BY-SA 4.0)',
+                            ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -3081,7 +3098,7 @@ class _VocabularySuggestionDialogState
                     const SizedBox(width: 8),
                     FilledButton.icon(
                       key: const Key('confirm-vocabulary-suggestions'),
-                      onPressed: !_canSubmit
+                      onPressed: !_canSubmit || _editingIndex != null
                           ? null
                           : () => Navigator.of(context)
                                 .pop(<VocabularyTranslation>[
@@ -3113,6 +3130,7 @@ class _VocabularySuggestionDialogState
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final selected = _selectedIndexes.contains(index);
+    final isEditing = _editingIndex == index;
     return Container(
       key: ValueKey<String>('vocabulary-suggestion-$index'),
       width: double.infinity,
@@ -3135,12 +3153,16 @@ class _VocabularySuggestionDialogState
               Checkbox(
                 key: ValueKey<String>('select-vocabulary-suggestion-$index'),
                 value: selected,
-                onChanged: (value) => _toggleSelection(index, value),
+                onChanged: isEditing
+                    ? null
+                    : (value) => _toggleSelection(index, value),
               ),
               Expanded(
                 child: InkWell(
                   borderRadius: BorderRadius.circular(10),
-                  onTap: () => _toggleSelection(index, !selected),
+                  onTap: isEditing
+                      ? null
+                      : () => _toggleSelection(index, !selected),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     child: Text(
@@ -3172,15 +3194,16 @@ class _VocabularySuggestionDialogState
                   ),
                 ),
               const SizedBox(width: 8),
-              IconButton.filledTonal(
-                key: ValueKey<String>('edit-vocabulary-suggestion-$index'),
-                onPressed: () => _editSuggestion(index),
-                icon: const Icon(Icons.edit_rounded, size: 21),
-                tooltip: context.tr(
-                  'Chỉnh sửa gợi ý ${index + 1}',
-                  '编辑建议 ${index + 1}',
+              if (!isEditing)
+                IconButton.filledTonal(
+                  key: ValueKey<String>('edit-vocabulary-suggestion-$index'),
+                  onPressed: () => _editSuggestion(index),
+                  icon: const Icon(Icons.edit_rounded, size: 21),
+                  tooltip: context.tr(
+                    'Chỉnh sửa gợi ý ${index + 1}',
+                    '编辑建议 ${index + 1}',
+                  ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: 4),
@@ -3188,8 +3211,15 @@ class _VocabularySuggestionDialogState
             key: ValueKey<String>('vocabulary-suggestion-english-$index'),
             controller: _englishControllers[index],
             focusNode: _englishFocusNodes[index],
+            readOnly: !isEditing,
+            showCursor: isEditing,
             textCapitalization: TextCapitalization.sentences,
+            textInputAction: TextInputAction.next,
             maxLines: 2,
+            onSubmitted: isEditing
+                ? (_) => _vietnameseFocusNodes[index].requestFocus()
+                : null,
+            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
             decoration: InputDecoration(
               labelText: context.tr('Tiếng Anh', '英语'),
               prefixIcon: const Icon(Icons.translate_rounded, size: 21),
@@ -3200,8 +3230,13 @@ class _VocabularySuggestionDialogState
             key: ValueKey<String>('vocabulary-suggestion-vietnamese-$index'),
             controller: _vietnameseControllers[index],
             focusNode: _vietnameseFocusNodes[index],
+            readOnly: !isEditing,
+            showCursor: isEditing,
             textCapitalization: TextCapitalization.sentences,
+            textInputAction: TextInputAction.done,
             maxLines: 2,
+            onSubmitted: isEditing ? (_) => _saveSuggestion(index) : null,
+            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
             decoration: InputDecoration(
               labelText: context.tr('Tiếng Việt', '越南语'),
               prefixIcon: const Icon(
@@ -3210,6 +3245,20 @@ class _VocabularySuggestionDialogState
               ),
             ),
           ),
+          if (isEditing) ...<Widget>[
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                key: ValueKey<String>('save-vocabulary-suggestion-$index'),
+                onPressed: _canSave(index)
+                    ? () => _saveSuggestion(index)
+                    : null,
+                icon: const Icon(Icons.check_rounded, size: 21),
+                label: Text(context.tr('Lưu chỉnh sửa', '保存修改')),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -3224,26 +3273,13 @@ class _VocabularySuggestionDialogState
       );
 
   void _toggleSelection(int index, bool? selected) {
-    final sameEnglishSelections = selected == true
-        ? _selectedIndexes.where(
-            (selectedIndex) =>
-                selectedIndex != index &&
-                _normalizedSuggestionEnglish(
-                      _englishControllers[selectedIndex].text,
-                    ) ==
-                    _normalizedSuggestionEnglish(
-                      _englishControllers[index].text,
-                    ),
-          )
-        : const Iterable<int>.empty();
     if (selected == true &&
-        _selectedIndexes.length - sameEnglishSelections.length >=
-            widget.maxSelections.clamp(1, 3)) {
+        !_selectedIndexes.contains(index) &&
+        _selectedIndexes.length >= widget.maxSelections.clamp(1, 3)) {
       return;
     }
     setState(() {
       if (selected == true) {
-        _selectedIndexes.removeAll(sameEnglishSelections);
         _selectedIndexes.add(index);
       } else {
         _selectedIndexes.remove(index);
@@ -3251,11 +3287,29 @@ class _VocabularySuggestionDialogState
     });
   }
 
-  String _normalizedSuggestionEnglish(String value) =>
-      value.trim().toLowerCase().replaceAll(RegExp(r"[^a-z0-9']+"), ' ');
-
   void _editSuggestion(int index) {
-    _englishFocusNodes[index].requestFocus();
+    setState(() => _editingIndex = index);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _englishFocusNodes[index].requestFocus();
+    });
+  }
+
+  bool _canSave(int index) =>
+      _englishControllers[index].text.trim().isNotEmpty &&
+      _vietnameseControllers[index].text.trim().isNotEmpty;
+
+  void _saveSuggestion(int index) {
+    if (!_canSave(index)) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      final maxSelections = widget.maxSelections.clamp(1, 3);
+      if (!_selectedIndexes.contains(index) &&
+          _selectedIndexes.length >= maxSelections) {
+        _selectedIndexes.remove(_selectedIndexes.first);
+      }
+      _selectedIndexes.add(index);
+      _editingIndex = null;
+    });
   }
 
   void _refresh() => setState(() {});
@@ -3317,12 +3371,12 @@ class _AddVocabularyDialogState extends State<_AddVocabularyDialog> {
                 key: const Key('add-vocabulary-field'),
                 controller: _controller,
                 autofocus: true,
-                minLines: 1,
-                maxLines: 3,
+                minLines: 3,
+                maxLines: 5,
                 textInputAction: TextInputAction.done,
                 style: TextStyle(
                   color: theme.colorScheme.onSurface,
-                  fontSize: 13,
+                  fontSize: 16,
                 ),
                 decoration: InputDecoration(
                   hintText: context.tr(
@@ -3333,7 +3387,7 @@ class _AddVocabularyDialogState extends State<_AddVocabularyDialog> {
                   fillColor: isDark
                       ? theme.colorScheme.surfaceContainer
                       : AppColors.lavenderSoft,
-                  hintStyle: const TextStyle(fontSize: 13),
+                  hintStyle: const TextStyle(fontSize: 15),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(18),
                     borderSide: BorderSide(
@@ -3353,8 +3407,8 @@ class _AddVocabularyDialogState extends State<_AddVocabularyDialog> {
                     ),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 13,
+                    horizontal: 18,
+                    vertical: 18,
                   ),
                 ),
               ),
@@ -3370,45 +3424,7 @@ class _AddVocabularyDialogState extends State<_AddVocabularyDialog> {
                   fontSize: 12.5,
                 ),
               ),
-              const SizedBox(height: 14),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Icon(
-                    Icons.lightbulb_outline_rounded,
-                    color: isDark
-                        ? theme.colorScheme.tertiary
-                        : AppColors.indigo,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text.rich(
-                      TextSpan(
-                        children: <InlineSpan>[
-                          TextSpan(
-                            text: '${context.tr('Ví dụ:', '示例：')}\n',
-                            style: const TextStyle(fontWeight: FontWeight.w800),
-                          ),
-                          TextSpan(
-                            text: context.tr(
-                              '• “apple” → “I like this apple.”\n'
-                                  '• Có thể nhập câu ngắn như “Con thích quả táo đỏ”.',
-                              '• “apple” → “I like this apple.”\n'
-                                  '• 也可以输入一个简短句子。',
-                            ),
-                          ),
-                        ],
-                      ),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface,
-                        fontSize: 13,
-                        height: 1.3,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[

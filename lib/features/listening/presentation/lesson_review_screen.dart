@@ -48,7 +48,7 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
   ActiveLearningVoiceNode get mainVoiceNode => ActiveLearningVoiceNode.review;
 
   @override
-  String get mainVoicePrompt => 'Bạn muốn nghe lại hay dừng lại?';
+  String get mainVoicePrompt => '';
   static const int _completionDelaySeconds = 6;
 
   int? _playingIndex;

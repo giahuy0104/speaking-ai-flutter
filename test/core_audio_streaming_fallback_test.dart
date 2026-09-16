@@ -1009,7 +1009,7 @@ void main() {
       expect(controller.phase, ConversationPhase.error);
       expect(
         controller.errorMessage,
-        'Cô chưa nghe thấy con nói. Con nói lại nhé.',
+        'Cô chưa nghe thấy bạn nói. Bạn nói lại nhé.',
       );
       controller.dispose();
     },

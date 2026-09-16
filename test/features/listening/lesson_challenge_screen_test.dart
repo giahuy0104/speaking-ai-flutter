@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
+import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
 import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
+import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/lesson_guide_flow.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
@@ -13,6 +15,52 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('Challenge resume uses only RESUME_CHALLENGE before replay', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final voicePrompt = _RecordingVoicePromptService();
+    final mediaService = _FakeLessonMediaService();
+
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: _subject(
+          startAge: 7,
+          voicePromptService: voicePrompt,
+          mediaService: mediaService,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    voicePrompt.spoken.clear();
+
+    expect(await registry.pauseForMainAssistant(), isTrue);
+    expect(
+      (await registry.execute(ActiveLearningCommand.resume)).wasHandled,
+      isTrue,
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(
+      voicePrompt.spoken,
+      containsAllInOrder(<String>[
+        'vi-VN|Mình tiếp tục câu thử thách nhé.',
+        'vi-VN|Where is the library?',
+        'vi-VN|Bạn nói đáp án bằng tiếng Anh nhé.',
+      ]),
+    );
+    expect(
+      voicePrompt.spoken.where((item) => item.contains('Cùng học tiếp')),
+      isEmpty,
+    );
+    expect(mediaService.recordingStarts, 2);
+  });
+
   testWidgets(
     'ignores legacy role-play data and keeps the authored Challenge choices',
     (tester) async {
@@ -255,7 +303,10 @@ void main() {
       hasLength(1),
     );
     expect(mediaService.completedPlaybackUris, hasLength(2));
-    expect(mediaService.completedPlaybackGains, everyElement(12.0));
+    expect(
+      mediaService.completedPlaybackGains,
+      everyElement(lessonRecordingPlaybackGainDb),
+    );
   });
 
   testWidgets('pauses directly after the second unusable response', (

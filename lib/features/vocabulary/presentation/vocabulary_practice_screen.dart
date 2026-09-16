@@ -251,7 +251,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
             : VocabularyFlowV3.reviewCycleFinished)
       : _isToday
       ? 'Bạn muốn nghe lại, nghe câu trước hay dừng lại?'
-      : 'Bạn muốn nghe lại hay dừng lại?';
+      : '';
   bool get _isReview => _session.mode == VocabularyPracticeMode.review;
 
   Future<void> _startCurrent({bool includeIntro = false}) async {

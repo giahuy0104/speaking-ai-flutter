@@ -1305,6 +1305,7 @@ class _JourneyTopicStop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final title = context.tr(topic.titleVi, topic.titleZh);
+    final englishTitle = titleEn.trim();
     final image = SizedBox(
       width: sideWidth,
       child: Align(
@@ -1344,7 +1345,7 @@ class _JourneyTopicStop extends StatelessWidget {
     return Semantics(
       button: true,
       label:
-          '$title${titleEn.trim().isEmpty ? '' : ', $titleEn'}, '
+          '${englishTitle.isEmpty ? title : '$englishTitle, $title'}, '
           '${progress.completed}/${progress.total}${locked ? ', chưa mở khóa' : ''}',
       child: Material(
         color: Colors.transparent,
@@ -1470,6 +1471,7 @@ class _TopicDetails extends StatelessWidget {
         ? CrossAxisAlignment.end
         : CrossAxisAlignment.start;
     final textAlignment = alignRight ? TextAlign.right : TextAlign.left;
+    final englishTitle = titleEn.trim();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Column(
@@ -1477,33 +1479,34 @@ class _TopicDetails extends StatelessWidget {
         crossAxisAlignment: alignment,
         children: <Widget>[
           Text(
-            title,
+            englishTitle.isEmpty ? title : englishTitle,
+            key: englishTitle.isEmpty
+                ? null
+                : ValueKey('topic-english-title-$titleEn'),
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             textAlign: textAlignment,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: isDark ? colorScheme.onSurface : AppColors.ink,
-              fontSize: 17,
+              fontSize: 18,
               fontWeight: FontWeight.w800,
               shadows: _journeyTextShadowsFor(context),
             ),
           ),
-          if (titleEn.trim().isNotEmpty) ...<Widget>[
+          if (englishTitle.isNotEmpty) ...<Widget>[
             const SizedBox(height: 2),
             Text(
-              titleEn,
-              key: ValueKey('topic-english-title-$titleEn'),
+              title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               textAlign: textAlignment,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: isDark
-                    ? colorScheme.primary
-                    : AppColors.indigo.withValues(alpha: 0.82),
+                    ? colorScheme.onSurfaceVariant
+                    : AppColors.ink.withValues(alpha: 0.72),
                 fontSize: 13.5,
                 height: 1.18,
-                fontStyle: FontStyle.italic,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 shadows: _journeyTextShadowsFor(context),
               ),
             ),

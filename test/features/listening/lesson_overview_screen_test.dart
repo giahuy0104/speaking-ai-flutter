@@ -41,9 +41,44 @@ void main() {
     await tester.pump();
 
     expect(
-      find.text('Mình học tiếp bài Thói quen hằng ngày nhé.'),
+      find.text('Mình học tiếp bài My Daily Routine nhé.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('lesson intro speaks the English title with an English voice', (
+    tester,
+  ) async {
+    final voicePrompt = _TransitionVoicePromptService();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: LessonIntroScreen(
+          language: DisplayLanguage.vietnamese,
+          startAge: 8,
+          endAge: 10,
+          topic: listeningCatalogs[2].topics.first,
+          lesson: _lesson,
+          progressStore: _OverviewProgressStore(),
+          mediaService: _OverviewMediaService(),
+          guideAudioLibrary: LessonGuideAudioLibrary(
+            assetPaths: const <String>[],
+          ),
+          voicePromptService: voicePrompt,
+          autoAdvance: false,
+        ),
+      ),
+    );
+    for (
+      var attempt = 0;
+      attempt < 20 && !voicePrompt.spoken.contains('en-US|My Daily Routine');
+      attempt += 1
+    ) {
+      await tester.pump(const Duration(milliseconds: 10));
+    }
+
+    expect(voicePrompt.spoken, contains('en-US|My Daily Routine'));
+    expect(voicePrompt.spoken, isNot(contains('vi-VN|Thói quen hằng ngày')));
   });
 
   testWidgets('legacy role-play resume migrates to the single Challenge', (
@@ -145,10 +180,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(
-      find.text('Mình học lại bài Thói quen hằng ngày nhé.'),
-      findsOneWidget,
-    );
+    expect(find.text('Mình học lại bài My Daily Routine nhé.'), findsOneWidget);
     expect(find.textContaining('Ngôi sao'), findsNothing);
     expect(find.textContaining('Mình cùng nghe bài này nhé.'), findsNothing);
     expect(mediaService.playedUris, isEmpty);
@@ -182,10 +214,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(
-      find.text('Mình học lại bài Thói quen hằng ngày nhé.'),
-      findsOneWidget,
-    );
+    expect(find.text('Mình học lại bài My Daily Routine nhé.'), findsOneWidget);
     expect(find.textContaining('Ngôi sao'), findsNothing);
     expect(find.textContaining('Mình cùng thử nhé!'), findsNothing);
   });
@@ -222,10 +251,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(
-      find.text('Mình học lại bài Thói quen hằng ngày nhé.'),
-      findsOneWidget,
-    );
+    expect(find.text('Mình học lại bài My Daily Routine nhé.'), findsOneWidget);
     expect(find.textContaining('Ngôi sao'), findsNothing);
     expect(find.textContaining('Mình cùng nghe bài này nhé.'), findsNothing);
   });
@@ -410,6 +436,9 @@ class _OverviewProgressStore extends ListeningProgressStore {
 
 class _OverviewMediaService extends LessonMediaService {
   final List<Uri> playedUris = <Uri>[];
+
+  @override
+  Future<void> prepareSelectedLessonOutput() async {}
 
   @override
   Future<void> playToCompletion(

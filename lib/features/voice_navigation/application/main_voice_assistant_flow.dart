@@ -809,7 +809,12 @@ class MainVoiceAssistantFlow {
     final isVocabulary =
         _activeLearningKind == ActiveLearningModuleKind.vocabulary;
     final promptText = switch (command) {
-      ActiveLearningCommand.resume => isVocabulary ? '' : 'Cùng học tiếp nhé',
+      ActiveLearningCommand.resume =>
+        isVocabulary ||
+                _activeVoiceNode == ActiveLearningVoiceNode.core ||
+                _activeVoiceNode == ActiveLearningVoiceNode.challenge
+            ? ''
+            : 'Cùng học tiếp nhé',
       ActiveLearningCommand.replayCurrent =>
         isVocabulary ? '' : 'Mình nghe lại câu này nhé',
       ActiveLearningCommand.nextItem =>
