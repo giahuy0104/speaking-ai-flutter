@@ -120,7 +120,7 @@ class VoiceHero extends StatelessWidget {
             ),
           ),
           SizedBox(
-            height: compact ? 68 : 76,
+            height: compact ? 52 : 58,
             child: Center(
               child: HomiWaveform(
                 key: Key(
@@ -135,8 +135,8 @@ class VoiceHero extends StatelessWidget {
                     phase == ConversationPhase.processing ||
                     isPreparingMicrophone,
                 amplitude: amplitude,
-                width: compact ? 330 : 350,
-                height: compact ? 68 : 76,
+                width: compact ? 238 : 266,
+                height: compact ? 46 : 52,
                 semanticLabel: context.tr('Mức âm thanh', '音量'),
               ),
             ),

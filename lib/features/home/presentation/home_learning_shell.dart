@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../../app/app_theme.dart';
 import '../../../config/app_config.dart';
-import '../../../app/homi_bottom_navigation.dart';
 import '../../../l10n/display_language.dart';
 import '../../../core/navigation/active_learning_navigation.dart';
+import '../../../core/device/active_learning_module.dart';
 import '../../../core/platform/background_learning_session.dart';
 import '../../../core/platform/platform_access_policy.dart';
 import '../../conversation/presentation/conversation_controller.dart';
@@ -29,6 +30,7 @@ import '../../voice_navigation/application/voice_navigation_intent_resolver.dart
 import '../../voice_navigation/application/main_speaking_session_controller.dart';
 import '../application/authored_vocabulary_suggestion_provider.dart';
 import '../application/background_learning_coordinator.dart';
+import 'home_mode_rail.dart';
 
 class HomeLearningShell extends StatefulWidget {
   const HomeLearningShell({
@@ -259,6 +261,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     return AnimatedBuilder(
       animation: widget.controller,
       builder: (context, _) {
+        final compact = MediaQuery.sizeOf(context).height < 900;
+        final safeTop = MediaQuery.paddingOf(context).top;
         return DisplayLanguageScope(
           language: widget.controller.displayLanguage,
           child: PopScope<void>(
@@ -270,73 +274,82 @@ class _HomeLearningShellState extends State<HomeLearningShell>
             },
             child: Stack(
               children: <Widget>[
-                Column(
+                PageView(
+                  key: const Key('home-learning-page-view'),
+                  controller: _pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  onPageChanged: (page) => setState(() => _page = page),
                   children: <Widget>[
-                    Expanded(
-                      child: PageView(
-                        key: const Key('home-learning-page-view'),
-                        controller: _pageController,
-                        physics: const NeverScrollableScrollPhysics(),
-                        onPageChanged: (page) => setState(() => _page = page),
-                        children: <Widget>[
-                          ConversationScreen(
-                            controller: widget.controller,
-                            speakActionKey: _speakActionKey,
-                            resultPanelKey: _resultPanelKey,
-                            historyButtonKey: _historyButtonKey,
-                            settingsButtonKey: _settingsButtonKey,
-                            onOpenHistory: _showHistory,
-                            onOpenSettings: _showSettings,
-                          ),
-                          VocabularyHomeScreen(
-                            isReady: widget.controller.isInputAvailable,
-                            isActive: _page == 1,
-                            childAge: widget.controller.childAge,
-                            audioDependencies: widget.controller,
-                            autoStartToday: true,
-                            onRequestVoiceChoice:
-                                widget.onVocabularyVoiceChoiceRequested,
-                            suggestionProvider:
-                                widget.vocabularySuggestionProvider ??
-                                _authoredVocabularySuggestionProvider.call,
-                            curriculumDuplicateChecker:
-                                _authoredVocabularySuggestionProvider
-                                    .containsInCurriculum,
-                            dictionaryProvider: _vocabularyDictionaryProvider,
-                            translator: (input) async {
-                              final translation = await widget.controller
-                                  .translateVocabulary(input);
-                              return VocabularyTranslation(
-                                englishText: translation.englishText,
-                                vietnameseText: translation.vietnameseText,
-                              );
-                            },
-                            onReturnToConversation: _showConversation,
-                            onHistory: _showHistory,
-                            onSettings: _showSettings,
-                          ),
-                        ],
-                      ),
+                    ConversationScreen(
+                      controller: widget.controller,
+                      speakActionKey: _speakActionKey,
+                      resultPanelKey: _resultPanelKey,
+                      historyButtonKey: _historyButtonKey,
+                      settingsButtonKey: _settingsButtonKey,
+                      onOpenHistory: _showHistory,
+                      onOpenSettings: _showSettings,
                     ),
-                    HomiBottomNavigation(
-                      selectedIndex: _page == 0 ? 0 : 3,
-                      onConversation: _showConversation,
-                      onTopics: _openTopicListening,
-                      onMain: widget.onScreenMainPressed == null
-                          ? null
-                          : () => unawaited(widget.onScreenMainPressed!()),
-                      onVocabulary: _showVocabulary,
+                    VocabularyHomeScreen(
+                      isReady: widget.controller.isInputAvailable,
+                      isActive: _page == 1,
+                      childAge: widget.controller.childAge,
+                      audioDependencies: widget.controller,
+                      autoStartToday: true,
+                      onRequestVoiceChoice:
+                          widget.onVocabularyVoiceChoiceRequested,
+                      suggestionProvider:
+                          widget.vocabularySuggestionProvider ??
+                          _authoredVocabularySuggestionProvider.call,
+                      curriculumDuplicateChecker:
+                          _authoredVocabularySuggestionProvider
+                              .containsInCurriculum,
+                      dictionaryProvider: _vocabularyDictionaryProvider,
+                      translator: (input) async {
+                        final translation = await widget.controller
+                            .translateVocabulary(input);
+                        return VocabularyTranslation(
+                          englishText: translation.englishText,
+                          vietnameseText: translation.vietnameseText,
+                        );
+                      },
+                      onReturnToConversation: _showConversation,
                       onHistory: _showHistory,
-                      conversationKey: const Key('conversation-bottom-tab'),
-                      topicsKey: const Key('topic-listening-edge-tab'),
-                      mainKey: const Key('main-voice-assistant-button'),
-                      vocabularyKey: const Key('vocabulary-edge-tab'),
-                      historyKey: const Key('history-bottom-tab'),
-                      topicsTutorialKey: _topicTabKey,
-                      vocabularyTutorialKey: _vocabularyTabKey,
+                      onSettings: _showSettings,
                     ),
                   ],
                 ),
+                if (_page == 0) ...<Widget>[
+                  PositionedDirectional(
+                    top: safeTop + (compact ? 156 : 190),
+                    start: 0,
+                    child: KeyedSubtree(
+                      key: _vocabularyTabKey,
+                      child: HomeModeRail(
+                        key: const Key('vocabulary-edge-tab'),
+                        edge: HomeRailEdge.left,
+                        label: context.tr('Từ vựng', '词汇'),
+                        icon: Icons.menu_book_rounded,
+                        color: AppColors.indigo,
+                        onPressed: _showVocabulary,
+                      ),
+                    ),
+                  ),
+                  PositionedDirectional(
+                    top: safeTop + (compact ? 188 : 222),
+                    end: 0,
+                    child: KeyedSubtree(
+                      key: _topicTabKey,
+                      child: HomeModeRail(
+                        key: const Key('topic-listening-edge-tab'),
+                        edge: HomeRailEdge.right,
+                        label: context.tr('Chủ đề', '主题'),
+                        icon: Icons.headphones_rounded,
+                        color: const Color(0xFF7443D8),
+                        onPressed: _openTopicListening,
+                      ),
+                    ),
+                  ),
+                ],
                 if (_tutorialActive)
                   Positioned.fill(
                     child: UserOnboardingTour(
@@ -756,6 +769,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   void _showConversation() {
+    if (_page == 1) {
+      ActiveLearningModuleScope.notifyNavigationExit(context);
+      unawaited(widget.voiceNavigationController?.pause());
+    }
     _pageController.animateToPage(
       0,
       duration: _motionDuration,

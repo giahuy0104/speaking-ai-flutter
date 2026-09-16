@@ -1019,9 +1019,12 @@ void main() {
       );
       expect(firstReminderBlocker, findsOneWidget);
       expect(
-        tester.widget<AbsorbPointer>(firstReminderBlocker).absorbing,
+        tester.widget<IgnorePointer>(firstReminderBlocker).ignoring,
         isTrue,
       );
+      // The decoration must not swallow the Back button; only lesson content
+      // is locked while the coach is speaking.
+      expect(find.byTooltip('Quay lại').hitTestable(), findsOneWidget);
 
       await tester.pump(const Duration(milliseconds: 2499));
       expect(firstReminder, findsOneWidget);

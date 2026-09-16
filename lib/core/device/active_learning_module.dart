@@ -27,6 +27,36 @@ enum ActiveLearningCommand {
 
 enum ActiveLearningModuleKind { listeningLesson, vocabulary }
 
+/// Read-only navigation context published by a learning owner. MAIN consumes
+/// this snapshot; playback, attempts and persistence remain in that owner.
+enum ActiveLearningVoiceNode {
+  core,
+  challenge,
+  review,
+  today,
+  parent,
+  star,
+  vocabularyMenu,
+  parentAlternatives,
+  starAlternatives,
+  reviewAlternatives,
+  todayEnd,
+  blockEnd,
+  listEnd,
+}
+
+abstract interface class ActiveLearningVoiceContext {
+  ActiveLearningVoiceNode get mainVoiceNode;
+  String get mainVoicePrompt;
+}
+
+/// Completion nodes may carry dynamic lesson/level numbers. The owning module
+/// resolves those slots using the same choices displayed on screen.
+abstract interface class ActiveLearningVoiceSelectionContext {
+  bool get isMainVoiceChoice;
+  ActiveLearningCommand? resolveMainVoiceChoice(String transcript);
+}
+
 enum ActiveLearningCommandStatus { handled, unavailable, busy }
 
 class ActiveLearningCommandResult {
@@ -119,13 +149,14 @@ class ActiveLearningModuleRegistry extends ChangeNotifier {
     });
   }
 
-  Future<bool> pauseForMainAssistant() async {
+  Future<bool> pauseForMainAssistant({bool Function()? canContinue}) async {
     // A lesson can replace its intro/practice/review route while MAIN is being
     // pressed. Pausing only the controller captured before that transition
     // leaves the newly visible route playing, and the app then rejects MAIN as
     // busy. Follow the top registration until the visible owner is stable.
     var remainingAttempts = _registrations.length + 1;
     while (remainingAttempts > 0) {
+      if (canContinue != null && !canContinue()) return false;
       remainingAttempts -= 1;
       final active = controller;
       if (active == null) {
@@ -141,6 +172,7 @@ class ActiveLearningModuleRegistry extends ChangeNotifier {
       } catch (_) {
         return false;
       }
+      if (canContinue != null && !canContinue()) return false;
       if (identical(active, controller)) {
         return true;
       }
@@ -201,8 +233,16 @@ class ActiveLearningModuleScope
   const ActiveLearningModuleScope({
     required ActiveLearningModuleRegistry registry,
     required super.child,
+    this.onNavigationExit,
     super.key,
   }) : super(notifier: registry);
+
+  final VoidCallback? onNavigationExit;
+
+  static void notifyNavigationExit(BuildContext context) => context
+      .getInheritedWidgetOfExactType<ActiveLearningModuleScope>()
+      ?.onNavigationExit
+      ?.call();
 
   static ActiveLearningModuleRegistry? maybeOf(BuildContext context) => context
       .dependOnInheritedWidgetOfExactType<ActiveLearningModuleScope>()

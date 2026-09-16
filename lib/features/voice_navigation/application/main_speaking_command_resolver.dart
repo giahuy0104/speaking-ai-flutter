@@ -1,4 +1,5 @@
 import '../domain/homi_fallback_catalog.dart';
+import '../domain/master_navigation_contract.dart';
 
 enum MainSpeakingCommand { otherLearning, stopTranslation, help }
 
@@ -38,19 +39,16 @@ class MainSpeakingCommandResolver {
       return null;
     }
 
-    if (_matchesIntent(normalized, 'INT-017') ||
+    if (MasterNavigationContract.isTranslationStop(recognizedText)) {
+      return MainSpeakingCommand.stopTranslation;
+    }
+    if (MasterNavigationContract.matches('LEAVE_TRANSLATE', recognizedText) ||
+        _matchesIntent(normalized, 'INT-017') ||
         _legacyOtherLearningPhrases.contains(normalized)) {
       return MainSpeakingCommand.otherLearning;
     }
-    // INT-001 is global in the approved catalog.  It is deliberately applied
-    // here only while the continuous-translation session is active (the app
-    // owns that state guard), so a normal one-shot translation is not
-    // swallowed by a generic word such as "thôi".
-    if (_matchesIntent(normalized, 'INT-018') ||
-        _matchesIntent(normalized, 'INT-001')) {
-      return MainSpeakingCommand.stopTranslation;
-    }
-    if (_matchesIntent(normalized, 'INT-016')) {
+    if (MasterNavigationContract.matches('HELP', recognizedText) ||
+        _matchesIntent(normalized, 'INT-016')) {
       return MainSpeakingCommand.help;
     }
     return null;

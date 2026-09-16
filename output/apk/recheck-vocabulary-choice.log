@@ -1,0 +1,92 @@
+00:00 +0: loading D:/Documents/ai-speaking-flutter-app/output/apk/recheck-vocabulary-choice_test.dart
+00:00 +0: Parent waits after silent MAIN at block end
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: not contains 'Sentence 6'
+  Actual: [
+            'Mình cùng nghe nhé.',
+            'Sentence 1',
+            'Câu 1',
+            'Sentence 2',
+            'Câu 2',
+            'Sentence 3',
+            'Câu 3',
+            'Sentence 4',
+            'Câu 4',
+            'Sentence 5',
+            'Câu 5',
+            'Bạn muốn học nội dung khác hay học tiếp?',
+            'Sentence 6',
+            'Câu 6',
+            'Bạn đã nghe hết rồi. Bạn muốn học nội dung khác hay học lại?'
+          ]
+Silent MAIN completion must preserve waiting-for-choice.
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///D:/Documents/ai-speaking-flutter-app/output/apk/recheck-vocabulary-choice_test.dart:85:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///D:/Documents/ai-speaking-flutter-app/output/apk/recheck-vocabulary-choice_test.dart line 85
+The test description was:
+  Parent waits after silent MAIN at block end
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +0 -1: Parent waits after silent MAIN at block end [E]
+  Test failed. See exception logs above.
+  The test description was: Parent waits after silent MAIN at block end
+  
+00:01 +0 -1: Stars waits after silent MAIN at block end
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: not contains 'Sentence 6'
+  Actual: [
+            'Mình cùng nghe Ngôi sao nhé.',
+            'Sentence 1',
+            'Câu 1',
+            'Giọng của bạn đây.',
+            'Sentence 2',
+            'Câu 2',
+            'Sentence 3',
+            'Câu 3',
+            'Sentence 4',
+            'Câu 4',
+            'Sentence 5',
+            'Câu 5',
+            'Bạn muốn học nội dung khác hay học tiếp?',
+            'Sentence 6',
+            'Câu 6',
+            'Giọng của bạn đây.',
+            'Bạn đã nghe hết Ngôi sao rồi. Bạn muốn học nội dung khác hay học lại?'
+          ]
+Silent MAIN completion must preserve waiting-for-choice.
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///D:/Documents/ai-speaking-flutter-app/output/apk/recheck-vocabulary-choice_test.dart:85:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///D:/Documents/ai-speaking-flutter-app/output/apk/recheck-vocabulary-choice_test.dart line 85
+The test description was:
+  Stars waits after silent MAIN at block end
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +0 -2: Stars waits after silent MAIN at block end [E]
+  Test failed. See exception logs above.
+  The test description was: Stars waits after silent MAIN at block end
+  
+00:01 +0 -2: Some tests failed.
+
+Failing tests:
+  D:/Documents/ai-speaking-flutter-app/output/apk/recheck-vocabulary-choice_test.dart: Parent waits after silent MAIN at block end
+  D:/Documents/ai-speaking-flutter-app/output/apk/recheck-vocabulary-choice_test.dart: Stars waits after silent MAIN at block end

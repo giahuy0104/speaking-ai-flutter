@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 
+import '../platform/platform_access_policy.dart';
 import '../../l10n/display_language.dart';
 
 /// Provides device-owner authentication for the parental area.
@@ -91,6 +92,13 @@ Future<bool> showParentalGate(
   ParentalGateAuthenticator? authenticator,
   ParentalGateSession? session,
 }) async {
+  if (PlatformAccessPolicy.bypassesParentalAuthentication(
+    isWeb: kIsWeb,
+    platform: defaultTargetPlatform,
+  )) {
+    return true;
+  }
+
   final activeSession = session ?? _defaultParentalGateSession;
   if (activeSession.isUnlocked) {
     return true;

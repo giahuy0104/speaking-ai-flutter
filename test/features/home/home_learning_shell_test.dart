@@ -15,6 +15,7 @@ import 'package:ai_speaking_flutter_app/features/listening/data/active_listening
 import 'package:ai_speaking_flutter_app/features/listening/data/listening_progress_store.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_listening_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
+import 'package:ai_speaking_flutter_app/features/settings/presentation/history_sheet.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_voice_assistant_flow.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_speaking_session_controller.dart';
@@ -56,15 +57,22 @@ void main() {
     final topicTabRect = tester.getRect(
       find.byKey(const Key('topic-listening-edge-tab')),
     );
-    expect(vocabularyTabRect.height, 78);
-    expect(topicTabRect.height, 78);
-    expect(vocabularyTabRect.top, topicTabRect.top);
+    expect(vocabularyTabRect.size, const Size(44, 142));
+    expect(topicTabRect.size, const Size(44, 142));
+    expect(topicTabRect.top - vocabularyTabRect.top, 32);
+    expect(find.byKey(const Key('conversation-bottom-tab')), findsNothing);
+    expect(find.byKey(const Key('main-voice-assistant-button')), findsNothing);
+    expect(find.byKey(const Key('history-bottom-tab')), findsNothing);
+    expect(find.text('Câu tiếng Việt'), findsOneWidget);
+    expect(find.text('Câu tiếng Anh'), findsOneWidget);
     expect(find.byKey(const Key('topic-listening-shortcut')), findsNothing);
     expect(find.text('50 chủ đề'), findsNothing);
 
     await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
     await tester.pumpAndSettle();
     expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
+    expect(find.byKey(const Key('vocabulary-edge-tab')), findsNothing);
+    expect(find.byKey(const Key('topic-listening-edge-tab')), findsNothing);
 
     await tester.tap(find.byKey(const Key('vocabulary-practice-button')));
     await tester.pumpAndSettle();
@@ -127,6 +135,29 @@ void main() {
     expect(find.text('Không thể xác thực'), findsNothing);
     Navigator.of(tester.element(find.text('Cài đặt lượt nói'))).pop();
     await tester.pumpAndSettle();
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('Android opens recent history without device authentication', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final controller = _controller();
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(_app(controller, useDefaultParentAccessGate: true));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Lịch sử gần đây'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HistorySheet), findsOneWidget);
+    expect(find.text('Không thể xác thực'), findsNothing);
     debugDefaultTargetPlatformOverride = null;
   });
 
@@ -195,7 +226,7 @@ void main() {
     expect(visibilityChanges, <bool>[true, false]);
   });
 
-  testWidgets('iOS exposes every primary navigation action and MAIN', (
+  testWidgets('iOS keeps header, side navigation, and hardware MAIN flow', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -248,17 +279,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('conversation-bottom-tab')));
+    await tester.tap(find.byKey(const Key('vocabulary-practice-button')));
     await tester.pumpAndSettle();
     expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('main-voice-assistant-button')));
+    expect(find.byKey(const Key('main-voice-assistant-button')), findsNothing);
+    expect(await voiceNavigationController.activateFromMainButton(), isTrue);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 700));
     expect(speechInput.startCount, 1);
     expect(voiceNavigationController.isMainButtonSessionActive, isTrue);
     expect(voiceNavigationController.isListening, isTrue);
-    expect(find.text('MAIN'), findsOneWidget);
+    expect(find.text('MAIN'), findsNothing);
 
     // BLE/HFP status and diagnostics are surfaced through ConversationController
     // notifications. On iOS they must not cancel the explicit MAIN recognizer;
@@ -269,7 +301,7 @@ void main() {
     expect(voiceNavigationController.isMainButtonSessionActive, isTrue);
     expect(voiceNavigationController.isListening, isTrue);
     expect(speechInput.cancelCount, 0);
-    expect(find.text('MAIN'), findsOneWidget);
+    expect(find.text('MAIN'), findsNothing);
 
     await voiceNavigationController.pause();
     await tester.pump();
@@ -318,6 +350,8 @@ void main() {
     expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
     expect(find.textContaining('Đã nhận lệnh giọng nói'), findsOneWidget);
 
+    await tester.tap(find.byKey(const Key('vocabulary-practice-button')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('topic-listening-edge-tab')));
     await tester.pumpAndSettle();
     expect(find.byType(TopicListeningScreen), findsOneWidget);
@@ -557,7 +591,9 @@ void main() {
     },
   );
 
-  testWidgets('opens a lesson inside a named topic from voice', (tester) async {
+  testWidgets('MAIN rejects free lesson selection before a module is chosen', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
@@ -606,7 +642,8 @@ void main() {
       const Key('lesson-review-screen'),
       const Key('lesson-practice-screen'),
     ].fold<int>(0, (count, key) => count + find.byKey(key).evaluate().length);
-    expect(openedLessonScreenCount, 1);
+    expect(openedLessonScreenCount, 0);
+    expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
   });
 
   testWidgets(
@@ -664,78 +701,75 @@ void main() {
     },
   );
 
-  testWidgets('Main flow uses spoken age to open topic 3 lesson 1', (
-    tester,
-  ) async {
-    SharedPreferences.setMockInitialValues(<String, Object>{});
-    tester.view.physicalSize = const Size(390, 844);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets(
+    'Main flow uses the saved age and topic owner to open the first lesson',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    final contentFuture = AssetListeningContentRepository(
-      bundle: rootBundle,
-    ).load();
-    final speechInput = _FakeStreamingSpeechInput();
-    final voiceNavigationController = VoiceNavigationController(
-      speechInput: speechInput,
-      ownsSpeechInput: true,
-      mainAssistantFlow: MainVoiceAssistantFlow(
-        contentLoader: () => contentFuture,
-      ),
-    );
-    final controller = _controller();
-    addTearDown(controller.dispose);
-    addTearDown(voiceNavigationController.dispose);
+      final contentFuture = AssetListeningContentRepository(
+        bundle: rootBundle,
+      ).load();
+      final speechInput = _FakeStreamingSpeechInput();
+      final voiceNavigationController = VoiceNavigationController(
+        speechInput: speechInput,
+        ownsSpeechInput: true,
+        mainAssistantFlow: MainVoiceAssistantFlow(
+          contentLoader: () => contentFuture,
+        ),
+      );
+      final controller = _controller();
+      addTearDown(controller.dispose);
+      addTearDown(voiceNavigationController.dispose);
 
-    await tester.pumpWidget(
-      _app(
-        controller,
-        childAge: 4,
-        voiceNavigationController: voiceNavigationController,
-        listeningContentFuture: contentFuture,
-      ),
-    );
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        _app(
+          controller,
+          childAge: 4,
+          voiceNavigationController: voiceNavigationController,
+          listeningContentFuture: contentFuture,
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    expect(await voiceNavigationController.activateFromMainButton(), isTrue);
-    expect(
-      await voiceNavigationController.dispatchRecognizedText(
-        'Con muốn học theo chủ đề',
-      ),
-      isTrue,
-    );
-    expect(
-      await voiceNavigationController.dispatchRecognizedText('Con 6 tuổi'),
-      isTrue,
-    );
-    // The topic screen now resolves the current Level from real progress, then
-    // re-opens MAIN with only that Level's topic numbers (1, 2, 3 here).
-    for (var index = 0; index < 20; index += 1) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
-    expect(find.byType(TopicListeningScreen), findsOneWidget);
-    expect(
-      await voiceNavigationController.dispatchRecognizedText(
-        'Con muốn học chủ đề số 3',
-      ),
-      isTrue,
-    );
-    for (var index = 0; index < 20; index += 1) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
+      expect(await voiceNavigationController.activateFromMainButton(), isTrue);
+      expect(
+        await voiceNavigationController.dispatchRecognizedText(
+          'Con muốn học theo chủ đề',
+        ),
+        isTrue,
+      );
+      // The topic screen now resolves the current Level from real progress, then
+      // re-opens MAIN with only that Level's topic numbers (1, 2, 3 here).
+      for (var index = 0; index < 20; index += 1) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(find.byType(TopicListeningScreen), findsOneWidget);
+      expect(
+        await voiceNavigationController.dispatchRecognizedText(
+          'Con muốn học chủ đề số 3',
+        ),
+        isTrue,
+      );
+      for (var index = 0; index < 20; index += 1) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
 
-    final openedLessonScreenCount = <Key>[
-      const Key('lesson-intro-screen'),
-      const Key('lesson-review-screen'),
-      const Key('lesson-practice-screen'),
-    ].fold<int>(0, (count, key) => count + find.byKey(key).evaluate().length);
-    expect(openedLessonScreenCount, 1);
-    expect(
-      find.byKey(const Key('topic-lesson-list-screen'), skipOffstage: false),
-      findsOneWidget,
-    );
-  });
+      final openedLessonScreenCount = <Key>[
+        const Key('lesson-intro-screen'),
+        const Key('lesson-review-screen'),
+        const Key('lesson-practice-screen'),
+      ].fold<int>(0, (count, key) => count + find.byKey(key).evaluate().length);
+      expect(openedLessonScreenCount, 1);
+      expect(
+        find.byKey(const Key('topic-lesson-list-screen'), skipOffstage: false),
+        findsOneWidget,
+      );
+    },
+  );
 
   testWidgets(
     'Main speaking choice hands off to the automatic speaking session',

@@ -16,23 +16,23 @@ void main() {
     }
   });
 
-  test(
-    'routes approved INT-018 stop phrases out of continuous translation',
-    () {
-      for (final text in <String>[
-        'Dừng lại',
-        'Mình muốn dừng',
-        'Dừng dịch liên tục',
-        'Ngừng dịch',
-        'Không dịch nữa',
-        'Thoát dịch',
-        'Hổng dịch nữa',
-        'Dừng dịch giúp mình',
-      ]) {
-        expect(resolver.resolve(text), MainSpeakingCommand.stopTranslation);
-      }
-    },
-  );
+  test('only the exact approved stop exits continuous translation', () {
+    expect(
+      resolver.resolve('DỪNG   LẠI!'),
+      MainSpeakingCommand.stopTranslation,
+    );
+    for (final text in <String>[
+      'Mình muốn dừng',
+      'Dừng dịch liên tục',
+      'Ngừng dịch',
+      'Không dịch nữa',
+      'Thoát dịch',
+      'Hổng dịch nữa',
+      'Dừng dịch giúp mình',
+    ]) {
+      expect(resolver.resolve(text), isNull, reason: text);
+    }
+  });
 
   test('keeps unapproved non-translation stop requests out of this flow', () {
     for (final text in <String>[

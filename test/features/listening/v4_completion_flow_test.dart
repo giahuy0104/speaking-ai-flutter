@@ -2,6 +2,60 @@ import 'package:ai_speaking_flutter_app/features/listening/domain/v4_completion_
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test(
+    'completion choices reject negation, embedded text and wrong spoken numbers',
+    () {
+      const resolver = V4CompletionChoiceResolver();
+      for (final text in [
+        'Không học bài tiếp theo',
+        'Mình đang học Bài 2',
+        'Học lại Bài năm',
+        'Bài 3',
+      ]) {
+        expect(
+          resolver.resolve(
+            text,
+            stage: V4CompletionStage.lessonEnd,
+            currentLesson: 1,
+            nextLesson: 2,
+          ),
+          isNull,
+          reason: text,
+        );
+      }
+      expect(
+        resolver.resolve(
+          'Bắt đầu Level ba',
+          stage: V4CompletionStage.nextLevel,
+          nextLevel: 2,
+        ),
+        isNull,
+      );
+      expect(
+        resolver.resolve(
+          'Bắt đầu Level hai',
+          stage: V4CompletionStage.nextLevel,
+          nextLevel: 2,
+        ),
+        V4CompletionAction.startNextLevel,
+      );
+      expect(
+        resolver.resolve(
+          'Mình không muốn học lại',
+          stage: V4CompletionStage.topicEnd,
+        ),
+        isNull,
+      );
+      expect(
+        resolver.resolve(
+          'Học lại Bài 8',
+          stage: V4CompletionStage.lessonEnd,
+          currentLesson: 7,
+        ),
+        isNull,
+      );
+    },
+  );
   test('uses the approved V4.1 completion prompts verbatim', () {
     expect(
       v4CompletionPrompt(V4CompletionStage.lessonEnd),
@@ -68,19 +122,22 @@ void main() {
     );
   });
 
-  test('does not return a choice that is not offered on screen', () {
-    expect(
-      const V4CompletionChoiceResolver().resolve(
-        'Dừng lại',
-        stage: V4CompletionStage.lessonEnd,
-        allowedActions: const <V4CompletionAction>[
-          V4CompletionAction.nextLesson,
-          V4CompletionAction.relearnCurrentLesson,
-        ],
-      ),
-      isNull,
-    );
-  });
+  test(
+    'global STOP can pause even when only learning choices are displayed',
+    () {
+      expect(
+        const V4CompletionChoiceResolver().resolve(
+          'Dừng lại',
+          stage: V4CompletionStage.lessonEnd,
+          allowedActions: const <V4CompletionAction>[
+            V4CompletionAction.nextLesson,
+            V4CompletionAction.relearnCurrentLesson,
+          ],
+        ),
+        V4CompletionAction.stop,
+      );
+    },
+  );
 
   test('does not navigate on prompt echo or replay of a different lesson', () {
     for (final text in <String>[

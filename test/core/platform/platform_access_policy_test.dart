@@ -4,6 +4,30 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('PlatformAccessPolicy', () {
+    test('bypasses every parental authentication only on native Android', () {
+      expect(
+        PlatformAccessPolicy.bypassesParentalAuthentication(
+          isWeb: false,
+          platform: TargetPlatform.android,
+        ),
+        isTrue,
+      );
+      expect(
+        PlatformAccessPolicy.bypassesParentalAuthentication(
+          isWeb: false,
+          platform: TargetPlatform.iOS,
+        ),
+        isFalse,
+      );
+      expect(
+        PlatformAccessPolicy.bypassesParentalAuthentication(
+          isWeb: true,
+          platform: TargetPlatform.android,
+        ),
+        isFalse,
+      );
+    });
+
     test('bypasses Settings authentication only for native Android', () {
       expect(
         PlatformAccessPolicy.bypassesSettingsAuthentication(

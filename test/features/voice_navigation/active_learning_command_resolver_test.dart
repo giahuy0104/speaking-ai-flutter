@@ -16,7 +16,6 @@ void main() {
       'Học lại từ đầu': ActiveLearningCommand.restart,
       'Luyện lại từ đầu': ActiveLearningCommand.restart,
       'Cho con học bài tiếp theo': ActiveLearningCommand.nextLesson,
-      'Bài trước': ActiveLearningCommand.previousLesson,
       'Tạm dừng': ActiveLearningCommand.stop,
       'Tiếp tục': ActiveLearningCommand.resume,
     };

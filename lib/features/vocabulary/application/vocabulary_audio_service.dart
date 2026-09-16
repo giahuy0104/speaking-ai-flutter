@@ -45,6 +45,8 @@ class VocabularyAudioService implements VocabularyContentAudioService {
   final Duration cloudWait;
   final DeviceAudioCache _cache;
   final bool _ownsCache;
+  int _generation = 0;
+  bool _disposed = false;
 
   @override
   Future<void> prefetch(String text, {required String locale}) async {
@@ -64,6 +66,8 @@ class VocabularyAudioService implements VocabularyContentAudioService {
     String text, {
     required String locale,
   }) async {
+    final generation = _generation;
+    if (_disposed) return VocabularyAudioSource.nativeTts;
     final normalized = text.trim();
     if (normalized.isEmpty) return VocabularyAudioSource.nativeTts;
     try {
@@ -71,6 +75,9 @@ class VocabularyAudioService implements VocabularyContentAudioService {
       final cached = await _cache
           .cache(remote)
           .timeout(cloudWait, onTimeout: () => null);
+      if (_disposed || generation != _generation) {
+        return VocabularyAudioSource.nativeTts;
+      }
       if (cached != null) {
         await playToCompletion(cached);
         return VocabularyAudioSource.minhqndCache;
@@ -78,15 +85,23 @@ class VocabularyAudioService implements VocabularyContentAudioService {
     } catch (_) {
       // The native voice is deliberately the last-resort, zero-cost path.
     }
+    if (_disposed || generation != _generation) {
+      return VocabularyAudioSource.nativeTts;
+    }
     await nativeSpeakAndWait(normalized, locale);
     return VocabularyAudioSource.nativeTts;
   }
 
   @override
-  Future<void> stop() => stopPlayback();
+  Future<void> stop() {
+    _generation++;
+    return stopPlayback();
+  }
 
   @override
   void dispose() {
+    _disposed = true;
+    _generation++;
     if (_ownsCache) _cache.dispose();
   }
 }

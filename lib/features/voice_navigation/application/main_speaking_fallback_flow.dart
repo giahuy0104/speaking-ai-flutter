@@ -1,4 +1,4 @@
-import '../domain/homi_fallback_catalog.dart';
+import '../domain/master_navigation_contract.dart';
 import 'main_speaking_command_resolver.dart';
 
 /// What the app should do after a recognized command in continuous
@@ -7,7 +7,7 @@ import 'main_speaking_command_resolver.dart';
 enum MainSpeakingFallbackAction {
   resumeTranslation,
   openOtherLearning,
-  openMainAssistant,
+  stopTranslation,
 }
 
 class MainSpeakingFallbackTurn {
@@ -17,11 +17,7 @@ class MainSpeakingFallbackTurn {
   final String? promptText;
 }
 
-/// Applies FB-009 while automatic continuous translation is active.
-///
-/// Requests to learn something else keep the FB-009 confirmation. An explicit
-/// stop exits immediately into the post-translation navigation menu, so the
-/// translation recorder cannot consume the child's next choice.
+/// FINAL control-only handoff. Menu answers belong to navigation ASR.
 class MainSpeakingFallbackFlow {
   MainSpeakingFallbackFlow({
     MainSpeakingCommandResolver commandResolver =
@@ -29,93 +25,25 @@ class MainSpeakingFallbackFlow {
   }) : _commandResolver = commandResolver;
 
   final MainSpeakingCommandResolver _commandResolver;
-  MainSpeakingCommand? _pendingCommand;
 
-  bool get isAwaitingConfirmation => _pendingCommand != null;
+  // Compatibility for the app adapter; FINAL has no yes/no translation node.
+  bool get isAwaitingConfirmation => false;
+  void reset() {}
+  bool canHandle(String text) => _commandResolver.resolve(text) != null;
 
-  void reset() => _pendingCommand = null;
-
-  bool canHandle(String recognizedText) =>
-      recognizedText.trim().isNotEmpty &&
-      (isAwaitingConfirmation ||
-          _commandResolver.resolve(recognizedText) != null);
-
-  MainSpeakingFallbackTurn? handle(String recognizedText) {
-    final pendingCommand = _pendingCommand;
-    if (pendingCommand != null) {
-      return _handleConfirmation(recognizedText, pendingCommand);
-    }
-
-    final command = _commandResolver.resolve(recognizedText);
-    if (command == null) {
-      return null;
-    }
-    if (command == MainSpeakingCommand.help) {
-      return MainSpeakingFallbackTurn(
-        action: MainSpeakingFallbackAction.resumeTranslation,
-        promptText: HomiFallbackCatalog.assistantPromptById['AI-022']!,
-      );
-    }
-    if (command == MainSpeakingCommand.stopTranslation) {
-      _pendingCommand = null;
-      return const MainSpeakingFallbackTurn(
-        action: MainSpeakingFallbackAction.openMainAssistant,
-      );
-    }
-
-    _pendingCommand = command;
-    return MainSpeakingFallbackTurn(
-      action: MainSpeakingFallbackAction.resumeTranslation,
-      promptText: HomiFallbackCatalog.fallbackPolicyById['FB-009']!.firstPrompt,
-    );
-  }
-
-  MainSpeakingFallbackTurn _handleConfirmation(
-    String recognizedText,
-    MainSpeakingCommand pendingCommand,
-  ) {
-    final command = _commandResolver.resolve(recognizedText);
-    // A new explicit stop is global. It must not inherit a pending
-    // other-learning request, otherwise “học cái khác” → “dừng” would open
-    // the other-learning menu instead of stopping translation.
-    if (command == MainSpeakingCommand.stopTranslation) {
-      _pendingCommand = null;
-      return MainSpeakingFallbackTurn(
-        action: _actionFor(MainSpeakingCommand.stopTranslation),
-      );
-    }
-    if (_isAffirmativeConfirmation(recognizedText)) {
-      _pendingCommand = null;
-      return MainSpeakingFallbackTurn(action: _actionFor(pendingCommand));
-    }
-    if (_isNegativeConfirmation(recognizedText)) {
-      _pendingCommand = null;
-      return const MainSpeakingFallbackTurn(
-        action: MainSpeakingFallbackAction.resumeTranslation,
-      );
-    }
-
-    _pendingCommand = null;
-    return MainSpeakingFallbackTurn(
-      action: MainSpeakingFallbackAction.resumeTranslation,
-      promptText:
-          HomiFallbackCatalog.fallbackPolicyById['FB-009']!.secondPrompt,
-    );
-  }
-
-  static MainSpeakingFallbackAction _actionFor(MainSpeakingCommand command) =>
-      switch (command) {
-        MainSpeakingCommand.otherLearning =>
-          MainSpeakingFallbackAction.openOtherLearning,
-        MainSpeakingCommand.stopTranslation =>
-          MainSpeakingFallbackAction.openMainAssistant,
-        MainSpeakingCommand.help =>
-          MainSpeakingFallbackAction.resumeTranslation,
+  MainSpeakingFallbackTurn? handle(String text) =>
+      switch (_commandResolver.resolve(text)) {
+        MainSpeakingCommand.stopTranslation => const MainSpeakingFallbackTurn(
+          action: MainSpeakingFallbackAction.stopTranslation,
+          promptText: MasterNavigationContract.translationStopped,
+        ),
+        MainSpeakingCommand.otherLearning => const MainSpeakingFallbackTurn(
+          action: MainSpeakingFallbackAction.openOtherLearning,
+        ),
+        MainSpeakingCommand.help => const MainSpeakingFallbackTurn(
+          action: MainSpeakingFallbackAction.resumeTranslation,
+          promptText: MasterNavigationContract.translationIntro,
+        ),
+        null => null,
       };
-
-  static bool _isAffirmativeConfirmation(String recognizedText) =>
-      HomiFallbackCatalog.matchesChildPhrase('INT-019', recognizedText);
-
-  static bool _isNegativeConfirmation(String recognizedText) =>
-      HomiFallbackCatalog.matchesChildPhrase('INT-020', recognizedText);
 }

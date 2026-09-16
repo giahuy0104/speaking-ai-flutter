@@ -1,3 +1,5 @@
+import '../../voice_navigation/domain/master_navigation_contract.dart';
+
 enum V4CompletionStage {
   lessonEnd,
   topicEnd,
@@ -69,20 +71,33 @@ class V4CompletionChoiceResolver {
     Iterable<V4CompletionAction> allowedActions = V4CompletionAction.values,
     int? currentLesson,
     int? nextLesson,
+    int? nextLevel,
   }) {
     final value = _normalize(transcript);
     if (value.isEmpty) return null;
+    if (value.contains(' hay ') || value.contains(' hoac ')) return null;
     final allowed = allowedActions.toSet();
+    if (stage == V4CompletionStage.nextLevel && nextLevel != null) {
+      final explicit = _numberedChoice(value, 'level');
+      if (explicit != null) {
+        return explicit == nextLevel &&
+                allowed.contains(V4CompletionAction.startNextLevel)
+            ? V4CompletionAction.startNextLevel
+            : null;
+      }
+    }
 
     V4CompletionAction? result;
-    if (_hasAny(value, const <String>[
-      'dung lai',
-      'ket thuc',
-      'thoi',
-      'stop',
-      'finish',
-    ])) {
-      result = V4CompletionAction.stop;
+    if (MasterNavigationContract.matches('STOP_GLOBAL', transcript) ||
+        MasterNavigationContract.legacy('INT-001', transcript) ||
+        const <String>[
+          'dung lai',
+          'ket thuc',
+          'thoi',
+          'stop',
+          'finish',
+        ].contains(value)) {
+      return V4CompletionAction.stop;
     } else {
       result = switch (stage) {
         V4CompletionStage.lessonEnd => _lessonAction(
@@ -91,41 +106,44 @@ class V4CompletionChoiceResolver {
           nextLesson: nextLesson,
         ),
         V4CompletionStage.topicEnd || V4CompletionStage.topicEndOneRemaining =>
-          _hasAny(value, const <String>[
-                'chu de tiep theo',
-                'hoc tiep chu de',
-                'chu de moi',
-                'chu de khac',
-                'hoc tiep',
-                'di tiep',
-                'tiep tuc',
-                'next topic',
-                'another topic',
-                'continue',
-              ])
+          MasterNavigationContract.matches('OTHER_TOPIC', transcript) ||
+                  _hasAny(value, const <String>[
+                    'chu de tiep theo',
+                    'hoc tiep chu de',
+                    'chu de moi',
+                    'chu de khac',
+                    'hoc tiep',
+                    'di tiep',
+                    'tiep tuc',
+                    'next topic',
+                    'another topic',
+                    'continue',
+                  ])
               ? V4CompletionAction.nextTopic
-              : _hasAny(value, const <String>[
-                  'hoc lai',
-                  'luyen lai',
-                  'learn again',
-                  'practice again',
-                  'restart',
-                  'start over',
-                ])
+              : MasterNavigationContract.matches('RELEARN_TOPIC', transcript) ||
+                    _hasAny(value, const <String>[
+                      'hoc lai',
+                      'luyen lai',
+                      'learn again',
+                      'practice again',
+                      'restart',
+                      'start over',
+                    ])
               ? V4CompletionAction.relearnTopic
               : null,
         V4CompletionStage.nextLevel =>
-          _hasAny(value, const <String>[
-                'level tiep theo',
-                'bat dau level',
-                'hoc level',
-                'hoc tiep',
-                'di tiep',
-                'tiep tuc',
-                'next level',
-                'start level',
-                'continue',
-              ])
+          MasterNavigationContract.matches('NEXT_LEVEL', transcript) ||
+                  _hasAny(value, const <String>[
+                    'level tiep theo',
+                    'bat dau level',
+                    'hoc level',
+                    'hoc tiep',
+                    'di tiep',
+                    'tiep tuc',
+                    'next level',
+                    'start level',
+                    'continue',
+                  ])
               ? V4CompletionAction.startNextLevel
               : null,
         V4CompletionStage.courseRelearnLevel => _levelAction(value),
@@ -139,78 +157,100 @@ class V4CompletionChoiceResolver {
     int? currentLesson,
     int? nextLesson,
   }) {
-    final namesCurrent = _mentionsLesson(value, currentLesson);
-    final namesNext = _mentionsLesson(value, nextLesson);
-    final next = _hasAny(value, const <String>[
-      'bai tiep theo',
-      'hoc tiep',
-      'tiep theo',
-      'di tiep',
-      'tiep tuc',
-      'bai sau',
-      'next lesson',
-      'next one',
-      'continue',
-    ]);
-    final replay = _hasAny(value, const <String>[
-      'hoc lai',
-      'luyen lai',
-      'bai nay',
-      'learn again',
-      'practice again',
-      'relearn',
-      'restart',
-      'start over',
-    ]);
-    // Never choose the first option when ASR picked up the whole question.
-    // An explicit replay must also not turn "học lại Bài 2" into nextLesson.
-    if ((namesCurrent && namesNext) || (next && replay)) return null;
-    if (replay) {
-      return namesNext ? null : V4CompletionAction.relearnCurrentLesson;
+    if (value.contains('chu de') || value.contains('level')) return null;
+    // FINAL T09 explicitly requires repair for this ambiguous short answer.
+    if (value == 'hoc tiep') return null;
+    final selected = _numberedChoice(value, 'bai');
+    if (selected != null) {
+      final replay =
+          _commandCore(value).startsWith('hoc lai ') ||
+          _commandCore(value).startsWith('lam lai ');
+      if (selected == currentLesson) {
+        return V4CompletionAction.relearnCurrentLesson;
+      }
+      if (selected == nextLesson && !replay) {
+        return V4CompletionAction.nextLesson;
+      }
+      return null;
     }
-    if (next || namesNext) return V4CompletionAction.nextLesson;
-    if (namesCurrent) return V4CompletionAction.relearnCurrentLesson;
+    final next =
+        MasterNavigationContract.matches('NEXT_LESSON', _commandCore(value)) ||
+        _hasAny(value, const <String>[
+          'hoc bai tiep theo',
+          'bai tiep theo',
+          'hoc tiep',
+          'tiep theo',
+          'di tiep',
+          'tiep tuc',
+          'bai sau',
+          'next lesson',
+          'next one',
+          'continue',
+        ]);
+    final replay =
+        MasterNavigationContract.matches(
+          'RELEARN_LESSON',
+          _commandCore(value),
+        ) ||
+        _hasAny(value, const <String>[
+          'hoc lai',
+          'luyen lai',
+          'bai nay',
+          'learn again',
+          'practice again',
+          'relearn',
+          'restart',
+          'start over',
+        ]);
+    if (next && replay) return null;
+    if (replay) return V4CompletionAction.relearnCurrentLesson;
+    if (next) return V4CompletionAction.nextLesson;
     return null;
   }
 
-  static bool _mentionsLesson(String value, int? number) {
-    if (number == null) return false;
-    const spokenNumbers = <int, String>{
-      1: 'mot',
-      2: 'hai',
-      3: 'ba',
-      4: 'bon',
-      5: 'nam',
-      6: 'sau',
-      7: 'bay',
-      8: 'tam',
-      9: 'chin',
-      10: 'muoi',
+  static String _commandCore(String value) => value
+      .replaceFirst(
+        RegExp(
+          r'^(?:con muon|minh muon|toi muon|cho con|cho minh|i want to|the) ',
+        ),
+        '',
+      )
+      .replaceFirst(RegExp(r' (?:a|nhe|di)$'), '');
+
+  static int? _numberedChoice(String value, String scope) {
+    final core = _commandCore(value);
+    final match = RegExp(
+      '^(?:(?:hoc lai|lam lai|hoc|bat dau|mo|chon) )?'
+      '(?:$scope(?: so)? )?'
+      r'(\d+|mot|hai|ba|bon|nam|sau|bay|tam|chin|muoi)$',
+    ).firstMatch(core);
+    if (match == null) return null;
+    const spoken = {
+      'mot': 1,
+      'hai': 2,
+      'ba': 3,
+      'bon': 4,
+      'nam': 5,
+      'sau': 6,
+      'bay': 7,
+      'tam': 8,
+      'chin': 9,
+      'muoi': 10,
     };
-    return _hasAny(value, <String>[
-      'bai $number',
-      'bai so $number',
-      'lesson $number',
-      if (spokenNumbers[number] case final spoken?) 'bai $spoken',
-      if (spokenNumbers[number] case final spoken?) 'bai so $spoken',
-    ]);
+    return int.tryParse(match.group(1)!) ?? spoken[match.group(1)!];
   }
 
   static V4CompletionAction? _levelAction(String value) {
-    if (_hasAny(value, const <String>['level 1', 'level mot', 'cap 1'])) {
-      return V4CompletionAction.relearnLevel1;
-    }
-    if (_hasAny(value, const <String>['level 2', 'level hai', 'cap 2'])) {
-      return V4CompletionAction.relearnLevel2;
-    }
-    if (_hasAny(value, const <String>['level 3', 'level ba', 'cap 3'])) {
-      return V4CompletionAction.relearnLevel3;
-    }
-    return null;
+    return switch (_numberedChoice(value, 'level')) {
+      1 => V4CompletionAction.relearnLevel1,
+      2 => V4CompletionAction.relearnLevel2,
+      3 => V4CompletionAction.relearnLevel3,
+      _ => null,
+    };
   }
 
   static bool _hasAny(String value, Iterable<String> phrases) =>
-      phrases.any((phrase) => ' $value '.contains(' $phrase '));
+      phrases.contains(_commandCore(value));
 
   static String _normalize(String input) {
     const accented =

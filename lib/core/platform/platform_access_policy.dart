@@ -1,12 +1,19 @@
 import 'package:flutter/foundation.dart';
 
 abstract final class PlatformAccessPolicy {
+  /// The Android APK does not require a device credential for parent-facing
+  /// areas. iOS keeps LocalAuthentication and Web keeps its confirmation flow.
+  static bool bypassesParentalAuthentication({
+    required bool isWeb,
+    required TargetPlatform platform,
+  }) => !isWeb && platform == TargetPlatform.android;
+
   /// The Android APK opens Settings without a device credential because many
   /// target devices do not have biometrics or a lock-screen credential set.
   static bool bypassesSettingsAuthentication({
     required bool isWeb,
     required TargetPlatform platform,
-  }) => !isWeb && platform == TargetPlatform.android;
+  }) => bypassesParentalAuthentication(isWeb: isWeb, platform: platform);
 
   /// Changing the listening age group follows the Android Settings behavior:
   /// target devices are not required to have a biometric or screen lock.
@@ -15,5 +22,5 @@ abstract final class PlatformAccessPolicy {
   static bool bypassesTopicAgeAuthentication({
     required bool isWeb,
     required TargetPlatform platform,
-  }) => !isWeb && platform == TargetPlatform.android;
+  }) => bypassesParentalAuthentication(isWeb: isWeb, platform: platform);
 }

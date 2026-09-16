@@ -90,7 +90,40 @@ class LessonPracticeScreen extends StatefulWidget {
 }
 
 class _LessonPracticeScreenState extends State<LessonPracticeScreen>
-    implements ActiveLearningModuleController {
+    implements
+        ActiveLearningModuleController,
+        ActiveLearningVoiceContext,
+        ActiveLearningVoiceSelectionContext {
+  String? _mainCompletionPrompt;
+  int? _mainCompletionNextLevel;
+
+  @override
+  ActiveLearningVoiceNode get mainVoiceNode => ActiveLearningVoiceNode.core;
+
+  @override
+  String get mainVoicePrompt => _v4CompletionChoiceVisible
+      ? _mainCompletionPrompt ??
+            'Bạn chọn một trong các lựa chọn trên màn hình nhé.'
+      : 'Bạn muốn nghe lại, học câu tiếp theo, học câu trước hay dừng lại?';
+
+  @override
+  bool get isMainVoiceChoice => _v4CompletionChoiceVisible;
+
+  @override
+  ActiveLearningCommand? resolveMainVoiceChoice(String transcript) {
+    final stage = _activeV4CompletionStage;
+    if (stage == null) return null;
+    return switch (_resolveV4CompletionTranscript(transcript, stage)) {
+      V4CompletionAction.nextLesson ||
+      V4CompletionAction.nextTopic ||
+      V4CompletionAction.startNextLevel => ActiveLearningCommand.nextLesson,
+      V4CompletionAction.relearnCurrentLesson ||
+      V4CompletionAction.relearnTopic => ActiveLearningCommand.restart,
+      V4CompletionAction.stop => ActiveLearningCommand.stop,
+      _ => null,
+    };
+  }
+
   static const Duration _mainPauseCleanupTimeout = Duration(seconds: 2);
   int _sentenceIndex = 0;
   bool _recording = false;
@@ -134,6 +167,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   StreamSubscription<void>? _completionChoiceCompletedSubscription;
   StreamSubscription<String>? _completionChoicePartialSubscription;
   bool _pausedForMainAssistant = false;
+  bool _exiting = false;
   bool _pausedAfterNoResponse = false;
   int _invalidResponseCount = 0;
   final Map<LessonFeedbackKind, int> _feedbackVariationIndexes =
@@ -225,9 +259,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     _cancelPendingLessonDelays();
     _recordingEndpointDetector.cancel();
     _clearCompletionChoiceListeners();
-    if (_recording ||
-        _recordingStartPending ||
-        _completionChoiceAndroidSpeechInput != null) {
+    if (!_exiting &&
+        (_recording ||
+            _recordingStartPending ||
+            _completionChoiceAndroidSpeechInput != null)) {
       if (_completionChoiceAndroidSpeechInput case final input?) {
         unawaited(input.cancel().catchError((Object _) {}));
       } else if (_usesIosNativeLessonRecognition &&
@@ -238,7 +273,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         widget.mediaService.cancelRecording();
       }
     }
-    if (!_handingOffMediaPlayback) {
+    if (!_exiting && !_handingOffMediaPlayback) {
       widget.mediaService.stopPlayback();
     }
     if (_ownsVoicePromptService && !_ownedVoicePromptReleased) {
@@ -415,7 +450,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   }
 
   @override
-  Future<void> pauseForMainAssistant() async {
+  Future<void> pauseForMainAssistant({bool waitForCleanup = true}) async {
     _pausedForMainAssistant = true;
     _lessonSession.invalidateMainPause();
     _lessonSession.invalidateActiveTurn();
@@ -462,9 +497,12 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     if (pendingDeviceStart != null) {
       unawaited(pendingDeviceStart.catchError((Object _) {}));
     }
-    await _boundedMainPauseCleanup(
-      Future.wait<void>(cleanup).then<void>((_) {}),
-    );
+    final pendingCleanup = Future.wait<void>(cleanup).then<void>((_) {});
+    if (waitForCleanup) {
+      await _boundedMainPauseCleanup(pendingCleanup);
+    } else {
+      unawaited(pendingCleanup.catchError((Object _) {}));
+    }
   }
 
   Future<void> _boundedMainPauseCleanup(Future<void> operation) async {
@@ -625,8 +663,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         _pausedAfterNoResponse;
     return DisplayLanguageScope(
       language: widget.language,
-      child: IgnorePointer(
-        ignoring: _pausedForMainAssistant,
+      child: PopScope<Object?>(
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) _commitNavigationExit();
+        },
         child: Scaffold(
           key: const Key('lesson-practice-screen'),
           backgroundColor: Colors.transparent,
@@ -645,121 +685,130 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
                         onBack: _exitLesson,
                       ),
                       Expanded(
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 720),
-                            child: SingleChildScrollView(
-                              padding: const EdgeInsets.fromLTRB(
-                                20,
-                                12,
-                                20,
-                                24,
-                              ),
-                              child: Column(
-                                children: <Widget>[
-                                  _SentenceCard(
-                                    sentence: _sentence,
-                                    lessonType: widget.lesson.type,
-                                    current: _sentenceIndex + 1,
-                                    total: total,
-                                    onPlaySample: _playSample,
-                                    onPlayVietnamese: _playVietnamese,
-                                  ),
-                                  if (_recordingPath == null) ...<Widget>[
-                                    const SizedBox(height: 14),
-                                    const _LessonCoachHint(),
-                                    const SizedBox(height: 14),
-                                  ] else
-                                    const SizedBox(height: 18),
-                                  _RecordButton(
-                                    recording: _recording,
-                                    busy:
-                                        _mediaBusy ||
-                                        _evaluatingAttempt ||
-                                        _pausedAfterNoResponse,
-                                    onTap: _toggleRecording,
-                                    onLongPressStart: _startRecording,
-                                    onLongPressEnd: _stopRecording,
-                                  ),
-                                  AnimatedSwitcher(
-                                    duration: const Duration(milliseconds: 220),
-                                    child: _recordingPath == null
-                                        ? const SizedBox(height: 14)
-                                        : Padding(
-                                            key: ValueKey(_recordingPath),
-                                            padding: const EdgeInsets.only(
-                                              top: 16,
-                                            ),
-                                            child: _RecordingCard(
-                                              duration: _recordingDuration,
-                                              onPlay: _playRecording,
-                                            ),
-                                          ),
-                                  ),
-                                  if (_message != null) ...<Widget>[
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      _message!,
-                                      textAlign: TextAlign.center,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(color: AppColors.muted),
-                                    ),
-                                  ],
-                                  if (_pausedAfterNoResponse) ...<Widget>[
-                                    const SizedBox(height: 12),
-                                    FilledButton.icon(
-                                      key: const Key(
-                                        'resume-after-no-response',
-                                      ),
-                                      onPressed: _resumeAfterNoResponse,
-                                      icon: const Icon(Icons.mic_rounded),
-                                      label: const Text('Thử lại mic'),
-                                    ),
-                                  ],
-                                  const SizedBox(height: 18),
-                                  if (_recordingPath != null)
-                                    _PostRecordingActions(
-                                      busy: interactionBusy,
-                                      onPlaySample: _playSample,
-                                      onPlayRecording: _playRecording,
-                                      onRecordAgain: _startRecording,
-                                      onContinue: _continue,
-                                      onPrevious: _previous,
-                                      canGoPrevious: _sentenceIndex > 0,
-                                      finalSentence:
-                                          _sentenceIndex == total - 1,
-                                    )
-                                  else
-                                    _LessonNavigationActions(
-                                      current: _sentenceIndex,
+                        child: IgnorePointer(
+                          ignoring:
+                              _pausedForMainAssistant ||
+                              _coachPopupKind != null,
+                          child: Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 720),
+                              child: SingleChildScrollView(
+                                padding: const EdgeInsets.fromLTRB(
+                                  20,
+                                  12,
+                                  20,
+                                  24,
+                                ),
+                                child: Column(
+                                  children: <Widget>[
+                                    _SentenceCard(
+                                      sentence: _sentence,
+                                      lessonType: widget.lesson.type,
+                                      current: _sentenceIndex + 1,
                                       total: total,
-                                      busy: interactionBusy,
-                                      allowPrevious:
-                                          widget.lesson.usesV4Flow ||
-                                          _sentenceIndex > 0,
-                                      allowNext:
-                                          !widget.lesson.usesV4Flow ||
-                                          _sentenceIndex < total - 1,
-                                      onPrevious: _previous,
-                                      onContinue: _continue,
+                                      onPlaySample: _playSample,
+                                      onPlayVietnamese: _playVietnamese,
                                     ),
-                                  if (_showSkip &&
-                                      _recordingPath == null) ...<Widget>[
-                                    const SizedBox(height: 10),
-                                    TextButton.icon(
-                                      key: const Key('skip-lesson-sentence'),
-                                      onPressed: interactionBusy ? null : _skip,
-                                      icon: const Icon(
-                                        Icons.fast_forward_rounded,
-                                      ),
-                                      label: Text(
-                                        context.tr('Bỏ qua câu này', '跳过本句'),
-                                      ),
+                                    if (_recordingPath == null) ...<Widget>[
+                                      const SizedBox(height: 14),
+                                      const _LessonCoachHint(),
+                                      const SizedBox(height: 14),
+                                    ] else
+                                      const SizedBox(height: 18),
+                                    _RecordButton(
+                                      recording: _recording,
+                                      busy:
+                                          _mediaBusy ||
+                                          _evaluatingAttempt ||
+                                          _pausedAfterNoResponse,
+                                      onTap: _toggleRecording,
+                                      onLongPressStart: _startRecording,
+                                      onLongPressEnd: _stopRecording,
                                     ),
+                                    AnimatedSwitcher(
+                                      duration: const Duration(
+                                        milliseconds: 220,
+                                      ),
+                                      child: _recordingPath == null
+                                          ? const SizedBox(height: 14)
+                                          : Padding(
+                                              key: ValueKey(_recordingPath),
+                                              padding: const EdgeInsets.only(
+                                                top: 16,
+                                              ),
+                                              child: _RecordingCard(
+                                                duration: _recordingDuration,
+                                                onPlay: _playRecording,
+                                              ),
+                                            ),
+                                    ),
+                                    if (_message != null) ...<Widget>[
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        _message!,
+                                        textAlign: TextAlign.center,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(color: AppColors.muted),
+                                      ),
+                                    ],
+                                    if (_pausedAfterNoResponse) ...<Widget>[
+                                      const SizedBox(height: 12),
+                                      FilledButton.icon(
+                                        key: const Key(
+                                          'resume-after-no-response',
+                                        ),
+                                        onPressed: _resumeAfterNoResponse,
+                                        icon: const Icon(Icons.mic_rounded),
+                                        label: const Text('Thử lại mic'),
+                                      ),
+                                    ],
+                                    const SizedBox(height: 18),
+                                    if (_recordingPath != null)
+                                      _PostRecordingActions(
+                                        busy: interactionBusy,
+                                        onPlaySample: _playSample,
+                                        onPlayRecording: _playRecording,
+                                        onRecordAgain: _startRecording,
+                                        onContinue: _continue,
+                                        onPrevious: _previous,
+                                        canGoPrevious: _sentenceIndex > 0,
+                                        finalSentence:
+                                            _sentenceIndex == total - 1,
+                                      )
+                                    else
+                                      _LessonNavigationActions(
+                                        current: _sentenceIndex,
+                                        total: total,
+                                        busy: interactionBusy,
+                                        allowPrevious:
+                                            widget.lesson.usesV4Flow ||
+                                            _sentenceIndex > 0,
+                                        allowNext:
+                                            !widget.lesson.usesV4Flow ||
+                                            _sentenceIndex < total - 1,
+                                        onPrevious: _previous,
+                                        onContinue: _continue,
+                                      ),
+                                    if (_showSkip &&
+                                        _recordingPath == null) ...<Widget>[
+                                      const SizedBox(height: 10),
+                                      TextButton.icon(
+                                        key: const Key('skip-lesson-sentence'),
+                                        onPressed: interactionBusy
+                                            ? null
+                                            : _skip,
+                                        icon: const Icon(
+                                          Icons.fast_forward_rounded,
+                                        ),
+                                        label: Text(
+                                          context.tr('Bỏ qua câu này', '跳过本句'),
+                                        ),
+                                      ),
+                                    ],
                                   ],
-                                ],
+                                ),
                               ),
                             ),
                           ),
@@ -772,7 +821,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
                   top: MediaQuery.paddingOf(context).top + 70,
                   right: 6,
                   child: _VirtualLessonControls(
-                    pending: _virtualCommandPending,
+                    pending: _virtualCommandPending || _pausedForMainAssistant,
                     canGoPrevious: _sentenceIndex > 0,
                     onPrevious: () => _runVirtualLessonCommand(
                       ActiveLearningCommand.previousItem,
@@ -800,12 +849,9 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
                   ),
                 ),
                 Positioned.fill(
-                  child: AbsorbPointer(
+                  child: IgnorePointer(
                     key: const Key('lesson-coach-popup-interaction-blocker'),
-                    absorbing:
-                        _coachPopupKind ==
-                            _LessonCoachPopupKind.firstReminder ||
-                        _coachPopupKind == _LessonCoachPopupKind.secondReminder,
+                    ignoring: true,
                     child: IgnorePointer(
                       ignoring:
                           _coachPopupKind !=
@@ -1971,16 +2017,24 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   }
 
   Future<void> _exitLesson() async {
-    _cancelIdleReminder();
-    _hideCoachPopup();
-    await widget.progressStore.saveCurrentSentence(
-      widget.lesson.id,
-      _sentenceIndex,
+    if (_exiting) return;
+    _commitNavigationExit();
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  void _commitNavigationExit() {
+    if (_exiting) return;
+    _exiting = true;
+    // pause invalidates the lesson generation synchronously, before the first
+    // await. Old playback/recognition callbacks must not advance after Back.
+    unawaited(
+      pauseForMainAssistant(waitForCleanup: false).catchError((Object _) {}),
     );
-    if (!mounted) {
-      return;
-    }
-    Navigator.of(context).pop();
+    unawaited(
+      widget.progressStore
+          .saveCurrentSentence(widget.lesson.id, _sentenceIndex)
+          .catchError((Object _) {}),
+    );
   }
 
   Future<void> _skip() async {
@@ -2339,6 +2393,8 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     await _voicePromptService.speakAndWait(prompt);
     if (!mounted) return null;
     _v4CompletionChoiceVisible = true;
+    _mainCompletionPrompt = prompt;
+    _mainCompletionNextLevel = nextLevel;
     _activeV4CompletionStage = stage;
     _activeV4CompletionActions = List<V4CompletionAction>.unmodifiable(actions);
     final resultFuture = showModalBottomSheet<V4CompletionAction>(
@@ -3107,6 +3163,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     allowedActions: _activeV4CompletionActions,
     currentLesson: widget.lesson.number,
     nextLesson: _nextLessonInTopic?.number,
+    nextLevel: _mainCompletionNextLevel,
   );
 
   void _clearCompletionChoiceListeners() {
@@ -3324,7 +3381,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
 
   Future<bool> _playGuideCue(LessonGuideCue cue) async {
     final uri = await _randomGuideUri(cue);
-    if (uri == null || !mounted) {
+    if (uri == null || !mounted || _exiting) {
       return false;
     }
     try {
@@ -3432,6 +3489,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     String text, {
     String locale = 'vi-VN',
   }) async {
+    if (_exiting || !mounted) return;
     final promptService = _voicePromptService;
     if (!kIsWeb && promptService is SelectedMediaOutputVoicePromptService) {
       await (promptService as SelectedMediaOutputVoicePromptService)

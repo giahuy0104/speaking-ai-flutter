@@ -81,7 +81,13 @@ class LessonChallengeScreen extends StatefulWidget {
 }
 
 class _LessonChallengeScreenState extends State<LessonChallengeScreen>
-    implements ActiveLearningModuleController {
+    implements ActiveLearningModuleController, ActiveLearningVoiceContext {
+  @override
+  ActiveLearningVoiceNode get mainVoiceNode =>
+      ActiveLearningVoiceNode.challenge;
+
+  @override
+  String get mainVoicePrompt => 'Bạn muốn nghe lại hay dừng lại?';
   static const Duration _promptCompletionTimeout = Duration(seconds: 10);
 
   late final LessonAttemptEvaluator _attemptEvaluator;
@@ -808,120 +814,132 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
 
     return DisplayLanguageScope(
       language: widget.language,
-      child: Scaffold(
-        key: const Key('lesson-challenge-screen'),
-        backgroundColor: Colors.transparent,
-        body: LearningScenery(
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
-              child: Column(
-                children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      IconButton(
-                        onPressed: _busy || _recording
-                            ? null
-                            : () => Navigator.of(context).pop(false),
-                        icon: const Icon(Icons.arrow_back_rounded),
-                        tooltip: 'Quay lại',
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(child: LinearProgressIndicator(value: progress)),
-                      const SizedBox(width: 12),
-                      IconButton(
-                        onPressed: _playingPrompt || _busy
-                            ? null
-                            : _replayCurrent,
-                        icon: const Icon(Icons.volume_up_rounded),
-                        tooltip: 'Nghe lại',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    height: 132,
-                    child: Image.asset(
-                      MascotAssets.listen,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text('Thử thách nghe', style: theme.textTheme.headlineMedium),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Câu ${_challengeIndex + 1}/${widget.challenges.length}',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: _ChallengeCard(challenge: _challenge),
-                    ),
-                  ),
-                  if (_message != null) ...<Widget>[
-                    const SizedBox(height: 12),
-                    Text(
-                      _message!,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.secondary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 14),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      FilledButton(
-                        key: const Key('lesson-challenge-record-button'),
-                        onPressed:
-                            _busy || _playingPrompt || _pausedAfterNoResponse
-                            ? null
-                            : (_recording ? _stopRecording : _startRecording),
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(64),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              HomiUi.controlRadius,
-                            ),
-                          ),
+      child: PopScope<bool>(
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) {
+            unawaited(pauseForMainAssistant().catchError((Object _) {}));
+          }
+        },
+        child: Scaffold(
+          key: const Key('lesson-challenge-screen'),
+          backgroundColor: Colors.transparent,
+          body: LearningScenery(
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+                child: Column(
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        IconButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          icon: const Icon(Icons.arrow_back_rounded),
+                          tooltip: 'Quay lại',
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            if (_recording || _busy)
-                              HomiWaveform(
-                                active: true,
-                                width: 48,
-                                height: 24,
-                                color: theme.colorScheme.onPrimary,
-                              )
-                            else
-                              const Icon(Icons.mic_rounded, size: 28),
-                            const SizedBox(width: 10),
-                            Text(
-                              _recording ? 'Dừng và chấm' : 'Nói câu trả lời',
-                            ),
-                          ],
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: LinearProgressIndicator(value: progress),
                         ),
-                      ),
-                      if (_pausedAfterNoResponse) ...<Widget>[
-                        const SizedBox(height: 10),
-                        FilledButton.tonalIcon(
-                          key: const Key('challenge-resume-after-no-response'),
-                          onPressed: _resumeAfterNoResponse,
-                          icon: const Icon(Icons.mic_rounded),
-                          label: const Text('Thử lại mic'),
+                        const SizedBox(width: 12),
+                        IconButton(
+                          onPressed: _playingPrompt || _busy
+                              ? null
+                              : _replayCurrent,
+                          icon: const Icon(Icons.volume_up_rounded),
+                          tooltip: 'Nghe lại',
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 132,
+                      child: Image.asset(
+                        MascotAssets.listen,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Thử thách nghe',
+                      style: theme.textTheme.headlineMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Câu ${_challengeIndex + 1}/${widget.challenges.length}',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: _ChallengeCard(challenge: _challenge),
+                      ),
+                    ),
+                    if (_message != null) ...<Widget>[
+                      const SizedBox(height: 12),
+                      Text(
+                        _message!,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.secondary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ],
-                  ),
-                ],
+                    const SizedBox(height: 14),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        FilledButton(
+                          key: const Key('lesson-challenge-record-button'),
+                          onPressed:
+                              _busy || _playingPrompt || _pausedAfterNoResponse
+                              ? null
+                              : (_recording ? _stopRecording : _startRecording),
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size.fromHeight(64),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                HomiUi.controlRadius,
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              if (_recording || _busy)
+                                HomiWaveform(
+                                  active: true,
+                                  width: 48,
+                                  height: 24,
+                                  color: theme.colorScheme.onPrimary,
+                                )
+                              else
+                                const Icon(Icons.mic_rounded, size: 28),
+                              const SizedBox(width: 10),
+                              Text(
+                                _recording ? 'Dừng và chấm' : 'Nói câu trả lời',
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (_pausedAfterNoResponse) ...<Widget>[
+                          const SizedBox(height: 10),
+                          FilledButton.tonalIcon(
+                            key: const Key(
+                              'challenge-resume-after-no-response',
+                            ),
+                            onPressed: _resumeAfterNoResponse,
+                            icon: const Icon(Icons.mic_rounded),
+                            label: const Text('Thử lại mic'),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

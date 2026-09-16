@@ -1002,6 +1002,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         voiceNavigationSpeechInput != null && _config.enableVoiceNavigation
         ? VoiceNavigationController(
             speechInput: voiceNavigationSpeechInput,
+            wakeWordEnabled: _config.autoStartVoiceNavigation,
             // Native speech is shared with ConversationController and released
             // explicitly by either controller before the other starts.
             ownsSpeechInput: voiceNavigationOwnsSpeechInput,
@@ -1192,6 +1193,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           voiceController.activateFromMainButton(
             activeLearning: activeLearning,
             activeLearningKind: activeLearningKind,
+            activeVoiceContext:
+                _activeLearningModules.controller is ActiveLearningVoiceContext
+                ? _activeLearningModules.controller
+                      as ActiveLearningVoiceContext
+                : null,
             inputLabelOverride: inputLabelOverride,
             promptAlreadySpoken: promptAlreadySpoken,
             noSpeechRetryPrompt: noSpeechRetryPrompt,
@@ -1570,6 +1576,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     // or the idle timeout. Never let it consume the first sentence of a new
     // continuous-translation session.
     _mainSpeakingFallbackFlow.reset();
+    _voiceNavigationController?.clearStoppedTranslationContext();
     _mainSpeakingSessionController.enter();
     if (!_usesIosHfpLifecycle) {
       // Preserve the established Android lifecycle from main. Android opens
@@ -1715,13 +1722,13 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       if (action == MainSpeakingNoSpeechAction.retry) {
         controller.clearMessage();
         await controller.speakAssistantPrompt(
-          HomiFallbackCatalog.silencePromptById['SIL-003']!,
+          'HOMI chưa nghe rõ. Bạn nói lại nhé.',
         );
         retry = true;
       } else {
         await _finishMainSpeakingMode(
           sayGoodbye: true,
-          goodbyeText: HomiFallbackCatalog.silencePromptById['SIL-004']!,
+          goodbyeText: 'Mình tạm dừng nhé.',
         );
       }
     } finally {
@@ -1791,6 +1798,20 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       return;
     }
 
+    if (turn.action == MainSpeakingFallbackAction.stopTranslation) {
+      _isHandlingMainSpeakingCommand = true;
+      try {
+        await voiceController.waitForMainAfterTranslationStop();
+        await _finishMainSpeakingMode(
+          sayGoodbye: true,
+          goodbyeText: turn.promptText,
+        );
+      } finally {
+        _isHandlingMainSpeakingCommand = false;
+      }
+      return;
+    }
+
     if (turn.action == MainSpeakingFallbackAction.resumeTranslation) {
       _isHandlingMainSpeakingCommand = true;
       try {
@@ -1829,8 +1850,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       switch (turn.action) {
         case MainSpeakingFallbackAction.openOtherLearning:
           await voiceController.activateOtherLearningFromSpeaking();
-        case MainSpeakingFallbackAction.openMainAssistant:
-          await voiceController.activateAfterContinuousTranslationStop();
+        case MainSpeakingFallbackAction.stopTranslation:
+          return;
         case MainSpeakingFallbackAction.resumeTranslation:
           return;
       }
@@ -1957,6 +1978,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         final voiceController = _voiceNavigationController;
         return ActiveLearningModuleScope(
           registry: _activeLearningModules,
+          onNavigationExit: () {
+            _mainAssistantSession.cancelForNavigation();
+            unawaited(_voiceNavigationController?.pause());
+          },
           child: Stack(
             fit: StackFit.expand,
             children: <Widget>[

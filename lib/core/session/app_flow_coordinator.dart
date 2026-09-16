@@ -26,6 +26,7 @@ class AppFlowCoordinator {
   final ActiveLearningModuleRegistry _registry;
   bool _activeModulePausedForMain = false;
   bool _resumingActiveModule = false;
+  int _pauseGeneration = 0;
 
   bool get hasActiveModule => _registry.hasActiveModule;
   bool get activeModulePausedForMain => _activeModulePausedForMain;
@@ -42,7 +43,18 @@ class AppFlowCoordinator {
       );
     }
 
-    _activeModulePausedForMain = await _registry.pauseForMainAssistant();
+    final generation = _pauseGeneration;
+    final paused = await _registry.pauseForMainAssistant(
+      canContinue: () => generation == _pauseGeneration,
+    );
+    if (generation != _pauseGeneration) {
+      return const MainLearningPause(
+        paused: false,
+        hasActiveModule: false,
+        activeKind: null,
+      );
+    }
+    _activeModulePausedForMain = paused;
     final stableActiveModule =
         _activeModulePausedForMain && _registry.hasActiveModule;
     kind = stableActiveModule ? _registry.activeKind : null;
@@ -94,6 +106,7 @@ class AppFlowCoordinator {
   }
 
   void forgetPausedModule() {
+    _pauseGeneration++;
     _activeModulePausedForMain = false;
   }
 }

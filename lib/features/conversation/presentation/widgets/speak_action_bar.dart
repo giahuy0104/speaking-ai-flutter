@@ -37,7 +37,7 @@ class SpeakActionBar extends StatelessWidget {
       decoration: const BoxDecoration(color: Colors.transparent),
       child: SafeArea(
         top: false,
-        bottom: false,
+        bottom: true,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 680),

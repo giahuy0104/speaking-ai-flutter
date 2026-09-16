@@ -94,6 +94,8 @@ void main() {
       matchesGoldenFile('goldens/dark-home-vocabulary-390x844.png'),
     );
 
+    await tester.tap(find.byKey(const Key('vocabulary-practice-button')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('topic-listening-edge-tab')));
     await tester.pumpAndSettle();
     await expectLater(

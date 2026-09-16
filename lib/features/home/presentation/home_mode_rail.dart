@@ -22,11 +22,11 @@ class HomeModeRail extends StatelessWidget {
   final String? badge;
   final bool expanded;
 
-  static const double _collapsedWidth = 47;
-  static const double _collapsedHeight = 224;
-  static const double _collapsedHeightWithBadge = 320;
-  static const double _expandedWidth = 154;
-  static const double _expandedHeight = 270;
+  static const double _collapsedWidth = 44;
+  static const double _collapsedHeight = 142;
+  static const double _collapsedHeightWithBadge = 176;
+  static const double _expandedWidth = 138;
+  static const double _expandedHeight = 184;
 
   @override
   Widget build(BuildContext context) {
@@ -61,10 +61,10 @@ class HomeModeRail extends StatelessWidget {
               colors: <Color>[color.withValues(alpha: 0.92), color],
             ),
             borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(isLeft ? 0 : 24),
-              bottomLeft: Radius.circular(isLeft ? 0 : 24),
-              topRight: Radius.circular(isLeft ? 24 : 0),
-              bottomRight: Radius.circular(isLeft ? 24 : 0),
+              topLeft: Radius.circular(isLeft ? 0 : 18),
+              bottomLeft: Radius.circular(isLeft ? 0 : 18),
+              topRight: Radius.circular(isLeft ? 18 : 0),
+              bottomRight: Radius.circular(isLeft ? 18 : 0),
             ),
             border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
             boxShadow: const <BoxShadow>[
@@ -80,10 +80,10 @@ class HomeModeRail extends StatelessWidget {
             child: InkWell(
               onTap: onPressed,
               borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(isLeft ? 0 : 24),
-                bottomLeft: Radius.circular(isLeft ? 0 : 24),
-                topRight: Radius.circular(isLeft ? 24 : 0),
-                bottomRight: Radius.circular(isLeft ? 24 : 0),
+                topLeft: Radius.circular(isLeft ? 0 : 18),
+                bottomLeft: Radius.circular(isLeft ? 0 : 18),
+                topRight: Radius.circular(isLeft ? 18 : 0),
+                bottomRight: Radius.circular(isLeft ? 18 : 0),
               ),
               child: AnimatedSwitcher(
                 duration: animationDuration,
@@ -119,15 +119,15 @@ class _ExpandedRailContent extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Icon(icon, color: Colors.white, size: 36),
-          const SizedBox(height: 14),
+          Icon(icon, color: Colors.white, size: 30),
+          const SizedBox(height: 10),
           Text(
             label,
             maxLines: 1,
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 19,
+              fontSize: 17,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -154,11 +154,11 @@ class _CollapsedRailContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       key: const Key('collapsed-home-mode-rail'),
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
         children: <Widget>[
-          Icon(icon, color: Colors.white, size: 28),
-          const SizedBox(height: 12),
+          Icon(icon, color: Colors.white, size: 22),
+          const SizedBox(height: 8),
           Expanded(
             child: FittedBox(
               fit: BoxFit.scaleDown,
@@ -167,7 +167,7 @@ class _CollapsedRailContent extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 12,
+                  fontSize: 11,
                   height: 1.05,
                   fontWeight: FontWeight.w800,
                 ),

@@ -396,6 +396,58 @@ void main() {
     expect(find.textContaining('0 gói'), findsOneWidget);
     debugDefaultTargetPlatformOverride = null;
   });
+
+  testWidgets(
+    'Android privacy deletion skips authentication but keeps confirmation',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        playbackService: const _FakePlaybackService(),
+        repository: const DemoConversationRepository(),
+        childAge: 6,
+      );
+      addTearDown(controller.dispose);
+      var revokeCalls = 0;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: Scaffold(
+            body: SettingsSheet(
+              controller: controller,
+              privacyConsentGranted: true,
+              onRevokePrivacyConsent: () async => revokeCalls += 1,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('settings-revoke-privacy-consent')),
+        420,
+        scrollable: _settingsScrollable(),
+      );
+      await tester.tap(
+        find.byKey(const Key('settings-revoke-privacy-consent')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Rút chấp thuận và yêu cầu xóa dữ liệu?'),
+        findsOneWidget,
+      );
+      expect(find.text('Không thể xác thực'), findsNothing);
+      expect(find.byKey(const Key('parental-auth-error-dialog')), findsNothing);
+
+      await tester.tap(find.text('Tiếp tục xóa'));
+      await tester.pumpAndSettle();
+      expect(revokeCalls, 1);
+      debugDefaultTargetPlatformOverride = null;
+    },
+  );
 }
 
 Finder _settingsScrollable() => find

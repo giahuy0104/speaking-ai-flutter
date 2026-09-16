@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../device/active_learning_module.dart';
+
 bool isActiveLearningAppBackground() {
   final lifecycle = WidgetsBinding.instance.lifecycleState;
   return !kIsWeb &&
@@ -19,6 +21,12 @@ Route<T> _activeLearningRoute<T extends Object?>(
   Duration? foregroundReverseTransitionDuration,
   RouteTransitionsBuilder? foregroundTransitionsBuilder,
 }) {
+  Widget buildLearningRoute(BuildContext context) => PopScope<T>(
+    onPopInvokedWithResult: (didPop, _) {
+      if (didPop) ActiveLearningModuleScope.notifyNavigationExit(context);
+    },
+    child: builder(context),
+  );
   if (!mobileBackground) {
     if (foregroundTransitionsBuilder != null) {
       return PageRouteBuilder<T>(
@@ -30,11 +38,14 @@ Route<T> _activeLearningRoute<T extends Object?>(
             foregroundTransitionDuration ??
             const Duration(milliseconds: 300),
         pageBuilder: (context, animation, secondaryAnimation) =>
-            builder(context),
+            buildLearningRoute(context),
         transitionsBuilder: foregroundTransitionsBuilder,
       );
     }
-    return MaterialPageRoute<T>(builder: builder, settings: settings);
+    return MaterialPageRoute<T>(
+      builder: buildLearningRoute,
+      settings: settings,
+    );
   }
 
   // A MaterialPageRoute waits for display vsync to advance its transition.
@@ -45,7 +56,8 @@ Route<T> _activeLearningRoute<T extends Object?>(
     settings: settings,
     transitionDuration: Duration.zero,
     reverseTransitionDuration: Duration.zero,
-    pageBuilder: (context, animation, secondaryAnimation) => builder(context),
+    pageBuilder: (context, animation, secondaryAnimation) =>
+        buildLearningRoute(context),
   );
 }
 

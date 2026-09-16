@@ -123,6 +123,115 @@ void main() {
     expect(find.text('Luyện lại'), findsOneWidget);
   });
 
+  testWidgets(
+    'keeps search and add out of Stars and Review on a narrow screen',
+    (tester) async {
+      tester.view.physicalSize = const Size(360, 720);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final now = DateTime(2026, 9, 16);
+      final store = _MemoryVocabularyStore(<VocabularyEntry>[
+        VocabularyEntry(
+          id: 'star-card',
+          word: 'Math',
+          meaning: 'Môn Toán',
+          addedAt: now,
+          collection: VocabularyCollection.star,
+          source: VocabularySource.topicCore,
+          sourceSentenceId: 'S1',
+          correctAudioPath: '/audio/star.wav',
+        ),
+        VocabularyEntry(
+          id: 'review-card',
+          word: 'At night',
+          meaning: 'Buổi tối',
+          addedAt: now,
+          collection: VocabularyCollection.review,
+          source: VocabularySource.topicCore,
+          sourceSentenceId: 'S2',
+        ),
+      ]);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: DisplayLanguageScope(
+            language: DisplayLanguage.vietnamese,
+            child: VocabularyHomeScreen(
+              isReady: true,
+              store: store,
+              voicePromptService: const _FakeVoicePromptService(),
+              onReturnToConversation: () {},
+              onHistory: () {},
+              onSettings: () {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('search-vocabulary-button')), findsOneWidget);
+      expect(find.byKey(const Key('add-vocabulary-button')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('vocabulary-stars-card')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ngôi sao của con'), findsOneWidget);
+      expect(find.byKey(const Key('search-vocabulary-button')), findsNothing);
+      expect(find.byKey(const Key('add-vocabulary-button')), findsNothing);
+      expect(find.byKey(const Key('vocabulary-search-field')), findsNothing);
+      expect(find.byKey(const Key('toggle-delete-vocabulary')), findsNothing);
+      expect(
+        find.byKey(const ValueKey<String>('vocabulary-stars-homi')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('vocabulary-entry-card-star-card')),
+        findsOneWidget,
+      );
+      final starsTitle = tester.widget<Text>(
+        find.byKey(const Key('vocabulary-journey-title')),
+      );
+      expect(starsTitle.style?.fontSize, lessThanOrEqualTo(24));
+
+      await tester.tap(find.byKey(const Key('vocabulary-back-to-journeys')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const Key('vocabulary-review-card')),
+      );
+      await tester.tap(find.byKey(const Key('vocabulary-review-card')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Luyện lại'), findsOneWidget);
+      expect(find.byKey(const Key('search-vocabulary-button')), findsNothing);
+      expect(find.byKey(const Key('add-vocabulary-button')), findsNothing);
+      expect(find.byKey(const Key('vocabulary-search-field')), findsNothing);
+      expect(find.byKey(const Key('toggle-delete-vocabulary')), findsNothing);
+      expect(
+        find.byKey(const ValueKey<String>('vocabulary-review-homi')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('vocabulary-entry-card-review-card')),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const Key('vocabulary-back-to-journeys')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('search-vocabulary-button')), findsOneWidget);
+      expect(find.byKey(const Key('add-vocabulary-button')), findsOneWidget);
+      expect(find.byKey(const Key('vocabulary-search-field')), findsOneWidget);
+      expect(find.byKey(const Key('toggle-delete-vocabulary')), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey<String>('vocabulary-family-homi')),
+        findsOneWidget,
+      );
+    },
+  );
+
   testWidgets('adds a Vietnamese vocabulary entry and persists it', (
     tester,
   ) async {
@@ -531,6 +640,75 @@ void main() {
     expect(find.text('2 nội dung đã lưu'), findsOneWidget);
   });
 
+  testWidgets('edits both English and Vietnamese in the waiting queue', (
+    tester,
+  ) async {
+    final addedAt = DateTime(2026, 9, 16, 10);
+    final store = _MemoryVocabularyStore(<VocabularyEntry>[
+      VocabularyEntry(
+        id: 'waiting-edit',
+        word: 'What happened?',
+        meaning: 'Chuyện gì đã xảy ra?',
+        addedAt: addedAt,
+        source: VocabularySource.parent,
+        parentState: ParentVocabularyState.waiting,
+      ),
+    ]);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: DisplayLanguageScope(
+          language: DisplayLanguage.vietnamese,
+          child: VocabularyHomeScreen(
+            isReady: true,
+            store: store,
+            voicePromptService: const _FakeVoicePromptService(),
+            onReturnToConversation: () {},
+            onHistory: () {},
+            onSettings: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+    await tester.pumpAndSettle();
+
+    final editButton = find.byKey(
+      const ValueKey<String>('edit-waiting-waiting-edit'),
+    );
+    await tester.ensureVisible(editButton);
+    await tester.tap(editButton);
+    await tester.pumpAndSettle();
+
+    final englishField = find.byKey(const Key('edit-vocabulary-english-field'));
+    final vietnameseField = find.byKey(
+      const Key('edit-vocabulary-vietnamese-field'),
+    );
+    expect(find.text('Sửa nội dung'), findsOneWidget);
+    expect(
+      tester.widget<TextField>(englishField).controller?.text,
+      'What happened?',
+    );
+    expect(
+      tester.widget<TextField>(vietnameseField).controller?.text,
+      'Chuyện gì đã xảy ra?',
+    );
+
+    await tester.enterText(englishField, 'What is happening?');
+    await tester.enterText(vietnameseField, 'Chuyện gì đang xảy ra?');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('confirm-edit-vocabulary')));
+    await tester.pumpAndSettle();
+
+    expect(store.entries.single.word, 'What is happening?');
+    expect(store.entries.single.meaning, 'Chuyện gì đang xảy ra?');
+    expect(store.entries.single.parentState, ParentVocabularyState.waiting);
+    expect(store.entries.single.addedAt, addedAt);
+    expect(find.text('What is happening?'), findsOneWidget);
+    expect(find.text('Chuyện gì đang xảy ra?'), findsOneWidget);
+  });
+
   testWidgets('announces the child voice at the start of every Star block', (
     tester,
   ) async {
@@ -645,7 +823,16 @@ void main() {
       expect(find.text('Cat'), findsOneWidget);
       expect(find.text('Con mèo'), findsOneWidget);
 
+      expect(find.byKey(const Key('vocabulary-today-view')), findsNothing);
       expect(find.byKey(const Key('vocabulary-waiting-queue')), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.byKey(const Key('vocabulary-family-action'))).dy,
+        lessThan(
+          tester
+              .getTopLeft(find.byKey(const Key('vocabulary-waiting-queue')))
+              .dy,
+        ),
+      );
       expect(find.byIcon(Icons.volume_up_rounded), findsNothing);
       expect(voice.spokenTexts, isEmpty);
       expect(voice.locales, isEmpty);

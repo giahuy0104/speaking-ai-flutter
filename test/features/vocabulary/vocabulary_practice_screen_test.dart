@@ -18,6 +18,75 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  for (final systemBack in <bool>[false, true]) {
+    testWidgets(
+      'unfinished Today exits with ${systemBack ? "system" : "screen"} Back even if audio stop hangs',
+      (tester) async {
+        SharedPreferences.setMockInitialValues(<String, Object>{});
+        const store = VocabularyStore();
+        const sessions = VocabularySessionStore();
+        await store.addParentEntries(const <VocabularyTranslation>[
+          VocabularyTranslation(
+            englishText: 'Apple',
+            vietnameseText: 'Quả táo',
+          ),
+        ]);
+        final session = (await sessions.prepareToday(store))!;
+        final voice = _BlockedBackVoice();
+        final media = _FakeLessonMediaService();
+        addTearDown(media.close);
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildAppTheme(),
+            home: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => Navigator.of(context).push<void>(
+                  MaterialPageRoute(
+                    builder: (_) => VocabularyPracticeScreen(
+                      language: DisplayLanguage.vietnamese,
+                      childAge: 6,
+                      session: session,
+                      store: store,
+                      sessionStore: sessions,
+                      mediaService: media,
+                      attemptEvaluator: const RecordedAttemptEvaluator(),
+                      voicePromptService: voice,
+                      autoStart: false,
+                      samplePause: Duration.zero,
+                    ),
+                  ),
+                ),
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        );
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.byKey(const Key('vocabulary-practice-main-action')),
+        );
+        await tester.pump();
+        expect(voice.spoken, isNotEmpty);
+        if (systemBack) {
+          await tester.binding.handlePopRoute();
+        } else {
+          await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+        }
+        await tester.pumpAndSettle();
+        expect(find.byType(VocabularyPracticeScreen), findsNothing);
+        expect(voice.stopCalls, greaterThan(0));
+        expect((await sessions.readActive())?.currentIndex, 0);
+        final spokenCount = voice.spoken.length;
+        voice.speech.complete();
+        voice.stopping.complete();
+        await tester.pumpAndSettle();
+        expect(voice.spoken, hasLength(spokenCount));
+        expect((await sessions.readActive())?.currentIndex, 0);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
   testWidgets(
     'Today stops after five listen-only items and MAIN timeout never replays',
     (tester) async {
@@ -119,6 +188,92 @@ void main() {
         hasLength(5),
       );
       expect(await sessionStore.readActive(), isNull);
+    },
+  );
+
+  testWidgets(
+    'Review shows one combined listen-and-repeat action without a card speaker',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      const store = VocabularyStore();
+      const sessionStore = VocabularySessionStore();
+      await store.upsertLessonSentence(
+        lessonCode: 'L01',
+        sentenceId: 'S1',
+        english: 'At noon',
+        vietnamese: 'Buổi trưa',
+        collection: VocabularyCollection.review,
+        source: VocabularySource.topicCore,
+      );
+      final session = await sessionStore.prepareReview(store);
+      final media = _FakeLessonMediaService();
+      addTearDown(media.close);
+      final voice = _FakeVoicePromptService();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: VocabularyPracticeScreen(
+            language: DisplayLanguage.vietnamese,
+            childAge: 6,
+            session: session!,
+            store: store,
+            sessionStore: sessionStore,
+            mediaService: media,
+            attemptEvaluator: const RecordedAttemptEvaluator(),
+            voicePromptService: voice,
+            samplePause: Duration.zero,
+            autoStart: false,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nghe và nói lại'), findsOneWidget);
+      expect(find.text('Nghe mẫu'), findsNothing);
+      expect(find.text('Giữ để nói'), findsNothing);
+      expect(find.text('Về Main'), findsNothing);
+      expect(
+        find.byKey(const Key('vocabulary-practice-homi-stage')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          const ValueKey<String>('assets/images/mascot/penguin-listen.png'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('vocabulary-practice-entry')),
+          matching: find.byIcon(Icons.volume_up_rounded),
+        ),
+        findsNothing,
+      );
+      expect(tester.takeException(), isNull);
+
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(media.recording, isTrue);
+      expect(media.startCalls, 1);
+      expect(media.stopCalls, 0);
+      expect(
+        find.byKey(
+          const ValueKey<String>('assets/images/mascot/penguin-speak.png'),
+        ),
+        findsOneWidget,
+      );
+      expect(voice.spoken.take(2), <String>[
+        'en-US:At noon',
+        'vi-VN:Buổi trưa',
+      ]);
     },
   );
 
@@ -421,6 +576,24 @@ class _FakeLessonMediaService extends LessonMediaService {
   Future<void> stopPlayback() async {}
 
   Future<void> close() => amplitudes.close();
+}
+
+class _BlockedBackVoice extends _FakeVoicePromptService {
+  final speech = Completer<void>();
+  final stopping = Completer<void>();
+  int stopCalls = 0;
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) {
+    spoken.add(text);
+    return speech.future;
+  }
+
+  @override
+  Future<void> stop() {
+    stopCalls++;
+    return stopping.future;
+  }
 }
 
 class _QueuedAttemptEvaluator implements LessonAttemptEvaluator {

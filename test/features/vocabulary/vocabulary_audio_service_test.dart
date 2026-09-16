@@ -1,9 +1,34 @@
+import 'dart:async';
+
 import 'package:ai_speaking_flutter_app/core/audio/device_audio_cache.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_audio_service.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_dictionary.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  for (final result in <Uri?>[null, Uri.file('/cache/late.mp3')]) {
+    test(
+      'Back cancels delayed cache result $result without late playback or TTS',
+      () async {
+        final cache = _DelayedAudioCache();
+        final played = <Uri>[];
+        final spoken = <String>[];
+        final service = VocabularyAudioService(
+          dictionaryProvider: _FakeDictionaryProvider(),
+          cache: cache,
+          playToCompletion: (uri) async => played.add(uri),
+          nativeSpeakAndWait: (text, locale) async => spoken.add(text),
+          stopPlayback: () async {},
+        );
+        final pending = service.speakAndWait('Apple', locale: 'en-US');
+        await service.stop();
+        cache.pending.complete(result);
+        await pending;
+        expect(played, isEmpty);
+        expect(spoken, isEmpty);
+      },
+    );
+  }
   test('prefetch caches dynamic audio without playing or speaking', () async {
     final cache = _FakeAudioCache(Uri.file('/cache/mad.mp3'));
     final played = <Uri>[];
@@ -108,4 +133,11 @@ class _FakeAudioCache implements DeviceAudioCache {
 
   @override
   Future<void> warm(Iterable<Uri> remoteUris, {int limit = 40}) async {}
+}
+
+class _DelayedAudioCache extends _FakeAudioCache {
+  _DelayedAudioCache() : super(null);
+  final pending = Completer<Uri?>();
+  @override
+  Future<Uri?> cache(Uri remoteUri) => pending.future;
 }

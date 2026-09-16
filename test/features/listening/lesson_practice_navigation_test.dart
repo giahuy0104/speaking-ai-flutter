@@ -21,6 +21,67 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  for (final systemBack in <bool>[false, true]) {
+    testWidgets(
+      'paused silent lesson exits via ${systemBack ? "system" : "screen"} Back with stalled audio',
+      (tester) async {
+        await _usePhoneSurface(tester);
+        final registry = ActiveLearningModuleRegistry();
+        addTearDown(registry.dispose);
+        final voice = _BackStopVoice();
+        final progress = _MemoryProgressStore()..currentSentence = 1;
+        await tester.pumpWidget(
+          ActiveLearningModuleScope(
+            registry: registry,
+            child: MaterialApp(
+              theme: buildAppTheme(),
+              home: Builder(
+                builder: (context) => TextButton(
+                  onPressed: () => Navigator.of(context).push<void>(
+                    MaterialPageRoute(
+                      builder: (_) => LessonPracticeScreen(
+                        language: DisplayLanguage.vietnamese,
+                        startAge: 3,
+                        endAge: 5,
+                        topic: listeningCatalogs.first.topics.first,
+                        lesson: _lessonWithSentences(3),
+                        progressStore: progress,
+                        mediaService: _SilentMediaService(
+                          existingRecordingPath: 'previous.m4a',
+                        ),
+                        voicePromptService: voice,
+                        guideAudioLibrary: LessonGuideAudioLibrary(
+                          assetPaths: const <String>[],
+                        ),
+                      ),
+                    ),
+                  ),
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.tap(find.text('Open'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(await registry.pauseForMainAssistant(), isTrue);
+        voice.blockStop = true;
+        await tester.pump();
+        if (systemBack) {
+          await tester.binding.handlePopRoute();
+        } else {
+          await tester.tap(find.byTooltip('Quay lại'));
+        }
+        await tester.pumpAndSettle();
+        expect(find.byType(LessonPracticeScreen), findsNothing);
+        expect(progress.currentSentence, 1);
+        voice.stopping.complete();
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
   testWidgets('leaving during completion ting releases the already-open mic', (
     tester,
   ) async {
@@ -1002,6 +1063,13 @@ class _SilentVoicePromptService implements VoicePromptService {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _BackStopVoice extends _SilentVoicePromptService {
+  bool blockStop = false;
+  final stopping = Completer<void>();
+  @override
+  Future<void> stop() => blockStop ? stopping.future : Future<void>.value();
 }
 
 class _RecordingVoicePromptService extends _SilentVoicePromptService {

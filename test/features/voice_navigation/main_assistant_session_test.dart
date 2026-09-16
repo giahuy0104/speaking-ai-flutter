@@ -6,6 +6,34 @@ import 'package:ai_speaking_flutter_app/features/voice_navigation/application/ma
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test(
+    'Back invalidates pending MAIN takeover without resuming the exited module',
+    () async {
+      final gate = Completer<void>();
+      final module = _FakeActiveModule()..pauseGate = gate.future;
+      final harness = _SessionHarness(module: module);
+      addTearDown(harness.dispose);
+      var voiceCalls = 0;
+      final activation = harness.session.activate(
+        startupReady: true,
+        voiceAccessEnabled: true,
+        conversationBusy: false,
+        assistantFlowBusy: false,
+        canContinue: () => true,
+        activateVoice: ({required activeLearning, activeLearningKind}) async {
+          voiceCalls++;
+          return true;
+        },
+      );
+      harness.session.cancelForNavigation();
+      gate.complete();
+      expect(await activation, isFalse);
+      expect(voiceCalls, 0);
+      expect(harness.session.isActivationPending, isFalse);
+      expect(harness.coordinator.activeModulePausedForMain, isFalse);
+      expect(module.commands, isEmpty);
+    },
+  );
   test('rejects MAIN while conversation owns audio outside learning', () async {
     final harness = _SessionHarness();
     addTearDown(harness.dispose);
@@ -144,6 +172,7 @@ class _FakeActiveModule implements ActiveLearningModuleController {
   final ActiveLearningModuleKind kind;
   int pauseCount = 0;
   bool paused = false;
+  Future<void>? pauseGate;
   final List<ActiveLearningCommand> commands = <ActiveLearningCommand>[];
 
   @override
@@ -156,6 +185,7 @@ class _FakeActiveModule implements ActiveLearningModuleController {
   Future<void> pauseForMainAssistant() async {
     pauseCount += 1;
     paused = true;
+    await pauseGate;
   }
 
   @override

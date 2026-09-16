@@ -45,7 +45,17 @@ class VoiceNavigationIntentResolver {
   /// intentionally excluded: without a brand word it is too broad to use as
   /// an app-wide wake trigger.
   static final List<String> _wakePhrases =
-      (HomiFallbackCatalog.childPhrasesByIntent['INT-022'] ?? const <String>[])
+      <String>[
+            ...?HomiFallbackCatalog.childPhrasesByIntent['INT-022'],
+            'HOMI ơi',
+            'Hey HOMI',
+            'Bạn HOMI ơi',
+            'HOMI có nghe không',
+            'HOMI giúp mình',
+            'HOMI nghe mình nói nhé',
+            'bạn HOMI',
+            'Ê HOMI',
+          ]
           .map(HomiFallbackCatalog.normalizeVietnamese)
           .where((phrase) => phrase != 'ban oi')
           .toSet()

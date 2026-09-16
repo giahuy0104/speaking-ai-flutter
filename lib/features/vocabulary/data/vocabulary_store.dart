@@ -343,16 +343,17 @@ class VocabularyStore {
   Future<int> parentAddCountForDay(DateTime day) async {
     final preferences = await SharedPreferences.getInstance();
     final key = '$_parentAddCountKeyPrefix${_dayKey(day)}';
-    final stored = preferences.getInt(key);
-    if (stored != null) {
-      return stored;
-    }
     final count = (await read())
         .where(
           (entry) => entry.isParentAdded && _isSameLocalDay(entry.addedAt, day),
         )
         .length;
-    await preferences.setInt(key, count);
+    // The persisted value is only a cache. Reconcile it with the entries on
+    // every read so deleting an item immediately restores that day's quota,
+    // including for users whose older app version left a stale value behind.
+    if (preferences.getInt(key) != count) {
+      await preferences.setInt(key, count);
+    }
     return count;
   }
 

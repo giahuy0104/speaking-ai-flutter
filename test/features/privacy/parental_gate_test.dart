@@ -1,4 +1,5 @@
 import 'package:ai_speaking_flutter_app/core/privacy/parental_gate.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -25,9 +26,43 @@ class _FakeAuthenticator implements ParentalGateAuthenticator {
 }
 
 void main() {
+  testWidgets('native Android bypasses parental authentication entirely', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    final authenticator = _FakeAuthenticator(supported: false, approved: false);
+    late BuildContext context;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (buildContext) {
+            context = buildContext;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+
+    expect(
+      await showParentalGate(context, authenticator: authenticator),
+      isTrue,
+    );
+    expect(authenticator.supportChecks, 0);
+    expect(authenticator.authenticationCalls, 0);
+    expect(
+      find.byKey(const Key('parental-auth-unavailable-dialog')),
+      findsNothing,
+    );
+    expect(find.byKey(const Key('parental-auth-error-dialog')), findsNothing);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
   testWidgets(
     'successful device authentication is cached and backgrounding locks it',
     (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
       final authenticator = _FakeAuthenticator();
       final session = ParentalGateSession();
       late BuildContext context;
@@ -77,10 +112,13 @@ void main() {
       expect(authenticator.authenticationCalls, 2);
 
       session.dispose();
+      debugDefaultTargetPlatformOverride = null;
     },
   );
 
   testWidgets('parental unlock expires after ten minutes', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
     var now = DateTime(2026, 8, 25, 10);
     final authenticator = _FakeAuthenticator();
     final session = ParentalGateSession(now: () => now);
@@ -117,11 +155,14 @@ void main() {
     expect(authenticator.authenticationCalls, 2);
 
     session.dispose();
+    debugDefaultTargetPlatformOverride = null;
   });
 
   testWidgets('rejected device authentication keeps parental area locked', (
     tester,
   ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
     final authenticator = _FakeAuthenticator(approved: false);
     final session = ParentalGateSession();
     late BuildContext context;
@@ -148,11 +189,14 @@ void main() {
     expect(session.isUnlocked, isFalse);
 
     session.dispose();
+    debugDefaultTargetPlatformOverride = null;
   });
 
   testWidgets('device without a screen lock cannot enter parental area', (
     tester,
   ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
     final authenticator = _FakeAuthenticator(supported: false);
     final session = ParentalGateSession();
     late BuildContext context;
@@ -187,5 +231,6 @@ void main() {
     expect(authenticator.authenticationCalls, 0);
 
     session.dispose();
+    debugDefaultTargetPlatformOverride = null;
   });
 }

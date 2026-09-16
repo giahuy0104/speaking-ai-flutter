@@ -1,5 +1,6 @@
 import '../../../core/device/active_learning_module.dart';
 import '../domain/controlled_speech_lexicon.dart';
+import '../domain/master_navigation_contract.dart';
 
 /// Small deterministic grammar for commands spoken after MAIN is pressed
 /// while a lesson is active. It deliberately does not interpret lesson
@@ -13,7 +14,9 @@ class ActiveLearningCommandResolver {
   ActiveLearningCommand? resolve(
     String transcript, {
     ControlledSpeechState state = ControlledSpeechState.course,
+    ActiveLearningVoiceNode? node,
   }) {
+    if (node != null) return _resolveNode(transcript, node);
     final controlled = _controlledLexicon.resolve(transcript, state: state);
     final controlledCommand = switch (controlled?.intent) {
       ControlledSpeechIntent.globalStop => ActiveLearningCommand.stop,
@@ -28,8 +31,7 @@ class ActiveLearningCommandResolver {
         ActiveLearningCommand.restart,
       ControlledSpeechIntent.courseNextLesson =>
         ActiveLearningCommand.nextLesson,
-      ControlledSpeechIntent.coursePreviousLesson =>
-        ActiveLearningCommand.previousLesson,
+      ControlledSpeechIntent.coursePreviousLesson => null,
       ControlledSpeechIntent.vocabularyParentAdded =>
         ActiveLearningCommand.vocabularyParentAdded,
       ControlledSpeechIntent.vocabularyPracticeAgain =>
@@ -75,7 +77,7 @@ class ActiveLearningCommandResolver {
       return ActiveLearningCommand.nextLesson;
     }
     if (_has(value, 'bai truoc') || _has(value, 'bai vua roi')) {
-      return ActiveLearningCommand.previousLesson;
+      return null;
     }
     if (_has(value, 'cau tiep theo') ||
         _has(value, 'dong tiep theo') ||
@@ -96,6 +98,71 @@ class ActiveLearningCommandResolver {
         _has(value, 'doc lai') ||
         _has(value, 'lap lai')) {
       return ActiveLearningCommand.replayCurrent;
+    }
+    return null;
+  }
+
+  ActiveLearningCommand? _resolveNode(
+    String text,
+    ActiveLearningVoiceNode node,
+  ) {
+    bool matches(String intent) =>
+        MasterNavigationContract.matches(intent, text);
+    if (matches('STOP_GLOBAL') ||
+        MasterNavigationContract.legacy('INT-001', text)) {
+      return ActiveLearningCommand.stop;
+    }
+    final choices = switch (node) {
+      ActiveLearningVoiceNode.vocabularyMenu => <String, ActiveLearningCommand>{
+        'OPEN_PARENT': ActiveLearningCommand.vocabularyParentAdded,
+        'OPEN_STAR': ActiveLearningCommand.vocabularyStars,
+        'OPEN_REVIEW': ActiveLearningCommand.vocabularyPracticeAgain,
+      },
+      ActiveLearningVoiceNode.parentAlternatives =>
+        <String, ActiveLearningCommand>{
+          'OPEN_STAR': ActiveLearningCommand.vocabularyStars,
+          'OPEN_REVIEW': ActiveLearningCommand.vocabularyPracticeAgain,
+        },
+      ActiveLearningVoiceNode.starAlternatives =>
+        <String, ActiveLearningCommand>{
+          'OPEN_PARENT': ActiveLearningCommand.vocabularyParentAdded,
+          'OPEN_REVIEW': ActiveLearningCommand.vocabularyPracticeAgain,
+        },
+      ActiveLearningVoiceNode.reviewAlternatives =>
+        <String, ActiveLearningCommand>{
+          'OPEN_PARENT': ActiveLearningCommand.vocabularyParentAdded,
+          'OPEN_STAR': ActiveLearningCommand.vocabularyStars,
+        },
+      ActiveLearningVoiceNode.todayEnd => <String, ActiveLearningCommand>{
+        'OTHER_CONTENT': ActiveLearningCommand.exitToHome,
+        'REPLAY_TODAY': ActiveLearningCommand.restart,
+      },
+      ActiveLearningVoiceNode.listEnd => <String, ActiveLearningCommand>{
+        'OTHER_CONTENT': ActiveLearningCommand.exitToHome,
+        'REPLAY_LIST': ActiveLearningCommand.restart,
+      },
+      ActiveLearningVoiceNode.blockEnd => <String, ActiveLearningCommand>{
+        'OTHER_CONTENT': ActiveLearningCommand.exitToHome,
+        'CONTINUE_BLOCK': ActiveLearningCommand.resume,
+      },
+      _ => <String, ActiveLearningCommand>{
+        'LISTEN_AGAIN': ActiveLearningCommand.replayCurrent,
+        'RESUME_ACTIVITY': ActiveLearningCommand.resume,
+        if (node != ActiveLearningVoiceNode.challenge &&
+            node != ActiveLearningVoiceNode.review)
+          'PREVIOUS_ITEM': ActiveLearningCommand.previousItem,
+        if (node == ActiveLearningVoiceNode.core ||
+            node == ActiveLearningVoiceNode.parent ||
+            node == ActiveLearningVoiceNode.star)
+          'NEXT_ITEM': ActiveLearningCommand.nextItem,
+        if (node == ActiveLearningVoiceNode.core ||
+            node == ActiveLearningVoiceNode.parent ||
+            node == ActiveLearningVoiceNode.star)
+          'SKIP_ITEM': ActiveLearningCommand.nextItem,
+      },
+    };
+    for (final entry in choices.entries) {
+      if (matches(entry.key)) return entry.value;
     }
     return null;
   }

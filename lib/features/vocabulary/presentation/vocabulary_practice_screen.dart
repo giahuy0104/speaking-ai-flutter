@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
 import '../../../app/learning_scenery.dart';
+import '../../../app/mascot_assets.dart';
 import '../../../core/audio/streaming_speech_input.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
@@ -20,6 +21,9 @@ import '../data/vocabulary_session_store.dart';
 import '../data/vocabulary_store.dart';
 import '../domain/vocabulary_entry.dart';
 import '../domain/vocabulary_flow_v3.dart';
+
+const _practiceHomiSceneryAsset =
+    'assets/images/vocabulary/practice-homi-background.png';
 
 enum VocabularyPracticeResult {
   continueLearning,
@@ -78,7 +82,7 @@ class VocabularyPracticeScreen extends StatefulWidget {
 }
 
 class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
-    implements ActiveLearningModuleController {
+    implements ActiveLearningModuleController, ActiveLearningVoiceContext {
   late VocabularyPracticeSession _session;
   late final LessonAttemptEvaluator _attemptEvaluator;
   late final bool _ownsAttemptEvaluator;
@@ -95,6 +99,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   bool _paused = false;
   bool _pausedAfterNoResponse = false;
   bool _completed = false;
+  bool _exiting = false;
   bool _reviewHasMore = true;
   int _invalidResponseCount = 0;
   late bool _resumeAnnouncementPending;
@@ -167,17 +172,17 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     if (_activeRegistry != null && _activeRegistration != null) {
       _activeRegistry!.unregister(_activeRegistration!);
     }
-    if (_recording) {
+    if (!_exiting && _recording) {
       if (_usesIosNativeRecognition) {
         unawaited(_iosSpeechInput!.cancel());
       } else {
         unawaited(widget.mediaService.cancelRecording());
       }
     }
-    unawaited(widget.mediaService.stopPlayback());
+    if (!_exiting) unawaited(widget.mediaService.stopPlayback());
     if (_ownsVoicePromptService) {
       unawaited(_voicePromptService.dispose());
-    } else {
+    } else if (!_exiting) {
       unawaited(_voicePromptService.stop());
     }
     if (_ownsAttemptEvaluator &&
@@ -213,7 +218,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       _loading = false;
       _message = _isToday
           ? VocabularyFlowV3.todayIntro
-          : VocabularyFlowV3.reviewIntro;
+          : 'Con nghe kỹ rồi nói lại nhé.';
     });
     if (widget.autoStart) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -225,6 +230,28 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   }
 
   bool get _isToday => _session.mode == VocabularyPracticeMode.today;
+
+  @override
+  ActiveLearningVoiceNode get mainVoiceNode => _completed
+      ? (_isToday
+            ? ActiveLearningVoiceNode.todayEnd
+            : _reviewHasMore
+            ? ActiveLearningVoiceNode.blockEnd
+            : ActiveLearningVoiceNode.reviewAlternatives)
+      : _isToday
+      ? ActiveLearningVoiceNode.today
+      : ActiveLearningVoiceNode.review;
+
+  @override
+  String get mainVoicePrompt => _completed
+      ? (_isToday
+            ? VocabularyFlowV3.todayCompletion
+            : _reviewHasMore
+            ? VocabularyFlowV3.reviewGroupCompletion
+            : VocabularyFlowV3.reviewCycleFinished)
+      : _isToday
+      ? 'Bạn muốn nghe lại, nghe câu trước hay dừng lại?'
+      : 'Bạn muốn nghe lại hay dừng lại?';
   bool get _isReview => _session.mode == VocabularyPracticeMode.review;
 
   Future<void> _startCurrent({bool includeIntro = false}) async {
@@ -845,91 +872,186 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   Widget build(BuildContext context) {
     return DisplayLanguageScope(
       language: widget.language,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: LearningScenery(
-          overlayOpacity: 0.08,
-          child: SafeArea(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-                    child: Column(
-                      children: <Widget>[
-                        Row(
-                          children: <Widget>[
-                            IconButton.filledTonal(
-                              onPressed: () => unawaited(_exitPractice()),
-                              icon: const Icon(Icons.arrow_back_rounded),
-                            ),
-                            Expanded(
-                              child: Text(
-                                _isToday
-                                    ? 'Danh sách hôm nay'
-                                    : _isReview
-                                    ? 'Luyện lại'
-                                    : 'Nói lại',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.headlineMedium,
+      child: PopScope<VocabularyPracticeResult>(
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) _commitNavigationExit();
+        },
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: LearningScenery(
+            assetPath: _practiceHomiSceneryAsset,
+            overlayOpacity: 0.08,
+            child: SafeArea(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        final compactHeight = constraints.maxHeight < 700;
+                        return SingleChildScrollView(
+                          padding: EdgeInsets.fromLTRB(
+                            18,
+                            compactHeight ? 8 : 12,
+                            18,
+                            20,
+                          ),
+                          child: Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 560),
+                              child: Column(
+                                children: <Widget>[
+                                  _buildPracticeHeader(context),
+                                  SizedBox(height: compactHeight ? 10 : 14),
+                                  _buildProgress(context),
+                                  SizedBox(height: compactHeight ? 18 : 26),
+                                  if (!_completed)
+                                    _buildEntryCard(
+                                      context,
+                                      compactHeight: compactHeight,
+                                    ),
+                                  SizedBox(height: compactHeight ? 14 : 20),
+                                  Text(
+                                    _message,
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                          fontSize: compactHeight ? 16 : 17,
+                                          height: 1.25,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                  ),
+                                  SizedBox(height: compactHeight ? 14 : 20),
+                                  if (_completed)
+                                    _buildCompletionActions(context)
+                                  else
+                                    _buildPracticeAction(context),
+                                  SizedBox(height: compactHeight ? 12 : 18),
+                                  _buildHomiCoach(
+                                    context,
+                                    viewportHeight: constraints.maxHeight,
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(width: 48),
-                          ],
-                        ),
-                        const SizedBox(height: 18),
-                        LinearProgressIndicator(
-                          value: _completed
-                              ? 1
-                              : (_index + 1) / _entries.length,
-                          minHeight: 10,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          '${_completed ? _entries.length : _index + 1}/${_entries.length}',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const Spacer(),
-                        if (!_completed) _buildEntryCard(context),
-                        const SizedBox(height: 22),
-                        Text(
-                          _message,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                                height: 1.35,
-                              ),
-                        ),
-                        const SizedBox(height: 22),
-                        if (_completed)
-                          _buildCompletionActions(context)
-                        else
-                          _buildPracticeAction(context),
-                        const Spacer(),
-                      ],
+                          ),
+                        );
+                      },
                     ),
-                  ),
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildEntryCard(BuildContext context) {
+  Widget _buildPracticeHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Row(
+      children: <Widget>[
+        IconButton.filledTonal(
+          onPressed: () => unawaited(_exitPractice()),
+          icon: const Icon(Icons.arrow_back_rounded, size: 24),
+          style: IconButton.styleFrom(
+            minimumSize: const Size.square(46),
+            maximumSize: const Size.square(46),
+            backgroundColor: isDark
+                ? theme.colorScheme.surfaceContainerHighest
+                : Colors.white.withValues(alpha: 0.9),
+            foregroundColor: isDark
+                ? theme.colorScheme.primary
+                : AppColors.primaryNavy,
+            side: BorderSide(
+              color: isDark ? theme.colorScheme.outline : AppColors.mintBorder,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            _isToday
+                ? 'Danh sách hôm nay'
+                : _isReview
+                ? 'Luyện lại'
+                : 'Nói lại',
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            style: theme.textTheme.headlineMedium?.copyWith(
+              color: isDark ? theme.colorScheme.primary : AppColors.deepNavy,
+              fontSize: MediaQuery.sizeOf(context).width <= 360 ? 25 : 28,
+              height: 1.08,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.55,
+            ),
+          ),
+        ),
+        const SizedBox(width: 46),
+      ],
+    );
+  }
+
+  Widget _buildProgress(BuildContext context) {
+    final theme = Theme.of(context);
+    final progress = _completed ? 1.0 : (_index + 1) / _entries.length;
+    return Column(
+      children: <Widget>[
+        Container(
+          key: const Key('vocabulary-practice-progress-count'),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 5),
+          decoration: BoxDecoration(
+            color: theme.brightness == Brightness.dark
+                ? theme.colorScheme.surfaceContainerHighest
+                : Colors.white.withValues(alpha: 0.86),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: theme.colorScheme.tertiary, width: 1.2),
+          ),
+          child: Text(
+            '${_completed ? _entries.length : _index + 1}/${_entries.length}',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurface,
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: LinearProgressIndicator(
+            value: progress,
+            minHeight: 8,
+            backgroundColor: theme.brightness == Brightness.dark
+                ? theme.colorScheme.surfaceContainerHighest
+                : const Color(0xFFC9F4E8),
+            valueColor: const AlwaysStoppedAnimation<Color>(
+              AppColors.accentPink,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEntryCard(BuildContext context, {required bool compactHeight}) {
     final theme = Theme.of(context);
     return Container(
       key: const Key('vocabulary-practice-entry'),
       width: double.infinity,
-      constraints: const BoxConstraints(maxWidth: 560),
-      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 34),
+      constraints: BoxConstraints(
+        maxWidth: 520,
+        minHeight: compactHeight ? 172 : 202,
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: 26,
+        vertical: compactHeight ? 28 : 34,
+      ),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.96)),
         boxShadow: const <BoxShadow>[
           BoxShadow(
             color: Color(0x24142451),
@@ -945,14 +1067,21 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
             textAlign: TextAlign.center,
             style: theme.textTheme.displaySmall?.copyWith(
               color: AppColors.indigoDark,
+              fontSize: MediaQuery.sizeOf(context).width <= 360 ? 38 : 44,
+              height: 1.08,
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           Text(
             _entry.meaning,
             textAlign: TextAlign.center,
-            style: theme.textTheme.titleLarge,
+            style: theme.textTheme.titleLarge?.copyWith(
+              color: theme.colorScheme.onSurface,
+              fontSize: MediaQuery.sizeOf(context).width <= 360 ? 23 : 25,
+              height: 1.18,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
@@ -997,8 +1126,102 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
             : 'Nghe và nói lại',
       ),
       style: FilledButton.styleFrom(
-        minimumSize: const Size(240, 58),
-        textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+        minimumSize: const Size(286, 58),
+        backgroundColor: AppColors.primaryNavy,
+        foregroundColor: Colors.white,
+        disabledBackgroundColor: AppColors.softNavy,
+        disabledForegroundColor: Colors.white.withValues(alpha: 0.9),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        textStyle: const TextStyle(
+          fontFamily: 'Roboto',
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHomiCoach(
+    BuildContext context, {
+    required double viewportHeight,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final mascotSize = viewportHeight < 620
+        ? 132.0
+        : viewportHeight < 760
+        ? 180.0
+        : 232.0;
+    final platformWidth = (mascotSize * 1.46).clamp(150.0, 258.0);
+    final mascotAsset = _completed
+        ? MascotAssets.wave
+        : _recording
+        ? MascotAssets.speak
+        : MascotAssets.listen;
+
+    return Semantics(
+      image: true,
+      label: _completed
+          ? 'HOMI chúc mừng con'
+          : _recording
+          ? 'HOMI đang nghe con nói'
+          : 'HOMI đang lắng nghe cùng con',
+      child: SizedBox(
+        key: const Key('vocabulary-practice-homi-stage'),
+        width: double.infinity,
+        height: mascotSize + 22,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.bottomCenter,
+          children: <Widget>[
+            Container(
+              key: const Key('vocabulary-practice-homi-platform'),
+              width: platformWidth,
+              height: mascotSize * 0.2,
+              margin: const EdgeInsets.only(bottom: 2),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? theme.colorScheme.tertiaryContainer.withValues(
+                        alpha: 0.72,
+                      )
+                    : const Color(0xFFD8FAF0).withValues(alpha: 0.94),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: isDark
+                      ? theme.colorScheme.tertiary.withValues(alpha: 0.42)
+                      : Colors.white.withValues(alpha: 0.9),
+                  width: 1.2,
+                ),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: AppColors.primaryNavy.withValues(
+                      alpha: isDark ? 0.22 : 0.1,
+                    ),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+            ),
+            Positioned(
+              bottom: 8,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 240),
+                switchInCurve: Curves.easeOutBack,
+                switchOutCurve: Curves.easeIn,
+                child: Image.asset(
+                  mascotAsset,
+                  key: ValueKey<String>(mascotAsset),
+                  width: mascotSize,
+                  height: mascotSize,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                  excludeFromSemantics: true,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1038,19 +1261,38 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       .replaceFirst('Bad state: ', '');
 
   Future<void> _exitPractice() async {
-    if (_isToday && !_completed) {
-      await pauseForMainAssistant();
-      _paused = false;
-      if (mounted) {
-        setState(() => _message = VocabularyFlowV3.finishActiveGroupFirst);
-      }
-      await _speakAndWait(VocabularyFlowV3.finishActiveGroupFirst);
-      if (mounted) await _startCurrent();
-      return;
+    if (_exiting) return;
+    _commitNavigationExit();
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  void _commitNavigationExit() {
+    if (_exiting) return;
+    _exiting = true;
+    final fixedPrompt = widget.fixedPromptAudioService;
+    if (fixedPrompt is CancellableVocabularyFixedPromptAudioService) {
+      (fixedPrompt as CancellableVocabularyFixedPromptAudioService)
+          .cancelPending();
     }
-    await pauseForMainAssistant();
-    if (mounted) {
-      Navigator.of(context).pop(VocabularyPracticeResult.otherContent);
+    _paused = true;
+    _generation++;
+    _recordingEndpointDetector.cancel();
+    final wasRecording = _recording;
+    _recording = false;
+    // Invalidate first, then release each owner independently. Neither native
+    // stop nor checkpoint persistence may hold the navigation route hostage.
+    for (final operation in <Future<void> Function()>[
+      if (wasRecording) _cancelCapture,
+      widget.mediaService.stopPlayback,
+      _voicePromptService.stop,
+      if (widget.vocabularyAudioService != null)
+        widget.vocabularyAudioService!.stop,
+      if (!_completed && !_loading)
+        () => widget.sessionStore.saveActive(
+          _session.copyWith(currentIndex: _index),
+        ),
+    ]) {
+      unawaited(Future<void>.sync(operation).catchError((Object _) {}));
     }
   }
 
@@ -1059,12 +1301,14 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     String locale = 'vi-VN',
     bool allowFixedPrompt = true,
   }) async {
+    if (_exiting || !mounted) return;
     if (allowFixedPrompt &&
         locale.toLowerCase().startsWith('vi') &&
         await widget.fixedPromptAudioService?.playPromptIfAvailable(text) ==
             true) {
       return;
     }
+    if (_exiting || !mounted) return;
     final promptService = _voicePromptService;
     if (!kIsWeb && promptService is SelectedMediaOutputVoicePromptService) {
       await (promptService as SelectedMediaOutputVoicePromptService)

@@ -13,6 +13,88 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
+    'MAIN-only configuration never starts or acknowledges voice wake',
+    () async {
+      final speech = _FakeNavigationSpeechInput();
+      final prompt = _FakeVoicePromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+        wakeWordEnabled: false,
+      );
+      controller.startContinuous();
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      expect(speech.events, isEmpty);
+      expect(await controller.dispatchRecognizedText('HOMI ơi'), isFalse);
+      expect(prompt.spokenTexts, isEmpty);
+      expect(await controller.activateFromMainButton(), isTrue);
+      expect(prompt.spokenTexts, [MainVoiceAssistantFlow.openingPrompt]);
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  test(
+    'two silent active-module windows dispatch STOP rather than resume',
+    () async {
+      final speech = _FakeNavigationSpeechInput();
+      final prompt = _FakeVoicePromptService();
+      final commands = <ActiveLearningCommand>[];
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+        commandWindowDuration: const Duration(milliseconds: 25),
+        activeLearningCommandHandler: (command) async {
+          commands.add(command);
+          return const ActiveLearningCommandResult.handled();
+        },
+      );
+      await controller.activateFromMainButton(
+        activeLearning: true,
+        activeLearningKind: ActiveLearningModuleKind.vocabulary,
+        noSpeechRetryPrompt: 'Bạn muốn học nội dung khác hay học lại?',
+        noSpeechExitPrompt: 'Mình tạm dừng nhé.',
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+      expect(commands, [ActiveLearningCommand.stop]);
+      expect(prompt.spokenTexts.last, 'Mình tạm dừng nhé.');
+      expect(controller.isMainButtonSessionActive, isFalse);
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  test(
+    'silent topic selection resumes the same Level when MAIN is pressed again',
+    () async {
+      final speech = _FakeNavigationSpeechInput();
+      final prompt = _FakeVoicePromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+        commandWindowDuration: const Duration(milliseconds: 25),
+      );
+      await controller.activateLevelTopicSelection(
+        childAge: 6,
+        levelNumber: 2,
+        topicNumbers: [4, 5, 6],
+        completedTopicNumbers: [4],
+        announceLevel: false,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+      expect(prompt.spokenTexts.last, 'Mình tạm dừng nhé.');
+      await controller.activateFromMainButton();
+      expect(
+        controller.mainAssistantStage,
+        MainVoiceAssistantStage.chooseTopicAfterCompletion,
+      );
+      expect(prompt.spokenTexts.last, 'Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?');
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  test(
     'navigation transcript is handled without entering conversation',
     () async {
       final speechInput = _FakeNavigationSpeechInput();
@@ -34,8 +116,10 @@ void main() {
       expect(receivedIntent, isNull);
 
       expect(await controller.dispatchRecognizedText('Hey HOMI'), isTrue);
-      expect(voicePrompt.spokenTexts, <String>['HOMI nghe đây.']);
-      expect(voicePrompt.readyCueCount, 1);
+      expect(voicePrompt.spokenTexts, <String>[
+        MainVoiceAssistantFlow.openingPrompt,
+      ]);
+      expect(voicePrompt.readyCueCount, 0);
       expect(controller.isAwaitingCommand, isTrue);
 
       expect(
@@ -455,7 +539,7 @@ void main() {
     await speechInput.dispose();
   });
 
-  test('Main hands spoken age to the Level-aware topic screen', () async {
+  test('Main delegates missing profile age to the topic screen', () async {
     final speechInput = _FakeNavigationSpeechInput();
     final voicePrompt = _FakeVoicePromptService();
     final controller = VoiceNavigationController(
@@ -474,10 +558,9 @@ void main() {
       await controller.dispatchRecognizedText('Con muốn học theo chủ đề'),
       isTrue,
     );
-    expect(await controller.dispatchRecognizedText('Con 6 tuổi'), isTrue);
 
     expect(receivedIntents, hasLength(1));
-    expect(receivedIntents.single.childAge, 6);
+    expect(receivedIntents.single.childAge, isNull);
     expect(receivedIntents.single.topicNumber, isNull);
     expect(
       receivedIntents.single.destination,
@@ -486,7 +569,6 @@ void main() {
 
     expect(voicePrompt.spokenTexts, <String>[
       MainVoiceAssistantFlow.openingPrompt,
-      'Con mấy tuổi',
     ]);
     expect(controller.isMainButtonSessionActive, isFalse);
     expect(controller.continuousRequested, isFalse);
@@ -560,7 +642,7 @@ void main() {
       isTrue,
     );
     expect(voicePrompt.spokenTexts, <String>[
-      'Có 3 Chủ đề. Bạn muốn học Chủ đề số mấy?',
+      'Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?',
     ]);
     expect(controller.isMainButtonSessionActive, isTrue);
 
@@ -571,10 +653,10 @@ void main() {
     expect(receivedIntents, isEmpty);
     expect(
       voicePrompt.spokenTexts.last,
-      'Chủ đề 3 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?',
+      'Chủ đề 3 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 3?',
     );
 
-    expect(await controller.dispatchRecognizedText('Có'), isTrue);
+    expect(await controller.dispatchRecognizedText('Học lại'), isTrue);
     expect(receivedIntents.single.topicNumber, 3);
     expect(receivedIntents.single.relearnTopic, isTrue);
 
@@ -657,28 +739,50 @@ void main() {
     await speechInput.dispose();
   });
 
-  test('translation stop opens its navigation menu and microphone', () async {
-    final speechInput = _FakeNavigationSpeechInput();
-    final voicePrompt = _FakeVoicePromptService();
-    final controller = VoiceNavigationController(
-      speechInput: speechInput,
-      voicePromptService: voicePrompt,
-    );
+  test(
+    'translation STOP keeps both menus and mic closed until explicit MAIN',
+    () async {
+      final speechInput = _FakeNavigationSpeechInput();
+      final voicePrompt = _FakeVoicePromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: voicePrompt,
+      );
 
-    expect(await controller.activateAfterContinuousTranslationStop(), isTrue);
-    expect(voicePrompt.spokenTexts, <String>[
-      MainVoiceAssistantFlow.afterTranslationStopPrompt,
-    ]);
-    expect(controller.isAwaitingCommand, isTrue);
-    expect(controller.isListening, isTrue);
-    expect(
-      controller.mainAssistantStage,
-      MainVoiceAssistantStage.chooseAfterTranslationStop,
-    );
+      VoiceNavigationIntent? received;
+      controller.setIntentHandler((intent) => received = intent);
+      await controller.waitForMainAfterTranslationStop();
+      controller.startContinuous();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      for (final text in ['Hey HOMI', 'Tiếp tục dịch', 'Chủ đề']) {
+        expect(await controller.dispatchRecognizedText(text), isFalse);
+      }
+      expect(voicePrompt.spokenTexts, isEmpty);
+      expect(speechInput.events.where((event) => event == 'start'), isEmpty);
+      expect(controller.isAwaitingCommand, isFalse);
+      expect(controller.isListening, isFalse);
+      expect(controller.continuousRequested, isFalse);
 
-    controller.dispose();
-    await speechInput.dispose();
-  });
+      expect(await controller.activateFromMainButton(), isTrue);
+      expect(voicePrompt.spokenTexts, <String>[
+        'Bạn muốn tiếp tục dịch, học Chủ đề hay Bộ từ vựng?',
+      ]);
+      expect(controller.isAwaitingCommand, isTrue);
+      expect(controller.isListening, isTrue);
+      expect(
+        controller.mainAssistantStage,
+        MainVoiceAssistantStage.chooseAfterTranslationStop,
+      );
+
+      await controller.dispatchRecognizedText('Dịch');
+      expect(voicePrompt.spokenTexts.last, 'Mình tiếp tục nhé.');
+      expect(received?.enterMainSpeakingMode, isTrue);
+      expect(controller.isMainButtonSessionActive, isFalse);
+
+      controller.dispose();
+      await speechInput.dispose();
+    },
+  );
 
   test('Main opens today practice when parent vocabulary is pending', () async {
     final speechInput = _FakeNavigationSpeechInput();
@@ -797,7 +901,6 @@ void main() {
         'Nghe lại': ActiveLearningCommand.replayCurrent,
         'Học lại từ đầu': ActiveLearningCommand.restart,
         'Bài tiếp theo': ActiveLearningCommand.nextLesson,
-        'Bài trước': ActiveLearningCommand.previousLesson,
       };
 
       for (final entry in cases.entries) {
@@ -1017,11 +1120,13 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 5));
     speechInput.emitPartial('Hey HOMI');
     await Future<void>.delayed(const Duration(milliseconds: 140));
-    expect(voicePrompt.spokenTexts, <String>['HOMI nghe đây.']);
+    expect(voicePrompt.spokenTexts, <String>[
+      MainVoiceAssistantFlow.openingPrompt,
+    ]);
     expect(controller.isAwaitingCommand, isTrue);
     expect(controller.isListening, isTrue);
 
-    speechInput.emitPartial('Tu vung');
+    speechInput.emitPartial('Con muon');
     await Future<void>.delayed(const Duration(milliseconds: 5));
     expect(receivedIntents, isEmpty);
 
@@ -1059,7 +1164,9 @@ void main() {
     speechInput.emitAlternatives(<String>['Thời tiết hôm nay', 'Hay HO MIE']);
     await Future<void>.delayed(const Duration(milliseconds: 140));
 
-    expect(voicePrompt.spokenTexts, <String>['HOMI nghe đây.']);
+    expect(voicePrompt.spokenTexts, <String>[
+      MainVoiceAssistantFlow.openingPrompt,
+    ]);
     expect(controller.isAwaitingCommand, isTrue);
     await controller.pause();
     controller.dispose();
@@ -1085,7 +1192,9 @@ void main() {
       speechInput.emitCompleted();
       await Future<void>.delayed(const Duration(milliseconds: 140));
 
-      expect(voicePrompt.spokenTexts, <String>['HOMI nghe đây.']);
+      expect(voicePrompt.spokenTexts, <String>[
+        MainVoiceAssistantFlow.openingPrompt,
+      ]);
       expect(controller.isAwaitingCommand, isTrue);
       await controller.pause();
       controller.dispose();
@@ -1093,7 +1202,7 @@ void main() {
     },
   );
 
-  test('returns to wake-word mode when the command window expires', () async {
+  test('wake-word MAIN exits after its two silent command windows', () async {
     final speechInput = _FakeNavigationSpeechInput();
     final controller = VoiceNavigationController(
       speechInput: speechInput,
@@ -1106,7 +1215,6 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 5));
     speechInput.emitPartial('Hey HOMI');
     await Future<void>.delayed(const Duration(milliseconds: 115));
-    expect(controller.isAwaitingCommand, isTrue);
     await Future<void>.delayed(const Duration(milliseconds: 35));
 
     expect(controller.isAwaitingCommand, isFalse);
@@ -1130,9 +1238,9 @@ void main() {
       );
 
       controller.startContinuous();
-      await Future<void>.delayed(const Duration(milliseconds: 5));
+      await _waitUntil(() => controller.isListening);
       speechInput.emitPartial('Hey HOMI');
-      await Future<void>.delayed(const Duration(milliseconds: 20));
+      await _waitUntil(() => controller.isAcknowledgingWakeWord);
 
       expect(controller.isAcknowledgingWakeWord, isTrue);
       expect(controller.isListening, isFalse);
@@ -1142,7 +1250,7 @@ void main() {
       );
 
       voicePrompt.complete();
-      await Future<void>.delayed(const Duration(milliseconds: 140));
+      await _waitUntil(() => controller.isListening);
 
       expect(controller.isAcknowledgingWakeWord, isFalse);
       expect(controller.isAwaitingCommand, isTrue);

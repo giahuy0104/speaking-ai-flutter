@@ -22,6 +22,13 @@ class MainAssistantSession {
   final AppFlowCoordinator _appFlowCoordinator;
   final void Function(bool pending)? _onActivationChanged;
   bool _activationPending = false;
+  int _generation = 0;
+
+  void cancelForNavigation() {
+    _generation++;
+    _appFlowCoordinator.forgetPausedModule();
+    _setActivationPending(false);
+  }
 
   bool get isActivationPending => _activationPending;
 
@@ -45,20 +52,22 @@ class MainAssistantSession {
     final hadActiveModule = _appFlowCoordinator.hasActiveModule;
     if (!hadActiveModule && conversationBusy) return false;
 
+    final generation = ++_generation;
     _setActivationPending(true);
     try {
       final pause = await _appFlowCoordinator.pauseForMainAssistant();
-      if (!canContinue()) return false;
+      if (generation != _generation || !canContinue()) return false;
       final activated = await activateVoice(
         activeLearning: pause.hasActiveModule,
         activeLearningKind: pause.activeKind,
       );
+      if (generation != _generation) return false;
       if (!activated && pause.paused) {
         await _appFlowCoordinator.resumeAfterMainAssistant();
       }
       return activated;
     } finally {
-      _setActivationPending(false);
+      if (generation == _generation) _setActivationPending(false);
     }
   }
 

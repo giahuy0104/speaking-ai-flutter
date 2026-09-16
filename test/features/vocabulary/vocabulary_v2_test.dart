@@ -9,45 +9,54 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
-  test(
-    'parent daily quota is five and deleting does not restore quota',
-    () async {
-      const store = VocabularyStore();
-      final now = DateTime(2026, 9, 10, 8);
+  test('deleting parent entries restores the available daily quota', () async {
+    const store = VocabularyStore();
+    final now = DateTime(2026, 9, 10, 8);
 
-      await store.addParentEntries(const <VocabularyTranslation>[
-        VocabularyTranslation(englishText: 'Apple', vietnameseText: 'Quả táo'),
+    await store.addParentEntries(const <VocabularyTranslation>[
+      VocabularyTranslation(englishText: 'Apple', vietnameseText: 'Quả táo'),
+      VocabularyTranslation(englishText: 'Banana', vietnameseText: 'Quả chuối'),
+      VocabularyTranslation(englishText: 'Orange', vietnameseText: 'Quả cam'),
+    ], now: now);
+    final entries = await store.addParentEntries(const <VocabularyTranslation>[
+      VocabularyTranslation(
+        englishText: 'School',
+        vietnameseText: 'Trường học',
+      ),
+      VocabularyTranslation(
+        englishText: 'Teacher',
+        vietnameseText: 'Giáo viên',
+      ),
+    ], now: now.add(const Duration(minutes: 1)));
+
+    expect(
+      () => store.addParentEntries(const <VocabularyTranslation>[
+        VocabularyTranslation(englishText: 'Friend', vietnameseText: 'Bạn bè'),
+      ], now: now.add(const Duration(minutes: 2))),
+      throwsA(isA<VocabularyDailyLimitException>()),
+    );
+
+    await store.deleteParentEntry(entries[0].id);
+    await store.deleteParentEntry(entries[1].id);
+
+    expect(await store.parentAddCountForDay(now), 3);
+
+    await store.addParentEntries(const <VocabularyTranslation>[
+      VocabularyTranslation(englishText: 'Friend', vietnameseText: 'Bạn bè'),
+      VocabularyTranslation(englishText: 'Library', vietnameseText: 'Thư viện'),
+    ], now: now.add(const Duration(minutes: 3)));
+
+    expect(await store.parentAddCountForDay(now), 5);
+    expect(
+      () => store.addParentEntries(const <VocabularyTranslation>[
         VocabularyTranslation(
-          englishText: 'Banana',
-          vietnameseText: 'Quả chuối',
+          englishText: 'Book',
+          vietnameseText: 'Quyển sách',
         ),
-        VocabularyTranslation(englishText: 'Orange', vietnameseText: 'Quả cam'),
-      ], now: now);
-      final entries = await store
-          .addParentEntries(const <VocabularyTranslation>[
-            VocabularyTranslation(
-              englishText: 'School',
-              vietnameseText: 'Trường học',
-            ),
-            VocabularyTranslation(
-              englishText: 'Teacher',
-              vietnameseText: 'Giáo viên',
-            ),
-          ], now: now.add(const Duration(minutes: 1)));
-
-      await store.deleteParentEntry(entries.first.id);
-
-      expect(
-        () => store.addParentEntries(const <VocabularyTranslation>[
-          VocabularyTranslation(
-            englishText: 'Friend',
-            vietnameseText: 'Bạn bè',
-          ),
-        ], now: now.add(const Duration(minutes: 2))),
-        throwsA(isA<VocabularyDailyLimitException>()),
-      );
-    },
-  );
+      ], now: now.add(const Duration(minutes: 4))),
+      throwsA(isA<VocabularyDailyLimitException>()),
+    );
+  });
 
   test('a parent entry locks as soon as learning starts', () async {
     const store = VocabularyStore();

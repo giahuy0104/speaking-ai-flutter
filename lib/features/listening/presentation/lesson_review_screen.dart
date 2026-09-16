@@ -43,7 +43,12 @@ class LessonReviewScreen extends StatefulWidget {
 }
 
 class _LessonReviewScreenState extends State<LessonReviewScreen>
-    implements ActiveLearningModuleController {
+    implements ActiveLearningModuleController, ActiveLearningVoiceContext {
+  @override
+  ActiveLearningVoiceNode get mainVoiceNode => ActiveLearningVoiceNode.review;
+
+  @override
+  String get mainVoicePrompt => 'Bạn muốn nghe lại hay dừng lại?';
   static const int _completionDelaySeconds = 6;
 
   int? _playingIndex;
@@ -55,6 +60,7 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
   Timer? _completionUnlockTimer;
   Completer<bool>? _reviewGapCompleter;
   bool _handingOffMediaPlayback = false;
+  bool _exiting = false;
   bool _pausedForMainAssistant = false;
   bool _resumeAutoReviewAfterMain = false;
   VoicePromptService? _voicePromptService;
@@ -115,14 +121,14 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
     _playbackRequest += 1;
     _cancelReviewGap();
     _completionUnlockTimer?.cancel();
-    if (!_handingOffMediaPlayback) {
+    if (!_exiting && !_handingOffMediaPlayback) {
       widget.mediaService.stopPlayback();
     }
     final prompt = _voicePromptService;
     if (prompt != null) {
       if (_ownsVoicePromptService) {
         unawaited(prompt.dispose());
-      } else {
+      } else if (!_exiting) {
         unawaited(prompt.stop());
       }
     }
@@ -133,8 +139,10 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
   Widget build(BuildContext context) {
     return DisplayLanguageScope(
       language: widget.language,
-      child: IgnorePointer(
-        ignoring: _pausedForMainAssistant,
+      child: PopScope<Object?>(
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) _commitNavigationExit();
+        },
         child: Scaffold(
           key: const Key('lesson-review-screen'),
           backgroundColor: Colors.transparent,
@@ -161,39 +169,47 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
                           ),
                           IconButton(
                             key: const Key('replay-lesson-review'),
-                            onPressed: _playReview,
+                            onPressed: _pausedForMainAssistant
+                                ? null
+                                : _playReview,
                             icon: const Icon(Icons.replay_rounded),
                             tooltip: context.tr('Phát lại từ đầu', '从头播放'),
                           ),
                         ],
                       ),
                     ),
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
-                      itemCount: widget.lesson.sentences.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 9),
-                      itemBuilder: (context, index) {
-                        final sentence = widget.lesson.sentences[index];
-                        return _ReviewSentenceTile(
-                          index: index,
-                          sentence: sentence,
-                          lessonType: widget.lesson.type,
-                          playing: _playingIndex == index,
-                          recordingStatus:
-                              widget.mode == LessonReviewMode.learned
-                              ? widget.unrecordedSentenceIndexes.contains(index)
-                                    ? _ReviewRecordingStatus.unrecorded
-                                    : _ReviewRecordingStatus.recorded
-                              : null,
-                          redesigned: widget.mode == LessonReviewMode.overview,
-                          featured:
-                              widget.mode == LessonReviewMode.overview &&
-                              index == 0,
-                          onPlay: () => _playSentence(index),
-                        );
-                      },
+                    IgnorePointer(
+                      ignoring: _pausedForMainAssistant,
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+                        itemCount: widget.lesson.sentences.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 9),
+                        itemBuilder: (context, index) {
+                          final sentence = widget.lesson.sentences[index];
+                          return _ReviewSentenceTile(
+                            index: index,
+                            sentence: sentence,
+                            lessonType: widget.lesson.type,
+                            playing: _playingIndex == index,
+                            recordingStatus:
+                                widget.mode == LessonReviewMode.learned
+                                ? widget.unrecordedSentenceIndexes.contains(
+                                        index,
+                                      )
+                                      ? _ReviewRecordingStatus.unrecorded
+                                      : _ReviewRecordingStatus.recorded
+                                : null,
+                            redesigned:
+                                widget.mode == LessonReviewMode.overview,
+                            featured:
+                                widget.mode == LessonReviewMode.overview &&
+                                index == 0,
+                            onPlay: () => _playSentence(index),
+                          );
+                        },
+                      ),
                     ),
                     if (_message != null)
                       Padding(
@@ -215,9 +231,12 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
                       ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 4, 20, 14),
-                      child: widget.mode == LessonReviewMode.learned
-                          ? _buildLearnedActions(context)
-                          : _buildOverviewActions(context),
+                      child: IgnorePointer(
+                        ignoring: _pausedForMainAssistant,
+                        child: widget.mode == LessonReviewMode.learned
+                            ? _buildLearnedActions(context)
+                            : _buildOverviewActions(context),
+                      ),
                     ),
                   ],
                 ),
@@ -227,6 +246,13 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
         ),
       ),
     );
+  }
+
+  void _commitNavigationExit() {
+    if (_exiting || _handingOffMediaPlayback) return;
+    _exiting = true;
+    unawaited(pauseForMainAssistant().catchError((Object _) {}));
+    unawaited(_voicePromptService?.stop().catchError((Object _) {}));
   }
 
   String _title(BuildContext context) => widget.mode == LessonReviewMode.learned

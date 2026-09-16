@@ -67,6 +67,10 @@ void main() {
         find.byKey(const Key('conversation-animated-waveform')),
         findsOneWidget,
       );
+      expect(
+        tester.getSize(find.byKey(const Key('conversation-animated-waveform'))),
+        const Size(238, 46),
+      );
     });
   }
 
@@ -97,6 +101,11 @@ void main() {
     ];
     var changed = false;
     var largestFrameStep = 0.0;
+
+    final mintBar = tester.widget<Container>(waveBar(0));
+    final pinkBar = tester.widget<Container>(waveBar(10));
+    expect((mintBar.decoration! as BoxDecoration).color, AppColors.mint);
+    expect((pinkBar.decoration! as BoxDecoration).color, AppColors.accentPink);
 
     for (var frame = 0; frame < 24; frame += 1) {
       await tester.pump(const Duration(milliseconds: 16));

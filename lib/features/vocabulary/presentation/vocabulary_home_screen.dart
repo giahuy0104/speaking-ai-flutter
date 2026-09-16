@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/app_theme.dart';
 import '../../../app/learning_scenery.dart';
+import '../../../app/mascot_assets.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/active_learning_module.dart';
@@ -26,7 +27,6 @@ const _familyAsset = 'assets/images/topics/my-family.jpg';
 const _starAsset = 'assets/images/vocabulary/golden-star.png';
 const _reviewAsset = 'assets/images/vocabulary/review-book.png';
 const _avatarAsset = 'assets/images/mascot/penguin-avatar.png';
-const _waveAsset = 'assets/images/mascot/penguin-wave.png';
 
 class VocabularyHomeScreen extends StatefulWidget {
   const VocabularyHomeScreen({
@@ -81,7 +81,7 @@ class VocabularyHomeScreen extends StatefulWidget {
 }
 
 class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
-    implements ActiveLearningModuleController {
+    implements ActiveLearningModuleController, ActiveLearningVoiceContext {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   StreamSubscription<void>? _storeSubscription;
@@ -93,7 +93,6 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   VocabularyContentAudioService? _vocabularyAudioService;
   late final bool _ownsVocabularyAudioService;
   List<VocabularyEntry> _entries = const <VocabularyEntry>[];
-  List<String> _todayViewEntryIds = const <String>[];
   _VocabularyJourney? _selectedJourney;
   bool _loading = true;
   bool _deleteMode = false;
@@ -114,6 +113,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   int _nextPlaybackIndex = 0;
   bool _waitingForPlaybackContinuation = false;
   bool _awaitingPlaybackEndChoice = false;
+  String _lastVoiceChoicePrompt = VocabularyFlowV3.menu;
   ActiveLearningModuleRegistry? _activeLearningRegistry;
   Object? _activeLearningRegistration;
 
@@ -182,12 +182,32 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   void didUpdateWidget(VocabularyHomeScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.isActive != widget.isActive) {
+      if (!widget.isActive) {
+        _cancelHiddenPlayback();
+      } else {
+        _pausedForMainAssistant = false;
+      }
       _syncActiveLearningRegistration();
       if (widget.isActive && widget.autoStartToday) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) unawaited(_maybeStartToday());
         });
       }
+    }
+  }
+
+  void _cancelHiddenPlayback() {
+    _cancelPendingFixedPrompt();
+    _playbackGeneration++;
+    _pausedForMainAssistant = true;
+    _playbackInterrupted = _playingCollection;
+    _playingCollection = false;
+    for (final operation in <Future<void> Function()>[
+      _voicePromptService.stop,
+      _mediaService.stopPlayback,
+      if (_vocabularyAudioService != null) _vocabularyAudioService!.stop,
+    ]) {
+      unawaited(Future<void>.sync(operation).catchError((Object _) {}));
     }
   }
 
@@ -235,6 +255,42 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   @override
   bool get isPausedForMain => _pausedForMainAssistant;
+
+  @override
+  ActiveLearningVoiceNode get mainVoiceNode {
+    if (_waitingForPlaybackContinuation) {
+      return ActiveLearningVoiceNode.blockEnd;
+    }
+    if (_awaitingPlaybackEndChoice) return ActiveLearningVoiceNode.listEnd;
+    if (_playingCollection || _playbackInterrupted) {
+      return _selectedJourney == _VocabularyJourney.stars
+          ? ActiveLearningVoiceNode.star
+          : ActiveLearningVoiceNode.parent;
+    }
+    return switch (_lastVoiceChoicePrompt) {
+      VocabularyFlowV3.parentEmpty || VocabularyFlowV3.parentOtherMenu =>
+        ActiveLearningVoiceNode.parentAlternatives,
+      VocabularyFlowV3.starEmpty || VocabularyFlowV3.starOtherMenu =>
+        ActiveLearningVoiceNode.starAlternatives,
+      VocabularyFlowV3.reviewEmpty ||
+      VocabularyFlowV3.reviewOtherMenu ||
+      VocabularyFlowV3.reviewCycleFinished =>
+        ActiveLearningVoiceNode.reviewAlternatives,
+      _ => ActiveLearningVoiceNode.vocabularyMenu,
+    };
+  }
+
+  @override
+  String get mainVoicePrompt => switch (mainVoiceNode) {
+    ActiveLearningVoiceNode.blockEnd => VocabularyFlowV3.parentGroupCompletion,
+    ActiveLearningVoiceNode.listEnd =>
+      _selectedJourney == _VocabularyJourney.stars
+          ? VocabularyFlowV3.starFinished
+          : VocabularyFlowV3.parentFinished,
+    ActiveLearningVoiceNode.parent || ActiveLearningVoiceNode.star =>
+      'Bạn muốn nghe lại, nghe câu trước, câu tiếp theo hay dừng lại?',
+    _ => _lastVoiceChoicePrompt,
+  };
 
   @override
   Future<void> pauseForMainAssistant() async {
@@ -355,6 +411,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                 onSearchPressed: _openSearch,
                 onAddPressed: _translating ? null : _showAddDialog,
                 adding: _translating,
+                showActions:
+                    _selectedJourney == null ||
+                    _selectedJourney == _VocabularyJourney.family,
               ),
               Expanded(
                 child: AnimatedSwitcher(
@@ -382,14 +441,24 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     final savedCount = _entriesForJourney(_VocabularyJourney.family).length;
     final starCount = _entriesForJourney(_VocabularyJourney.stars).length;
     final reviewCount = _entriesForJourney(_VocabularyJourney.review).length;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final compact = screenWidth <= 380;
+    final horizontalPadding = screenWidth <= 360 ? 16.0 : 20.0;
+    final cardHeight = compact ? 110.0 : 116.0;
 
-    return Center(
+    return Align(
+      alignment: Alignment.topCenter,
       key: const ValueKey<String>('vocabulary-journey-landing'),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 560),
         child: SingleChildScrollView(
           key: const Key('vocabulary-home-scroll'),
-          padding: const EdgeInsets.fromLTRB(36, 14, 36, 24),
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            compact ? 36 : 56,
+            horizontalPadding,
+            24,
+          ),
           child: Column(
             children: <Widget>[
               Text(
@@ -397,8 +466,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                 textAlign: TextAlign.center,
                 style: theme.textTheme.displaySmall?.copyWith(
                   color: titleColor,
-                  fontSize: 31,
-                  letterSpacing: -0.9,
+                  fontSize: compact ? 27 : 29,
+                  height: 1.08,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.7,
                   shadows: isDark
                       ? const <Shadow>[
                           Shadow(color: Colors.black54, blurRadius: 12),
@@ -408,7 +479,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                         ],
                 ),
               ),
-              const SizedBox(height: 5),
+              const SizedBox(height: 6),
               Text(
                 context.tr('Chọn hành trình của con', '选择你的学习旅程'),
                 textAlign: TextAlign.center,
@@ -416,23 +487,23 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                   color: isDark
                       ? theme.colorScheme.onSurfaceVariant
                       : AppColors.muted,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
+                  fontSize: compact ? 16 : 17,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 18),
+              SizedBox(height: compact ? 14 : 18),
               _JourneyCard(
                 key: const Key('vocabulary-family-card'),
-                height: 138,
+                height: cardHeight,
                 onPressed: () => _openJourney(_VocabularyJourney.family),
                 child: Row(
                   children: <Widget>[
                     Expanded(
                       flex: 5,
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(10, 12, 8, 12),
+                        padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(26),
+                          borderRadius: BorderRadius.circular(22),
                           child: Image.asset(
                             _familyAsset,
                             fit: BoxFit.cover,
@@ -456,80 +527,49 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
-              SizedBox(
-                height: 144,
-                child: Stack(
-                  clipBehavior: Clip.none,
+              const SizedBox(height: 12),
+              _JourneyCard(
+                key: const Key('vocabulary-stars-card'),
+                height: cardHeight,
+                onPressed: () => _openJourney(_VocabularyJourney.stars),
+                child: Row(
                   children: <Widget>[
-                    Positioned(
-                      left: -18,
-                      bottom: 0,
-                      width: 112,
-                      height: 142,
-                      child: IgnorePointer(
+                    Expanded(
+                      flex: 5,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(4, 8, 2, 6),
                         child: Image.asset(
-                          _waveAsset,
+                          _starAsset,
                           fit: BoxFit.contain,
                           filterQuality: FilterQuality.high,
                         ),
                       ),
                     ),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      top: 0,
-                      child: _JourneyCard(
-                        key: const Key('vocabulary-stars-card'),
-                        height: 138,
-                        onPressed: () => _openJourney(_VocabularyJourney.stars),
-                        child: Row(
-                          children: <Widget>[
-                            Expanded(
-                              flex: 5,
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  8,
-                                  14,
-                                  0,
-                                  10,
-                                ),
-                                child: Image.asset(
-                                  _starAsset,
-                                  fit: BoxFit.contain,
-                                  filterQuality: FilterQuality.high,
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 6,
-                              child: _JourneyCopy(
-                                title: context.tr('Ngôi sao', '小星星'),
-                                count: context.tr(
-                                  '$starCount nội dung yêu thích',
-                                  '$starCount 项收藏内容',
-                                ),
-                                countColor: AppColors.accentPink,
-                              ),
-                            ),
-                          ],
+                    Expanded(
+                      flex: 6,
+                      child: _JourneyCopy(
+                        title: context.tr('Ngôi sao', '小星星'),
+                        count: context.tr(
+                          '$starCount nội dung yêu thích',
+                          '$starCount 项收藏内容',
                         ),
+                        countColor: AppColors.accentPink,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               _JourneyCard(
                 key: const Key('vocabulary-review-card'),
-                height: 138,
+                height: cardHeight,
                 onPressed: () => _openJourney(_VocabularyJourney.review),
                 child: Row(
                   children: <Widget>[
                     Expanded(
                       flex: 5,
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(8, 10, 8, 8),
+                        padding: const EdgeInsets.fromLTRB(8, 6, 8, 5),
                         child: Image.asset(
                           _reviewAsset,
                           fit: BoxFit.contain,
@@ -563,82 +603,52 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     final visibleEntries = _filteredEntries;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isFamilyJourney = journey == _VocabularyJourney.family;
+    final horizontalPadding = MediaQuery.sizeOf(context).width <= 430
+        ? 16.0
+        : 52.0;
+    final headerCountLabel = switch (journey) {
+      _VocabularyJourney.family => null,
+      _VocabularyJourney.stars => context.tr(
+        '${visibleEntries.length} từ yêu thích',
+        '${visibleEntries.length} 个收藏',
+      ),
+      _VocabularyJourney.review => context.tr(
+        '${visibleEntries.length} từ cần luyện',
+        '${visibleEntries.length} 个待复习',
+      ),
+    };
 
     return Center(
       key: ValueKey<_VocabularyJourney>(journey),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 560),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(52, 24, 52, 110),
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            12,
+            horizontalPadding,
+            110,
+          ),
           child: Column(
             children: <Widget>[
-              Row(
-                children: <Widget>[
-                  IconButton.filledTonal(
-                    key: const Key('vocabulary-back-to-journeys'),
-                    onPressed: () => unawaited(_leavePlaybackForOtherContent()),
-                    icon: const Icon(Icons.arrow_back_rounded),
-                    tooltip: context.tr('Quay lại', '返回'),
-                    style: IconButton.styleFrom(
-                      backgroundColor: isDark
-                          ? theme.colorScheme.surfaceContainerHighest
-                          : Colors.white.withValues(alpha: 0.9),
-                      foregroundColor: isDark
-                          ? theme.colorScheme.primary
-                          : AppColors.indigoDark,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      _journeyTitle(context, journey),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        color: isDark
-                            ? theme.colorScheme.primary
-                            : AppColors.indigoDark,
-                        fontSize: 27,
-                      ),
-                    ),
-                  ),
-                  IconButton.filledTonal(
-                    key: const Key('toggle-delete-vocabulary'),
-                    onPressed:
-                        journey != _VocabularyJourney.family ||
-                            !visibleEntries.any((entry) => entry.canParentEdit)
-                        ? null
-                        : () => setState(() => _deleteMode = !_deleteMode),
-                    icon: Icon(
-                      _deleteMode
-                          ? Icons.close_rounded
-                          : Icons.delete_outline_rounded,
-                    ),
-                    tooltip: _deleteMode
-                        ? context.tr('Đóng chế độ xóa', '退出删除模式')
-                        : context.tr('Xóa nội dung', '删除内容'),
-                    style: IconButton.styleFrom(
-                      backgroundColor: isDark
-                          ? theme.colorScheme.surfaceContainerHighest
-                          : Colors.white.withValues(alpha: 0.9),
-                      foregroundColor: _deleteMode
-                          ? (isDark
-                                ? theme.colorScheme.secondary
-                                : AppColors.coral)
-                          : (isDark
-                                ? theme.colorScheme.primary
-                                : AppColors.indigo),
-                    ),
-                  ),
-                ],
+              _JourneyDetailHeader(
+                title: _journeyTitle(context, journey),
+                countLabel: headerCountLabel,
+                showDelete: isFamilyJourney,
+                deleteMode: _deleteMode,
+                deleteEnabled: visibleEntries.any(
+                  (entry) => entry.canParentEdit,
+                ),
+                onBack: () => unawaited(
+                  _leavePlaybackForOtherContent(announceMenu: false),
+                ),
+                onToggleDelete: () =>
+                    setState(() => _deleteMode = !_deleteMode),
               ),
               const SizedBox(height: 18),
-              if (journey == _VocabularyJourney.family) ...<Widget>[
-                _buildParentSchedule(context),
-                const SizedBox(height: 16),
-              ],
-              _buildSearchField(context),
-              if (journey == _VocabularyJourney.family) ...<Widget>[
+              if (isFamilyJourney) ...<Widget>[
+                _buildSearchField(context),
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
@@ -654,29 +664,89 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                     label: Text(context.tr('Thêm từ hoặc câu mới', '添加新单词或句子')),
                   ),
                 ),
+                const SizedBox(height: 22),
+                Text(
+                  context.tr(
+                    '${visibleEntries.length} nội dung đã lưu',
+                    '已保存 ${visibleEntries.length} 项内容',
+                  ),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: isDark
+                        ? theme.colorScheme.primary
+                        : AppColors.indigoDark,
+                    fontWeight: FontWeight.w800,
+                    shadows: isDark
+                        ? const <Shadow>[
+                            Shadow(color: Colors.black54, blurRadius: 10),
+                          ]
+                        : const <Shadow>[
+                            Shadow(color: Colors.white, blurRadius: 8),
+                          ],
+                  ),
+                ),
+                const SizedBox(height: 14),
               ],
-              const SizedBox(height: 22),
-              Text(
-                context.tr(
-                  '${visibleEntries.length} nội dung đã lưu',
-                  '已保存 ${visibleEntries.length} 项内容',
-                ),
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: isDark
-                      ? theme.colorScheme.primary
-                      : AppColors.indigoDark,
-                  fontWeight: FontWeight.w800,
-                  shadows: isDark
-                      ? const <Shadow>[
-                          Shadow(color: Colors.black54, blurRadius: 10),
-                        ]
-                      : const <Shadow>[
-                          Shadow(color: Colors.white, blurRadius: 8),
-                        ],
-                ),
-              ),
-              const SizedBox(height: 14),
-              FilledButton.icon(
+              _buildJourneyAction(context, journey, visibleEntries),
+              const SizedBox(height: 16),
+              _buildVocabularyCard(context, visibleEntries),
+              if (isFamilyJourney) ...<Widget>[
+                const SizedBox(height: 18),
+                _buildParentWaitingQueue(context),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildJourneyAction(
+    BuildContext context,
+    _VocabularyJourney journey,
+    List<VocabularyEntry> visibleEntries,
+  ) {
+    final mascotAsset = switch (journey) {
+      _VocabularyJourney.family => MascotAssets.wave,
+      _VocabularyJourney.stars => MascotAssets.sing,
+      _VocabularyJourney.review => MascotAssets.listen,
+    };
+    final mascotLabel = switch (journey) {
+      _VocabularyJourney.family => context.tr(
+        'HOMI chào đón nội dung ba mẹ đã thêm',
+        'HOMI 欢迎家长添加的内容',
+      ),
+      _VocabularyJourney.stars => context.tr(
+        'HOMI vui cùng những nội dung yêu thích',
+        'HOMI 陪你听喜爱的内容',
+      ),
+      _VocabularyJourney.review => context.tr(
+        'HOMI sẵn sàng luyện lại cùng con',
+        'HOMI 准备陪你复习',
+      ),
+    };
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 360),
+      child: Row(
+        children: <Widget>[
+          Semantics(
+            image: true,
+            label: mascotLabel,
+            child: Image.asset(
+              mascotAsset,
+              key: ValueKey<String>('vocabulary-${journey.name}-homi'),
+              width: 76,
+              height: 76,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+              excludeFromSemantics: true,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: SizedBox(
+              height: 52,
+              child: FilledButton.icon(
                 key: ValueKey<String>('vocabulary-${journey.name}-action'),
                 onPressed: visibleEntries.isEmpty || _playingCollection
                     ? null
@@ -701,11 +771,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                       : context.tr('Bắt đầu nghe', '开始播放'),
                 ),
               ),
-              const SizedBox(height: 14),
-              _buildVocabularyCard(context, visibleEntries),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -751,112 +819,75 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     );
   }
 
-  Widget _buildParentSchedule(BuildContext context) {
-    final byId = <String, VocabularyEntry>{
-      for (final entry in _entries) entry.id: entry,
-    };
-    final today = _todayViewEntryIds
-        .map((id) => byId[id])
-        .whereType<VocabularyEntry>()
-        .toList(growable: false);
+  Widget _buildParentWaitingQueue(BuildContext context) {
     final waiting = _entries.where((entry) => entry.isWaitingParent).toList()
       ..sort((a, b) => a.addedAt.compareTo(b.addedAt));
 
-    Widget section({
-      required Key key,
-      required String title,
-      required List<VocabularyEntry> entries,
-      required String emptyText,
-      required bool isToday,
-    }) {
-      return Container(
-        key: key,
-        width: double.infinity,
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.fromLTRB(14, 12, 8, 8),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outlineVariant,
+    return Container(
+      key: const Key('vocabulary-waiting-queue'),
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.fromLTRB(14, 12, 8, 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            '${context.tr('Hàng chờ', '等待队列')} (${waiting.length})',
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              '$title (${entries.length})',
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            if (entries.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Text(emptyText),
-              )
-            else
-              for (final entry in entries)
-                ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(entry.word),
-                  subtitle: Text(entry.meaning),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      if (isToday)
-                        Icon(
-                          entry.todayStatus == TodayVocabularyStatus.heard
-                              ? Icons.check_circle_rounded
-                              : Icons.schedule_rounded,
-                          color:
-                              entry.todayStatus == TodayVocabularyStatus.heard
-                              ? AppColors.success
-                              : Theme.of(context).colorScheme.primary,
-                        ),
-                      if (!isToday && entry.canParentEdit)
-                        IconButton(
-                          key: ValueKey<String>('edit-waiting-${entry.id}'),
-                          onPressed: () => unawaited(_editParentEntry(entry)),
-                          icon: const Icon(Icons.edit_outlined),
-                          tooltip: context.tr('Sửa', '编辑'),
-                        ),
-                      if (entry.canParentDelete)
-                        IconButton(
-                          key: ValueKey<String>('delete-queued-${entry.id}'),
-                          onPressed: () => unawaited(_delete(entry)),
-                          icon: const Icon(Icons.delete_outline_rounded),
-                          tooltip: context.tr('Xóa', '删除'),
-                        ),
-                    ],
-                  ),
+          if (waiting.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Text(context.tr('Chưa có nội dung đang chờ.', '暂无等待内容。')),
+            )
+          else
+            for (final entry in waiting)
+              ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  entry.word,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(fontSize: 15),
                 ),
-          ],
-        ),
-      );
-    }
-
-    return Column(
-      children: <Widget>[
-        section(
-          key: const Key('vocabulary-today-view'),
-          title: context.tr('Hôm nay', '今天'),
-          entries: today,
-          emptyText: context.tr(
-            'Danh sách sẽ được tạo khi con bắt đầu học.',
-            '孩子开始学习时会创建列表。',
-          ),
-          isToday: true,
-        ),
-        section(
-          key: const Key('vocabulary-waiting-queue'),
-          title: context.tr('Hàng chờ', '等待队列'),
-          entries: waiting,
-          emptyText: context.tr('Chưa có nội dung đang chờ.', '暂无等待内容。'),
-          isToday: false,
-        ),
-      ],
+                subtitle: Text(
+                  entry.meaning,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    if (entry.canParentEdit)
+                      IconButton(
+                        key: ValueKey<String>('edit-waiting-${entry.id}'),
+                        onPressed: () => unawaited(_editParentEntry(entry)),
+                        icon: const Icon(Icons.edit_outlined),
+                        tooltip: context.tr('Sửa', '编辑'),
+                      ),
+                    if (entry.canParentDelete)
+                      IconButton(
+                        key: ValueKey<String>('delete-queued-${entry.id}'),
+                        onPressed: () => unawaited(_delete(entry)),
+                        icon: const Icon(Icons.delete_outline_rounded),
+                        tooltip: context.tr('Xóa', '删除'),
+                      ),
+                  ],
+                ),
+              ),
+        ],
+      ),
     );
   }
 
@@ -872,9 +903,69 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       );
     }
 
+    final journey = _selectedJourney ?? _VocabularyJourney.family;
+    if (journey != _VocabularyJourney.family && entries.isNotEmpty) {
+      final statusLabel = journey == _VocabularyJourney.review
+          ? context.tr('Cần luyện', '待复习')
+          : context.tr('Yêu thích', '收藏');
+      return Column(
+        children: <Widget>[
+          for (var index = 0; index < entries.length; index++)
+            Container(
+              key: ValueKey<String>(
+                'vocabulary-entry-card-${entries[index].id}',
+              ),
+              width: double.infinity,
+              margin: EdgeInsets.only(
+                bottom: index == entries.length - 1 ? 0 : 10,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Theme.of(
+                        context,
+                      ).colorScheme.surface.withValues(alpha: 0.94)
+                    : const Color(0xF7FFFDF9),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark
+                      ? Theme.of(
+                          context,
+                        ).colorScheme.outline.withValues(alpha: 0.55)
+                      : const Color(0x80FFFFFF),
+                ),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: isDark
+                        ? Colors.black.withValues(alpha: 0.2)
+                        : AppColors.deepNavy.withValues(alpha: 0.1),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: _VocabularyRow(
+                entry: entries[index],
+                deleteMode: false,
+                canDelete: false,
+                canEdit: false,
+                canPlay:
+                    !entries[index].isParentAdded ||
+                    entries[index].isLearnedWell,
+                statusLabel: statusLabel,
+                onPlay: () => unawaited(_playEntry(entries[index])),
+                onEdit: () => unawaited(_editParentEntry(entries[index])),
+                onDelete: () => unawaited(_delete(entries[index])),
+              ),
+            ),
+        ],
+      );
+    }
+
     return Container(
+      key: ValueKey<String>('vocabulary-${journey.name}-saved-content'),
       width: double.infinity,
-      constraints: const BoxConstraints(minHeight: 330),
+      constraints: BoxConstraints(minHeight: entries.isEmpty ? 330 : 0),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: scenicPanelDecoration(
         radius: 28,
@@ -890,10 +981,20 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 70),
                 child: Text(
-                  context.tr(
-                    'Chưa có nội dung phù hợp. Con thử tìm nội dung khác nhé.',
-                    '没有匹配的内容，请尝试其他关键词。',
-                  ),
+                  journey == _VocabularyJourney.family
+                      ? context.tr(
+                          'Chưa có nội dung phù hợp. Con thử tìm nội dung khác nhé.',
+                          '没有匹配的内容，请尝试其他关键词。',
+                        )
+                      : journey == _VocabularyJourney.stars
+                      ? context.tr(
+                          'Con chưa có nội dung yêu thích.',
+                          '还没有收藏内容。',
+                        )
+                      : context.tr(
+                          'Hiện chưa có nội dung cần luyện lại.',
+                          '目前没有需要复习的内容。',
+                        ),
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -960,6 +1061,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _searchFocusNode.unfocus();
     setState(() {
       _selectedJourney = null;
+      _lastVoiceChoicePrompt = VocabularyFlowV3.menu;
       _deleteMode = false;
       _searchController.clear();
     });
@@ -1030,13 +1132,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   Future<void> _load() async {
     final entries = await widget.store.read();
-    final todayView = await widget.store.readTodayView();
     if (!mounted) {
       return;
     }
     setState(() {
       _entries = entries;
-      _todayViewEntryIds = todayView?.entryIds ?? const <String>[];
       _loading = false;
     });
     if (widget.isActive && widget.autoStartToday && !_todayOffered) {
@@ -1060,20 +1160,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   }
 
   Future<void> _editParentEntry(VocabularyEntry entry) async {
-    final input = await showDialog<String>(
+    final input = await showDialog<VocabularyTranslation>(
       context: context,
-      builder: (_) =>
-          _AddVocabularyDialog(initialValue: entry.word, editing: true),
+      builder: (_) => _EditVocabularyDialog(entry: entry),
     );
-    final normalized = input?.trim();
-    if (normalized == null || normalized.isEmpty) return;
+    if (input == null) return;
     setState(() => _translating = true);
     try {
-      final translated = (await _translateVocabulary(normalized)).primary;
-      await widget.store.updateParentEntry(
-        entryId: entry.id,
-        value: translated,
-      );
+      await widget.store.updateParentEntry(entryId: entry.id, value: input);
       await _load();
     } on VocabularyValidationException catch (error) {
       _showMessage(error.message);
@@ -1270,6 +1364,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         );
         if (!mounted) return;
         await _load();
+        if (result == null) {
+          return; // Back preserves the active checkpoint silently.
+        }
         if (result == VocabularyPracticeResult.parentAdded ||
             result == VocabularyPracticeResult.stars) {
           final active = await widget.sessionStore.readActive();
@@ -1703,8 +1800,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     return true;
   }
 
-  Future<void> _leavePlaybackForOtherContent() async {
-    if (_playbackNavigationCleanup != null) return;
+  Future<void> _leavePlaybackForOtherContent({bool announceMenu = true}) async {
+    if (_playbackNavigationCleanup != null && announceMenu) return;
+    _cancelPendingFixedPrompt();
+    if (!announceMenu) ActiveLearningModuleScope.notifyNavigationExit(context);
     final journey = _selectedJourney;
     // Touch and MAIN use the same cancellation boundary. Update the screen
     // immediately, while an old audio callback can no longer advance its queue.
@@ -1719,14 +1818,21 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       _mediaService.stopPlayback().catchError((Object _) {}),
       if (_vocabularyAudioService != null)
         _vocabularyAudioService!.stop().catchError((Object _) {}),
-    ]).then<void>((_) {});
+    ]).then<void>((_) {}).timeout(const Duration(seconds: 2), onTimeout: () {});
     _playbackNavigationCleanup = cleanup;
     try {
       await cleanup;
     } finally {
-      _playbackNavigationCleanup = null;
+      if (identical(_playbackNavigationCleanup, cleanup)) {
+        _playbackNavigationCleanup = null;
+      }
     }
-    if (!mounted || _selectedJourney != null) return;
+    if (!announceMenu ||
+        !mounted ||
+        !widget.isActive ||
+        _selectedJourney != null) {
+      return;
+    }
     await _speakAndRequestChoice(
       journey == _VocabularyJourney.family
           ? VocabularyFlowV3.parentOtherMenu
@@ -1737,8 +1843,12 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   }
 
   Future<void> _speakAndRequestChoice(String prompt) async {
+    final generation = _playbackGeneration;
+    _lastVoiceChoicePrompt = prompt;
     await _speakOnSelectedOutput(prompt);
-    if (!mounted) return;
+    if (!mounted || !widget.isActive || generation != _playbackGeneration) {
+      return;
+    }
     if (_playingCollection) setState(() => _playingCollection = false);
     await _requestVoiceChoice(
       noSpeechRetryPrompt: prompt,
@@ -1972,9 +2082,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     String locale = 'vi-VN',
     bool allowFixedPrompt = true,
   }) async {
+    final generation = _playbackGeneration;
+    if (!mounted || !widget.isActive) return;
     if (allowFixedPrompt &&
         locale.toLowerCase().startsWith('vi') &&
         await _fixedPromptAudioService.playPromptIfAvailable(text)) {
+      return;
+    }
+    if (!mounted || !widget.isActive || generation != _playbackGeneration) {
       return;
     }
     final promptService = _voicePromptService;
@@ -1984,6 +2099,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       return;
     }
     await promptService.speakAndWait(text, locale: locale);
+  }
+
+  void _cancelPendingFixedPrompt() {
+    final fixedPrompt = _fixedPromptAudioService;
+    if (fixedPrompt is CancellableVocabularyFixedPromptAudioService) {
+      (fixedPrompt as CancellableVocabularyFixedPromptAudioService)
+          .cancelPending();
+    }
   }
 
   Future<void> _speakVocabularyText(
@@ -2145,6 +2268,178 @@ class _VocabularyTranslationResolution {
 
 enum _VocabularyJourney { family, stars, review }
 
+class _JourneyDetailHeader extends StatelessWidget {
+  const _JourneyDetailHeader({
+    required this.title,
+    required this.countLabel,
+    required this.showDelete,
+    required this.deleteMode,
+    required this.deleteEnabled,
+    required this.onBack,
+    required this.onToggleDelete,
+  });
+
+  final String title;
+  final String? countLabel;
+  final bool showDelete;
+  final bool deleteMode;
+  final bool deleteEnabled;
+  final VoidCallback onBack;
+  final VoidCallback onToggleDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final stackCount = countLabel != null && constraints.maxWidth < 430;
+        final titleFontSize = constraints.maxWidth <= 330 ? 22.0 : 24.0;
+
+        return Container(
+          key: const Key('vocabulary-journey-detail-header'),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          decoration: BoxDecoration(
+            color: isDark
+                ? theme.colorScheme.surface.withValues(alpha: 0.92)
+                : Colors.white.withValues(alpha: 0.82),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: isDark
+                  ? theme.colorScheme.outline.withValues(alpha: 0.55)
+                  : const Color(0x8FFFFFFF),
+            ),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.22)
+                    : AppColors.deepNavy.withValues(alpha: 0.09),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            children: <Widget>[
+              IconButton.filledTonal(
+                key: const Key('vocabulary-back-to-journeys'),
+                onPressed: onBack,
+                icon: const Icon(Icons.arrow_back_rounded, size: 24),
+                tooltip: context.tr('Quay lại', '返回'),
+                style: IconButton.styleFrom(
+                  minimumSize: const Size.square(44),
+                  maximumSize: const Size.square(44),
+                  padding: EdgeInsets.zero,
+                  backgroundColor: isDark
+                      ? theme.colorScheme.surfaceContainerHighest
+                      : AppColors.mintWash,
+                  foregroundColor: isDark
+                      ? theme.colorScheme.primary
+                      : AppColors.indigoDark,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        title,
+                        key: const Key('vocabulary-journey-title'),
+                        maxLines: 1,
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          color: isDark
+                              ? theme.colorScheme.primary
+                              : AppColors.indigoDark,
+                          fontSize: titleFontSize,
+                          height: 1.12,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.45,
+                        ),
+                      ),
+                    ),
+                    if (stackCount) ...<Widget>[
+                      const SizedBox(height: 6),
+                      _buildCountChip(context),
+                    ],
+                  ],
+                ),
+              ),
+              if (countLabel != null && !stackCount) ...<Widget>[
+                const SizedBox(width: 8),
+                _buildCountChip(context),
+              ],
+              if (showDelete) ...<Widget>[
+                const SizedBox(width: 8),
+                IconButton.filledTonal(
+                  key: const Key('toggle-delete-vocabulary'),
+                  onPressed: deleteEnabled ? onToggleDelete : null,
+                  icon: Icon(
+                    deleteMode
+                        ? Icons.close_rounded
+                        : Icons.delete_outline_rounded,
+                  ),
+                  tooltip: deleteMode
+                      ? context.tr('Đóng chế độ xóa', '退出删除模式')
+                      : context.tr('Xóa nội dung', '删除内容'),
+                  style: IconButton.styleFrom(
+                    minimumSize: const Size.square(44),
+                    maximumSize: const Size.square(44),
+                    padding: EdgeInsets.zero,
+                    backgroundColor: isDark
+                        ? theme.colorScheme.surfaceContainerHighest
+                        : AppColors.mintWash,
+                    foregroundColor: deleteMode
+                        ? (isDark
+                              ? theme.colorScheme.secondary
+                              : AppColors.coral)
+                        : (isDark
+                              ? theme.colorScheme.primary
+                              : AppColors.indigo),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCountChip(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Container(
+      key: const Key('vocabulary-journey-count-chip'),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: isDark
+            ? theme.colorScheme.tertiaryContainer
+            : AppColors.mintSoft,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        countLabel!,
+        maxLines: 1,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: isDark
+              ? theme.colorScheme.onTertiaryContainer
+              : AppColors.success,
+          fontSize: 13,
+          height: 1.15,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
 class _VocabularyHeader extends StatelessWidget {
   const _VocabularyHeader({
     required this.isReady,
@@ -2152,6 +2447,7 @@ class _VocabularyHeader extends StatelessWidget {
     required this.onSearchPressed,
     required this.onAddPressed,
     required this.adding,
+    required this.showActions,
   });
 
   final bool isReady;
@@ -2159,6 +2455,7 @@ class _VocabularyHeader extends StatelessWidget {
   final VoidCallback onSearchPressed;
   final VoidCallback? onAddPressed;
   final bool adding;
+  final bool showActions;
 
   @override
   Widget build(BuildContext context) {
@@ -2291,21 +2588,23 @@ class _VocabularyHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 7),
-              _VocabularyHeaderButton(
-                key: const Key('search-vocabulary-button'),
-                icon: Icons.search_rounded,
-                tooltip: context.tr('Tìm nội dung', '搜索内容'),
-                onPressed: onSearchPressed,
-              ),
-              const SizedBox(width: 8),
-              _VocabularyHeaderButton(
-                key: const Key('add-vocabulary-button'),
-                icon: Icons.add_rounded,
-                tooltip: context.tr('Thêm nội dung', '添加内容'),
-                onPressed: onAddPressed,
-                loading: adding,
-              ),
+              if (showActions) ...<Widget>[
+                const SizedBox(width: 7),
+                _VocabularyHeaderButton(
+                  key: const Key('search-vocabulary-button'),
+                  icon: Icons.search_rounded,
+                  tooltip: context.tr('Tìm nội dung', '搜索内容'),
+                  onPressed: onSearchPressed,
+                ),
+                const SizedBox(width: 8),
+                _VocabularyHeaderButton(
+                  key: const Key('add-vocabulary-button'),
+                  icon: Icons.add_rounded,
+                  tooltip: context.tr('Thêm nội dung', '添加内容'),
+                  onPressed: onAddPressed,
+                  loading: adding,
+                ),
+              ],
             ],
           ),
         ),
@@ -2383,29 +2682,40 @@ class _JourneyCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(26),
         child: Ink(
           height: height,
           decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: isDark
-                    ? theme.colorScheme.outlineVariant
-                    : AppColors.mintBorder,
-                width: 1.2,
-              ),
+            color: isDark
+                ? theme.colorScheme.surface.withValues(alpha: 0.94)
+                : Colors.white.withValues(alpha: 0.94),
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(
+              color: isDark
+                  ? theme.colorScheme.outlineVariant
+                  : Colors.white.withValues(alpha: 0.95),
+              width: 1.2,
             ),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.18)
+                    : AppColors.deepNavy.withValues(alpha: 0.09),
+                blurRadius: 18,
+                offset: const Offset(0, 7),
+              ),
+            ],
           ),
           child: Stack(
             fit: StackFit.expand,
             children: <Widget>[
-              Padding(padding: const EdgeInsets.only(right: 52), child: child),
+              Padding(padding: const EdgeInsets.only(right: 58), child: child),
               Positioned(
-                right: 4,
-                top: (height - 45) / 2,
+                right: 13,
+                top: (height - 46) / 2,
                 child: Container(
-                  width: 45,
-                  height: 45,
+                  width: 46,
+                  height: 46,
                   decoration: BoxDecoration(
                     color: isDark
                         ? theme.colorScheme.primary
@@ -2415,7 +2725,7 @@ class _JourneyCard extends StatelessWidget {
                   child: Icon(
                     Icons.arrow_forward_rounded,
                     color: isDark ? theme.colorScheme.onPrimary : Colors.white,
-                    size: 30,
+                    size: 28,
                   ),
                 ),
               ),
@@ -2443,7 +2753,7 @@ class _JourneyCopy extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 22, 12, 20),
+      padding: const EdgeInsets.fromLTRB(4, 12, 8, 12),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2458,7 +2768,7 @@ class _JourneyCopy extends StatelessWidget {
                 color: isDark
                     ? theme.colorScheme.onSurface
                     : AppColors.deepNavy,
-                fontSize: 24,
+                fontSize: 22,
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.5,
               ),
@@ -2468,11 +2778,11 @@ class _JourneyCopy extends StatelessWidget {
           Text(
             count,
             maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+            overflow: TextOverflow.fade,
             style: theme.textTheme.titleMedium?.copyWith(
               color: isDark ? theme.colorScheme.secondary : countColor,
-              fontSize: 16,
-              height: 1.16,
+              fontSize: 15.5,
+              height: 1.12,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -2492,6 +2802,7 @@ class _VocabularyRow extends StatelessWidget {
     required this.onPlay,
     required this.onEdit,
     required this.onDelete,
+    this.statusLabel,
   });
 
   final VocabularyEntry entry;
@@ -2502,6 +2813,7 @@ class _VocabularyRow extends StatelessWidget {
   final VoidCallback onPlay;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final String? statusLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -2537,6 +2849,7 @@ class _VocabularyRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.onSurface,
+                    fontSize: statusLabel == null ? null : 18,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -2550,15 +2863,40 @@ class _VocabularyRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  entry.isStar
-                      ? '${context.tr('Ngôi sao', '星星')} • ${_dateLabel(context)}'
-                      : _dateLabel(context),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontSize: 10,
+                if (statusLabel != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? theme.colorScheme.tertiaryContainer
+                          : AppColors.mintSoft,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      statusLabel!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: isDark
+                            ? theme.colorScheme.onTertiaryContainer
+                            : AppColors.success,
+                        fontSize: 11,
+                        height: 1.1,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  )
+                else
+                  Text(
+                    entry.isStar
+                        ? '${context.tr('Ngôi sao', '星星')} • ${_dateLabel(context)}'
+                        : _dateLabel(context),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontSize: 10,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -2819,10 +3157,7 @@ class _VocabularySuggestionDialogState
 }
 
 class _AddVocabularyDialog extends StatefulWidget {
-  const _AddVocabularyDialog({this.initialValue = '', this.editing = false});
-
-  final String initialValue;
-  final bool editing;
+  const _AddVocabularyDialog();
 
   @override
   State<_AddVocabularyDialog> createState() => _AddVocabularyDialogState();
@@ -2834,7 +3169,7 @@ class _AddVocabularyDialogState extends State<_AddVocabularyDialog> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.initialValue);
+    _controller = TextEditingController();
     _controller.addListener(_refresh);
   }
 
@@ -2865,9 +3200,7 @@ class _AddVocabularyDialogState extends State<_AddVocabularyDialog> {
             children: <Widget>[
               Center(
                 child: Text(
-                  widget.editing
-                      ? context.tr('Sửa nội dung', '编辑内容')
-                      : context.tr('Thêm nội dung học', '添加学习内容'),
+                  context.tr('Thêm nội dung học', '添加学习内容'),
                   style: theme.textTheme.headlineMedium?.copyWith(
                     color: theme.colorScheme.onSurface,
                     fontSize: 23,
@@ -2984,16 +3317,8 @@ class _AddVocabularyDialogState extends State<_AddVocabularyDialog> {
                     onPressed: enabled
                         ? () => Navigator.of(context).pop(_controller.text)
                         : null,
-                    icon: Icon(
-                      widget.initialValue.isEmpty
-                          ? Icons.add_rounded
-                          : Icons.save_rounded,
-                    ),
-                    label: Text(
-                      widget.editing
-                          ? context.tr('Lưu', '保存')
-                          : context.tr('Thêm', '添加'),
-                    ),
+                    icon: const Icon(Icons.add_rounded),
+                    label: Text(context.tr('Thêm', '添加')),
                     style: FilledButton.styleFrom(
                       minimumSize: const Size(104, 46),
                       backgroundColor: isDark
@@ -3014,4 +3339,230 @@ class _AddVocabularyDialogState extends State<_AddVocabularyDialog> {
   }
 
   void _refresh() => setState(() {});
+}
+
+class _EditVocabularyDialog extends StatefulWidget {
+  const _EditVocabularyDialog({required this.entry});
+
+  final VocabularyEntry entry;
+
+  @override
+  State<_EditVocabularyDialog> createState() => _EditVocabularyDialogState();
+}
+
+class _EditVocabularyDialogState extends State<_EditVocabularyDialog> {
+  late final TextEditingController _englishController;
+  late final TextEditingController _vietnameseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _englishController = TextEditingController(text: widget.entry.word)
+      ..addListener(_refresh);
+    _vietnameseController = TextEditingController(text: widget.entry.meaning)
+      ..addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    _englishController
+      ..removeListener(_refresh)
+      ..dispose();
+    _vietnameseController
+      ..removeListener(_refresh)
+      ..dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final enabled =
+        _englishController.text.trim().isNotEmpty &&
+        _vietnameseController.text.trim().isNotEmpty;
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      backgroundColor: theme.colorScheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Center(
+                child: Text(
+                  context.tr('Sửa nội dung', '编辑内容'),
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontSize: 23,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              _EditVocabularyField(
+                fieldKey: const Key('edit-vocabulary-english-field'),
+                controller: _englishController,
+                label: context.tr('Tiếng Anh', '英文'),
+                hint: context.tr('Nhập nội dung tiếng Anh', '输入英文内容'),
+                autofocus: true,
+                textInputAction: TextInputAction.next,
+                isDark: isDark,
+              ),
+              const SizedBox(height: 14),
+              _EditVocabularyField(
+                fieldKey: const Key('edit-vocabulary-vietnamese-field'),
+                controller: _vietnameseController,
+                label: context.tr('Tiếng Việt', '越南文'),
+                hint: context.tr('Nhập nghĩa tiếng Việt', '输入越南文释义'),
+                textInputAction: TextInputAction.done,
+                isDark: isDark,
+                onSubmitted: enabled ? (_) => _save() : null,
+              ),
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Icon(
+                    Icons.info_outline_rounded,
+                    size: 19,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      context.tr(
+                        'Chỉnh đúng cả hai phần trước khi lưu.',
+                        '保存前请确认两种语言的内容。',
+                      ),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontSize: 12.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(context.tr('Hủy', '取消')),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton.icon(
+                    key: const Key('confirm-edit-vocabulary'),
+                    onPressed: enabled ? _save : null,
+                    icon: const Icon(Icons.save_rounded),
+                    label: Text(context.tr('Lưu', '保存')),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(104, 46),
+                      backgroundColor: isDark
+                          ? theme.colorScheme.primary
+                          : AppColors.indigo,
+                      foregroundColor: isDark
+                          ? theme.colorScheme.onPrimary
+                          : Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _save() {
+    Navigator.of(context).pop(
+      VocabularyTranslation(
+        englishText: _englishController.text.trim(),
+        vietnameseText: _vietnameseController.text.trim(),
+      ),
+    );
+  }
+
+  void _refresh() => setState(() {});
+}
+
+class _EditVocabularyField extends StatelessWidget {
+  const _EditVocabularyField({
+    required this.fieldKey,
+    required this.controller,
+    required this.label,
+    required this.hint,
+    required this.textInputAction,
+    required this.isDark,
+    this.autofocus = false,
+    this.onSubmitted,
+  });
+
+  final Key fieldKey;
+  final TextEditingController controller;
+  final String label;
+  final String hint;
+  final TextInputAction textInputAction;
+  final bool isDark;
+  final bool autofocus;
+  final ValueChanged<String>? onSubmitted;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          label,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 7),
+        TextField(
+          key: fieldKey,
+          controller: controller,
+          autofocus: autofocus,
+          minLines: 1,
+          maxLines: 3,
+          textInputAction: textInputAction,
+          onSubmitted: onSubmitted,
+          style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 14),
+          decoration: InputDecoration(
+            hintText: hint,
+            filled: true,
+            fillColor: isDark
+                ? theme.colorScheme.surfaceContainer
+                : AppColors.lavenderSoft,
+            hintStyle: const TextStyle(fontSize: 13),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide(
+                color: isDark ? theme.colorScheme.outline : AppColors.indigo,
+                width: 1.5,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide(
+                color: isDark ? theme.colorScheme.secondary : AppColors.indigo,
+                width: 2,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 13,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }

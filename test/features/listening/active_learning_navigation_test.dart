@@ -1,9 +1,41 @@
 import 'package:ai_speaking_flutter_app/core/navigation/active_learning_navigation.dart';
+import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('system Back cancels the assistant context on a learning route', (
+    tester,
+  ) async {
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    var exits = 0;
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        onNavigationExit: () => exits++,
+        child: MaterialApp(
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => pushForActiveLearning<void>(
+                context,
+                (_) => const Scaffold(body: Text('Learning')),
+              ),
+              child: const Text('Open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+    expect(exits, 0);
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(exits, 1);
+    expect(find.text('Learning'), findsNothing);
+  });
   testWidgets('uses an immediate route while Android is paused', (
     tester,
   ) async {
