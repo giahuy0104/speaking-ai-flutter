@@ -155,7 +155,19 @@ void main() {
       AssetImage('assets/images/mascot/penguin-wave.png'),
     ]);
     await tester.pump();
+    await tester.pump();
     await tester.pump(const Duration(milliseconds: 700));
+    final authoredGuide = find.textContaining(
+      'Bài đầu tiên là Các chữ cái từ A đến I',
+    );
+    for (
+      var attempt = 0;
+      attempt < 20 && authoredGuide.evaluate().isEmpty;
+      attempt += 1
+    ) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(authoredGuide, findsOneWidget);
 
     await expectLater(
       find.byType(LessonIntroScreen),
@@ -419,10 +431,11 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 100));
 
-    final introTheme = Theme.of(tester.element(find.text(lesson.intro)));
+    final introGuide = find.byKey(const Key('lesson-intro-guide-text'));
+    final introTheme = Theme.of(tester.element(introGuide));
     expect(introTheme.brightness, Brightness.dark);
     expect(
-      tester.widget<Text>(find.text(lesson.intro)).style?.color,
+      tester.widget<Text>(introGuide).style?.color,
       introTheme.colorScheme.onSurface,
     );
 
@@ -571,6 +584,12 @@ class _GoldenProgressStore extends ListeningProgressStore {
   final int currentSentence;
   final Map<String, int> progress;
   final Set<String> completedV4LessonActivities;
+
+  @override
+  Future<bool> hasOpenedLearningGuide() async => false;
+
+  @override
+  Future<void> markLearningGuideOpened() async {}
 
   @override
   Future<Map<String, int>> readAll() async => progress;

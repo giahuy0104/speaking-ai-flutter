@@ -242,7 +242,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
             .replaceAll(RegExp(r'\s+'), ' ')
             .trim();
       } else if (isInProgress) {
-        text = 'Mình học tiếp bài ${lesson.titleEn} nhé.';
+        text = 'Mình học tiếp bài ${lesson.titleVi} nhé.';
       } else if (widget.relearnFromBeginning ||
           (completed >= lesson.sentences.length &&
               lesson.sentences.isNotEmpty)) {
@@ -257,15 +257,15 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
             ? widget.startAge <= 10
                   ? 'Bài này bạn còn $remainingStars Ngôi sao chưa chinh phục. Mình cùng thử nhé!'
                   : 'Bài này bạn còn $remainingStars Ngôi sao chưa chinh phục.'
-            : 'Mình học lại bài ${lesson.titleEn} nhé.';
+            : 'Mình học lại bài ${lesson.titleVi} nhé.';
       } else {
         final isFirstLessonInTopic = lesson.number == 1;
         final topicLead = isFirstLessonInTopic && topicContent != null
             ? 'Chủ đề ${topicContent.number}. '
             : '';
         final lessonLead = isFirstLessonInTopic
-            ? 'Bài đầu tiên là ${lesson.titleEn}. '
-            : 'Bài này là ${lesson.titleEn}. ';
+            ? 'Bài đầu tiên là ${lesson.titleVi}. '
+            : 'Bài này là ${lesson.titleVi}. ';
         text = '$topicLead$lessonLead${lesson.entry?.text ?? ''} Bắt đầu nhé.'
             .replaceAll(RegExp(r'\s+'), ' ')
             .trim();
@@ -280,7 +280,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
     }
     final prompt = LessonGuideFlowV2.entry(
       lessonCode: widget.lesson.code,
-      lessonTitleEn: widget.lesson.titleEn,
+      lessonTitleVi: widget.lesson.titleVi,
       kind: !opened
           ? LessonEntryGuideKind.first
           : isInProgress
@@ -353,7 +353,51 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
                                   icon: const Icon(Icons.arrow_back_rounded),
                                   tooltip: context.tr('Quay lại', '返回'),
                                 ),
-                                const Spacer(),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: <Widget>[
+                                      Text(
+                                        'Bài ${widget.lesson.number} · ${widget.lesson.titleVi}',
+                                        key: const Key(
+                                          'lesson-intro-vietnamese-title',
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.center,
+                                        style: theme.textTheme.titleSmall
+                                            ?.copyWith(
+                                              color: isDark
+                                                  ? colorScheme.onSurface
+                                                  : AppColors.indigoDark,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 1),
+                                      Text(
+                                        widget.lesson.titleEn,
+                                        key: const Key(
+                                          'lesson-intro-english-title',
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.center,
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: isDark
+                                                  ? colorScheme.primary
+                                                  : AppColors.indigo.withValues(
+                                                      alpha: 0.78,
+                                                    ),
+                                              fontStyle: FontStyle.italic,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
                                 TextButton(
                                   key: const Key('skip-lesson-intro'),
                                   onPressed: _openLesson,
@@ -420,6 +464,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
                                 ),
                                 child: Text(
                                   _guideText ?? widget.lesson.intro,
+                                  key: const Key('lesson-intro-guide-text'),
                                   textAlign: TextAlign.center,
                                   style: theme.textTheme.bodyLarge?.copyWith(
                                     color: colorScheme.onSurface,

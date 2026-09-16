@@ -163,6 +163,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
                                 widget.content.titleVi,
                                 widget.topic.titleZh,
                               ),
+                              titleEn: widget.content.titleEn,
                               onBack: _goBack,
                             ),
                           ),
@@ -512,9 +513,14 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.title, required this.onBack});
+  const _Header({
+    required this.title,
+    required this.titleEn,
+    required this.onBack,
+  });
 
   final String title;
+  final String titleEn;
   final VoidCallback onBack;
 
   @override
@@ -539,15 +545,38 @@ class _Header extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: isDark ? colorScheme.onSurface : AppColors.indigoDark,
-              fontWeight: FontWeight.w800,
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: isDark ? colorScheme.onSurface : AppColors.indigoDark,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              if (titleEn.trim().isNotEmpty) ...<Widget>[
+                const SizedBox(height: 1),
+                Text(
+                  titleEn,
+                  key: const Key('topic-header-english-title'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: isDark
+                        ? colorScheme.primary
+                        : AppColors.indigo.withValues(alpha: 0.78),
+                    fontSize: 13,
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
         const SizedBox(width: 10),
@@ -768,7 +797,7 @@ class _LessonPathCard extends StatelessWidget {
     final completed = isCompleted;
     return Semantics(
       button: true,
-      label: 'Bài ${lesson.number}, ${lesson.titleVi}',
+      label: 'Bài ${lesson.number}, ${lesson.titleVi}, ${lesson.titleEn}',
       child: Material(
         color: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
@@ -820,7 +849,7 @@ class _LessonPathCard extends StatelessWidget {
                       if (!isLast)
                         Container(
                           width: 5,
-                          height: 126,
+                          height: 150,
                           color: AppColors.periwinkle,
                         ),
                     ],
@@ -838,6 +867,25 @@ class _LessonPathCard extends StatelessWidget {
                         ),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
+                      if (lesson.titleEn.trim().isNotEmpty) ...<Widget>[
+                        const SizedBox(height: 3),
+                        Text(
+                          lesson.titleEn,
+                          key: ValueKey('lesson-english-title-${lesson.id}'),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: isDark
+                                    ? colorScheme.primary
+                                    : AppColors.indigo.withValues(alpha: 0.78),
+                                fontSize: 13.5,
+                                height: 1.2,
+                                fontStyle: FontStyle.italic,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                      ],
                       const SizedBox(height: 7),
                       Wrap(
                         spacing: 10,

@@ -1921,7 +1921,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           await _playPrompt(
             LessonGuideFlowV2.ending(
               lessonCode: widget.lesson.code,
-              lessonTitleEn: widget.lesson.titleEn,
+              lessonTitleVi: widget.lesson.titleVi,
             ),
           );
           await _playPrompt(LessonGuideFlowV2.completionChoice);

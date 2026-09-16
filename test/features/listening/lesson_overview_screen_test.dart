@@ -41,7 +41,7 @@ void main() {
     await tester.pump();
 
     expect(
-      find.text('Mình học tiếp bài My Daily Routine nhé.'),
+      find.text('Mình học tiếp bài Thói quen hằng ngày nhé.'),
       findsOneWidget,
     );
   });
@@ -145,7 +145,10 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('Mình học lại bài My Daily Routine nhé.'), findsOneWidget);
+    expect(
+      find.text('Mình học lại bài Thói quen hằng ngày nhé.'),
+      findsOneWidget,
+    );
     expect(find.textContaining('Ngôi sao'), findsNothing);
     expect(find.textContaining('Mình cùng nghe bài này nhé.'), findsNothing);
     expect(mediaService.playedUris, isEmpty);
@@ -179,7 +182,10 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('Mình học lại bài My Daily Routine nhé.'), findsOneWidget);
+    expect(
+      find.text('Mình học lại bài Thói quen hằng ngày nhé.'),
+      findsOneWidget,
+    );
     expect(find.textContaining('Ngôi sao'), findsNothing);
     expect(find.textContaining('Mình cùng thử nhé!'), findsNothing);
   });
@@ -216,7 +222,10 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('Mình học lại bài My Daily Routine nhé.'), findsOneWidget);
+    expect(
+      find.text('Mình học lại bài Thói quen hằng ngày nhé.'),
+      findsOneWidget,
+    );
     expect(find.textContaining('Ngôi sao'), findsNothing);
     expect(find.textContaining('Mình cùng nghe bài này nhé.'), findsNothing);
   });
@@ -423,7 +432,7 @@ const _lesson = ListeningLessonContent(
   id: 'overview-layout',
   code: 'C810-L1-T01-B01',
   number: 1,
-  titleVi: 'My Daily Routine',
+  titleVi: 'Thói quen hằng ngày',
   titleEn: 'My Daily Routine',
   intro: '',
   outro: '',

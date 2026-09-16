@@ -114,26 +114,28 @@ void main() {
   test('builds exact per-lesson entry and ending audio codes', () {
     final first = LessonGuideFlowV2.entry(
       lessonCode: 'A035_T01_L01',
-      lessonTitleEn: 'Saying Hello',
+      lessonTitleVi: 'Chào hỏi',
       kind: LessonEntryGuideKind.first,
     );
     final next = LessonGuideFlowV2.entry(
       lessonCode: 'A035_T01_L01',
-      lessonTitleEn: 'Saying Hello',
+      lessonTitleVi: 'Chào hỏi',
       kind: LessonEntryGuideKind.newLesson,
     );
     final resume = LessonGuideFlowV2.entry(
       lessonCode: 'A035_T01_L01',
-      lessonTitleEn: 'Saying Hello',
+      lessonTitleVi: 'Chào hỏi',
       kind: LessonEntryGuideKind.resume,
     );
     final ending = LessonGuideFlowV2.ending(
       lessonCode: 'A035_T01_L01',
-      lessonTitleEn: 'Saying Hello',
+      lessonTitleVi: 'Chào hỏi',
     );
 
     expect(first.audioCode, 'A035_T01_L01_FIRST');
     expect(first.text, contains('bấm nút Main'));
+    expect(first.text, contains('Chào hỏi'));
+    expect(first.text, isNot(contains('Saying Hello')));
     expect(next.audioCode, 'A035_T01_L01_NEW');
     expect(resume.audioCode, 'A035_T01_L01_RESUME');
     expect(resume.text, contains('chỗ lúc trước'));

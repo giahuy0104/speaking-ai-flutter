@@ -95,6 +95,26 @@ void main() {
     expect(find.byKey(const Key('listening-vocabulary-tab')), findsOneWidget);
   });
 
+  testWidgets('shows bilingual topic and lesson titles', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(buildSubject(childAge: 6));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Từ vựng theo chữ cái'), findsOneWidget);
+    expect(find.text('ABC Words'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('topic-action-6-7-0')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.byKey(const Key('topic-lesson-list-screen')), findsOneWidget);
+    expect(find.byKey(const Key('topic-header-english-title')), findsOneWidget);
+    expect(find.text('ABC Words'), findsOneWidget);
+    expect(find.textContaining('Từ vựng A đến I'), findsOneWidget);
+    expect(find.text('A to I Words'), findsOneWidget);
+  });
+
   test(
     'V4 journey cards match the source catalog and keep their images',
     () async {

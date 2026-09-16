@@ -27,6 +27,27 @@ void main() {
       expect(targets, hasLength(601));
       expect(challenges, hasLength(601));
       expect(
+        topics.every(
+          (topic) =>
+              topic.titleVi.trim().isNotEmpty &&
+              topic.titleEn.trim().isNotEmpty &&
+              topic.titleVi.trim() != topic.titleEn.trim(),
+        ),
+        isTrue,
+        reason:
+            'Every age group must expose distinct Vietnamese and English topic titles.',
+      );
+      expect(
+        lessons.every(
+          (lesson) =>
+              lesson.titleVi.trim().isNotEmpty &&
+              lesson.titleEn.trim().isNotEmpty &&
+              lesson.titleVi.trim() != lesson.titleEn.trim(),
+        ),
+        isTrue,
+        reason: 'Every released lesson must expose distinct bilingual titles.',
+      );
+      expect(
         lessons.where((lesson) => !lesson.usesV4Flow),
         isEmpty,
         reason: 'Every released lesson must use the V4 listen-first flow.',
@@ -112,6 +133,7 @@ void main() {
       final alphabet = lessons.singleWhere(
         (lesson) => lesson.id == 'c35-l1-t01-b01',
       );
+      expect(alphabet.titleVi, 'Các chữ cái từ A đến I');
       expect(alphabet.titleEn, 'A to I Letters');
       expect(
         alphabet.sentences.every(

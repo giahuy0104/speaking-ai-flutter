@@ -232,6 +232,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
                     child: _TopicJourney(
                       catalogId: _catalog.id,
                       topics: _catalog.topics,
+                      englishTitleFor: _topicEnglishTitle,
                       progressFor: _topicProgress,
                       lockedFor: _topicLocked,
                       onTopicPressed: _openTopic,
@@ -506,6 +507,21 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
         completed: topic.completed.clamp(0, topic.total),
         total: topic.total,
       );
+    }
+  }
+
+  String _topicEnglishTitle(int topicIndex) {
+    try {
+      return _contentCatalog
+              ?.topic(
+                startAge: _catalog.startAge,
+                endAge: _catalog.endAge,
+                topicNumber: topicIndex + 1,
+              )
+              .titleEn ??
+          '';
+    } catch (_) {
+      return '';
     }
   }
 
@@ -1182,12 +1198,14 @@ class _LessonGroupPickerSheetState extends State<_LessonGroupPickerSheet> {
 
 typedef _TopicProgressResolver = _TopicProgress Function(int index);
 typedef _TopicLockedResolver = bool Function(int index);
+typedef _TopicEnglishTitleResolver = String Function(int index);
 typedef _TopicPressed = Future<void> Function(ListeningTopic topic, int index);
 
 class _TopicJourney extends StatelessWidget {
   const _TopicJourney({
     required this.catalogId,
     required this.topics,
+    required this.englishTitleFor,
     required this.progressFor,
     required this.lockedFor,
     required this.onTopicPressed,
@@ -1195,6 +1213,7 @@ class _TopicJourney extends StatelessWidget {
 
   final String catalogId;
   final List<ListeningTopic> topics;
+  final _TopicEnglishTitleResolver englishTitleFor;
   final _TopicProgressResolver progressFor;
   final _TopicLockedResolver lockedFor;
   final _TopicPressed onTopicPressed;
@@ -1205,7 +1224,7 @@ class _TopicJourney extends StatelessWidget {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         final textScale = MediaQuery.textScalerOf(context).scale(1).clamp(1, 2);
-        final rowHeight = 168.0 + ((textScale - 1) * 150);
+        final rowHeight = 204.0 + ((textScale - 1) * 180);
         final sideWidth = (width * 0.34).clamp(110.0, 190.0).toDouble();
         final imageSize = (sideWidth - 16).clamp(88.0, 124.0).toDouble();
         const checkpointWidth = 40.0;
@@ -1237,6 +1256,7 @@ class _TopicJourney extends StatelessWidget {
                       topicKey: ValueKey('topic-$catalogId-$index'),
                       actionKey: ValueKey('topic-action-$catalogId-$index'),
                       topic: topic,
+                      titleEn: englishTitleFor(index),
                       progress: progress,
                       locked: locked,
                       imageSize: imageSize,
@@ -1261,6 +1281,7 @@ class _JourneyTopicStop extends StatelessWidget {
     required this.topicKey,
     required this.actionKey,
     required this.topic,
+    required this.titleEn,
     required this.progress,
     required this.locked,
     required this.imageSize,
@@ -1273,6 +1294,7 @@ class _JourneyTopicStop extends StatelessWidget {
   final Key topicKey;
   final Key actionKey;
   final ListeningTopic topic;
+  final String titleEn;
   final _TopicProgress progress;
   final bool locked;
   final double imageSize;
@@ -1312,6 +1334,7 @@ class _JourneyTopicStop extends StatelessWidget {
     final details = Expanded(
       child: _TopicDetails(
         title: title,
+        titleEn: titleEn,
         progress: progress,
         alignRight: !imageOnLeft,
         actionKey: actionKey,
@@ -1322,7 +1345,8 @@ class _JourneyTopicStop extends StatelessWidget {
     return Semantics(
       button: true,
       label:
-          '$title, ${progress.completed}/${progress.total}${locked ? ', chưa mở khóa' : ''}',
+          '$title${titleEn.trim().isEmpty ? '' : ', $titleEn'}, '
+          '${progress.completed}/${progress.total}${locked ? ', chưa mở khóa' : ''}',
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -1425,6 +1449,7 @@ class _JourneyCheckpoint extends StatelessWidget {
 class _TopicDetails extends StatelessWidget {
   const _TopicDetails({
     required this.title,
+    required this.titleEn,
     required this.progress,
     required this.alignRight,
     required this.actionKey,
@@ -1432,6 +1457,7 @@ class _TopicDetails extends StatelessWidget {
   });
 
   final String title;
+  final String titleEn;
   final _TopicProgress progress;
   final bool alignRight;
   final Key actionKey;
@@ -1463,7 +1489,27 @@ class _TopicDetails extends StatelessWidget {
               shadows: _journeyTextShadowsFor(context),
             ),
           ),
-          const SizedBox(height: 4),
+          if (titleEn.trim().isNotEmpty) ...<Widget>[
+            const SizedBox(height: 2),
+            Text(
+              titleEn,
+              key: ValueKey('topic-english-title-$titleEn'),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: textAlignment,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: isDark
+                    ? colorScheme.primary
+                    : AppColors.indigo.withValues(alpha: 0.82),
+                fontSize: 13.5,
+                height: 1.18,
+                fontStyle: FontStyle.italic,
+                fontWeight: FontWeight.w700,
+                shadows: _journeyTextShadowsFor(context),
+              ),
+            ),
+          ],
+          const SizedBox(height: 5),
           Text(
             context.tr(
               '${progress.total} bài học · ${progress.completed}/${progress.total}',

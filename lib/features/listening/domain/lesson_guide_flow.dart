@@ -285,25 +285,25 @@ class LessonGuideFlowV2 {
 
   static LessonGuidePrompt entry({
     required String lessonCode,
-    required String lessonTitleEn,
+    required String lessonTitleVi,
     required LessonEntryGuideKind kind,
   }) {
     return switch (kind) {
       LessonEntryGuideKind.first => LessonGuidePrompt(
         audioCode: '${lessonCode}_FIRST',
         text:
-            'Chào con! Hôm nay mình bắt đầu với bài “$lessonTitleEn”. '
+            'Chào con! Hôm nay mình bắt đầu với bài “$lessonTitleVi”. '
             'Con nghe cô trước, rồi nói lại theo cô. Nếu muốn nghe lại hoặc '
             'dừng, con bấm nút Main nhé.',
       ),
       LessonEntryGuideKind.newLesson => LessonGuidePrompt(
         audioCode: '${lessonCode}_NEW',
-        text: 'Hôm nay mình học bài “$lessonTitleEn” nhé. Bắt đầu nào!',
+        text: 'Hôm nay mình học bài “$lessonTitleVi” nhé. Bắt đầu nào!',
       ),
       LessonEntryGuideKind.resume => LessonGuidePrompt(
         audioCode: '${lessonCode}_RESUME',
         text:
-            'Mình học tiếp bài “$lessonTitleEn” nhé. Bắt đầu từ chỗ lúc '
+            'Mình học tiếp bài “$lessonTitleVi” nhé. Bắt đầu từ chỗ lúc '
             'trước nào!',
       ),
     };
@@ -311,11 +311,11 @@ class LessonGuideFlowV2 {
 
   static LessonGuidePrompt ending({
     required String lessonCode,
-    required String lessonTitleEn,
+    required String lessonTitleVi,
   }) => LessonGuidePrompt(
     audioCode: '${lessonCode}_END',
     text:
-        'Giỏi lắm! Con đã học xong bài “$lessonTitleEn” rồi. '
+        'Giỏi lắm! Con đã học xong bài “$lessonTitleVi” rồi. '
         'Con muốn luyện lại từ đầu hay học bài tiếp theo?',
   );
 }
