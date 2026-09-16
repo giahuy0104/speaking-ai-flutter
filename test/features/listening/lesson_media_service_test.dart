@@ -188,6 +188,46 @@ void main() {
     await mediaService.dispose();
   });
 
+  test(
+    'selected H20 playback falls back to phone when its route is unavailable',
+    () async {
+      final events = <String>[];
+      final playback = _RouteAwareControlledPlaybackService(events);
+      final hfp = _FakeHfpAudioControl(
+        events,
+        status: const BluetoothAudioStatus(
+          phase: BluetoothAudioConnectionPhase.ready,
+          deviceId: 'h20-uid',
+          deviceName: 'H20',
+          sampleRate: 16000,
+        ),
+        startError: const HfpAudioException('Bluetooth đang tắt.'),
+      );
+      final mediaService = LessonMediaService(
+        playbackService: playback,
+        hfpAudioControl: hfp,
+      );
+
+      final future = mediaService.playToCompletion(
+        Uri.parse('https://example.test/guide.mp3'),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(events, <String>[
+        'communication:true',
+        'prepare',
+        'hfp:start',
+        'communication:false',
+        'prepare',
+        'play',
+      ]);
+
+      playback.finish();
+      await future;
+      await mediaService.dispose();
+    },
+  );
+
   test('coach prompt leaves H20 and plays on the phone speaker', () async {
     final events = <String>[];
     final playback = _RouteAwareControlledPlaybackService(events);
@@ -526,9 +566,10 @@ class _RouteAwareControlledPlaybackService extends _ControlledPlaybackService
 }
 
 class _FakeHfpAudioControl implements HfpAudioControl {
-  _FakeHfpAudioControl(this.events, {required this.status});
+  _FakeHfpAudioControl(this.events, {required this.status, this.startError});
 
   final List<String> events;
+  final Object? startError;
 
   @override
   BluetoothAudioStatus status;
@@ -559,6 +600,10 @@ class _FakeHfpAudioControl implements HfpAudioControl {
   Future<void> startAudioRoute() async {
     startCalls += 1;
     events.add('hfp:start');
+    final error = startError;
+    if (error != null) {
+      throw error;
+    }
   }
 
   @override

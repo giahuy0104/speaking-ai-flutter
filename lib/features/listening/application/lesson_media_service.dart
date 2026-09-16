@@ -407,7 +407,25 @@ class LessonMediaService {
     // input. This order prevents just_audio's playback preparation from
     // replacing the route selected by the native H20 bridge.
     await playback.prepare();
-    await _activateSelectedHfpRoute();
+    try {
+      await _activateSelectedHfpRoute();
+    } catch (error, stackTrace) {
+      // A previously selected H20 can become unavailable while the lesson is
+      // open (for example, Bluetooth is switched off). Authored prompts are
+      // still usable, so keep the lesson moving on the phone output instead of
+      // converting a route failure into an intro playback failure.
+      debugPrint(
+        'HOMI lesson HFP playback route failed; falling back to phone output: '
+        '$error',
+      );
+      debugPrintStack(stackTrace: stackTrace);
+      if (playback is CommunicationRouteAwareAudioPlaybackService) {
+        (playback as CommunicationRouteAwareAudioPlaybackService)
+            .setCommunicationRouteActive(false);
+      }
+      await _releaseHfpRoute();
+      await playback.prepare();
+    }
   }
 
   Future<void> _activateSelectedHfpRoute({bool force = false}) async {
