@@ -569,14 +569,13 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
       _lessonProgress,
       _completedV4LessonActivities,
     );
-    final hasStarted =
-        _lessonProgress.values.any((value) => value > 0) ||
-        _startedLessonIds.isNotEmpty ||
-        _completedV4LessonActivities.isNotEmpty;
     await _startLevelTopicSelection(
       group,
       levelNumber: saved?.levelNumber ?? currentLevel,
-      announceLevel: saved?.announceLevel ?? !hasStarted,
+      // A fresh entry into the Topic journey always restores the Level intro.
+      // In-route retries and returns still pass false at their call sites, so
+      // the child does not hear the intro repeatedly while choosing a topic.
+      announceLevel: true,
     );
   }
 

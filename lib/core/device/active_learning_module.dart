@@ -247,4 +247,10 @@ class ActiveLearningModuleScope
   static ActiveLearningModuleRegistry? maybeOf(BuildContext context) => context
       .dependOnInheritedWidgetOfExactType<ActiveLearningModuleScope>()
       ?.notifier;
+
+  /// Reads the registry without subscribing. Lifecycle callbacks cannot create
+  /// inherited-widget dependencies, but still need to stop active media.
+  static ActiveLearningModuleRegistry? read(BuildContext context) => context
+      .getInheritedWidgetOfExactType<ActiveLearningModuleScope>()
+      ?.notifier;
 }

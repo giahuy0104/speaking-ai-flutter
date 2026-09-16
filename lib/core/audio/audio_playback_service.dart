@@ -203,7 +203,9 @@ class JustAudioPlaybackService
   Future<void> setPlaybackGainDb(double gainDb) async {
     final enhancer = _androidLoudnessEnhancer;
     if (enhancer == null) return;
-    await enhancer.setTargetGain(gainDb.clamp(0.0, 12.0).toDouble());
+    await enhancer.setTargetGain(
+      gainDb.clamp(0.0, androidMaxPlaybackGainDb).toDouble(),
+    );
     await enhancer.setEnabled(true);
   }
 

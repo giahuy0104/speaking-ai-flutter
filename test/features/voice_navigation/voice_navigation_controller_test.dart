@@ -13,6 +13,24 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
+    'forced pause stops assistant audio when HOMI leaves foreground',
+    () async {
+      final speech = _FakeNavigationSpeechInput();
+      final prompt = _FakeVoicePromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+      );
+
+      await controller.pause(stopPrompt: true);
+
+      expect(prompt.stopCalls, 1);
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  test(
     'MAIN-only configuration never starts or acknowledges voice wake',
     () async {
       final speech = _FakeNavigationSpeechInput();
@@ -1514,6 +1532,7 @@ class _FakeVoicePromptService
   final List<String> spokenTexts = <String>[];
   final List<String> spokenLocales = <String>[];
   int readyCueCount = 0;
+  int stopCalls = 0;
 
   @override
   Future<void> playSpeechReadyCue() async {
@@ -1531,7 +1550,9 @@ class _FakeVoicePromptService
       speak(text, locale: locale);
 
   @override
-  Future<void> stop() async {}
+  Future<void> stop() async {
+    stopCalls += 1;
+  }
 
   @override
   Future<void> dispose() async {}

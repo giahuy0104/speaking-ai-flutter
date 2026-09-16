@@ -22,6 +22,7 @@ import '../../onboarding/presentation/user_onboarding_tour.dart';
 import '../../../core/privacy/parental_gate.dart';
 import '../../settings/presentation/history_sheet.dart';
 import '../../settings/presentation/settings_sheet.dart';
+import '../../settings/application/parent_media_settings.dart';
 import '../../vocabulary/data/minhqnd_dictionary_provider.dart';
 import '../../vocabulary/domain/vocabulary_entry.dart';
 import '../../vocabulary/presentation/vocabulary_home_screen.dart';
@@ -57,6 +58,8 @@ class HomeLearningShell extends StatefulWidget {
     this.listeningProgressStore = const ListeningProgressStore(),
     this.parentAccessGate,
     this.backgroundLearningSession,
+    this.parentMediaSettingsStore =
+        const SharedPreferencesParentMediaSettingsStore(),
     super.key,
   });
 
@@ -87,6 +90,7 @@ class HomeLearningShell extends StatefulWidget {
   final ListeningProgressStore listeningProgressStore;
   final Future<bool> Function(BuildContext context)? parentAccessGate;
   final BackgroundLearningSessionControl? backgroundLearningSession;
+  final ParentMediaSettingsStore parentMediaSettingsStore;
 
   @override
   State<HomeLearningShell> createState() => _HomeLearningShellState();
@@ -108,6 +112,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   bool _voiceNavigationHelpShown = false;
   int? _activeVoiceTopicIndex;
   late final BackgroundLearningCoordinator _backgroundLearningCoordinator;
+  bool _stopMediaWhenBackgrounded = true;
+  Future<void>? _backgroundMediaStopOperation;
 
   final GlobalKey _speakActionKey = GlobalKey(
     debugLabel: 'onboarding-speak-action',
@@ -146,6 +152,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           WidgetsBinding.instance.lifecycleState ?? AppLifecycleState.resumed,
       onDirective: _applyBackgroundLearningDirective,
     );
+    unawaited(_loadParentMediaSettings());
     _attachVoiceNavigationHandler();
     widget.controller.addListener(_onConversationControllerChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -238,9 +245,96 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       explicitMainSessionActive:
           widget.voiceNavigationController?.isMainButtonSessionActive ?? false,
     );
+    if (shouldStopMediaForLifecycle(
+      state: state,
+      enabled: _stopMediaWhenBackgrounded,
+    )) {
+      _applyBackgroundLearningDirective(
+        BackgroundLearningDirective.pauseVoiceNavigation,
+      );
+      unawaited(_stopMediaForBackgroundOnce());
+      return;
+    }
     _applyBackgroundLearningDirective(directive);
     if (state == AppLifecycleState.resumed) {
+      final activeRegistry = ActiveLearningModuleScope.read(context);
+      if (_stopMediaWhenBackgrounded &&
+          activeRegistry?.hasActiveModule == true) {
+        unawaited(_backgroundLearningCoordinator.setActiveLearning(true));
+      }
       unawaited(_restoreActiveListeningCheckpoint());
+    }
+  }
+
+  Future<void> _loadParentMediaSettings() async {
+    final enabled = await widget.parentMediaSettingsStore
+        .readStopMediaWhenBackgrounded();
+    if (!mounted || enabled == _stopMediaWhenBackgrounded) return;
+    setState(() => _stopMediaWhenBackgrounded = enabled);
+  }
+
+  void _setStopMediaWhenBackgrounded(bool enabled) {
+    if (enabled == _stopMediaWhenBackgrounded) return;
+    setState(() => _stopMediaWhenBackgrounded = enabled);
+    unawaited(
+      widget.parentMediaSettingsStore
+          .writeStopMediaWhenBackgrounded(enabled)
+          .catchError((Object error) {
+            debugPrint('Cannot persist parent media setting: $error');
+          }),
+    );
+  }
+
+  Future<void> _stopMediaForBackground() async {
+    _voiceNavigationRestartTimer?.cancel();
+    final registry = ActiveLearningModuleScope.read(context);
+    await _runBackgroundStopStep(
+      'active learning',
+      () => registry?.pauseForMainAssistant(),
+    );
+    await _runBackgroundStopStep(
+      'voice navigation',
+      () => widget.voiceNavigationController?.pause(stopPrompt: true),
+    );
+    await _runBackgroundStopStep(
+      'MAIN conversation',
+      widget.controller.cancelCurrentMainAction,
+    );
+    await _runBackgroundStopStep(
+      'speaking session',
+      () async => widget.speakingSessionController?.exit(),
+    );
+    await _runBackgroundStopStep(
+      'background service',
+      () => _backgroundLearningCoordinator.setActiveLearning(false),
+    );
+  }
+
+  Future<void> _runBackgroundStopStep(
+    String label,
+    Future<void>? Function() action,
+  ) async {
+    try {
+      await action();
+    } catch (error) {
+      debugPrint('Cannot stop $label while HOMI is backgrounded: $error');
+    }
+  }
+
+  Future<void> _stopMediaForBackgroundOnce() async {
+    final currentOperation = _backgroundMediaStopOperation;
+    if (currentOperation != null) {
+      await currentOperation;
+      return;
+    }
+    final operation = _stopMediaForBackground();
+    _backgroundMediaStopOperation = operation;
+    try {
+      await operation;
+    } finally {
+      if (identical(_backgroundMediaStopOperation, operation)) {
+        _backgroundMediaStopOperation = null;
+      }
     }
   }
 
@@ -948,6 +1042,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           onRequestVoiceAccess: widget.onRequestVoiceAccess,
           onManagePrivacyConsent: widget.onManagePrivacyConsent,
           onRevokePrivacyConsent: widget.onRevokePrivacyConsent,
+          stopMediaWhenBackgrounded: _stopMediaWhenBackgrounded,
+          onStopMediaWhenBackgroundedChanged: _setStopMediaWhenBackgrounded,
         ),
       );
     } finally {

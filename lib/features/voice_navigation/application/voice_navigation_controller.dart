@@ -351,7 +351,7 @@ class VoiceNavigationController extends ChangeNotifier {
   }
 
   /// Releases the recognizer so the conversation microphone can use it.
-  Future<void> pause({bool preserveChoice = false}) {
+  Future<void> pause({bool preserveChoice = false, bool stopPrompt = false}) {
     if (_disposed) {
       return Future<void>.value();
     }
@@ -386,7 +386,7 @@ class VoiceNavigationController extends ChangeNotifier {
         _boundedCleanup(_speechInput.cancel()),
       if (starting != null) _boundedCleanup(starting),
       if (finishing != null) _boundedCleanup(finishing),
-      if (shouldStopPrompt && _voicePromptService != null)
+      if ((shouldStopPrompt || stopPrompt) && _voicePromptService != null)
         _boundedCleanup(_voicePromptService.stop()),
       _boundedCleanup(
         _endNativeMainTurn('controller_pause', generation: endingGeneration),

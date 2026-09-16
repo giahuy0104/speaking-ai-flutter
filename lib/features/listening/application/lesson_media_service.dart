@@ -113,8 +113,10 @@ class LessonMediaService {
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = androidSpeechBoostDb,
   }) async {
-    await _setPlaybackGain(playbackGainDb);
     await _preparePlaybackRoute(route);
+    // Route/session preparation can rebuild Android's playback chain. Apply
+    // gain afterwards so every clip starts with the requested level.
+    await _setPlaybackGain(playbackGainDb);
     await _activePlayback.play(uri);
   }
 
@@ -173,8 +175,10 @@ class LessonMediaService {
     double playbackGainDb = androidSpeechBoostDb,
   }) async {
     final playback = _activePlayback;
-    await _setPlaybackGain(playbackGainDb);
     await _preparePlaybackRoute(route);
+    // Keep authored clips, prompts, and child replays deterministic even after
+    // Android switches between media and HFP communication attributes.
+    await _setPlaybackGain(playbackGainDb);
     final completed = Completer<void>();
     final previousCompletion = _activePlaybackCompletion;
     if (previousCompletion != null && !previousCompletion.isCompleted) {
@@ -411,10 +415,15 @@ class LessonMediaService {
   }
 
   Future<void> _activateSelectedHfpRoute({bool force = false}) async {
-    if (_activeHfpRouteToken != null && !force) {
+    final control = _hfpAudioControl;
+    // A Bluetooth audio-state broadcast can report that SCO dropped while the
+    // Dart lease is still valid. Re-open the selected H20 in that case instead
+    // of trusting a stale ownership token and playing on a different stream.
+    if (_activeHfpRouteToken != null &&
+        !force &&
+        control?.status.routeActive == true) {
       return;
     }
-    final control = _hfpAudioControl;
     if (control == null) {
       return;
     }

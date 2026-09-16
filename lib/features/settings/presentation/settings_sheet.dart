@@ -32,6 +32,8 @@ class SettingsSheet extends StatelessWidget {
     this.onRequestVoiceAccess,
     this.onManagePrivacyConsent,
     this.onRevokePrivacyConsent,
+    this.stopMediaWhenBackgrounded = true,
+    this.onStopMediaWhenBackgroundedChanged,
     super.key,
   });
 
@@ -46,6 +48,8 @@ class SettingsSheet extends StatelessWidget {
   final VoidCallback? onRequestVoiceAccess;
   final VoidCallback? onManagePrivacyConsent;
   final Future<void> Function()? onRevokePrivacyConsent;
+  final bool stopMediaWhenBackgrounded;
+  final ValueChanged<bool>? onStopMediaWhenBackgroundedChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +98,7 @@ class SettingsSheet extends StatelessWidget {
             builder: (context) => SafeArea(
               child: SingleChildScrollView(
                 key: const Key('settings-scroll-view'),
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
@@ -102,7 +106,7 @@ class SettingsSheet extends StatelessWidget {
                       children: <Widget>[
                         Expanded(
                           child: Text(
-                            context.tr('Cài đặt lượt nói', '对话设置'),
+                            context.tr('Thiết lập phụ huynh', '家长设置'),
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                         ),
@@ -113,12 +117,12 @@ class SettingsSheet extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 10),
                     _AppearanceSelector(
                       value: themeMode,
                       onChanged: onThemeModeChanged,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                     _SectionLabel(
                       label: context.tr('Ngôn ngữ hiển thị', '显示语言'),
                     ),
@@ -159,7 +163,7 @@ class SettingsSheet extends StatelessWidget {
                               controller.setDisplayLanguage(selection.first),
                         ),
                       ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                     _SectionLabel(
                       label: context.tr('Nhóm tuổi của trẻ', '孩子年龄组'),
                     ),
@@ -169,266 +173,301 @@ class SettingsSheet extends StatelessWidget {
                       enabled: !controller.isBusy && onChildAgeChanged != null,
                       onChanged: onChildAgeChanged,
                     ),
-                    const SizedBox(height: 24),
-                    _SectionLabel(label: context.tr('Nguồn âm thanh', '音频输入')),
-                    const SizedBox(height: 10),
-                    _StatusTile(
-                      icon: Icons.mic_rounded,
-                      title: context.trKnown(controller.inputLabel),
-                      detail: isAndroid
-                          ? context.tr(
-                              controller.usesHfpInput
-                                  ? 'H20 qua HFP/SCO • Chế độ tiêu chuẩn'
-                                  : 'Mic điện thoại • Chế độ tiêu chuẩn',
-                              controller.usesHfpInput
-                                  ? 'H20 通过 HFP/SCO • 标准模式'
-                                  : '手机麦克风 • 标准模式',
-                            )
-                          : isIOS
-                          ? context.tr(
-                              controller.usesHfpInput
-                                  ? 'Mic H20 qua HFP • Apple Speech ưu tiên'
-                                  : 'Mic iPhone/iPad • Apple Speech ưu tiên',
-                              controller.usesHfpInput
-                                  ? 'H20 HFP 麦克风 • 优先使用 Apple Speech'
-                                  : 'iPhone/iPad 麦克风 • 优先使用 Apple Speech',
-                            )
-                          : switch (controller.asrMode) {
-                              AsrMode.androidStreaming => context.tr(
-                                'Nhận chữ trực tiếp • fast path',
-                                '直接识别文字 • 快速路径',
-                              ),
-                              AsrMode.hfpStreaming => context.tr(
-                                controller.supportsBrowserHfp
-                                    ? 'Mic Bluetooth HFP • trình duyệt quản lý'
-                                    : 'Mic Bluetooth HFP/SCO • Android ASR',
-                                controller.supportsBrowserHfp
-                                    ? '蓝牙 HFP 麦克风 • 浏览器管理'
-                                    : '蓝牙 HFP/SCO 麦克风 • Android 识别',
-                              ),
-                              AsrMode.openAiRealtime => context.tr(
-                                'PCM16 16 kHz • ASR trực tiếp • Batch dự phòng',
-                                'PCM16 16 kHz • 实时识别 • 分块备用',
-                              ),
-                              AsrMode.bleOfflineIntent => context.tr(
-                                'BLE • offline fast path • Cloudflare Batch dự phòng',
-                                'BLE • 离线快速路径 • Cloudflare 分块备用',
-                              ),
-                              AsrMode.workerAsrPilot => context.tr(
-                                'PCM16 16 kHz • Worker ASR Pilot • Batch dự phòng',
-                                'PCM16 16 kHz • Worker 识别试验 • 分块备用',
-                              ),
-                              AsrMode.batchChunks => context.tr(
-                                kIsWeb
-                                    ? 'PCM16 • truyền trong lúc nói • Cloudflare chính'
-                                    : 'PCM16 • Cloudflare ASR chính',
-                                kIsWeb
-                                    ? 'PCM16 • 说话时传输 • Cloudflare 主服务'
-                                    : 'PCM16 • Cloudflare 语音识别主服务',
-                              ),
-                              AsrMode.deviceStreaming => context.tr(
-                                'Opus BLE • cần thiết bị thật',
-                                'Opus BLE • 需要真实设备',
-                              ),
-                            },
-                      trailing: context.tr('Đang dùng', '使用中'),
-                      stateColor: AppColors.success,
-                    ),
-                    const SizedBox(height: 10),
-                    HomiSurface(
-                      key: const Key('settings-h20-group'),
-                      padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
-                      child: Column(
-                        children: <Widget>[
-                          HomiSectionHeading(
-                            icon: Icons.headset_mic_rounded,
-                            title: context.tr('Kết nối H20', '连接 H20'),
-                            trailing: HomiStatusPill(
-                              label: h20State.isH20Ready
-                                  ? context.tr('Sẵn sàng', '已就绪')
-                                  : context.tr('Chưa sẵn sàng', '未就绪'),
-                              color: h20State.isH20Ready
-                                  ? AppColors.success
-                                  : AppColors.coral,
-                              icon: h20State.isH20Ready
-                                  ? Icons.check_rounded
-                                  : Icons.error_outline_rounded,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              context.tr(
-                                h20State.isH20Ready
-                                    ? 'Âm thanh và nút MAIN đã kết nối.'
-                                    : 'Hoàn tất cả âm thanh HFP và BLE để dùng nút MAIN.',
-                                h20State.isH20Ready
-                                    ? '音频与 MAIN 按钮均已连接。'
-                                    : '请完成 HFP 音频与 BLE 连接以使用 MAIN 按钮。',
-                              ),
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          _Aiv0BleControlCard(
-                            embedded: true,
-                            status: controller.aiv0BleStatus,
-                            events: controller.aiv0ButtonEventLog,
-                            mainDispatchStatus:
-                                controller.aiv0MainDispatchStatus,
-                            mainDispatchAt: controller.aiv0MainDispatchAt,
-                            disabled: controller.isBusy,
-                            onScan: () => _scanAndConnectAiv0(context),
-                            onDisconnect: controller.disconnectAiv0Device,
-                          ),
-                          const _SettingsDivider(),
-                          _HfpStatusCard(
-                            embedded: true,
-                            status: controller.hfpAudioStatus,
-                            browserManaged: controller.supportsBrowserHfp,
-                            selected: controller.usesHfpInput,
-                            disabled: controller.isBusy,
-                            onFind: () => _findAndConnectHfp(context),
-                            onDisconnect: controller.disconnectHfpDevice,
-                          ),
-                          if (isAndroid) ...<Widget>[
-                            const _SettingsDivider(),
-                            _H20OfflineHardwareTestCard(
-                              embedded: true,
-                              enabled: controller.h20HardwareTestModeEnabled,
-                              phase: controller.h20HardwareTestPhase,
-                              message: controller.h20HardwareTestMessage,
-                              result: controller.h20HardwareTestResult,
-                              bleConnected: controller.canUseAiv0Ble,
-                              mainProtocolConfirmed:
-                                  controller.aiv0BleStatus.protocolConfirmed,
-                              hfpStatus: controller.hfpAudioStatus,
-                              conversationBusy:
-                                  controller.phase ==
-                                      ConversationPhase.recording ||
-                                  controller.phase ==
-                                      ConversationPhase.processing,
-                              onEnabledChanged: (enabled) =>
-                                  _setH20HardwareTestMode(context, enabled),
-                              onRecord: () =>
-                                  _toggleH20OfflineRecording(context),
-                              onSpeakerTest: () => _playH20SpeakerTest(context),
-                              onPlaybackConfirmed:
-                                  controller.confirmH20PlaybackAudible,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    _SectionLabel(
-                      label: kIsWeb
-                          ? context.tr('Chế độ nhận diện', '识别模式')
-                          : context.tr('Nhận dạng', '语音识别'),
-                    ),
-                    const SizedBox(height: 8),
-                    if (isAndroid)
-                      _StatusTile(
-                        key: const Key('android-standard-recognition'),
-                        icon: Icons.record_voice_over_rounded,
-                        title: context.tr('Chế độ tiêu chuẩn', '标准模式'),
-                        detail: context.tr(
-                          'Nhận dạng trực tiếp bằng dịch vụ Android. Cloudflare chỉ dịch văn bản và tạo giọng đọc khi cần, không nhận dạng audio.',
-                          '使用 Android 服务直接识别。Cloudflare 仅在需要时翻译文本和生成语音，不识别音频。',
-                        ),
-                        trailing: context.tr('Mặc định', '默认'),
-                        stateColor: AppColors.success,
-                      )
-                    else if (isIOS)
-                      _StatusTile(
-                        key: const Key('ios-native-recognition'),
-                        icon: Icons.record_voice_over_rounded,
-                        title: context.tr(
-                          'Apple Native Speech',
-                          'Apple 原生语音识别',
-                        ),
-                        detail: context.tr(
-                          'iOS dùng một luồng Apple Native Speech cho MAIN; không đổi mic hoặc chuyển sang Batch trong cùng lượt.${nativeDiagnosticDetail == null ? '' : '\n\n$nativeDiagnosticDetail'}',
-                          'iOS 的 MAIN 仅使用一条 Apple 原生语音识别流程；同一轮不会切换麦克风或转入 Batch。${nativeDiagnosticDetail == null ? '' : '\n\n$nativeDiagnosticDetail'}',
-                        ),
-                        trailing:
-                            nativeDiagnostic?.stage ??
-                            context.tr('Ưu tiên', '优先'),
-                        stateColor: nativeDiagnostic?.isError == true
-                            ? AppColors.coral
-                            : AppColors.success,
-                      )
-                    else
-                      _StatusTile(
-                        key: const Key('web-online-recognition'),
-                        icon: Icons.cloud_done_rounded,
-                        title: context.tr(
-                          'Nhận giọng nói trực tuyến',
-                          '在线语音识别',
-                        ),
-                        detail: context.tr(
-                          controller.usesHfpInput
-                              ? 'Đang nhận âm thanh từ mic Bluetooth đã chọn; Cloudflare xử lý nhận dạng, dịch và phát âm.'
-                              : 'Đang nhận âm thanh từ mic mặc định; Cloudflare xử lý nhận dạng, dịch và phát âm.',
-                          controller.usesHfpInput
-                              ? '使用已选择的蓝牙麦克风；由 Cloudflare 完成识别、翻译和语音合成。'
-                              : '使用默认麦克风；由 Cloudflare 完成识别、翻译和语音合成。',
-                        ),
-                        trailing: context.tr('Mặc định', '默认'),
-                        stateColor: AppColors.success,
-                      ),
-                    if (isAndroid || isIOS) ...<Widget>[
-                      const SizedBox(height: 10),
-                      const _OfflineLanguagePacksCard(),
-                    ],
                     const SizedBox(height: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        _SectionLabel(
-                          label: context.tr(
-                            'Tự động dừng khi im lặng',
-                            '静音时自动停止',
-                          ),
-                        ),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            '${controller.vadSilenceMs} ms',
-                            style: const TextStyle(
-                              color: AppColors.indigo,
-                              fontWeight: FontWeight.w700,
+                    if (!kIsWeb) ...<Widget>[
+                      _BackgroundMediaSwitchCard(
+                        value: stopMediaWhenBackgrounded,
+                        onChanged: onStopMediaWhenBackgroundedChanged,
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    _CompactSettingsSection(
+                      key: const Key('settings-audio-h20-section'),
+                      icon: Icons.headset_mic_rounded,
+                      title: context.tr('Âm thanh & H20', '音频与 H20'),
+                      summary: h20State.isH20Ready
+                          ? context.tr(
+                              '${context.trKnown(controller.inputLabel)} • H20 sẵn sàng',
+                              '${context.trKnown(controller.inputLabel)} • H20 已就绪',
+                            )
+                          : context.tr(
+                              '${context.trKnown(controller.inputLabel)} • H20 chưa sẵn sàng',
+                              '${context.trKnown(controller.inputLabel)} • H20 未就绪',
                             ),
+                      children: <Widget>[
+                        _StatusTile(
+                          icon: Icons.mic_rounded,
+                          title: context.trKnown(controller.inputLabel),
+                          detail: isAndroid
+                              ? context.tr(
+                                  controller.usesHfpInput
+                                      ? 'H20 qua HFP/SCO • Chế độ tiêu chuẩn'
+                                      : 'Mic điện thoại • Chế độ tiêu chuẩn',
+                                  controller.usesHfpInput
+                                      ? 'H20 通过 HFP/SCO • 标准模式'
+                                      : '手机麦克风 • 标准模式',
+                                )
+                              : isIOS
+                              ? context.tr(
+                                  controller.usesHfpInput
+                                      ? 'Mic H20 qua HFP • Apple Speech ưu tiên'
+                                      : 'Mic iPhone/iPad • Apple Speech ưu tiên',
+                                  controller.usesHfpInput
+                                      ? 'H20 HFP 麦克风 • 优先使用 Apple Speech'
+                                      : 'iPhone/iPad 麦克风 • 优先使用 Apple Speech',
+                                )
+                              : switch (controller.asrMode) {
+                                  AsrMode.androidStreaming => context.tr(
+                                    'Nhận chữ trực tiếp • fast path',
+                                    '直接识别文字 • 快速路径',
+                                  ),
+                                  AsrMode.hfpStreaming => context.tr(
+                                    controller.supportsBrowserHfp
+                                        ? 'Mic Bluetooth HFP • trình duyệt quản lý'
+                                        : 'Mic Bluetooth HFP/SCO • Android ASR',
+                                    controller.supportsBrowserHfp
+                                        ? '蓝牙 HFP 麦克风 • 浏览器管理'
+                                        : '蓝牙 HFP/SCO 麦克风 • Android 识别',
+                                  ),
+                                  AsrMode.openAiRealtime => context.tr(
+                                    'PCM16 16 kHz • ASR trực tiếp • Batch dự phòng',
+                                    'PCM16 16 kHz • 实时识别 • 分块备用',
+                                  ),
+                                  AsrMode.bleOfflineIntent => context.tr(
+                                    'BLE • offline fast path • Cloudflare Batch dự phòng',
+                                    'BLE • 离线快速路径 • Cloudflare 分块备用',
+                                  ),
+                                  AsrMode.workerAsrPilot => context.tr(
+                                    'PCM16 16 kHz • Worker ASR Pilot • Batch dự phòng',
+                                    'PCM16 16 kHz • Worker 识别试验 • 分块备用',
+                                  ),
+                                  AsrMode.batchChunks => context.tr(
+                                    kIsWeb
+                                        ? 'PCM16 • truyền trong lúc nói • Cloudflare chính'
+                                        : 'PCM16 • Cloudflare ASR chính',
+                                    kIsWeb
+                                        ? 'PCM16 • 说话时传输 • Cloudflare 主服务'
+                                        : 'PCM16 • Cloudflare 语音识别主服务',
+                                  ),
+                                  AsrMode.deviceStreaming => context.tr(
+                                    'Opus BLE • cần thiết bị thật',
+                                    'Opus BLE • 需要真实设备',
+                                  ),
+                                },
+                          trailing: context.tr('Đang dùng', '使用中'),
+                          stateColor: AppColors.success,
+                        ),
+                        const SizedBox(height: 10),
+                        HomiSurface(
+                          key: const Key('settings-h20-group'),
+                          padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
+                          child: Column(
+                            children: <Widget>[
+                              HomiSectionHeading(
+                                icon: Icons.headset_mic_rounded,
+                                title: context.tr('Kết nối H20', '连接 H20'),
+                                trailing: HomiStatusPill(
+                                  label: h20State.isH20Ready
+                                      ? context.tr('Sẵn sàng', '已就绪')
+                                      : context.tr('Chưa sẵn sàng', '未就绪'),
+                                  color: h20State.isH20Ready
+                                      ? AppColors.success
+                                      : AppColors.coral,
+                                  icon: h20State.isH20Ready
+                                      ? Icons.check_rounded
+                                      : Icons.error_outline_rounded,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  context.tr(
+                                    h20State.isH20Ready
+                                        ? 'Âm thanh và nút MAIN đã kết nối.'
+                                        : 'Hoàn tất cả âm thanh HFP và BLE để dùng nút MAIN.',
+                                    h20State.isH20Ready
+                                        ? '音频与 MAIN 按钮均已连接。'
+                                        : '请完成 HFP 音频与 BLE 连接以使用 MAIN 按钮。',
+                                  ),
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              _Aiv0BleControlCard(
+                                embedded: true,
+                                status: controller.aiv0BleStatus,
+                                events: controller.aiv0ButtonEventLog,
+                                mainDispatchStatus:
+                                    controller.aiv0MainDispatchStatus,
+                                mainDispatchAt: controller.aiv0MainDispatchAt,
+                                disabled: controller.isBusy,
+                                onScan: () => _scanAndConnectAiv0(context),
+                                onDisconnect: controller.disconnectAiv0Device,
+                              ),
+                              const _SettingsDivider(),
+                              _HfpStatusCard(
+                                embedded: true,
+                                status: controller.hfpAudioStatus,
+                                browserManaged: controller.supportsBrowserHfp,
+                                selected: controller.usesHfpInput,
+                                disabled: controller.isBusy,
+                                onFind: () => _findAndConnectHfp(context),
+                                onDisconnect: controller.disconnectHfpDevice,
+                              ),
+                              if (isAndroid) ...<Widget>[
+                                const _SettingsDivider(),
+                                _H20OfflineHardwareTestCard(
+                                  embedded: true,
+                                  enabled:
+                                      controller.h20HardwareTestModeEnabled,
+                                  phase: controller.h20HardwareTestPhase,
+                                  message: controller.h20HardwareTestMessage,
+                                  result: controller.h20HardwareTestResult,
+                                  bleConnected: controller.canUseAiv0Ble,
+                                  mainProtocolConfirmed: controller
+                                      .aiv0BleStatus
+                                      .protocolConfirmed,
+                                  hfpStatus: controller.hfpAudioStatus,
+                                  conversationBusy:
+                                      controller.phase ==
+                                          ConversationPhase.recording ||
+                                      controller.phase ==
+                                          ConversationPhase.processing,
+                                  onEnabledChanged: (enabled) =>
+                                      _setH20HardwareTestMode(context, enabled),
+                                  onRecord: () =>
+                                      _toggleH20OfflineRecording(context),
+                                  onSpeakerTest: () =>
+                                      _playH20SpeakerTest(context),
+                                  onPlaybackConfirmed:
+                                      controller.confirmH20PlaybackAudible,
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ],
                     ),
-                    Slider(
-                      value: controller.vadSilenceMs.toDouble(),
-                      min: 400,
-                      max: 1600,
-                      divisions: 12,
-                      label: '${controller.vadSilenceMs} ms',
-                      onChanged: controller.isBusy
-                          ? null
-                          : (value) => controller.setVadSilence(value.round()),
-                    ),
-                    Text(
-                      context.tr(
-                        '700 ms là mặc định; có thể tăng nếu trẻ thường ngắt câu.',
-                        '默认 700 毫秒；如果孩子说话经常停顿，可以调高。',
+                    const SizedBox(height: 12),
+                    _CompactSettingsSection(
+                      key: const Key('settings-recognition-section'),
+                      icon: Icons.record_voice_over_rounded,
+                      title: kIsWeb
+                          ? context.tr('Chế độ nhận diện', '识别模式')
+                          : context.tr('Nhận dạng giọng nói', '语音识别'),
+                      summary: context.tr(
+                        'Chế độ tiêu chuẩn • Tự dừng ${controller.vadSilenceMs} ms',
+                        '标准模式 • 静音 ${controller.vadSilenceMs} 毫秒后停止',
                       ),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                      children: <Widget>[
+                        if (isAndroid)
+                          _StatusTile(
+                            key: const Key('android-standard-recognition'),
+                            icon: Icons.record_voice_over_rounded,
+                            title: context.tr('Chế độ tiêu chuẩn', '标准模式'),
+                            detail: context.tr(
+                              'Nhận dạng trực tiếp bằng dịch vụ Android. Cloudflare chỉ dịch văn bản và tạo giọng đọc khi cần, không nhận dạng audio.',
+                              '使用 Android 服务直接识别。Cloudflare 仅在需要时翻译文本和生成语音，不识别音频。',
+                            ),
+                            trailing: context.tr('Mặc định', '默认'),
+                            stateColor: AppColors.success,
+                          )
+                        else if (isIOS)
+                          _StatusTile(
+                            key: const Key('ios-native-recognition'),
+                            icon: Icons.record_voice_over_rounded,
+                            title: context.tr(
+                              'Apple Native Speech',
+                              'Apple 原生语音识别',
+                            ),
+                            detail: context.tr(
+                              'iOS dùng một luồng Apple Native Speech cho MAIN; không đổi mic hoặc chuyển sang Batch trong cùng lượt.${nativeDiagnosticDetail == null ? '' : '\n\n$nativeDiagnosticDetail'}',
+                              'iOS 的 MAIN 仅使用一条 Apple 原生语音识别流程；同一轮不会切换麦克风或转入 Batch。${nativeDiagnosticDetail == null ? '' : '\n\n$nativeDiagnosticDetail'}',
+                            ),
+                            trailing:
+                                nativeDiagnostic?.stage ??
+                                context.tr('Ưu tiên', '优先'),
+                            stateColor: nativeDiagnostic?.isError == true
+                                ? AppColors.coral
+                                : AppColors.success,
+                          )
+                        else
+                          _StatusTile(
+                            key: const Key('web-online-recognition'),
+                            icon: Icons.cloud_done_rounded,
+                            title: context.tr(
+                              'Nhận giọng nói trực tuyến',
+                              '在线语音识别',
+                            ),
+                            detail: context.tr(
+                              controller.usesHfpInput
+                                  ? 'Đang nhận âm thanh từ mic Bluetooth đã chọn; Cloudflare xử lý nhận dạng, dịch và phát âm.'
+                                  : 'Đang nhận âm thanh từ mic mặc định; Cloudflare xử lý nhận dạng, dịch và phát âm.',
+                              controller.usesHfpInput
+                                  ? '使用已选择的蓝牙麦克风；由 Cloudflare 完成识别、翻译和语音合成。'
+                                  : '使用默认麦克风；由 Cloudflare 完成识别、翻译和语音合成。',
+                            ),
+                            trailing: context.tr('Mặc định', '默认'),
+                            stateColor: AppColors.success,
+                          ),
+                        if (isAndroid || isIOS) ...<Widget>[
+                          const SizedBox(height: 10),
+                          const _OfflineLanguagePacksCard(),
+                        ],
+                        const SizedBox(height: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            _SectionLabel(
+                              label: context.tr(
+                                'Tự động dừng khi im lặng',
+                                '静音时自动停止',
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Text(
+                                '${controller.vadSilenceMs} ms',
+                                style: const TextStyle(
+                                  color: AppColors.indigo,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Slider(
+                          value: controller.vadSilenceMs.toDouble(),
+                          min: 400,
+                          max: 1600,
+                          divisions: 12,
+                          label: '${controller.vadSilenceMs} ms',
+                          onChanged: controller.isBusy
+                              ? null
+                              : (value) =>
+                                    controller.setVadSilence(value.round()),
+                        ),
+                        Text(
+                          context.tr(
+                            '700 ms là mặc định; có thể tăng nếu trẻ thường ngắt câu.',
+                            '默认 700 毫秒；如果孩子说话经常停顿，可以调高。',
+                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 22),
+                    const SizedBox(height: 16),
                     OutlinedButton.icon(
                       onPressed: () => _showHistory(context),
                       icon: const Icon(Icons.history_rounded),
@@ -1461,6 +1500,96 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
   }
 }
 
+class _BackgroundMediaSwitchCard extends StatelessWidget {
+  const _BackgroundMediaSwitchCard({
+    required this.value,
+    required this.onChanged,
+  });
+
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return HomiSurface(
+      padding: EdgeInsets.zero,
+      child: SwitchListTile.adaptive(
+        key: const Key('settings-stop-media-background-switch'),
+        value: value,
+        onChanged: onChanged,
+        secondary: const HomiIconBadge(
+          icon: Icons.pause_circle_outline_rounded,
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(12, 6, 10, 6),
+        title: Text(
+          context.tr('Dừng âm thanh khi rời HOMI', '离开 HOMI 时停止音频'),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        subtitle: Text(
+          context.tr(
+            'Mở ứng dụng khác hoặc khóa màn hình: dừng bài học, trợ lý và loa H20 nhưng vẫn giữ tiến độ.',
+            '打开其他应用或锁屏时：停止课程、助手和 H20 扬声器，同时保留进度。',
+          ),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            height: 1.3,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CompactSettingsSection extends StatelessWidget {
+  const _CompactSettingsSection({
+    required this.icon,
+    required this.title,
+    required this.summary,
+    required this.children,
+    super.key,
+  });
+
+  final IconData icon;
+  final String title;
+  final String summary;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return HomiSurface(
+      padding: EdgeInsets.zero,
+      child: Theme(
+        data: theme.copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.fromLTRB(12, 4, 10, 4),
+          childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          leading: HomiIconBadge(icon: icon),
+          title: Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          subtitle: Text(
+            summary,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          maintainState: true,
+          children: children,
+        ),
+      ),
+    );
+  }
+}
+
 class _SettingsDivider extends StatelessWidget {
   const _SettingsDivider();
 
@@ -1501,7 +1630,7 @@ class _SettingsActionTile extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(HomiUi.controlRadius),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(10, 12, 6, 12),
+          padding: const EdgeInsets.fromLTRB(10, 9, 6, 9),
           child: Row(
             children: <Widget>[
               HomiIconBadge(icon: icon),
@@ -1519,9 +1648,9 @@ class _SettingsActionTile extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       detail,
-                      style: theme.textTheme.bodyMedium?.copyWith(
+                      style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
-                        height: 1.35,
+                        height: 1.3,
                       ),
                     ),
                   ],
@@ -1552,7 +1681,7 @@ class _ChildAgeGroupSelector extends StatelessWidget {
     final theme = Theme.of(context);
     return HomiSurface(
       key: const Key('settings-child-age-group'),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -1573,7 +1702,7 @@ class _ChildAgeGroupSelector extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -1597,11 +1726,11 @@ class _ChildAgeGroupSelector extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             context.tr(
-              'Trợ lý MAIN và mục Chủ đề sẽ tự dùng nhóm tuổi này. Phụ huynh có thể đổi lại tại đây.',
-              'MAIN 助手和主题课程会自动使用此年龄组。家长可在此更改。',
+              'Áp dụng cho trợ lý MAIN và tất cả bài học. Có thể đổi lại tại đây.',
+              '适用于 MAIN 助手和所有课程，可随时在此更改。',
             ),
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
@@ -1669,7 +1798,7 @@ class _AppearanceSelectorState extends State<_AppearanceSelector> {
 
     return HomiSurface(
       key: const Key('appearance-settings-card'),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -1719,7 +1848,7 @@ class _AppearanceSelectorState extends State<_AppearanceSelector> {
                 ),
               ],
             ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -1737,16 +1866,6 @@ class _AppearanceSelectorState extends State<_AppearanceSelector> {
                   ),
                 )
                 .toList(growable: false),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            context.tr(
-              'Màu giao diện đổi ngay và được giữ cho lần mở ứng dụng sau.',
-              '外观会立即切换，并在下次打开应用时保留。',
-            ),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
           ),
         ],
       ),

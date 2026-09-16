@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
@@ -234,7 +235,7 @@ void main() {
     await mediaService.dispose();
   });
 
-  test('consecutive H20 clips keep one owned SCO route', () async {
+  test('consecutive H20 clips revalidate a dropped SCO route', () async {
     final events = <String>[];
     final playback = _RouteAwareControlledPlaybackService(events);
     final hfp = _FakeHfpAudioControl(
@@ -261,9 +262,45 @@ void main() {
       await playing;
     }
 
-    expect(hfp.startCalls, 1);
+    // The fake deliberately keeps routeActive false, modelling Android's
+    // Bluetooth audio-disconnected broadcast while the Dart owner survives.
+    expect(hfp.startCalls, 2);
     await mediaService.stopPlayback();
     expect(hfp.stopCalls, 1);
+    await mediaService.dispose();
+  });
+
+  test('child recording gain is applied after H20 route preparation', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final events = <String>[];
+    final playback = _GainAwareControlledPlaybackService(events);
+    final hfp = _FakeHfpAudioControl(
+      events,
+      status: const BluetoothAudioStatus(
+        phase: BluetoothAudioConnectionPhase.ready,
+        deviceId: 'h20-uid',
+        deviceName: 'H20',
+        sampleRate: 16000,
+      ),
+    );
+    final mediaService = LessonMediaService(
+      playbackService: playback,
+      hfpAudioControl: hfp,
+    );
+
+    await mediaService.play(
+      Uri.file('child-recording.wav'),
+      playbackGainDb: lessonRecordingPlaybackGainDb,
+    );
+
+    expect(events, <String>[
+      'communication:true',
+      'prepare',
+      'hfp:start',
+      'gain:$lessonRecordingPlaybackGainDb',
+      'play',
+    ]);
     await mediaService.dispose();
   });
 
@@ -522,6 +559,17 @@ class _RouteAwareControlledPlaybackService extends _ControlledPlaybackService
   Future<PlaybackStartMetrics> play(Uri uri) {
     events.add('play');
     return super.play(uri);
+  }
+}
+
+class _GainAwareControlledPlaybackService
+    extends _RouteAwareControlledPlaybackService
+    implements PlaybackGainAwareAudioPlaybackService {
+  _GainAwareControlledPlaybackService(super.events);
+
+  @override
+  Future<void> setPlaybackGainDb(double gainDb) async {
+    events.add('gain:$gainDb');
   }
 }
 

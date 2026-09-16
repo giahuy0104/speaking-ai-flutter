@@ -150,6 +150,44 @@ void main() {
     expect(chip.selected, isTrue);
   });
 
+  testWidgets('parent can toggle stopping media outside HOMI', (tester) async {
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      playbackService: const _FakePlaybackService(),
+      repository: const DemoConversationRepository(),
+      childAge: 6,
+    );
+    addTearDown(controller.dispose);
+    var enabled = true;
+
+    await tester.pumpWidget(
+      StatefulBuilder(
+        builder: (context, setState) => MaterialApp(
+          theme: buildAppTheme(),
+          home: Scaffold(
+            body: SettingsSheet(
+              controller: controller,
+              stopMediaWhenBackgrounded: enabled,
+              onStopMediaWhenBackgroundedChanged: (value) {
+                setState(() => enabled = value);
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final toggle = find.byKey(
+      const Key('settings-stop-media-background-switch'),
+    );
+    await tester.scrollUntilVisible(toggle, 300);
+    await tester.tap(toggle);
+    await tester.pump();
+
+    expect(enabled, isFalse);
+    expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
+  });
+
   testWidgets('turn settings use the shared HOMI visual system', (
     tester,
   ) async {
@@ -243,6 +281,14 @@ void main() {
     await tester.pump(const Duration(seconds: 5));
     await tester.pumpAndSettle();
     final settingsScroll = _settingsScrollable();
+    final audioSection = find.byKey(const Key('settings-audio-h20-section'));
+    await tester.scrollUntilVisible(
+      audioSection,
+      260,
+      scrollable: settingsScroll,
+    );
+    await tester.tap(audioSection);
+    await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.byKey(const Key('settings-h20-group')),
       320,
@@ -283,6 +329,16 @@ void main() {
       ),
     );
     await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+    final recognitionSection = find.byKey(
+      const Key('settings-recognition-section'),
+    );
+    await tester.scrollUntilVisible(
+      recognitionSection,
+      320,
+      scrollable: _settingsScrollable(),
+    );
+    await tester.tap(recognitionSection);
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.byKey(const Key('settings-offline-language-packs')),
@@ -326,11 +382,23 @@ void main() {
         ),
       );
       await tester.scrollUntilVisible(
+        find.byKey(const Key('settings-audio-h20-section')),
+        400,
+      );
+      await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('settings-recognition-section')),
+        400,
+      );
+      await tester.tap(find.byKey(const Key('settings-recognition-section')));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
         find.byKey(const Key('android-standard-recognition')),
         500,
       );
 
-      expect(find.text('Nhận dạng'), findsOneWidget);
+      expect(find.text('Nhận dạng giọng nói'), findsOneWidget);
       expect(find.text('Chế độ tiêu chuẩn'), findsOneWidget);
       expect(find.text('Mic điện thoại'), findsOneWidget);
       expect(find.text('Cloudflare Batch Chunks'), findsNothing);
@@ -360,6 +428,14 @@ void main() {
         home: Scaffold(body: SettingsSheet(controller: controller)),
       ),
     );
+
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('settings-audio-h20-section')),
+      360,
+      scrollable: _settingsScrollable(),
+    );
+    await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
+    await tester.pumpAndSettle();
 
     final technicalDetails = find
         .byKey(const Key('aiv0-technical-details'))

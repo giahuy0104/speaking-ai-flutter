@@ -95,6 +95,54 @@ void main() {
     expect(find.byKey(const Key('listening-vocabulary-tab')), findsOneWidget);
   });
 
+  testWidgets('entering topics restores the current Level intro', (
+    tester,
+  ) async {
+    for (final childAge in <int>[3, 6, 8, 11, 13]) {
+      final progressStore = _MemoryProgressStore()
+        ..checkpoint = const ListeningTopicSelectionCheckpoint(
+          levelNumber: 1,
+          announceLevel: false,
+        );
+      final prompts =
+          <({int levelNumber, List<int> topicNumbers, bool announceLevel})>[];
+
+      await tester.pumpWidget(
+        buildSubject(
+          childAge: childAge,
+          progressStore: progressStore,
+          onLevelTopicSelectionRequested:
+              ({
+                required childAge,
+                required levelNumber,
+                required topicNumbers,
+                required completedTopicNumbers,
+                required announceLevel,
+              }) async {
+                prompts.add((
+                  levelNumber: levelNumber,
+                  topicNumbers: topicNumbers,
+                  announceLevel: announceLevel,
+                ));
+              },
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(prompts, hasLength(1), reason: 'age $childAge');
+      expect(prompts.single.levelNumber, 1, reason: 'age $childAge');
+      expect(prompts.single.topicNumbers, isNotEmpty, reason: 'age $childAge');
+      expect(prompts.single.announceLevel, isTrue, reason: 'age $childAge');
+      expect(
+        progressStore.checkpoint?.announceLevel,
+        isTrue,
+        reason: 'age $childAge',
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    }
+  });
+
   testWidgets('shows bilingual topic and lesson titles', (tester) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));

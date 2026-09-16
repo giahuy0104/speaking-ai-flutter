@@ -15,6 +15,7 @@ import 'package:ai_speaking_flutter_app/features/listening/data/active_listening
 import 'package:ai_speaking_flutter_app/features/listening/data/listening_progress_store.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_listening_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
+import 'package:ai_speaking_flutter_app/features/settings/application/parent_media_settings.dart';
 import 'package:ai_speaking_flutter_app/features/settings/presentation/history_sheet.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_voice_assistant_flow.dart';
@@ -111,7 +112,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(gateRequests, 1);
-    expect(find.text('Cài đặt lượt nói'), findsNothing);
+    expect(find.text('Thiết lập phụ huynh'), findsNothing);
   });
 
   testWidgets('Android opens settings directly when no gate is injected', (
@@ -132,9 +133,9 @@ void main() {
     await tester.tap(find.byIcon(Icons.settings_outlined));
     await tester.pumpAndSettle();
 
-    expect(find.text('Cài đặt lượt nói'), findsOneWidget);
+    expect(find.text('Thiết lập phụ huynh'), findsOneWidget);
     expect(find.text('Không thể xác thực'), findsNothing);
-    Navigator.of(tester.element(find.text('Cài đặt lượt nói'))).pop();
+    Navigator.of(tester.element(find.text('Thiết lập phụ huynh'))).pop();
     await tester.pumpAndSettle();
     debugDefaultTargetPlatformOverride = null;
   });
@@ -218,10 +219,10 @@ void main() {
     await tester.tap(find.byIcon(Icons.settings_outlined));
     await tester.pumpAndSettle();
 
-    expect(find.text('Cài đặt lượt nói'), findsOneWidget);
+    expect(find.text('Thiết lập phụ huynh'), findsOneWidget);
     expect(visibilityChanges, <bool>[true]);
 
-    Navigator.of(tester.element(find.text('Cài đặt lượt nói'))).pop();
+    Navigator.of(tester.element(find.text('Thiết lập phụ huynh'))).pop();
     await tester.pumpAndSettle();
 
     expect(visibilityChanges, <bool>[true, false]);
@@ -270,10 +271,23 @@ void main() {
 
     await tester.tap(find.byTooltip('Cài đặt'));
     await tester.pumpAndSettle();
-    expect(find.text('Cài đặt lượt nói'), findsOneWidget);
+    expect(find.text('Thiết lập phụ huynh'), findsOneWidget);
+    final settingsScroll = find
+        .descendant(
+          of: find.byKey(const Key('settings-scroll-view')),
+          matching: find.byType(Scrollable),
+        )
+        .first;
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('settings-recognition-section')),
+      360,
+      scrollable: settingsScroll,
+    );
+    await tester.tap(find.byKey(const Key('settings-recognition-section')));
+    await tester.pumpAndSettle();
     expect(find.byKey(const Key('ios-native-recognition')), findsOneWidget);
     expect(find.byKey(const Key('android-standard-recognition')), findsNothing);
-    Navigator.of(tester.element(find.text('Cài đặt lượt nói'))).pop();
+    Navigator.of(tester.element(find.text('Thiết lập phụ huynh'))).pop();
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
@@ -465,7 +479,7 @@ void main() {
   );
 
   testWidgets(
-    'keeps an explicit Android MAIN command mic alive in background',
+    'keeps an explicit Android MAIN mic when the parent setting is disabled',
     (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
@@ -490,6 +504,7 @@ void main() {
           controller,
           voiceNavigationController: voiceNavigationController,
           backgroundLearningSession: backgroundSession,
+          parentMediaSettingsStore: _FakeParentMediaSettingsStore(false),
         ),
       );
       await tester.pump();
@@ -983,6 +998,8 @@ Widget _app(
   Future<bool> Function(BuildContext)? parentAccessGate,
   bool useDefaultParentAccessGate = false,
   BackgroundLearningSessionControl? backgroundLearningSession,
+  ParentMediaSettingsStore parentMediaSettingsStore =
+      const _FakeParentMediaSettingsStore(true),
 }) {
   final home = HomeLearningShell(
     controller: controller,
@@ -1003,6 +1020,7 @@ Widget _app(
         ? null
         : parentAccessGate ?? (_) async => true,
     backgroundLearningSession: backgroundLearningSession,
+    parentMediaSettingsStore: parentMediaSettingsStore,
     config: AppConfig(
       backendBaseUri: Uri.parse('https://example.com'),
       useDemoBackend: true,
@@ -1015,6 +1033,18 @@ Widget _app(
     theme: buildAppTheme(),
     home: home,
   );
+}
+
+class _FakeParentMediaSettingsStore implements ParentMediaSettingsStore {
+  const _FakeParentMediaSettingsStore(this.enabled);
+
+  final bool enabled;
+
+  @override
+  Future<bool> readStopMediaWhenBackgrounded() async => enabled;
+
+  @override
+  Future<void> writeStopMediaWhenBackgrounded(bool enabled) async {}
 }
 
 class _HomeListeningProgressStore extends ListeningProgressStore {

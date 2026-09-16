@@ -68,6 +68,7 @@ class HfpAudioBridge(
     private var statusMessage: String? = null
     private var routeActive = false
     private var previousAudioMode = AudioManager.MODE_NORMAL
+    private var audioModeOwned = false
     private var disposed = false
 
     private val audioRouteTimeout =
@@ -358,7 +359,15 @@ class HfpAudioBridge(
             return
         }
 
-        previousAudioMode = audioManager.mode
+        // Keep the mode that existed before this bridge first took ownership.
+        // SCO can disconnect independently and flip routeActive to false while
+        // MODE_IN_COMMUNICATION remains set. Overwriting previousAudioMode on
+        // the next retry would then make the communication stream permanent,
+        // which produces inconsistent volume on later H20 playback.
+        if (!audioModeOwned) {
+            previousAudioMode = audioManager.mode
+            audioModeOwned = true
+        }
         audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val selectedAddress = safeAddress(device)
@@ -373,6 +382,7 @@ class HfpAudioBridge(
                     audioManager.setCommunicationDevice(communicationDevice)
                 if (!routed) {
                     audioManager.mode = previousAudioMode
+                    audioModeOwned = false
                     fail(
                         result,
                         "HFP_ROUTE_FAILED",
@@ -433,8 +443,9 @@ class HfpAudioBridge(
             @Suppress("DEPRECATION")
             run { audioManager.isBluetoothScoOn = false }
         }
-        if (routeActive) {
+        if (audioModeOwned) {
             audioManager.mode = previousAudioMode
+            audioModeOwned = false
         }
         routeActive = false
         if (selectedDevice != null && isHeadsetConnected(selectedDevice!!)) {
