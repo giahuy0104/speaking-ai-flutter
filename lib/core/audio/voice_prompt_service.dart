@@ -5,6 +5,7 @@ import 'voice_prompt_service_base.dart';
 import 'voice_prompt_service_native.dart'
     if (dart.library.js_interop) 'voice_prompt_service_web.dart'
     as platform;
+import 'package:http/http.dart' as http;
 
 export 'voice_prompt_service_base.dart';
 export 'audio_turn_coordinator.dart' show AudioTurnCoordinator, AudioTurnOwner;
@@ -12,10 +13,12 @@ export 'audio_turn_coordinator.dart' show AudioTurnCoordinator, AudioTurnOwner;
 VoicePromptService createVoicePromptService({
   AudioTurnCoordinator? coordinator,
   AudioTurnOwner owner = AudioTurnOwner.legacy,
+  http.Client? httpClient,
 }) {
   final platformService = platform.createPlatformVoicePromptService();
   final service = MainAssistantAudioPromptService(
     delegate: platformService,
+    httpClient: httpClient,
     additionalManifestAssets:
         const bool.fromEnvironment(
           'HOMI_CURRICULUM_AUTHORED_AUDIO',

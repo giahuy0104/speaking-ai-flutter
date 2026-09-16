@@ -500,7 +500,8 @@ Uri? _readUri(Object? value) {
   if (value is! String || value.trim().isEmpty) {
     return null;
   }
-  if (value.startsWith('asset:///assets/audio/CURRICULUM/') &&
+  if ((value.startsWith('asset:///assets/audio/CURRICULUM/') ||
+          value.contains('/homi/audio/CURRICULUM/')) &&
       !const bool.fromEnvironment(
         'HOMI_CURRICULUM_AUTHORED_AUDIO',
         defaultValue: true,

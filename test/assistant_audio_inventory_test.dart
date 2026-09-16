@@ -7,7 +7,6 @@ import 'package:ai_speaking_flutter_app/features/voice_navigation/application/ma
 import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/homi_fallback_catalog.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_flow_v3.dart';
 import 'package:crypto/crypto.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -81,25 +80,19 @@ void main() {
     }
   });
   test(
-    'every generated entry is enabled, bundled and matches its Eleven v3 receipt',
+    'every generated entry is enabled, uploaded and matches its Eleven v3 receipt',
     () async {
       expect(manifest['enabled'], true);
       for (final entry in entries) {
         expect(entry['enabled'], true, reason: entry['id'] as String);
         expect(entry['text'], isNot(matches(RegExp(r'[$\[\]{}]'))));
         final bytes = await File(entry['asset'] as String).readAsBytes();
-        final bundled = await rootBundle.load(entry['asset'] as String);
         expect(sha256.convert(bytes).toString(), entry['sha256']);
         expect(
-          sha256
-              .convert(
-                bundled.buffer.asUint8List(
-                  bundled.offsetInBytes,
-                  bundled.lengthInBytes,
-                ),
-              )
-              .toString(),
-          entry['sha256'],
+          Uri.parse(entry['url'] as String),
+          isA<Uri>()
+              .having((uri) => uri.scheme, 'scheme', 'https')
+              .having((uri) => uri.host, 'host', 'res.cloudinary.com'),
         );
         final receipt =
             jsonDecode(await File('${entry['asset']}.json').readAsString())

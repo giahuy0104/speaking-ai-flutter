@@ -12,6 +12,8 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/local_cloudinary_audio_client.dart';
+
 const _text = MainVoiceAssistantFlow.openingPrompt;
 const _asset = 'assets/audio/MAIN/AI-001.vi.v1.mp3';
 
@@ -148,8 +150,12 @@ void main() {
       );
       final bytes = await File(entry['asset'] as String).readAsBytes();
       expect(sha256.convert(bytes).toString(), entry['sha256']);
-      final bundleBytes = await rootBundle.load(entry['asset'] as String);
-      expect(bundleBytes.lengthInBytes, bytes.length);
+      expect(
+        Uri.parse(entry['url'] as String),
+        isA<Uri>()
+            .having((uri) => uri.scheme, 'scheme', 'https')
+            .having((uri) => uri.host, 'host', 'res.cloudinary.com'),
+      );
       final receipt =
           jsonDecode(await File('${entry['asset']}.json').readAsString())
               as Map;
@@ -387,7 +393,10 @@ void main() {
         AudioTurnOwner.continuousTranslation,
         AudioTurnOwner.listeningLesson,
       ]) {
-        final service = createVoicePromptService(owner: owner);
+        final service = createVoicePromptService(
+          owner: owner,
+          httpClient: createLocalCloudinaryAudioClient(),
+        );
         await service.speakAndWait(_text);
         await service.speakAndWait('Unlisted dynamic content', locale: 'en-US');
       }

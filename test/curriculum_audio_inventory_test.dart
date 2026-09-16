@@ -7,6 +7,8 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/local_cloudinary_audio_client.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late List<Map<String, dynamic>> prompts;
@@ -69,11 +71,11 @@ void main() {
             for (final sentence in lesson.sentences) {
               expect(
                 sentence.audioUri.toString(),
-                'asset:///${find(sentence.english, 'en-US')['asset']}',
+                find(sentence.english, 'en-US')['url'],
               );
               expect(
                 sentence.vietnameseAudioUri.toString(),
-                'asset:///${find(sentence.vietnamese, 'vi-VN')['asset']}',
+                find(sentence.vietnamese, 'vi-VN')['url'],
               );
               samples += 2;
             }
@@ -132,21 +134,15 @@ void main() {
     }
   });
   test(
-    'all shipped curriculum files match their SHA-256 and receipts',
+    'all uploaded curriculum files match their SHA-256 and receipts',
     () async {
       for (final prompt in prompts.where(
         (p) => (p['asset'] as String).contains('/CURRICULUM/'),
       )) {
-        final bytes = await rootBundle.load(prompt['asset'] as String);
-        final digest = sha256
-            .convert(
-              bytes.buffer.asUint8List(
-                bytes.offsetInBytes,
-                bytes.lengthInBytes,
-              ),
-            )
-            .toString();
+        final bytes = await File(prompt['asset'] as String).readAsBytes();
+        final digest = sha256.convert(bytes).toString();
         expect(digest, prompt['sha256'], reason: prompt['id'] as String);
+        expect(Uri.parse(prompt['url'] as String).host, 'res.cloudinary.com');
         expect(prompt['durationSeconds'], inExclusiveRange(0, 45));
         final receipt =
             jsonDecode(
@@ -170,7 +166,7 @@ void main() {
     timeout: const Timeout(Duration(minutes: 3)),
   );
   test(
-    'factory routes a lesson challenge to local authored playback',
+    'factory routes a lesson challenge to Cloudinary authored playback',
     () async {
       const channel = MethodChannel('ailingo_voice_prompt');
       final calls = <MethodCall>[];
@@ -185,6 +181,7 @@ void main() {
       );
       final service = createVoicePromptService(
         owner: AudioTurnOwner.listeningLesson,
+        httpClient: createLocalCloudinaryAudioClient(),
       );
       await service.speakAndWait('Quả táo: Apple hay Ball?');
       expect(calls.single.method, 'playAuthoredAudioAndWait');

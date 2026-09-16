@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 
 import 'voice_prompt_service_base.dart';
 
@@ -23,9 +24,13 @@ class MainAssistantAudioPromptService
     AssetBundle? bundle,
     this.enabled = true,
     this.assetLoadTimeout = const Duration(milliseconds: 500),
+    this.remoteAudioLoadTimeout = const Duration(seconds: 8),
     this.additionalManifestAssets = const [],
+    http.Client? httpClient,
   }) : _delegate = delegate,
-       _bundle = bundle ?? rootBundle;
+       _bundle = bundle ?? rootBundle,
+       _httpClient = httpClient ?? http.Client(),
+       _ownsHttpClient = httpClient == null;
 
   static const manifestAsset = 'assets/data/main_assistant_audio.json';
   static const maximumAudioSeconds = 45.0;
@@ -34,7 +39,10 @@ class MainAssistantAudioPromptService
   final AssetBundle _bundle;
   final bool enabled;
   final Duration assetLoadTimeout;
+  final Duration remoteAudioLoadTimeout;
   final List<String> additionalManifestAssets;
+  final http.Client _httpClient;
+  final bool _ownsHttpClient;
   Future<Map<String, dynamic>>? _manifest;
   final Set<void Function()> _pendingWaits = {};
   int _generation = 0;
@@ -173,12 +181,8 @@ class MainAssistantAudioPromptService
                 seconds > maximumAudioSeconds) {
               throw const FormatException('Invalid MAIN audio entry.');
             }
-            final data = await _bounded(_bundle.load(asset), assetLoadTimeout);
+            final bytes = await _loadAudioBytes(entry, asset);
             if (!_isCurrent(generation)) return;
-            final bytes = data.buffer.asUint8List(
-              data.offsetInBytes,
-              data.lengthInBytes,
-            );
             if (bytes.isEmpty ||
                 bytes.length > 2 * 1024 * 1024 ||
                 sha256.convert(bytes).toString() != entry['sha256']) {
@@ -205,6 +209,33 @@ class MainAssistantAudioPromptService
       }
     }
     if (_isCurrent(generation)) await fallback();
+  }
+
+  Future<Uint8List> _loadAudioBytes(
+    Map<String, dynamic> entry,
+    String asset,
+  ) async {
+    final remoteValue = entry['url'];
+    final remoteUri = remoteValue is String ? Uri.tryParse(remoteValue) : null;
+    if (remoteUri != null &&
+        remoteUri.isScheme('https') &&
+        remoteUri.host == 'res.cloudinary.com') {
+      final response = await _bounded(
+        _httpClient.get(remoteUri),
+        remoteAudioLoadTimeout,
+      );
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw StateError(
+          'Cloudinary audio request failed (${response.statusCode}).',
+        );
+      }
+      return response.bodyBytes;
+    }
+
+    // Retained for injected test bundles and for manifests created before the
+    // Cloudinary migration. Production manifests include a Cloudinary URL.
+    final data = await _bounded(_bundle.load(asset), assetLoadTimeout);
+    return data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
   }
 
   @override
@@ -305,6 +336,7 @@ class MainAssistantAudioPromptService
     if (_disposed) return;
     _disposed = true;
     await stop();
+    if (_ownsHttpClient) _httpClient.close();
     await _delegate.dispose();
   }
 }

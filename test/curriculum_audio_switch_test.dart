@@ -3,6 +3,8 @@ import 'package:ai_speaking_flutter_app/features/listening/domain/listening_cont
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/local_cloudinary_audio_client.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   const enabled = bool.fromEnvironment(
@@ -17,7 +19,7 @@ void main() {
     if (enabled) {
       expect(
         sentence.audioUri.toString(),
-        startsWith('asset:///assets/audio/'),
+        startsWith('https://res.cloudinary.com/'),
       );
     } else {
       expect(sentence.audioUri, isNull);
@@ -37,6 +39,7 @@ void main() {
     );
     final service = createVoicePromptService(
       owner: AudioTurnOwner.listeningLesson,
+      httpClient: createLocalCloudinaryAudioClient(),
     );
     await service.speakAndWait('Quả táo: Apple hay Ball?');
     expect(

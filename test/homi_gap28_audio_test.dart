@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:ai_speaking_flutter_app/core/audio/main_assistant_audio_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service_base.dart';
 import 'package:crypto/crypto.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'support/local_cloudinary_audio_client.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -28,45 +30,38 @@ void main() {
     ].cast<Map<String, dynamic>>();
   });
 
-  test(
-    'all 28 reviewed gaps have unique enabled bundled Eleven v3 audio',
-    () async {
-      expect(gaps, hasLength(28));
-      expect(gaps.map((p) => p['text']).toSet(), hasLength(28));
-      expect(gaps.every((p) => p['locale'] == 'vi-VN'), true);
-      for (final gap in gaps) {
-        final matches = all.where(
-          (p) => p['text'] == gap['text'] && p['locale'] == gap['locale'],
-        );
-        expect(matches, hasLength(1), reason: gap['text'] as String);
-        final prompt = matches.single;
-        expect(prompt['enabled'], true);
-        expect(prompt['asset'], gap['asset']);
-        final asset = prompt['asset'] as String;
-        final receipt =
-            jsonDecode(File('$asset.json').readAsStringSync()) as Map;
-        final bundled = await rootBundle.load(asset);
-        final bytes = bundled.buffer.asUint8List(
-          bundled.offsetInBytes,
-          bundled.lengthInBytes,
-        );
-        expect(sha256.convert(bytes).toString(), prompt['sha256']);
-        expect(receipt['finalSha256'], prompt['sha256']);
-        expect(receipt['voiceId'], '5CVDNcIPiOYgRUQuxXd7');
-        expect(receipt['request']['model_id'], 'eleven_v3');
-        expect(receipt['request']['text'], gap['text']);
-        expect(receipt['request']['language_code'], 'vi');
-        expect(receipt['request']['voice_settings']['speed'], 1.0);
-        expect(receipt['speed'], 0.9);
-        expect(receipt['speedMethod'], 'ffmpeg-atempo');
-        expect(
-          receipt['durationSeconds'],
-          closeTo((receipt['sourceDurationSeconds'] as num) / 0.9, 0.25),
-        );
-        expect(bytes.length, lessThanOrEqualTo(2 * 1024 * 1024));
-      }
-    },
-  );
+  test('all 28 reviewed gaps have unique enabled Cloudinary audio', () async {
+    expect(gaps, hasLength(28));
+    expect(gaps.map((p) => p['text']).toSet(), hasLength(28));
+    expect(gaps.every((p) => p['locale'] == 'vi-VN'), true);
+    for (final gap in gaps) {
+      final matches = all.where(
+        (p) => p['text'] == gap['text'] && p['locale'] == gap['locale'],
+      );
+      expect(matches, hasLength(1), reason: gap['text'] as String);
+      final prompt = matches.single;
+      expect(prompt['enabled'], true);
+      expect(prompt['asset'], gap['asset']);
+      final asset = prompt['asset'] as String;
+      final receipt = jsonDecode(File('$asset.json').readAsStringSync()) as Map;
+      final bytes = await File(asset).readAsBytes();
+      expect(sha256.convert(bytes).toString(), prompt['sha256']);
+      expect(Uri.parse(prompt['url'] as String).host, 'res.cloudinary.com');
+      expect(receipt['finalSha256'], prompt['sha256']);
+      expect(receipt['voiceId'], '5CVDNcIPiOYgRUQuxXd7');
+      expect(receipt['request']['model_id'], 'eleven_v3');
+      expect(receipt['request']['text'], gap['text']);
+      expect(receipt['request']['language_code'], 'vi');
+      expect(receipt['request']['voice_settings']['speed'], 1.0);
+      expect(receipt['speed'], 0.9);
+      expect(receipt['speedMethod'], 'ffmpeg-atempo');
+      expect(
+        receipt['durationSeconds'],
+        closeTo((receipt['sourceDurationSeconds'] as num) / 0.9, 0.25),
+      );
+      expect(bytes.length, lessThanOrEqualTo(2 * 1024 * 1024));
+    }
+  });
 
   test(
     'real text lookup plays each gap as an asset on all output routes, without TTS',
@@ -75,6 +70,7 @@ void main() {
       final service = MainAssistantAudioPromptService(
         delegate: delegate,
         additionalManifestAssets: const ['assets/data/curriculum_audio.json'],
+        httpClient: createLocalCloudinaryAudioClient(),
       );
       addTearDown(service.dispose);
       for (final gap in gaps) {
