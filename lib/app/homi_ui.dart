@@ -330,11 +330,17 @@ class _HomiWaveformState extends State<HomiWaveform>
               final phase = _motionController.value * math.pi * 2;
               return Row(
                 children: List<Widget>.generate(_waveBarRatios.length, (index) {
-                  final distance = (index - (_waveBarRatios.length ~/ 2)).abs();
-                  final isPink = distance <= 2 || index % 6 == 1;
+                  final centerIndex = _waveBarRatios.length ~/ 2;
+                  final distance = (index - centerIndex).abs();
+                  final isNavy = distance <= 2;
+                  final isPink = index == 4 || index == 16;
                   final barColor =
                       tint ??
-                      (isPink
+                      (isNavy
+                          ? (isDark
+                                ? Theme.of(context).colorScheme.primary
+                                : AppColors.primaryNavy)
+                          : isPink
                           ? (isDark
                                 ? Theme.of(context).colorScheme.secondary
                                 : AppColors.accentPink)
@@ -361,9 +367,7 @@ class _HomiWaveformState extends State<HomiWaveform>
                   return Expanded(
                     child: Align(
                       child: FractionallySizedBox(
-                        widthFactor: index == _waveBarRatios.length ~/ 2
-                            ? 0.82
-                            : 0.58,
+                        widthFactor: index == centerIndex ? 0.82 : 0.58,
                         child: Container(
                           key: ValueKey<String>('homi-wave-bar-$index'),
                           height: widget.height * resolvedRatio,

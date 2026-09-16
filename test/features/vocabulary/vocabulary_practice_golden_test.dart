@@ -181,15 +181,15 @@ Future<void> _pumpJourney(
     expect(find.byKey(const Key('vocabulary-today-view')), findsNothing);
     expect(find.byKey(const Key('vocabulary-waiting-queue')), findsOneWidget);
     expect(
-      tester
-          .getTopLeft(
-            find.byKey(
-              const ValueKey<String>('vocabulary-family-saved-content'),
-            ),
-          )
-          .dy,
+      tester.getTopLeft(find.byKey(const Key('vocabulary-waiting-queue'))).dy,
       lessThan(
-        tester.getTopLeft(find.byKey(const Key('vocabulary-waiting-queue'))).dy,
+        tester
+            .getTopLeft(
+              find.byKey(
+                const ValueKey<String>('vocabulary-family-saved-content'),
+              ),
+            )
+            .dy,
       ),
     );
   }

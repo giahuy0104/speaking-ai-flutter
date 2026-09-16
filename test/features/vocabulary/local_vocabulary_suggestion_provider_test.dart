@@ -17,6 +17,7 @@ void main() {
     expect(suggestions.map((item) => item.englishText), <String>[
       'I am mad.',
       'I feel very mad.',
+      'I know the word “mad”.',
     ]);
     expect(suggestions.first.vietnameseText, 'Con tức giận.');
   });
@@ -33,11 +34,12 @@ void main() {
     expect(suggestions.map((item) => item.englishText), <String>[
       'I can say: “I missed the bus”.',
       'Let’s say: “I missed the bus”.',
+      'Practice: “I missed the bus”.',
     ]);
     expect(suggestions.first.vietnameseText, contains('Con bị lỡ xe buýt'));
   });
 
-  test('creates two deterministic alternatives for a phrase', () {
+  test('creates three deterministic alternatives for a phrase', () {
     final suggestions = provider.suggest(
       base: const VocabularyTranslation(
         englishText: 'at school',
@@ -45,7 +47,7 @@ void main() {
       ),
     );
 
-    expect(suggestions, hasLength(2));
+    expect(suggestions, hasLength(3));
     expect(
       suggestions.every((item) => item.englishText.contains('at school')),
       isTrue,

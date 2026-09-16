@@ -105,6 +105,15 @@ void main() {
     expect(find.byKey(const Key('vocabulary-family-card')), findsOneWidget);
     expect(find.byKey(const Key('vocabulary-stars-card')), findsOneWidget);
     expect(find.byKey(const Key('vocabulary-review-card')), findsOneWidget);
+    final familyCard = find.byKey(const Key('vocabulary-family-card'));
+    final starsCard = find.byKey(const Key('vocabulary-stars-card'));
+    final reviewCard = find.byKey(const Key('vocabulary-review-card'));
+    final firstGap =
+        tester.getTopLeft(starsCard).dy - tester.getBottomLeft(familyCard).dy;
+    final secondGap =
+        tester.getTopLeft(reviewCard).dy - tester.getBottomLeft(starsCard).dy;
+    expect(firstGap, greaterThanOrEqualTo(24));
+    expect(secondGap, closeTo(firstGap, 0.01));
 
     await tester.tap(find.byKey(const Key('vocabulary-family-card')));
     await tester.pumpAndSettle();
@@ -124,7 +133,7 @@ void main() {
   });
 
   testWidgets(
-    'keeps search and add out of Stars and Review on a narrow screen',
+    'shows search in Stars and Review without exposing add controls',
     (tester) async {
       tester.view.physicalSize = const Size(360, 720);
       tester.view.devicePixelRatio = 1;
@@ -179,12 +188,21 @@ void main() {
       expect(find.text('Ngôi sao của con'), findsOneWidget);
       expect(find.byKey(const Key('search-vocabulary-button')), findsNothing);
       expect(find.byKey(const Key('add-vocabulary-button')), findsNothing);
-      expect(find.byKey(const Key('vocabulary-search-field')), findsNothing);
+      expect(find.byKey(const Key('vocabulary-search-field')), findsOneWidget);
       expect(find.byKey(const Key('toggle-delete-vocabulary')), findsNothing);
       expect(
         find.byKey(const ValueKey<String>('vocabulary-stars-homi')),
         findsOneWidget,
       );
+      expect(
+        find.byKey(const Key('vocabulary-entry-card-star-card')),
+        findsOneWidget,
+      );
+      await tester.enterText(
+        find.byKey(const Key('vocabulary-search-field')),
+        'toán',
+      );
+      await tester.pump();
       expect(
         find.byKey(const Key('vocabulary-entry-card-star-card')),
         findsOneWidget,
@@ -205,12 +223,21 @@ void main() {
       expect(find.text('Luyện lại'), findsOneWidget);
       expect(find.byKey(const Key('search-vocabulary-button')), findsNothing);
       expect(find.byKey(const Key('add-vocabulary-button')), findsNothing);
-      expect(find.byKey(const Key('vocabulary-search-field')), findsNothing);
+      expect(find.byKey(const Key('vocabulary-search-field')), findsOneWidget);
       expect(find.byKey(const Key('toggle-delete-vocabulary')), findsNothing);
       expect(
         find.byKey(const ValueKey<String>('vocabulary-review-homi')),
         findsOneWidget,
       );
+      expect(
+        find.byKey(const Key('vocabulary-entry-card-review-card')),
+        findsOneWidget,
+      );
+      await tester.enterText(
+        find.byKey(const Key('vocabulary-search-field')),
+        'buổi tối',
+      );
+      await tester.pump();
       expect(
         find.byKey(const Key('vocabulary-entry-card-review-card')),
         findsOneWidget,
@@ -221,10 +248,12 @@ void main() {
       await tester.tap(find.byKey(const Key('vocabulary-family-card')));
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('search-vocabulary-button')), findsOneWidget);
+      expect(find.byKey(const Key('search-vocabulary-button')), findsNothing);
       expect(find.byKey(const Key('add-vocabulary-button')), findsOneWidget);
       expect(find.byKey(const Key('vocabulary-search-field')), findsOneWidget);
-      expect(find.byKey(const Key('toggle-delete-vocabulary')), findsOneWidget);
+      expect(find.byKey(const Key('toggle-delete-vocabulary')), findsNothing);
+      expect(find.byKey(const Key('add-vocabulary-action')), findsNothing);
+      expect(find.text('Danh sách chờ (0)'), findsOneWidget);
       expect(
         find.byKey(const ValueKey<String>('vocabulary-family-homi')),
         findsOneWidget,
@@ -379,13 +408,14 @@ void main() {
 
     expect(find.byKey(const Key('add-vocabulary-from-search')), findsNothing);
     expect(find.byKey(const Key('clear-vocabulary-search')), findsOneWidget);
-    expect(find.byKey(const Key('add-vocabulary-action')), findsOneWidget);
+    expect(find.byKey(const Key('add-vocabulary-action')), findsNothing);
+    expect(find.byKey(const Key('add-vocabulary-button')), findsOneWidget);
 
     await tester.testTextInput.receiveAction(TextInputAction.search);
     await tester.pump();
     expect(find.byKey(const Key('add-vocabulary-field')), findsNothing);
 
-    await tester.tap(find.byKey(const Key('add-vocabulary-action')));
+    await tester.tap(find.byKey(const Key('add-vocabulary-button')));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('add-vocabulary-field')),
@@ -403,6 +433,22 @@ void main() {
     expect(
       find.byKey(const Key('vocabulary-minhqnd-attribution')),
       findsOneWidget,
+    );
+    final editFirstSuggestion = find.byKey(
+      const Key('edit-vocabulary-suggestion-0'),
+    );
+    expect(editFirstSuggestion, findsOneWidget);
+    await tester.ensureVisible(editFirstSuggestion);
+    await tester.tap(editFirstSuggestion);
+    await tester.pump();
+    expect(
+      tester
+          .widget<TextField>(
+            find.byKey(const Key('vocabulary-suggestion-english-0')),
+          )
+          .focusNode
+          ?.hasFocus,
+      isTrue,
     );
     await tester.enterText(
       find.byKey(const Key('vocabulary-suggestion-english-0')),
@@ -480,6 +526,16 @@ void main() {
     expect(
       find.byKey(const Key('confirm-vocabulary-suggestions')),
       findsOneWidget,
+    );
+    for (var index = 0; index < 3; index++) {
+      expect(
+        find.byKey(ValueKey<String>('vocabulary-suggestion-$index')),
+        findsOneWidget,
+      );
+    }
+    expect(
+      find.byKey(const ValueKey<String>('vocabulary-suggestion-3')),
+      findsNothing,
     );
     expect(find.text('Tức giận'), findsOneWidget);
     expect(find.text('Điên rồ'), findsOneWidget);
@@ -687,6 +743,10 @@ void main() {
     );
     expect(find.text('Sửa nội dung'), findsOneWidget);
     expect(
+      find.text('Có thể nhập bằng tiếng Anh hoặc tiếng Việt.'),
+      findsOneWidget,
+    );
+    expect(
       tester.widget<TextField>(englishField).controller?.text,
       'What happened?',
     );
@@ -825,11 +885,16 @@ void main() {
 
       expect(find.byKey(const Key('vocabulary-today-view')), findsNothing);
       expect(find.byKey(const Key('vocabulary-waiting-queue')), findsOneWidget);
+      expect(find.text('Danh sách chờ (1)'), findsOneWidget);
       expect(
-        tester.getTopLeft(find.byKey(const Key('vocabulary-family-action'))).dy,
+        tester.getTopLeft(find.byKey(const Key('vocabulary-waiting-queue'))).dy,
         lessThan(
           tester
-              .getTopLeft(find.byKey(const Key('vocabulary-waiting-queue')))
+              .getTopLeft(
+                find.byKey(
+                  const ValueKey<String>('vocabulary-family-saved-content'),
+                ),
+              )
               .dy,
         ),
       );

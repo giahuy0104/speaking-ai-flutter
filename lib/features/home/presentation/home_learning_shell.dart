@@ -261,8 +261,12 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     return AnimatedBuilder(
       animation: widget.controller,
       builder: (context, _) {
-        final compact = MediaQuery.sizeOf(context).height < 900;
+        final screenSize = MediaQuery.sizeOf(context);
+        final compact = screenSize.height < 900;
         final safeTop = MediaQuery.paddingOf(context).top;
+        final railTop = (screenSize.height * (compact ? 0.32 : 0.30))
+            .clamp(safeTop + 176, screenSize.height - 220)
+            .toDouble();
         return DisplayLanguageScope(
           language: widget.controller.displayLanguage,
           child: PopScope<void>(
@@ -320,7 +324,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                 ),
                 if (_page == 0) ...<Widget>[
                   PositionedDirectional(
-                    top: safeTop + (compact ? 156 : 190),
+                    top: railTop,
                     start: 0,
                     child: KeyedSubtree(
                       key: _vocabularyTabKey,
@@ -329,13 +333,13 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                         edge: HomeRailEdge.left,
                         label: context.tr('Từ vựng', '词汇'),
                         icon: Icons.menu_book_rounded,
-                        color: AppColors.indigo,
+                        color: AppColors.primaryNavy,
                         onPressed: _showVocabulary,
                       ),
                     ),
                   ),
                   PositionedDirectional(
-                    top: safeTop + (compact ? 188 : 222),
+                    top: railTop,
                     end: 0,
                     child: KeyedSubtree(
                       key: _topicTabKey,
@@ -343,8 +347,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                         key: const Key('topic-listening-edge-tab'),
                         edge: HomeRailEdge.right,
                         label: context.tr('Chủ đề', '主题'),
-                        icon: Icons.headphones_rounded,
-                        color: const Color(0xFF7443D8),
+                        icon: Icons.grid_view_rounded,
+                        color: AppColors.primaryNavy,
                         onPressed: _openTopicListening,
                       ),
                     ),

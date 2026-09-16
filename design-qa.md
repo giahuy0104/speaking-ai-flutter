@@ -123,6 +123,87 @@ No actionable P0, P1 or P2 findings remain. Minor platform-specific text rasteri
 
 final result: passed
 
+## Listening catalog — bilingual topic and lesson titles
+
+### Visual truth and captures
+
+- Approved HOMI visual direction: `C:\Users\Windows\AppData\Local\Temp\codex-clipboard-f38c4cf6-a4f4-49f7-a230-89df8568126a.png`.
+- Rendered topic journey: `D:\Documents\ai-speaking-flutter-app\test\goldens\topic-listening-426x923.png`.
+- Rendered lesson journey: `D:\Documents\ai-speaking-flutter-app\test\features\listening\goldens\topic-lesson-journey-390x844.png`.
+- Rendered lesson introduction: `D:\Documents\ai-speaking-flutter-app\test\features\listening\goldens\lesson-intro-390x844.png`.
+- Review state: Vietnamese, light theme, age 6–7 for the topic journey and age 3–5 for the lesson journey and introduction.
+
+### QA result
+
+- All 50 topics across the five age bands retain Vietnamese as the primary title and now show the authored English title as a smaller navy secondary line.
+- All 109 lessons now have distinct Vietnamese and English titles. The lesson list and lesson introduction render Vietnamese first and English second without adding a new card or changing navigation behavior.
+- Topic rows were increased only enough to accommodate the new subtitle while preserving the alternating journey path, image size, 48px action target and progress metadata.
+- The 390 × 844 and 426 × 923 captures show no truncation, overlap or RenderFlex overflow. Compact 320 × 568 at 130% text and the topic screen at 200% text also pass.
+- English display titles are not sent to the assistant voice prompt. Entry, resume, relearn and completion guidance now interpolate the Vietnamese lesson title; English learning sentences and song content remain unchanged.
+
+### Verification
+
+- Catalog contract: 5 age groups, 50 topics and 109 lessons; every released topic and lesson has non-empty, distinct Vietnamese and English titles.
+- Widget coverage verifies both language lines on the topic journey, topic header, lesson row and lesson introduction.
+- Listening catalog, topic navigation, lesson guide, lesson overview and the complete lesson golden suite pass.
+- Scoped `flutter analyze` reports no issues.
+
+No actionable P0, P1 or P2 findings remain.
+
+final result: passed
+
+## Home communication — aligned mint rails and navy-centered waveform
+
+### Visual truth and captures
+
+- Source visual truth: `D:\CodexData\.codex\generated_images\01a0a88a-39c2-7520-8a0a-f82730210e8d\exec-226e264a-c910-4101-8fbd-78d31011f966.png`.
+- Source pixels: 853 × 1844 px, proportionally normalized to the 390 × 844 Flutter viewport for comparison.
+- Rendered implementation screenshot: `D:\Documents\ai-speaking-flutter-app\design-qa\home-communication-actual-390x844.png`.
+- Same-input comparison: `D:\Documents\ai-speaking-flutter-app\design-qa\home-selected-vs-implementation.png`.
+- Viewport and density: 390 × 844 logical/pixel px at 1×, Vietnamese, light theme, idle communication state.
+
+### Full-view comparison evidence
+
+- Vocabulary and Topic are equal 50 × 176 px vertical rails at the same top coordinate, positioned at 32% of the compact viewport height so neither side is staggered.
+- Both rails use the approved warm-white face, mint outline/layer, navy rear plate, inward pink tab, navy icon and vertical label.
+- The Topic action keeps its original navigation callback while adopting the selected four-tile icon. Vocabulary keeps the book icon and its existing callback.
+- The Home waveform is reduced to 228 × 44 px and uses mint outer bars, two symmetric pink accents and a navy five-bar center.
+- The same palette comes from the shared `HomiWaveform`, so conversation, lesson, history and settings wave instances remain visually consistent without duplicating their behavior.
+- Existing header, mascot, translation copy, result sections and primary microphone action remain unchanged and fully visible.
+
+### Focused-region evidence
+
+The 780 × 844 comparison places the selected mockup and the native Flutter capture side by side at equal viewport dimensions. The rail geometry, vertical alignment, edge crop, icons, labels and waveform palette are all readable at 1×, so separate crops were unnecessary.
+
+### Required fidelity surfaces
+
+- Fonts and typography: existing Roboto hierarchy and Vietnamese copy are unchanged; rail labels use the same bold navy role and remain legible in their vertical orientation.
+- Spacing and layout rhythm: rail top edges and bottom edges match exactly; responsive positioning is clamped against the safe area and lower action region.
+- Colors and visual tokens: navy `#0B2C66`, mint `#16B995`, pink `#D90E5E`, warm-white rail surface, with semantic dark-theme counterparts.
+- Image quality and asset fidelity: existing HOMI avatar, listening mascot, hero cloud and scenic background assets are reused without raster replacement or scaling changes.
+- Copy and content: “Từ vựng”, “Chủ đề”, both translation labels/placeholders and all action copy remain intact.
+
+### Comparison history
+
+| Severity | Earlier finding | Fix | Post-fix evidence |
+| --- | --- | --- | --- |
+| P2 | The two edge controls were staggered by 32 px and used unrelated solid navy/purple treatments. | Rebuilt the shared rail surface and positioned both controls from one responsive `railTop` value. | Final 390 × 844 capture and exact rectangle assertions. |
+| P2 | The shared waveform used only mint and pink, with pink dominating the center. | Added the approved navy center, symmetric pink accents and mint outer rhythm in the shared waveform component. | Home, conversation, lesson and H20 goldens plus component color assertions. |
+| P2 | The original Home wave remained slightly wider than the selected compact treatment. | Reduced compact Home rendering from 238 × 46 to 228 × 44 px while preserving frame-synchronized motion. | Final Home capture and motion test. |
+| P3 | The generated source has slightly different vertical rhythm in the header and result content. | Preserved production spacing so both translation results and the persistent speaking action fit on the target Android viewport. | Accepted responsive/product constraint. |
+
+### Verification
+
+- Scoped `flutter analyze` across all changed source and test files: no issues.
+- 42 selected widget, navigation, motion, light/dark golden, lesson-wave and H20 settings tests passed.
+- Primary interactions retained: open Vocabulary, return Home, open Topic, record/process audio and use the shared waveform states.
+- Full-repository analysis still reports only two pre-existing diagnostics in `output\apk\recheck-vocabulary-choice_test.dart`; changed files are clean.
+- Browser console verification is not applicable to this native Flutter widget implementation.
+
+No actionable P0, P1 or P2 findings remain.
+
+final result: passed
+
 ## Home communication — compact side tabs and waveform
 
 ### Visual truth and captures

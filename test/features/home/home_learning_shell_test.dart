@@ -57,9 +57,10 @@ void main() {
     final topicTabRect = tester.getRect(
       find.byKey(const Key('topic-listening-edge-tab')),
     );
-    expect(vocabularyTabRect.size, const Size(44, 142));
-    expect(topicTabRect.size, const Size(44, 142));
-    expect(topicTabRect.top - vocabularyTabRect.top, 32);
+    expect(vocabularyTabRect.size, const Size(50, 176));
+    expect(topicTabRect.size, const Size(50, 176));
+    expect(topicTabRect.top, vocabularyTabRect.top);
+    expect(vocabularyTabRect.top, closeTo(844 * 0.32, 0.01));
     expect(find.byKey(const Key('conversation-bottom-tab')), findsNothing);
     expect(find.byKey(const Key('main-voice-assistant-button')), findsNothing);
     expect(find.byKey(const Key('history-bottom-tab')), findsNothing);

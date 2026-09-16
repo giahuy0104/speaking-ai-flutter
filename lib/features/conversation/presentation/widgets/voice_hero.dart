@@ -135,8 +135,8 @@ class VoiceHero extends StatelessWidget {
                     phase == ConversationPhase.processing ||
                     isPreparingMicrophone,
                 amplitude: amplitude,
-                width: compact ? 238 : 266,
-                height: compact ? 46 : 52,
+                width: compact ? 228 : 254,
+                height: compact ? 44 : 50,
                 semanticLabel: context.tr('Mức âm thanh', '音量'),
               ),
             ),

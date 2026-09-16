@@ -76,6 +76,18 @@ void main() {
     );
   });
 
+  testWidgets('dark communication matches the approved rail treatment', (
+    tester,
+  ) async {
+    final controller = await _pumpGoldenApp(tester, themeMode: ThemeMode.dark);
+    addTearDown(controller.dispose);
+
+    await expectLater(
+      find.byType(HomeLearningShell),
+      matchesGoldenFile('goldens/dark-home-communication-390x844.png'),
+    );
+  });
+
   testWidgets('dark home keeps the approved option two composition', (
     tester,
   ) async {

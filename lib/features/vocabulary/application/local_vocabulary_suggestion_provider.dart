@@ -29,6 +29,10 @@ class LocalVocabularySuggestionProvider {
             englishText: 'I like the $english color.',
             vietnameseText: 'Con thích màu $vietnamese.',
           ),
+          VocabularyTranslation(
+            englishText: 'My favorite color is $english.',
+            vietnameseText: 'Màu con thích nhất là $vietnamese.',
+          ),
         ];
       }
       return <VocabularyTranslation>[
@@ -39,6 +43,10 @@ class LocalVocabularySuggestionProvider {
         VocabularyTranslation(
           englishText: 'I feel very $english.',
           vietnameseText: 'Con cảm thấy rất $vietnamese.',
+        ),
+        VocabularyTranslation(
+          englishText: 'I know the word “$english”.',
+          vietnameseText: 'Con biết từ “$vietnamese”.',
         ),
       ];
     }
@@ -52,6 +60,10 @@ class LocalVocabularySuggestionProvider {
           englishText: 'I like to $english.',
           vietnameseText: 'Con thích $vietnamese.',
         ),
+        VocabularyTranslation(
+          englishText: 'I know the word “$english”.',
+          vietnameseText: 'Con biết từ “$vietnamese”.',
+        ),
       ];
     }
     if (english != null && _isNoun(normalizedPart)) {
@@ -63,6 +75,10 @@ class LocalVocabularySuggestionProvider {
         VocabularyTranslation(
           englishText: 'I like this $english.',
           vietnameseText: 'Con thích $vietnamese này.',
+        ),
+        VocabularyTranslation(
+          englishText: 'I know the word “$english”.',
+          vietnameseText: 'Con biết từ “$vietnamese”.',
         ),
       ];
     }
@@ -76,6 +92,10 @@ class LocalVocabularySuggestionProvider {
       VocabularyTranslation(
         englishText: 'Let’s say: “$quotedEnglish”.',
         vietnameseText: 'Mình cùng nói: “$quotedVietnamese” nhé.',
+      ),
+      VocabularyTranslation(
+        englishText: 'Practice: “$quotedEnglish”.',
+        vietnameseText: 'Con luyện nói: “$quotedVietnamese”.',
       ),
     ];
   }
