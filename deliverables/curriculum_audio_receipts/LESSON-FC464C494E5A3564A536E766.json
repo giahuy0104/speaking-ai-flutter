@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T02-B01\\C1315-L1-T02-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T02-B01-Q05",
+  "sourceText": "Học thêm từ mới: Learn more words hay Finish homework earlier?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Học thêm từ mới:",
+      "spoken_text": "Học thêm từ mới:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Learn more words",
+      "spoken_text": "Learn more words",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Finish homework earlier?",
+      "spoken_text": "Finish homework earlier?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-FC464C494E5A3564A536E766",
+  "text": "Học thêm từ mới: Learn more words hay Finish homework earlier?",
+  "asset": "assets/audio/CURRICULUM/fc464c494e5a3564a536e766.vi.v1.mp3",
+  "sha256": "34787e66fd12f7143e8e35dc895c67c4145da8f73952d70bca189b52f3030bc7",
+  "durationSeconds": 5.606236
+}

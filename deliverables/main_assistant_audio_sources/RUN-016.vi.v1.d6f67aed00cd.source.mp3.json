@@ -1,0 +1,20 @@
+{
+  "id": "RUN-016",
+  "signature": "d6f67aed00cd5613d926f6ce05b81f861feef007b338af8a238e8c2c7a908a4c",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Phần Ba mẹ đã thêm.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:11:33.353Z",
+  "requestId": "nZDhpEK7T4Lq2DUNqVxu",
+  "characterCost": "10",
+  "sourceSha256": "2cc7481c7ad26346c2b45498e7aa9fd4c355f01e897d16f4211263429731236d"
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T10-B01\\C1315-L3-T10-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T10-B01-Q08",
+  "sourceText": "Bạn muốn nói 'Mình muốn tham gia câu lạc bộ.' Hoàn thành câu: I want to... save money hay join a club?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Mình muốn tham gia câu lạc bộ.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mình muốn tham gia câu lạc bộ.' Hoàn thành câu:",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "I want to... save money",
+      "spoken_text": "I want to... save money",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "join a club?",
+      "spoken_text": "join a club?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-C904BA99088EAD91CB5DB5FE",
+  "text": "Bạn muốn nói 'Mình muốn tham gia câu lạc bộ.' Hoàn thành câu: I want to... save money hay join a club?",
+  "asset": "assets/audio/CURRICULUM/c904ba99088ead91cb5db5fe.vi.v1.mp3",
+  "sha256": "61d3a0e7f5a2454b25c8777fb60c789e81080c86e8096f7fed811ed03a62b8a5",
+  "durationSeconds": 10.191338
+}

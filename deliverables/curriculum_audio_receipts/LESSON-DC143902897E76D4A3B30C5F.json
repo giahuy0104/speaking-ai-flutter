@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T02-B02\\C1112-L1-T02-B02-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T02-B02-Q02",
+  "sourceText": "Mình lập kế hoạch học: I practice English daily hay I make a study plan?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình lập kế hoạch học:",
+      "spoken_text": "Mình lập kế hoạch học:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "I practice English daily",
+      "spoken_text": "I practice English daily",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "I make a study plan?",
+      "spoken_text": "I make a study plan?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-DC143902897E76D4A3B30C5F",
+  "text": "Mình lập kế hoạch học: I practice English daily hay I make a study plan?",
+  "asset": "assets/audio/CURRICULUM/dc143902897e76d4a3b30c5f.vi.v1.mp3",
+  "sha256": "9090df8e3d6e60bb7fe64475439879d365a5b4857f1d55275010f3cbe05c83cc",
+  "durationSeconds": 6.694059
+}

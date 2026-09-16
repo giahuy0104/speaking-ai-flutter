@@ -1,0 +1,27 @@
+{
+  "id": "RUN-021",
+  "signature": "9e2427dd8d0117bc560bc70206583bf743ae18a06a1aa413c1716f8424ee2b09",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Con chưa có từ ngôi sao nào.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:11:40.549Z",
+  "requestId": "Ncw4wFf0jBlA55hv2xGq",
+  "characterCost": "15",
+  "sourceSha256": "8f1bdee7cffed062e92270712850400723b059bb4e067d8a36020f07d7db0e6b",
+  "asset": "assets/audio/MAIN/RUN-021.vi.v1.mp3",
+  "finalSha256": "0f7378d3877d20916357b3fd2ef6c436528fbab50d1d9befb086a51c730784d8",
+  "sourceDurationSeconds": 1.92,
+  "durationSeconds": 2.11542,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 34734
+}

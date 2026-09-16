@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T01-B02\\C810-L1-T01-B02-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T01-B02-Q03",
+  "sourceText": "Ăn trưa vào buổi trưa: Lunch at noon hay Play after school?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Ăn trưa vào buổi trưa:",
+      "spoken_text": "Ăn trưa vào buổi trưa:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Lunch at noon",
+      "spoken_text": "Lunch at noon",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Play after school?",
+      "spoken_text": "Play after school?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-835095BAE723B60808D02863",
+  "text": "Ăn trưa vào buổi trưa: Lunch at noon hay Play after school?",
+  "asset": "assets/audio/CURRICULUM/835095bae723b60808d02863.vi.v1.mp3",
+  "sha256": "76bc96183d9f8f095550251c73d814606bb9ad437922ef10ac59e070844dfeb7",
+  "durationSeconds": 7.225465
+}

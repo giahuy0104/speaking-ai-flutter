@@ -1,0 +1,41 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\04bb649ce740d16a49a1ed2e54b29c53fc052f92f53039e15578a1590f6b7ca8.tempo.mp3",
+      "signature": "04bb649ce740d16a49a1ed2e54b29c53fc052f92f53039e15578a1590f6b7ca8",
+      "request": {
+        "text": "Bạn chọn học Chủ đề số mấy?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "916648f01390cb6aca236db87b68d43f077707a9f0474a0989e6e9f6c6ba2c03",
+      "requestId": "sesJWV0GJ5wmd0kgYVsT",
+      "createdAt": "2026-09-15T23:15:24.267Z"
+    }
+  ],
+  "id": "LESSON-CB8FC595C85B75EC2E4EF41C",
+  "text": "Bạn chọn học Chủ đề số mấy?",
+  "asset": "assets/audio/CURRICULUM/cb8fc595c85b75ec2e4ef41c.vi.v1.mp3",
+  "sha256": "1de0c5225fbf6160e3387d24cc0c74d97b447a2ca4fce95293d63abda2a99837",
+  "durationSeconds": 2.114853,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

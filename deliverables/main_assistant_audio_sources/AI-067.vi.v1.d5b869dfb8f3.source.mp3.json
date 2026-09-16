@@ -1,0 +1,20 @@
+{
+  "id": "AI-067",
+  "signature": "d5b869dfb8f3de541522706fbe6f63c650b0b638b87d1029012a18865d31e7de",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "HOMI chưa có bài tiếp theo.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:10:11.424Z",
+  "requestId": "LJxgyJU5QZInujKzF2wD",
+  "characterCost": "15",
+  "sourceSha256": "36386e439e20c202efbd5eceb168f92612d541a3bdce09500417caf7f25f5fbf"
+}

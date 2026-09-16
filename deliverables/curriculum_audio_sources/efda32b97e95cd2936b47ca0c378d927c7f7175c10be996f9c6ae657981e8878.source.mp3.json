@@ -1,0 +1,20 @@
+{
+  "signature": "efda32b97e95cd2936b47ca0c378d927c7f7175c10be996f9c6ae657981e8878",
+  "request": {
+    "text": "J to R Words",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "7b631d1c37f4743b28bc9d2dc83361ff701eab44053ca83a067cf3a381c24108",
+  "requestId": "kF9DuxIjuK1HWghPN62H",
+  "createdAt": "2026-09-15T23:24:51.354Z"
+}

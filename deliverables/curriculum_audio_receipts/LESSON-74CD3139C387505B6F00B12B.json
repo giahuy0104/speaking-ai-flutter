@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T06-B01\\C1315-L2-T06-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T06-B01-Q03",
+  "sourceText": "Địa chỉ nhà: Home address hay My location?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Địa chỉ nhà:",
+      "spoken_text": "Địa chỉ nhà:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Home address",
+      "spoken_text": "Home address",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "My location?",
+      "spoken_text": "My location?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-74CD3139C387505B6F00B12B",
+  "text": "Địa chỉ nhà: Home address hay My location?",
+  "asset": "assets/audio/CURRICULUM/74cd3139c387505b6f00b12b.vi.v1.mp3",
+  "sha256": "1500662a09e69d048b884fe450e598fcc6aee2ba3fe35ef882c436471b46e24b",
+  "durationSeconds": 4.756984
+}

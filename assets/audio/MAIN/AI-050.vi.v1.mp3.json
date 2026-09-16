@@ -1,0 +1,27 @@
+{
+  "id": "AI-050",
+  "signature": "26a182ceb9c33e4de9310dd4e7d781995e42f59f6b1c90215881fb7cb6b6db4c",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn nói lại lựa chọn đi.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:09:42.789Z",
+  "requestId": "1bGiWS45ruKZ7V5tBspK",
+  "characterCost": "13",
+  "sourceSha256": "9c1acdb9c1b322fc430e095686d090b4044bd42d94647f63279fef7f364e0778",
+  "asset": "assets/audio/MAIN/AI-050.vi.v1.mp3",
+  "finalSha256": "785a21955d379cf32a6c8245bb777331d501e9b303344cc7112bd476f5bf2570",
+  "sourceDurationSeconds": 1.52,
+  "durationSeconds": 1.675601,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 28047
+}

@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T10\\C1112-L3-M12_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-M12",
+  "sourceText": "Bạn cần diễn đạt \"Tiết kiệm nước\". Save water hay Use less paper?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Tiết kiệm nước\".",
+      "text": "Bạn cần diễn đạt \"Tiết kiệm nước\".",
+      "spoken_text": "Bạn cần diễn đạt \"Tiết kiệm nước\".",
+      "input_index": 69
+    },
+    {
+      "language": "en",
+      "source_text": "Save water",
+      "text": "Save water",
+      "spoken_text": "Save water",
+      "input_index": 70
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 71
+    },
+    {
+      "language": "en",
+      "source_text": "Use less paper?",
+      "text": "Use less paper?",
+      "spoken_text": "Use less paper?",
+      "input_index": 72
+    }
+  ],
+  "sourceSha256": "cf2ea1e0a22543d909b5a64ab91df2e1dad711ca09444550ef7a27b1dc004452",
+  "id": "LESSON-49A098653746FC0FCDE4D1C6",
+  "text": "Bạn cần diễn đạt \"Tiết kiệm nước\". Save water hay Use less paper?",
+  "asset": "assets/audio/CURRICULUM/49a098653746fc0fcde4d1c6.vi.v1.mp3",
+  "sha256": "cf2ea1e0a22543d909b5a64ab91df2e1dad711ca09444550ef7a27b1dc004452",
+  "durationSeconds": 8.844286
+}

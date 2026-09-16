@@ -1,0 +1,20 @@
+{
+  "signature": "52cbda1eba97c24c3752ee3aa066d09aed911be3e4c50f763d26b994f1a94e07",
+  "request": {
+    "text": "Shape Words",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "2058e3aad3609a7eb2748d1ce13968b79fae209af3a5f87fb3ccae91c23fe84c",
+  "requestId": "6kegEinEQOvFEUnvFP3A",
+  "createdAt": "2026-09-15T23:23:39.228Z"
+}

@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T03-B02\\C1315-L1-T03-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T03-B02-Q06",
+  "sourceText": "HOMI nói: Why? Bạn nói về độ an toàn. Because it's safer hay Because it's faster?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Why?",
+      "spoken_text": "Why?",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "Bạn nói về độ an toàn.",
+      "spoken_text": "Bạn nói về độ an toàn.",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Because it's safer",
+      "spoken_text": "Because it's safer",
+      "input_index": 33
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 34
+    },
+    {
+      "language": "en",
+      "text": "Because it's faster?",
+      "spoken_text": "Because it's faster?",
+      "input_index": 35
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-1FF15088E89F69FDE91698BB",
+  "text": "HOMI nói: Why? Bạn nói về độ an toàn. Because it's safer hay Because it's faster?",
+  "asset": "assets/audio/CURRICULUM/1ff15088e89f69fde91698bb.vi.v1.mp3",
+  "sha256": "1cc66da4ef2aa7a3d38f9e22f1b17e20798ce1cd1560a2e71339a1c5119ac239",
+  "durationSeconds": 10.243719
+}

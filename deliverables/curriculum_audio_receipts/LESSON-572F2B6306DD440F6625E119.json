@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T09-B01\\C67-L3-T09-B01-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T09-B01-Q06",
+  "sourceText": "Bạn muốn nói \"Trường học\". Shop hay School?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Trường học\".",
+      "spoken_text": "Bạn muốn nói \"Trường học\".",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Shop",
+      "spoken_text": "Shop",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "School?",
+      "spoken_text": "School?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-572F2B6306DD440F6625E119",
+  "text": "Bạn muốn nói \"Trường học\". Shop hay School?",
+  "asset": "assets/audio/CURRICULUM/572f2b6306dd440f6625e119.vi.v1.mp3",
+  "sha256": "4d4e0293355513ed5150a8b776f8f2a6ec10fdaef1a3e9ce982715831724ec6a",
+  "durationSeconds": 4.765805
+}

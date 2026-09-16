@@ -1,0 +1,27 @@
+{
+  "id": "CONVERSATION-UNCLEAR",
+  "signature": "c8cde616b855e01425bb36633d9cc6a845c98de64511f50d28a4b7ace9308d54",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Cô chưa nghe thấy con nói. Con nói lại nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:15:38.647Z",
+  "requestId": "0BQPGj7egObQ4XJ57luW",
+  "characterCost": "24",
+  "sourceSha256": "cfaab685091da94809afba17b4c722642a07a4bd5f078acac3756bcaa7c7c99b",
+  "asset": "assets/audio/MAIN/CONVERSATION-UNCLEAR.vi.v1.mp3",
+  "finalSha256": "07a65dc9315c62cc6954560c550d36aee9617fb770503e8786e8916f9b78c883",
+  "sourceDurationSeconds": 2.72,
+  "durationSeconds": 3.005147,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 49363
+}

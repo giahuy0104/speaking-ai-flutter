@@ -1,0 +1,27 @@
+{
+  "id": "RUN-133",
+  "signature": "e9dd140eb24a154c971ee18ebfa1b7332a37085dacaa735d8fd2af6723637142",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Con làm tốt lắm",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:15:09.973Z",
+  "requestId": "09UkvBZVX8cELjbbkwga",
+  "characterCost": "8",
+  "sourceSha256": "d871d5e943f40a2af0f49a56246cfaf19e18fd304698af9250d09ac15051809b",
+  "asset": "assets/audio/MAIN/RUN-133.vi.v1.mp3",
+  "finalSha256": "7241e681f44d121d24e0f8274a0610d80cdd59fb2a0a4ebdf753dff927755fb8",
+  "sourceDurationSeconds": 0.96,
+  "durationSeconds": 1.052132,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 18016
+}

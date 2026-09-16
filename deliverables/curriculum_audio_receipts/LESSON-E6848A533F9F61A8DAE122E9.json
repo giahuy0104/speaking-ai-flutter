@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T06-B01\\C67-L2-T06-B01-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T06-B01-Q04",
+  "sourceText": "Khuỵu đầu gối: Stamp your feet hay Bend your knees?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Khuỵu đầu gối:",
+      "spoken_text": "Khuỵu đầu gối:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Stamp your feet",
+      "spoken_text": "Stamp your feet",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Bend your knees?",
+      "spoken_text": "Bend your knees?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E6848A533F9F61A8DAE122E9",
+  "text": "Khuỵu đầu gối: Stamp your feet hay Bend your knees?",
+  "asset": "assets/audio/CURRICULUM/e6848a533f9f61a8dae122e9.vi.v1.mp3",
+  "sha256": "8ca0562a8d0c9f9bf73c9d79c5aa222899c0b971bf6dcc1adeb50c2c34e12120",
+  "durationSeconds": 5.916188
+}

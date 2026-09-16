@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T10-B01\\C35-L3-T10-B01-T02_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T10-B01-T02_EN",
+  "sourceText": "Eat.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Eat.",
+      "generation_key": "90b7ed775c38da3c"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-C1EC9A9F8670326B09BF3BF0",
+  "text": "Eat.",
+  "asset": "assets/audio/CURRICULUM/c1ec9a9f8670326b09bf3bf0.en.v1.mp3",
+  "sha256": "a76087357498d37680661f2ce76bd152de9077d7117169913a3250fa369bb317",
+  "durationSeconds": 1.481723
+}

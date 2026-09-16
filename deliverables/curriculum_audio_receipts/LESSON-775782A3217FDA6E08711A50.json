@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T10-B02\\C35-L3-T10-B02-T05_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T10-B02-T05_EN",
+  "sourceText": "Good night!",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Good night!",
+      "generation_key": "2972354a01606ded"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-775782A3217FDA6E08711A50",
+  "text": "Good night!",
+  "asset": "assets/audio/CURRICULUM/775782a3217fda6e08711a50.en.v1.mp3",
+  "sha256": "263a3e1538edef63d64e78e8a7e14b9f6b8f983e442912c6bef61f836db54bd7",
+  "durationSeconds": 1.589116
+}

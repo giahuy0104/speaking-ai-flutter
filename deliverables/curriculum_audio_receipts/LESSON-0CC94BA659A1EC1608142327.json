@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T08\\C1315-L3-M05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-M05",
+  "sourceText": "Bạn cần diễn đạt \"Bạn uống gì không\". Anything to drink? hay Water, please?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Bạn uống gì không\".",
+      "text": "Bạn cần diễn đạt \"Bạn uống gì không\".",
+      "spoken_text": "Bạn cần diễn đạt \"Bạn uống gì không\".",
+      "input_index": 25
+    },
+    {
+      "language": "en",
+      "source_text": "Anything to drink?",
+      "text": "Anything to drink?",
+      "spoken_text": "Anything to drink?",
+      "input_index": 26
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 27
+    },
+    {
+      "language": "en",
+      "source_text": "Water, please?",
+      "text": "Water, please?",
+      "spoken_text": "Water, please?",
+      "input_index": 28
+    }
+  ],
+  "sourceSha256": "1a259c2acc0e5743816c0f38149bb6a0aa4678b5a1a1d80831fab459e93e8f9e",
+  "id": "LESSON-0CC94BA659A1EC1608142327",
+  "text": "Bạn cần diễn đạt \"Bạn uống gì không\". Anything to drink? hay Water, please?",
+  "asset": "assets/audio/CURRICULUM/0cc94ba659a1ec1608142327.vi.v1.mp3",
+  "sha256": "1a259c2acc0e5743816c0f38149bb6a0aa4678b5a1a1d80831fab459e93e8f9e",
+  "durationSeconds": 6.205986
+}

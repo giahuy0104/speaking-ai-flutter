@@ -1,0 +1,27 @@
+{
+  "id": "AI-049",
+  "signature": "129a2b3b04eec9f25fc8a498e2dddb4ecb45aa4a35a50792c5e883828e1d8065",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn chọn “Luyện lại từ đầu” hay “Bài tiếp theo”?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:09:40.945Z",
+  "requestId": "jUOotYTX16NWMmtpchIt",
+  "characterCost": "26",
+  "sourceSha256": "cf47ae043849167a076b87552f9adf6df70c218c10f59ebfabfcbc46d96d878e",
+  "asset": "assets/audio/MAIN/AI-049.vi.v1.mp3",
+  "finalSha256": "7df5fc1ee3d91e5708f2e5b75f13ddd730f76e46096cdd2dd8f26985814772b2",
+  "sourceDurationSeconds": 3.04,
+  "durationSeconds": 3.358526,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 54796
+}

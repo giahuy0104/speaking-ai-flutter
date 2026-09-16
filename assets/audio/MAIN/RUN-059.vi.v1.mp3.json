@@ -1,0 +1,27 @@
+{
+  "id": "RUN-059",
+  "signature": "04c0efcbe286d584b6983c42efa6c32fe10e382e2ea0d112a0af5b3a3f4d00b9",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình cùng luyện lại nhé. Bắt đầu thôi!",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:13:15.065Z",
+  "requestId": "W0GDwoQBKS3SLqHE880C",
+  "characterCost": "21",
+  "sourceSha256": "71f6a7a4d6ae0a3dcb890042a4eb26a5d720cefc344205bd251d63d30ac8d161",
+  "asset": "assets/audio/MAIN/RUN-059.vi.v1.mp3",
+  "finalSha256": "bc1a14b2e751ec77692562a4f704ddbf9972371bf5288b55e0abe1aa2b0487ac",
+  "sourceDurationSeconds": 2.4,
+  "durationSeconds": 2.646871,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 43511
+}

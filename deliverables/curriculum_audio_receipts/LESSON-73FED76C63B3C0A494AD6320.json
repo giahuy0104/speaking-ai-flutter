@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\MP3\\ROLEPLAY_06\\ROLEPLAY_06_TURN_03_CHILD_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "ROLEPLAY_06_TURN_03_VI",
+  "sourceText": "Có cái nào rẻ hơn không?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75, VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Có cái nào rẻ hơn không?",
+      "generation_key": "aea2c07c4bea1f64"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-73FED76C63B3C0A494AD6320",
+  "text": "Có cái nào rẻ hơn không?",
+  "asset": "assets/audio/CURRICULUM/73fed76c63b3c0a494ad6320.vi.v1.mp3",
+  "sha256": "672b89367cd0b111c2e359c5b0059ab0917ca8864a86c3848f0e20ce682a5a5e",
+  "durationSeconds": 1.876463
+}

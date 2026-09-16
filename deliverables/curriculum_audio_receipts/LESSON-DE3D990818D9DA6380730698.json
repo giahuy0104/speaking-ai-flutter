@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07-B03\\C1112-L3-T07-B03-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T07-B03-Q08",
+  "sourceText": "Bạn muốn diễn đạt \"Nghe được đó\". Sorry, I'm busy hay Sounds good?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Nghe được đó\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Nghe được đó\".",
+      "input_index": 46
+    },
+    {
+      "language": "en",
+      "text": "Sorry, I'm busy",
+      "spoken_text": "Sorry, I'm busy",
+      "input_index": 47
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 48
+    },
+    {
+      "language": "en",
+      "text": "Sounds good?",
+      "spoken_text": "Sounds good?",
+      "input_index": 49
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-DE3D990818D9DA6380730698",
+  "text": "Bạn muốn diễn đạt \"Nghe được đó\". Sorry, I'm busy hay Sounds good?",
+  "asset": "assets/audio/CURRICULUM/de3d990818d9da6380730698.vi.v1.mp3",
+  "sha256": "89bfe698edbe8706c6c12c1cca076c68aa7ecb513b4ff39b3c15d208d5b34746",
+  "durationSeconds": 6.010136
+}

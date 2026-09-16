@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T09-B02\\C810-L3-T09-B02-T05_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T09-B02-T05_VI",
+  "sourceText": "Mình đã bị ngã.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình đã bị ngã.",
+      "generation_key": "39a7f834121c7c7e"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-496C91F9793FAA3A3BE2A6C4",
+  "text": "Mình đã bị ngã.",
+  "asset": "assets/audio/CURRICULUM/496c91f9793faa3a3be2a6c4.vi.v1.mp3",
+  "sha256": "8dce7ee256c9c386424ad98ca4b117a5bfc06861d32b33a79afa8f9f339d311e",
+  "durationSeconds": 1.412063
+}

@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\MP3\\ROLEPLAY_06\\ROLEPLAY_06_TURN_01_CHILD_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "ROLEPLAY_06_TURN_01_VI",
+  "sourceText": "Cái này bao nhiêu tiền?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75, VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Cái này bao nhiêu tiền?",
+      "generation_key": "b46565d8d5e45adf"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7149CC1052DC22E129B75406",
+  "text": "Cái này bao nhiêu tiền?",
+  "asset": "assets/audio/CURRICULUM/7149cc1052dc22e129b75406.vi.v1.mp3",
+  "sha256": "f342b24ee468b07a0b8863cab0e14d3492528a57df763909bd0a00f7fadc157d",
+  "durationSeconds": 1.58737
+}

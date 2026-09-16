@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T03-B01\\C67-L1-T03-B01-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T03-B01-Q04",
+  "sourceText": "Con cá: Monkey hay Fish?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Con cá:",
+      "spoken_text": "Con cá:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Monkey",
+      "spoken_text": "Monkey",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Fish?",
+      "spoken_text": "Fish?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-FCBE400296CD496E1361EB67",
+  "text": "Con cá: Monkey hay Fish?",
+  "asset": "assets/audio/CURRICULUM/fcbe400296cd496e1361eb67.vi.v1.mp3",
+  "sha256": "6fe215974629cfebc7eed05c9ede6ca7a3aa2fe0cafd573f60d7ea30f2df9bcd",
+  "durationSeconds": 3.44025
+}

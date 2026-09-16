@@ -18,7 +18,8 @@ struct IOSPromptOperationLeaseState {
 }
 
 /// Native iOS prompt output for the fixed MAIN assistant. Keeping prompts in
-/// AVSpeechSynthesizer avoids a network round trip before command recognition.
+/// AVSpeechSynthesizer or verified bundled audio avoids a network round trip
+/// before command recognition. Both use the existing MAIN audio-session owner.
 final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDelegate {
   private let channel: FlutterMethodChannel
   private let audioSessionCoordinator: IOSAudioSessionCoordinator
@@ -31,6 +32,8 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
   private var readyCuePlayer: AVAudioPlayer?
   private var activeUtterance: AVSpeechUtterance?
   private var activeUtteranceAudioToken: UUID?
+  private var authoredPromptPlayer: AVAudioPlayer?
+  private var authoredPromptAudioToken: UUID?
   private var promptOperationLeases = IOSPromptOperationLeaseState()
   private var disposed = false
 
@@ -83,6 +86,19 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
         expectedTurnId: turnId
       )
       result(nil)
+    case "playAuthoredAudioAndWait":
+      let arguments = call.arguments as? [String: Any]
+      guard let bytes = arguments?["bytes"] as? FlutterStandardTypedData,
+            !bytes.data.isEmpty, bytes.data.count <= 2 * 1024 * 1024 else {
+        result(FlutterError(code: "INVALID_PROMPT_AUDIO", message: "Invalid authored prompt bytes.", details: nil))
+        return
+      }
+      playAuthoredPrompt(
+        bytes.data,
+        forcePhoneSpeaker: arguments?["forcePhoneSpeaker"] as? Bool ?? false,
+        forceMediaPlayback: arguments?["forceMediaPlayback"] as? Bool ?? false,
+        result: result
+      )
     case "speak", "speakAndWait":
       let arguments = call.arguments as? [String: Any]
       let text = (arguments?["text"] as? String)?
@@ -207,6 +223,11 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
   }
 
   private func stop() {
+    let authoredAudioToken = authoredPromptAudioToken
+    authoredPromptAudioToken = nil
+    authoredPromptPlayer?.delegate = nil
+    authoredPromptPlayer?.stop()
+    authoredPromptPlayer = nil
     let utteranceAudioToken = activeUtteranceAudioToken
     activeUtterance = nil
     activeUtteranceAudioToken = nil
@@ -216,6 +237,58 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     completeWaitingResult()
     completeReadyCue()
     releasePromptAudioSession(token: utteranceAudioToken)
+    releasePromptAudioSession(token: authoredAudioToken)
+  }
+
+  private func playAuthoredPrompt(
+    _ data: Data,
+    forcePhoneSpeaker: Bool,
+    forceMediaPlayback: Bool,
+    result: @escaping FlutterResult
+  ) {
+    stop()
+    guard let token = configurePromptAudioSession(
+      forcePhoneSpeaker: forcePhoneSpeaker,
+      forceMediaPlayback: forceMediaPlayback
+    ) else {
+      result(FlutterError(code: "PROMPT_AUDIO_ROUTE_FAILED", message: "Unable to prepare prompt route.", details: nil))
+      return
+    }
+    authoredPromptAudioToken = token
+    waitingResult = result
+    audioSessionCoordinator.trace(stage: "prompt_started", caller: "VoicePromptBridge.playAuthoredPrompt")
+    do {
+      let player = try AVAudioPlayer(data: data)
+      authoredPromptPlayer = player
+      player.delegate = self
+      player.volume = 1.0
+      player.numberOfLoops = 0
+      player.prepareToPlay()
+      // Speed was applied once during offline generation; playback stays at 1x.
+      guard player.play() else { throw ReadyCueError.playbackFailed }
+      audioSessionCoordinator.trace(stage: "prompt_playback_active", caller: "VoicePromptBridge.playAuthoredPrompt")
+      audioSessionCoordinator.backgroundAudioActivityDidStart(caller: "VoicePromptBridge.playAuthoredPrompt")
+    } catch {
+      finishAuthoredPrompt(success: false)
+    }
+  }
+
+  private func finishAuthoredPrompt(success: Bool) {
+    authoredPromptPlayer?.delegate = nil
+    authoredPromptPlayer?.stop()
+    authoredPromptPlayer = nil
+    let token = authoredPromptAudioToken
+    authoredPromptAudioToken = nil
+    releasePromptAudioSession(token: token)
+    let result = waitingResult
+    waitingResult = nil
+    if success {
+      audioSessionCoordinator.trace(stage: "prompt_finished", caller: "VoicePromptBridge.finishAuthoredPrompt")
+      audioSessionCoordinator.trace(stage: "prompt_done", caller: "VoicePromptBridge.finishAuthoredPrompt")
+      result?(nil)
+    } else {
+      result?(FlutterError(code: "PROMPT_AUDIO_FAILED", message: "Unable to play authored prompt.", details: nil))
+    }
   }
 
   private func completeWaitingResult() {
@@ -321,8 +394,20 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
   }
 
   func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+    if player === authoredPromptPlayer {
+      finishAuthoredPrompt(success: flag)
+      return
+    }
     guard player === readyCuePlayer else { return }
     completeReadyCue(token: readyCueToken)
+  }
+
+  func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
+    if player === authoredPromptPlayer {
+      finishAuthoredPrompt(success: false)
+    } else if player === readyCuePlayer {
+      completeReadyCue(token: readyCueToken)
+    }
   }
 
   private static func makeReadyCueWavData() -> Data {

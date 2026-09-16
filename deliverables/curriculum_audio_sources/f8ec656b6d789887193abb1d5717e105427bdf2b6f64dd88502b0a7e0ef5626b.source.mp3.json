@@ -1,0 +1,20 @@
+{
+  "signature": "f8ec656b6d789887193abb1d5717e105427bdf2b6f64dd88502b0a7e0ef5626b",
+  "request": {
+    "text": "Bài này bạn còn 2 Ngôi sao chưa chinh phục.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "8372e8f80bffb9a21419fac05d7e501166005e0b6cc0ddd18611f8ab059b2bbd",
+  "requestId": "8ZTXQxZGrq4PKpTnDenp",
+  "createdAt": "2026-09-15T23:27:36.750Z"
+}

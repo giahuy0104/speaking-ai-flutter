@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T05-B02\\C35-L2-T05-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-T05-B02-Q05",
+  "sourceText": "Đó là con vịt: It's a duck hay It's a cat?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đó là con vịt:",
+      "spoken_text": "Đó là con vịt:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "It's a duck",
+      "spoken_text": "It's a duck",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "It's a cat?",
+      "spoken_text": "It's a cat?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-C37AFB30F6D98D9DA09A0A1E",
+  "text": "Đó là con vịt: It's a duck hay It's a cat?",
+  "asset": "assets/audio/CURRICULUM/c37afb30f6d98d9da09a0a1e.vi.v1.mp3",
+  "sha256": "ed13e7ae182096bbf4dd3b7837b99846d72444671c2c62fb79eb224fd49faea5",
+  "durationSeconds": 4.9239
+}

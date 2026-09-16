@@ -1,0 +1,22 @@
+{
+  "number": 37,
+  "id": "VOCAB50-037",
+  "text": "HOMI nói đáp án nhé.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-037.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "cb9b3c694f5de901fd8dadf02fe181bc5935b2803916d5685efac848bbba0590",
+  "bytes": 25121,
+  "sourceDurationSeconds": 1.36,
+  "durationSeconds": 1.501293,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "nasmPuZ5TZrKX5jWQCF1",
+  "characterCost": "11",
+  "createdAt": "2026-09-16T03:21:05.474Z"
+}

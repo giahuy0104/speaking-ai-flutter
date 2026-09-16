@@ -1,0 +1,22 @@
+{
+  "number": 46,
+  "id": "VOCAB50-046",
+  "text": "Mình thử một lần nhé.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "reserve-variant",
+  "file": "audio/VOCAB50-046.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "c4032045e7c51fc9f76933c1abfecc550ad4b3c5f6bf051ced2e41d86f346cfb",
+  "bytes": 29301,
+  "sourceDurationSeconds": 1.6,
+  "durationSeconds": 1.755805,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "rglje9itDorYDhr063l0",
+  "characterCost": "12",
+  "createdAt": "2026-09-16T03:21:25.753Z"
+}

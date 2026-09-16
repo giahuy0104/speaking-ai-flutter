@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\MP3\\dynamic\\TOPIC_COMPLETE\\TOPIC_COMPLETE_09.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "TOPIC_COMPLETE__TOPIC_NO_09",
+  "sourceText": "Bạn đã hoàn thành Chủ đề 9 rồi!",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo applied after synthesis to each segment according to declared AUDIO_PLAN language, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn đã hoàn thành Chủ đề 9 rồi!",
+      "generation_key": "22520e09049c94e6"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-0743B7BCA0401FECE4E328BC",
+  "text": "Bạn đã hoàn thành Chủ đề 9 rồi!",
+  "asset": "assets/audio/CURRICULUM/0743b7bca0401fece4e328bc.vi.v1.mp3",
+  "sha256": "6850375a40aca121c62a5c937201a6efdf2f8d9f8e0bb843852a82fb3f15868c",
+  "durationSeconds": 2.660726
+}

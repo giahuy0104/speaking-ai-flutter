@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T04-B01\\C1112-L2-T04-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T04-B01-Q03",
+  "sourceText": "Taxi: Taxi hay Train?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Taxi:",
+      "spoken_text": "Taxi:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Taxi",
+      "spoken_text": "Taxi",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Train?",
+      "spoken_text": "Train?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-F8194AD27BBFEA0B884D8887",
+  "text": "Taxi: Taxi hay Train?",
+  "asset": "assets/audio/CURRICULUM/f8194ad27bbfea0b884d8887.vi.v1.mp3",
+  "sha256": "3e4f5378e85cf0e1b4203acea8c872b101ee08f55feb3f18f247e9b6320565d7",
+  "durationSeconds": 3.820431
+}

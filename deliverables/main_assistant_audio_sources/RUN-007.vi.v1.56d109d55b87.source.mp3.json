@@ -1,0 +1,20 @@
+{
+  "id": "RUN-007",
+  "signature": "56d109d55b87c44ac090fcea0ef31debdb86fc07cf4312975b9a80b32c8dd4a0",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:11:21.979Z",
+  "requestId": "9CSjReHFLlCXGvXfcDCL",
+  "characterCost": "34",
+  "sourceSha256": "5ee86be66681faf63aaf7aa66f97089d5ffb54b37c42efe1f90f4de68a933ac1"
+}

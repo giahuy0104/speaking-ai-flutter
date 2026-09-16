@@ -1,0 +1,27 @@
+{
+  "id": "RUN-134",
+  "signature": "55fe1db1e24261cb7ef3edfe1bf21efcb8be3d8778b8e812f37487922c45e563",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Cô chưa nghe rõ. Con nói lại nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:15:12.435Z",
+  "requestId": "rn5EVqmjIGB9l5kyswRR",
+  "characterCost": "18",
+  "sourceSha256": "33da70ad659c7204d7d12ae51e059676999498d18c0733d0dbdb6f87a4fde7cb",
+  "asset": "assets/audio/MAIN/RUN-134.vi.v1.mp3",
+  "finalSha256": "48c477212afc93e1d710696cf7c73ae76c28d0d2993ac777630a39236e678b83",
+  "sourceDurationSeconds": 2.32,
+  "durationSeconds": 2.565351,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 42257
+}

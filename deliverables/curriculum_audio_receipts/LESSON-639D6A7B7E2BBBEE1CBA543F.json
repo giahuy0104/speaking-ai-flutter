@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T01-B01\\C35-L1-T01-B01-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T01-B01-Q02",
+  "sourceText": "Quả bóng: Ball hay Cat?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Quả bóng:",
+      "spoken_text": "Quả bóng:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Ball",
+      "spoken_text": "Ball",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Cat?",
+      "spoken_text": "Cat?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-639D6A7B7E2BBBEE1CBA543F",
+  "text": "Quả bóng: Ball hay Cat?",
+  "asset": "assets/audio/CURRICULUM/639d6a7b7e2bbbee1cba543f.vi.v1.mp3",
+  "sha256": "ff496536f20aa970dfb3c49310e0240cc797cabe141a7d84e65957b6927a5ec0",
+  "durationSeconds": 3.377732
+}

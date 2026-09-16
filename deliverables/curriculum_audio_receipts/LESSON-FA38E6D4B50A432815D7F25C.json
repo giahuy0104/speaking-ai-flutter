@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T10-B01\\C67-L3-T10-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T10-B01-Q07",
+  "sourceText": "Bạn muốn nói \"Xe đạp\". Bike hay Books?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Xe đạp\".",
+      "spoken_text": "Bạn muốn nói \"Xe đạp\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Bike",
+      "spoken_text": "Bike",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Books?",
+      "spoken_text": "Books?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-FA38E6D4B50A432815D7F25C",
+  "text": "Bạn muốn nói \"Xe đạp\". Bike hay Books?",
+  "asset": "assets/audio/CURRICULUM/fa38e6d4b50a432815d7f25c.vi.v1.mp3",
+  "sha256": "8f5273dcd9adbc820852285c57cf08aa06f92064cc97b7468866957e35c4a2f2",
+  "durationSeconds": 4.700907
+}

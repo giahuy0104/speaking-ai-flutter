@@ -1,0 +1,22 @@
+{
+  "number": 24,
+  "id": "VOCAB50-024",
+  "text": "Bạn nói lại nhé.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-024.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "c7942f08a4654f9de42763f7f38b65039bfa9f543d6515455fe5c7bf7b25bb0b",
+  "bytes": 18016,
+  "sourceDurationSeconds": 0.96,
+  "durationSeconds": 1.056236,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "PQVzQJlPN1JtlFQcpDm3",
+  "characterCost": "9",
+  "createdAt": "2026-09-16T03:20:45.604Z"
+}

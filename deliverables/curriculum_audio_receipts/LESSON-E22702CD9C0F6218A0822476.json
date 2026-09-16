@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T10-B02\\C67-L3-T10-B02-T01_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T10-B02-T01_EN",
+  "sourceText": "Play soccer.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Play soccer.",
+      "generation_key": "9702d3d629583b13"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E22702CD9C0F6218A0822476",
+  "text": "Play soccer.",
+  "asset": "assets/audio/CURRICULUM/e22702cd9c0f6218a0822476.en.v1.mp3",
+  "sha256": "5e801466c2d3c5e7d33d58fed01e1313141947771528d6b1ee45bc7a28b45ec6",
+  "durationSeconds": 1.589116
+}

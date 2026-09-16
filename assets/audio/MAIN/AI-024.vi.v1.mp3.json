@@ -1,0 +1,27 @@
+{
+  "id": "AI-024",
+  "signature": "251a0077c565c1204a53e791a9a52ae8c3b76214a5afc7bef1553cc75439eea2",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình dừng ở đây. Khi cần, bạn nhấn nút gọi HOMI.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:07:12.507Z",
+  "requestId": "PGRL3lrx2Cz7hXVucgGM",
+  "characterCost": "26",
+  "sourceSha256": "d22a2462806cc092eedc50eaca7485c63c91c038c04de2ea0b91c15a040b0644",
+  "asset": "assets/audio/MAIN/AI-024.vi.v1.mp3",
+  "finalSha256": "d4cea74c5797a60e14ff5683e120a4422991cd01bd8a366dd4f54ca61666520d",
+  "sourceDurationSeconds": 3.36,
+  "durationSeconds": 3.718662,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 60648
+}

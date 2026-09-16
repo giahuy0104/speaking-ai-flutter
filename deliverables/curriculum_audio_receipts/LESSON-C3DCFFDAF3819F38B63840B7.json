@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T10-B02\\C35-L3-T10-B02-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T10-B02-Q07",
+  "sourceText": "Bạn muốn nói \"Thức dậy nào\". Wake up hay Let's play?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Thức dậy nào\".",
+      "spoken_text": "Bạn muốn nói \"Thức dậy nào\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Wake up",
+      "spoken_text": "Wake up",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Let's play?",
+      "spoken_text": "Let's play?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-C3DCFFDAF3819F38B63840B7",
+  "text": "Bạn muốn nói \"Thức dậy nào\". Wake up hay Let's play?",
+  "asset": "assets/audio/CURRICULUM/c3dcffdaf3819f38b63840b7.vi.v1.mp3",
+  "sha256": "4f6d485269548bb59c2c4560b7c74cc11a7fcae4a0ec24c9675bb449936664fe",
+  "durationSeconds": 5.23551
+}

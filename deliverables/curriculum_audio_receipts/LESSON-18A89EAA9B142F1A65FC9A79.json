@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T01-B02\\C35-L1-T01-B02-T02_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T01-B02-T02_EN",
+  "sourceText": "K. Kite.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "K. Kite.",
+      "generation_key": "ba8e47c162e5001c"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-18A89EAA9B142F1A65FC9A79",
+  "text": "K. Kite.",
+  "asset": "assets/audio/CURRICULUM/18a89eaa9b142f1a65fc9a79.en.v1.mp3",
+  "sha256": "c5cfe2425b39c629cc6e6886b88cb1736e92226a8d590b758775b0c4889b2f1c",
+  "durationSeconds": 2.564354
+}

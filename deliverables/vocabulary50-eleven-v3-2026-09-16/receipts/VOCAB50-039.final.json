@@ -1,0 +1,22 @@
+{
+  "number": 39,
+  "id": "VOCAB50-039",
+  "text": "Exactly.",
+  "language": "en",
+  "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+  "speed": 0.75,
+  "usage": "current",
+  "file": "audio/VOCAB50-039.en.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "5a254a803c61051e6fa858c37f3bd83a14bee1b0cf5dbf657e2d34db039bcf34",
+  "bytes": 21359,
+  "sourceDurationSeconds": 0.96,
+  "durationSeconds": 1.27229,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "0rQFW8sQgI3S4emasgjc",
+  "characterCost": "4",
+  "createdAt": "2026-09-16T03:21:08.223Z"
+}

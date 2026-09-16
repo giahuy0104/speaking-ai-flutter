@@ -340,6 +340,14 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     String text, {
     String locale = 'vi-VN',
   }) async {
+    final request = _request;
+    final prompt = _prompt;
+    final budget = prompt is AuthoredPromptBudgetProvider
+        ? await (prompt as AuthoredPromptBudgetProvider)
+              .authoredPromptBudget(text, locale: locale)
+              .timeout(const Duration(milliseconds: 700), onTimeout: () => null)
+        : null;
+    if (!mounted || _pausedForMainAssistant || request != _request) return;
     _promptCompletionTimer?.cancel();
     final previousWaiter = _promptCompletionWaiter;
     if (previousWaiter != null && !previousWaiter.isCompleted) {
@@ -356,7 +364,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         if (!waiter.isCompleted) waiter.completeError(error, stackTrace);
       }
     }());
-    _promptCompletionTimer = Timer(_promptCompletionTimeout, () {
+    _promptCompletionTimer = Timer(budget ?? _promptCompletionTimeout, () {
       unawaited(() async {
         try {
           // A small number of iOS AVSpeechSynthesizer route transitions do not

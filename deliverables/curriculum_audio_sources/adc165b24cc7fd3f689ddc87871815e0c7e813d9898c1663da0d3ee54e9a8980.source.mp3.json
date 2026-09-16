@@ -1,0 +1,20 @@
+{
+  "signature": "adc165b24cc7fd3f689ddc87871815e0c7e813d9898c1663da0d3ee54e9a8980",
+  "request": {
+    "text": "Weekend Words.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "58942b8112d7e6536f0e4555a7e629a14aaa7a3abbc321a2c08f43a705c909a5",
+  "requestId": "3PSMrXSOfMfHdTRu3lac",
+  "createdAt": "2026-09-15T23:26:04.336Z"
+}

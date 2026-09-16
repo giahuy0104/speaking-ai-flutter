@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T08\\C1315-L3-M04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-M04",
+  "sourceText": "Bạn cần diễn đạt \"Bạn sẵn sàng gọi món chưa\". Ready to order? hay I'd like noodles?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Bạn sẵn sàng gọi món chưa\".",
+      "text": "Bạn cần diễn đạt \"Bạn sẵn sàng gọi món chưa\".",
+      "spoken_text": "Bạn cần diễn đạt \"Bạn sẵn sàng gọi món chưa\".",
+      "input_index": 19
+    },
+    {
+      "language": "en",
+      "source_text": "Ready to order?",
+      "text": "Ready to order?",
+      "spoken_text": "Ready to order?",
+      "input_index": 20
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 21
+    },
+    {
+      "language": "en",
+      "source_text": "I'd like noodles?",
+      "text": "I'd like noodles?",
+      "spoken_text": "I'd like noodles?",
+      "input_index": 22
+    }
+  ],
+  "sourceSha256": "f5ffd3ad28eaed4c2e8703d1008aa2cbca56f59768dd8518d788e75e7bd20b92",
+  "id": "LESSON-E5FF7115762173483F9D5EA8",
+  "text": "Bạn cần diễn đạt \"Bạn sẵn sàng gọi món chưa\". Ready to order? hay I'd like noodles?",
+  "asset": "assets/audio/CURRICULUM/e5ff7115762173483f9d5ea8.vi.v1.mp3",
+  "sha256": "f5ffd3ad28eaed4c2e8703d1008aa2cbca56f59768dd8518d788e75e7bd20b92",
+  "durationSeconds": 6.913968
+}

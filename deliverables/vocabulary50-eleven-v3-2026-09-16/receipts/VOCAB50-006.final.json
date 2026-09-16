@@ -1,0 +1,22 @@
+{
+  "number": 6,
+  "id": "VOCAB50-006",
+  "text": "Mình học xong lượt này trước nhé.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current-but-deprecated-in-spec",
+  "file": "audio/VOCAB50-006.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "44d164e72086f4a93e2f24ae64a8f3666ca870c5d98e150ff58563d004ff61d7",
+  "bytes": 27629,
+  "sourceDurationSeconds": 1.52,
+  "durationSeconds": 1.67,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "5HUZfMuGa0VClXWhXUFD",
+  "characterCost": "18",
+  "createdAt": "2026-09-16T03:19:44.788Z"
+}

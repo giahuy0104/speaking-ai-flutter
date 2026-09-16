@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T03-B01\\C810-L1-T03-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T03-B01-Q08",
+  "sourceText": "Bạn cần nói \"Vẽ tranh\". Ride a bike hay Draw pictures?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn cần nói \"Vẽ tranh\".",
+      "spoken_text": "Bạn cần nói \"Vẽ tranh\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Ride a bike",
+      "spoken_text": "Ride a bike",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Draw pictures?",
+      "spoken_text": "Draw pictures?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-ABEF09F0CF1635896F5E650B",
+  "text": "Bạn cần nói \"Vẽ tranh\". Ride a bike hay Draw pictures?",
+  "asset": "assets/audio/CURRICULUM/abef09f0cf1635896f5e650b.vi.v1.mp3",
+  "sha256": "498f0e48ee568261a042da65d688f92efe808e4ad163428842c11a0d5cc32fc7",
+  "durationSeconds": 6.629297
+}

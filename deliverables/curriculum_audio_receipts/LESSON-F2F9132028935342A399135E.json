@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07-B03\\C1112-L3-T07-B03-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T07-B03-Q05",
+  "sourceText": "Cảm ơn bạn đã rủ: Thanks for asking hay Sounds good?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Cảm ơn bạn đã rủ:",
+      "spoken_text": "Cảm ơn bạn đã rủ:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Thanks for asking",
+      "spoken_text": "Thanks for asking",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Sounds good?",
+      "spoken_text": "Sounds good?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-F2F9132028935342A399135E",
+  "text": "Cảm ơn bạn đã rủ: Thanks for asking hay Sounds good?",
+  "asset": "assets/audio/CURRICULUM/f2f9132028935342a399135e.vi.v1.mp3",
+  "sha256": "f7cbba8ac0572e11e78c6d94d125098f7f3cfd10ad068aafc00306b2e5612e60",
+  "durationSeconds": 4.790726
+}

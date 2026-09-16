@@ -1,0 +1,27 @@
+{
+  "id": "AI-041",
+  "signature": "87bcb1f73dcefa5e0c20bcb1c707b3591bf0a8b8c26cd0baa47ce709f1b541ea",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình quay lại câu trước nha.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:09:24.802Z",
+  "requestId": "FbL4ZjgDKsalw9blKHJh",
+  "characterCost": "15",
+  "sourceSha256": "d908cdb09a254e8763521d752a040b00dcbb3b3cc93f13cfd4f230c11a3e985b",
+  "asset": "assets/audio/MAIN/AI-041.vi.v1.mp3",
+  "finalSha256": "83f71c1d878491728a94d2eee94f15af82cd229203d9eb348ac6a3a1f8659aca",
+  "sourceDurationSeconds": 1.28,
+  "durationSeconds": 1.406644,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 23449
+}

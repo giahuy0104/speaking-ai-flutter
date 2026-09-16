@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T05-B01\\C810-L2-T05-B01-T04_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T05-B01-T04_EN",
+  "sourceText": "Hot today.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Hot today.",
+      "generation_key": "202d9aac357809c2"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-2B39DCCAC05CC8F7CC49E2FD",
+  "text": "Hot today.",
+  "asset": "assets/audio/CURRICULUM/2b39dccac05cc8f7cc49e2fd.en.v1.mp3",
+  "sha256": "867ece0063fa6e7028b0af2418b4333eb97889c41f147f62d4d914414da44d08",
+  "durationSeconds": 1.798095
+}

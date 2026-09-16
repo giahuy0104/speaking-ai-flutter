@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T01-B01\\C1112-L1-T01-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T01-B01-Q03",
+  "sourceText": "Đọc sách: Read books hay Help at home?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đọc sách:",
+      "spoken_text": "Đọc sách:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Read books",
+      "spoken_text": "Read books",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Help at home?",
+      "spoken_text": "Help at home?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-1C6F9FFE07507CF0783A3DD9",
+  "text": "Đọc sách: Read books hay Help at home?",
+  "asset": "assets/audio/CURRICULUM/1c6f9ffe07507cf0783a3dd9.vi.v1.mp3",
+  "sha256": "ae273cad9ee4be2f51bf310e48e4f8b2395e7ea55df4db640a5f96b8135ebd31",
+  "durationSeconds": 4.317324
+}

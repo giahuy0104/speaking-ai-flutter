@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\250d08adafff88ffef4329017a4bacd64e3856b11e097dc294dd753d8a4dff8d.tempo.mp3",
+      "signature": "250d08adafff88ffef4329017a4bacd64e3856b11e097dc294dd753d8a4dff8d",
+      "request": {
+        "text": "Rainy",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "d26a395e9e0edd6a614e0ef86bb8d6e97e74ce2e0cd172bc740b8643e6f44030",
+      "requestId": "Vj7QhS1AKkDhESmjOtic",
+      "createdAt": "2026-09-15T23:16:51.846Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732.tempo.mp3",
+      "signature": "bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732",
+      "request": {
+        "text": "hay",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "587b62310066af72f7481443c9fccef371a1ad2d8d537d3d1e9b16ebd3efc8b4",
+      "requestId": "Y8EyPPYGalhB5eNl9yAL",
+      "createdAt": "2026-09-15T23:15:44.925Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\22a5a83f85b3ad4273536a1d1395591760a183aed178f47e099d816d6d4df065.tempo.mp3",
+      "signature": "22a5a83f85b3ad4273536a1d1395591760a183aed178f47e099d816d6d4df065",
+      "request": {
+        "text": "Sunny?",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "a26d90b189510404eee1b94e5cbc0688dd1c73bbf17dc4a77339d6b31d7bcf57",
+      "requestId": "NqnRIHSDdBfXvATNIrOF",
+      "createdAt": "2026-09-15T23:16:53.067Z"
+    }
+  ],
+  "id": "LESSON-69EB63E4770F726DAB2111EC",
+  "text": "Rainy hay Sunny?",
+  "asset": "assets/audio/CURRICULUM/69eb63e4770f726dab2111ec.vi.v1.mp3",
+  "sha256": "5832ea8f9b31b111e0aa341bd8b1f18487ee8a46b67f90d36fb05a7b246760ec",
+  "durationSeconds": 2.709705,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

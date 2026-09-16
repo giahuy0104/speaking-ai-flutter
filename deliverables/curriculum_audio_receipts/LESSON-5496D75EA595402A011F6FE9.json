@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T04-B02\\C1315-L2-T04-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T04-B02-Q04",
+  "sourceText": "Mình không cần nó: I'll save my money hay I don't need it?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình không cần nó:",
+      "spoken_text": "Mình không cần nó:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "I'll save my money",
+      "spoken_text": "I'll save my money",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "I don't need it?",
+      "spoken_text": "I don't need it?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-5496D75EA595402A011F6FE9",
+  "text": "Mình không cần nó: I'll save my money hay I don't need it?",
+  "asset": "assets/audio/CURRICULUM/5496d75ea595402a011f6fe9.vi.v1.mp3",
+  "sha256": "434899dada88599f1022722993f8320455b905eb0970e1011b067cdf9c9ed862",
+  "durationSeconds": 4.874308
+}

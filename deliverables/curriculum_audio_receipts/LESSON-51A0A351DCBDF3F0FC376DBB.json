@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\MP3\\ROLEPLAY_03\\ROLEPLAY_03_TURN_03_CHILD_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "ROLEPLAY_03_TURN_03_EN",
+  "sourceText": "It's cheap.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75, VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "It's cheap.",
+      "generation_key": "f91f30810f5874d2"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-51A0A351DCBDF3F0FC376DBB",
+  "text": "It's cheap.",
+  "asset": "assets/audio/CURRICULUM/51a0a351dcbdf3f0fc376dbb.en.v1.mp3",
+  "sha256": "e2dd352d58180fffaa7caa75665a7805d7994e15b5ae004ab5b39b60e13ac31d",
+  "durationSeconds": 1.798095
+}

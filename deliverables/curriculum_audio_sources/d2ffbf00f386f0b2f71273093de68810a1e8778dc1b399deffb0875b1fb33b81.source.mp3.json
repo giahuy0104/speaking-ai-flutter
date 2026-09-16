@@ -1,0 +1,20 @@
+{
+  "signature": "d2ffbf00f386f0b2f71273093de68810a1e8778dc1b399deffb0875b1fb33b81",
+  "request": {
+    "text": "Best Way",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "cdd4e5829778538d68483430f5d972854c6c8e1c2cec1c94ef348548a6c7e7b5",
+  "requestId": "HrpY0kzDdRV4Inxs5hCT",
+  "createdAt": "2026-09-15T23:28:15.375Z"
+}

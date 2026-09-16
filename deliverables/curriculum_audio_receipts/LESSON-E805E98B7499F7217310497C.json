@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T01-B02\\C67-L1-T01-B02-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T01-B02-Q02",
+  "sourceText": "Chìa khóa: Key hay Lamp?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Chìa khóa:",
+      "spoken_text": "Chìa khóa:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Key",
+      "spoken_text": "Key",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Lamp?",
+      "spoken_text": "Lamp?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E805E98B7499F7217310497C",
+  "text": "Chìa khóa: Key hay Lamp?",
+  "asset": "assets/audio/CURRICULUM/e805e98b7499f7217310497c.vi.v1.mp3",
+  "sha256": "90919b3199205f02f9f95a89a3f5cc446d2e7a087712cbd8957fe5806adfb7ce",
+  "durationSeconds": 3.324354
+}

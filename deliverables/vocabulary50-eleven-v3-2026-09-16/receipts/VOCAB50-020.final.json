@@ -1,0 +1,22 @@
+{
+  "number": 20,
+  "id": "VOCAB50-020",
+  "text": "Bạn chưa có Ngôi sao nào. Bạn muốn học phần Ba mẹ đã thêm hay Luyện lại?",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-020.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "f199fa59e757df8198ed138ea55dd1f974bd0a9e8fe65b14b327c22da0e4f010",
+  "bytes": 99100,
+  "sourceDurationSeconds": 5.52,
+  "durationSeconds": 6.113719,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "9CZekZcEkntT8rPEJ5K0",
+  "characterCost": "40",
+  "createdAt": "2026-09-16T03:20:35.938Z"
+}

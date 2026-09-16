@@ -1,0 +1,27 @@
+{
+  "id": "AI-012",
+  "signature": "01bb8334c60b425e4719f2234dbf301714548fb0c467b972d187068385cf6ae5",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Chủ đề này chưa có bài học. Bạn chọn chủ đề khác nha.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:06:55.371Z",
+  "requestId": "928wPxFvCn5cWrxGOblD",
+  "characterCost": "29",
+  "sourceSha256": "1c52e10c2d6d14848c6f61a88e00078970aa5569fd3290a6cbeb110c3a61a4c1",
+  "asset": "assets/audio/MAIN/AI-012.vi.v1.mp3",
+  "finalSha256": "3dabde1f0d448445ed566c9cdf03050e40696ea88dd5a67a521ed785f37978cf",
+  "sourceDurationSeconds": 3.36,
+  "durationSeconds": 3.722472,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 60648
+}

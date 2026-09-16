@@ -1,0 +1,27 @@
+{
+  "id": "AI-001",
+  "signature": "6d6616fdc8f1e51e19d7b3d98bfdc2e692f7c1af1239e920bf1323a3800954fb",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "HOMI đây. Bạn muốn dịch sang tiếng Anh, học theo chủ đề hay học bộ từ vựng?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T19:41:03.525Z",
+  "requestId": "fPrIjGXjvDpDvinquBfJ",
+  "characterCost": "41",
+  "sourceSha256": "bfcf52db9c7d441b52be830afb86fe767448d8989f7c8f4be675a5f898b2b208",
+  "asset": "assets/audio/MAIN/AI-001.vi.v1.mp3",
+  "finalSha256": "eb24facb037b82b65a714b65795911445d34cbbf0d2c09bea2ad3f26dad8e272",
+  "sourceDurationSeconds": 5.04,
+  "durationSeconds": 5.583946,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 90323
+}

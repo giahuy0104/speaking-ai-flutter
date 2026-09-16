@@ -1,0 +1,27 @@
+{
+  "id": "SIL-004",
+  "signature": "b6a67f40c847d3683b08febe96a0e97fdee81a8f319082af69ea47520dc04928",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình dừng ở đây. Khi cần, bạn nhấn nút gọi HOMI nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:10:23.832Z",
+  "requestId": "dcSIH3b8J6xl4VOLlqU9",
+  "characterCost": "29",
+  "sourceSha256": "26678dffa4a212def333ad964da2d6d135456d124fec140a790feebbb0a7ca31",
+  "asset": "assets/audio/MAIN/SIL-004.vi.v1.mp3",
+  "finalSha256": "f75597f61e5f8a313b417e571cace6ad28a8d766da33cb5fdff46849cb781f80",
+  "sourceDurationSeconds": 3.76,
+  "durationSeconds": 4.160771,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 67753
+}

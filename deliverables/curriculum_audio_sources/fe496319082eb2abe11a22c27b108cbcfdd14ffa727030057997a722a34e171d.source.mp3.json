@@ -1,0 +1,20 @@
+{
+  "signature": "fe496319082eb2abe11a22c27b108cbcfdd14ffa727030057997a722a34e171d",
+  "request": {
+    "text": "A to I Letters",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "5f4964c1e6063a9c097a99190327e162616477e14c5ee53ac1f457a76b16c74d",
+  "requestId": "gDW2Cn3E4Ys0HjGiMqCE",
+  "createdAt": "2026-09-15T23:22:31.679Z"
+}

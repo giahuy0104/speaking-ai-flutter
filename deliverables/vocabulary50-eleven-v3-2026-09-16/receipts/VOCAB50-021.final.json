@@ -1,0 +1,22 @@
+{
+  "number": 21,
+  "id": "VOCAB50-021",
+  "text": "Bạn muốn học phần Ba mẹ đã thêm hay Luyện lại?",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-021.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "f030b99a1b68938e58114e6a00f855ae49bd45174c65da459f64b0d708a130b5",
+  "bytes": 53542,
+  "sourceDurationSeconds": 2.96,
+  "durationSeconds": 3.277959,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "nHOYtXqBg6prymXtYeXA",
+  "characterCost": "25",
+  "createdAt": "2026-09-16T03:20:37.867Z"
+}

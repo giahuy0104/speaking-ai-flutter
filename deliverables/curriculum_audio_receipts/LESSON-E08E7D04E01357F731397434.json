@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T07-B02\\C1315-L3-T07-B02-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T07-B02-Q08",
+  "sourceText": "Bạn muốn diễn đạt \"Lối ra ở đâu\". Where's the exit? hay One ticket, please?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Lối ra ở đâu\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Lối ra ở đâu\".",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Where's the exit?",
+      "spoken_text": "Where's the exit?",
+      "input_index": 45
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 46
+    },
+    {
+      "language": "en",
+      "text": "One ticket, please?",
+      "spoken_text": "One ticket, please?",
+      "input_index": 47
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E08E7D04E01357F731397434",
+  "text": "Bạn muốn diễn đạt \"Lối ra ở đâu\". Where's the exit? hay One ticket, please?",
+  "asset": "assets/audio/CURRICULUM/e08e7d04e01357f731397434.vi.v1.mp3",
+  "sha256": "4252560c6629c726b884110d7fe9242b0e10ed9ab81434afaeb427895baad77d",
+  "durationSeconds": 6.266757
+}

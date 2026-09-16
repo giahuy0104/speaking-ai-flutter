@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T05-B01\\C67-L2-T05-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T05-B01-Q03",
+  "sourceText": "Bút chì xanh lá: Green pencil hay Yellow cup?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bút chì xanh lá:",
+      "spoken_text": "Bút chì xanh lá:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Green pencil",
+      "spoken_text": "Green pencil",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Yellow cup?",
+      "spoken_text": "Yellow cup?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9477CCB5B6E2D2BFE93AEBEB",
+  "text": "Bút chì xanh lá: Green pencil hay Yellow cup?",
+  "asset": "assets/audio/CURRICULUM/9477ccb5b6e2d2bfe93aebeb.vi.v1.mp3",
+  "sha256": "817947dd5e03d10a66b3edd6e8b11c3c70d4df89f85d9382704ab0d976dfeaf4",
+  "durationSeconds": 5.336281
+}

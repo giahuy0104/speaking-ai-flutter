@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T07-B01\\C35-L3-T07-B01-T04_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T07-B01-T04_EN",
+  "sourceText": "Milk.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Milk.",
+      "generation_key": "1da55f19283f66e4"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-99527F2A564C93026FF2FD90",
+  "text": "Milk.",
+  "asset": "assets/audio/CURRICULUM/99527f2a564c93026ff2fd90.en.v1.mp3",
+  "sha256": "c3bad4356b539e017165a580d9e154bcc278a67aa965e2ed954fc3ab55441444",
+  "durationSeconds": 2.007075
+}

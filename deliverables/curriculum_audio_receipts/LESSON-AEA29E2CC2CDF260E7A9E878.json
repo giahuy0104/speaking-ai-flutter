@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T06-B02\\C67-L2-T06-B02-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T06-B02-Q03",
+  "sourceText": "Rửa mặt: Wash your face hay Take a bath?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Rửa mặt:",
+      "spoken_text": "Rửa mặt:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Wash your face",
+      "spoken_text": "Wash your face",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Take a bath?",
+      "spoken_text": "Take a bath?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-AEA29E2CC2CDF260E7A9E878",
+  "text": "Rửa mặt: Wash your face hay Take a bath?",
+  "asset": "assets/audio/CURRICULUM/aea29e2cc2cdf260e7a9e878.vi.v1.mp3",
+  "sha256": "ce6b20f875b4fde79db678025b81ec9680674cba60a83f76aed7a323103ceec7",
+  "durationSeconds": 4.7955
+}

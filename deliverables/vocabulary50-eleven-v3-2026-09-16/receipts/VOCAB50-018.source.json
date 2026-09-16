@@ -1,0 +1,22 @@
+{
+  "id": "VOCAB50-018",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Không có nội dung cần luyện lại. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "whSLeXjwc8mRtxfUMtcu",
+  "historyItemId": "ZLfvnj2dbix5LKWUkojW",
+  "characterCost": "43",
+  "createdAt": "2026-09-16T03:20:29.103Z",
+  "sourceSha256": "9cdb84f7b37a7397d6c18434ab3f3740ed5a17f14ccd453731a50ee8d4f1f074"
+}

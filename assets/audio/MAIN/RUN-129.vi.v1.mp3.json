@@ -1,0 +1,27 @@
+{
+  "id": "RUN-129",
+  "signature": "c4a7485f0467b31d7d3f6a3986ec3353b90b813621e3cce2286f0e32d7027d3a",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn nói tiếng Anh nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:15:00.187Z",
+  "requestId": "uN24VXtWmcnsBhPUkMwl",
+  "characterCost": "12",
+  "sourceSha256": "beb72cf2653f11876076e903a93ab27719c29747256adfe81b2a9670f0e1d3b5",
+  "asset": "assets/audio/MAIN/RUN-129.vi.v1.mp3",
+  "finalSha256": "ed4e29e1d6005e410e89355783835394b2032d04189ffb8804c15718b96c4639",
+  "sourceDurationSeconds": 1.2,
+  "durationSeconds": 1.315964,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 22195
+}

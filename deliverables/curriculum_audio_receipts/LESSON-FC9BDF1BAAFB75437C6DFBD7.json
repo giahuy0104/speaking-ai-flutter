@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T01-B02\\C67-L1-T01-B02-T03_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T01-B02-T03_EN",
+  "sourceText": "L. Lamp.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "L. Lamp.",
+      "generation_key": "8233f8c28cc11901"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-FC9BDF1BAAFB75437C6DFBD7",
+  "text": "L. Lamp.",
+  "asset": "assets/audio/CURRICULUM/fc9bdf1baafb75437c6dfbd7.en.v1.mp3",
+  "sha256": "d577c3bcf07b06bc6b9b97bb7067fd6bbc4bf9f655b5a7da8ba6da48b77e0cf6",
+  "durationSeconds": 2.007075
+}

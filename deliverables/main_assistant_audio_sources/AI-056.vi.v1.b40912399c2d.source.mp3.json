@@ -1,0 +1,20 @@
+{
+  "id": "AI-056",
+  "signature": "b40912399c2d44d1cbc79c994dcee974fbb7390729aa36df755c2d91bb08a639",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Gần được rồi! Bạn nghe lại câu này nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:09:57.942Z",
+  "requestId": "dG3um86HPTSzImA7DJQc",
+  "characterCost": "21",
+  "sourceSha256": "8215606d3dcef0137d4bcd53bd77d3115b7f825c423325a6464d9b7302932851"
+}

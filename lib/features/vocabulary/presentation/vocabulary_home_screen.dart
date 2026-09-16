@@ -28,6 +28,35 @@ const _reviewAsset = 'assets/images/vocabulary/review-book.png';
 const _avatarAsset = 'assets/images/mascot/penguin-avatar.png';
 const _waveAsset = 'assets/images/mascot/penguin-wave.png';
 
+class VocabularyHomeNavigationController {
+  Object? _owner;
+  Future<bool> Function()? _handleBack;
+  Future<void> Function()? _leaveForOtherContent;
+
+  Future<bool> handleBack() async => await _handleBack?.call() ?? false;
+
+  Future<void> leaveForOtherContent() async {
+    await _leaveForOtherContent?.call();
+  }
+
+  void _attach(
+    Object owner, {
+    required Future<bool> Function() handleBack,
+    required Future<void> Function() leaveForOtherContent,
+  }) {
+    _owner = owner;
+    _handleBack = handleBack;
+    _leaveForOtherContent = leaveForOtherContent;
+  }
+
+  void _detach(Object owner) {
+    if (!identical(_owner, owner)) return;
+    _owner = null;
+    _handleBack = null;
+    _leaveForOtherContent = null;
+  }
+}
+
 class VocabularyHomeScreen extends StatefulWidget {
   const VocabularyHomeScreen({
     required this.isReady,
@@ -49,6 +78,7 @@ class VocabularyHomeScreen extends StatefulWidget {
     this.childAge = 5,
     this.autoStartToday = false,
     this.onRequestVoiceChoice,
+    this.navigationController,
     super.key,
   });
 
@@ -70,6 +100,7 @@ class VocabularyHomeScreen extends StatefulWidget {
   final VocabularyFixedPromptAudioService? fixedPromptAudioService;
   final int childAge;
   final bool autoStartToday;
+  final VocabularyHomeNavigationController? navigationController;
   final Future<void> Function({
     String? noSpeechRetryPrompt,
     String? noSpeechExitPrompt,
@@ -164,6 +195,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     }
     _searchController.addListener(_refreshSearch);
     _storeSubscription = widget.store.changes.listen((_) => unawaited(_load()));
+    _attachNavigationController();
     unawaited(_load());
   }
 
@@ -181,9 +213,18 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   @override
   void didUpdateWidget(VocabularyHomeScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (!identical(
+      oldWidget.navigationController,
+      widget.navigationController,
+    )) {
+      oldWidget.navigationController?._detach(this);
+      _attachNavigationController();
+    }
     if (oldWidget.isActive != widget.isActive) {
       _syncActiveLearningRegistration();
-      if (widget.isActive && widget.autoStartToday) {
+      if (!widget.isActive) {
+        unawaited(_leavePlaybackForOtherContent());
+      } else if (widget.autoStartToday) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) unawaited(_maybeStartToday());
         });
@@ -193,6 +234,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   @override
   void dispose() {
+    widget.navigationController?._detach(this);
     _unregisterActiveLearningModule();
     _searchController
       ..removeListener(_refreshSearch)
@@ -209,6 +251,20 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       unawaited(_mediaService.dispose());
     }
     super.dispose();
+  }
+
+  void _attachNavigationController() {
+    widget.navigationController?._attach(
+      this,
+      handleBack: _handleNavigationBack,
+      leaveForOtherContent: _leavePlaybackForOtherContent,
+    );
+  }
+
+  Future<bool> _handleNavigationBack() async {
+    if (_selectedJourney == null) return false;
+    unawaited(_leavePlaybackForOtherContent());
+    return true;
   }
 
   void _syncActiveLearningRegistration() {

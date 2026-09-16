@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T08-B01\\C67-L3-T08-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T08-B01-Q07",
+  "sourceText": "Bạn muốn nói \"Chơi cùng mình nhé\". Play with me hay Yes, let's play?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Chơi cùng mình nhé\".",
+      "spoken_text": "Bạn muốn nói \"Chơi cùng mình nhé\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Play with me",
+      "spoken_text": "Play with me",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Yes, let's play?",
+      "spoken_text": "Yes, let's play?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-5DD4FCB74141CB2383534C70",
+  "text": "Bạn muốn nói \"Chơi cùng mình nhé\". Play with me hay Yes, let's play?",
+  "asset": "assets/audio/CURRICULUM/5dd4fcb74141cb2383534c70.vi.v1.mp3",
+  "sha256": "f52cf54efa9dc149060ce57350d3fe890fb53fdd80d39c705d51411f4f6b9766",
+  "durationSeconds": 6.470499
+}

@@ -1,0 +1,20 @@
+{
+  "signature": "417be8c5521295ffa6d8176210329c5de7a948e127a6d8666ef4c71c7fce10a5",
+  "request": {
+    "text": "Price & Budget.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "56c8123903559a8e9cbd4ed5460d58cadb568746cc9fec172a78b429bfe10c78",
+  "requestId": "9MyTc564WOerfeiTBSeE",
+  "createdAt": "2026-09-15T23:29:49.241Z"
+}

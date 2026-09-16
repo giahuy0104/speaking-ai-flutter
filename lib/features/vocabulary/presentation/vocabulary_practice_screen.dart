@@ -843,7 +843,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
 
   @override
   Widget build(BuildContext context) {
-    return DisplayLanguageScope(
+    final screen = DisplayLanguageScope(
       language: widget.language,
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -917,6 +917,13 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
           ),
         ),
       ),
+    );
+    return PopScope<VocabularyPracticeResult>(
+      canPop: !_isToday || _completed,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) unawaited(_exitPractice());
+      },
+      child: screen,
     );
   }
 

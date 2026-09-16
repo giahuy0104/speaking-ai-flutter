@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T09-B02\\C35-L3-T09-B02-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T09-B02-Q03",
+  "sourceText": "Áo thun: T-shirt hay Jacket?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Áo thun:",
+      "spoken_text": "Áo thun:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "T-shirt",
+      "spoken_text": "T-shirt",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Jacket?",
+      "spoken_text": "Jacket?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-B63A95EE837F1E95AFEB99EC",
+  "text": "Áo thun: T-shirt hay Jacket?",
+  "asset": "assets/audio/CURRICULUM/b63a95ee837f1e95afeb99ec.vi.v1.mp3",
+  "sha256": "2e77622d5f24f854288fb680e5a2bc5abfdbe2fbbfac18e6a39f2b0b131c4b97",
+  "durationSeconds": 3.743878
+}

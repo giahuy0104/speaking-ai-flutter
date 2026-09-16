@@ -76,6 +76,70 @@ void main() {
     expect(audio.spoken, ['en-US:Apple']);
   });
 
+  testWidgets('leaving the vocabulary tab stops active collection audio', (
+    tester,
+  ) async {
+    final active = ValueNotifier<bool>(true);
+    final audio = _BlockingVocabularyAudioService();
+    addTearDown(active.dispose);
+    addTearDown(() {
+      if (!audio.stopGate.isCompleted) audio.stopGate.complete();
+      if (!audio.speechGate.isCompleted) audio.speechGate.complete();
+    });
+    final store = _MemoryVocabularyStore(<VocabularyEntry>[
+      VocabularyEntry(
+        id: 'Apple',
+        word: 'Apple',
+        meaning: 'Quả táo',
+        addedAt: DateTime(2026, 9, 10),
+        status: VocabularyLearningStatus.learnedWell,
+        source: VocabularySource.parent,
+        parentState: ParentVocabularyState.unlocked,
+      ),
+    ]);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: ValueListenableBuilder<bool>(
+          valueListenable: active,
+          builder: (context, isActive, _) => DisplayLanguageScope(
+            language: DisplayLanguage.vietnamese,
+            child: VocabularyHomeScreen(
+              isReady: true,
+              isActive: isActive,
+              store: store,
+              mediaService: _ImmediateLessonMediaService(),
+              voicePromptService: const _FakeVoicePromptService(),
+              vocabularyAudioService: audio,
+              onReturnToConversation: () {},
+              onHistory: () {},
+              onSettings: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+    await tester.pumpAndSettle();
+    final play = find.byKey(const Key('vocabulary-family-action'));
+    await tester.ensureVisible(play);
+    await tester.tap(play);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(audio.spoken, ['en-US:Apple']);
+
+    active.value = false;
+    await tester.pump();
+
+    expect(audio.stopCalls, 1);
+    expect(find.byKey(const Key('vocabulary-family-card')), findsOneWidget);
+    audio.stopGate.complete();
+    await tester.pumpAndSettle();
+    expect(audio.spoken, ['en-US:Apple']);
+  });
+
   testWidgets('opens the three vocabulary journeys from the redesigned home', (
     tester,
   ) async {

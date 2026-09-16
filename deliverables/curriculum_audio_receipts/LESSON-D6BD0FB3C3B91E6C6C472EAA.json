@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T04-B01\\C67-L2-T04-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T04-B01-Q05",
+  "sourceText": "Sữa: Milk hay Apples?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Sữa:",
+      "spoken_text": "Sữa:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Milk",
+      "spoken_text": "Milk",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Apples?",
+      "spoken_text": "Apples?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-D6BD0FB3C3B91E6C6C472EAA",
+  "text": "Sữa: Milk hay Apples?",
+  "asset": "assets/audio/CURRICULUM/d6bd0fb3c3b91e6c6c472eaa.vi.v1.mp3",
+  "sha256": "ece829fdcf66ad9de5c8df8c73dc7a66cbba720cbf6ecd054130a32bbaf979f3",
+  "durationSeconds": 3.283875
+}

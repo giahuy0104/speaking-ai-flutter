@@ -1,0 +1,27 @@
+{
+  "id": "RUN-023",
+  "signature": "f5693f855f903e9d4cb87857af147940960e3112958eba0f8bbccae8101be4ed",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Cùng học tiếp nhé",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:11:46.040Z",
+  "requestId": "W1lSxL3Rb70jYNnV1DXg",
+  "characterCost": "9",
+  "sourceSha256": "c8a959f636cc629758ce2359fb5613656cf731a4c8b5d9e9ee600cfb3d8f9221",
+  "asset": "assets/audio/MAIN/RUN-023.vi.v1.mp3",
+  "finalSha256": "1a6c20a624c8ffea57b2c6b92c29de76166c63d14dcdc006d91c468c7b583e5e",
+  "sourceDurationSeconds": 0.96,
+  "durationSeconds": 1.052426,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 18016
+}

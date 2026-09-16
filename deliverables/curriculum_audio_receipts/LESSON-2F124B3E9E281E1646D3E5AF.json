@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07\\C1112-L3-M01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-M01",
+  "sourceText": "Bạn cần diễn đạt \"Nghe được đó\". Sounds good hay I'd love to?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Nghe được đó\".",
+      "text": "Bạn cần diễn đạt \"Nghe được đó\".",
+      "spoken_text": "Bạn cần diễn đạt \"Nghe được đó\".",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "source_text": "Sounds good",
+      "text": "Sounds good",
+      "spoken_text": "Sounds good",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "source_text": "I'd love to?",
+      "text": "I'd love to?",
+      "spoken_text": "I'd love to?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": "52e5795230a1b36fcb08fa07dd886a21c9eab9f5b0dea8333bab15d526e10d0e",
+  "id": "LESSON-2F124B3E9E281E1646D3E5AF",
+  "text": "Bạn cần diễn đạt \"Nghe được đó\". Sounds good hay I'd love to?",
+  "asset": "assets/audio/CURRICULUM/2f124b3e9e281e1646d3e5af.vi.v1.mp3",
+  "sha256": "52e5795230a1b36fcb08fa07dd886a21c9eab9f5b0dea8333bab15d526e10d0e",
+  "durationSeconds": 5.548571
+}

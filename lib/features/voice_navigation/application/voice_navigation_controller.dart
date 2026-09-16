@@ -567,6 +567,18 @@ class VoiceNavigationController extends ChangeNotifier {
           if (_disposed || generation != _generation) {
             return false;
           }
+          final budget = promptService is AuthoredPromptBudgetProvider
+              ? await (promptService as AuthoredPromptBudgetProvider)
+                    .authoredPromptBudget(
+                      utterance.text,
+                      locale: utterance.locale,
+                    )
+                    .timeout(
+                      const Duration(milliseconds: 700),
+                      onTimeout: () => null,
+                    )
+              : null;
+          if (_disposed || generation != _generation) return false;
           final promptPlayback =
               !kIsWeb && promptService is SelectedMediaOutputVoicePromptService
               ? (promptService as SelectedMediaOutputVoicePromptService)
@@ -579,7 +591,7 @@ class VoiceNavigationController extends ChangeNotifier {
                   locale: utterance.locale,
                 );
           await promptPlayback.timeout(
-            _voicePromptTimeout,
+            budget ?? _voicePromptTimeout,
             onTimeout: () => promptService.stop(),
           );
         }

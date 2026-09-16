@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T04-B03\\C1112-L2-T04-B03-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T04-B03-Q06",
+  "sourceText": "HOMI nói: Which is faster? Bạn chọn xe buýt. The bus is faster hay Walking is cheaper?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Which is faster?",
+      "spoken_text": "Which is faster?",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "Bạn chọn xe buýt.",
+      "spoken_text": "Bạn chọn xe buýt.",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "The bus is faster",
+      "spoken_text": "The bus is faster",
+      "input_index": 33
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 34
+    },
+    {
+      "language": "en",
+      "text": "Walking is cheaper?",
+      "spoken_text": "Walking is cheaper?",
+      "input_index": 35
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-64E4B9CEE8E3360D7DDB27AD",
+  "text": "HOMI nói: Which is faster? Bạn chọn xe buýt. The bus is faster hay Walking is cheaper?",
+  "asset": "assets/audio/CURRICULUM/64e4b9cee8e3360d7ddb27ad.vi.v1.mp3",
+  "sha256": "9a95c4b7e087921367252dc52f9ac20b1f12cd6d75cd570e8c7b7f0b29d54e99",
+  "durationSeconds": 8.794535
+}

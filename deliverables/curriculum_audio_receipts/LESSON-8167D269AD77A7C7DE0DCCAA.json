@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T06-B01\\C1315-L2-T06-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T06-B01-Q05",
+  "sourceText": "Tài khoản của mình: My account hay Personal photos?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Tài khoản của mình:",
+      "spoken_text": "Tài khoản của mình:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "My account",
+      "spoken_text": "My account",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Personal photos?",
+      "spoken_text": "Personal photos?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-8167D269AD77A7C7DE0DCCAA",
+  "text": "Tài khoản của mình: My account hay Personal photos?",
+  "asset": "assets/audio/CURRICULUM/8167d269ad77a7c7de0dccaa.vi.v1.mp3",
+  "sha256": "4ae15c1203d6e7467ec757f93546be0596dca3524ed97c71fede2cad090b7e36",
+  "durationSeconds": 6.45941
+}

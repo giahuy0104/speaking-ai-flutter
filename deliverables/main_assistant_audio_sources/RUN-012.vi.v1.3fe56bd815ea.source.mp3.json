@@ -1,0 +1,20 @@
+{
+  "id": "RUN-012",
+  "signature": "3fe56bd815ea0233124c5d8c841f6a6e5c6f6b21e02bfdb9ea6ab0fc6f9c9eb7",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Con mấy tuổi",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:11:26.015Z",
+  "requestId": "XLQfvztQHQ6mgjTlnKem",
+  "characterCost": "7",
+  "sourceSha256": "4994fa99e95a9c40e1a6b017eb4db84b5cf3338587404f907ee257d6e6255f13"
+}

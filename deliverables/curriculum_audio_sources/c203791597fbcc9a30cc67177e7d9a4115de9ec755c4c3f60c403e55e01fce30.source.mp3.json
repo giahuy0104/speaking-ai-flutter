@@ -1,0 +1,20 @@
+{
+  "signature": "c203791597fbcc9a30cc67177e7d9a4115de9ec755c4c3f60c403e55e01fce30",
+  "request": {
+    "text": "Save Resources",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "07852c51f90d5785594a5b16c8a592cdbe721ed89dd789bb80d78dcd020a978a",
+  "requestId": "YluDsyKQ4hiUmgLG3aWo",
+  "createdAt": "2026-09-15T23:29:08.614Z"
+}

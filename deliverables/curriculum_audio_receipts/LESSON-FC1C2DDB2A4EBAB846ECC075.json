@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\MP3\\static\\RESUME_CHALLENGE.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "RESUME_CHALLENGE",
+  "sourceText": "Mình tiếp tục câu thử thách nhé.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo applied after synthesis to each segment according to declared AUDIO_PLAN language, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình tiếp tục câu thử thách nhé.",
+      "generation_key": "0a154b5a62ec5ef0"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-FC1C2DDB2A4EBAB846ECC075",
+  "text": "Mình tiếp tục câu thử thách nhé.",
+  "asset": "assets/audio/CURRICULUM/fc1c2ddb2a4ebab846ecc075.vi.v1.mp3",
+  "sha256": "48ad75dfd6e8df158cbb60e04724fa13123f8881d5cdb11343d934309c21bbbf",
+  "durationSeconds": 2.051769
+}

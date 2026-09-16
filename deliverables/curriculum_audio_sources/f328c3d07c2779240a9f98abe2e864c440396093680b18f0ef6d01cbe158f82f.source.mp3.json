@@ -1,0 +1,20 @@
+{
+  "signature": "f328c3d07c2779240a9f98abe2e864c440396093680b18f0ef6d01cbe158f82f",
+  "request": {
+    "text": "Animal Names",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "1687e95d6765ba6fe423d470300d3cd26d172e22b9940d63811996d564f35b68",
+  "requestId": "D3aUvOL3Tars0tz0Etix",
+  "createdAt": "2026-09-15T23:23:46.150Z"
+}

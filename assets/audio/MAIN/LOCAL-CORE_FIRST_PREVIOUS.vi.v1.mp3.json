@@ -1,0 +1,27 @@
+{
+  "id": "LOCAL-CORE_FIRST_PREVIOUS",
+  "signature": "2895a5235d30bd8ea4004b594624de59e2319cf6cc60db89e666034765066c6c",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Đây là câu đầu tiên. Mình nghe lại nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:18:11.472Z",
+  "requestId": "2OQTyGQqpI1qQ58fE1ab",
+  "characterCost": "21",
+  "sourceSha256": "b55bb4b02c5fd333898a71f0da87c4aaab12408fdf87b35df4920220341bc1f8",
+  "asset": "assets/audio/MAIN/LOCAL-CORE_FIRST_PREVIOUS.vi.v1.mp3",
+  "finalSha256": "47326f5715e74036947e203fed726b3c5918693e69c1c3c87ab57a1a42ad365b",
+  "sourceDurationSeconds": 2.16,
+  "durationSeconds": 2.389501,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 39332
+}

@@ -106,6 +106,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   bool _voiceNavigationHelpShown = false;
   int? _activeVoiceTopicIndex;
   late final BackgroundLearningCoordinator _backgroundLearningCoordinator;
+  final VocabularyHomeNavigationController _vocabularyNavigationController =
+      VocabularyHomeNavigationController();
 
   final GlobalKey _speakActionKey = GlobalKey(
     debugLabel: 'onboarding-speak-action',
@@ -265,7 +267,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
             canPop: _page == 0,
             onPopInvokedWithResult: (didPop, _) {
               if (!didPop && _page == 1) {
-                _showConversation();
+                unawaited(_handleVocabularyBack());
               }
             },
             child: Stack(
@@ -291,6 +293,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                           VocabularyHomeScreen(
                             isReady: widget.controller.isInputAvailable,
                             isActive: _page == 1,
+                            navigationController:
+                                _vocabularyNavigationController,
                             childAge: widget.controller.childAge,
                             audioDependencies: widget.controller,
                             autoStartToday: true,
@@ -756,11 +760,19 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   void _showConversation() {
+    if (_page == 1) {
+      unawaited(_vocabularyNavigationController.leaveForOtherContent());
+    }
     _pageController.animateToPage(
       0,
       duration: _motionDuration,
       curve: Curves.easeOutCubic,
     );
+  }
+
+  Future<void> _handleVocabularyBack() async {
+    if (await _vocabularyNavigationController.handleBack()) return;
+    if (mounted) _showConversation();
   }
 
   Future<void> _openTopicListening({

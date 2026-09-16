@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T04-B02\\C1315-L2-T04-B02-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T04-B02-Q08",
+  "sourceText": "Bạn muốn diễn đạt \"Mình sẽ suy nghĩ thêm\". I'll think about it hay Is it worth it?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Mình sẽ suy nghĩ thêm\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Mình sẽ suy nghĩ thêm\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "I'll think about it",
+      "spoken_text": "I'll think about it",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Is it worth it?",
+      "spoken_text": "Is it worth it?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-55E99C78D885839041532D0B",
+  "text": "Bạn muốn diễn đạt \"Mình sẽ suy nghĩ thêm\". I'll think about it hay Is it worth it?",
+  "asset": "assets/audio/CURRICULUM/55e99c78d885839041532d0b.vi.v1.mp3",
+  "sha256": "c16685e7ecebc4854586e0bf4ab8552b92ffe61c40f28a27e838123e3dd8686e",
+  "durationSeconds": 6.672177
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B01\\C1112-L3-T09-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B01-Q07",
+  "sourceText": "Bạn muốn nói 'Mình quên bài tập.' Hoàn thành câu: I... forgot my homework hay missed the bus?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Mình quên bài tập.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mình quên bài tập.' Hoàn thành câu:",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "I... forgot my homework",
+      "spoken_text": "I... forgot my homework",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "missed the bus?",
+      "spoken_text": "missed the bus?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-3863D9E38153EE198E7EDB5D",
+  "text": "Bạn muốn nói 'Mình quên bài tập.' Hoàn thành câu: I... forgot my homework hay missed the bus?",
+  "asset": "assets/audio/CURRICULUM/3863d9e38153ee198e7edb5d.vi.v1.mp3",
+  "sha256": "dc10b40c6b00b7a8d04303d436aa37e2a25ed6a4fbf8e34c0270103765862c94",
+  "durationSeconds": 9.113129
+}

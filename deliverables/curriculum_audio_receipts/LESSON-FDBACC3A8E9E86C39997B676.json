@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T07-B01\\C810-L3-T07-B01-Q01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T07-B01-Q01",
+  "sourceText": "Áo: Shirt hay Shoes?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Áo:",
+      "spoken_text": "Áo:",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "text": "Shirt",
+      "spoken_text": "Shirt",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "text": "Shoes?",
+      "spoken_text": "Shoes?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-FDBACC3A8E9E86C39997B676",
+  "text": "Áo: Shirt hay Shoes?",
+  "asset": "assets/audio/CURRICULUM/fdbacc3a8e9e86c39997b676.vi.v1.mp3",
+  "sha256": "4e885c1c7757ed0a99d9592358843adfc54da3a09bb769a55ff1cf1d46c09c13",
+  "durationSeconds": 3.122494
+}

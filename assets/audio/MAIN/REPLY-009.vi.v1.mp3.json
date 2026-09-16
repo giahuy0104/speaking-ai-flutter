@@ -1,0 +1,27 @@
+{
+  "id": "REPLY-009",
+  "signature": "1f30f6b631bf045229f866daec725d7c061f71d5a42d273520e7393aeb01f18b",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Con đang ở bài đầu tiên rồi.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:18:16.101Z",
+  "requestId": "aDbNTvxNU7reoAkGLL4a",
+  "characterCost": "15",
+  "sourceSha256": "1cb08698b94af4805ef8fe5180d4bb194e2d4881a7df0d6d9280223ef9fdcd5f",
+  "asset": "assets/audio/MAIN/REPLY-009.vi.v1.mp3",
+  "finalSha256": "1feb2952850a783a94a69557131438fa2ae6e50ed5c70fdc83cf3718a1b35fc9",
+  "sourceDurationSeconds": 1.52,
+  "durationSeconds": 1.676848,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 28047
+}

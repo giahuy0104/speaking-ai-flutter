@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T09-B01\\C35-L3-T09-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T09-B01-Q07",
+  "sourceText": "Bạn muốn nói \"Trời mưa\". Rainy hay Cold?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Trời mưa\".",
+      "spoken_text": "Bạn muốn nói \"Trời mưa\".",
+      "input_index": 35
+    },
+    {
+      "language": "en",
+      "text": "Rainy",
+      "spoken_text": "Rainy",
+      "input_index": 36
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 37
+    },
+    {
+      "language": "en",
+      "text": "Cold?",
+      "spoken_text": "Cold?",
+      "input_index": 38
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-4D1ED209BF1275B160BE182A",
+  "text": "Bạn muốn nói \"Trời mưa\". Rainy hay Cold?",
+  "asset": "assets/audio/CURRICULUM/4d1ed209bf1275b160be182a.vi.v1.mp3",
+  "sha256": "ecc8d7fb1caad80eb34e34e83d5a5347b4372a2dfea25e90cca794662a80a129",
+  "durationSeconds": 5.030317
+}

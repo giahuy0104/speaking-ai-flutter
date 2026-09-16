@@ -1,0 +1,20 @@
+{
+  "id": "AI-052",
+  "signature": "b191a61036e71015ad54f8f78fded0d3c4e81195d7eeb12717708c79d4f937d2",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn làm tốt lắm. HOMI đã thêm câu này vào ngôi sao!",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:09:47.831Z",
+  "requestId": "ZpHD3jOD1diuyLjs0mGc",
+  "characterCost": "28",
+  "sourceSha256": "142e39dfb9b366c5cf78ba753c4a5543f3a41b8851512d3b70173ebc6a1049a0"
+}

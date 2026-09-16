@@ -1,0 +1,22 @@
+{
+  "number": 42,
+  "id": "VOCAB50-042",
+  "text": "Giỏi lắm!",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "reserve-variant",
+  "file": "audio/VOCAB50-042.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "5eb1c33e0a04686db959e2a0bd6874b49ca541925a9d2a22adf83028b72293b5",
+  "bytes": 13836,
+  "sourceDurationSeconds": 0.72,
+  "durationSeconds": 0.786054,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "mMW3P0YPv2pbZi6qauaU",
+  "characterCost": "5",
+  "createdAt": "2026-09-16T03:21:16.375Z"
+}

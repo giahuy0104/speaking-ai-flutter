@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T08\\C1112-L3-M06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-M06",
+  "sourceText": "Bạn cần diễn đạt \"Giày\". Shoes hay Price?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Giày\".",
+      "text": "Bạn cần diễn đạt \"Giày\".",
+      "spoken_text": "Bạn cần diễn đạt \"Giày\".",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "source_text": "Shoes",
+      "text": "Shoes",
+      "spoken_text": "Shoes",
+      "input_index": 33
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 34
+    },
+    {
+      "language": "en",
+      "source_text": "Price?",
+      "text": "Price?",
+      "spoken_text": "Price?",
+      "input_index": 35
+    }
+  ],
+  "sourceSha256": "b302d5fc31fdb30dfdc89b91be1e8963ada0b0066218fe9f89caa75d02e23e61",
+  "id": "LESSON-BCFFEA61057F5C08F6ED25B5",
+  "text": "Bạn cần diễn đạt \"Giày\". Shoes hay Price?",
+  "asset": "assets/audio/CURRICULUM/bcffea61057f5c08f6ed25b5.vi.v1.mp3",
+  "sha256": "b302d5fc31fdb30dfdc89b91be1e8963ada0b0066218fe9f89caa75d02e23e61",
+  "durationSeconds": 5.054331
+}

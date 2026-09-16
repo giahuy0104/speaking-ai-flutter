@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T08-B02\\C67-L3-T08-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T08-B02-Q04",
+  "sourceText": "Cảm ơn bạn: Good game hay Thank you?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Cảm ơn bạn:",
+      "spoken_text": "Cảm ơn bạn:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Good game",
+      "spoken_text": "Good game",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Thank you?",
+      "spoken_text": "Thank you?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-FED0573726A976E5130EB17D",
+  "text": "Cảm ơn bạn: Good game hay Thank you?",
+  "asset": "assets/audio/CURRICULUM/fed0573726a976e5130eb17d.vi.v1.mp3",
+  "sha256": "486434bf2760db717829f3982ce959df330b81f912d667f3137cef13c5cd5310",
+  "durationSeconds": 3.722177
+}

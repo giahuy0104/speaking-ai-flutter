@@ -1,0 +1,27 @@
+{
+  "id": "FB-004-2",
+  "signature": "a08e8a9a01347e8294305b71a30820eebc1b5b04bee9a42e384f1a9c8352dfd8",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "HOMI chưa nhận được chủ đề. Bạn có thể chọn trên điện thoại nha.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:10:37.917Z",
+  "requestId": "qsLUCB3DoSJwZNgr5OBI",
+  "characterCost": "35",
+  "sourceSha256": "c2d4f86e2d384fea0edbb4233052404a6474e830cfb232f5ec4a74485f0de8d3",
+  "asset": "assets/audio/MAIN/FB-004-2.vi.v1.mp3",
+  "finalSha256": "5c012de45bde6a688c954c5bc6ebad1c58d42a5e7f33f38403e9c5a91dd2b88b",
+  "sourceDurationSeconds": 4.08,
+  "durationSeconds": 4.522109,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 73604
+}

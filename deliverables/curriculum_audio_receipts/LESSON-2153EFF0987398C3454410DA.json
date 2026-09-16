@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T03-B02\\C810-L1-T03-B02-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T03-B02-Q03",
+  "sourceText": "Mình có thể đọc: I can read hay I can ride a bike?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình có thể đọc:",
+      "spoken_text": "Mình có thể đọc:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "I can read",
+      "spoken_text": "I can read",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "I can ride a bike?",
+      "spoken_text": "I can ride a bike?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-2153EFF0987398C3454410DA",
+  "text": "Mình có thể đọc: I can read hay I can ride a bike?",
+  "asset": "assets/audio/CURRICULUM/2153eff0987398c3454410da.vi.v1.mp3",
+  "sha256": "104c403eae79d0fce3739561cbae149048e04fbf6eb2bdfbb239de5f703f14cd",
+  "durationSeconds": 6.137755
+}

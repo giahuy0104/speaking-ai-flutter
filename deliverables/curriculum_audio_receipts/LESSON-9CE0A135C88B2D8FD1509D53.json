@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T09-B02\\C810-L3-T09-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T09-B02-Q05",
+  "sourceText": "Mình đã bị ngã: I fell down hay I played soccer?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình đã bị ngã:",
+      "spoken_text": "Mình đã bị ngã:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "I fell down",
+      "spoken_text": "I fell down",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "I played soccer?",
+      "spoken_text": "I played soccer?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9CE0A135C88B2D8FD1509D53",
+  "text": "Mình đã bị ngã: I fell down hay I played soccer?",
+  "asset": "assets/audio/CURRICULUM/9ce0a135c88b2d8fd1509d53.vi.v1.mp3",
+  "sha256": "4e706ab2140d3abf0bc1fc4c04719e05dbf0df53d16e6257f313ca15acc09bc9",
+  "durationSeconds": 4.614399
+}

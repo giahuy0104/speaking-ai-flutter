@@ -1,0 +1,1022 @@
+[
+  {
+    "source": "lib/app/ai_speaking_app.dart",
+    "line": 1320,
+    "code": "await _controller?.speakAssistantPrompt(reply);"
+  },
+  {
+    "source": "lib/app/ai_speaking_app.dart",
+    "line": 1446,
+    "code": "await _controller?.speakAssistantPrompt('Đã dừng.');"
+  },
+  {
+    "source": "lib/app/ai_speaking_app.dart",
+    "line": 1471,
+    "code": "await controller.speakAssistantPrompt('Đã dừng.');"
+  },
+  {
+    "source": "lib/app/ai_speaking_app.dart",
+    "line": 1475,
+    "code": "await controller.speakAssistantPrompt('Đã dừng.');"
+  },
+  {
+    "source": "lib/app/ai_speaking_app.dart",
+    "line": 1492,
+    "code": "await _controller?.speakAssistantPrompt('Cùng học tiếp nhé');"
+  },
+  {
+    "source": "lib/app/ai_speaking_app.dart",
+    "line": 1514,
+    "code": "await _controller?.speakAssistantPrompt('Đã dừng.');"
+  },
+  {
+    "source": "lib/app/ai_speaking_app.dart",
+    "line": 1717,
+    "code": "await controller.speakAssistantPrompt("
+  },
+  {
+    "source": "lib/app/ai_speaking_app.dart",
+    "line": 1758,
+    "code": "await controller.speakAssistantPrompt("
+  },
+  {
+    "source": "lib/app/ai_speaking_app.dart",
+    "line": 1801,
+    "code": "await controller.speakAssistantPrompt(promptText);"
+  },
+  {
+    "source": "lib/core/audio/coordinated_voice_prompt_service.dart",
+    "line": 45,
+    "code": "Future<void> speak(String text, {String locale = 'vi-VN'}) =>"
+  },
+  {
+    "source": "lib/core/audio/coordinated_voice_prompt_service.dart",
+    "line": 46,
+    "code": "_runPrompt(() => _delegate.speak(text, locale: locale));"
+  },
+  {
+    "source": "lib/core/audio/coordinated_voice_prompt_service.dart",
+    "line": 49,
+    "code": "Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) =>"
+  },
+  {
+    "source": "lib/core/audio/coordinated_voice_prompt_service.dart",
+    "line": 50,
+    "code": "_runPrompt(() => _delegate.speakAndWait(text, locale: locale));"
+  },
+  {
+    "source": "lib/core/audio/coordinated_voice_prompt_service.dart",
+    "line": 53,
+    "code": "Future<void> speakAndWaitOnPhoneSpeaker("
+  },
+  {
+    "source": "lib/core/audio/coordinated_voice_prompt_service.dart",
+    "line": 60,
+    "code": ".speakAndWaitOnPhoneSpeaker(text, locale: locale)"
+  },
+  {
+    "source": "lib/core/audio/coordinated_voice_prompt_service.dart",
+    "line": 61,
+    "code": ": delegate.speakAndWait(text, locale: locale);"
+  },
+  {
+    "source": "lib/core/audio/coordinated_voice_prompt_service.dart",
+    "line": 65,
+    "code": "Future<void> speakAndWaitOnSelectedMediaOutput("
+  },
+  {
+    "source": "lib/core/audio/coordinated_voice_prompt_service.dart",
+    "line": 72,
+    "code": ".speakAndWaitOnSelectedMediaOutput(text, locale: locale)"
+  },
+  {
+    "source": "lib/core/audio/coordinated_voice_prompt_service.dart",
+    "line": 73,
+    "code": ": delegate.speakAndWait(text, locale: locale);"
+  },
+  {
+    "source": "lib/core/audio/coordinated_voice_prompt_service.dart",
+    "line": 85,
+    "code": "Future<void> speakAndWaitStyled("
+  },
+  {
+    "source": "lib/core/audio/coordinated_voice_prompt_service.dart",
+    "line": 94,
+    "code": ".speakAndWaitStyled("
+  },
+  {
+    "source": "lib/core/audio/coordinated_voice_prompt_service.dart",
+    "line": 103,
+    "code": ".speakAndWaitOnSelectedMediaOutput(text, locale: locale)"
+  },
+  {
+    "source": "lib/core/audio/coordinated_voice_prompt_service.dart",
+    "line": 104,
+    "code": ": delegate.speakAndWait(text, locale: locale);"
+  },
+  {
+    "source": "lib/core/audio/main_assistant_audio_prompt_service.dart",
+    "line": 211,
+    "code": "Future<void> speak(String text, {String locale = 'vi-VN'}) =>"
+  },
+  {
+    "source": "lib/core/audio/main_assistant_audio_prompt_service.dart",
+    "line": 212,
+    "code": "_play(text, locale, () => _delegate.speak(text, locale: locale));"
+  },
+  {
+    "source": "lib/core/audio/main_assistant_audio_prompt_service.dart",
+    "line": 215,
+    "code": "Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) =>"
+  },
+  {
+    "source": "lib/core/audio/main_assistant_audio_prompt_service.dart",
+    "line": 216,
+    "code": "_play(text, locale, () => _delegate.speakAndWait(text, locale: locale));"
+  },
+  {
+    "source": "lib/core/audio/main_assistant_audio_prompt_service.dart",
+    "line": 219,
+    "code": "Future<void> speakAndWaitOnSelectedMediaOutput("
+  },
+  {
+    "source": "lib/core/audio/main_assistant_audio_prompt_service.dart",
+    "line": 226,
+    "code": ".speakAndWaitOnSelectedMediaOutput(text, locale: locale)"
+  },
+  {
+    "source": "lib/core/audio/main_assistant_audio_prompt_service.dart",
+    "line": 227,
+    "code": ": delegate.speakAndWait(text, locale: locale);"
+  },
+  {
+    "source": "lib/core/audio/main_assistant_audio_prompt_service.dart",
+    "line": 231,
+    "code": "Future<void> speakAndWaitOnPhoneSpeaker("
+  },
+  {
+    "source": "lib/core/audio/main_assistant_audio_prompt_service.dart",
+    "line": 238,
+    "code": ".speakAndWaitOnPhoneSpeaker(text, locale: locale)"
+  },
+  {
+    "source": "lib/core/audio/main_assistant_audio_prompt_service.dart",
+    "line": 239,
+    "code": ": delegate.speakAndWait(text, locale: locale);"
+  },
+  {
+    "source": "lib/core/audio/main_assistant_audio_prompt_service.dart",
+    "line": 244,
+    "code": "Future<void> speakAndWaitStyled("
+  },
+  {
+    "source": "lib/core/audio/main_assistant_audio_prompt_service.dart",
+    "line": 254,
+    "code": ".speakAndWaitStyled("
+  },
+  {
+    "source": "lib/core/audio/main_assistant_audio_prompt_service.dart",
+    "line": 261,
+    "code": "await delegate.speakAndWait(text, locale: locale);"
+  },
+  {
+    "source": "lib/core/audio/voice_prompt_service_base.dart",
+    "line": 23,
+    "code": "Future<void> speak(String text, {String locale = 'vi-VN'});"
+  },
+  {
+    "source": "lib/core/audio/voice_prompt_service_base.dart",
+    "line": 26,
+    "code": "Future<void> speakAndWait(String text, {String locale = 'vi-VN'});"
+  },
+  {
+    "source": "lib/core/audio/voice_prompt_service_base.dart",
+    "line": 43,
+    "code": "Future<void> speakAndWaitOnPhoneSpeaker("
+  },
+  {
+    "source": "lib/core/audio/voice_prompt_service_base.dart",
+    "line": 54,
+    "code": "Future<void> speakAndWaitOnSelectedMediaOutput("
+  },
+  {
+    "source": "lib/core/audio/voice_prompt_service_base.dart",
+    "line": 62,
+    "code": "Future<void> speakAndWaitStyled("
+  },
+  {
+    "source": "lib/core/audio/voice_prompt_service_native.dart",
+    "line": 59,
+    "code": "Future<void> speak(String text, {String locale = 'vi-VN'}) async {"
+  },
+  {
+    "source": "lib/core/audio/voice_prompt_service_native.dart",
+    "line": 64,
+    "code": "Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {"
+  },
+  {
+    "source": "lib/core/audio/voice_prompt_service_native.dart",
+    "line": 69,
+    "code": "Future<void> speakAndWaitOnPhoneSpeaker("
+  },
+  {
+    "source": "lib/core/audio/voice_prompt_service_native.dart",
+    "line": 82,
+    "code": "Future<void> speakAndWaitOnSelectedMediaOutput("
+  },
+  {
+    "source": "lib/core/audio/voice_prompt_service_native.dart",
+    "line": 126,
+    "code": "Future<void> speakAndWaitStyled("
+  },
+  {
+    "source": "lib/core/audio/voice_prompt_service_web.dart",
+    "line": 10,
+    "code": "external void _speakPrompt(JSString text, JSString locale);"
+  },
+  {
+    "source": "lib/core/audio/voice_prompt_service_web.dart",
+    "line": 13,
+    "code": "external JSPromise<JSString> _speakPromptAndWait("
+  },
+  {
+    "source": "lib/core/audio/voice_prompt_service_web.dart",
+    "line": 45,
+    "code": "Future<void> speak(String text, {String locale = 'vi-VN'}) async {"
+  },
+  {
+    "source": "lib/core/audio/voice_prompt_service_web.dart",
+    "line": 49,
+    "code": "_speakPrompt(text.trim().toJS, locale.toJS);"
+  },
+  {
+    "source": "lib/core/audio/voice_prompt_service_web.dart",
+    "line": 53,
+    "code": "Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {"
+  },
+  {
+    "source": "lib/core/audio/voice_prompt_service_web.dart",
+    "line": 59,
+    "code": "await _speakPromptAndWait("
+  },
+  {
+    "source": "lib/core/audio/voice_prompt_service_web.dart",
+    "line": 71,
+    "code": "Future<void> speakAndWaitOnPhoneSpeaker("
+  },
+  {
+    "source": "lib/core/audio/voice_prompt_service_web.dart",
+    "line": 74,
+    "code": "}) => speakAndWait(text, locale: locale);"
+  },
+  {
+    "source": "lib/features/conversation/presentation/conversation_controller.dart",
+    "line": 3249,
+    "code": "await _speakOfflineTranslation("
+  },
+  {
+    "source": "lib/features/conversation/presentation/conversation_controller.dart",
+    "line": 3431,
+    "code": "unawaited(_speakUnclearSpeechPrompt());"
+  },
+  {
+    "source": "lib/features/conversation/presentation/conversation_controller.dart",
+    "line": 3714,
+    "code": "Future<void> _speakOfflineTranslation("
+  },
+  {
+    "source": "lib/features/conversation/presentation/conversation_controller.dart",
+    "line": 3732,
+    "code": ".speakAndWaitStyled("
+  },
+  {
+    "source": "lib/features/conversation/presentation/conversation_controller.dart",
+    "line": 3740,
+    "code": ".speakAndWaitOnSelectedMediaOutput(text, locale: 'en-US');"
+  },
+  {
+    "source": "lib/features/conversation/presentation/conversation_controller.dart",
+    "line": 3742,
+    "code": "await promptService.speakAndWait(text, locale: 'en-US');"
+  },
+  {
+    "source": "lib/features/conversation/presentation/conversation_controller.dart",
+    "line": 4046,
+    "code": "unawaited(_speakUnclearSpeechPrompt());"
+  },
+  {
+    "source": "lib/features/conversation/presentation/conversation_controller.dart",
+    "line": 4052,
+    "code": "Future<void> _speakUnclearSpeechPrompt() async {"
+  },
+  {
+    "source": "lib/features/conversation/presentation/conversation_controller.dart",
+    "line": 4053,
+    "code": "await _voicePromptService?.speak(_unclearSpeechMessage);"
+  },
+  {
+    "source": "lib/features/conversation/presentation/conversation_controller.dart",
+    "line": 4056,
+    "code": "Future<void> speakAssistantPrompt(String text) async {"
+  },
+  {
+    "source": "lib/features/conversation/presentation/conversation_controller.dart",
+    "line": 4057,
+    "code": "await _voicePromptService?.speakAndWait(text);"
+  },
+  {
+    "source": "lib/features/listening/application/lesson_media_service.dart",
+    "line": 169,
+    "code": "Future<void> playToCompletion("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_challenge_screen.dart",
+    "line": 301,
+    "code": "await _speakPromptAndWait(_challenge.prompt);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_challenge_screen.dart",
+    "line": 303,
+    "code": "await _speakPromptAndWait('Bạn nói đáp án bằng tiếng Anh nhé.');"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_challenge_screen.dart",
+    "line": 339,
+    "code": "Future<void> _speakPromptAndWait("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_challenge_screen.dart",
+    "line": 361,
+    "code": "await _prompt.speakAndWait(text, locale: locale);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_challenge_screen.dart",
+    "line": 598,
+    "code": "await widget.mediaService.playToCompletion("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_challenge_screen.dart",
+    "line": 656,
+    "code": "await _speakFeedback(LessonFeedbackKind.correct);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_challenge_screen.dart",
+    "line": 663,
+    "code": "await _speakFeedback(LessonFeedbackKind.asr);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_challenge_screen.dart",
+    "line": 668,
+    "code": "await _speakFeedback(LessonFeedbackKind.noResponse);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_challenge_screen.dart",
+    "line": 675,
+    "code": "await _speakFeedback(LessonFeedbackKind.retry);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_challenge_screen.dart",
+    "line": 693,
+    "code": "unawaited(_speakPromptAndWait('Mình tạm dừng nhé.'));"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_challenge_screen.dart",
+    "line": 714,
+    "code": "Future<void> _speakFeedback(LessonFeedbackKind kind) async {"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_challenge_screen.dart",
+    "line": 725,
+    "code": "await _speakPromptAndWait(message);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_challenge_screen.dart",
+    "line": 734,
+    "code": "await _speakFeedback(LessonFeedbackKind.skip);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_challenge_screen.dart",
+    "line": 736,
+    "code": "await _speakFeedback(LessonFeedbackKind.give);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_challenge_screen.dart",
+    "line": 741,
+    "code": "await _speakPromptAndWait(_expectedEnglish, locale: 'en-US');"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_intro_screen.dart",
+    "line": 151,
+    "code": ".speakAndWaitOnSelectedMediaOutput(text);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_intro_screen.dart",
+    "line": 153,
+    "code": "await prompt.speakAndWait(text);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_intro_screen.dart",
+    "line": 165,
+    "code": "await widget.mediaService.playToCompletion(uri);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 866,
+    "code": "await _playPrompt(_repeatTargetPrompt);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 877,
+    "code": "() => _voicePromptService.speakAndWait("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 883,
+    "code": "await _playPrompt(_repeatTargetPrompt);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 957,
+    "code": "await widget.mediaService.playToCompletion("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 1205,
+    "code": "unawaited(_playGuideCue(LessonGuideCue.praise));"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 1444,
+    "code": "await _playPrompt(correctPrompt);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 1485,
+    "code": "await _playPrompt(prompt);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 1506,
+    "code": "await _playPrompt("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 1532,
+    "code": "await _playPrompt(prompt);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 1594,
+    "code": "_playPrompt("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 1688,
+    "code": "await _playPrompt(prompt);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 1698,
+    "code": "await _playPrompt(prompt);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 1807,
+    "code": "await _voicePromptService.speakAndWait('Bạn vừa nhận Ngôi sao đầu tiên!');"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 1816,
+    "code": "await widget.mediaService.playToCompletion("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 1875,
+    "code": "await _playPrompt("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 1881,
+    "code": "await _playPrompt(LessonGuideFlowV2.completionChoice);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 1914,
+    "code": "await _playPrompt("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 1930,
+    "code": "await _playGuideCueWithBusyState(LessonGuideCue.praise);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 2013,
+    "code": "await _playPrompt(LessonGuideFlowV2.needsPractice);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 2015,
+    "code": "await _playGuideCueWithBusyState(LessonGuideCue.skip);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 2038,
+    "code": "await _voicePromptService.speakAndWait("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 2140,
+    "code": "await _voicePromptService.speakAndWait("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 2144,
+    "code": "await _voicePromptService.speakAndWait("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 2184,
+    "code": "await _voicePromptService.speakAndWait("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 2206,
+    "code": "await _voicePromptService.speakAndWait("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 2271,
+    "code": "await _voicePromptService.speakAndWait("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 2279,
+    "code": "await _voicePromptService.speakAndWait("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 2287,
+    "code": "await _voicePromptService.speakAndWait("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 2339,
+    "code": "await _voicePromptService.speakAndWait(prompt);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 2634,
+    "code": "await _voicePromptService.speakAndWait(message);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3136,
+    "code": "await _playPrompt(LessonGuideFlowV2.topicCompleted);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3165,
+    "code": "await _playPrompt(LessonGuideFlowV2.completionChoiceUnclear);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3239,
+    "code": "await _playPrompt(LessonGuideFlowV2.completionChoice);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3287,
+    "code": "unawaited(_playGuideCue(LessonGuideCue.idleFirst));"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3304,
+    "code": "unawaited(_playGuideCue(LessonGuideCue.idleSecond));"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3325,
+    "code": "Future<bool> _playGuideCue(LessonGuideCue cue) async {"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3331,
+    "code": "await widget.mediaService.playToCompletion("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3370,
+    "code": "await _playPrompt(LessonGuideFlowV2.beforeSentence);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3389,
+    "code": "await _playPrompt(_repeatTargetPrompt);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3402,
+    "code": "Future<void> _playPrompt(LessonGuidePrompt prompt) async {"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3416,
+    "code": "await widget.mediaService.playToCompletion("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3428,
+    "code": "await _speakLessonPrompt(prompt.text);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3431,
+    "code": "Future<void> _speakLessonPrompt("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3438,
+    "code": ".speakAndWaitOnSelectedMediaOutput(text, locale: locale);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3441,
+    "code": "await promptService.speakAndWait(text, locale: locale);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3463,
+    "code": "await widget.mediaService.playToCompletion("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3476,
+    "code": "await _speakLessonPrompt(_sentence.vietnamese, locale: 'vi-VN');"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3614,
+    "code": "await widget.mediaService.playToCompletion("
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3626,
+    "code": "await _speakLessonPrompt(_sentence.english, locale: 'en-US');"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3641,
+    "code": "await widget.mediaService.playToCompletion(uri);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3645,
+    "code": "await _playPrompt(_repeatTargetPrompt);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3649,
+    "code": "await widget.mediaService.playToCompletion(uri);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3653,
+    "code": "await _playGuideCue(LessonGuideCue.record);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3656,
+    "code": "Future<void> _playGuideCueWithBusyState(LessonGuideCue cue) async {"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+    "line": 3662,
+    "code": "await _playGuideCue(cue);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_review_screen.dart",
+    "line": 539,
+    "code": "await _prompt.speakAndWait(prompt);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_review_screen.dart",
+    "line": 614,
+    "code": "await widget.mediaService.playToCompletion(fullAudio);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_review_screen.dart",
+    "line": 638,
+    "code": "await widget.mediaService.playToCompletion(uri);"
+  },
+  {
+    "source": "lib/features/listening/presentation/lesson_review_screen.dart",
+    "line": 682,
+    "code": "await widget.mediaService.playToCompletion(sentence.audioUri!);"
+  },
+  {
+    "source": "lib/features/listening/presentation/topic_lesson_list_screen.dart",
+    "line": 426,
+    "code": "await _voicePromptService.speakAndWait(message);"
+  },
+  {
+    "source": "lib/features/listening/presentation/topic_listening_screen.dart",
+    "line": 580,
+    "code": "await _voicePromptService.speakAndWait(prompt);"
+  },
+  {
+    "source": "lib/features/listening/presentation/topic_listening_screen.dart",
+    "line": 678,
+    "code": "await _voicePromptService.speakAndWait("
+  },
+  {
+    "source": "lib/features/listening/presentation/topic_listening_screen.dart",
+    "line": 764,
+    "code": "await _voicePromptService.speakAndWait(message);"
+  },
+  {
+    "source": "lib/features/listening/presentation/topic_listening_screen.dart",
+    "line": 811,
+    "code": "await _voicePromptService.speakAndWait("
+  },
+  {
+    "source": "lib/features/listening/presentation/topic_listening_screen.dart",
+    "line": 885,
+    "code": "await _voicePromptService.speakAndWait(message);"
+  },
+  {
+    "source": "lib/features/listening/presentation/v4_song_stage_screen.dart",
+    "line": 87,
+    "code": "await _prompt.speakAndWait("
+  },
+  {
+    "source": "lib/features/listening/presentation/v4_song_stage_screen.dart",
+    "line": 116,
+    "code": "await widget.mediaService.playToCompletion("
+  },
+  {
+    "source": "lib/features/vocabulary/application/vocabulary_audio_service.dart",
+    "line": 17,
+    "code": "Future<VocabularyAudioSource> speakAndWait("
+  },
+  {
+    "source": "lib/features/vocabulary/application/vocabulary_audio_service.dart",
+    "line": 63,
+    "code": "Future<VocabularyAudioSource> speakAndWait("
+  },
+  {
+    "source": "lib/features/vocabulary/application/vocabulary_audio_service.dart",
+    "line": 75,
+    "code": "await playToCompletion(cached);"
+  },
+  {
+    "source": "lib/features/vocabulary/application/vocabulary_fixed_prompt_audio_service.dart",
+    "line": 38,
+    "code": "await _mediaService.playToCompletion(uri);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 152,
+    "code": "nativeSpeakAndWait: (text, locale) => _speakOnSelectedOutput("
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1197,
+    "code": "await _speakAndRequestChoice("
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1221,
+    "code": "await _speakOnSelectedOutput(VocabularyFlowV3.finishActiveGroupFirst);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1229,
+    "code": "await _speakAndRequestChoice(VocabularyFlowV3.reviewEmpty);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1293,
+    "code": "await _speakAndRequestChoice(VocabularyFlowV3.menu);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1297,
+    "code": "await _speakAndRequestChoice(VocabularyFlowV3.reviewOtherMenu);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1314,
+    "code": "await _speakAndRequestChoice(prompt);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1337,
+    "code": "await _speakAndRequestChoice("
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1359,
+    "code": "await _speakOnSelectedOutput(VocabularyFlowV3.resumeStars);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1361,
+    "code": "await _speakOnSelectedOutput("
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1435,
+    "code": "final played = await _speakVocabularyEntry("
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1456,
+    "code": "await _speakAndRequestChoice("
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1472,
+    "code": "await _speakAndRequestChoice("
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1492,
+    "code": "Future<bool> _speakVocabularyEntry("
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1509,
+    "code": "await _speakVocabularyText(entry, entry.word, locale: 'en-US');"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1513,
+    "code": "await _speakVocabularyText(entry, entry.meaning, locale: 'vi-VN');"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1519,
+    "code": "await _speakOnSelectedOutput(VocabularyFlowV3.starMyVoice);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1528,
+    "code": "await _mediaService.playToCompletion(uri);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1550,
+    "code": "await _speakOnSelectedOutput(VocabularyFlowV3.resumeStars);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1600,
+    "code": "await _speakOnSelectedOutput("
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1655,
+    "code": "await _speakAndRequestChoice("
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1696,
+    "code": "await _speakOnSelectedOutput(VocabularyFlowV3.finishActiveGroupFirst);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1730,
+    "code": "await _speakAndRequestChoice("
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1739,
+    "code": "Future<void> _speakAndRequestChoice(String prompt) async {"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1740,
+    "code": "await _speakOnSelectedOutput(prompt);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1970,
+    "code": "Future<void> _speakOnSelectedOutput("
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1983,
+    "code": ".speakAndWaitOnSelectedMediaOutput(text, locale: locale);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1986,
+    "code": "await promptService.speakAndWait(text, locale: locale);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1989,
+    "code": "Future<void> _speakVocabularyText("
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1996,
+    "code": "await audio.speakAndWait(text, locale: locale);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+    "line": 1999,
+    "code": "await _speakOnSelectedOutput(text, locale: locale, allowFixedPrompt: false);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart",
+    "line": 261,
+    "code": "await _speakAndWait("
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart",
+    "line": 266,
+    "code": "await _speakAndWait("
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart",
+    "line": 273,
+    "code": "await _speakVocabularyText(entry, entry.word, locale: 'en-US');"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart",
+    "line": 278,
+    "code": "await _speakVocabularyText(entry, entry.meaning, locale: 'vi-VN');"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart",
+    "line": 554,
+    "code": "await _speakVocabularyText(entry, entry.word, locale: 'en-US');"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart",
+    "line": 577,
+    "code": "await _speakAndWait(VocabularyFlowV3.pauseAfterNoResponse);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart",
+    "line": 605,
+    "code": "await _speakAndWait(entry.word, locale: 'en-US');"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart",
+    "line": 645,
+    "code": "await _speakAndWait(_message);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart",
+    "line": 1047,
+    "code": "await _speakAndWait(VocabularyFlowV3.finishActiveGroupFirst);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart",
+    "line": 1057,
+    "code": "Future<void> _speakAndWait("
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart",
+    "line": 1071,
+    "code": ".speakAndWaitOnSelectedMediaOutput(text, locale: locale);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart",
+    "line": 1074,
+    "code": "await promptService.speakAndWait(text, locale: locale);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart",
+    "line": 1084,
+    "code": "await _speakAndWait(prompt.text, allowFixedPrompt: false);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart",
+    "line": 1087,
+    "code": "Future<void> _speakVocabularyText("
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart",
+    "line": 1094,
+    "code": "await audio.speakAndWait(text, locale: locale);"
+  },
+  {
+    "source": "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart",
+    "line": 1097,
+    "code": "await _speakAndWait(text, locale: locale, allowFixedPrompt: false);"
+  },
+  {
+    "source": "lib/features/voice_navigation/application/voice_navigation_controller.dart",
+    "line": 585,
+    "code": ".speakAndWaitOnSelectedMediaOutput("
+  },
+  {
+    "source": "lib/features/voice_navigation/application/voice_navigation_controller.dart",
+    "line": 589,
+    "code": ": promptService.speakAndWait("
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "id": "RUN-158",
+  "signature": "69dbd26dd5388c982d13ef031a1f574b9a5389fec5ad78be3f141643d9906ac0",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Giỏi lắm! Con đã hoàn thành bài học. Bấm nút Main rồi nói “Luyện nghe” để chọn bài khác, hoặc nói “Luyện lại” để học lại từ đầu nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:18:36.582Z",
+  "requestId": "r9O5rZMMYjDpJDtn9QEZ",
+  "characterCost": "73",
+  "sourceSha256": "2a07ff012922a7e4527a3e4d75b43b7e46b6e31c715ed31f2ffed954e0724560"
+}

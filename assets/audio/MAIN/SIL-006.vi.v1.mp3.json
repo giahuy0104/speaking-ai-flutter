@@ -1,0 +1,27 @@
+{
+  "id": "SIL-006",
+  "signature": "291fb600e1fc03719d74867d23938e4a3d01bf69335e86958228087eaed5f714",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Ở đây hơi ồn. Bạn đưa micro lại gần, tránh hướng quạt hoặc chuyển sang chỗ yên hơn rồi thử lại nha.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:10:27.759Z",
+  "requestId": "wv0yqm13hKmpGZolKphf",
+  "characterCost": "54",
+  "sourceSha256": "70c077f433d0114c661a472493e67f64dfdf664b80ea7bd824d7bcccc84212c2",
+  "asset": "assets/audio/MAIN/SIL-006.vi.v1.mp3",
+  "finalSha256": "35117da8135da0066f15ff651a8060dd311f05cae6cb34cf11dc7c0331456ffd",
+  "sourceDurationSeconds": 7.04,
+  "durationSeconds": 7.813243,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 126267
+}

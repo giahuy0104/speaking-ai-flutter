@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07-B03\\C1112-L3-T07-B03-Q01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T07-B03-Q01",
+  "sourceText": "Nghe được đó: Sounds good hay I'd love to?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nghe được đó:",
+      "spoken_text": "Nghe được đó:",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "text": "Sounds good",
+      "spoken_text": "Sounds good",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "text": "I'd love to?",
+      "spoken_text": "I'd love to?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-F77D22734A1C694ADF38D071",
+  "text": "Nghe được đó: Sounds good hay I'd love to?",
+  "asset": "assets/audio/CURRICULUM/f77d22734a1c694adf38d071.vi.v1.mp3",
+  "sha256": "544eb4246c17422f3c12cb3bc1f3ec03bb2134635cefc569d95755ada5b831ff",
+  "durationSeconds": 4.259887
+}

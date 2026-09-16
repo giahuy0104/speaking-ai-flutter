@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T10-B01\\C1112-L3-T10-B01-T04_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T10-B01-T04_VI",
+  "sourceText": "Khóa vòi nước.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Khóa vòi nước.",
+      "generation_key": "2c39cd189ec4d818"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-A1FB996E300FAE71846BD3FB",
+  "text": "Khóa vòi nước.",
+  "asset": "assets/audio/CURRICULUM/a1fb996e300fae71846bd3fb.vi.v1.mp3",
+  "sha256": "fb22f9b171c04c04150127f0e1def2a41d494c30ca7cee09dea8b7c329d864db",
+  "durationSeconds": 1.675034
+}

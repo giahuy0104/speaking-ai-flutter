@@ -1,0 +1,20 @@
+{
+  "id": "RUN-054",
+  "signature": "77ec68e381b69ae56d5b8086a402af90b91cc2191f01b08e148b4c0e29bb1cc3",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bắt đầu nào.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:12:56.414Z",
+  "requestId": "NwTEqHxdlzhZEqi8GnUq",
+  "characterCost": "7",
+  "sourceSha256": "b4f8cc9b0702cb53c5bfd3f7dc94793dce5b86129ff3958ee0a09b03e5ad0c5a"
+}

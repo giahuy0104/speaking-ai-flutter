@@ -1,0 +1,41 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\1ae41cb40cf8ff668bb04ed161008bcd841cad6d178ce33578d79e714ea32056.tempo.mp3",
+      "signature": "1ae41cb40cf8ff668bb04ed161008bcd841cad6d178ce33578d79e714ea32056",
+      "request": {
+        "text": "Bạn đoán xem con gì?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "146b3bec6e95ec4c023efcc35cff91b4af8a16c5325c28c92fe5a67f311164c1",
+      "requestId": "JJYc7aw5LfJvlhOELpnA",
+      "createdAt": "2026-09-15T23:16:00.750Z"
+    }
+  ],
+  "id": "LESSON-D4C565FB80E2842E566B224F",
+  "text": "Bạn đoán xem con gì?",
+  "asset": "assets/audio/CURRICULUM/d4c565fb80e2842e566b224f.vi.v1.mp3",
+  "sha256": "20227a011e08ec4b6ff7cc68399240ac54e5e6e312473605df03ac2c2a3f9cee",
+  "durationSeconds": 1.678526,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "RUN-058",
+  "signature": "775f0d632eb38cfe95642e2b441de94e4c772106fc670bd772c3f6bfab6d4f1f",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình nghe tiếp nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:13:12.541Z",
+  "requestId": "RwtDdR7sDeDNJ3VGlqKg",
+  "characterCost": "10",
+  "sourceSha256": "58c43d35d6dc450b66e9a8e1e079d6f454ad8bef2ef1bb18b8d0731a86463998"
+}

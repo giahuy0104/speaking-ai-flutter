@@ -1,0 +1,27 @@
+{
+  "id": "RUN-062",
+  "signature": "05f31f7ed2eec6c85104175d79c8fabe883a686ff15817a42efa83f4c42803d5",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình đã luyện xong rồi. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:13:20.918Z",
+  "requestId": "n5Cr5klasidYCCpWUSY2",
+  "characterCost": "38",
+  "sourceSha256": "f5e0830fb1d2ffafddbce72ef8f6f9550a1b30ad37ef6e1da95137d6118ed999",
+  "asset": "assets/audio/MAIN/RUN-062.vi.v1.mp3",
+  "finalSha256": "20bcdc6c081dc9bbcad9e6507f0eafa9be1aab2b3e00f6445d1ebe6f4c545489",
+  "sourceDurationSeconds": 4.48,
+  "durationSeconds": 4.970907,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 80710
+}

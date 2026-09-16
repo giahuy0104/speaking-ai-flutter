@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\eedc564a2d80057baf6919098f01c9d646715c94a115fd593e90916f22f006ae.tempo.mp3",
+      "signature": "eedc564a2d80057baf6919098f01c9d646715c94a115fd593e90916f22f006ae",
+      "request": {
+        "text": "It's a dog",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "5d41aa111864edae6403af9d6f7aac06c040da0ee3f995ecd51d9d9608777d4a",
+      "requestId": "3aUVuhaL6qB2UjKUaxYk",
+      "createdAt": "2026-09-15T23:16:21.189Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732.tempo.mp3",
+      "signature": "bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732",
+      "request": {
+        "text": "hay",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "587b62310066af72f7481443c9fccef371a1ad2d8d537d3d1e9b16ebd3efc8b4",
+      "requestId": "Y8EyPPYGalhB5eNl9yAL",
+      "createdAt": "2026-09-15T23:15:44.925Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\f8c37cc4fcb1c21c2c03f02a8bc5fe030b261d25b3c4ad1888deb46aef447426.tempo.mp3",
+      "signature": "f8c37cc4fcb1c21c2c03f02a8bc5fe030b261d25b3c4ad1888deb46aef447426",
+      "request": {
+        "text": "It's a bird?",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "550124471d1afdd2c73a62b17b06c7d55b01afe793858a0fee125d7f59ecefca",
+      "requestId": "fkHNFcVTDYGdjJGdKQq7",
+      "createdAt": "2026-09-15T23:16:22.998Z"
+    }
+  ],
+  "id": "LESSON-2177F3F21BE6ECF93D15530A",
+  "text": "It's a dog hay It's a bird?",
+  "asset": "assets/audio/CURRICULUM/2177f3f21be6ecf93d15530a.vi.v1.mp3",
+  "sha256": "d2824fb8f2893f922557583776d8fe13d0da865c0e2af0271b75ea9cfc92daa7",
+  "durationSeconds": 4.329274,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

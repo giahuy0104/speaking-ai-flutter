@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T06-B01\\C810-L2-T06-B01-T04_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T06-B01-T04_EN",
+  "sourceText": "Camera.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Camera.",
+      "generation_key": "67bacf5c5494e394"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-A7304CF570E1480B991ACA97",
+  "text": "Camera.",
+  "asset": "assets/audio/CURRICULUM/a7304cf570e1480b991aca97.en.v1.mp3",
+  "sha256": "9f79dcd3ffb7cddbc2cdcd9b272b9262ce7916727013cc728a24ea21a9197549",
+  "durationSeconds": 1.171156
+}

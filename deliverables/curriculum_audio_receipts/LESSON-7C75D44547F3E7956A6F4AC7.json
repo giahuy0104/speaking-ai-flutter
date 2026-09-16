@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T05-B01\\C1112-L2-T05-B01-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T05-B01-Q06",
+  "sourceText": "Bạn muốn diễn đạt \"Uống nước\". Sleep early hay Drink water?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Uống nước\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Uống nước\".",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Sleep early",
+      "spoken_text": "Sleep early",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Drink water?",
+      "spoken_text": "Drink water?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7C75D44547F3E7956A6F4AC7",
+  "text": "Bạn muốn diễn đạt \"Uống nước\". Sleep early hay Drink water?",
+  "asset": "assets/audio/CURRICULUM/7c75d44547f3e7956a6f4ac7.vi.v1.mp3",
+  "sha256": "73dd3eb062f650eded6aff16f199dedcac5d7725dc1f4b6803905db1030f1de4",
+  "durationSeconds": 6.61619
+}

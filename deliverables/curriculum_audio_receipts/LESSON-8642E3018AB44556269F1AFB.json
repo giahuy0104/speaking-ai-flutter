@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B02\\C1112-L3-T09-B02-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B02-Q07",
+  "sourceText": "Bạn muốn diễn đạt \"Bạn có thể giúp mình không\". Can you help me? hay Please call my Dad?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Bạn có thể giúp mình không\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Bạn có thể giúp mình không\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Can you help me?",
+      "spoken_text": "Can you help me?",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Please call my Dad?",
+      "spoken_text": "Please call my Dad?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-8642E3018AB44556269F1AFB",
+  "text": "Bạn muốn diễn đạt \"Bạn có thể giúp mình không\". Can you help me? hay Please call my Dad?",
+  "asset": "assets/audio/CURRICULUM/8642e3018ab44556269f1afb.vi.v1.mp3",
+  "sha256": "19d78b94f019206e35d20d521e37dcc0a7a0bba8a27e13e4ea27ca1390fd572f",
+  "durationSeconds": 6.677347
+}

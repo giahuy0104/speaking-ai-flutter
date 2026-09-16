@@ -1,0 +1,27 @@
+{
+  "id": "AI-058",
+  "signature": "6f4a9a1013027f245c09f0ba344393919e961d09ff83f9c63dbc409b9b0663cb",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn đã cố gắng tốt rồi! Mình sẽ luyện thêm sau. Giờ học câu tiếp nào.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:10:03.418Z",
+  "requestId": "BV0Jxulz73ADoOw9FnI2",
+  "characterCost": "38",
+  "sourceSha256": "ec84a408d578a7c9cb0aee5ef86d382df85d11de008171cacb001f25b395464c",
+  "asset": "assets/audio/MAIN/AI-058.vi.v1.mp3",
+  "finalSha256": "1ea44742c7c822aa742a5d5941c862191a24cf62cb6468f0f5f90d1d69ba3c1f",
+  "sourceDurationSeconds": 4.88,
+  "durationSeconds": 5.412109,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 87815
+}
