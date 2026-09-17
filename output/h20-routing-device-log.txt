@@ -1,0 +1,43 @@
+09-18 02:00:47.388 21705 21705 I HfpAudioBridge: H20 HFP profile selected and connected
+09-18 02:00:52.012 21705 21705 I HfpAudioBridge: Starting HFP route generation=1
+09-18 02:00:52.865 21705 21705 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=4035, name=H20, generation=1
+09-18 02:00:57.587 21705 21705 I HfpAudioBridge: Stopping HFP route generation=1 pending=false
+09-18 02:01:01.319 21705 21705 I HfpAudioBridge: Starting HFP route generation=3
+09-18 02:01:05.204 21705 21705 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=4035, name=H20, generation=3
+09-18 02:01:10.092 21705 21705 I HfpAudioBridge: Stopping HFP route generation=3 pending=false
+09-18 02:01:10.318 21705 21705 I HfpAudioBridge: Starting HFP route generation=5
+09-18 02:01:11.421 21705 21705 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=4035, name=H20, generation=5
+09-18 02:01:11.468 21705 21705 D AudioTrack: INSP: type=audio,case=1,attributes=1,content_type=0,usage=3,source=0,flags=0x0
+09-18 02:01:11.702 21705 21705 I HfpAudioBridge: Stopping HFP route generation=5 pending=false
+09-18 02:01:19.514 21705 21705 I HfpAudioBridge: Starting HFP route generation=7
+09-18 02:01:20.510 21705 21705 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=4035, name=H20, generation=7
+09-18 02:01:29.021 21705 22056 D AudioTrack: INSP: type=audio,case=1,attributes=1,content_type=1,usage=2,source=-1,flags=0x800
+09-18 02:01:33.030 21705 21705 I HfpAudioBridge: Starting HFP route generation=8
+09-18 02:01:33.273 21705 21705 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=4035, name=H20, generation=8
+09-18 02:01:33.456 21705 22056 D AudioTrack: INSP: type=audio,case=1,attributes=1,content_type=1,usage=2,source=-1,flags=0x800
+09-18 02:01:36.930 21705 21705 D AudioTrack: INSP: type=audio,case=1,attributes=1,content_type=0,usage=3,source=0,flags=0x0
+09-18 02:01:43.232 21705 21705 I flutter : Lesson WAV normalized: sampleRate=16000 channels=2->1 sourceBytes=394284 outputBytes=197164
+09-18 02:01:43.268 21705 21705 I HfpAudioBridge: Starting HFP route generation=9
+09-18 02:01:43.501 21705 21705 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=4035, name=H20, generation=9
+09-18 02:01:43.618 21705 22056 D AudioTrack: INSP: type=audio,case=1,attributes=1,content_type=1,usage=2,source=-1,flags=0x800
+09-18 02:01:49.882 21705 21705 I HfpAudioBridge: Starting HFP route generation=10
+09-18 02:01:50.121 21705 21705 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=4035, name=H20, generation=10
+09-18 02:01:51.724 21705 22056 D AudioTrack: INSP: type=audio,case=1,attributes=1,content_type=1,usage=2,source=-1,flags=0x800
+09-18 02:01:53.916 21705 21705 D AudioTrack: INSP: type=audio,case=1,attributes=1,content_type=0,usage=3,source=0,flags=0x0
+09-18 02:02:00.246 21705 21705 I flutter : Lesson WAV normalized: sampleRate=16000 channels=2->1 sourceBytes=394284 outputBytes=197164
+09-18 02:02:00.279 21705 21705 I HfpAudioBridge: Starting HFP route generation=11
+09-18 02:02:00.518 21705 21705 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=4035, name=H20, generation=11
+09-18 02:02:00.636 21705 22056 D AudioTrack: INSP: type=audio,case=1,attributes=1,content_type=1,usage=2,source=-1,flags=0x800
+09-18 02:02:06.920 21705 21705 I HfpAudioBridge: Starting HFP route generation=12
+09-18 02:02:07.161 21705 21705 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=4035, name=H20, generation=12
+09-18 02:02:09.122 21705 22056 D AudioTrack: INSP: type=audio,case=1,attributes=1,content_type=1,usage=2,source=-1,flags=0x800
+09-18 02:02:12.047 21705 22056 D AudioTrack: INSP: type=audio,case=1,attributes=1,content_type=1,usage=2,source=-1,flags=0x800
+09-18 02:02:13.987 21705 21705 W HfpAudioBridge: Selected H20 communication route was lost
+09-18 02:02:13.989 21705 21705 I HfpAudioBridge: Stopping HFP route generation=12 pending=false
+09-18 02:02:14.052 21705 21705 I HfpAudioBridge: Starting HFP route generation=14
+09-18 02:02:14.756 21705 21705 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=4035, name=H20, generation=14
+09-18 02:02:20.181 21705 22056 D AudioTrack: INSP: type=audio,case=1,attributes=1,content_type=1,usage=2,source=-1,flags=0x800
+09-18 02:02:21.293 21705 21705 I HfpAudioBridge: Starting HFP route generation=15
+09-18 02:02:21.536 21705 21705 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=4035, name=H20, generation=15
+09-18 02:02:23.134 21705 21705 D AudioTrack: INSP: type=audio,case=1,attributes=1,content_type=0,usage=3,source=0,flags=0x0
+09-18 02:02:28.275 21705 21705 D AudioTrack: INSP: type=audio,case=1,attributes=1,content_type=0,usage=3,source=0,flags=0x0

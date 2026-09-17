@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'audio_turn_coordinator.dart';
+import 'hfp_audio_control.dart';
 import 'voice_prompt_service_base.dart';
 
 /// Adds process-wide prompt ownership without changing the platform prompt
@@ -16,15 +19,21 @@ class CoordinatedVoicePromptService
     required VoicePromptService delegate,
     required AudioTurnCoordinator coordinator,
     required AudioTurnOwner owner,
+    HfpAudioControl? selectedOutputRoute,
   }) : _delegate = delegate,
        _coordinator = coordinator,
-       _owner = owner;
+       _owner = owner,
+       _selectedOutputRoute = selectedOutputRoute;
 
   final VoicePromptService _delegate;
   final AudioTurnCoordinator _coordinator;
   final AudioTurnOwner _owner;
+  // A dedicated coordinator scope, supplied only for Android native prompts.
+  // A connected HFP-only headset is not a media output until SCO is confirmed.
+  final HfpAudioControl? _selectedOutputRoute;
   AudioTurnCancellation _pendingCancellation = AudioTurnCancellation();
   AudioTurnLease? _activeLease;
+  Future<void> Function()? _releaseActiveRoute;
   bool _disposed = false;
 
   @override
@@ -42,8 +51,11 @@ class CoordinatedVoicePromptService
   }
 
   @override
-  Future<void> speak(String text, {String locale = 'vi-VN'}) =>
-      _runPrompt(() => _delegate.speak(text, locale: locale));
+  Future<void> speak(String text, {String locale = 'vi-VN'}) => _runPrompt(
+    () => _selectedOutputRoute == null
+        ? _delegate.speak(text, locale: locale)
+        : _delegate.speakAndWait(text, locale: locale),
+  );
 
   @override
   Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) =>
@@ -59,7 +71,7 @@ class CoordinatedVoicePromptService
         ? (delegate as PhoneSpeakerVoicePromptService)
               .speakAndWaitOnPhoneSpeaker(text, locale: locale)
         : delegate.speakAndWait(text, locale: locale);
-  });
+  }, useSelectedRoute: false);
 
   @override
   Future<void> speakAndWaitOnSelectedMediaOutput(
@@ -104,7 +116,10 @@ class CoordinatedVoicePromptService
         : delegate.speakAndWait(text, locale: locale);
   });
 
-  Future<void> _runPrompt(Future<void> Function() action) async {
+  Future<void> _runPrompt(
+    Future<void> Function() action, {
+    bool useSelectedRoute = true,
+  }) async {
     if (_disposed) {
       return;
     }
@@ -119,13 +134,66 @@ class CoordinatedVoicePromptService
       return;
     }
     _activeLease = lease;
+    Future<void> Function()? releaseRoute;
+    StreamSubscription<dynamic>? routeSubscription;
+    HfpAudioException? routeLoss;
+    Future<void>? routeLossStop;
     try {
-      await action();
-    } finally {
-      if (identical(_activeLease, lease)) {
-        _activeLease = null;
+      final route = useSelectedRoute ? _selectedOutputRoute : null;
+      if (route != null) {
+        await route.initialize();
+        if (_disposed || cancellation.isCancelled) return;
+        final status = route.status;
+        if (status.isBridgeSupported &&
+            (status.deviceId != null || status.isConnected)) {
+          Future<void>? release;
+          releaseRoute = () => release ??= route.stopAudioRoute();
+          _releaseActiveRoute = releaseRoute;
+          await route.startAudioRoute();
+          if (_disposed || cancellation.isCancelled) return;
+          void checkSelectedRoute() {
+            if (routeLoss != null || cancellation.isCancelled) return;
+            if (!route.status.routeActive || !route.status.isConnected) {
+              routeLoss = const HfpAudioException(
+                'Đường âm thanh H20 đã ngắt. Hãy kết nối lại để tiếp tục.',
+              );
+              // Also invalidates a prompt still loading its authored asset,
+              // before there is any native player for the bridge to stop.
+              routeLossStop = _delegate.stop();
+            }
+          }
+
+          routeSubscription = route.statusChanges.listen(
+            (_) => checkSelectedRoute(),
+          );
+          checkSelectedRoute();
+          if (routeLoss != null) throw routeLoss!;
+        }
       }
-      await lease.release();
+      if (_disposed || cancellation.isCancelled) return;
+      await action();
+      if (routeLoss != null) throw routeLoss!;
+    } catch (_) {
+      if (!_disposed && !cancellation.isCancelled) rethrow;
+    } finally {
+      // Finish this exact scope before granting another audio turn. An old
+      // prompt's finally/stop must never release a newer prompt's HFP route.
+      try {
+        await routeSubscription?.cancel();
+        try {
+          await routeLossStop;
+        } finally {
+          await releaseRoute?.call();
+        }
+      } finally {
+        if (identical(_releaseActiveRoute, releaseRoute)) {
+          _releaseActiveRoute = null;
+        }
+        if (identical(_activeLease, lease)) {
+          _activeLease = null;
+        }
+        await lease.release();
+      }
     }
   }
 
@@ -153,11 +221,20 @@ class CoordinatedVoicePromptService
     _pendingCancellation.cancel();
     _pendingCancellation = AudioTurnCancellation();
     final lease = _activeLease;
+    final releaseRoute = _releaseActiveRoute;
     _activeLease = null;
-    if (lease != null && lease.isCurrent) {
-      await _delegate.stop();
+    _releaseActiveRoute = null;
+    try {
+      if (lease != null && lease.isCurrent) {
+        await _delegate.stop();
+      }
+    } finally {
+      try {
+        await releaseRoute?.call();
+      } finally {
+        await lease?.release();
+      }
     }
-    await lease?.release();
   }
 
   @override

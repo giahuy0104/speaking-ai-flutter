@@ -586,35 +586,34 @@ void main() {
     expect(phoneRecord.iosConfig.categoryOptions, <IosAudioCategoryOption>[
       IosAudioCategoryOption.defaultToSpeaker,
     ]);
-    expect(hfpRecord.androidConfig.manageBluetooth, isFalse);
-    expect(
-      hfpRecord.androidConfig.audioSource,
-      AndroidAudioSource.voiceCommunication,
-    );
-    expect(
-      hfpRecord.androidConfig.audioManagerMode,
-      AudioManagerMode.modeInCommunication,
-    );
-    expect(phoneRecord.androidConfig.manageBluetooth, isFalse);
-    expect(phoneRecord.androidConfig.audioSource, AndroidAudioSource.mic);
-    expect(
-      phoneRecord.androidConfig.audioManagerMode,
-      AudioManagerMode.modeNormal,
-    );
     expect(hfpRecord.encoder, AudioEncoder.aacLc);
   });
 
-  test('Android lesson recording is 16 kHz mono PCM WAV', () {
+  test('Android capture leaves routing owned by HFP bridge and phone flow', () {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
 
-    final recordConfig = LessonMediaService.lessonRecordConfig(
-      useSelectedHfp: false,
-    );
-
-    expect(recordConfig.encoder, AudioEncoder.wav);
-    expect(recordConfig.sampleRate, 16000);
-    expect(recordConfig.numChannels, 1);
+    for (final useSelectedHfp in [false, true]) {
+      final recordConfig = LessonMediaService.lessonRecordConfig(
+        useSelectedHfp: useSelectedHfp,
+      );
+      expect(recordConfig.encoder, AudioEncoder.wav);
+      expect(recordConfig.sampleRate, 16000);
+      expect(recordConfig.numChannels, 1);
+      expect(recordConfig.androidConfig.manageBluetooth, isFalse);
+      expect(
+        recordConfig.androidConfig.audioSource,
+        useSelectedHfp
+            ? AndroidAudioSource.voiceCommunication
+            : AndroidAudioSource.mic,
+      );
+      // This is record_android's sentinel to leave the existing mode untouched,
+      // including on stop when a reused recorder remembers an older phone mode.
+      expect(
+        recordConfig.androidConfig.audioManagerMode,
+        AudioManagerMode.modeNormal,
+      );
+    }
   });
 
   test('iOS recording input selects exact H20 UID and built-in phone mic', () {

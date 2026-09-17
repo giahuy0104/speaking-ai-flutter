@@ -266,6 +266,29 @@ void main() {
     },
   );
 
+  for (final code in [
+    'HFP_ROUTE_LOST',
+    'HFP_ROUTE_FAILED',
+    'HFP_ROUTE_TIMEOUT',
+    'HFP_ROUTE_CANCELLED',
+  ]) {
+    test('$code propagates without replaying TTS on phone output', () async {
+      final failure = PlatformException(code: code);
+      final delegate = _Delegate()..playbackError = failure;
+      final service = MainAssistantAudioPromptService(
+        delegate: delegate,
+        bundle: _Bundle(),
+      );
+      addTearDown(service.dispose);
+
+      await expectLater(
+        service.speakAndWaitOnSelectedMediaOutput(_text),
+        throwsA(same(failure)),
+      );
+      expect(delegate.events, ['audio:selected', 'stop']);
+    });
+  }
+
   test(
     'stop during asset loading cannot start audio or fallback TTS',
     () async {
@@ -587,6 +610,7 @@ class _Delegate
   final playback = Completer<void>();
   bool blockPlayback = false;
   bool failPlayback = false;
+  Object? playbackError;
 
   @override
   Future<void> playAuthoredAudioAndWait(
@@ -602,6 +626,8 @@ class _Delegate
           : 'normal'}',
     );
     if (!started.isCompleted) started.complete();
+    final error = playbackError;
+    if (error != null) throw error;
     if (failPlayback) throw StateError('Decoder failure');
     if (blockPlayback) await playback.future;
   }

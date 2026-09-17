@@ -553,9 +553,10 @@ class LessonMediaService {
       audioSource: useSelectedHfp
           ? AndroidAudioSource.voiceCommunication
           : AndroidAudioSource.mic,
-      audioManagerMode: useSelectedHfp
-          ? AudioManagerMode.modeInCommunication
-          : AudioManagerMode.modeNormal,
+      // record_android treats modeNormal as "do not manage AudioManager mode".
+      // Its recorder remembers the mode from its first capture and would restore
+      // that stale mode on stop, overriding a later HFP route owned by the bridge.
+      audioManagerMode: AudioManagerMode.modeNormal,
     ),
     iosConfig: IosRecordConfig(
       categoryOptions: useSelectedHfp

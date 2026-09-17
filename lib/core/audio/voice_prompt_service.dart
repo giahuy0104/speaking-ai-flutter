@@ -1,6 +1,7 @@
 import 'audio_turn_coordinator.dart';
 import 'coordinated_voice_prompt_service.dart';
 import 'homi_gap66_audio_config.dart';
+import 'hfp_audio_control.dart';
 import 'main_assistant_audio_prompt_service.dart';
 import 'voice_prompt_service_base.dart';
 import 'voice_prompt_service_native.dart'
@@ -15,6 +16,7 @@ VoicePromptService createVoicePromptService({
   AudioTurnCoordinator? coordinator,
   AudioTurnOwner owner = AudioTurnOwner.legacy,
   http.Client? httpClient,
+  HfpAudioControl? selectedOutputRoute,
 }) {
   final platformService = platform.createPlatformVoicePromptService();
   final service = MainAssistantAudioPromptService(
@@ -65,5 +67,6 @@ VoicePromptService createVoicePromptService({
           delegate: service,
           coordinator: coordinator,
           owner: owner,
+          selectedOutputRoute: selectedOutputRoute,
         );
 }

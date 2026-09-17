@@ -43,6 +43,7 @@ class HfpAudioBridge(
         private const val AUDIO_ROUTE_SETTLE_MS = 150L
         private const val AUDIO_ROUTE_CONFIRM_INTERVAL_MS = 100L
         private const val AUDIO_ROUTE_REASSERT_DELAY_MS = 250L
+        private const val AUDIO_ROUTE_LOSS_CLEANUP_DELAY_MS = 100L
         private const val AUDIO_ROUTE_CONFIRM_ATTEMPTS = 25
         private const val TAG = "HfpAudioBridge"
 
@@ -138,11 +139,12 @@ class HfpAudioBridge(
                                         ::reassertPendingCommunicationRouteAfterDisconnect,
                                     )
                                 } else if (routeActive || audioModeOwned) {
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-                                        isSelectedCommunicationRouteConfirmed()
-                                    ) return
-                                    onUnexpectedRouteLoss()
-                                    stopAudioRouteInternal()
+                                    // AudioManager can retain the old SCO device
+                                    // while its service tears down the route.
+                                    // Only a live SCO link makes this a stale
+                                    // disconnect from an earlier generation.
+                                    if (isSelectedHeadsetAudioConnected()) return
+                                    interruptLostAudioRoute("Selected H20 SCO audio disconnected")
                                 } else {
                                     refreshSelectedDeviceStatus()
                                 }
@@ -161,8 +163,7 @@ class HfpAudioBridge(
                             pendingAudioRouteResult == null &&
                             (routeActive || audioModeOwned)
                         ) {
-                            onUnexpectedRouteLoss()
-                            stopAudioRouteInternal()
+                            interruptLostAudioRoute("Selected H20 profile disconnected")
                         } else {
                             refreshSelectedDeviceStatus()
                         }
@@ -201,6 +202,47 @@ class HfpAudioBridge(
         )
     }
 
+    private fun isSelectedHeadsetAudioConnected(): Boolean {
+        val selected = selectedDevice ?: return false
+        if (!hasConnectPermission()) return false
+        return try {
+            headset?.isAudioConnected(selected) == true
+        } catch (_: SecurityException) {
+            false
+        }
+    }
+
+    private fun interruptLostAudioRoute(reason: String) {
+        Log.w(TAG, reason)
+        if (pendingAudioRouteResult != null) {
+            // A real profile/service loss must still fail its pending request.
+            onUnexpectedRouteLoss()
+            stopAudioRouteInternal()
+            return
+        }
+        val generation = ++audioRouteRequestGeneration
+        routeReadiness = null
+        routeActive = false
+        phase = if (selectedDevice == null) "idle" else "ready"
+        statusMessage = "Kết nối âm thanh H20 bị gián đoạn. Hãy thử lại."
+        // Publish loss before querying or mutating AudioManager: some OEMs
+        // block its calls until SCO teardown ends. Dart must pause its player
+        // during that interval instead of continuing on the phone speaker.
+        emitStatus()
+        onUnexpectedRouteLoss()
+        mainHandler.postDelayed(
+            {
+                if (!disposed &&
+                    audioRouteRequestGeneration == generation &&
+                    pendingAudioRouteResult == null && !routeActive
+                ) {
+                    stopAudioRouteInternal(invalidateRequest = false)
+                }
+            },
+            AUDIO_ROUTE_LOSS_CLEANUP_DELAY_MS,
+        )
+    }
+
     private val profileListener =
         object : BluetoothProfile.ServiceListener {
             override fun onServiceConnected(
@@ -216,8 +258,7 @@ class HfpAudioBridge(
                 if (profile != BluetoothProfile.HEADSET) return
                 headset = null
                 if (routeActive || audioModeOwned) {
-                    onUnexpectedRouteLoss()
-                    stopAudioRouteInternal()
+                    interruptLostAudioRoute("HFP profile service disconnected")
                 }
                 phase = "idle"
                 statusMessage = "Dịch vụ HFP vừa ngắt kết nối."
@@ -235,9 +276,7 @@ class HfpAudioBridge(
                 if (!disposed && pendingAudioRouteResult == null && routeActive &&
                     !isSelectedCommunicationRouteConfirmed()
                 ) {
-                    Log.w(TAG, "Selected H20 communication route was lost")
-                    onUnexpectedRouteLoss()
-                    stopAudioRouteInternal()
+                    interruptLostAudioRoute("Selected H20 communication route was lost")
                 }
             }
             communicationDeviceListener = listener
@@ -261,7 +300,10 @@ class HfpAudioBridge(
             appContext.registerReceiver(
                 bluetoothReceiver,
                 filter,
-                Context.RECEIVER_NOT_EXPORTED,
+                // These protected system actions come from the privileged
+                // Bluetooth process, not the system UID. NOT_EXPORTED drops
+                // them on Android 13+, delaying detection until route fallback.
+                Context.RECEIVER_EXPORTED,
             )
         } else {
             @Suppress("DEPRECATION")
@@ -464,7 +506,14 @@ class HfpAudioBridge(
             return
         }
 
-        if (routeActive && isSelectedCommunicationRouteConfirmed()) {
+        // Other recording clients can restore their earlier audio mode while
+        // Android still reports the selected SCO device. Reclaim communication
+        // mode and reconfirm the route before reusing it in that case.
+        if (
+            routeActive &&
+            audioManager.mode == AudioManager.MODE_IN_COMMUNICATION &&
+            isSelectedCommunicationRouteConfirmed()
+        ) {
             phase = "recording"
             statusMessage = "Đang dùng mic và loa H20 trên đường HFP/SCO hai chiều."
             emitStatus()
@@ -527,7 +576,8 @@ class HfpAudioBridge(
         val communicationDevice = selected?.let(::selectedCommunicationDevice)
         if (communicationDevice != null) {
             if (
-                audioManager.communicationDevice?.id == communicationDevice.id ||
+                (audioManager.communicationDevice?.id == communicationDevice.id &&
+                    isSelectedHeadsetAudioConnected()) ||
                 audioManager.setCommunicationDevice(communicationDevice)
             ) {
                 waitForSelectedCommunicationDevice(
@@ -863,6 +913,9 @@ class HfpAudioBridge(
     private fun confirmedSelectedCommunicationDevice(): AudioDeviceInfo? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
         val selected = selectedDevice ?: return null
+        // An OEM can retain the selected port while SCO is already closing.
+        // Do not authorize playback until the headset reports a live audio link.
+        if (!isSelectedHeadsetAudioConnected()) return null
         val expected = selectedCommunicationDevice(selected) ?: return null
         val active = audioManager.communicationDevice ?: return null
         return active.takeIf {

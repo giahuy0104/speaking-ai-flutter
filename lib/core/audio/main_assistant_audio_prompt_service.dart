@@ -215,11 +215,16 @@ class MainAssistantAudioPromptService
             return;
           }
         }
-      } catch (_) {
+      } catch (error) {
         // Cancellation is not a playback failure: never resurrect a stale
         // prompt with TTS after MAIN has stopped or handed over to a lesson.
         if (!_isCurrent(generation)) return;
         if (startedAudio) await _delegate.stop();
+        // Losing the selected headset is not a decoder failure. Native route
+        // cleanup has closed SCO, so a TTS retry could play on the phone.
+        if (error is PlatformException && error.code.startsWith('HFP_ROUTE_')) {
+          rethrow;
+        }
       }
     }
     if (_isCurrent(generation)) await fallback();
