@@ -79,6 +79,24 @@ void main() {
     expect(mediaService.recordingStarts, 2);
   });
 
+  testWidgets('long authored challenge finishes before the microphone opens', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final media = _FakeLessonMediaService();
+    final voice = _LongAuthoredChallengePrompt();
+    await tester.pumpWidget(
+      _subject(startAge: 7, mediaService: media, voicePromptService: voice),
+    );
+    await _pumpChallengeTransition(tester);
+    await tester.pump(const Duration(seconds: 11));
+    expect(voice.stopCalls, 0);
+    expect(media.recordingStarts, 0);
+    voice.completion.complete();
+    await _pumpChallengeTransition(tester);
+    expect(media.recordingStarts, 1);
+  });
+
   testWidgets(
     'ignores legacy role-play data and keeps the authored Challenge choices',
     (tester) async {
@@ -796,6 +814,30 @@ class _FailingVoicePromptService extends _RecordingVoicePromptService {
   @override
   Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
     throw StateError('H20 route unavailable');
+  }
+}
+
+class _LongAuthoredChallengePrompt extends _RecordingVoicePromptService
+    implements AuthoredPromptBudgetProvider {
+  final completion = Completer<void>();
+  int calls = 0;
+  int stopCalls = 0;
+
+  @override
+  Future<Duration?> authoredPromptBudget(
+    String text, {
+    String locale = 'vi-VN',
+  }) async => const Duration(seconds: 25);
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    calls++;
+    if (calls == 1) await completion.future;
+  }
+
+  @override
+  Future<void> stop() async {
+    stopCalls++;
   }
 }
 

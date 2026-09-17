@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T10-B02\\C67-L3-T10-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T10-B02-Q05",
+  "sourceText": "Đi công viên: Go to the park hay Play soccer?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đi công viên:",
+      "spoken_text": "Đi công viên:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Go to the park",
+      "spoken_text": "Go to the park",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Play soccer?",
+      "spoken_text": "Play soccer?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-2DFC293E95ADEA72DC4B76CB",
+  "text": "Đi công viên: Go to the park hay Play soccer?",
+  "asset": "assets/audio/CURRICULUM/2dfc293e95adea72dc4b76cb.vi.v1.mp3",
+  "sha256": "12ba2939bcb5b54a2edc1970128ccccdbbac08e968aba3a2a9f0e6bc02eb2e96",
+  "durationSeconds": 4.816395
+}

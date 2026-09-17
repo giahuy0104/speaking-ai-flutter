@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T08-B02\\C35-L3-T08-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T08-B02-Q06",
+  "sourceText": "Bạn muốn nói 'Mẹ của mình.' Hoàn thành câu: My... dad hay mom?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Mẹ của mình.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mẹ của mình.' Hoàn thành câu:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "My... dad",
+      "spoken_text": "My... dad",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "mom?",
+      "spoken_text": "mom?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-3982CE302B83DE35589792FD",
+  "text": "Bạn muốn nói 'Mẹ của mình.' Hoàn thành câu: My... dad hay mom?",
+  "asset": "assets/audio/CURRICULUM/3982ce302b83de35589792fd.vi.v1.mp3",
+  "sha256": "04108952bea4d13df5ead645a603b8137917609e2402e35eaa885c763e68a8b6",
+  "durationSeconds": 7.291814
+}

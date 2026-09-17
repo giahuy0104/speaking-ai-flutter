@@ -4,6 +4,12 @@ import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('assistant speech is boosted above authored lesson audio', () {
+    expect(androidSpeechBoostDb, 8.0);
+    expect(androidAssistantSpeechBoostDb, 12.0);
+    expect(androidAssistantSpeechBoostDb, greaterThan(androidSpeechBoostDb));
+  });
+
   test(
     'child recording playback is 2.5 times louder than its former level',
     () {

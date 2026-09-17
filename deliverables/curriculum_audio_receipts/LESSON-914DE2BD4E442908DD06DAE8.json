@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T08-B02\\C35-L3-T08-B02-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T08-B02-Q07",
+  "sourceText": "Bạn muốn nói 'Ba của mình.' Hoàn thành câu: My... dad hay brother?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Ba của mình.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Ba của mình.' Hoàn thành câu:",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "My... dad",
+      "spoken_text": "My... dad",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "brother?",
+      "spoken_text": "brother?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-914DE2BD4E442908DD06DAE8",
+  "text": "Bạn muốn nói 'Ba của mình.' Hoàn thành câu: My... dad hay brother?",
+  "asset": "assets/audio/CURRICULUM/914de2bd4e442908dd06dae8.vi.v1.mp3",
+  "sha256": "653f66c5be8c1760e7f64dd6694b333447cbd887e8d7ffb3c02492bd5db6a31c",
+  "durationSeconds": 7.512381
+}

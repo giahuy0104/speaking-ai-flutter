@@ -1,0 +1,20 @@
+{
+  "signature": "139ac1cd635b6be5b11ae9106be8810e6f85333ece3ae1a5e42c12487cc7e31e",
+  "request": {
+    "text": "Mình cùng học các chữ cái và từ quen thuộc nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "027256bf7136f30ae0c71bf85f6c30a9955119842a1fa45e05b634511b4d8a93",
+  "requestId": "V3tLYxasZLykMDhnfFFV",
+  "createdAt": "2026-09-15T23:15:21.825Z"
+}

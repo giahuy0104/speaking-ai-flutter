@@ -1,0 +1,26 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\02_B_FEEDBACK_ELEVEN_V3_EN075_VI090\\02_B_FEEDBACK_ELEVEN_V3_EN075_VI090\\MP3\\B_SPECIAL_11_15_03_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\02_B_FEEDBACK_ELEVEN_V3_EN075_VI090\\02_B_FEEDBACK_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "98e57849754e3771",
+  "sourceText": "Bạn nói đầy đủ câu nhé.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after generation, per language, preserving pitch",
+  "segments": [],
+  "sourceSha256": null,
+  "id": "LESSON-247FAADF91437070E32CD579",
+  "text": "Bạn nói đầy đủ câu nhé.",
+  "asset": "assets/audio/CURRICULUM/247faadf91437070e32cd579.vi.v1.mp3",
+  "sha256": "864919c4092d147ebe90c62796e7d3d0558235f84e1eac16874a52d1eb8c2e77",
+  "durationSeconds": 1.827891
+}

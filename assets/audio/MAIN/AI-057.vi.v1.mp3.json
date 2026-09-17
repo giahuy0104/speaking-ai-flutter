@@ -1,0 +1,27 @@
+{
+  "id": "AI-057",
+  "signature": "980a1cde94660879b80e9b7c5d1af9c6c5e69d62f8a6981dc55e2a49f99e866e",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bây giờ bạn thử nói lại lần nữa nè.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:10:00.170Z",
+  "requestId": "LktLkUnvRH0klo7675Ls",
+  "characterCost": "19",
+  "sourceSha256": "d4c3aa102fc5b2402208a383c1e6d4860cfd05bd4fcc9c5f5bc7d110355e1b61",
+  "asset": "assets/audio/MAIN/AI-057.vi.v1.mp3",
+  "finalSha256": "77062cb33dfd288ff1d701923038799b40f00cd5ce98aee09ad4123178c459c1",
+  "sourceDurationSeconds": 2.16,
+  "durationSeconds": 2.385601,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 39332
+}

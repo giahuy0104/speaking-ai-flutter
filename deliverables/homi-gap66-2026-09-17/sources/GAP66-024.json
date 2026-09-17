@@ -1,0 +1,21 @@
+{
+  "id": "GAP66-024",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình chưa hiểu. Bạn đã nghe hết rồi. Bạn muốn học nội dung khác hay học lại?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "gMszbnjrIoaO6i2IdWN5",
+  "historyItemId": "tms9ONg01JAANQvYuUJA",
+  "characterCost": "42",
+  "createdAt": "2026-09-17T14:25:09.901Z",
+  "sourceSha256": "bbbb3c97e09e7e5a516383b9f78a6a91f57215fd76d5aedda71fe484df3e768f"
+}

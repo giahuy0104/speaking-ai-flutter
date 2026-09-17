@@ -1,0 +1,28 @@
+{
+  "id": "RUNTIME-MAIN-NAVIGATION-002",
+  "signature": "a9269ffd81760caa049a3af6c82d2abe80465273517f98edd725630f38434194",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn muốn dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "createdAt": "2026-09-17T13:07:18.780Z",
+  "requestId": "W9QiBybYh62AWxspgDbO",
+  "characterCost": "28",
+  "sourceSha256": "c1cb943cc8b0be464c77005bf111bf8fc83e26afb8d3264e8ae05de05cc0a62f",
+  "asset": "assets/audio/MAIN/RUNTIME-MAIN-NAVIGATION-002.vi.v1.mp3",
+  "finalSha256": "33b45c1f28a907bbe53ebd4ada1e910c19a879f63a2e3c80908271108ba8180b",
+  "sourceDurationSeconds": 2.88,
+  "durationSeconds": 3.177029,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 51871
+}

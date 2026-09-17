@@ -99,6 +99,37 @@ void main() {
     expect(find.byType(TopicListeningScreen), findsOneWidget);
   });
 
+  testWidgets('system Back closes vocabulary detail before leaving the tab', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final controller = _controller();
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(_app(controller));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+    await tester.pumpAndSettle();
+    expect(find.text('Ba mẹ đã thêm'), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('vocabulary-family-card')), findsOneWidget);
+    expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
+  });
+
   testWidgets('protects settings with the parent access gate', (tester) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     tester.view.physicalSize = const Size(390, 844);

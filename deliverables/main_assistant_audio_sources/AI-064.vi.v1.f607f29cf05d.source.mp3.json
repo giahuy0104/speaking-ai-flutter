@@ -1,0 +1,20 @@
+{
+  "id": "AI-064",
+  "signature": "f607f29cf05ded3a4660fcbbe5690ec22bc1d3ba45be5a68ee7bbf398603bb2d",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn đang ở bài đầu tiên rồi.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:10:07.343Z",
+  "requestId": "M9tn5CcEWroeoKhHB8AC",
+  "characterCost": "15",
+  "sourceSha256": "51d13200b118637994bcf79e743f7c46b649d8196b8f1731d90381b7bd2d4c39"
+}

@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T10-B01\\C1315-L3-T10-B01-T05_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T10-B01-T05_EN",
+  "sourceText": "I plan to exercise more.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "I plan to exercise more.",
+      "generation_key": "5d86a3a55f08b1b4"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9F3FFC545C8483A325C2CC63",
+  "text": "I plan to exercise more.",
+  "asset": "assets/audio/CURRICULUM/9f3ffc545c8483a325c2cc63.en.v1.mp3",
+  "sha256": "58602feb01cf4672a08332d4519b9daa41fbdf731b18b2d91d79de66b7e37ae2",
+  "durationSeconds": 3.29288
+}

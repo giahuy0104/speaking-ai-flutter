@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T09-B02\\C35-L3-T09-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T09-B02-Q04",
+  "sourceText": "Áo khoác: Raincoat hay Jacket?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Áo khoác:",
+      "spoken_text": "Áo khoác:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Raincoat",
+      "spoken_text": "Raincoat",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Jacket?",
+      "spoken_text": "Jacket?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-20EA80AA106E718F8F26B0A7",
+  "text": "Áo khoác: Raincoat hay Jacket?",
+  "asset": "assets/audio/CURRICULUM/20ea80aa106e718f8f26b0a7.vi.v1.mp3",
+  "sha256": "192ee4b1af777c968a7f9b3fa49f954734d7965f1b2343e6ff98e4c22a7d2702",
+  "durationSeconds": 3.9961
+}

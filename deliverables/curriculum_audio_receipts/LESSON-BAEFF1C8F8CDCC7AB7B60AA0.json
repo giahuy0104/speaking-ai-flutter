@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T01-B02\\C810-L1-T01-B02-T03_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T01-B02-T03_VI",
+  "sourceText": "Ăn trưa vào buổi trưa.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Ăn trưa vào buổi trưa.",
+      "generation_key": "99924f1e5a9b0e21"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-BAEFF1C8F8CDCC7AB7B60AA0",
+  "text": "Ăn trưa vào buổi trưa.",
+  "asset": "assets/audio/CURRICULUM/baeff1c8f8cdcc7ab7b60aa0.vi.v1.mp3",
+  "sha256": "5ef5e5c28d38d3dced029207570dbe6566f52506baae352b808ee5b20fdc93ea",
+  "durationSeconds": 1.876463
+}

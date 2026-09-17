@@ -1,0 +1,20 @@
+{
+  "id": "RUN-135",
+  "signature": "ba8441145c8ee5b45b7d07c1bdf44d93deb11e96510ff0b0a3cc31ef2f525696",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Con tập trung học đi",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:15:14.453Z",
+  "requestId": "0vTJKpW4sHzbkF93ELYn",
+  "characterCost": "11",
+  "sourceSha256": "6d85b4ffc3ae82cd0230380a17885e3c5cc96daae3cc09c8120f0af7feb357f8"
+}

@@ -1,0 +1,20 @@
+{
+  "id": "AI-030",
+  "signature": "1750be0f1f99ab68427ea2fda209ec98c32734bb5d005108f0696c4718790bfd",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Có từ mới rồi. Mình cùng học nha.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:07:26.126Z",
+  "requestId": "6rRiXNeT78nXs2ogkkSx",
+  "characterCost": "18",
+  "sourceSha256": "a3ef9f6e82199b5f3cff85d337b86114dd20b03063cba809b820b31fcf0eb480"
+}

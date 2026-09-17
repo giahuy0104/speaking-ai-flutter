@@ -1,0 +1,20 @@
+{
+  "signature": "c5fe58e4965929ab0eb710900076fc4d92786a8ef239e6caf15f43b29cd03e3a",
+  "request": {
+    "text": "Simple Solutions.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "03c4f0924ee363de66fd3557c2370caa7a77ef8e6fcfa94b05eb20a9c93b2744",
+  "requestId": "7SVhR1wVbBpDQKQpjCKK",
+  "createdAt": "2026-09-15T23:28:55.525Z"
+}

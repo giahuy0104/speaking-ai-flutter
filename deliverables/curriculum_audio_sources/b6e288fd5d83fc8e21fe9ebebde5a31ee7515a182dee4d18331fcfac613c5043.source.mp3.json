@@ -1,0 +1,20 @@
+{
+  "signature": "b6e288fd5d83fc8e21fe9ebebde5a31ee7515a182dee4d18331fcfac613c5043",
+  "request": {
+    "text": "My Routine",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "60accb5fe737d95eb5ce68dd3844272ad781ac920e45e25b4e58635d3d0afa2b",
+  "requestId": "4rLlDz4c8p8HIIghGIib",
+  "createdAt": "2026-09-15T23:26:19.979Z"
+}

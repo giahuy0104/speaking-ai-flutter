@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/app/homi_ui.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
@@ -223,6 +225,11 @@ void main() {
     tester,
   ) async {
     await _usePhoneSurface(tester);
+    // Freeze the approved sample-playing frame independently of whether the
+    // catalog uses bundled audio or TTS. A zero-duration media fake otherwise
+    // advances to the repeat instruction before this screenshot is captured.
+    final samplePlayback = Completer<void>();
+    mediaService.playbackCompletion = samplePlayback.future;
     await tester.pumpWidget(
       _GoldenApp(
         child: LessonPracticeScreen(
@@ -251,6 +258,7 @@ void main() {
       matchesGoldenFile('goldens/lesson-reminder-popup-390x844.png'),
     );
     await tester.pumpWidget(const SizedBox.shrink());
+    samplePlayback.complete();
     await tester.pump(const Duration(seconds: 2));
   });
 
@@ -497,6 +505,7 @@ LessonGuideAudioLibrary _silentGuideAudioLibrary() {
 class _GoldenMediaService extends LessonMediaService {
   bool showExistingRecording = false;
   bool recording = false;
+  Future<void>? playbackCompletion;
   Set<int> recordedSentenceNumbers = const <int>{};
 
   @override
@@ -552,7 +561,9 @@ class _GoldenMediaService extends LessonMediaService {
     Duration timeout = const Duration(seconds: 45),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
-  }) async {}
+  }) async {
+    await playbackCompletion;
+  }
 
   @override
   Future<void> stopPlayback() async {}

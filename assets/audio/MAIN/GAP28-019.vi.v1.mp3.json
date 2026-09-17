@@ -1,0 +1,28 @@
+{
+  "id": "GAP28-019",
+  "signature": "9c72121c5ba769f6d75936886497b8bf234429c68684b406f966ce1749fed44f",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình học tiếp Chủ đề 1 nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "createdAt": "2026-09-16T02:43:43.846Z",
+  "requestId": "1jaCFHsVhSE3RSVRrps2",
+  "characterCost": "15",
+  "sourceSha256": "f165d9e5784bfc2ec3d24cb83ec329db24c5560793a8ebc309517062f82ee103",
+  "asset": "assets/audio/MAIN/GAP28-019.vi.v1.mp3",
+  "finalSha256": "551295144b544d196f69db247dd636a8480d37203e7a8a2560abf45a0dc16c2d",
+  "sourceDurationSeconds": 1.76,
+  "durationSeconds": 1.938685,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 32226
+}

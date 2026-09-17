@@ -6,6 +6,7 @@ import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_audio_service.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_fixed_prompt_audio_service.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_store.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_dictionary.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
@@ -48,6 +49,8 @@ void main() {
             mediaService: _ImmediateLessonMediaService(),
             voicePromptService: const _FakeVoicePromptService(),
             vocabularyAudioService: audio,
+            fixedPromptAudioService:
+                const _UnavailableFixedPromptAudioService(),
             onReturnToConversation: () {},
             onHistory: () {},
             onSettings: () {},
@@ -71,6 +74,72 @@ void main() {
     expect(find.byKey(const Key('vocabulary-family-card')), findsOneWidget);
     expect(audio.stopCalls, 1);
     // Simulate a slow platform stop. Neither UI nor the next item waits on it.
+    audio.stopGate.complete();
+    await tester.pumpAndSettle();
+    expect(audio.spoken, ['en-US:Apple']);
+  });
+
+  testWidgets('leaving the vocabulary tab stops active collection audio', (
+    tester,
+  ) async {
+    final active = ValueNotifier<bool>(true);
+    final audio = _BlockingVocabularyAudioService();
+    addTearDown(active.dispose);
+    addTearDown(() {
+      if (!audio.stopGate.isCompleted) audio.stopGate.complete();
+      if (!audio.speechGate.isCompleted) audio.speechGate.complete();
+    });
+    final store = _MemoryVocabularyStore(<VocabularyEntry>[
+      VocabularyEntry(
+        id: 'Apple',
+        word: 'Apple',
+        meaning: 'Quả táo',
+        addedAt: DateTime(2026, 9, 10),
+        status: VocabularyLearningStatus.learnedWell,
+        source: VocabularySource.parent,
+        parentState: ParentVocabularyState.unlocked,
+      ),
+    ]);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: ValueListenableBuilder<bool>(
+          valueListenable: active,
+          builder: (context, isActive, _) => DisplayLanguageScope(
+            language: DisplayLanguage.vietnamese,
+            child: VocabularyHomeScreen(
+              isReady: true,
+              isActive: isActive,
+              store: store,
+              mediaService: _ImmediateLessonMediaService(),
+              voicePromptService: const _FakeVoicePromptService(),
+              vocabularyAudioService: audio,
+              fixedPromptAudioService:
+                  const _UnavailableFixedPromptAudioService(),
+              onReturnToConversation: () {},
+              onHistory: () {},
+              onSettings: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+    await tester.pumpAndSettle();
+    final play = find.byKey(const Key('vocabulary-family-action'));
+    await tester.ensureVisible(play);
+    await tester.tap(play);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(audio.spoken, ['en-US:Apple']);
+
+    active.value = false;
+    await tester.pump();
+
+    expect(audio.stopCalls, 1);
+    expect(find.byKey(const Key('vocabulary-family-card')), findsOneWidget);
     audio.stopGate.complete();
     await tester.pumpAndSettle();
     expect(audio.spoken, ['en-US:Apple']);
@@ -906,6 +975,8 @@ void main() {
               store: store,
               mediaService: media,
               voicePromptService: voice,
+              fixedPromptAudioService:
+                  const _UnavailableFixedPromptAudioService(),
               onReturnToConversation: () {},
               onHistory: () {},
               onSettings: () {},
@@ -1202,6 +1273,17 @@ class _RecordingVocabularyAudioService
 
   @override
   void dispose() {}
+}
+
+class _UnavailableFixedPromptAudioService
+    implements VocabularyFixedPromptAudioService {
+  const _UnavailableFixedPromptAudioService();
+
+  @override
+  Future<bool> playAudioCodeIfAvailable(String audioCode) async => false;
+
+  @override
+  Future<bool> playPromptIfAvailable(String text) async => false;
 }
 
 class _BlockingVocabularyAudioService implements VocabularyContentAudioService {

@@ -1,0 +1,28 @@
+{
+  "id": "GAP28-012",
+  "signature": "16def805890004598ae20310911aefeb55355bf23e47a7480249005c16eb8ed6",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Chủ đề 7 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "createdAt": "2026-09-16T02:43:25.161Z",
+  "requestId": "6uLS0waQ9WhHuID93RrY",
+  "characterCost": "37",
+  "sourceSha256": "566d1ecaec14f1275db92fb0a9fae26299394f462a73b2e6fafda0f660b2009a",
+  "asset": "assets/audio/MAIN/GAP28-012.vi.v1.mp3",
+  "finalSha256": "42688be1ac56360c303f83fd9c93f4c03d28a08ca51ef9fcbf01d816aa54c7e6",
+  "sourceDurationSeconds": 4.4,
+  "durationSeconds": 4.873356,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 79038
+}

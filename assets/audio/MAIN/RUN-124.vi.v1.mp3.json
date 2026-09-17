@@ -1,0 +1,27 @@
+{
+  "id": "RUN-124",
+  "signature": "1be7cb9c80269a57a6ebef928b7a427b23898e0533cb4dee79cd2d50983b38b1",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bây giờ đến lượt con. Con nói lại nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:14:48.150Z",
+  "requestId": "lEJQ5YWyG1lak2nzZqNZ",
+  "characterCost": "21",
+  "sourceSha256": "b2514a809570e0a743342f3019cfb8081726461994996a0a72bfe94ca1e73cef",
+  "asset": "assets/audio/MAIN/RUN-124.vi.v1.mp3",
+  "finalSha256": "439e7813e3499361cef8067a7e37ea746f0c5a94603e97fbeac535b805b487f7",
+  "sourceDurationSeconds": 2.56,
+  "durationSeconds": 2.837098,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 46437
+}

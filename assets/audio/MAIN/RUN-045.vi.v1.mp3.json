@@ -1,0 +1,27 @@
+{
+  "id": "RUN-045",
+  "signature": "056cecdc1e1cef79c055ecb5f6f99cebdb67270b86132eca3a54cc9ba0feebb3",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình học tiếp Danh sách hôm nay nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:12:39.829Z",
+  "requestId": "dUhzJYLrIeNfQqosm1Is",
+  "characterCost": "20",
+  "sourceSha256": "326a0043804f7a698011926ee7d1d8e50d6ae7254f9c32ade86faefad51864b4",
+  "asset": "assets/audio/MAIN/RUN-045.vi.v1.mp3",
+  "finalSha256": "639d1c06771dc0c5339ae47b17cec3f9cdf9b35616c7da5ecebc8ac170c77e7d",
+  "sourceDurationSeconds": 2,
+  "durationSeconds": 2.200227,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 36406
+}

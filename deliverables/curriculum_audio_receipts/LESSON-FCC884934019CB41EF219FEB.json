@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\MP3\\C1112-L3-T07\\C1112-L3-T07-B01_MICRO_OBJECTIVE.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T07-B01",
+  "sourceText": "Mình luyện cách hẹn và phản hồi lịch sự.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "VI speech atempo 0.9 after synthesis, preserving pitch; sound effects retain original timing",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình luyện cách hẹn và phản hồi lịch sự.",
+      "generation_key": "1985c79772d57d7e"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-FCC884934019CB41EF219FEB",
+  "text": "Mình luyện cách hẹn và phản hồi lịch sự.",
+  "asset": "assets/audio/CURRICULUM/fcc884934019cb41ef219feb.vi.v1.mp3",
+  "sha256": "21c4fc79ba6bf17884bfef950c8c824418f139f9add386437d62cab0e782dae0",
+  "durationSeconds": 2.939365
+}

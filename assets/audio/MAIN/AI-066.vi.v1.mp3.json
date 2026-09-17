@@ -1,0 +1,27 @@
+{
+  "id": "AI-066",
+  "signature": "9020f2ca7aaebd6f8a089fcb6146a1b4fbeecad1c4dedd21018731c3ac9b0ade",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Đây là phần tổng kết của bài học rồi.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:10:09.458Z",
+  "requestId": "JNGambd9aganhUpERqTI",
+  "characterCost": "20",
+  "sourceSha256": "60891d0b074583fb3082870e8e31c40eaa2456b92d388dad8c02e42adce35cd6",
+  "asset": "assets/audio/MAIN/AI-066.vi.v1.mp3",
+  "finalSha256": "3943a74725d8d795b6c96f7826ea7f2df9179b334709c4d2580926147858ce5a",
+  "sourceDurationSeconds": 2.16,
+  "durationSeconds": 2.387574,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 39332
+}

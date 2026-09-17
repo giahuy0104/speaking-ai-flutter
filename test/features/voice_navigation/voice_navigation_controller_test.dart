@@ -12,6 +12,28 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets(
+    'authored prompt longer than eight seconds finishes before command window opens',
+    (tester) async {
+      final speechInput = _FakeNavigationSpeechInput();
+      final prompt = _LongAuthoredVoicePromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: prompt,
+      );
+      final operation = controller.dispatchRecognizedText('Hey HOMI');
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 9));
+      expect(controller.isAwaitingCommand, false);
+      expect(prompt.stopCalls, 0);
+      prompt.complete();
+      await tester.pump();
+      expect(await operation, true);
+      expect(controller.isAwaitingCommand, true);
+      controller.dispose();
+      await speechInput.dispose();
+    },
+  );
   test(
     'forced pause stops assistant audio when HOMI leaves foreground',
     () async {
@@ -1610,6 +1632,20 @@ class _BlockingVoicePromptService extends _FakeVoicePromptService {
   Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
     await super.speak(text, locale: locale);
     await _completion.future;
+  }
+}
+
+class _LongAuthoredVoicePromptService extends _BlockingVoicePromptService
+    implements AuthoredPromptBudgetProvider {
+  int stopCalls = 0;
+  @override
+  Future<Duration?> authoredPromptBudget(
+    String text, {
+    String locale = 'vi-VN',
+  }) async => const Duration(seconds: 20);
+  @override
+  Future<void> stop() async {
+    stopCalls++;
   }
 }
 

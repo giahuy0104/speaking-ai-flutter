@@ -1,0 +1,22 @@
+{
+  "id": "VOCAB50-037",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "HOMI nói đáp án nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "nasmPuZ5TZrKX5jWQCF1",
+  "historyItemId": "wLZKYCZZuN2S290oMMk2",
+  "characterCost": "11",
+  "createdAt": "2026-09-16T03:21:05.352Z",
+  "sourceSha256": "76ade7e238a1c61b4978ac624fae9f4a7b52be66f964e81989934f8a2caf99f4"
+}

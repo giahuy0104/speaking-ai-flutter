@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/services.dart';
@@ -39,6 +40,7 @@ class LessonGuideAudioLibrary {
   final Random _random;
   final List<String>? _providedAssetPaths;
   Future<List<String>>? _assetPathsFuture;
+  Future<Map<String, Uri>>? _remoteUrisFuture;
 
   Future<Uri?> randomUri(
     LessonGuideCue cue, {
@@ -56,7 +58,7 @@ class LessonGuideAudioLibrary {
       return null;
     }
     final selected = candidates[_random.nextInt(candidates.length)];
-    return Uri(scheme: 'asset', path: '/$selected');
+    return _uriForAssetPath(selected);
   }
 
   /// Resolves a V2 guide by its stable audio code, regardless of the folder in
@@ -80,7 +82,7 @@ class LessonGuideAudioLibrary {
                   : filename.substring(0, extensionIndex))
               .toLowerCase();
       if (basename == normalizedCode) {
-        return Uri(scheme: 'asset', path: '/$asset');
+        return _uriForAssetPath(asset);
       }
     }
     return null;
@@ -91,9 +93,43 @@ class LessonGuideAudioLibrary {
     if (provided != null) {
       return provided.map(_normalizePath).toList(growable: false)..sort();
     }
-    final manifest = await AssetManifest.loadFromAssetBundle(_bundle);
-    return manifest.listAssets().map(_normalizePath).toList(growable: false)
-      ..sort();
+    final remoteUris = await (_remoteUrisFuture ??= _loadRemoteUris());
+    return remoteUris.keys.toList(growable: false)..sort();
+  }
+
+  Future<Uri?> _uriForAssetPath(String assetPath) async {
+    if (_providedAssetPaths != null) {
+      return Uri(scheme: 'asset', path: '/$assetPath');
+    }
+    final remoteUris = await (_remoteUrisFuture ??= _loadRemoteUris());
+    return remoteUris[assetPath];
+  }
+
+  Future<Map<String, Uri>> _loadRemoteUris() async {
+    final decoded = jsonDecode(
+      await _bundle.loadString('assets/data/cloudinary_audio_manifest.json'),
+    );
+    if (decoded is! Map<String, dynamic> || decoded['schemaVersion'] != 1) {
+      throw const FormatException('Unsupported Cloudinary audio manifest.');
+    }
+    final rawAssets = decoded['assets'];
+    if (rawAssets is! Map) {
+      throw const FormatException('Cloudinary audio manifest has no assets.');
+    }
+    final result = <String, Uri>{};
+    for (final entry in rawAssets.entries) {
+      final value = entry.value;
+      if (entry.key is! String || value is! Map) continue;
+      final secureUrl = value['secureUrl'];
+      final uri = secureUrl is String ? Uri.tryParse(secureUrl) : null;
+      if (uri == null ||
+          !uri.isScheme('https') ||
+          uri.host != 'res.cloudinary.com') {
+        continue;
+      }
+      result[_normalizePath(entry.key as String)] = uri;
+    }
+    return result;
   }
 
   static bool _isSupportedAudio(String assetPath) {

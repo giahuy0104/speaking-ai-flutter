@@ -1,0 +1,22 @@
+{
+  "id": "VOCAB50-004",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình tạm dừng nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "OVMcGnvd5VrlaUIWmMAa",
+  "historyItemId": "B4hIz1ta8jGaGMfdqjIC",
+  "characterCost": "10",
+  "createdAt": "2026-09-16T03:19:40.900Z",
+  "sourceSha256": "a71e9e4b4d73c1f0fc9178881cba1a7f6157d16ed02f3d0716185c37c3b3a9f7"
+}

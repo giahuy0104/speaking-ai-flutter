@@ -37,48 +37,19 @@ flutter:
     - assets/data/listening_audio_manifest_v4.json
     - assets/data/listening_ai_lexicon_v4.json
     - assets/data/homi_ai_fallback_catalog_v1.json
+    - assets/data/main_assistant_audio.json
+    - assets/data/homi_gap66_audio.json
+    - assets/audio/MAIN/GAP66/
+    - assets/audio/MAIN/RUNTIME-CHALLENGE-CUE-001.vi.v1.mp3
+    - assets/audio/MAIN/RUNTIME-CONVERSATION-RECOVERY-001.vi.v1.mp3
+    - assets/audio/MAIN/RUNTIME-MAIN-NAVIGATION-001.vi.v1.mp3
+    - assets/audio/MAIN/RUNTIME-MAIN-NAVIGATION-002.vi.v1.mp3
+    - assets/audio/MAIN/RUNTIME-TRANSLATION-CONTROL-001.vi.v1.mp3
+    - assets/audio/MAIN/RUNTIME-TRANSLATION-CONTROL-002.vi.v1.mp3
+    - assets/data/cloudinary_audio_manifest.json
+    - assets/data/curriculum_audio.json
     - assets/data/vietnamese_speech_corrections_v1.json
-    - assets/audio/A-3-5/GUIDE_RECORD/
-    - assets/audio/A-3-5/GUIDE_PRAISE/
-    - assets/audio/A-3-5/GUIDE_NEXT/
-    - assets/audio/A-3-5/GUIDE_IDLE1/
-    - assets/audio/A-3-5/GUIDE_IDLE2/
-    - assets/audio/A-3-5/GUIDE_SKIP/
-    - assets/audio/A-3-5/GUIDE_ENDING/
-    - assets/audio/A-6-7/GUIDE_RECORD/
-    - assets/audio/A-6-7/GUIDE_PRAISE/
-    - assets/audio/A-6-7/GUIDE_NEXT/
-    - assets/audio/A-6-7/GUIDE_IDLE1/
-    - assets/audio/A-6-7/GUIDE_IDLE2/
-    - assets/audio/A-6-7/GUIDE_SKIP/
-    - assets/audio/A-6-7/GUIDE_ENDING/
-    - assets/audio/A-6-7/SONGS/
-    - assets/audio/A-6-7/SONG_INTRO/
-    - assets/audio/A-6-7/LESSON_INTRO/
-    - assets/audio/A-8-10/GUIDE_RECORD/
-    - assets/audio/A-8-10/GUIDE_PRAISE/
-    - assets/audio/A-8-10/GUIDE_NEXT/
-    - assets/audio/A-8-10/GUIDE_IDLE1/
-    - assets/audio/A-8-10/GUIDE_IDLE2/
-    - assets/audio/A-8-10/GUIDE_SKIP/
-    - assets/audio/A-8-10/GUIDE_ENDING/
-    - assets/audio/A-8-10/SONGS/
-    - assets/audio/A-8-10/SONG_INTRO/
-    - assets/audio/A-8-10/LESSON_INTRO/
-    - assets/audio/A-11-12/GUIDE_RECORD/
-    - assets/audio/A-11-12/GUIDE_PRAISE/
-    - assets/audio/A-11-12/GUIDE_NEXT/
-    - assets/audio/A-11-12/GUIDE_IDLE1/
-    - assets/audio/A-11-12/GUIDE_IDLE2/
-    - assets/audio/A-11-12/GUIDE_SKIP/
-    - assets/audio/A-11-12/GUIDE_ENDING/
-    - assets/audio/A-13-15/GUIDE_RECORD/
-    - assets/audio/A-13-15/GUIDE_PRAISE/
-    - assets/audio/A-13-15/GUIDE_NEXT/
-    - assets/audio/A-13-15/GUIDE_IDLE1/
-    - assets/audio/A-13-15/GUIDE_IDLE2/
-    - assets/audio/A-13-15/GUIDE_SKIP/
-    - assets/audio/A-13-15/GUIDE_ENDING/
+    - assets/audio/A-3-5/GUIDE_RECORD/A035_GUIDE_RECORD_01.mp3
     - assets/images/lesson-intro-stage.webp
     - assets/images/song-karaoke-sunrise.webp
     - assets/images/learning-train-field-background.webp

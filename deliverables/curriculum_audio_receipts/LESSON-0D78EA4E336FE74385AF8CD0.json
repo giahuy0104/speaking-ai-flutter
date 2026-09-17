@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T05-B02\\C35-L2-T05-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-T05-B02-Q04",
+  "sourceText": "Đó là con bò: It's a duck hay It's a cow?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đó là con bò:",
+      "spoken_text": "Đó là con bò:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "It's a duck",
+      "spoken_text": "It's a duck",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "It's a cow?",
+      "spoken_text": "It's a cow?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-0D78EA4E336FE74385AF8CD0",
+  "text": "Đó là con bò: It's a duck hay It's a cow?",
+  "asset": "assets/audio/CURRICULUM/0d78ea4e336fe74385af8cd0.vi.v1.mp3",
+  "sha256": "b2e6a94c0b28ef92c9bc5f7ef5d795fff719f2fbd0d63255b9911aeeede1cb22",
+  "durationSeconds": 5.187347
+}

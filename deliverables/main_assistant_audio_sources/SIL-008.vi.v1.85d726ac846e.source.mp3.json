@@ -1,0 +1,20 @@
+{
+  "id": "SIL-008",
+  "signature": "85d726ac846e742c799fccd85798e7ee310b0d23d5be8627ffc4a476380a5924",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn nói lại lựa chọn nha.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:10:29.992Z",
+  "requestId": "NUth5EdCZy7vd5TlprxC",
+  "characterCost": "14",
+  "sourceSha256": "b44e46cdb7ca6582ad6ed4de75432c138c23d69d49a99e02a53ed7fbe923275d"
+}

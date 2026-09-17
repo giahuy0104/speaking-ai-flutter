@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B03\\C1112-L3-T09-B03-T03_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B03-T03_VI",
+  "sourceText": "Đi chuyến xe tiếp theo.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đi chuyến xe tiếp theo.",
+      "generation_key": "88bdbbe0ef034b8f"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-36BECED4F0F556F62F17C54B",
+  "text": "Đi chuyến xe tiếp theo.",
+  "asset": "assets/audio/CURRICULUM/36beced4f0f556f62f17c54b.vi.v1.mp3",
+  "sha256": "69a8cd3d2dbfd16edd11f7c6367d68116b484cc8f32e9f43cd3b4e97aea3009e",
+  "durationSeconds": 1.791134
+}

@@ -1,0 +1,27 @@
+{
+  "id": "FB-004-1",
+  "signature": "bc02b5627e29f51bbb79b3ec3db20ccb248d78834c985d5e4a76c216bfe4e1f8",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn nói số chủ đề, ví dụ “chủ đề số 3”.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:10:35.383Z",
+  "requestId": "tXhumsSCxT6irD6XxWtV",
+  "characterCost": "21",
+  "sourceSha256": "818f72321b59d53882d584d1360119184cabc5fc25a75c48dacea18243937aee",
+  "asset": "assets/audio/MAIN/FB-004-1.vi.v1.mp3",
+  "finalSha256": "e559749af18263ece71a55478223982fa5ad7f73bde2d5e297eb2d6b8605f9ec",
+  "sourceDurationSeconds": 3.44,
+  "durationSeconds": 3.806168,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 61902
+}

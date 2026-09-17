@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T08\\C35-L3-M05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-M05",
+  "sourceText": "Bạn muốn nói 'Anh/em trai của mình.' Hoàn thành câu: My... brother hay sister?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn muốn nói 'Anh/em trai của mình.' Hoàn thành câu:",
+      "text": "Bạn muốn nói 'Anh/em trai của mình.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Anh hoặc em trai của mình.' Hoàn thành câu:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "source_text": "My... brother",
+      "text": "My... brother",
+      "spoken_text": "My... brother",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "source_text": "sister?",
+      "text": "sister?",
+      "spoken_text": "sister?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": "b41ef9934f1a12868a64c7fb95b8df901fa2bf22b6559a1adf0f7c6bd72451f3",
+  "id": "LESSON-032A54270DE0CD744366A16B",
+  "text": "Bạn muốn nói 'Anh/em trai của mình.' Hoàn thành câu: My... brother hay sister?",
+  "asset": "assets/audio/CURRICULUM/032a54270de0cd744366a16b.vi.v1.mp3",
+  "sha256": "b41ef9934f1a12868a64c7fb95b8df901fa2bf22b6559a1adf0f7c6bd72451f3",
+  "durationSeconds": 9.030295
+}

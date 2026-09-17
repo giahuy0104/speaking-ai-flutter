@@ -1,0 +1,5048 @@
+{
+  "schemaVersion": 1,
+  "enabled": true,
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "prompts": [
+    {
+      "id": "AI-001",
+      "text": "HOMI đây. Bạn muốn dịch sang tiếng Anh, học theo chủ đề hay học bộ từ vựng?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-001.vi.v1.mp3",
+      "sha256": "eb24facb037b82b65a714b65795911445d34cbbf0d2c09bea2ad3f26dad8e272",
+      "durationSeconds": 5.583946,
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart",
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "AI-001",
+        "RUN-001"
+      ],
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551158/homi/audio/MAIN/AI-001.vi.v1.mp3"
+    },
+    {
+      "id": "AI-002",
+      "text": "Bạn có thể chọn: dịch sang tiếng Anh, học theo chủ đề hoặc học bộ từ vựng",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-002.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart",
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "AI-002",
+        "RUN-002"
+      ],
+      "sha256": "a8e6e65756b7269518f936b8b4c3d838ea6261fab113d094ddd218d6f7b82982",
+      "durationSeconds": 5.758367,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551161/homi/audio/MAIN/AI-002.vi.v1.mp3"
+    },
+    {
+      "id": "AI-003",
+      "text": "Khi sẵn sàng, bạn nhấn nút gọi HOMI nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-003.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart",
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "AI-003",
+        "SIL-002",
+        "RUN-003"
+      ],
+      "sha256": "f74285b92179b97d3ab128ec32c031f09f2eb5db35d3fa8b500698e83ab6cd9b",
+      "durationSeconds": 2.742177,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551162/homi/audio/MAIN/AI-003.vi.v1.mp3"
+    },
+    {
+      "id": "AI-004",
+      "text": "Được thôi. Bạn muốn dịch sang tiếng Anh, học theo chủ đề hay học bộ từ vựng?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-004.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart",
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "AI-004",
+        "RUN-004"
+      ],
+      "sha256": "6006bc0780dc8380462b4b8e9df7a87a82a68cd92f01f87afa94103b0d11e9e6",
+      "durationSeconds": 5.505669,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551162/homi/audio/MAIN/AI-004.vi.v1.mp3"
+    },
+    {
+      "id": "AI-005",
+      "text": "Bạn muốn nghe lại, học câu tiếp theo, học câu trước, hay dừng lại?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-005.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart",
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "AI-005",
+        "RUN-006"
+      ],
+      "sha256": "32917e02ce7c3b08b27a3c47781a99f7c35a5ae0f66e29ccd140c2c3dfc35093",
+      "durationSeconds": 4.701088,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551163/homi/audio/MAIN/AI-005.vi.v1.mp3"
+    },
+    {
+      "id": "AI-006",
+      "text": "Bạn muốn dịch sang tiếng Anh hay học bộ từ vựng?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-006.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart",
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "AI-006",
+        "RUN-008"
+      ],
+      "sha256": "7fcf3c36d299c9843574d2af39d0fc153d037b2dee9f4fe3a2a199745d4cb7a1",
+      "durationSeconds": 2.927528,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551164/homi/audio/MAIN/AI-006.vi.v1.mp3"
+    },
+    {
+      "id": "AI-007",
+      "text": "Bạn mấy tuổi?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-007.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-007"
+      ],
+      "sha256": "0c63e28359816695c930f90b8ef0cf233d3878fd3819b379ae26f98282cbf52e",
+      "durationSeconds": 0.964354,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551165/homi/audio/MAIN/AI-007.vi.v1.mp3"
+    },
+    {
+      "id": "AI-008",
+      "text": "Bạn mấy tuổi? Ví dụ bạn nói: 6 tuổi.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-008.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart",
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "AI-008",
+        "RUN-041"
+      ],
+      "sha256": "5dce7b7af7099e4201a61e4f6fe4bf974ce50f1405edbfb6d6eaa842a04320dc",
+      "durationSeconds": 3.983515,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551166/homi/audio/MAIN/AI-008.vi.v1.mp3"
+    },
+    {
+      "id": "AI-012",
+      "text": "Chủ đề này chưa có bài học. Bạn chọn chủ đề khác nha.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-012.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-012"
+      ],
+      "sha256": "3dabde1f0d448445ed566c9cdf03050e40696ea88dd5a67a521ed785f37978cf",
+      "durationSeconds": 3.722472,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551167/homi/audio/MAIN/AI-012.vi.v1.mp3"
+    },
+    {
+      "id": "AI-017",
+      "text": "Mình bắt đầu học thôi.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-017.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-017"
+      ],
+      "sha256": "6ca5e39961cbc95d14d4bb8ce1d19c9203885ca597d4caf43ad3d0a3e2a4d5a2",
+      "durationSeconds": 1.319909,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551167/homi/audio/MAIN/AI-017.vi.v1.mp3"
+    },
+    {
+      "id": "AI-018",
+      "text": "HOMI chưa tải được bài học. Bạn thử lại sau.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-018.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-018"
+      ],
+      "sha256": "d26e00bae0bb8cca3ff420c0889b8d23ca79778eda68e989c9f8846b1d7b09f5",
+      "durationSeconds": 3.54746,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551168/homi/audio/MAIN/AI-018.vi.v1.mp3"
+    },
+    {
+      "id": "AI-019",
+      "text": "HOMI chưa chọn được chủ đề. Bạn thử lại.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-019.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-019"
+      ],
+      "sha256": "2162dd25c7a39eb45951426fcf49740f9b1a324510a75525d7aad869223c6270",
+      "durationSeconds": 3.011315,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551169/homi/audio/MAIN/AI-019.vi.v1.mp3"
+    },
+    {
+      "id": "AI-020",
+      "text": "Mình cùng dịch sang tiếng Anh nha.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-020.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart",
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "AI-020",
+        "RUN-010"
+      ],
+      "sha256": "573848b4166ed00591e7e9d10b83777b122ce9216c3ba0a9ec1e978d131e3bf7",
+      "durationSeconds": 2.022789,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551171/homi/audio/MAIN/AI-020.vi.v1.mp3"
+    },
+    {
+      "id": "AI-022",
+      "text": "Bạn cứ nói từng câu. Muốn dừng thì nói “dừng lại”.",
+      "lookupTexts": [
+        "Bạn cứ nói từng câu. Muốn dừng thì nói “Dừng lại”."
+      ],
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-022.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-022"
+      ],
+      "group": "translation-controls",
+      "sha256": "678f480b4052f41ffba1c7464c84c8f4cf621a17871606c8e8ca99fdba47306d",
+      "durationSeconds": 3.899184,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551171/homi/audio/MAIN/AI-022.vi.v1.mp3"
+    },
+    {
+      "id": "AI-023",
+      "text": "HOMI chưa nghe thấy bạn nói. Bạn nói lại đi.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-023.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-023",
+        "AI-025",
+        "SIL-003",
+        "SIL-005"
+      ],
+      "sha256": "7803cd03326dedda498e8b5c7f8336e7f65b0cff9e81e476c5e244c1479339ff",
+      "durationSeconds": 3.279909,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551172/homi/audio/MAIN/AI-023.vi.v1.mp3"
+    },
+    {
+      "id": "AI-024",
+      "text": "Mình dừng ở đây. Khi cần, bạn nhấn nút gọi HOMI.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-024.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart",
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "AI-024",
+        "RUN-009"
+      ],
+      "sha256": "d4cea74c5797a60e14ff5683e120a4422991cd01bd8a366dd4f54ca61666520d",
+      "durationSeconds": 3.718662,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551173/homi/audio/MAIN/AI-024.vi.v1.mp3"
+    },
+    {
+      "id": "AI-026",
+      "text": "Ở đây hơi ồn. Bạn đưa micro lại gần, tránh hướng quạt hoặc chuyển sang chỗ yên hơn rồi thử lại nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-026.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-026"
+      ],
+      "sha256": "3e932a3ca04b4b4976b12aaa2496f7e0e368d5a5d5d11f6427f41837c8fa3d64",
+      "durationSeconds": 6.829637,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551174/homi/audio/MAIN/AI-026.vi.v1.mp3"
+    },
+    {
+      "id": "AI-027",
+      "text": "HOMI chưa nghe rõ. Bạn thử nói lại nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-027.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-027",
+        "SIL-009"
+      ],
+      "sha256": "9a79df68a48c29303d4ca162e3dfa31d24018089f050bcaa568f19cd53368f15",
+      "durationSeconds": 2.568821,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551175/homi/audio/MAIN/AI-027.vi.v1.mp3"
+    },
+    {
+      "id": "AI-028",
+      "text": "HOMI chưa tải được từ vựng. Bạn thử lại sau nha.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-028.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-028"
+      ],
+      "sha256": "b81e688b931779a85fe44addd79d20a43373180bfe04b89f79e39cf29aa62209",
+      "durationSeconds": 4.163537,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551176/homi/audio/MAIN/AI-028.vi.v1.mp3"
+    },
+    {
+      "id": "AI-029",
+      "text": "Bạn muốn luyện tập lại hay xem bộ sưu tập ngôi sao?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-029.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-029"
+      ],
+      "sha256": "c887dbd3f418e69bc2bd2e8c218699c20eb72c72e56fb1b93e1e23e656666abb",
+      "durationSeconds": 3.532472,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551177/homi/audio/MAIN/AI-029.vi.v1.mp3"
+    },
+    {
+      "id": "AI-030",
+      "text": "Có từ mới rồi. Mình cùng học nha.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-030.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-030"
+      ],
+      "sha256": "d29135cb8c64805e47ef007ad91ce2846f2ad6d877fd773e65553d1ca9e4fb12",
+      "durationSeconds": 2.829569,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551177/homi/audio/MAIN/AI-030.vi.v1.mp3"
+    },
+    {
+      "id": "AI-032",
+      "text": "Mình qua phần luyện lại và ngôi sao nha.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-032.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-032"
+      ],
+      "sha256": "6f6f0e860109fca39e2e1ff7b9447e5e1801cbe0aae9e46bb0fba3910002e180",
+      "durationSeconds": 2.469887,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551178/homi/audio/MAIN/AI-032.vi.v1.mp3"
+    },
+    {
+      "id": "AI-033",
+      "text": "Phần luyện lại.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-033.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart",
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "AI-033",
+        "RUN-017"
+      ],
+      "sha256": "02b6a13ab96d828e1b50490e4f73aa69b32c1fdf75d9744e2ccfc554286fd132",
+      "durationSeconds": 1.491905,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551179/homi/audio/MAIN/AI-033.vi.v1.mp3"
+    },
+    {
+      "id": "AI-034",
+      "text": "Phần luyện lại chưa có từ nào.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-034.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart",
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "AI-034",
+        "RUN-020"
+      ],
+      "sha256": "1d35b6de226f98c03c3ca8e9864e4c04d0b1f7f47f5f3364a4c707416f5e2f6f",
+      "durationSeconds": 2.213243,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551180/homi/audio/MAIN/AI-034.vi.v1.mp3"
+    },
+    {
+      "id": "AI-035",
+      "text": "Bộ sưu tập ngôi sao.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-035.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-035"
+      ],
+      "sha256": "eb78523d183207037e5daba3e993eb74da9c65c348bedd0ea65d6d15d4d3be8b",
+      "durationSeconds": 1.766961,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551181/homi/audio/MAIN/AI-035.vi.v1.mp3"
+    },
+    {
+      "id": "AI-036",
+      "text": "Bộ sưu tập ngôi sao chưa có từ nào.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-036.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-036"
+      ],
+      "sha256": "fda6eb2bf2dc004bd042a8b50cf19fda68a326c7c13e5e7627fe687cb0218216",
+      "durationSeconds": 2.654127,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551182/homi/audio/MAIN/AI-036.vi.v1.mp3"
+    },
+    {
+      "id": "AI-037",
+      "text": "Mình đã học xong bộ từ vựng hôm nay rồi.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-037.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-037"
+      ],
+      "sha256": "c214ab4c5b85dbfcb2ec7778d868611e74b82b6e298fec5178a15c96f7919f83",
+      "durationSeconds": 2.564399,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551183/homi/audio/MAIN/AI-037.vi.v1.mp3"
+    },
+    {
+      "id": "AI-038",
+      "text": "Mình học tiếp thôi.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-038.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-038"
+      ],
+      "sha256": "780e3302de5590f0a6ea7bb5c4e21ae8c158cae3951ee8ceba310fe7b3d6f43f",
+      "durationSeconds": 1.139342,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551183/homi/audio/MAIN/AI-038.vi.v1.mp3"
+    },
+    {
+      "id": "AI-039",
+      "text": "Mình nghe lại câu này nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-039.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-039"
+      ],
+      "sha256": "ccda7bbda31da074489030f8f3ff642891fd9b3852d07a3b9f648f597c2e75e2",
+      "durationSeconds": 1.492676,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551184/homi/audio/MAIN/AI-039.vi.v1.mp3"
+    },
+    {
+      "id": "AI-040",
+      "text": "Mình học câu tiếp theo thôi.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-040.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-040"
+      ],
+      "sha256": "a315dcb13b8a6c50a232fb5d8bd0a3e1053a17e8335407f973abd2beb3210352",
+      "durationSeconds": 2.035261,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551185/homi/audio/MAIN/AI-040.vi.v1.mp3"
+    },
+    {
+      "id": "AI-041",
+      "text": "Mình quay lại câu trước nha.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-041.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-041"
+      ],
+      "sha256": "83f71c1d878491728a94d2eee94f15af82cd229203d9eb348ac6a3a1f8659aca",
+      "durationSeconds": 1.406644,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551186/homi/audio/MAIN/AI-041.vi.v1.mp3"
+    },
+    {
+      "id": "AI-042",
+      "text": "Mình chuyển sang bài tiếp theo nào.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-042.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-042"
+      ],
+      "sha256": "cbbd79eca776e70274d37b28b6a01aea3d4403e695a213be800078a45c6118ed",
+      "durationSeconds": 1.675578,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551187/homi/audio/MAIN/AI-042.vi.v1.mp3"
+    },
+    {
+      "id": "AI-043",
+      "text": "Mình quay lại bài trước nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-043.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-043"
+      ],
+      "sha256": "2df0ace949ae7f98f1b1241055750edb311f47543bbe361de96a36a2b0047781",
+      "durationSeconds": 1.760658,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551188/homi/audio/MAIN/AI-043.vi.v1.mp3"
+    },
+    {
+      "id": "AI-044",
+      "text": "Mình học lại bài này từ đầu nha.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-044.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-044"
+      ],
+      "sha256": "c2c1d0674599f0b45d852d69880a79591933614b20b07fee1837db4f9fdd3551",
+      "durationSeconds": 1.853379,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551189/homi/audio/MAIN/AI-044.vi.v1.mp3"
+    },
+    {
+      "id": "AI-045",
+      "text": "Đã dừng.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-045.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart",
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/lesson_intro_screen.dart",
+        "lib/features/listening/presentation/lesson_practice_screen.dart",
+        "lib/features/listening/presentation/lesson_review_screen.dart",
+        "lib/features/listening/presentation/song_karaoke_screen.dart",
+        "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart"
+      ],
+      "aliases": [
+        "AI-045",
+        "RUN-030",
+        "REPLY-003",
+        "REPLY-006",
+        "REPLY-010",
+        "REPLY-015",
+        "REPLY-017"
+      ],
+      "sha256": "8ebbd2cf9753f0b8141f90638d52aec8034dc5a731d185c1f7ac6e2c52ed284c",
+      "durationSeconds": 0.701927,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551190/homi/audio/MAIN/AI-045.vi.v1.mp3"
+    },
+    {
+      "id": "AI-046",
+      "text": "Mình kết thúc bài học ở đây nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-046.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-046"
+      ],
+      "sha256": "1981ccfec7f260a23d188d694dcf97475465aaa515bcffa7e3f9542e78772b0d",
+      "durationSeconds": 1.76068,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551191/homi/audio/MAIN/AI-046.vi.v1.mp3"
+    },
+    {
+      "id": "AI-047",
+      "text": "Nghe HOMI trước, rồi bạn nói lại sau nha.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-047.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-047"
+      ],
+      "sha256": "4d0f0ab4bf8fc4497f42daf224ab1bbe0c71fb0413bd7240124f4b0609b4e655",
+      "durationSeconds": 2.915896,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551191/homi/audio/MAIN/AI-047.vi.v1.mp3"
+    },
+    {
+      "id": "AI-048",
+      "text": "Đến lượt bạn. Bạn nói lại đi.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-048.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-048"
+      ],
+      "sha256": "72916a1da01a8cb94206cd2edd9c26ddab1110d35549702eb2398b5902316678",
+      "durationSeconds": 2.030975,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551192/homi/audio/MAIN/AI-048.vi.v1.mp3"
+    },
+    {
+      "id": "AI-049",
+      "text": "Bạn chọn “Luyện lại từ đầu” hay “Bài tiếp theo”?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-049.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-049"
+      ],
+      "sha256": "7df5fc1ee3d91e5708f2e5b75f13ddd730f76e46096cdd2dd8f26985814772b2",
+      "durationSeconds": 3.358526,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551193/homi/audio/MAIN/AI-049.vi.v1.mp3"
+    },
+    {
+      "id": "AI-050",
+      "text": "Bạn nói lại lựa chọn đi.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-050.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-050"
+      ],
+      "sha256": "785a21955d379cf32a6c8245bb777331d501e9b303344cc7112bd476f5bf2570",
+      "durationSeconds": 1.675601,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551194/homi/audio/MAIN/AI-050.vi.v1.mp3"
+    },
+    {
+      "id": "AI-051",
+      "text": "Bạn đã học xong chủ đề này rồi. Chọn chủ đề mới nha.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-051.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-051"
+      ],
+      "sha256": "70a2f202d15bae615983db869282d86d7545ce356cbc00fd687aa4c0d056c86f",
+      "durationSeconds": 3.628435,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551195/homi/audio/MAIN/AI-051.vi.v1.mp3"
+    },
+    {
+      "id": "AI-052",
+      "text": "Bạn làm tốt lắm. HOMI đã thêm câu này vào ngôi sao!",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-052.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-052"
+      ],
+      "sha256": "5de6bf6c4e91818c0087e1138cc92cd7cd7e10ea88d0f816bfee8c072404b112",
+      "durationSeconds": 4.172494,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551195/homi/audio/MAIN/AI-052.vi.v1.mp3"
+    },
+    {
+      "id": "AI-053",
+      "text": "HOMI chưa nghe rõ. Bạn nói lại đi.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-053.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-053",
+        "SIL-007"
+      ],
+      "sha256": "d26f71a5c62a2b6c07590db4d4b2f8c347fd4b6c95a53707535e0b2bbcf796c6",
+      "durationSeconds": 2.390567,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551196/homi/audio/MAIN/AI-053.vi.v1.mp3"
+    },
+    {
+      "id": "AI-054",
+      "text": "Bạn tập trung nhé. Mình quay lại câu đang học nào.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-054.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-054"
+      ],
+      "sha256": "58bd0b376a1426fc023875cdbe35610f3b49d6dbdc533478cdc64411ceb35fdb",
+      "durationSeconds": 3.369456,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551197/homi/audio/MAIN/AI-054.vi.v1.mp3"
+    },
+    {
+      "id": "AI-055",
+      "text": "Mình qua câu khác nha!",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-055.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-055"
+      ],
+      "sha256": "66b4167d63ff4e93d163dc0851112e7b684a4152e630f0914352340ef16c77c5",
+      "durationSeconds": 1.314558,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551198/homi/audio/MAIN/AI-055.vi.v1.mp3"
+    },
+    {
+      "id": "AI-056",
+      "text": "Gần được rồi! Bạn nghe lại câu này nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-056.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-056"
+      ],
+      "sha256": "b9896e99064a904e701b06fbf253efd422f1c736fc5550400f640a8571e7ad07",
+      "durationSeconds": 2.649274,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551199/homi/audio/MAIN/AI-056.vi.v1.mp3"
+    },
+    {
+      "id": "AI-057",
+      "text": "Bây giờ bạn thử nói lại lần nữa nè.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-057.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-057"
+      ],
+      "sha256": "77062cb33dfd288ff1d701923038799b40f00cd5ce98aee09ad4123178c459c1",
+      "durationSeconds": 2.385601,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551199/homi/audio/MAIN/AI-057.vi.v1.mp3"
+    },
+    {
+      "id": "AI-058",
+      "text": "Bạn đã cố gắng tốt rồi! Mình sẽ luyện thêm sau. Giờ học câu tiếp nào.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-058.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-058"
+      ],
+      "sha256": "1ea44742c7c822aa742a5d5941c862191a24cf62cb6468f0f5f90d1d69ba3c1f",
+      "durationSeconds": 5.412109,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551200/homi/audio/MAIN/AI-058.vi.v1.mp3"
+    },
+    {
+      "id": "AI-063",
+      "text": "Bạn đang ở câu đầu tiên rồi.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-063.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-063"
+      ],
+      "sha256": "d49309f979d7135324c190358e2b4d8c3bbb7f9852537da92fc28a1ac325cd3e",
+      "durationSeconds": 2.207324,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551201/homi/audio/MAIN/AI-063.vi.v1.mp3"
+    },
+    {
+      "id": "AI-064",
+      "text": "Bạn đang ở bài đầu tiên rồi.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-064.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-064"
+      ],
+      "sha256": "6e2cea66e440d95b9a56668de11a15559679746690791809d4199a1645f0e1a6",
+      "durationSeconds": 1.937982,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551202/homi/audio/MAIN/AI-064.vi.v1.mp3"
+    },
+    {
+      "id": "AI-066",
+      "text": "Đây là phần tổng kết của bài học rồi.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-066.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart",
+        "lib/features/listening/presentation/lesson_review_screen.dart"
+      ],
+      "aliases": [
+        "AI-066",
+        "REPLY-012"
+      ],
+      "sha256": "3943a74725d8d795b6c96f7826ea7f2df9179b334709c4d2580926147858ce5a",
+      "durationSeconds": 2.387574,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551202/homi/audio/MAIN/AI-066.vi.v1.mp3"
+    },
+    {
+      "id": "AI-067",
+      "text": "HOMI chưa có bài tiếp theo.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-067.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-067"
+      ],
+      "sha256": "eb85bf33c8d52b37e2fd823554992c3ec2c58677ff02c05860fbc6afc17da02e",
+      "durationSeconds": 1.683492,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551203/homi/audio/MAIN/AI-067.vi.v1.mp3"
+    },
+    {
+      "id": "AI-068",
+      "text": "Mình học xong bài hát này trước rồi chuyển phần khác.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-068.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-068"
+      ],
+      "sha256": "04561bfeaf52d56b6bb871b306491f9195cab772afc91f685afb7de6ab61d22a",
+      "durationSeconds": 3.184807,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551204/homi/audio/MAIN/AI-068.vi.v1.mp3"
+    },
+    {
+      "id": "AI-069",
+      "text": "HOMI nghe đây.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-069.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-069"
+      ],
+      "sha256": "6034281a6e82d3f9f062873417cdcfad02b5b68e2010958e3348d2dc7302f4a4",
+      "durationSeconds": 1.145669,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551205/homi/audio/MAIN/AI-069.vi.v1.mp3"
+    },
+    {
+      "id": "AI-070",
+      "text": "HOMI chưa thực hiện được. Bạn thử lại.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/AI-070.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "AI-070"
+      ],
+      "sha256": "65f96c5696adf55d057ff331f4347a94c638cc8c1a731d3e12541fca1aea65b3",
+      "durationSeconds": 2.735714,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551206/homi/audio/MAIN/AI-070.vi.v1.mp3"
+    },
+    {
+      "id": "SIL-001",
+      "text": "Bạn có thể chọn: dịch sang tiếng Anh, học theo chủ đề hoặc học bộ từ vựng.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/SIL-001.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "SIL-001",
+        "FB-001-1"
+      ],
+      "sha256": "6425966ed6318ca7093a2b23b9e8136e75ae6c374ffe70131ffd96e612237c8d",
+      "durationSeconds": 5.76483,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551346/homi/audio/MAIN/SIL-001.vi.v1.mp3"
+    },
+    {
+      "id": "SIL-004",
+      "text": "Mình dừng ở đây. Khi cần, bạn nhấn nút gọi HOMI nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/SIL-004.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "SIL-004"
+      ],
+      "sha256": "f75597f61e5f8a313b417e571cace6ad28a8d766da33cb5fdff46849cb781f80",
+      "durationSeconds": 4.160771,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551347/homi/audio/MAIN/SIL-004.vi.v1.mp3"
+    },
+    {
+      "id": "SIL-006",
+      "text": "Ở đây hơi ồn. Bạn đưa micro lại gần, tránh hướng quạt hoặc chuyển sang chỗ yên hơn rồi thử lại nha.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/SIL-006.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "SIL-006"
+      ],
+      "sha256": "35117da8135da0066f15ff651a8060dd311f05cae6cb34cf11dc7c0331456ffd",
+      "durationSeconds": 7.813243,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551348/homi/audio/MAIN/SIL-006.vi.v1.mp3"
+    },
+    {
+      "id": "SIL-008",
+      "text": "Bạn nói lại lựa chọn nha.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/SIL-008.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "SIL-008"
+      ],
+      "sha256": "261b061497a1a87e3d64e34d8e5ca5f14eb36efb55792d17c895cacd37e9c177",
+      "durationSeconds": 1.675011,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551348/homi/audio/MAIN/SIL-008.vi.v1.mp3"
+    },
+    {
+      "id": "FB-001-2",
+      "text": "HOMI vẫn chưa hiểu. Khi sẵn sàng, bạn nhấn nút gọi HOMI nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/FB-001-2.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "FB-001-2"
+      ],
+      "sha256": "17723663e19b6ab983f2affa03266c7e26f8bf651acb7532cb08156571dd1e08",
+      "durationSeconds": 5.142766,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551207/homi/audio/MAIN/FB-001-2.vi.v1.mp3"
+    },
+    {
+      "id": "FB-004-1",
+      "text": "Bạn nói số chủ đề, ví dụ “chủ đề số 3”.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/FB-004-1.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "FB-004-1"
+      ],
+      "sha256": "e559749af18263ece71a55478223982fa5ad7f73bde2d5e297eb2d6b8605f9ec",
+      "durationSeconds": 3.806168,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551208/homi/audio/MAIN/FB-004-1.vi.v1.mp3"
+    },
+    {
+      "id": "FB-004-2",
+      "text": "HOMI chưa nhận được chủ đề. Bạn có thể chọn trên điện thoại nha.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/FB-004-2.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "FB-004-2"
+      ],
+      "sha256": "5c012de45bde6a688c954c5bc6ebad1c58d42a5e7f33f38403e9c5a91dd2b88b",
+      "durationSeconds": 4.522109,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551209/homi/audio/MAIN/FB-004-2.vi.v1.mp3"
+    },
+    {
+      "id": "FB-005-1",
+      "text": "Bạn nói số bài, ví dụ “bài số 1”.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/FB-005-1.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "FB-005-1"
+      ],
+      "sha256": "0142545a16e76793d5965852f4dce16379a661dcb1670cd47f5bb18c700cfc1f",
+      "durationSeconds": 3.006531,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551210/homi/audio/MAIN/FB-005-1.vi.v1.mp3"
+    },
+    {
+      "id": "FB-005-2",
+      "text": "HOMI chưa nhận được bài. Bạn có thể chọn trên điện thoại nha.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/FB-005-2.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "FB-005-2"
+      ],
+      "sha256": "21ed9205ab3e349543835f8261616792c6229d05c57b45d558bf6c4076eacf79",
+      "durationSeconds": 4.079751,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551210/homi/audio/MAIN/FB-005-2.vi.v1.mp3"
+    },
+    {
+      "id": "FB-006-1",
+      "text": "HOMI chưa hiểu. Bạn có thể nói: nghe lại, câu tiếp, câu trước hoặc dừng lại.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/FB-006-1.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "FB-006-1"
+      ],
+      "sha256": "1ed5931b9bbd7b87c4698a945fed96018d058faf2a98ddb030c6542c86044c3e",
+      "durationSeconds": 6.659025,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551211/homi/audio/MAIN/FB-006-1.vi.v1.mp3"
+    },
+    {
+      "id": "FB-006-2",
+      "text": "HOMI vẫn chưa hiểu. Mình giữ nguyên câu hiện tại nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/FB-006-2.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "FB-006-2"
+      ],
+      "sha256": "484b1518d7f126df3384982e4a0f508cb9bdaf998c465ddced9d4ade4fb03b0d",
+      "durationSeconds": 3.714331,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551212/homi/audio/MAIN/FB-006-2.vi.v1.mp3"
+    },
+    {
+      "id": "FB-007-1",
+      "text": "Bạn nói “có” để học lại hoặc “không” để chọn chủ đề khác.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/FB-007-1.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "FB-007-1"
+      ],
+      "sha256": "b258f9d39cdda83549f59bac51419bc1de746a22f3e0298164973e3ce05b304f",
+      "durationSeconds": 5.045964,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551213/homi/audio/MAIN/FB-007-1.vi.v1.mp3"
+    },
+    {
+      "id": "FB-007-2",
+      "text": "HOMI chưa nhận được câu trả lời. Bạn chọn “có” hoặc “không” nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/FB-007-2.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "FB-007-2"
+      ],
+      "sha256": "84c7c81a0b1d57ddcee5f9f4e8a34fadad90ffe3d221aae96fac8608c4f7578e",
+      "durationSeconds": 4.337392,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551214/homi/audio/MAIN/FB-007-2.vi.v1.mp3"
+    },
+    {
+      "id": "FB-008-1",
+      "text": "Bạn nói “luyện lại” hoặc “ngôi sao”.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/FB-008-1.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "FB-008-1"
+      ],
+      "sha256": "42d61ac8bad099183151e26229e39941c48ec65525cc604a05fc004a99fff38e",
+      "durationSeconds": 3.012857,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551215/homi/audio/MAIN/FB-008-1.vi.v1.mp3"
+    },
+    {
+      "id": "FB-008-2",
+      "text": "Mình tạm dừng học bộ từ vựng. Khi sẵn sàng, bạn nhấn nút gọi HOMI nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/FB-008-2.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "FB-008-2"
+      ],
+      "sha256": "45ae73f1eff3ae6ef60ed9855bf52f388a9cb19a6593f5a5bda13e75737c07c1",
+      "durationSeconds": 5.327619,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551216/homi/audio/MAIN/FB-008-2.vi.v1.mp3"
+    },
+    {
+      "id": "FB-009-1",
+      "text": "Bạn muốn dừng dịch để học theo chủ đề hoặc học bộ từ vựng phải không?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/FB-009-1.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "FB-009-1"
+      ],
+      "sha256": "8081033aa30fa421d28af831728a3beacc610154860edd97ff938cad1e855e0a",
+      "durationSeconds": 4.786893,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551217/homi/audio/MAIN/FB-009-1.vi.v1.mp3"
+    },
+    {
+      "id": "FB-009-2",
+      "text": "Bạn nói “dừng lại” để gọi HOMI nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/FB-009-2.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "FB-009-2"
+      ],
+      "sha256": "b061942be0cdc78de623d7de2b7b7b0fc7780bf65d596764ae978cc7060c162f",
+      "durationSeconds": 3.094739,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551217/homi/audio/MAIN/FB-009-2.vi.v1.mp3"
+    },
+    {
+      "id": "FB-010-1",
+      "text": "Bạn nói “luyện lại từ đầu” hoặc “bài tiếp theo”.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/FB-010-1.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "FB-010-1"
+      ],
+      "sha256": "4cd97da00cbe38380959bfd8092ad0d10962d9b864f6aa88d604ecd4a377ecef",
+      "durationSeconds": 3.805964,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551219/homi/audio/MAIN/FB-010-1.vi.v1.mp3"
+    },
+    {
+      "id": "FB-010-2",
+      "text": "Mình dừng ở đây. Khi muốn học tiếp, bạn nhấn nút gọi HOMI nha.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/FB-010-2.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+      ],
+      "aliases": [
+        "FB-010-2"
+      ],
+      "sha256": "b903fe619ae9f47bf7bc6f43b9264b175e5c0efb3ff255f17bcd8cae4e5c6a20",
+      "durationSeconds": 4.344036,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551220/homi/audio/MAIN/FB-010-2.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-005",
+      "text": "Con muốn học chủ đề, học bộ từ vựng hay dừng lại?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-005.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-005"
+      ],
+      "sha256": "ff7fca2a75eecd96ed75e17f62cc55975dea715fa89693d849e2dccdec08a181",
+      "durationSeconds": 3.540522,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551258/homi/audio/MAIN/RUN-005.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-007",
+      "text": "Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-007.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/domain/v4_completion_flow.dart"
+      ],
+      "aliases": [
+        "RUN-007",
+        "RUN-143"
+      ],
+      "sha256": "52d7002e3dca0c4662f02e71d0ae0a909f0acd969ebad689ba751f38ff1d9326",
+      "durationSeconds": 4.607664,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551258/homi/audio/MAIN/RUN-007.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-011",
+      "text": "Chủ đề này chưa có bài học. Con chọn chủ đề khác nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-011.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-011"
+      ],
+      "sha256": "ba473d72f031e6aef1f21a73adf6d3b81613f737ce5eba860431d8170acb0272",
+      "durationSeconds": 3.718118,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551259/homi/audio/MAIN/RUN-011.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-012",
+      "text": "Con mấy tuổi",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-012.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-012"
+      ],
+      "sha256": "85d2873c49d8799e3e517e4f2ba3ef200e0822f312e163cca3ae86cf3241b799",
+      "durationSeconds": 0.960522,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551260/homi/audio/MAIN/RUN-012.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-013",
+      "text": "Con muốn nghe phần Ba mẹ đã thêm, Luyện lại hay Ngôi sao?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-013.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-013",
+        "RUN-014"
+      ],
+      "sha256": "00ef859a918839ce558b1e0d9d05bb3ef68be5260c334800fff75c9da75b0e50",
+      "durationSeconds": 4.342698,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551261/homi/audio/MAIN/RUN-013.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-015",
+      "text": "Mình chưa tải được từ vựng. Con thử lại sau nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-015.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-015"
+      ],
+      "sha256": "66267cd0ec2d75d1beaa3018b0e8388e4a45980d944c2f4df5228da7585b899d",
+      "durationSeconds": 3.181769,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551262/homi/audio/MAIN/RUN-015.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-016",
+      "text": "Phần Ba mẹ đã thêm.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-016.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-016"
+      ],
+      "sha256": "0ac3b576b3c1c1350684cd9a2475cb3dfa8b0c6a8b72938f610b799b3c4ce1c4",
+      "durationSeconds": 1.860272,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551263/homi/audio/MAIN/RUN-016.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-018",
+      "text": "Những ngôi sao của con.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-018.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-018"
+      ],
+      "sha256": "d7f14048cd1cd773043b8263adc226df469f72e52e5776fa43f9a04af9dcd15c",
+      "durationSeconds": 1.50458,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551264/homi/audio/MAIN/RUN-018.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-019",
+      "text": "Chưa có nội dung đã học tốt trong phần Ba mẹ đã thêm.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-019.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-019"
+      ],
+      "sha256": "776288852c47a6a4b4e10ac2a490dfd892c22e0911a386d5643a0124f1c723ab",
+      "durationSeconds": 3.904014,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551264/homi/audio/MAIN/RUN-019.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-021",
+      "text": "Con chưa có từ ngôi sao nào.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-021.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-021"
+      ],
+      "sha256": "0f7378d3877d20916357b3fd2ef6c436528fbab50d1d9befb086a51c730784d8",
+      "durationSeconds": 2.11542,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551265/homi/audio/MAIN/RUN-021.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-022",
+      "text": "Mình đã học xong từ vựng rồi.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-022.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-022"
+      ],
+      "sha256": "f92acfadc62d6f733dd0919f4937a62202c371f88776e93585f9bfd74a6bb2fd",
+      "durationSeconds": 1.765147,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551266/homi/audio/MAIN/RUN-022.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-023",
+      "text": "Cùng học tiếp nhé",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-023.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-023"
+      ],
+      "sha256": "1a6c20a624c8ffea57b2c6b92c29de76166c63d14dcdc006d91c468c7b583e5e",
+      "durationSeconds": 1.052426,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551267/homi/audio/MAIN/RUN-023.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-024",
+      "text": "Mình nghe lại câu này nhé",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-024.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-024"
+      ],
+      "sha256": "a1ecaf068317772a5ea8a20aceaa8c1ee158afd2e76ad755383137658b08d32c",
+      "durationSeconds": 1.504694,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551268/homi/audio/MAIN/RUN-024.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-025",
+      "text": "Mình học câu tiếp theo nhé",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-025.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-025"
+      ],
+      "sha256": "c7ee8ba47b094ce1ef2dd127b74c2c425ba28ddc75459888f36c894f030159ab",
+      "durationSeconds": 1.407528,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551270/homi/audio/MAIN/RUN-025.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-026",
+      "text": "Mình nghe lại câu trước nhé",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-026.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-026"
+      ],
+      "sha256": "464b9440ebd5b9a77ce548fb404ea947fcdca0eac3858e079b5af9fe8cdf9920",
+      "durationSeconds": 1.760884,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551271/homi/audio/MAIN/RUN-026.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-027",
+      "text": "Mình chuyển sang bài tiếp theo nhé",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-027.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-027"
+      ],
+      "sha256": "7c050de4f1b53c72a59d7e2839205412507f7addbdb358db17c57f91e5d4ec9c",
+      "durationSeconds": 1.67381,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551272/homi/audio/MAIN/RUN-027.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-028",
+      "text": "Mình quay lại bài trước nhé",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-028.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-028"
+      ],
+      "sha256": "64f732d1246a41aec41055446a881c09b9d68bb20440925bb1593a9f5f5c682e",
+      "durationSeconds": 1.760431,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551273/homi/audio/MAIN/RUN-028.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-029",
+      "text": "Mình học lại bài này từ đầu nhé",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-029.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-029"
+      ],
+      "sha256": "f78059f2824090136cef580be7abbc9ae93144687abe10e8d8bf488239a4e50f",
+      "durationSeconds": 1.852132,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551274/homi/audio/MAIN/RUN-029.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-031",
+      "text": "Mình kết thúc bài học nhé",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-031.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-031"
+      ],
+      "sha256": "ddec8c7575e5a6add728e92ad35b2e0cda25e9c4f0c7da96d24bbc032e08d2f0",
+      "durationSeconds": 1.411678,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551274/homi/audio/MAIN/RUN-031.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-032",
+      "text": "Con mấy tuổi? Con hãy nói, ví dụ con 6 tuổi",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-032.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-032"
+      ],
+      "sha256": "c9024ce5f4e52a3472f7b61d227f2f0645d387b5804ca47765f30404da7053ff",
+      "durationSeconds": 4.253832,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551275/homi/audio/MAIN/RUN-032.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-033",
+      "text": "Chủ đề này chưa có bài học. Con thử lại sau nhé",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-033.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-033"
+      ],
+      "sha256": "9544a7f8a1d9b75bff3ad3a76233d0a6e5dc4b482ed57f90cf1b7def34dd6384",
+      "durationSeconds": 3.185714,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551276/homi/audio/MAIN/RUN-033.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-034",
+      "text": "Bi cô chưa tải được bài học. Con thử lại sau nhé",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-034.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-034"
+      ],
+      "sha256": "ba9306c542ca4269c306906010264c4ba046c91a5168ed98e42b3f37dc306671",
+      "durationSeconds": 3.449751,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551277/homi/audio/MAIN/RUN-034.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-035",
+      "text": "Bi cô chưa chọn được chủ đề. Con thử lại nhé",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-035.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-035",
+        "RUN-037"
+      ],
+      "sha256": "c20f39a769a77fccb4d29538e980f1f8794aad4a8195c938566ad748c56b813d",
+      "durationSeconds": 3.185465,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551278/homi/audio/MAIN/RUN-035.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-036",
+      "text": "Bi cô chưa chọn được bài học. Con thử lại nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-036.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-036"
+      ],
+      "sha256": "38aaa2dc9bbb6c29247545a14f5256d6a9ada0958334330d026fe987ce81e465",
+      "durationSeconds": 3.365283,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551279/homi/audio/MAIN/RUN-036.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-038",
+      "text": "Bắt đầu học thôi con",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-038.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-038"
+      ],
+      "sha256": "831adf86522d75236b1cc20b515384e8f33d7e1919dde9560de2a82eaa174887",
+      "durationSeconds": 1.236757,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551279/homi/audio/MAIN/RUN-038.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-039",
+      "text": "Con muốn học bài số mấy?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-039.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-039"
+      ],
+      "sha256": "01d7d543176e2d0b76d92aa3a56c5cd3e12a4c2aa55e7a6585fbbb26c4edce61",
+      "durationSeconds": 1.49712,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551280/homi/audio/MAIN/RUN-039.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-040",
+      "text": "Bạn muốn nghe phần Ba mẹ đã thêm, Luyện lại hay Ngôi sao?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-040.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-040"
+      ],
+      "sha256": "73f92c3f94fbb8b18bfa4de2898a9f2576e60e528428c525f3c5bbece0503487",
+      "durationSeconds": 3.982834,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551281/homi/audio/MAIN/RUN-040.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-042",
+      "text": "Bạn muốn học lại chủ đề này không? Nói “có” hoặc “không”.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-042.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-042"
+      ],
+      "sha256": "376ea17a90048e0bcae325e08952a54b2155164e87fc411a14132195009eff86",
+      "durationSeconds": 3.900658,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551282/homi/audio/MAIN/RUN-042.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-043",
+      "text": "Bạn muốn học lại hay học bài tiếp theo?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-043.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "RUN-043"
+      ],
+      "sha256": "6fb8b89b2aaa0e1817902a8445c4180a6a41184166ef6e240a1e7628946b3966",
+      "durationSeconds": 2.6522,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551283/homi/audio/MAIN/RUN-043.vi.v1.mp3"
+    },
+    {
+      "id": "MAIN-TRANSLATION-INTRO",
+      "text": "Mình cùng dịch sang tiếng Anh nha. Bạn cứ nói từng câu. Muốn dừng thì nói “dừng lại”.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/MAIN-TRANSLATION-INTRO.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "MAIN-TRANSLATION-INTRO"
+      ],
+      "sha256": "357f7b0e8f1d7ef1dff7655c65801420ee2441181013a6b4bdc5ef7b0d3547db",
+      "durationSeconds": 6.123129,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551248/homi/audio/MAIN/MAIN-TRANSLATION-INTRO.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-044",
+      "text": "Đã có nội dung mới cho bạn. Bắt đầu học thôi!",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-044.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-044"
+      ],
+      "sha256": "83f1e872b6b39c5b15f80d9ad7f9d26d9a4c46c2ecae377a45283c7ff43c2952",
+      "durationSeconds": 2.83068,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551283/homi/audio/MAIN/RUN-044.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-045",
+      "text": "Mình học tiếp Danh sách hôm nay nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-045.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-045"
+      ],
+      "sha256": "639d1c06771dc0c5339ae47b17cec3f9cdf9b35616c7da5ecebc8ac170c77e7d",
+      "durationSeconds": 2.200227,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551284/homi/audio/MAIN/RUN-045.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-046",
+      "text": "Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-046.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-046",
+        "RUN-047",
+        "RUN-051"
+      ],
+      "sha256": "4d89b6b32113574de1519966b332038968d915c856a1c36e83d43db09b238da6",
+      "durationSeconds": 4.607959,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551285/homi/audio/MAIN/RUN-046.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-048",
+      "text": "Mình học xong lượt này trước nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-048.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart",
+        "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart"
+      ],
+      "aliases": [
+        "RUN-048",
+        "REPLY-018"
+      ],
+      "sha256": "10b21efd544cccb73e0a7ecc863daaaa355ede2e91459667320dfc7d599933e1",
+      "durationSeconds": 1.673696,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551286/homi/audio/MAIN/RUN-048.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-049",
+      "text": "Mình tạm dừng nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-049.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart",
+        "lib/features/listening/presentation/lesson_challenge_screen.dart",
+        "lib/features/listening/presentation/lesson_practice_screen.dart"
+      ],
+      "aliases": [
+        "RUN-049",
+        "RUN-154",
+        "LOCAL-PAUSE_AFTER_NO_RESPONSE"
+      ],
+      "sha256": "1d08f6207e7a037815eb520d46d198eebc0f33186cedaa89cff07ebdecade097",
+      "durationSeconds": 1.136689,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551287/homi/audio/MAIN/RUN-049.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-050",
+      "text": "Bạn muốn học nội dung khác hay học lại?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-050.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-050"
+      ],
+      "sha256": "f3208258cf16508e1f9c733de6cfd017750c4ebb4f9ed5f077791bf8a35fb57b",
+      "durationSeconds": 2.650023,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551288/homi/audio/MAIN/RUN-050.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-052",
+      "text": "Mình cùng nghe nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-052.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-052"
+      ],
+      "sha256": "c6eb8e9370de3b03475eb75957f14887fec5aee67e842a9f5c8f52d7973c7027",
+      "durationSeconds": 1.138231,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551288/homi/audio/MAIN/RUN-052.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-053",
+      "text": "Chưa có nội dung ở phần này. Bạn muốn học Ngôi sao hay Luyện lại?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-053.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-053"
+      ],
+      "sha256": "42a9fec0916c99022775fdeef086dc7df87f38e4bdaa7000bcbc984dfa21e423",
+      "durationSeconds": 4.791361,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551289/homi/audio/MAIN/RUN-053.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-054",
+      "text": "Bắt đầu nào.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-054.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-054"
+      ],
+      "sha256": "4250103d637b488d561d0166209ffc582233f7a7880c898d25017b359219fd19",
+      "durationSeconds": 1.498095,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551290/homi/audio/MAIN/RUN-054.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-055",
+      "text": "Bạn muốn học nội dung khác hay học tiếp?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-055.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-055",
+        "RUN-060",
+        "RUN-067"
+      ],
+      "sha256": "19a2134db99cda3e2c0bc521ff48f8b87f454e77b8ebfdecf99b5d8cb18b0628",
+      "durationSeconds": 2.561066,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551291/homi/audio/MAIN/RUN-055.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-056",
+      "text": "Bạn muốn học Ngôi sao hay Luyện lại?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-056.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-056"
+      ],
+      "sha256": "c2440d0dccfc8862d7d119d4411824622a0ef56b51a5da31aeace862a32e4f56",
+      "durationSeconds": 2.478821,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551293/homi/audio/MAIN/RUN-056.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-057",
+      "text": "Bạn đã nghe hết rồi. Bạn muốn học nội dung khác hay học lại?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-057.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-057"
+      ],
+      "sha256": "197253deaf1d7a080b67822c2baa60a6fe37cdfb9ee8d5aef61b47ef6f01c59e",
+      "durationSeconds": 4.166553,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551293/homi/audio/MAIN/RUN-057.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-058",
+      "text": "Mình nghe tiếp nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-058.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-058",
+        "RUN-070"
+      ],
+      "sha256": "7d0a58cae1c6cd6fb1a69184f75e2e5c079ab5431a5ba2ed5a0f2012afca6af2",
+      "durationSeconds": 0.706576,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551294/homi/audio/MAIN/RUN-058.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-059",
+      "text": "Mình cùng luyện lại nhé. Bắt đầu thôi!",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-059.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-059"
+      ],
+      "sha256": "bc1a14b2e751ec77692562a4f704ddbf9972371bf5288b55e0abe1aa2b0487ac",
+      "durationSeconds": 2.646871,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551295/homi/audio/MAIN/RUN-059.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-061",
+      "text": "Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-061.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-061"
+      ],
+      "sha256": "d6e971545d9755f38ad213d34a17fab5a19ee5a4a3c038537b46e409e7252a43",
+      "durationSeconds": 3.36517,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551296/homi/audio/MAIN/RUN-061.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-062",
+      "text": "Mình đã luyện xong rồi. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-062.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-062"
+      ],
+      "sha256": "20bcdc6c081dc9bbcad9e6507f0eafa9be1aab2b3e00f6445d1ebe6f4c545489",
+      "durationSeconds": 4.970907,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551297/homi/audio/MAIN/RUN-062.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-063",
+      "text": "Không có nội dung cần luyện lại. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-063.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-063"
+      ],
+      "sha256": "1c6d23a8784862553f62727a472402e68a2a3e9290cb45ae44bb4aeead885afa",
+      "durationSeconds": 6.121088,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551298/homi/audio/MAIN/RUN-063.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-064",
+      "text": "Mình luyện tiếp nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-064.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-064"
+      ],
+      "sha256": "4c7eaee85e8b4609dfb8fa79f3ace1c2d3c8a31ed7af78a09cd035fbb91fbffc",
+      "durationSeconds": 1.411746,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551298/homi/audio/MAIN/RUN-064.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-065",
+      "text": "Mình cùng nghe Ngôi sao nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-065.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-065"
+      ],
+      "sha256": "dd703f6a3063aa256fae53887fe7553dde0a29d1c2ee0d4371a53c452ee37c5d",
+      "durationSeconds": 1.678889,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551299/homi/audio/MAIN/RUN-065.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-066",
+      "text": "Bạn chưa có Ngôi sao nào. Bạn muốn học phần Ba mẹ đã thêm hay Luyện lại?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-066.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-066"
+      ],
+      "sha256": "ce12d9fb2c243bb58d54265ef6104e0c4c68b0b899b3fef5e6996c3663ac567c",
+      "durationSeconds": 6.114059,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551300/homi/audio/MAIN/RUN-066.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-068",
+      "text": "Bạn muốn học phần Ba mẹ đã thêm hay Luyện lại?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-068.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-068"
+      ],
+      "sha256": "aebfe5ef58ae2b291f50d1c2c1727f041cde7cccf8358129a912f7a58fe9cf9e",
+      "durationSeconds": 3.273152,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551301/homi/audio/MAIN/RUN-068.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-069",
+      "text": "Bạn đã nghe hết Ngôi sao rồi. Bạn muốn học nội dung khác hay học lại?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-069.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-069"
+      ],
+      "sha256": "8fcdb6f73290f5829c3eae417e4f33d675cb4a0fcd6792ab89f4a7c31fc25ea0",
+      "durationSeconds": 4.699388,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551302/homi/audio/MAIN/RUN-069.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-071",
+      "text": "Giọng của bạn đây.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-071.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/vocabulary/domain/vocabulary_flow_v3.dart"
+      ],
+      "aliases": [
+        "RUN-071"
+      ],
+      "sha256": "c6b8def6da49f33b3d5684531da6a0a777af3fe0edad0b953c090313f1b85baa",
+      "durationSeconds": 1.667302,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551303/homi/audio/MAIN/RUN-071.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-072",
+      "text": "Đúng rồi!",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-072.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-072",
+        "RUN-083",
+        "RUN-094"
+      ],
+      "sha256": "e68135f527c325ebb4de05844c7a8b3ea9f8a28091d80dc931eb093d88c53e27",
+      "durationSeconds": 0.787098,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551304/homi/audio/MAIN/RUN-072.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-073",
+      "text": "Giỏi lắm!",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-073.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-073",
+        "RUN-084"
+      ],
+      "sha256": "27af15aa311a43b91bda6dfc4cc2fbbf92cf93cc619990331d9764a5090baf55",
+      "durationSeconds": 0.787438,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551305/homi/audio/MAIN/RUN-073.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-074",
+      "text": "Tốt lắm!",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-074.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-074"
+      ],
+      "sha256": "e27d83117647bd05c482a77c5a2f915c354373b159abf5bcb82d79197992c43f",
+      "durationSeconds": 0.967596,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551306/homi/audio/MAIN/RUN-074.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-075",
+      "text": "Mình thử lại nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-075.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-075"
+      ],
+      "sha256": "1a23029427837149ccfabfc5edec03b88a27d03f2bdcf7925953018ddcd12c97",
+      "durationSeconds": 1.056644,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551307/homi/audio/MAIN/RUN-075.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-076",
+      "text": "Nghe lại rồi thử nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-076.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-076",
+        "RUN-086",
+        "RUN-096"
+      ],
+      "sha256": "2c96c6dc49daa13cc2a72c1704c0482c7c933803cc14479357a5bda3406bb9e6",
+      "durationSeconds": 1.229615,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551307/homi/audio/MAIN/RUN-076.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-077",
+      "text": "HOMI nói mẫu nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-077.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-077",
+        "RUN-087",
+        "RUN-107",
+        "RUN-117"
+      ],
+      "sha256": "0d62b86d7b22f66dc200352caccf4fcfbd99319bcb2c8992e3577d71305a58a4",
+      "durationSeconds": 1.233084,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551308/homi/audio/MAIN/RUN-077.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-078",
+      "text": "Mình nghe câu đúng nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-078.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-078",
+        "RUN-088"
+      ],
+      "sha256": "0d1c89f666e407573b1f072fd262f9f0dbc4d9c4612a885bb1957b29b8a9373d",
+      "durationSeconds": 1.581043,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551309/homi/audio/MAIN/RUN-078.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-079",
+      "text": "Bạn thử nói nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-079.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-079",
+        "RUN-127",
+        "LOCAL-CORE_SPEAK_03"
+      ],
+      "sha256": "30d691a28655b9c89a9f0c1dd5cf56ba39b489e11aaad51566696914412e03ba",
+      "durationSeconds": 1.224263,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551310/homi/audio/MAIN/RUN-079.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-080",
+      "text": "Mình thử một lần nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-080.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-080"
+      ],
+      "sha256": "341cace0e0911a95deeda2193e604f6344fd85f99934b157d2348383f3aa4030",
+      "durationSeconds": 1.76585,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551311/homi/audio/MAIN/RUN-080.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-081",
+      "text": "HOMI chưa nghe rõ. Bạn nói lại nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-081.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-081",
+        "RUN-090",
+        "RUN-100",
+        "RUN-109"
+      ],
+      "sha256": "6f3218e91de2622eaed35ec3c746fc9f93273196a781d20d767b5ea42f972a23",
+      "durationSeconds": 2.562086,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551312/homi/audio/MAIN/RUN-081.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-082",
+      "text": "Được rồi. HOMI nói mẫu nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-082.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-082",
+        "RUN-091"
+      ],
+      "sha256": "dca101a3f5fd04370193b34c4a2e9f019eff29d132bff97ba98c93e03de6ac2b",
+      "durationSeconds": 2.031338,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551313/homi/audio/MAIN/RUN-082.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-085",
+      "text": "Bạn thử lại nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-085.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-085"
+      ],
+      "sha256": "8ffdd3009f38887251aa8a50f6703ece55f86dead5088ed1909e87f7ed0c5556",
+      "durationSeconds": 1.940567,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551314/homi/audio/MAIN/RUN-085.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-089",
+      "text": "Bạn thử trả lời nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-089.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-089",
+        "RUN-099",
+        "RUN-108",
+        "RUN-118"
+      ],
+      "sha256": "70f43a7547f4422f62779da2cea9a920209a33cf85f88fb9d1b3b753de920b35",
+      "durationSeconds": 2.214989,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551315/homi/audio/MAIN/RUN-089.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-092",
+      "text": "Great!",
+      "locale": "en-US",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-092.en.v1.mp3",
+      "voiceLanguage": "en",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-092",
+        "RUN-102"
+      ],
+      "lookupLocales": [
+        "en-US",
+        "vi-VN"
+      ],
+      "sha256": "fe35a92b06c64c5f29ca2df4ff87bb330e82b6c0a43ad728fbd0ffbf7dc1e545",
+      "durationSeconds": 1.043787,
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551316/homi/audio/MAIN/RUN-092.en.v1.mp3"
+    },
+    {
+      "id": "RUN-093",
+      "text": "Good job!",
+      "locale": "en-US",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-093.en.v1.mp3",
+      "voiceLanguage": "en",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-093"
+      ],
+      "lookupLocales": [
+        "en-US",
+        "vi-VN"
+      ],
+      "sha256": "9a71b306b4749449c640420e2bb255c8041283ee2886c41e12f475de69881945",
+      "durationSeconds": 1.692336,
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551316/homi/audio/MAIN/RUN-093.en.v1.mp3"
+    },
+    {
+      "id": "RUN-095",
+      "text": "Thử lại nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-095.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-095",
+        "RUN-105"
+      ],
+      "sha256": "1a2c3db35ed453de650082fb4128512f2aacaef2af9e763322bb09aee96a941c",
+      "durationSeconds": 0.707891,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551317/homi/audio/MAIN/RUN-095.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-097",
+      "text": "HOMI nói đáp án nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-097.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-097"
+      ],
+      "sha256": "4e530e7036fe1259ebe465b3d579b4f22b0e3708617de6908a4dc9021f04e6f2",
+      "durationSeconds": 1.501315,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551318/homi/audio/MAIN/RUN-097.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-098",
+      "text": "Nghe câu đúng nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-098.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-098",
+        "RUN-106",
+        "RUN-116"
+      ],
+      "sha256": "cea1f0ef2f6272ec2eee5a00839caa41e847b29bd5389a639c95bff7a3823e91",
+      "durationSeconds": 1.049841,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551319/homi/audio/MAIN/RUN-098.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-101",
+      "text": "Được. Nghe câu đúng nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-101.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-101",
+        "RUN-110",
+        "RUN-120"
+      ],
+      "sha256": "009cd8a37c0abcf252209b3cf4792770a5096e259e557c1e233ba3c2d4ef4123",
+      "durationSeconds": 1.942766,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551320/homi/audio/MAIN/RUN-101.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-103",
+      "text": "Exactly.",
+      "locale": "en-US",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-103.en.v1.mp3",
+      "voiceLanguage": "en",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-103",
+        "RUN-111"
+      ],
+      "lookupLocales": [
+        "en-US",
+        "vi-VN"
+      ],
+      "sha256": "2426836e689f748cae31deeccc17dc06023e3f3b836ecb0b931c70cecef6ee73",
+      "durationSeconds": 1.269728,
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551320/homi/audio/MAIN/RUN-103.en.v1.mp3"
+    },
+    {
+      "id": "RUN-104",
+      "text": "Nice.",
+      "locale": "en-US",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-104.en.v1.mp3",
+      "voiceLanguage": "en",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-104",
+        "RUN-112"
+      ],
+      "lookupLocales": [
+        "en-US",
+        "vi-VN"
+      ],
+      "sha256": "00e1c7ae2980b2b6fa9ca8635a0c6ed5ac37a1194bd073d0998bb689301e00c4",
+      "durationSeconds": 1.254966,
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551321/homi/audio/MAIN/RUN-104.en.v1.mp3"
+    },
+    {
+      "id": "RUN-113",
+      "text": "Good.",
+      "locale": "en-US",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-113.en.v1.mp3",
+      "voiceLanguage": "en",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-113"
+      ],
+      "lookupLocales": [
+        "en-US",
+        "vi-VN"
+      ],
+      "sha256": "11fe4ed8d39fbf64c04ad4b31446e9eaf8451f9613939998cc44d748e6c12225",
+      "durationSeconds": 1.041633,
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551322/homi/audio/MAIN/RUN-113.en.v1.mp3"
+    },
+    {
+      "id": "RUN-114",
+      "text": "Try again.",
+      "locale": "en-US",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-114.en.v1.mp3",
+      "voiceLanguage": "en",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-114"
+      ],
+      "lookupLocales": [
+        "en-US",
+        "vi-VN"
+      ],
+      "sha256": "d074d601094dc25cf7dcfb2d610657b05ce42d7ed68fca69a50e8292e0e11c71",
+      "durationSeconds": 1.372063,
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551323/homi/audio/MAIN/RUN-114.en.v1.mp3"
+    },
+    {
+      "id": "RUN-115",
+      "text": "One more time.",
+      "locale": "en-US",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-115.en.v1.mp3",
+      "voiceLanguage": "en",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-115"
+      ],
+      "lookupLocales": [
+        "en-US",
+        "vi-VN"
+      ],
+      "sha256": "4c9d5c38db01be1003265d60452ee9fa4cc0b2045fd25b4a8aeb499c31e9e9d5",
+      "durationSeconds": 1.263537,
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551323/homi/audio/MAIN/RUN-115.en.v1.mp3"
+    },
+    {
+      "id": "RUN-119",
+      "text": "HOMI chưa nghe rõ. Thử lại nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-119.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-119"
+      ],
+      "sha256": "d4fa925a21073729f261224fe6f1f618061cd73ce1bf3d9654a52bda933871d2",
+      "durationSeconds": 2.292177,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551324/homi/audio/MAIN/RUN-119.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-121",
+      "text": "Tiếp theo là một câu thử thách nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-121.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart",
+        "lib/features/listening/presentation/lesson_practice_screen.dart"
+      ],
+      "aliases": [
+        "RUN-121",
+        "RUN-145"
+      ],
+      "sha256": "95251c4b126d619a57649e48918038b2ce4cb349d0b03fd08e1490a3f7bf10ad",
+      "durationSeconds": 2.123129,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551325/homi/audio/MAIN/RUN-121.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-122",
+      "text": "Tiếp theo là Nhiệm vụ cuối Level. Bạn sẽ có bốn câu thử thách.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-122.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-122"
+      ],
+      "sha256": "c13b986ac7677d0d46e7e8da2da829443efec9af09bafdc1a4223b98b1908e11",
+      "durationSeconds": 4.605964,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551326/homi/audio/MAIN/RUN-122.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-123",
+      "text": "Nói theo cô nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-123.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-123",
+        "LOCAL-AI_GUIDE_BEFORE_SENTENCE"
+      ],
+      "sha256": "77c52901cecdccd8f5ef83db719650a5870af893ad734e4099fbfc1afd124d55",
+      "durationSeconds": 1.492313,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551327/homi/audio/MAIN/RUN-123.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-124",
+      "text": "Bây giờ đến lượt con. Con nói lại nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-124.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-124",
+        "LOCAL-AI_GUIDE_AFTER_SAMPLE"
+      ],
+      "sha256": "439e7813e3499361cef8067a7e37ea746f0c5a94603e97fbeac535b805b487f7",
+      "durationSeconds": 2.837098,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551328/homi/audio/MAIN/RUN-124.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-125",
+      "text": "Bạn nói lại nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-125.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-125",
+        "LOCAL-CORE_SPEAK_01"
+      ],
+      "sha256": "04387baa38b392218eecca807c222e79ade1fc24148c28facab63ff02c798eab",
+      "durationSeconds": 1.050612,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551328/homi/audio/MAIN/RUN-125.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-126",
+      "text": "Đến lượt bạn.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-126.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-126",
+        "LOCAL-CORE_SPEAK_02"
+      ],
+      "sha256": "0ec0d7660ec0a58b0d0f89b3fcbbd3683f33bb19096f8558dc0704d9917e19fe",
+      "durationSeconds": 1.051066,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551329/homi/audio/MAIN/RUN-126.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-128",
+      "text": "Nói lại câu này.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-128.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-128",
+        "LOCAL-CORE_SPEAK_04"
+      ],
+      "sha256": "71c204b14321179b333ca543b38a196dc5fe0d09719162a1e2ae0b94bcb1d1c8",
+      "durationSeconds": 1.14127,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551330/homi/audio/MAIN/RUN-128.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-129",
+      "text": "Bạn nói tiếng Anh nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-129.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-129",
+        "LOCAL-CORE_SPEAK_05"
+      ],
+      "sha256": "ed4e29e1d6005e410e89355783835394b2032d04189ffb8804c15718b96c4639",
+      "durationSeconds": 1.315964,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551331/homi/audio/MAIN/RUN-129.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-130",
+      "text": "Con hãy nói “Luyện lại từ đầu” hoặc “Bài tiếp theo” nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-130.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-130",
+        "LOCAL-AI_GUIDE_COMPLETION_CHOICE"
+      ],
+      "sha256": "e472ec9d65088086c65f6c2671ffe112e684f38e230c9510c4034be74a297458",
+      "durationSeconds": 4.427914,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551332/homi/audio/MAIN/RUN-130.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-131",
+      "text": "Nói lại lựa chọn của con nhé",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-131.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-131",
+        "LOCAL-AI_GUIDE_COMPLETION_CHOICE_UNCLEAR"
+      ],
+      "sha256": "d0f95894edbd7e6b01387925f81919436f2f3f23211688899a1900296c3194d3",
+      "durationSeconds": 1.854263,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551332/homi/audio/MAIN/RUN-131.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-132",
+      "text": "Con đã học xong chủ đề này rồi. Con chọn tiếp chủ đề mới nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-132.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart",
+        "lib/features/listening/presentation/lesson_practice_screen.dart"
+      ],
+      "aliases": [
+        "RUN-132",
+        "LOCAL-AI_GUIDE_TOPIC_COMPLETED",
+        "REPLY-008"
+      ],
+      "sha256": "eb8201206f5229b70c59c843d426cce83c3d319996108622e4b751ba9c653b82",
+      "durationSeconds": 4.156077,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551333/homi/audio/MAIN/RUN-132.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-133",
+      "text": "Con làm tốt lắm",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-133.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-133",
+        "LOCAL-AI_GUIDE_GOOD"
+      ],
+      "sha256": "7241e681f44d121d24e0f8274a0610d80cdd59fb2a0a4ebdf753dff927755fb8",
+      "durationSeconds": 1.052132,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551334/homi/audio/MAIN/RUN-133.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-134",
+      "text": "Cô chưa nghe rõ. Con nói lại nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-134.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-134",
+        "LOCAL-AI_GUIDE_UNCLEAR"
+      ],
+      "sha256": "48c477212afc93e1d710696cf7c73ae76c28d0d2993ac777630a39236e678b83",
+      "durationSeconds": 2.565351,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551335/homi/audio/MAIN/RUN-134.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-135",
+      "text": "Con tập trung học đi",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-135.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-135",
+        "LOCAL-AI_GUIDE_FOCUS_RETRY"
+      ],
+      "sha256": "41ea29600f4bd702ede3f2e65d293ae8d8fbc88ddad52ee77490fb0d38bf0de8",
+      "durationSeconds": 1.414785,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551336/homi/audio/MAIN/RUN-135.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-136",
+      "text": "Mình cùng học câu khác nhé!",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-136.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-136",
+        "LOCAL-AI_GUIDE_MOVE_TO_NEXT"
+      ],
+      "sha256": "483ef4b7e74a0bf0e625ddd4687048af9eed117d891ad8c410ef31e7bdaa1d69",
+      "durationSeconds": 1.759206,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551337/homi/audio/MAIN/RUN-136.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-137",
+      "text": "Gần được rồi! Con nghe lại câu này nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-137.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-137",
+        "LOCAL-AI_GUIDE_RETRY_1"
+      ],
+      "sha256": "da4e13eaa210313dbf34235c5839f92b9b56788bec5776619e7d7531b4361d39",
+      "durationSeconds": 2.561066,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551337/homi/audio/MAIN/RUN-137.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-138",
+      "text": "Bây giờ con thử nói lại lần nữa nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-138.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-138",
+        "LOCAL-AI_GUIDE_RETRY_2"
+      ],
+      "sha256": "a9b2225d3fbf397d1cebadeb7d00a6727f92f0ad668020cd728041fc962ecf04",
+      "durationSeconds": 2.210408,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551338/homi/audio/MAIN/RUN-138.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-139",
+      "text": "Con đã cố gắng rồi! Mình sẽ luyện thêm sau. Cùng học câu tiếp nào.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-139.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/lesson_guide_flow.dart"
+      ],
+      "aliases": [
+        "RUN-139",
+        "LOCAL-AI_GUIDE_NEEDS_PRACTICE"
+      ],
+      "sha256": "491ef226a38dd3e98cd1b4dff7a8b66561ceb5b246a7296aa128cecced06ac7b",
+      "durationSeconds": 4.434263,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551339/homi/audio/MAIN/RUN-139.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-140",
+      "text": "Bạn muốn học bài tiếp theo hay học lại bài này?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-140.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/v4_completion_flow.dart"
+      ],
+      "aliases": [
+        "RUN-140"
+      ],
+      "sha256": "d0d8086be7951d4e2c7583fd97c8edb6463cf69e0dcbb0272a370e6f6b4cb7b3",
+      "durationSeconds": 2.831179,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551340/homi/audio/MAIN/RUN-140.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-141",
+      "text": "Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-141.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/v4_completion_flow.dart"
+      ],
+      "aliases": [
+        "RUN-141"
+      ],
+      "sha256": "f80ea5cb0a9c791da775966e5b15aa367ffcab58d72c8eb4000f0e5f25b8b465",
+      "durationSeconds": 2.828821,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551341/homi/audio/MAIN/RUN-141.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-142",
+      "text": "Bạn còn một Chủ đề chưa học. Bạn muốn học tiếp hay học lại?",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-142.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/domain/v4_completion_flow.dart"
+      ],
+      "aliases": [
+        "RUN-142"
+      ],
+      "sha256": "194a10a2d2ed5b3d2e96d9b033aa76c8d70e60cb8233a2c4526eb0ef7c958fc8",
+      "durationSeconds": 4.255964,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551341/homi/audio/MAIN/RUN-142.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-144",
+      "text": "Bạn vừa nhận Ngôi sao đầu tiên!",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-144.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/presentation/lesson_practice_screen.dart"
+      ],
+      "aliases": [
+        "RUN-144"
+      ],
+      "sha256": "49e35314dc19c32aa3ba91b9c865f4304474320c89951cd89ba2f6e65a7c8135",
+      "durationSeconds": 2.120884,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551342/homi/audio/MAIN/RUN-144.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-148",
+      "text": "Bạn đã hoàn thành khóa học rồi!",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-148.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/presentation/lesson_practice_screen.dart"
+      ],
+      "aliases": [
+        "RUN-148"
+      ],
+      "sha256": "543f2c5639def08ff5ec6414c525f2c48e4c71728a7f85bf5fb16573b8c26004",
+      "durationSeconds": 2.118095,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551343/homi/audio/MAIN/RUN-148.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-153",
+      "text": "Bạn nói đáp án bằng tiếng Anh nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-153.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/presentation/lesson_challenge_screen.dart"
+      ],
+      "aliases": [
+        "RUN-153"
+      ],
+      "sha256": "90111a60c900ed0d58854e3672e462aea10b254b42bad6c2ba433e2705a0553b",
+      "durationSeconds": 2.115737,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551344/homi/audio/MAIN/RUN-153.vi.v1.mp3"
+    },
+    {
+      "id": "REPLY-001",
+      "text": "Đã dừng phần thử thách.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/REPLY-001.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/presentation/lesson_challenge_screen.dart"
+      ],
+      "aliases": [
+        "REPLY-001"
+      ],
+      "sha256": "ad8510c2b2f7d49aa94bfa343b770653dc97dda8cdb06c6d2dc81b55a1f9f2ea",
+      "durationSeconds": 1.411927,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551249/homi/audio/MAIN/REPLY-001.vi.v1.mp3"
+    },
+    {
+      "id": "REPLY-002",
+      "text": "Các nút câu trước, câu sau và nghe lại chỉ dùng trong phần luyện câu.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/REPLY-002.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/presentation/lesson_challenge_screen.dart"
+      ],
+      "aliases": [
+        "REPLY-002"
+      ],
+      "sha256": "98ce74026163ad4eee2fd1525eb168836db7a85bd2dcc828deb8c3b5e7256e1a",
+      "durationSeconds": 5.137098,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551249/homi/audio/MAIN/REPLY-002.vi.v1.mp3"
+    },
+    {
+      "id": "REPLY-004",
+      "text": "Con đang ở phần đầu bài học rồi.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/REPLY-004.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/presentation/lesson_intro_screen.dart"
+      ],
+      "aliases": [
+        "REPLY-004"
+      ],
+      "sha256": "4fb8e40229aedac203b1da25a6c84f35256350467237c961236ca5f6ae88ece7",
+      "durationSeconds": 2.027279,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551250/homi/audio/MAIN/REPLY-004.vi.v1.mp3"
+    },
+    {
+      "id": "REPLY-005",
+      "text": "Con hãy vào bài học trước nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/REPLY-005.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/presentation/lesson_intro_screen.dart"
+      ],
+      "aliases": [
+        "REPLY-005"
+      ],
+      "sha256": "4952107d9f0d17723ece5a81fe520bc687bbf2d200d273000158c5705354d66c",
+      "durationSeconds": 1.682971,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551252/homi/audio/MAIN/REPLY-005.vi.v1.mp3"
+    },
+    {
+      "id": "LOCAL-CORE_FIRST_PREVIOUS",
+      "text": "Đây là câu đầu tiên. Mình nghe lại nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/LOCAL-CORE_FIRST_PREVIOUS.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/presentation/lesson_practice_screen.dart",
+        "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+        "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart"
+      ],
+      "aliases": [
+        "LOCAL-CORE_FIRST_PREVIOUS"
+      ],
+      "sha256": "47326f5715e74036947e203fed726b3c5918693e69c1c3c87ab57a1a42ad365b",
+      "durationSeconds": 2.389501,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551247/homi/audio/MAIN/LOCAL-CORE_FIRST_PREVIOUS.vi.v1.mp3"
+    },
+    {
+      "id": "REPLY-007",
+      "text": "Đây là câu cuối. Con hãy hoàn thành câu này nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/REPLY-007.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/presentation/lesson_practice_screen.dart"
+      ],
+      "aliases": [
+        "REPLY-007"
+      ],
+      "sha256": "3521033987d3149049ccacaf87a0d99f0148691934930de1f86b79f5f5a28001",
+      "durationSeconds": 3.460522,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551253/homi/audio/MAIN/REPLY-007.vi.v1.mp3"
+    },
+    {
+      "id": "REPLY-009",
+      "text": "Con đang ở bài đầu tiên rồi.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/REPLY-009.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/presentation/lesson_practice_screen.dart"
+      ],
+      "aliases": [
+        "REPLY-009"
+      ],
+      "sha256": "1feb2952850a783a94a69557131438fa2ae6e50ed5c70fdc83cf3718a1b35fc9",
+      "durationSeconds": 1.676848,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551254/homi/audio/MAIN/REPLY-009.vi.v1.mp3"
+    },
+    {
+      "id": "REPLY-011",
+      "text": "Con xem bài học thêm một chút nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/REPLY-011.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/presentation/lesson_review_screen.dart"
+      ],
+      "aliases": [
+        "REPLY-011"
+      ],
+      "sha256": "1be37149521cec1dda93e8e24801e435493fca35830239cf1b52e7d0ff1d5af6",
+      "durationSeconds": 1.851224,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551254/homi/audio/MAIN/REPLY-011.vi.v1.mp3"
+    },
+    {
+      "id": "REPLY-013",
+      "text": "Chưa có bài tiếp theo.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/REPLY-013.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/presentation/lesson_review_screen.dart"
+      ],
+      "aliases": [
+        "REPLY-013"
+      ],
+      "sha256": "432d8eb87f1f2651a6185a1b922f709e85e4f61b71e84ad93c0815bf913d7269",
+      "durationSeconds": 1.319841,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551255/homi/audio/MAIN/REPLY-013.vi.v1.mp3"
+    },
+    {
+      "id": "REPLY-014",
+      "text": "Con hãy quay lại danh sách để chọn bài trước nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/REPLY-014.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/presentation/lesson_review_screen.dart"
+      ],
+      "aliases": [
+        "REPLY-014"
+      ],
+      "sha256": "161b58528dcb76c9e0d928fdf464d5db1e758191b6f64e88e88afd745f64a0cb",
+      "durationSeconds": 2.738345,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551256/homi/audio/MAIN/REPLY-014.vi.v1.mp3"
+    },
+    {
+      "id": "REPLY-016",
+      "text": "Con hãy học xong bài hát này trước nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/REPLY-016.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/presentation/song_karaoke_screen.dart"
+      ],
+      "aliases": [
+        "REPLY-016"
+      ],
+      "sha256": "e6a9bfc95ea3ac216bc383089f8327d51275f1cac5622dc7e5dd30964db0b656",
+      "durationSeconds": 2.206236,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551257/homi/audio/MAIN/REPLY-016.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-157",
+      "text": "Giỏi lắm! Con đã hoàn thành bài học. Bấm nút Main rồi nói “Bài tiếp theo” để học tiếp, hoặc nói “Luyện lại” để học lại từ đầu nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-157.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/presentation/lesson_review_screen.dart"
+      ],
+      "aliases": [
+        "RUN-157"
+      ],
+      "sha256": "d8d2ea26896b404c6619240ab9c51361cf92c6cbf9986b4d529a5a8e38c91b03",
+      "durationSeconds": 10.215873,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551345/homi/audio/MAIN/RUN-157.vi.v1.mp3"
+    },
+    {
+      "id": "RUN-158",
+      "text": "Giỏi lắm! Con đã hoàn thành bài học. Bấm nút Main rồi nói “Luyện nghe” để chọn bài khác, hoặc nói “Luyện lại” để học lại từ đầu nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUN-158.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/presentation/lesson_review_screen.dart"
+      ],
+      "aliases": [
+        "RUN-158"
+      ],
+      "sha256": "7a0120cbde9e8b000f3d51209e3d6e1db6876040374cb4db963c4607733d2968",
+      "durationSeconds": 10.472268,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551345/homi/audio/MAIN/RUN-158.vi.v1.mp3"
+    },
+    {
+      "id": "CONVERSATION-UNCLEAR",
+      "text": "Cô chưa nghe thấy con nói. Con nói lại nhé.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/CONVERSATION-UNCLEAR.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/conversation/presentation/conversation_controller.dart"
+      ],
+      "aliases": [
+        "CONVERSATION-UNCLEAR"
+      ],
+      "sha256": "07a65dc9315c62cc6954560c550d36aee9617fb770503e8786e8916f9b78c883",
+      "durationSeconds": 3.005147,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551207/homi/audio/MAIN/CONVERSATION-UNCLEAR.vi.v1.mp3"
+    },
+    {
+      "id": "LESSON-INVALID-CHALLENGE",
+      "text": "Bài học chưa có Challenge hợp lệ cho từng Core.",
+      "locale": "vi-VN",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/LESSON-INVALID-CHALLENGE.vi.v1.mp3",
+      "voiceLanguage": "vi",
+      "sources": [
+        "lib/features/listening/presentation/lesson_practice_screen.dart"
+      ],
+      "aliases": [
+        "LESSON-INVALID-CHALLENGE"
+      ],
+      "sha256": "a095e21836ae42d5319b9d66f4b309fd14f508e112c93faf98df1c51dc9f969c",
+      "durationSeconds": 3.543991,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551246/homi/audio/MAIN/LESSON-INVALID-CHALLENGE.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-001",
+      "text": "Bạn cần hoàn thành Level 1 trước nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-001.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-001"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "c2d36aa0025e94a44c73008b28e5463b55d5c14d5b9c8a71bd9eb620e115fa2c",
+      "durationSeconds": 2.294898,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551221/homi/audio/MAIN/GAP28-001.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-002",
+      "text": "Bạn cần hoàn thành Level 2 trước nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-002.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-002"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "a1119f665ea5cd1ba5583f4783a9225c5715edb97a619ab953d5fdda9a541cbe",
+      "durationSeconds": 2.287619,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551221/homi/audio/MAIN/GAP28-002.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-003",
+      "text": "Bạn chọn Level 1, 2, 3 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-003.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "GAP28-003"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "3c5f7f07a749d247cbb5310cb431dc5549864fabb00e23685d154f110e911d3f",
+      "durationSeconds": 2.741474,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551222/homi/audio/MAIN/GAP28-003.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-004",
+      "text": "Bi cô chưa thực hiện được. Con thử lại nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-004.vi.v1.mp3",
+      "sources": [
+        "lib/core/session/app_flow_coordinator.dart"
+      ],
+      "aliases": [
+        "GAP28-004"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "278615fbd6d209c87b1b97bfa57f4df6f18b25397ef960a6137d3ad457dd0762",
+      "durationSeconds": 3.178798,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551223/homi/audio/MAIN/GAP28-004.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-005",
+      "text": "Bi cô có bài học cho các bạn từ 3 đến 15 tuổi. Con mấy tuổi",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-005.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "GAP28-005"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "620c56d822772fe22fa2bdb2da034f27a3454e7633699b09d65b47e069325374",
+      "durationSeconds": 5.669637,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551224/homi/audio/MAIN/GAP28-005.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-006",
+      "text": "Chủ đề 1 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-006.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-006"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "1c58306af3dd6a8bf163765e4804f25a3deaa5a3619d8d892806b023353cb4b5",
+      "durationSeconds": 5.060567,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551225/homi/audio/MAIN/GAP28-006.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-007",
+      "text": "Chủ đề 2 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-007.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-007"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "7e20449a007a0d479f8812e5d15b17fa7964c643ab14ae7e854dbafef546f81a",
+      "durationSeconds": 4.793605,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551226/homi/audio/MAIN/GAP28-007.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-008",
+      "text": "Chủ đề 3 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-008.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-008"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "7f631836b4df31bcfd5c082e969969336605d486e0aefd5b7588df3cf1b5f1b8",
+      "durationSeconds": 5.055646,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551227/homi/audio/MAIN/GAP28-008.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-009",
+      "text": "Chủ đề 4 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-009.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-009"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "6489fc9712081eae8c2368a359050105b08d0ba077ed464c7480df7303ec0baa",
+      "durationSeconds": 4.434422,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551228/homi/audio/MAIN/GAP28-009.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-010",
+      "text": "Chủ đề 5 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-010.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-010"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "daceec53e4e1221f7e1478287e8fca84b387605720487802e6b1dcd196aa4b2d",
+      "durationSeconds": 5.328435,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551230/homi/audio/MAIN/GAP28-010.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-011",
+      "text": "Chủ đề 6 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-011.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-011"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "f7aee951d785afdb03192e3d2e35a189ec91de15b53c3f16aa6b0755c7146ffd",
+      "durationSeconds": 5.061383,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551231/homi/audio/MAIN/GAP28-011.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-012",
+      "text": "Chủ đề 7 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-012.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-012"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "42688be1ac56360c303f83fd9c93f4c03d28a08ca51ef9fcbf01d816aa54c7e6",
+      "durationSeconds": 4.873356,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551232/homi/audio/MAIN/GAP28-012.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-013",
+      "text": "Chủ đề 8 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-013.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-013"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "140112452d9aad41c0620ab88ad0a35fad3850d850b39264ec6be91a82e05e5c",
+      "durationSeconds": 5.061655,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551232/homi/audio/MAIN/GAP28-013.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-014",
+      "text": "Chủ đề 9 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-014.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-014"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "29fb5d7d416a46869a3ca6ed31dcfbf8a3610513625effb1cbd25553c9dc3aa9",
+      "durationSeconds": 5.322834,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551233/homi/audio/MAIN/GAP28-014.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-015",
+      "text": "Chủ đề 10 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-015.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-015"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "1dd35bd700c142ef5a02de95870075f5ca9e1e639a2673724d43b8f56e6c9b4d",
+      "durationSeconds": 5.234218,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551234/homi/audio/MAIN/GAP28-015.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-016",
+      "text": "Có 3 Chủ đề. Bạn muốn học Chủ đề số mấy?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-016.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "GAP28-016"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "0370c79aa26436a7ea2d1d5a61216c11648450f4b7674938a4c5e9a1414a104c",
+      "durationSeconds": 2.922494,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551235/homi/audio/MAIN/GAP28-016.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-017",
+      "text": "Có 4 Chủ đề. Bạn muốn học Chủ đề số mấy?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-017.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "GAP28-017"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "f4e8602c910b8f0c2ec3435936206e2cd900d7df89a9c719a2c9f2f039783d2b",
+      "durationSeconds": 3.0939,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551236/homi/audio/MAIN/GAP28-017.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-018",
+      "text": "Cô chưa mở được micro để dịch liên tục. Con kiểm tra quyền micro rồi thử lại nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-018.vi.v1.mp3",
+      "sources": [
+        "lib/app/ai_speaking_app.dart"
+      ],
+      "aliases": [
+        "GAP28-018"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "cb1eb86330b7fad00b6a7e7abc7792b12c1481ee8c9bc5bf6457767e35a4f44a",
+      "durationSeconds": 5.939977,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551236/homi/audio/MAIN/GAP28-018.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-019",
+      "text": "Mình học tiếp Chủ đề 1 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-019.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-019"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "551295144b544d196f69db247dd636a8480d37203e7a8a2560abf45a0dc16c2d",
+      "durationSeconds": 1.938685,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551237/homi/audio/MAIN/GAP28-019.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-020",
+      "text": "Mình học tiếp Chủ đề 2 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-020.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-020"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "16a2215accacf1c0edf042373200044ebd37a0fc57783a53d5ab5cb63532eb67",
+      "durationSeconds": 1.938821,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551238/homi/audio/MAIN/GAP28-020.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-021",
+      "text": "Mình học tiếp Chủ đề 3 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-021.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-021"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "c4975b8854b1f086ab1bac8c86e99ad9ccb87059d1bb5fc36d493e5a6ecdb577",
+      "durationSeconds": 1.938639,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551239/homi/audio/MAIN/GAP28-021.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-022",
+      "text": "Mình học tiếp Chủ đề 4 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-022.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-022"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "ae2e2768405f47b2cecc953fe6f9d81ad5322834f51d42e5c7428115393ad71e",
+      "durationSeconds": 1.938027,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551240/homi/audio/MAIN/GAP28-022.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-023",
+      "text": "Mình học tiếp Chủ đề 5 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-023.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-023"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "e0bc9e3b51ab0b73304679932bccd3737df6917476d77c9a2e4143b002c89947",
+      "durationSeconds": 1.939909,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551241/homi/audio/MAIN/GAP28-023.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-024",
+      "text": "Mình học tiếp Chủ đề 6 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-024.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-024"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "f39a684919125610ebb2fb1654a1572f9dbd586d641cfe06445f5e39447ffbfb",
+      "durationSeconds": 2.481633,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551241/homi/audio/MAIN/GAP28-024.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-025",
+      "text": "Mình học tiếp Chủ đề 7 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-025.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-025"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "f9b9f9417be6715c07764ad692d2effdd6af88eb11264afd9f686145b6ed5eb0",
+      "durationSeconds": 1.950023,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551242/homi/audio/MAIN/GAP28-025.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-026",
+      "text": "Mình học tiếp Chủ đề 8 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-026.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-026"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "84dabbdf907d9f483a8ba9ad6f949b7b2746f1669bfb4ce13fc3c4d0105a1953",
+      "durationSeconds": 1.937052,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551243/homi/audio/MAIN/GAP28-026.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-027",
+      "text": "Mình học tiếp Chủ đề 9 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-027.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-027"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "ebdfcf4aa4e3a03c05ce21a1e69713cb7e010f2b5c0fa17c7c97fd61adcb1839",
+      "durationSeconds": 1.938277,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551244/homi/audio/MAIN/GAP28-027.vi.v1.mp3"
+    },
+    {
+      "id": "GAP28-028",
+      "text": "Mình học tiếp Chủ đề 10 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/GAP28-028.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-028"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16",
+      "sha256": "9cc157f504d833c767ce43e03abafb6c8ddda66ef317aad74c29bf3b9b866dcf",
+      "durationSeconds": 1.940839,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551245/homi/audio/MAIN/GAP28-028.vi.v1.mp3"
+    },
+    {
+      "id": "RUNTIME-CHALLENGE-CUE-001",
+      "text": "Bạn trả lời nhé",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUNTIME-CHALLENGE-CUE-001.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/lesson_challenge_screen.dart"
+      ],
+      "aliases": [
+        "RUNTIME-CHALLENGE-CUE-001"
+      ],
+      "batch": "homi-runtime-gap2-2026-09-17",
+      "group": "challenge-cues",
+      "sha256": "b1477489fae21a6ba3129e0dd8cfd3c25175c9cd4bc4070dee691bb69c0bd45a",
+      "durationSeconds": 1.770975,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "RUNTIME-CONVERSATION-RECOVERY-001",
+      "text": "Cô chưa nghe thấy bạn nói. Bạn nói lại nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUNTIME-CONVERSATION-RECOVERY-001.vi.v1.mp3",
+      "sources": [
+        "lib/features/conversation/presentation/conversation_controller.dart"
+      ],
+      "aliases": [
+        "RUNTIME-CONVERSATION-RECOVERY-001"
+      ],
+      "batch": "homi-runtime-gap2-2026-09-17",
+      "group": "conversation-recovery",
+      "sha256": "705eb9c2a6809537a126d1b217102d901f1057a5f327138be5f3f3653d95f513",
+      "durationSeconds": 3.006077,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "RUNTIME-MAIN-NAVIGATION-001",
+      "text": "HOMI đây. Bạn muốn dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUNTIME-MAIN-NAVIGATION-001.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/domain/master_navigation_contract.dart"
+      ],
+      "aliases": [
+        "RUNTIME-MAIN-NAVIGATION-001"
+      ],
+      "batch": "homi-runtime-gap6-2026-09-17",
+      "group": "main-navigation",
+      "sha256": "9009fbfd926af0bb456cf8078c426445b62725c3fc9d9679039804e5fe4986fc",
+      "durationSeconds": 4.349138,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "RUNTIME-MAIN-NAVIGATION-002",
+      "text": "Bạn muốn dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUNTIME-MAIN-NAVIGATION-002.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/domain/master_navigation_contract.dart"
+      ],
+      "aliases": [
+        "RUNTIME-MAIN-NAVIGATION-002"
+      ],
+      "batch": "homi-runtime-gap6-2026-09-17",
+      "group": "main-navigation",
+      "sha256": "33b45c1f28a907bbe53ebd4ada1e910c19a879f63a2e3c80908271108ba8180b",
+      "durationSeconds": 3.177029,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "RUNTIME-TRANSLATION-CONTROL-001",
+      "text": "Bạn muốn tiếp tục dịch, học Chủ đề hay Bộ từ vựng?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUNTIME-TRANSLATION-CONTROL-001.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/domain/master_navigation_contract.dart"
+      ],
+      "aliases": [
+        "RUNTIME-TRANSLATION-CONTROL-001"
+      ],
+      "batch": "homi-runtime-gap6-2026-09-17",
+      "group": "translation-controls",
+      "sha256": "190f082720d967cd8b0ea1bdf07c53c71550e5a759353251e0c96b34087691ac",
+      "durationSeconds": 3.452245,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "RUNTIME-TRANSLATION-CONTROL-002",
+      "text": "Mình tiếp tục nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "asset": "assets/audio/MAIN/RUNTIME-TRANSLATION-CONTROL-002.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/domain/master_navigation_contract.dart"
+      ],
+      "aliases": [
+        "RUNTIME-TRANSLATION-CONTROL-002"
+      ],
+      "batch": "homi-runtime-gap6-2026-09-17",
+      "group": "translation-controls",
+      "sha256": "c24059d45ac1d3fe0018cf6b33b6528ea42f04b3ca3f85a21d5eb6b88ca2135f",
+      "durationSeconds": 1.31585,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    }
+  ],
+  "scope": "Fixed assistant, silence/fallback, navigation, vocabulary menu and coaching prompts. Dynamic content remains TTS.",
+  "excludedDynamic": [
+    {
+      "id": "AI-009",
+      "text": "HOMI có bài học cho các bạn từ {tuổi nhỏ nhất} đến {tuổi lớn nhất} tuổi. Bạn mấy tuổi?",
+      "source": "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+    },
+    {
+      "id": "AI-010",
+      "text": "Có {số chủ đề} chủ đề. Bạn muốn học chủ đề số mấy?",
+      "source": "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+    },
+    {
+      "id": "AI-011",
+      "text": "Có {số chủ đề} chủ đề. Bạn chọn từ số 1 đến số {số chủ đề}.",
+      "source": "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+    },
+    {
+      "id": "AI-013",
+      "text": "Có {số bài} bài học. Bạn muốn học bài số mấy?",
+      "source": "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+    },
+    {
+      "id": "AI-014",
+      "text": "Có {số bài} bài học. Bạn chọn từ số 1 đến số {số bài}.",
+      "source": "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+    },
+    {
+      "id": "AI-015",
+      "text": "Bạn đã học chủ đề số {số chủ đề} rồi. Bạn muốn học lại không?",
+      "source": "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+    },
+    {
+      "id": "AI-016",
+      "text": "Bạn muốn học lại chủ đề số {số chủ đề} không? Nói “có” hoặc “không”.",
+      "source": "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+    },
+    {
+      "id": "AI-031",
+      "text": "{từ tiếng Anh} → {nghĩa tiếng Việt}",
+      "source": "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+    },
+    {
+      "id": "AI-059",
+      "text": "Chào bạn! Mình là HOMI. Hôm nay mình học bài “{tên bài}”. Bạn nghe HOMI trước rồi nói lại. Muốn nghe lại hoặc dừng thì bấm nút MAIN.",
+      "source": "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+    },
+    {
+      "id": "AI-060",
+      "text": "Hôm nay mình học bài “{tên bài}”. Bắt đầu thôi!",
+      "source": "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+    },
+    {
+      "id": "AI-061",
+      "text": "Mình học tiếp bài “{tên bài}”. Bắt đầu từ chỗ lúc trước.",
+      "source": "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+    },
+    {
+      "id": "AI-062",
+      "text": "Giỏi lắm! Bạn đã học xong bài “{tên bài}”. Bạn muốn luyện lại từ đầu hay học bài tiếp theo?",
+      "source": "lib/features/voice_navigation/domain/homi_fallback_catalog.dart"
+    },
+    {
+      "id": "RUN-146",
+      "text": "Bạn đã hoàn thành Bài ${widget.lesson.number} rồi!",
+      "source": "lib/features/listening/presentation/lesson_practice_screen.dart"
+    },
+    {
+      "id": "RUN-147",
+      "text": "Bạn đã hoàn thành Chủ đề ${topic.number} rồi!",
+      "source": "lib/features/listening/presentation/lesson_practice_screen.dart"
+    },
+    {
+      "id": "RUN-149",
+      "text": "Bạn đã hoàn thành Level ${level.number} rồi!",
+      "source": "lib/features/listening/presentation/lesson_practice_screen.dart"
+    },
+    {
+      "id": "RUN-150",
+      "text": "Bạn đã hoàn thành Bài ${widget.lesson.number} rồi!",
+      "source": "lib/features/listening/presentation/lesson_practice_screen.dart"
+    },
+    {
+      "id": "RUN-151",
+      "text": "Bạn đã hoàn thành Chủ đề ${topic.number} rồi!",
+      "source": "lib/features/listening/presentation/lesson_practice_screen.dart"
+    },
+    {
+      "id": "RUN-152",
+      "text": "Bạn đã hoàn thành Level ${level.number} rồi!",
+      "source": "lib/features/listening/presentation/lesson_practice_screen.dart"
+    },
+    {
+      "id": "RUN-155",
+      "text": "${lead}Có ${level.topicNumbers.length} Chủ đề. Bạn muốn học Chủ đề số mấy?",
+      "source": "lib/features/listening/presentation/topic_listening_screen.dart"
+    },
+    {
+      "id": "RUN-156",
+      "text": "Mình học tiếp Chủ đề ${content.number} nhé.",
+      "source": "lib/features/listening/presentation/topic_listening_screen.dart"
+    },
+    {
+      "id": "LOCAL-${lessonCode}_FIRST",
+      "text": "Chào con! Hôm nay mình bắt đầu với bài “$lessonTitleEn”.",
+      "source": "lib/features/listening/domain/lesson_guide_flow.dart"
+    },
+    {
+      "id": "LOCAL-${lessonCode}_NEW",
+      "text": "Hôm nay mình học bài “$lessonTitleEn” nhé. Bắt đầu nào!",
+      "source": "lib/features/listening/domain/lesson_guide_flow.dart"
+    },
+    {
+      "id": "LOCAL-${lessonCode}_RESUME",
+      "text": "Mình học tiếp bài “$lessonTitleEn” nhé. Bắt đầu từ chỗ lúc",
+      "source": "lib/features/listening/domain/lesson_guide_flow.dart"
+    },
+    {
+      "id": "LOCAL-${lessonCode}_END",
+      "text": "Giỏi lắm! Con đã học xong bài “$lessonTitleEn” rồi.",
+      "source": "lib/features/listening/domain/lesson_guide_flow.dart"
+    }
+  ]
+}

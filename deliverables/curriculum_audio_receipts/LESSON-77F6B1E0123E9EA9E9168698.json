@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T07-B02\\C1315-L3-T07-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T07-B02-Q04",
+  "sourceText": "Mấy giờ tàu chạy: At five thirty hay What time does it leave?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mấy giờ tàu chạy:",
+      "spoken_text": "Mấy giờ tàu chạy:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "At five thirty",
+      "spoken_text": "At five thirty",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "What time does it leave?",
+      "spoken_text": "What time does it leave?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-77F6B1E0123E9EA9E9168698",
+  "text": "Mấy giờ tàu chạy: At five thirty hay What time does it leave?",
+  "asset": "assets/audio/CURRICULUM/77f6b1e0123e9ea9e9168698.vi.v1.mp3",
+  "sha256": "8ed6144037261af5f6e64df6c5e9d1f9b45b94415c99b9a490dca8bb515d10b8",
+  "durationSeconds": 5.684082
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T07-B02\\C67-L3-T07-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T07-B02-Q05",
+  "sourceText": "Giơ tay lên: Raise your hand hay Open your book?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Giơ tay lên:",
+      "spoken_text": "Giơ tay lên:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Raise your hand",
+      "spoken_text": "Raise your hand",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Open your book?",
+      "spoken_text": "Open your book?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-84430401517756631CBE5D1D",
+  "text": "Giơ tay lên: Raise your hand hay Open your book?",
+  "asset": "assets/audio/CURRICULUM/84430401517756631cbe5d1d.vi.v1.mp3",
+  "sha256": "c277b2faf4f3dffb29ccac5fab41b4f81e99a2b1d1c09b2d235afedbff3c53d2",
+  "durationSeconds": 5.183152
+}

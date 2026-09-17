@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T04-B02\\C1315-L2-T04-B02-Q01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T04-B02-Q01",
+  "sourceText": "Nó có đáng không: Is it worth it? hay It's too expensive?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nó có đáng không:",
+      "spoken_text": "Nó có đáng không:",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "text": "Is it worth it?",
+      "spoken_text": "Is it worth it?",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "text": "It's too expensive?",
+      "spoken_text": "It's too expensive?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-6C3682B1FD6C3BFF600E1C24",
+  "text": "Nó có đáng không: Is it worth it? hay It's too expensive?",
+  "asset": "assets/audio/CURRICULUM/6c3682b1fd6c3bff600e1c24.vi.v1.mp3",
+  "sha256": "363d53ae9b43b0c5acbee3adf0f538bbf42ecc8111c86f6814d591e5d2e0646a",
+  "durationSeconds": 5.239864
+}

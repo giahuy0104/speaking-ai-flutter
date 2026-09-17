@@ -114,6 +114,7 @@ class VoicePromptBridge(
         result: MethodChannel.Result,
     ) {
         when (call.method) {
+            "playAuthoredAudioAndWait" -> playAuthoredAudio(call, result)
             "speak" -> {
                 val text = call.argument<String>("text")?.trim().orEmpty()
                 val locale = call.argument<String>("locale")?.trim().orEmpty()
@@ -227,6 +228,37 @@ class VoicePromptBridge(
             .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
             .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
             .build()
+
+    private fun playAuthoredAudio(call: MethodCall, result: MethodChannel.Result) {
+        val bytes = call.argument<ByteArray>("bytes")
+        if (bytes == null || bytes.isEmpty() || bytes.size > 2 * 1024 * 1024) {
+            result.error("INVALID_PROMPT_AUDIO", "Invalid authored prompt bytes.", null)
+            return
+        }
+        // Reuse the local communication-route player and completion/cancellation
+        // lifecycle so authored MP3 and TTS preserve the same H20 ownership.
+        completePendingPrompt()
+        completeActiveAwaited()
+        completeReadyCue()
+        textToSpeech?.stop()
+        clearSynthesizedPrompt()
+        releasePromptPlayback()
+        utteranceSequence += 1
+        val utteranceId = "authored-prompt-$utteranceSequence"
+        awaitedUtteranceId = utteranceId
+        awaitedResult = result
+        val file = File(appContext.cacheDir, "$utteranceId.mp3")
+        synthesizedPromptId = utteranceId
+        synthesizedPromptFile = file
+        synthesizedPromptGainMillibels = (requestedGainDb(call) * 100.0).roundToInt()
+        try {
+            file.writeBytes(bytes)
+            playSynthesizedPrompt(utteranceId)
+        } catch (_: Exception) {
+            clearSynthesizedPrompt()
+            completeAwaited(utteranceId, "Unable to prepare authored prompt audio.")
+        }
+    }
 
     private fun handleTtsDone(utteranceId: String?) {
         mainHandler.post {

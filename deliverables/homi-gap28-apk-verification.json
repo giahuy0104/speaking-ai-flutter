@@ -1,0 +1,12 @@
+{
+  "apk": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\build\\app\\outputs\\flutter-apk\\app-debug.apk",
+  "apkBytes": 454591809,
+  "scannedFiles": 3768,
+  "expectedAudio": 2860,
+  "verifiedAudio": 2860,
+  "verifiedGaps": 28,
+  "enabledGapsInPackagedManifest": 28,
+  "hashFailures": [],
+  "credentialHits": [],
+  "bundledGenerationReceipts": []
+}

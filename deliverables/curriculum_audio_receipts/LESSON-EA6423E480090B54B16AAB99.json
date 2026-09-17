@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T04-B01\\C810-L2-T04-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T04-B01-Q07",
+  "sourceText": "Bạn cần nói \"Công viên\". Park hay Supermarket?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn cần nói \"Công viên\".",
+      "spoken_text": "Bạn cần nói \"Công viên\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Park",
+      "spoken_text": "Park",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Supermarket?",
+      "spoken_text": "Supermarket?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-EA6423E480090B54B16AAB99",
+  "text": "Bạn cần nói \"Công viên\". Park hay Supermarket?",
+  "asset": "assets/audio/CURRICULUM/ea6423e480090b54b16aab99.vi.v1.mp3",
+  "sha256": "aac5dc43a75c98c7206763f3e93aed2d0ae6122cef8255c024de1f8f0789d7ae",
+  "durationSeconds": 5.274649
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T01-B02\\C1112-L1-T01-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T01-B02-Q05",
+  "sourceText": "Nghỉ ngơi vào Chủ nhật: Relax on Sunday hay Homework after school?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nghỉ ngơi vào Chủ nhật:",
+      "spoken_text": "Nghỉ ngơi vào Chủ nhật:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Relax on Sunday",
+      "spoken_text": "Relax on Sunday",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Homework after school?",
+      "spoken_text": "Homework after school?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-57CCE471E6F2F005249098E7",
+  "text": "Nghỉ ngơi vào Chủ nhật: Relax on Sunday hay Homework after school?",
+  "asset": "assets/audio/CURRICULUM/57cce471e6f2f005249098e7.vi.v1.mp3",
+  "sha256": "c322ca53ce1c1758a2b72631459de7a5962fcbe5bc639cade0291a89d136fda9",
+  "durationSeconds": 6.923515
+}

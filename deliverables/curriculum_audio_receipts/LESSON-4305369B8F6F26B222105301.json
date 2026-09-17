@@ -1,0 +1,41 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\5c20870735dec184a9e6fb4da72453d0dc87e12df2beb92a609fed951733b0b7.tempo.mp3",
+      "signature": "5c20870735dec184a9e6fb4da72453d0dc87e12df2beb92a609fed951733b0b7",
+      "request": {
+        "text": "Đến lúc gọi món rồi.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "1cbfa6543ce7e2f61dcfbce532644efd4b30009d696174379515e92ae0039936",
+      "requestId": "J7JZYLhUaePStnoSOiW9",
+      "createdAt": "2026-09-15T23:21:19.501Z"
+    }
+  ],
+  "id": "LESSON-4305369B8F6F26B222105301",
+  "text": "Đến lúc gọi món rồi.",
+  "asset": "assets/audio/CURRICULUM/4305369b8f6f26b222105301.vi.v1.mp3",
+  "sha256": "4d5b21b7c782b7ee96d35c06de370573f52c73ce816de1e6329f561331a554b2",
+  "durationSeconds": 1.498571,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

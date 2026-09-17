@@ -1,0 +1,27 @@
+{
+  "id": "RUN-028",
+  "signature": "cfd7bfa5725482d4a2e8abffae4d6d6806a034df7bd2793663fab9cf2a2ba3bf",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình quay lại bài trước nhé",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:11:55.714Z",
+  "requestId": "3HuaGAMEfSbXXvkcKHMC",
+  "characterCost": "15",
+  "sourceSha256": "874f827c6567c9e25b9b096ddbddb35e81d7e79ef2bd939675cf2c3222d96377",
+  "asset": "assets/audio/MAIN/RUN-028.vi.v1.mp3",
+  "finalSha256": "64f732d1246a41aec41055446a881c09b9d68bb20440925bb1593a9f5f5c682e",
+  "sourceDurationSeconds": 1.6,
+  "durationSeconds": 1.760431,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 29301
+}

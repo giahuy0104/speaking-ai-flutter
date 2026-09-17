@@ -1,3 +1,24 @@
+import 'dart:typed_data';
+
+/// Allows a prerecorded prompt to finish without changing the microphone's
+/// response window. Unknown/dynamic text retains the caller's normal timeout.
+abstract interface class AuthoredPromptBudgetProvider {
+  Future<Duration?> authoredPromptBudget(
+    String text, {
+    String locale = 'vi-VN',
+  });
+}
+
+/// Optional native playback on the same route/lifecycle as TTS. Bytes have
+/// already been verified by the caller; speed is baked into the file.
+abstract interface class AuthoredAudioVoicePromptService {
+  Future<void> playAuthoredAudioAndWait(
+    Uint8List bytes, {
+    bool forcePhoneSpeaker = false,
+    bool forceMediaPlayback = false,
+  });
+}
+
 abstract interface class VoicePromptService {
   Future<void> speak(String text, {String locale = 'vi-VN'});
 

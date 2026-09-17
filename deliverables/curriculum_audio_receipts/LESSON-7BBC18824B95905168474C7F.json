@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T02-B02\\C35-L1-T02-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T02-B02-Q05",
+  "sourceText": "Năm tiếng vỗ tay: Five claps hay One clap?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Năm tiếng vỗ tay:",
+      "spoken_text": "Năm tiếng vỗ tay:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Five claps",
+      "spoken_text": "Five claps",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "One clap?",
+      "spoken_text": "One clap?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7BBC18824B95905168474C7F",
+  "text": "Năm tiếng vỗ tay: Five claps hay One clap?",
+  "asset": "assets/audio/CURRICULUM/7bbc18824b95905168474c7f.vi.v1.mp3",
+  "sha256": "1f1ba14d00a119b907ed67d07cab4a79cb45426d7ebc61bee75fabe4d1668ab0",
+  "durationSeconds": 4.939637
+}

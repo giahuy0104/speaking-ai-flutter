@@ -1,0 +1,20 @@
+{
+  "signature": "b68cf0214cfa64305a015b7eb60a3188e38e0a14d10b73f9206097b2298f36e5",
+  "request": {
+    "text": "Give a Reason.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "094ecdbbe9b0964f336ff18de59d9ac98394033ba5050037e6a0ba212e1c3293",
+  "requestId": "DAbN9HRP1n2mgIT6ARfI",
+  "createdAt": "2026-09-15T23:29:44.701Z"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "RUN-063",
+  "signature": "240acfba2f95b4f0184c051f1ca44c29611b1f73dada49edaaea0b1d383413df",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Không có nội dung cần luyện lại. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:13:24.285Z",
+  "requestId": "F1NYA6LYCVqgz4zqVe8R",
+  "characterCost": "43",
+  "sourceSha256": "16fcded3dcf476b89b58cf2970db4ce36a7d1fcc7e13edb166fe38c2bf43c954",
+  "asset": "assets/audio/MAIN/RUN-063.vi.v1.mp3",
+  "finalSha256": "1c6d23a8784862553f62727a472402e68a2a3e9290cb45ae44bb4aeead885afa",
+  "sourceDurationSeconds": 5.52,
+  "durationSeconds": 6.121088,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 99100
+}

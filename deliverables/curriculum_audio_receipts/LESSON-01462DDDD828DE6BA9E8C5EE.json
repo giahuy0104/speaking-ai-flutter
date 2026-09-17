@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T07-B01\\C35-L3-T07-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T07-B01-Q05",
+  "sourceText": "Nước: Water hay Apple?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nước:",
+      "spoken_text": "Nước:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Water",
+      "spoken_text": "Water",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Apple?",
+      "spoken_text": "Apple?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-01462DDDD828DE6BA9E8C5EE",
+  "text": "Nước: Water hay Apple?",
+  "asset": "assets/audio/CURRICULUM/01462dddd828de6ba9e8c5ee.vi.v1.mp3",
+  "sha256": "d05d5eb4cf957d796690099d900e7fbfcc1e1d5ea34a117b4e0995e03dfb6b00",
+  "durationSeconds": 4.406621
+}

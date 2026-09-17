@@ -1,0 +1,27 @@
+{
+  "id": "AI-044",
+  "signature": "3ccacd1cc079e757a82d80f84ee3057c248ffb5cc48b2bc9950f98fa3fe23a82",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình học lại bài này từ đầu nha.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:09:30.849Z",
+  "requestId": "vBhTEcNZdAW0ErzT6upd",
+  "characterCost": "18",
+  "sourceSha256": "aca6abe7e45985fcb851ff1f0a3aa13964f3e1f4987827341354c1d7aa52dc53",
+  "asset": "assets/audio/MAIN/AI-044.vi.v1.mp3",
+  "finalSha256": "c2c1d0674599f0b45d852d69880a79591933614b20b07fee1837db4f9fdd3551",
+  "sourceDurationSeconds": 1.68,
+  "durationSeconds": 1.853379,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 30555
+}

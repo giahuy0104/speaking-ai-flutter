@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T10\\C1315-L3-M10_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-M10",
+  "sourceText": "Bạn cần diễn đạt \"Bước tiếp theo của bạn là gì\". What's your next step? hay I'll start this week?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Bước tiếp theo của bạn là gì\".",
+      "text": "Bạn cần diễn đạt \"Bước tiếp theo của bạn là gì\".",
+      "spoken_text": "Bạn cần diễn đạt \"Bước tiếp theo của bạn là gì\".",
+      "input_index": 55
+    },
+    {
+      "language": "en",
+      "source_text": "What's your next step?",
+      "text": "What's your next step?",
+      "spoken_text": "What's your next step?",
+      "input_index": 56
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 57
+    },
+    {
+      "language": "en",
+      "source_text": "I'll start this week?",
+      "text": "I'll start this week?",
+      "spoken_text": "I'll start this week?",
+      "input_index": 58
+    }
+  ],
+  "sourceSha256": "7b4d0627a94c6459009dea51f3c5d1b96572dfebaf5be57b5286687a2fc43be3",
+  "id": "LESSON-D9DBE629343C4C57EAB6D3F2",
+  "text": "Bạn cần diễn đạt \"Bước tiếp theo của bạn là gì\". What's your next step? hay I'll start this week?",
+  "asset": "assets/audio/CURRICULUM/d9dbe629343c4c57eab6d3f2.vi.v1.mp3",
+  "sha256": "7b4d0627a94c6459009dea51f3c5d1b96572dfebaf5be57b5286687a2fc43be3",
+  "durationSeconds": 8.175941
+}

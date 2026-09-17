@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T07-B03\\C810-L3-T07-B03-Q01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T07-B03-Q01",
+  "sourceText": "Cái này: This one hay That one?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Cái này:",
+      "spoken_text": "Cái này:",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "text": "This one",
+      "spoken_text": "This one",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "text": "That one?",
+      "spoken_text": "That one?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-A9B912C4EB83F0032A5EAF88",
+  "text": "Cái này: This one hay That one?",
+  "asset": "assets/audio/CURRICULUM/a9b912c4eb83f0032a5eaf88.vi.v1.mp3",
+  "sha256": "16068de57624b62e96d08d766617382c96d53913c9aebd7e862da642cca4b526",
+  "durationSeconds": 3.729683
+}

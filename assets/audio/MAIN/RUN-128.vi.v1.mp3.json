@@ -1,0 +1,27 @@
+{
+  "id": "RUN-128",
+  "signature": "a6dea422721574bd248453ceaafe7e9b578ed26c00c6db770726a6f5ebcc356e",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Nói lại câu này.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:14:58.247Z",
+  "requestId": "aJPpkFcVda1bMCRpNTBo",
+  "characterCost": "9",
+  "sourceSha256": "4687a684cc8ae593da7259ad45cc102d66b6095ef9b798104f39f5388666d058",
+  "asset": "assets/audio/MAIN/RUN-128.vi.v1.mp3",
+  "finalSha256": "71c204b14321179b333ca543b38a196dc5fe0d09719162a1e2ae0b94bcb1d1c8",
+  "sourceDurationSeconds": 1.04,
+  "durationSeconds": 1.14127,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 19270
+}

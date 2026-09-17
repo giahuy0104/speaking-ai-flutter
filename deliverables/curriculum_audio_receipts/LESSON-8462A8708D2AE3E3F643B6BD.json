@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T07-B02\\C67-L3-T07-B02-Q01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T07-B02-Q01",
+  "sourceText": "Mở sách ra: Open your book hay Take your pencil?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mở sách ra:",
+      "spoken_text": "Mở sách ra:",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "text": "Open your book",
+      "spoken_text": "Open your book",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "text": "Take your pencil?",
+      "spoken_text": "Take your pencil?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-8462A8708D2AE3E3F643B6BD",
+  "text": "Mở sách ra: Open your book hay Take your pencil?",
+  "asset": "assets/audio/CURRICULUM/8462a8708d2ae3e3f643b6bd.vi.v1.mp3",
+  "sha256": "178ff6f1ff189a721a4544cf646fdd51c0b8292974f912180ff873d7242f6b44",
+  "durationSeconds": 5.533583
+}

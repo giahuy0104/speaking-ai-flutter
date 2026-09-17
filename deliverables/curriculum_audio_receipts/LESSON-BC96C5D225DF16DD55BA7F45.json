@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T02-B02\\C35-L1-T02-B02-T05_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T02-B02-T05_EN",
+  "sourceText": "Five claps.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Five claps.",
+      "generation_key": "d9ec3a9bbbc49b59"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-BC96C5D225DF16DD55BA7F45",
+  "text": "Five claps.",
+  "asset": "assets/audio/CURRICULUM/bc96c5d225df16dd55ba7f45.en.v1.mp3",
+  "sha256": "cb3295c751759269947cf028182db50e4cd4fa1aab6f1b4edb78facafa606640",
+  "durationSeconds": 1.798095
+}

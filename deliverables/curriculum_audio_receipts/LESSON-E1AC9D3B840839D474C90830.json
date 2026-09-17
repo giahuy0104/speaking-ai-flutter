@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T09-B01\\C810-L3-T09-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T09-B01-Q07",
+  "sourceText": "Bạn cần nói \"Đã xem TV\". Watched TV hay Lost my pencil?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn cần nói \"Đã xem TV\".",
+      "spoken_text": "Bạn cần nói \"Đã xem TV\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Watched TV",
+      "spoken_text": "Watched TV",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Lost my pencil?",
+      "spoken_text": "Lost my pencil?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E1AC9D3B840839D474C90830",
+  "text": "Bạn cần nói \"Đã xem TV\". Watched TV hay Lost my pencil?",
+  "asset": "assets/audio/CURRICULUM/e1ac9d3b840839d474c90830.vi.v1.mp3",
+  "sha256": "8cfe57db0e6db5624746cc15b934ab0bd1170ab4eeb9ccae903aa9f8647af354",
+  "durationSeconds": 8.415057
+}

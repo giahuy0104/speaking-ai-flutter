@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T04-B03\\C1112-L2-T04-B03-T02_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T04-B03-T02_VI",
+  "sourceText": "Cái nào rẻ hơn?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Cái nào rẻ hơn?",
+      "generation_key": "56d1ff288cc2ca82"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-0A6A0F02733235B39EF04B6F",
+  "text": "Cái nào rẻ hơn?",
+  "asset": "assets/audio/CURRICULUM/0a6a0f02733235b39ef04b6f.vi.v1.mp3",
+  "sha256": "3155eb183dbe5c7a541dd4530fd66e6896b220b381e1a5585b00d1cec840da06",
+  "durationSeconds": 1.693968
+}

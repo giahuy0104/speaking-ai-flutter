@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T03\\C810-L1-M11_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-M11",
+  "sourceText": "Bạn cần nói \"Vẽ tranh\". Draw pictures hay Read comics?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần nói \"Vẽ tranh\".",
+      "text": "Bạn cần nói \"Vẽ tranh\".",
+      "spoken_text": "Bạn cần nói \"Vẽ tranh\".",
+      "input_index": 62
+    },
+    {
+      "language": "en",
+      "source_text": "Draw pictures",
+      "text": "Draw pictures",
+      "spoken_text": "Draw pictures",
+      "input_index": 63
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 64
+    },
+    {
+      "language": "en",
+      "source_text": "Read comics?",
+      "text": "Read comics?",
+      "spoken_text": "Read comics?",
+      "input_index": 65
+    }
+  ],
+  "sourceSha256": "212fafd178bb177e17edd37348d23fc77270a18977332cca7dd251ce3d34a79c",
+  "id": "LESSON-5B2198BC1AA29F085E49E946",
+  "text": "Bạn cần nói \"Vẽ tranh\". Draw pictures hay Read comics?",
+  "asset": "assets/audio/CURRICULUM/5b2198bc1aa29f085e49e946.vi.v1.mp3",
+  "sha256": "212fafd178bb177e17edd37348d23fc77270a18977332cca7dd251ce3d34a79c",
+  "durationSeconds": 6.005896
+}

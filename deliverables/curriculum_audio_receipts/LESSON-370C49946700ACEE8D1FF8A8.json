@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T05-B02\\C35-L2-T05-B02-T02_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-T05-B02-T02_VI",
+  "sourceText": "Đó là con chó.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đó là con chó.",
+      "generation_key": "10501e8ff1256ec9"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-370C49946700ACEE8D1FF8A8",
+  "text": "Đó là con chó.",
+  "asset": "assets/audio/CURRICULUM/370c49946700acee8d1ff8a8.vi.v1.mp3",
+  "sha256": "07908fc982fb3374de53cc1a4e97094dd6b0fc6372dcc2de8ae181aa1ff9a147",
+  "durationSeconds": 1.499728
+}

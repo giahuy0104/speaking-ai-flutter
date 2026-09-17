@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T08-B01\\C1112-L3-T08-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T08-B01-Q08",
+  "sourceText": "Bạn muốn diễn đạt \"Giá\". Expensive hay Price?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Giá\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Giá\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Expensive",
+      "spoken_text": "Expensive",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Price?",
+      "spoken_text": "Price?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-63A5874B367CC5B9EB05EA7F",
+  "text": "Bạn muốn diễn đạt \"Giá\". Expensive hay Price?",
+  "asset": "assets/audio/CURRICULUM/63a5874b367cc5b9eb05ea7f.vi.v1.mp3",
+  "sha256": "34c740e604a352869e81bb9d1064d05127f4de76cc09a125087d47ac564fe42e",
+  "durationSeconds": 5.331474
+}

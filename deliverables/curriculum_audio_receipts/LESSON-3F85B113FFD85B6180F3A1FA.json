@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\MP3\\ROLEPLAY_01\\ROLEPLAY_01_TURN_01_CHILD_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "ROLEPLAY_01_TURN_01_EN",
+  "sourceText": "Can I come in?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75, VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Can I come in?",
+      "generation_key": "4921a7b9b497533d"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-3F85B113FFD85B6180F3A1FA",
+  "text": "Can I come in?",
+  "asset": "assets/audio/CURRICULUM/3f85b113ffd85b6180f3a1fa.en.v1.mp3",
+  "sha256": "8a75918fe5bb4e51a10162be9698a2f53277db397e6e9ba51dceb66df6acf9d8",
+  "durationSeconds": 1.690703
+}

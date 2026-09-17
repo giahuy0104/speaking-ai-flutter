@@ -1,0 +1,27 @@
+{
+  "id": "REPLY-016",
+  "signature": "8d25ac2c64cb8ec585960fcd06a28b48cb51f1fe23d544afb363a9e4957148be",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Con hãy học xong bài hát này trước nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:18:26.267Z",
+  "requestId": "cP89EmyyYIe6U4klDBnh",
+  "characterCost": "21",
+  "sourceSha256": "9799e1d49b4bab9decada8863a0ae48fd10c0d89f15554588b82c846bc8a2846",
+  "asset": "assets/audio/MAIN/REPLY-016.vi.v1.mp3",
+  "finalSha256": "e6a9bfc95ea3ac216bc383089f8327d51275f1cac5622dc7e5dd30964db0b656",
+  "sourceDurationSeconds": 2,
+  "durationSeconds": 2.206236,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 36406
+}

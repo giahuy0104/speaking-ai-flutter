@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T10-B02\\C67-L3-T10-B02-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T10-B02-Q02",
+  "sourceText": "Đi xe đạp: Watch cartoons hay Ride a bike?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đi xe đạp:",
+      "spoken_text": "Đi xe đạp:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Watch cartoons",
+      "spoken_text": "Watch cartoons",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Ride a bike?",
+      "spoken_text": "Ride a bike?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-757E162759C477F267A30CAE",
+  "text": "Đi xe đạp: Watch cartoons hay Ride a bike?",
+  "asset": "assets/audio/CURRICULUM/757e162759c477f267a30cae.vi.v1.mp3",
+  "sha256": "38ad7fd07b09d94d56fc543d964e47b11aa3d2ca268be4f698fb74b35ae70f47",
+  "durationSeconds": 4.858639
+}

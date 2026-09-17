@@ -1,0 +1,20 @@
+{
+  "signature": "5a68b150b016011f8a46742893e5481840e8a952b6ade501058fca5d9533a935",
+  "request": {
+    "text": "Menu Words.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "1dec04ed648db71d0871ec1773995eeacb7977e3ace9290e3d31a01a3070073e",
+  "requestId": "S8F1wTgBZOJuRROMUpD1",
+  "createdAt": "2026-09-15T23:30:42.038Z"
+}

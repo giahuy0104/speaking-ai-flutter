@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T03-B02\\C35-L1-T03-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T03-B02-Q05",
+  "sourceText": "Nó màu đen: It's black hay It's white?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nó màu đen:",
+      "spoken_text": "Nó màu đen:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "It's black",
+      "spoken_text": "It's black",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "It's white?",
+      "spoken_text": "It's white?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-D24698EAA56590DA50E47823",
+  "text": "Nó màu đen: It's black hay It's white?",
+  "asset": "assets/audio/CURRICULUM/d24698eaa56590da50e47823.vi.v1.mp3",
+  "sha256": "295f1ceb18cc3acade8bb447057eeb50abd7c281b06ab542571cecd6d685034d",
+  "durationSeconds": 4.387596
+}

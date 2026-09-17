@@ -1,0 +1,20 @@
+{
+  "signature": "abfe527adc8e4cddfc184cffc188703e73cd839cdfb428798e4df6d6bb1cca34",
+  "request": {
+    "text": "Hobby Time.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "8ee136aab016e57c9a2e59ca952bc569d874c6e8b3db93dda0f7b7410fc86bc3",
+  "requestId": "bjcQbcLCAwOkdtNwjDGi",
+  "createdAt": "2026-09-15T23:26:30.412Z"
+}

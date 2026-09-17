@@ -1,0 +1,20 @@
+{
+  "id": "AI-045",
+  "signature": "c3a5a2d169fbac90c771356716930a2bc2c07ebb4ed37e09c34790978dc286d3",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Đã dừng.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:09:32.334Z",
+  "requestId": "pbrJE5WJ6IpakNJU7M0B",
+  "characterCost": "4",
+  "sourceSha256": "f053f1752925ea80ef29c04c0f24a2f59f7f7e1157f1ee2332605ba2c2b7da2f"
+}

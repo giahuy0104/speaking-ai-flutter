@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T09-B01\\C1315-L3-T09-B01-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T09-B01-Q04",
+  "sourceText": "An toàn hơn: Lighter hay Safer?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "An toàn hơn:",
+      "spoken_text": "An toàn hơn:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Lighter",
+      "spoken_text": "Lighter",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Safer?",
+      "spoken_text": "Safer?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-051AC9FB57FCE33F45DB835C",
+  "text": "An toàn hơn: Lighter hay Safer?",
+  "asset": "assets/audio/CURRICULUM/051ac9fb57fce33f45db835c.vi.v1.mp3",
+  "sha256": "92f65350b2ac485d4efc75e39e90ebfd318403c258337f28deff2c2d4bfe287c",
+  "durationSeconds": 4.079116
+}

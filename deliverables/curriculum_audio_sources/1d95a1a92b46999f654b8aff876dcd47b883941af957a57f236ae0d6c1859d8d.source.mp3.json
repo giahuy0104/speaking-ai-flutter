@@ -1,0 +1,20 @@
+{
+  "signature": "1d95a1a92b46999f654b8aff876dcd47b883941af957a57f236ae0d6c1859d8d",
+  "request": {
+    "text": "Stay Safe.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "1919d4867fdc968070d1332647d5a095405ff1ec78fc81cb6666f710a6a202ee",
+  "requestId": "H8gCnjLQ3bOVsf6VlZZ0",
+  "createdAt": "2026-09-15T23:28:28.247Z"
+}

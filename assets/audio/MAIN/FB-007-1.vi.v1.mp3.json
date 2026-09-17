@@ -1,0 +1,27 @@
+{
+  "id": "FB-007-1",
+  "signature": "2e65bedcd1abdbdd27fe99d08008285ca2fd4c3e115fed2c98da119a58a6e5c7",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn nói “có” để học lại hoặc “không” để chọn chủ đề khác.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:10:51.886Z",
+  "requestId": "nfRhI8bdJqD8ePQdbnQt",
+  "characterCost": "31",
+  "sourceSha256": "1cf8a43aea9b36713128ed7eac9358e152b47c9cbf5ef5c3e79a3cc54f0c43a3",
+  "asset": "assets/audio/MAIN/FB-007-1.vi.v1.mp3",
+  "finalSha256": "b258f9d39cdda83549f59bac51419bc1de746a22f3e0298164973e3ce05b304f",
+  "sourceDurationSeconds": 4.56,
+  "durationSeconds": 5.045964,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 81964
+}

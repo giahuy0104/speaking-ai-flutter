@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B03\\C1112-L3-T09-B03-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B03-Q05",
+  "sourceText": "Đặt báo thức: Set an alarm hay Check your bag again?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đặt báo thức:",
+      "spoken_text": "Đặt báo thức:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Set an alarm",
+      "spoken_text": "Set an alarm",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Check your bag again?",
+      "spoken_text": "Check your bag again?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-82E93E80578BC47150B7FCD6",
+  "text": "Đặt báo thức: Set an alarm hay Check your bag again?",
+  "asset": "assets/audio/CURRICULUM/82e93e80578bc47150b7fcd6.vi.v1.mp3",
+  "sha256": "0f06c86acf4a0ab22478b1dd01ea42068d721642883b069b410a717e77d0ccaf",
+  "durationSeconds": 5.160375
+}

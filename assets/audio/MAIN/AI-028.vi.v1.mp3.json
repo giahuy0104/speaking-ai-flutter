@@ -1,0 +1,27 @@
+{
+  "id": "AI-028",
+  "signature": "6419f247502d0c45deb0d00473fabd1fade9efac0e53fb5e9136eabeee96d8b7",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "HOMI chưa tải được từ vựng. Bạn thử lại sau nha.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:07:21.412Z",
+  "requestId": "xqt9y9RAnMzXdGuAIZlL",
+  "characterCost": "26",
+  "sourceSha256": "c7cf6fb048954f6ee11ddb88f3bab3f1c29a9d3f0aa2948a769624fd69d58e15",
+  "asset": "assets/audio/MAIN/AI-028.vi.v1.mp3",
+  "finalSha256": "b81e688b931779a85fe44addd79d20a43373180bfe04b89f79e39cf29aa62209",
+  "sourceDurationSeconds": 3.76,
+  "durationSeconds": 4.163537,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 67753
+}

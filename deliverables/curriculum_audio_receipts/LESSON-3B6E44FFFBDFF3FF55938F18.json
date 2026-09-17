@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\ec99413cc33aaee386914c70a3dd4775f3fb998c05f2a006029a4216e579f09f.tempo.mp3",
+      "signature": "ec99413cc33aaee386914c70a3dd4775f3fb998c05f2a006029a4216e579f09f",
+      "request": {
+        "text": "Tiếp theo là một câu thử thách. Xong rồi mình nghe bài hát",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "a87bb67623e40b897aea37e674506dfa118d9b8da29a6b3a36a539f957136122",
+      "requestId": "fTYOFCgw9z3gq3uVusAx",
+      "createdAt": "2026-09-15T23:23:28.811Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\6f883d31444ba26f93001ea6fa9f06d69d608543da83e2b15e4778128138409f.tempo.mp3",
+      "signature": "6f883d31444ba26f93001ea6fa9f06d69d608543da83e2b15e4778128138409f",
+      "request": {
+        "text": "Let's Play Together",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "b63fb9fcbe23cb61ef74c98ecc55070d4a5b5ff8b5e5929d38bbf639f4c806f0",
+      "requestId": "2DWpy6EbGjRDNxLMjQ87",
+      "createdAt": "2026-09-15T23:25:52.316Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780.tempo.mp3",
+      "signature": "f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780",
+      "request": {
+        "text": "nhé.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "f8a90b46149d734b590160ab12314af597dc9eb203f9f411637ff57d12e7a8d6",
+      "requestId": "1gbfQaGo6f7yeN8SvxDC",
+      "createdAt": "2026-09-15T23:22:32.853Z"
+    }
+  ],
+  "id": "LESSON-3B6E44FFFBDFF3FF55938F18",
+  "text": "Tiếp theo là một câu thử thách. Xong rồi mình nghe bài hát Let's Play Together nhé.",
+  "asset": "assets/audio/CURRICULUM/3b6e44fffbdff3ff55938f18.vi.v1.mp3",
+  "sha256": "e18aca6b535d3595aa219c35b028430e8efeebacbe984fca30675bf2af38c7b5",
+  "durationSeconds": 6.522494,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

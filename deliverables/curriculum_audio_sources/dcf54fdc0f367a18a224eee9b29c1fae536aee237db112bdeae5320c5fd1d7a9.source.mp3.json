@@ -1,0 +1,20 @@
+{
+  "signature": "dcf54fdc0f367a18a224eee9b29c1fae536aee237db112bdeae5320c5fd1d7a9",
+  "request": {
+    "text": "Mình nghe lại bài hát",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "ee892492586446be6dd0425b7f7463201f10de5711387e8674c5e4c63c1de888",
+  "requestId": "7WmDO7POBGxEKSJtJWcp",
+  "createdAt": "2026-09-15T23:23:23.082Z"
+}

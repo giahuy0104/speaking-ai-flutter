@@ -1,0 +1,20 @@
+{
+  "id": "RUN-019",
+  "signature": "5dfe87a66e1159aa64914efd1b89b4605a532a30f9fcee37e5029ee09c5b2c0e",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Chưa có nội dung đã học tốt trong phần Ba mẹ đã thêm.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:11:38.250Z",
+  "requestId": "wmUnYwgT54TSk3mhOvfQ",
+  "characterCost": "29",
+  "sourceSha256": "751a58dd8008bc4d8bb822447a040706382bb85d724992cf78c564f455f27f61"
+}

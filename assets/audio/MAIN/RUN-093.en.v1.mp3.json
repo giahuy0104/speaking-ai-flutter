@@ -1,0 +1,27 @@
+{
+  "id": "RUN-093",
+  "signature": "8e90c88c5d8247832c6cc81f2625ad0b112ca62c892042d8e296b530c9e6f13b",
+  "provider": "elevenlabs",
+  "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+  "request": {
+    "text": "Good job!",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:14:19.297Z",
+  "requestId": "Hv6XWjjCGyzW89jHzybV",
+  "characterCost": "5",
+  "sourceSha256": "c3cf1b6bc27b7d1ad74b655a94930349fb3a1c90cd9c9e69393d384266c9b2cf",
+  "asset": "assets/audio/MAIN/RUN-093.en.v1.mp3",
+  "finalSha256": "9a71b306b4749449c640420e2bb255c8041283ee2886c41e12f475de69881945",
+  "sourceDurationSeconds": 1.28,
+  "durationSeconds": 1.692336,
+  "speed": 0.75,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 28047
+}

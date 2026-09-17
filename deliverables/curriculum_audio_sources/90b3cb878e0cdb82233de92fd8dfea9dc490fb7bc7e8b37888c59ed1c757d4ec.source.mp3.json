@@ -1,0 +1,20 @@
+{
+  "signature": "90b3cb878e0cdb82233de92fd8dfea9dc490fb7bc7e8b37888c59ed1c757d4ec",
+  "request": {
+    "text": "Feel Better",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "12a0dddc3befe4afa63e03d4106f1c564a09f06abf28a3059a1f6c530ac31cf0",
+  "requestId": "FaCFfXrVnPDtBq1aSR9G",
+  "createdAt": "2026-09-15T23:30:14.456Z"
+}

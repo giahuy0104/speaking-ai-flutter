@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T10-B02\\C1315-L3-T10-B02-T05_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T10-B02-T05_VI",
+  "sourceText": "Mình sẽ xin lời khuyên.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình sẽ xin lời khuyên.",
+      "generation_key": "e26a485b232fa72b"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-5A1CF305B2E4E2BC37449DF4",
+  "text": "Mình sẽ xin lời khuyên.",
+  "asset": "assets/audio/CURRICULUM/5a1cf305b2e4e2bc37449df4.vi.v1.mp3",
+  "sha256": "a5d386a2e19a168746558f17cc2fea1c91e979b2df0d72df20cbb902b30768ff",
+  "durationSeconds": 1.791134
+}

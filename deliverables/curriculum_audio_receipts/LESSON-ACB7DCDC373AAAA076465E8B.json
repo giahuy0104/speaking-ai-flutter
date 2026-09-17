@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T06-B01\\C1112-L2-T06-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T06-B01-Q03",
+  "sourceText": "Tin nhắn: Message hay Photo?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Tin nhắn:",
+      "spoken_text": "Tin nhắn:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Message",
+      "spoken_text": "Message",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Photo?",
+      "spoken_text": "Photo?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-ACB7DCDC373AAAA076465E8B",
+  "text": "Tin nhắn: Message hay Photo?",
+  "asset": "assets/audio/CURRICULUM/acb7dcdc373aaaa076465e8b.vi.v1.mp3",
+  "sha256": "72e8b1a87ef0a2df098b732e718de259124d0aa4e1bd06b321ca0bfd7a613568",
+  "durationSeconds": 3.478662
+}

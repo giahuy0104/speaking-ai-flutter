@@ -1,0 +1,33 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T01-B01\\C35-L1-T01-B01-Q05_CHOICE_2_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T01-B01-Q05",
+  "sourceText": "Grape.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Grape.",
+      "spoken_text": "Grape.",
+      "input_index": 29
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-BB73353C4A585BBABE0A7B76",
+  "text": "Grape.",
+  "asset": "assets/audio/CURRICULUM/bb73353c4a585bbabe0a7b76.en.v1.mp3",
+  "sha256": "d7782b5de9b3ce729ec73330cddf261edb5341afff2f3ce9a4102b157cdaee0d",
+  "durationSeconds": 1.121995
+}

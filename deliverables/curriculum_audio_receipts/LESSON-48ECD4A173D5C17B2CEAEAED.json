@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T04\\C810-L2-M03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-M03",
+  "sourceText": "Bạn cần nói \"Công viên\". Park hay Library?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần nói \"Công viên\".",
+      "text": "Bạn cần nói \"Công viên\".",
+      "spoken_text": "Bạn cần nói \"Công viên\".",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "source_text": "Park",
+      "text": "Park",
+      "spoken_text": "Park",
+      "input_index": 15
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 16
+    },
+    {
+      "language": "en",
+      "source_text": "Library?",
+      "text": "Library?",
+      "spoken_text": "Library?",
+      "input_index": 17
+    }
+  ],
+  "sourceSha256": "80070fc6cd4f1ff182f3ef54ac854b2ed7bfad89599d88031932c9c9c3ff998b",
+  "id": "LESSON-48ECD4A173D5C17B2CEAEAED",
+  "text": "Bạn cần nói \"Công viên\". Park hay Library?",
+  "asset": "assets/audio/CURRICULUM/48ecd4a173d5c17b2ceaeaed.vi.v1.mp3",
+  "sha256": "80070fc6cd4f1ff182f3ef54ac854b2ed7bfad89599d88031932c9c9c3ff998b",
+  "durationSeconds": 6.173039
+}

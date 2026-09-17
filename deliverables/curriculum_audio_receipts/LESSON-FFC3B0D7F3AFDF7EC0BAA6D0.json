@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T06\\C1315-L2-M11_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-M11",
+  "sourceText": "Bạn cần diễn đạt \"Số điện thoại\". Phone number hay Home address?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Số điện thoại\".",
+      "text": "Bạn cần diễn đạt \"Số điện thoại\".",
+      "spoken_text": "Bạn cần diễn đạt \"Số điện thoại\".",
+      "input_index": 61
+    },
+    {
+      "language": "en",
+      "source_text": "Phone number",
+      "text": "Phone number",
+      "spoken_text": "Phone number",
+      "input_index": 62
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 63
+    },
+    {
+      "language": "en",
+      "source_text": "Home address?",
+      "text": "Home address?",
+      "spoken_text": "Home address?",
+      "input_index": 64
+    }
+  ],
+  "sourceSha256": "dc34f81ccbc07aac716cbc9dad170f9b119be6e2da1aa16977e5c5508d018f6e",
+  "id": "LESSON-FFC3B0D7F3AFDF7EC0BAA6D0",
+  "text": "Bạn cần diễn đạt \"Số điện thoại\". Phone number hay Home address?",
+  "asset": "assets/audio/CURRICULUM/ffc3b0d7f3afdf7ec0baa6d0.vi.v1.mp3",
+  "sha256": "dc34f81ccbc07aac716cbc9dad170f9b119be6e2da1aa16977e5c5508d018f6e",
+  "durationSeconds": 5.655465
+}

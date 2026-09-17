@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T01-B02\\C35-L1-T01-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T01-B02-Q04",
+  "sourceText": "Sữa: Milk hay Nose?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Sữa:",
+      "spoken_text": "Sữa:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Milk",
+      "spoken_text": "Milk",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Nose?",
+      "spoken_text": "Nose?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-4843B4430A661C8D7DB93AAD",
+  "text": "Sữa: Milk hay Nose?",
+  "asset": "assets/audio/CURRICULUM/4843b4430a661c8d7db93aad.vi.v1.mp3",
+  "sha256": "16353073ccc7e6f04d768d28cd125344bb10ac96fffb91f9d92c012f63d3469e",
+  "durationSeconds": 3.509728
+}

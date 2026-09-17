@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T04\\C1315-L2-M03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-M03",
+  "sourceText": "Bạn cần diễn đạt \"Ngân sách của mình\". My budget hay Good price?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Ngân sách của mình\".",
+      "text": "Bạn cần diễn đạt \"Ngân sách của mình\".",
+      "spoken_text": "Bạn cần diễn đạt \"Ngân sách của mình\".",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "source_text": "My budget",
+      "text": "My budget",
+      "spoken_text": "My budget",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "source_text": "Good price?",
+      "text": "Good price?",
+      "spoken_text": "Good price?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": "15af6d762f19630b6bbc435d4a81cac668df25066cad75793abede496468693a",
+  "id": "LESSON-B121C92B12D45E15949638CE",
+  "text": "Bạn cần diễn đạt \"Ngân sách của mình\". My budget hay Good price?",
+  "asset": "assets/audio/CURRICULUM/b121c92b12d45e15949638ce.vi.v1.mp3",
+  "sha256": "15af6d762f19630b6bbc435d4a81cac668df25066cad75793abede496468693a",
+  "durationSeconds": 5.431859
+}

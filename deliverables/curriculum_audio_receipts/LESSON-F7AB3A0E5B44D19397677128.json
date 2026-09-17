@@ -1,0 +1,33 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T01-B02\\C35-L1-T01-B02-Q01_CHOICE_2_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T01-B02-Q01",
+  "sourceText": "Kite.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Kite.",
+      "spoken_text": "Kite.",
+      "input_index": 5
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-F7AB3A0E5B44D19397677128",
+  "text": "Kite.",
+  "asset": "assets/audio/CURRICULUM/f7ab3a0e5b44d19397677128.en.v1.mp3",
+  "sha256": "5336b559e15b455e542e347775bb9692a7a74e1dd73c28093f60e2de04b97f2c",
+  "durationSeconds": 1.067755
+}

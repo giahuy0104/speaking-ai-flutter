@@ -1,0 +1,27 @@
+{
+  "id": "AI-053",
+  "signature": "8ddd503b3ee01b1f4e4e924c77c6e22ca26305db79a11ee94e130937cb5c523f",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "HOMI chưa nghe rõ. Bạn nói lại đi.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:09:49.857Z",
+  "requestId": "DpkFcFUvJiIrJW6i28W0",
+  "characterCost": "19",
+  "sourceSha256": "31fe3ad7cef005890109ff2df58323fc3f483bd9f36296d06b6f66d4af7e753a",
+  "asset": "assets/audio/MAIN/AI-053.vi.v1.mp3",
+  "finalSha256": "d26f71a5c62a2b6c07590db4d4b2f8c347fd4b6c95a53707535e0b2bbcf796c6",
+  "sourceDurationSeconds": 2.16,
+  "durationSeconds": 2.390567,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 39332
+}

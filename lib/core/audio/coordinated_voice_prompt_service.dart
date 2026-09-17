@@ -6,6 +6,7 @@ import 'voice_prompt_service_base.dart';
 class CoordinatedVoicePromptService
     implements
         VoicePromptService,
+        AuthoredPromptBudgetProvider,
         SpeechReadyCuePlayer,
         PhoneSpeakerVoicePromptService,
         SelectedMediaOutputVoicePromptService,
@@ -25,6 +26,20 @@ class CoordinatedVoicePromptService
   AudioTurnCancellation _pendingCancellation = AudioTurnCancellation();
   AudioTurnLease? _activeLease;
   bool _disposed = false;
+
+  @override
+  Future<Duration?> authoredPromptBudget(
+    String text, {
+    String locale = 'vi-VN',
+  }) async {
+    final delegate = _delegate;
+    return !_disposed && delegate is AuthoredPromptBudgetProvider
+        ? (delegate as AuthoredPromptBudgetProvider).authoredPromptBudget(
+            text,
+            locale: locale,
+          )
+        : null;
+  }
 
   @override
   Future<void> speak(String text, {String locale = 'vi-VN'}) =>

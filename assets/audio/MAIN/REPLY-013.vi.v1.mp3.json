@@ -1,0 +1,27 @@
+{
+  "id": "REPLY-013",
+  "signature": "c92370faa7ed75773ab15a9e5410258381ee0e4f3776ef4327d59651cb0048da",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Chưa có bài tiếp theo.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:18:21.164Z",
+  "requestId": "kPX2oMAAJENOhZaCNwYA",
+  "characterCost": "12",
+  "sourceSha256": "50fd3314141fb092ec5d70b01def83f6936a2ef5d5b1491765950d4290aff72c",
+  "asset": "assets/audio/MAIN/REPLY-013.vi.v1.mp3",
+  "finalSha256": "432d8eb87f1f2651a6185a1b922f709e85e4f61b71e84ad93c0815bf913d7269",
+  "sourceDurationSeconds": 1.2,
+  "durationSeconds": 1.319841,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 22195
+}

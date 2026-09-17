@@ -1,0 +1,27 @@
+{
+  "id": "FB-008-1",
+  "signature": "92b2b9d4c35ac139490e645c48ca2d2ce21b6ba1447d70010451786efa06b42c",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn nói “luyện lại” hoặc “ngôi sao”.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:10:57.640Z",
+  "requestId": "CIZbOAqBpCKh01w83j3d",
+  "characterCost": "20",
+  "sourceSha256": "f72eab406847fde100bd50fe8d4c14dbb759ffbcd16140ee91a722a741e4dd69",
+  "asset": "assets/audio/MAIN/FB-008-1.vi.v1.mp3",
+  "finalSha256": "42d61ac8bad099183151e26229e39941c48ec65525cc604a05fc004a99fff38e",
+  "sourceDurationSeconds": 2.72,
+  "durationSeconds": 3.012857,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 49363
+}

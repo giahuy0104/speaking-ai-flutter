@@ -1,0 +1,27 @@
+{
+  "id": "FB-009-1",
+  "signature": "334bb2b56f345586fdcb5d716f69ddb8be7df1ddcaa9398bdeceb197c28ee6ff",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn muốn dừng dịch để học theo chủ đề hoặc học bộ từ vựng phải không?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:11:07.752Z",
+  "requestId": "Bn4ouNBiuSaeqdyvdRbR",
+  "characterCost": "38",
+  "sourceSha256": "ae4856ef4cd4d8c458e5e4cee600ba854d7924d253c42120c700df82fe989e7b",
+  "asset": "assets/audio/MAIN/FB-009-1.vi.v1.mp3",
+  "finalSha256": "8081033aa30fa421d28af831728a3beacc610154860edd97ff938cad1e855e0a",
+  "sourceDurationSeconds": 4.32,
+  "durationSeconds": 4.786893,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 77784
+}

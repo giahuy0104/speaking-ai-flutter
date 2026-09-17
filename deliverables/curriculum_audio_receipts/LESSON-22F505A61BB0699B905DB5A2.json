@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T09-B02\\C810-L3-T09-B02-T04_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T09-B02-T04_EN",
+  "sourceText": "I lost my pencil.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "I lost my pencil.",
+      "generation_key": "289593e2efcabf23"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-22F505A61BB0699B905DB5A2",
+  "text": "I lost my pencil.",
+  "asset": "assets/audio/CURRICULUM/22f505a61bb0699b905db5a2.en.v1.mp3",
+  "sha256": "7f8c9a0e6ad757895de65d08f3f7c05ab176882f2fedc34fd79c54dc0049322b",
+  "durationSeconds": 2.456961
+}

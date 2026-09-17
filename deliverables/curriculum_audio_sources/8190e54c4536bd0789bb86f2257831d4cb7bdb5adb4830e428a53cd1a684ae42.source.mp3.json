@@ -1,0 +1,20 @@
+{
+  "signature": "8190e54c4536bd0789bb86f2257831d4cb7bdb5adb4830e428a53cd1a684ae42",
+  "request": {
+    "text": "Mình làm lại phần thử thách nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "4fce6d795479d9970c2d49cb2b9424db52473ef2ef5154ce9675f4fd5efaaeeb",
+  "requestId": "oekzKFQ1JjK5KOLmATeX",
+  "createdAt": "2026-09-15T23:15:19.617Z"
+}

@@ -1,0 +1,20 @@
+{
+  "signature": "369744d7c9f6cabc8883da34a9d923a04df17b48e7ff346f4c433e7645f2f0d5",
+  "request": {
+    "text": "My Turn.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "b82995351782e52178f5504d199a972958b3e19ef0e4b4c69c5def9ad0ca9083",
+  "requestId": "PNuit98B7U2bEAfZBMjE",
+  "createdAt": "2026-09-15T23:25:54.335Z"
+}

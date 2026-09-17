@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T06-B01\\C1315-L2-T06-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T06-B01-Q07",
+  "sourceText": "Bạn muốn diễn đạt \"Mật khẩu\". Password hay Home address?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Mật khẩu\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Mật khẩu\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Password",
+      "spoken_text": "Password",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Home address?",
+      "spoken_text": "Home address?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9C7D5A50AA0DAC5F95DFD136",
+  "text": "Bạn muốn diễn đạt \"Mật khẩu\". Password hay Home address?",
+  "asset": "assets/audio/CURRICULUM/9c7d5a50aa0dac5f95dfd136.vi.v1.mp3",
+  "sha256": "ac00a8dbbcb79c8f16109a3458aadecb11f7155de06e48f71827e800c792bb06",
+  "durationSeconds": 5.35678
+}

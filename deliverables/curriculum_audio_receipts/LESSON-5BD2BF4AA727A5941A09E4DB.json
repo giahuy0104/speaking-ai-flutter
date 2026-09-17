@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T01-B01\\C35-L1-T01-B01-T02_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T01-B01-T02_VI",
+  "sourceText": "Quả bóng.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Quả bóng.",
+      "generation_key": "7302d14484ec9a0b"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-5BD2BF4AA727A5941A09E4DB",
+  "text": "Quả bóng.",
+  "asset": "assets/audio/CURRICULUM/5bd2bf4aa727a5941a09e4db.vi.v1.mp3",
+  "sha256": "e841bdbcd5a0fae0c94d0c4f8d05cf58d7383365ef3c6be8f904a01f132441e4",
+  "durationSeconds": 1.326735
+}

@@ -528,6 +528,70 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('system Back cannot leave an unfinished Today session', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    const store = VocabularyStore();
+    const sessionStore = VocabularySessionStore();
+    await store.addParentEntries(const <VocabularyTranslation>[
+      VocabularyTranslation(englishText: 'Apple', vietnameseText: 'Quả táo'),
+    ], now: DateTime(2026, 9, 10, 8));
+    final session = await sessionStore.prepareToday(
+      store,
+      now: DateTime(2026, 9, 10, 9),
+    );
+    final media = _FakeLessonMediaService();
+    final voice = _BlockingExitVoicePromptService();
+    addTearDown(media.close);
+    addTearDown(voice.release);
+    VocabularyPracticeResult? result;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: Builder(
+          builder: (context) => FilledButton(
+            key: const Key('open-vocabulary-practice'),
+            onPressed: () async {
+              result = await Navigator.of(context).push(
+                MaterialPageRoute<VocabularyPracticeResult>(
+                  builder: (_) => VocabularyPracticeScreen(
+                    language: DisplayLanguage.vietnamese,
+                    childAge: 6,
+                    session: session!,
+                    store: store,
+                    sessionStore: sessionStore,
+                    mediaService: media,
+                    voicePromptService: voice,
+                    samplePause: Duration.zero,
+                    autoStart: false,
+                  ),
+                ),
+              );
+            },
+            child: const Text('Open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const Key('open-vocabulary-practice')));
+    await tester.pumpAndSettle();
+
+    await tester.binding.handlePopRoute();
+    await tester.pump();
+    await voice.exitPromptStarted.future.timeout(const Duration(seconds: 1));
+    await tester.pump();
+
+    expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+    expect(find.text(VocabularyFlowV3.finishActiveGroupFirst), findsOneWidget);
+    expect(await sessionStore.readActive(), isNotNull);
+    expect(result, isNull);
+
+    voice.release();
+    await tester.pumpAndSettle();
+  });
 }
 
 class _FakeLessonMediaService extends LessonMediaService {
@@ -636,4 +700,30 @@ class _FakeVoicePromptService implements VoicePromptService {
 
   @override
   Future<void> stop() async {}
+}
+
+class _BlockingExitVoicePromptService implements VoicePromptService {
+  final Completer<void> exitPromptStarted = Completer<void>();
+  final Completer<void> _release = Completer<void>();
+
+  @override
+  Future<void> dispose() async => release();
+
+  @override
+  Future<void> speak(String text, {String locale = 'vi-VN'}) =>
+      speakAndWait(text, locale: locale);
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    if (text != VocabularyFlowV3.finishActiveGroupFirst) return;
+    if (!exitPromptStarted.isCompleted) exitPromptStarted.complete();
+    await _release.future;
+  }
+
+  @override
+  Future<void> stop() async {}
+
+  void release() {
+    if (!_release.isCompleted) _release.complete();
+  }
 }

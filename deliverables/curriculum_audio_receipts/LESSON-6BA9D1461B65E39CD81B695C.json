@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T01\\C1315-L1-M03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-M03",
+  "sourceText": "Bạn cần diễn đạt \"Sau giờ học\". After school hay Before dinner?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Sau giờ học\".",
+      "text": "Bạn cần diễn đạt \"Sau giờ học\".",
+      "spoken_text": "Bạn cần diễn đạt \"Sau giờ học\".",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "source_text": "After school",
+      "text": "After school",
+      "spoken_text": "After school",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "source_text": "Before dinner?",
+      "text": "Before dinner?",
+      "spoken_text": "Before dinner?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": "e7e1d4e8f03f55a0937c6573dc1c267ef3469c15f0b7f088dddd620e30901408",
+  "id": "LESSON-6BA9D1461B65E39CD81B695C",
+  "text": "Bạn cần diễn đạt \"Sau giờ học\". After school hay Before dinner?",
+  "asset": "assets/audio/CURRICULUM/6ba9d1461b65e39cd81b695c.vi.v1.mp3",
+  "sha256": "e7e1d4e8f03f55a0937c6573dc1c267ef3469c15f0b7f088dddd620e30901408",
+  "durationSeconds": 7.042268
+}

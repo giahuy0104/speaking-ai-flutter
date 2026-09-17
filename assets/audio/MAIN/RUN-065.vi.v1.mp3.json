@@ -1,0 +1,27 @@
+{
+  "id": "RUN-065",
+  "signature": "eb268e17441649248b8287e10bca37a42859683b667be5d3e31c16e8935bcf7e",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình cùng nghe Ngôi sao nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:13:28.439Z",
+  "requestId": "C4qh9ZqBCeubudqWqtbF",
+  "characterCost": "15",
+  "sourceSha256": "3089af87e94245a29ff3b64e2adde34823fd87ab8c9fae6bf6493960d4a44710",
+  "asset": "assets/audio/MAIN/RUN-065.vi.v1.mp3",
+  "finalSha256": "dd703f6a3063aa256fae53887fe7553dde0a29d1c2ee0d4371a53c452ee37c5d",
+  "sourceDurationSeconds": 1.52,
+  "durationSeconds": 1.678889,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 28047
+}

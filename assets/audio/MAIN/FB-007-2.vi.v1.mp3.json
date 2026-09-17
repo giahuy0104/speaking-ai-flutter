@@ -1,0 +1,27 @@
+{
+  "id": "FB-007-2",
+  "signature": "27433b33a1e2576447d9693314a11b3348aecc3ce13ec94b6fe95b49b3893851",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "HOMI chưa nhận được câu trả lời. Bạn chọn “có” hoặc “không” nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:10:55.047Z",
+  "requestId": "iFOpA1Qzwyar8l9pY3Nw",
+  "characterCost": "35",
+  "sourceSha256": "b549c9d3e2bb8102e20178dace8f349cab1a78366f63d2bcebbdbed55f5dd071",
+  "asset": "assets/audio/MAIN/FB-007-2.vi.v1.mp3",
+  "finalSha256": "84c7c81a0b1d57ddcee5f9f4e8a34fadad90ffe3d221aae96fac8608c4f7578e",
+  "sourceDurationSeconds": 3.92,
+  "durationSeconds": 4.337392,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 70679
+}

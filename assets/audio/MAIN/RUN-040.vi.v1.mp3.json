@@ -1,0 +1,27 @@
+{
+  "id": "RUN-040",
+  "signature": "879a42fd2c66ff3394c5cc8a643e70f922ea3f6f9dd937bf2e083e1bbd68cc23",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn muốn nghe phần Ba mẹ đã thêm, Luyện lại hay Ngôi sao?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:12:26.127Z",
+  "requestId": "FVvHvqdHiOmyXFxuoMct",
+  "characterCost": "31",
+  "sourceSha256": "1c2b4c917108f128151845e04e383d5b38c838ae42b8a0f2bbf3bb8fd0eb344a",
+  "asset": "assets/audio/MAIN/RUN-040.vi.v1.mp3",
+  "finalSha256": "73f92c3f94fbb8b18bfa4de2898a9f2576e60e528428c525f3c5bbece0503487",
+  "sourceDurationSeconds": 3.6,
+  "durationSeconds": 3.982834,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 64827
+}

@@ -1,4 +1,5 @@
 import 'dart:js_interop';
+import 'dart:typed_data';
 
 import 'voice_prompt_service_base.dart';
 
@@ -17,15 +18,28 @@ external JSPromise<JSString> _speakPromptAndWait(
 @JS('innotrikVoicePromptStop')
 external void _stopPrompt();
 
+@JS('innotrikAuthoredPromptPlayAndWait')
+external JSPromise<JSString> _playAuthoredPrompt(JSUint8Array bytes);
+
 @JS('innotrikSpeechReadyCue')
 external void _playSpeechReadyCue();
 
 class WebVoicePromptService
     implements
         VoicePromptService,
+        AuthoredAudioVoicePromptService,
         SpeechReadyCuePlayer,
         PhoneSpeakerVoicePromptService {
   const WebVoicePromptService();
+
+  @override
+  Future<void> playAuthoredAudioAndWait(
+    Uint8List bytes, {
+    bool forcePhoneSpeaker = false,
+    bool forceMediaPlayback = false,
+  }) async {
+    await _playAuthoredPrompt(bytes.toJS).toDart;
+  }
 
   @override
   Future<void> speak(String text, {String locale = 'vi-VN'}) async {

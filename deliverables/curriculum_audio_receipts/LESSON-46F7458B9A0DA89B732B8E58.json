@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T07-B01\\C810-L3-T07-B01-T01_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T07-B01-T01_EN",
+  "sourceText": "Shirt.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Shirt.",
+      "generation_key": "fa7a515aae038e99"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-46F7458B9A0DA89B732B8E58",
+  "text": "Shirt.",
+  "asset": "assets/audio/CURRICULUM/46f7458b9a0da89b732b8e58.en.v1.mp3",
+  "sha256": "44b4c0623dee54d6c1429e7ea3f0517121f22cebded926458f7324faa3e97c27",
+  "durationSeconds": 1.481723
+}

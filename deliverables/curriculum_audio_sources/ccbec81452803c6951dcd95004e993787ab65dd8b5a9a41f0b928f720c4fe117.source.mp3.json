@@ -1,0 +1,20 @@
+{
+  "signature": "ccbec81452803c6951dcd95004e993787ab65dd8b5a9a41f0b928f720c4fe117",
+  "request": {
+    "text": "Three claps",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "30228fadafa400411090ca5c3b88b830fa081ff2f9b97b815f12e96eee0459a5",
+  "requestId": "EWsZFKCQ4Y2vBuixTvlM",
+  "createdAt": "2026-09-15T23:15:43.582Z"
+}

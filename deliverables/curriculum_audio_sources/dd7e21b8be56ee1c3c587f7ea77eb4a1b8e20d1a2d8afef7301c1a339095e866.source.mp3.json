@@ -1,0 +1,20 @@
+{
+  "signature": "dd7e21b8be56ee1c3c587f7ea77eb4a1b8e20d1a2d8afef7301c1a339095e866",
+  "request": {
+    "text": "Tasty Foods",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "e75b831ad56c6bf45301369e9f6dd128821b440418b4d6b5ffae63d96f85ce39",
+  "requestId": "JpjJ4ssv2WhJ07IPnxci",
+  "createdAt": "2026-09-15T23:25:18.605Z"
+}

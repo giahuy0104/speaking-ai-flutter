@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T03-B02\\C1315-L1-T03-B02-T02_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T03-B02-T02_VI",
+  "sourceText": "Vì nó dễ hơn.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Vì nó dễ hơn.",
+      "generation_key": "36fc68a168745193"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-A57768492D57B43FFCF7BCF8",
+  "text": "Vì nó dễ hơn.",
+  "asset": "assets/audio/CURRICULUM/a57768492d57b43ffcf7bcf8.vi.v1.mp3",
+  "sha256": "eb78c475537adca640032d0cffb71cff2ab528c2a4e43249f41f61dfbc03633b",
+  "durationSeconds": 1.499728
+}

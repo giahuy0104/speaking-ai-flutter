@@ -1,0 +1,20 @@
+{
+  "id": "RUN-025",
+  "signature": "0c6535a7a22b2c6b46b6efe1f86aad6a97e5a9c27ab1aa604f8dff7161f2da1e",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình học câu tiếp theo nhé",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:11:49.910Z",
+  "requestId": "VspOajqYVuoWEabADeUw",
+  "characterCost": "14",
+  "sourceSha256": "04aedfcf44f93441401bf8d46d2c936abaf5716fa0d643e106fc98fa466cf141"
+}

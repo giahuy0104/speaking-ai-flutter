@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T05-B01\\C810-L2-T05-B01-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T05-B01-Q02",
+  "sourceText": "Hôm nay trời mưa: Windy today hay Rainy today?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Hôm nay trời mưa:",
+      "spoken_text": "Hôm nay trời mưa:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Windy today",
+      "spoken_text": "Windy today",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Rainy today?",
+      "spoken_text": "Rainy today?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-C22E739FE2AC1859534DC9B1",
+  "text": "Hôm nay trời mưa: Windy today hay Rainy today?",
+  "asset": "assets/audio/CURRICULUM/c22e739fe2ac1859534dc9b1.vi.v1.mp3",
+  "sha256": "17cd7930b134c91caaf8ff1811eecd21a0b27badd53443e4864acc1ace17d344",
+  "durationSeconds": 5.061769
+}

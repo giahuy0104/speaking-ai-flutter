@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T07-B02\\C810-L3-T07-B02-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T07-B02-Q07",
+  "sourceText": "HOMI nói: Ten dollars. Bạn thấy giá cao. It's expensive hay It's cheap?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Ten dollars.",
+      "spoken_text": "Ten dollars.",
+      "input_index": 39
+    },
+    {
+      "language": "vi",
+      "text": "Bạn thấy giá cao.",
+      "spoken_text": "Bạn thấy giá cao.",
+      "input_index": 40
+    },
+    {
+      "language": "en",
+      "text": "It's expensive",
+      "spoken_text": "It's expensive",
+      "input_index": 41
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "It's cheap?",
+      "spoken_text": "It's cheap?",
+      "input_index": 43
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-39ED8F4E342815D9D7F170C0",
+  "text": "HOMI nói: Ten dollars. Bạn thấy giá cao. It's expensive hay It's cheap?",
+  "asset": "assets/audio/CURRICULUM/39ed8f4e342815d9d7f170c0.vi.v1.mp3",
+  "sha256": "597be86521c866ecabe21d5fc310c88208db4079acd14ce250f634b9b7514941",
+  "durationSeconds": 9.776961
+}

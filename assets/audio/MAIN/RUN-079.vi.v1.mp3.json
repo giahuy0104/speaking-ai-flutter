@@ -1,0 +1,27 @@
+{
+  "id": "RUN-079",
+  "signature": "40ba40c2def2cb63df8658f43d575b358a60c630493625e67e1c65bbaf117e79",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn thử nói nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:14:00.699Z",
+  "requestId": "Hzt4uIz0q57YNKTr51ws",
+  "characterCost": "9",
+  "sourceSha256": "68bbe805950a74c49bb7fdb8e2d79e2d9e3ce76c88aa86feafbcb422d14d4737",
+  "asset": "assets/audio/MAIN/RUN-079.vi.v1.mp3",
+  "finalSha256": "30d691a28655b9c89a9f0c1dd5cf56ba39b489e11aaad51566696914412e03ba",
+  "sourceDurationSeconds": 1.12,
+  "durationSeconds": 1.224263,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 20524
+}

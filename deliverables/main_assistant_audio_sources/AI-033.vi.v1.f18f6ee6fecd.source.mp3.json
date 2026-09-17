@@ -1,0 +1,20 @@
+{
+  "id": "AI-033",
+  "signature": "f18f6ee6fecd1ead3c0c37531a53fb356183812be16b1ea83317e8ca084f2f46",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Phần luyện lại.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:07:31.058Z",
+  "requestId": "H7h9Jlev1KpuxUSVMANs",
+  "characterCost": "8",
+  "sourceSha256": "07f798bc413652dfc0580c15509d6c2693603b5d8d0b4d11f1caa75ed81adde2"
+}

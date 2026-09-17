@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B01\\C1112-L3-T09-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B01-Q08",
+  "sourceText": "Bạn muốn diễn đạt \"Mình làm mất chìa khóa\". I missed the bus hay I lost my key?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Mình làm mất chìa khóa\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Mình làm mất chìa khóa\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "I missed the bus",
+      "spoken_text": "I missed the bus",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "I lost my key?",
+      "spoken_text": "I lost my key?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-2D75F4F98EE3019ACA0C3826",
+  "text": "Bạn muốn diễn đạt \"Mình làm mất chìa khóa\". I missed the bus hay I lost my key?",
+  "asset": "assets/audio/CURRICULUM/2d75f4f98ee3019aca0c3826.vi.v1.mp3",
+  "sha256": "d29994c90040df0840d7fcf902a3b20599633b82f8e73b5e8197f9811312f735",
+  "durationSeconds": 7.196508
+}

@@ -1,0 +1,22 @@
+{
+  "number": 31,
+  "id": "VOCAB50-031",
+  "text": "HOMI nói mẫu nhé.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-031.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "baa402d935c64983b6135cb96a0fa83fd1428dafbbf1bccc7a3c87b45a1afe2b",
+  "bytes": 20942,
+  "sourceDurationSeconds": 1.12,
+  "durationSeconds": 1.234331,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "B6jvYHyerS9Kaym89G4m",
+  "characterCost": "9",
+  "createdAt": "2026-09-16T03:20:57.106Z"
+}

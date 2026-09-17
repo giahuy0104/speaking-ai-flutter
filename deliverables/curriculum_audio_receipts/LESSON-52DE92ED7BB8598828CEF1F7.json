@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T01-B03\\C35-L1-T01-B03-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T01-B03-Q07",
+  "sourceText": "Đồ chơi yo-yo: Yo-yo hay Zebra?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đồ chơi yo-yo:",
+      "spoken_text": "Đồ chơi yo-yo:",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Yo-yo",
+      "spoken_text": "Yo-yo",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Zebra?",
+      "spoken_text": "Zebra?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-52DE92ED7BB8598828CEF1F7",
+  "text": "Đồ chơi yo-yo: Yo-yo hay Zebra?",
+  "asset": "assets/audio/CURRICULUM/52de92ed7bb8598828cef1f7.vi.v1.mp3",
+  "sha256": "b0a89cef19c530a6f1c80c0504df424cb438e3c7a5efeea00cf75ad636f10b8b",
+  "durationSeconds": 4.444354
+}

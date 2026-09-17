@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T02\\C35-L1-M07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-M07",
+  "sourceText": "Hai: Two hay Three?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Hai:",
+      "text": "Hai:",
+      "spoken_text": "Hai:",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "source_text": "Two",
+      "text": "Two",
+      "spoken_text": "Two",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "source_text": "Three?",
+      "text": "Three?",
+      "spoken_text": "Three?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": "61845949ffab7bde969679bc8b9bcb73dd7a0daf6b980ed038f7fcdec20c662d",
+  "id": "LESSON-AAF397090667E21AE39BFCD4",
+  "text": "Hai: Two hay Three?",
+  "asset": "assets/audio/CURRICULUM/aaf397090667e21ae39bfcd4.vi.v1.mp3",
+  "sha256": "61845949ffab7bde969679bc8b9bcb73dd7a0daf6b980ed038f7fcdec20c662d",
+  "durationSeconds": 3.285238
+}

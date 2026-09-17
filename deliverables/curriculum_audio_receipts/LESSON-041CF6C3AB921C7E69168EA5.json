@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T04-B01\\C1315-L2-T04-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T04-B01-Q03",
+  "sourceText": "Giá tốt: Good price hay Too expensive?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Giá tốt:",
+      "spoken_text": "Giá tốt:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Good price",
+      "spoken_text": "Good price",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Too expensive?",
+      "spoken_text": "Too expensive?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-041CF6C3AB921C7E69168EA5",
+  "text": "Giá tốt: Good price hay Too expensive?",
+  "asset": "assets/audio/CURRICULUM/041cf6c3ab921c7e69168ea5.vi.v1.mp3",
+  "sha256": "18af2ff453d2a1dae7d9fce7233797da1934ecbd6e582d76d703703e33e40bc3",
+  "durationSeconds": 4.295737
+}

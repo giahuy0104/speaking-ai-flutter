@@ -1,0 +1,27 @@
+{
+  "id": "RUN-153",
+  "signature": "6c6ef28f32f0f574b7ece23bc89b8ea276d333bb352d3d77254e3ac37486e101",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn nói đáp án bằng tiếng Anh nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:17:57.286Z",
+  "requestId": "WQLjb8mq7X7h01tgCe0W",
+  "characterCost": "19",
+  "sourceSha256": "6fd7b7d1029557d9afcb6567e7fc6a7759c5297c2ae4f25d54b6ccbe172e1bf6",
+  "asset": "assets/audio/MAIN/RUN-153.vi.v1.mp3",
+  "finalSha256": "90111a60c900ed0d58854e3672e462aea10b254b42bad6c2ba433e2705a0553b",
+  "sourceDurationSeconds": 1.92,
+  "durationSeconds": 2.115737,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 34734
+}

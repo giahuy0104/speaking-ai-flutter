@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T02-B01\\C35-L1-T02-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T02-B01-Q08",
+  "sourceText": "Bạn muốn nói \"Hai\". Four hay Two?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Hai\".",
+      "spoken_text": "Bạn muốn nói \"Hai\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Four",
+      "spoken_text": "Four",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Two?",
+      "spoken_text": "Two?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-83AD3B50D15DB85DC0186742",
+  "text": "Bạn muốn nói \"Hai\". Four hay Two?",
+  "asset": "assets/audio/CURRICULUM/83ad3b50d15db85dc0186742.vi.v1.mp3",
+  "sha256": "cd26e9f7309c6ae9bcf024a41667100ff95c6f59f661e359fa1de5a1fbb0526e",
+  "durationSeconds": 4.70542
+}

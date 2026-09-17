@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T07-B02\\C35-L3-T07-B02-T04_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T07-B02-T04_VI",
+  "sourceText": "Cho mình sữa nhé.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Cho mình sữa nhé.",
+      "generation_key": "2e7c9382d22fdb45"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-6E2D2968C78624644D497F95",
+  "text": "Cho mình sữa nhé.",
+  "asset": "assets/audio/CURRICULUM/6e2d2968c78624644d497f95.vi.v1.mp3",
+  "sha256": "7c22d5b7f844fcc3b4c9b39ddb810649264d2056f0fa3d57980621f6baf8174d",
+  "durationSeconds": 1.499728
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T08-B01\\C810-L3-T08-B01-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T08-B01-Q06",
+  "sourceText": "Bạn muốn nói 'Mình vui.' Hoàn thành câu: I'm... sad hay happy?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Mình vui.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mình vui.' Hoàn thành câu:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "I'm... sad",
+      "spoken_text": "I'm... sad",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "happy?",
+      "spoken_text": "happy?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-8FD00FDE0414C9812B0AA713",
+  "text": "Bạn muốn nói 'Mình vui.' Hoàn thành câu: I'm... sad hay happy?",
+  "asset": "assets/audio/CURRICULUM/8fd00fde0414c9812b0aa713.vi.v1.mp3",
+  "sha256": "90b6ed9f514993c635316bd839c98258990f956845b2fa207a0c563cd0ec1687",
+  "durationSeconds": 7.780408
+}

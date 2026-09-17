@@ -1,0 +1,27 @@
+{
+  "id": "RUN-136",
+  "signature": "0975eba401c6bac02dc0be36bee3e8d2d616a13eac87dbbd39f4e2ff07489866",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình cùng học câu khác nhé!",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:15:16.692Z",
+  "requestId": "Z5TWpeLkogDQZs9GiM7y",
+  "characterCost": "15",
+  "sourceSha256": "58aa9b24b60fbf042eff89e6f1aef066264bd6b64c1f2b264c42b081b36ffa62",
+  "asset": "assets/audio/MAIN/RUN-136.vi.v1.mp3",
+  "finalSha256": "483ef4b7e74a0bf0e625ddd4687048af9eed117d891ad8c410ef31e7bdaa1d69",
+  "sourceDurationSeconds": 1.6,
+  "durationSeconds": 1.759206,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 29301
+}

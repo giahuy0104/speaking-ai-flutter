@@ -1,0 +1,1206 @@
+{
+  "schemaVersion": 1,
+  "enabled": true,
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "prompts": [
+    {
+      "id": "GAP66-001",
+      "text": "Bạn chọn một trong các lựa chọn trên màn hình nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-active-screen",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-001.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "07211ef1abc302eb71681538b33c4d71746422fe78aad12cde666bc7067552bd",
+      "durationSeconds": 3.001406,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-002",
+      "text": "Bạn muốn nghe lại, học câu tiếp theo, học câu trước hay dừng lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-active-screen",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-002.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "5acc994928f9771b7ef15390798e07ae8170410f546d7032deb065121fd0d14e",
+      "durationSeconds": 4.423787,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-003",
+      "text": "Bạn muốn nghe lại, nghe câu trước hay dừng lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-active-screen",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-003.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "9ea29fc5191cb509d76958e4bfd99cceb6fc8676dbbc14025163cb8be68b87a2",
+      "durationSeconds": 3.188594,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-004",
+      "text": "Bạn muốn nghe lại, nghe câu trước, câu tiếp theo hay dừng lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-active-screen",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-004.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "0b6725703136cf0ef600590c9e5ecc6b8c81bfee1a72904e29391dc36e2ec9f2",
+      "durationSeconds": 4.252041,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-005",
+      "text": "Bắt đầu Level 1. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-level-selection",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-005.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "c287462b8a96ace50d2cb322bf71bbfaf6e1e3dba7afbd8bf1d52bb6d7e9dcb1",
+      "durationSeconds": 4.703107,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-006",
+      "text": "Bắt đầu Level 2. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-level-selection",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-006.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "22ca530bd0ff04d26c587679d6c178b056b7d55b7a78d79e670de20aa11314ed",
+      "durationSeconds": 4.603333,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-007",
+      "text": "Bắt đầu Level 3. Có 4 Chủ đề. Bạn chọn Chủ đề số mấy?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-level-selection",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-007.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "d58ab6acadc6229c2def868bd4e253db26154c65c2b518c7cf5eecec52521260",
+      "durationSeconds": 4.693719,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-008",
+      "text": "Chủ đề 1 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 1?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-008.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "c031c63e84de776e45bffca31d68fdf2256afc6075fe69e605020d1bec7d832d",
+      "durationSeconds": 5.859932,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-009",
+      "text": "Chủ đề 10 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 10?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-009.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "313f188df60df7149d624004afe19a0001fd5c451641a29cf71316d2a2a4bdf5",
+      "durationSeconds": 5.865329,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-010",
+      "text": "Chủ đề 2 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 2?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-010.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "65bf095de7e584d09d1c552ba3583487826ee38eaa044ce61490736ef22f868f",
+      "durationSeconds": 5.677256,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-011",
+      "text": "Chủ đề 3 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 3?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-011.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "20512ed6f91b5705486481a3bfe14365dfe9906fff67eccb211b36f362078a82",
+      "durationSeconds": 6.028662,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-012",
+      "text": "Chủ đề 4 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 4?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-012.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "9eb6e9e1f45bed04f375c0494db18550bc4082c75f661116a78c6e46a9db27fd",
+      "durationSeconds": 5.59127,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-013",
+      "text": "Chủ đề 5 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 5?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-013.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "12494df7553a0f6c9553b161dc8230293549573daae11f31f9a2576850650081",
+      "durationSeconds": 5.863855,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-014",
+      "text": "Chủ đề 6 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 6?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-014.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "700afe98e96db66198469b11789539531c82e3d70004f04e7ee62244c7b3db23",
+      "durationSeconds": 6.121156,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-015",
+      "text": "Chủ đề 7 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 7?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-015.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "c079552fbd39a90fc92148018d005ba6db4ba3af591fd44bf284d0858f730df9",
+      "durationSeconds": 5.771088,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-016",
+      "text": "Chủ đề 8 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 8?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-016.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "547ccc8afe687e032b3cbe2320a6f9514759905a7febb4f0f51f87cc4e1c2d8d",
+      "durationSeconds": 5.491474,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-017",
+      "text": "Chủ đề 9 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 9?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-017.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "5ddab60a06997af0d59a5e492b58a58f80e7cb689d0761719eacf87140e68ef4",
+      "durationSeconds": 5.768186,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-018",
+      "text": "Mình chưa hiểu.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-navigation-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-018.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "a88aa751ced52a40d512bbe493790d5434dcd42ece3f5db41e37f04d97543a8e",
+      "durationSeconds": 0.968073,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-019",
+      "text": "Mình chưa hiểu. Bạn chọn một trong các lựa chọn trên màn hình nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-navigation-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-019.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "b7522adcb19bc76ebe4d562a4905e087ed467be70ce9f8e4e095463374c9c23d",
+      "durationSeconds": 3.980726,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-020",
+      "text": "Mình chưa hiểu. Bạn chưa có Ngôi sao nào. Bạn muốn học phần Ba mẹ đã thêm hay Luyện lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-vocabulary-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-020.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "b566fb2e8205d6d00c91087f8ec4f3ae848ded436fa3766f46bbb555c8d53fe3",
+      "durationSeconds": 6.488413,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-021",
+      "text": "Mình chưa hiểu. Bạn còn một Chủ đề chưa học. Bạn muốn học tiếp hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-completion-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-021.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "6aab0efc7f6d5decb716da6e5a5c2c34b1ffacd78962fdfe335aa32e86b3d4ba",
+      "durationSeconds": 5.410023,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-022",
+      "text": "Mình chưa hiểu. Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-completion-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-022.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "3360ebefc8cf7d26e844dba6bd041a6ad5ace64e2253cf884d8e19087e83b6dc",
+      "durationSeconds": 5.678821,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-023",
+      "text": "Mình chưa hiểu. Bạn đã nghe hết Ngôi sao rồi. Bạn muốn học nội dung khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-vocabulary-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-023.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "f15e464b7a8503f9e6d69de2811f6c12eb47d7a1d06f20b3e79e2ce536c8c4d4",
+      "durationSeconds": 6.480816,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-024",
+      "text": "Mình chưa hiểu. Bạn đã nghe hết rồi. Bạn muốn học nội dung khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-vocabulary-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-024.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "0f9fba7a7190f1c6a610d14f40ac1fc38bee390dc5eed01e19f208afac2ba691",
+      "durationSeconds": 5.497075,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-025",
+      "text": "Mình chưa hiểu. Bạn muốn bắt đầu Level 2 hay dừng lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-completion-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-025.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "ca64b8dff007d93df9fba89791154e7e1d6f7828f61fb6b70660d68c8fbb926c",
+      "durationSeconds": 3.629274,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-026",
+      "text": "Mình chưa hiểu. Bạn muốn bắt đầu Level 3 hay dừng lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-completion-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-026.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "12f900b9780c136ee2e615b41a04e6f1e272e22665507842c3e1575fda370134",
+      "durationSeconds": 3.717007,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-027",
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 1?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-completion-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-027.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "0ae73ac69403df01ce61fa6ac6ccb8db5d82efe6d9a40f3d24cb327fc59cd2f6",
+      "durationSeconds": 4.347914,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-028",
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 10?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-completion-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-028.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "c4365b2b0bec76f0e5c2c16fa11eb592f2e22e2229a25af92640b87f895059ca",
+      "durationSeconds": 4.433084,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-029",
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 2?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-completion-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-029.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "4ad58e301aae72c00d2ae0ad6d5ed94342fafd34739e5bc45a56533b8b48a57e",
+      "durationSeconds": 4.429161,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-030",
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 3?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-completion-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-030.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "957732513020622ef4a3d1f74057bcc297cc4c5ada1d54d33bb0d8cd4e8b7976",
+      "durationSeconds": 4.434762,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-031",
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 4?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-completion-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-031.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "4341d92bdab4ed4f0e8e3c075c593dca65c7f11f69a9edcd5e8cafb459410a57",
+      "durationSeconds": 4.341995,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-032",
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 5?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-completion-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-032.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "bea8672051ae47d9505e09425fc0d8254f4db624cfef9c06515c74053b03019e",
+      "durationSeconds": 4.435714,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-033",
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 6?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-completion-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-033.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "7c241ec5195ad1251b2fb4a95b623df71b58e69c5c44e71b2125ed396f253664",
+      "durationSeconds": 4.610113,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-034",
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 7?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-completion-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-034.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "fd879bc6d9df9ed4610f5e1b753c070e7f90864b7183675e6542c1950bad8f47",
+      "durationSeconds": 4.436667,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-035",
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 8?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-completion-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-035.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "98033e0049feb435877011cc60e896ff4d95cceecbcde68b041e9e0cd385d1b1",
+      "durationSeconds": 4.440431,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-036",
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 9?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-completion-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-036.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "06690509f5b3abecbeeaca42c6f740bc263b7c1ad7a84b1698fe146fafe6113f",
+      "durationSeconds": 4.435351,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-037",
+      "text": "Mình chưa hiểu. Bạn muốn dịch sang tiếng Anh hay học bộ từ vựng?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-navigation-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-037.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "d9fb1e397d63377b14595f795106f89aa10ef1fa2b61324f198a25da342593f8",
+      "durationSeconds": 4.525692,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-038",
+      "text": "Mình chưa hiểu. Bạn muốn học Bài 2 hay học lại Bài 1?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-completion-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-038.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "4c2170870cd448fec3749d5db3c5f592b2287e90f2e3939bffeed64bbf8956f6",
+      "durationSeconds": 3.636281,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-039",
+      "text": "Mình chưa hiểu. Bạn muốn học Bài 3 hay học lại Bài 2?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-completion-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-039.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "de5867a6c2d8c6c951ea7c5f33fe1a86fdd59f740dfebfaac3e3c98ea9b2bab8",
+      "durationSeconds": 3.641088,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-040",
+      "text": "Mình chưa hiểu. Bạn muốn học Ngôi sao hay Luyện lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-vocabulary-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-040.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "19e1248d8f393469a410db69ac83048842d1f9dc5f478f3a99cd9b9d79c6ee04",
+      "durationSeconds": 3.543537,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-041",
+      "text": "Mình chưa hiểu. Bạn muốn học nội dung khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-vocabulary-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-041.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "2ca187e4cb656bbdf4e1d5260322b6a729d2176a783e3031ee00c139572a140e",
+      "durationSeconds": 3.907823,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-042",
+      "text": "Mình chưa hiểu. Bạn muốn học nội dung khác hay học tiếp?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-vocabulary-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-042.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "f7628ec5c530ded4b1f3f8b2798f74f3311fe39085f0ad1b4f3fca9d8f1af5ae",
+      "durationSeconds": 3.986735,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-043",
+      "text": "Mình chưa hiểu. Bạn muốn học phần Ba mẹ đã thêm hay Luyện lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-vocabulary-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-043.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "29651568ed4a9de6a3b0c29891f3af8c4068890c55e4cc4bfd9fa9058cc47d0a",
+      "durationSeconds": 4.438095,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-044",
+      "text": "Mình chưa hiểu. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-vocabulary-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-044.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "8eed8056cddd909034ac530bb22d676aab2f3e6c757c3e03c9e51c88b953d7f9",
+      "durationSeconds": 4.352268,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-045",
+      "text": "Mình chưa hiểu. Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-vocabulary-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-045.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "2e89193c80b3b57ff3f8a3ca0d52a39f690b6859926befc5cdab4ad8cf39011c",
+      "durationSeconds": 5.319705,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-046",
+      "text": "Mình chưa hiểu. Bạn muốn nghe lại, học câu tiếp theo, học câu trước hay dừng lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-navigation-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-046.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "5a01339d06338b5a4df5b41b891f6c861aceb7ba496e5849dd7d2cd81264a15d",
+      "durationSeconds": 5.494218,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-047",
+      "text": "Mình chưa hiểu. Bạn muốn nghe lại, học câu tiếp theo, học câu trước, hay dừng lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-navigation-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-047.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "506923ca8b8e744fc3b67d04957de8f879dd04deb3ba9ee92406d5568fb68223",
+      "durationSeconds": 5.504671,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-048",
+      "text": "Mình chưa hiểu. Bạn muốn nghe lại, nghe câu trước hay dừng lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-vocabulary-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-048.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "e16f003a71fb4a4a6e4ff176eea01d926f4b9600b02890a2db6d2f9b2bf5e9c0",
+      "durationSeconds": 3.720658,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-049",
+      "text": "Mình chưa hiểu. Bạn muốn nghe lại, nghe câu trước, câu tiếp theo hay dừng lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-vocabulary-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-049.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "67f6f51cadfbe7025f89ded2b1b10f50771fc5c3b02e5d3ea1b0137b85a87867",
+      "durationSeconds": 5.406259,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-050",
+      "text": "Mình chưa hiểu. Bạn muốn tiếp tục dịch, học Chủ đề hay Bộ từ vựng?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-navigation-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-050.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "c2711f9fe12d432758413933839b916da4ea19f58e1ab8f1ac2db90664439eec",
+      "durationSeconds": 4.431429,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-051",
+      "text": "Mình chưa hiểu. Chủ đề 1 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 1?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-051.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "b05fe1941028c55392dd7e8325d1a85c666f69b9cb6880285adc0295ade568b7",
+      "durationSeconds": 7.092018,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-052",
+      "text": "Mình chưa hiểu. Chủ đề 10 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 10?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-052.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "f2bd608f852ca9e8324a79e360fed8e1bdd7d3b6415b7ffc907e3de23fb4f64a",
+      "durationSeconds": 7.460998,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-053",
+      "text": "Mình chưa hiểu. Chủ đề 2 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 2?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-053.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "54738c4107b9d6f0992f2ff1e6d4d99e28b60f4b62250a666e91d42dd5df3161",
+      "durationSeconds": 7.185737,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-054",
+      "text": "Mình chưa hiểu. Chủ đề 3 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 3?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-054.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "2017317ee184d1a8efb827e553e9cd3dc66f066a4a8e0cd2896a1e9fc2791431",
+      "durationSeconds": 8.518639,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-055",
+      "text": "Mình chưa hiểu. Chủ đề 4 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 4?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-055.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "bd4824a6fa3c53e6cfd8926208e46ed5b8e4cffd8b7b6f16cc56a938bda1ff0a",
+      "durationSeconds": 7.453991,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-056",
+      "text": "Mình chưa hiểu. Chủ đề 5 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 5?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-056.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "41ba3176d81daff6a6016a714572fc62c9a796d0fca7e41061ae0fcda30e7f4d",
+      "durationSeconds": 7.636236,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-057",
+      "text": "Mình chưa hiểu. Chủ đề 6 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 6?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-057.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "c983e56a58cd40156a22c6b3fb19a5557af57793f50601b9f0a9c0c53e9f1694",
+      "durationSeconds": 7.807982,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-058",
+      "text": "Mình chưa hiểu. Chủ đề 7 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 7?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-058.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "93ace64c423c3bf9a8a92abf9103d05d15f09a311da88506770ce5781035afa8",
+      "durationSeconds": 7.449592,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-059",
+      "text": "Mình chưa hiểu. Chủ đề 8 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 8?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-059.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "5f2b9be00616f24e541cf3f9f8eb9132c17edc7cf0711c3630a26256eaffe6ed",
+      "durationSeconds": 7.632608,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-060",
+      "text": "Mình chưa hiểu. Chủ đề 9 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 9?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-topic-replay-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-060.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "594f833690e820950d1096851a532d5fc00ca30ed1fe983a9e1410ad9d4165ff",
+      "durationSeconds": 6.659728,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-061",
+      "text": "Mình chưa hiểu. Chưa có nội dung ở phần này. Bạn muốn học Ngôi sao hay Luyện lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-vocabulary-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-061.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "dc52a8a90afdfe1e7020ccd146674cdf2de62091f72809761c729658331c414b",
+      "durationSeconds": 6.209592,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-062",
+      "text": "Mình chưa hiểu. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-level-selection",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-062.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "42398798aca6b91f75ef27d833a0736c5adad6cea17c1779f2879f13bdf2e3e4",
+      "durationSeconds": 4.165283,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-063",
+      "text": "Mình chưa hiểu. Có 4 Chủ đề. Bạn chọn Chủ đề số mấy?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-level-selection",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-063.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "b75be7ecf41adbf45e610428a197634a85322b22b91e8e81094f9b07bb6344d6",
+      "durationSeconds": 3.901293,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-064",
+      "text": "Mình chưa hiểu. HOMI đây. Bạn muốn dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-navigation-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-064.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "324832d8a057611b88f4a31e1f8e7d76706165a82f447d84020c370e2b70cd11",
+      "durationSeconds": 5.774875,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-065",
+      "text": "Mình chưa hiểu. Không có nội dung cần luyện lại. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-vocabulary-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-065.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "680770c31c23d2af41c3a407fc0aac6f4835304895cf8ea10289d766e824c4b7",
+      "durationSeconds": 6.743129,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP66-066",
+      "text": "Mình chưa hiểu. Mình đã luyện xong rồi. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap66-vocabulary-recovery",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-066.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "94a5720979a112bd797c070d0e740d25a3137b0c42791f430dfdc0ad08759ef2",
+      "durationSeconds": 6.655737,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    }
+  ]
+}

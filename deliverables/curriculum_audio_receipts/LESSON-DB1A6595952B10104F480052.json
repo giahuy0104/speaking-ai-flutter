@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07-B01\\C1112-L3-T07-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T07-B01-Q05",
+  "sourceText": "Gặp ở đó: Meet there hay Free Saturday?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Gặp ở đó:",
+      "spoken_text": "Gặp ở đó:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Meet there",
+      "spoken_text": "Meet there",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Free Saturday?",
+      "spoken_text": "Free Saturday?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-DB1A6595952B10104F480052",
+  "text": "Gặp ở đó: Meet there hay Free Saturday?",
+  "asset": "assets/audio/CURRICULUM/db1a6595952b10104f480052.vi.v1.mp3",
+  "sha256": "b782c630f86c342486386a6884be84990e86859de15004b855541e28cc387818",
+  "durationSeconds": 4.472653
+}

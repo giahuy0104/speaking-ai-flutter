@@ -1,0 +1,27 @@
+{
+  "id": "AI-026",
+  "signature": "c2ec69b619c36994424520de06379edc6ac56abde71727828a461442c60e59b0",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Ở đây hơi ồn. Bạn đưa micro lại gần, tránh hướng quạt hoặc chuyển sang chỗ yên hơn rồi thử lại nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:07:16.536Z",
+  "requestId": "NkltzwurFZAIN1xGX2fn",
+  "characterCost": "54",
+  "sourceSha256": "42d3998b4d2340515cb1f28845cec09f9beed33d74085f1f3fc3ef6981ce0a8d",
+  "asset": "assets/audio/MAIN/AI-026.vi.v1.mp3",
+  "finalSha256": "3e932a3ca04b4b4976b12aaa2496f7e0e368d5a5d5d11f6427f41837c8fa3d64",
+  "sourceDurationSeconds": 6.16,
+  "durationSeconds": 6.829637,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 110385
+}

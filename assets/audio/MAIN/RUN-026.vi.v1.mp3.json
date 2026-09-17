@@ -1,0 +1,27 @@
+{
+  "id": "RUN-026",
+  "signature": "f4595d10915c622024591bb0843f2d7396c52eae10d832b546dc09699e184704",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình nghe lại câu trước nhé",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:11:51.948Z",
+  "requestId": "E3WZaiTLzdOMTagCvxnq",
+  "characterCost": "15",
+  "sourceSha256": "abfd8b5ee1aa79a308579e4dfcfd4e068201a32996a94d8effc31405cb3a39a5",
+  "asset": "assets/audio/MAIN/RUN-026.vi.v1.mp3",
+  "finalSha256": "464b9440ebd5b9a77ce548fb404ea947fcdca0eac3858e079b5af9fe8cdf9920",
+  "sourceDurationSeconds": 1.6,
+  "durationSeconds": 1.760884,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 29301
+}

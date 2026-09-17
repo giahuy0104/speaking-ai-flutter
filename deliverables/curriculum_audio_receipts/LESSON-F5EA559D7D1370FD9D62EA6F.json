@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T08-B01\\C1315-L3-T08-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T08-B01-Q03",
+  "sourceText": "Món chính: Main dish hay Side dish?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Món chính:",
+      "spoken_text": "Món chính:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Main dish",
+      "spoken_text": "Main dish",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Side dish?",
+      "spoken_text": "Side dish?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-F5EA559D7D1370FD9D62EA6F",
+  "text": "Món chính: Main dish hay Side dish?",
+  "asset": "assets/audio/CURRICULUM/f5ea559d7d1370fd9d62ea6f.vi.v1.mp3",
+  "sha256": "2fa5070d0cd07599ab907ce337ce5bb777a227036a79d48f8873abc5e51236b1",
+  "durationSeconds": 4.162177
+}

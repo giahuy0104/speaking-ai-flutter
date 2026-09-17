@@ -1,0 +1,27 @@
+{
+  "id": "RUN-098",
+  "signature": "0434f1edcbc24effb090940a64a110f0b7280fc861ccafe736d8942f66f3fe0f",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Nghe câu đúng nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:14:24.606Z",
+  "requestId": "5ZgkSzxzH8zwyxm3xVn4",
+  "characterCost": "10",
+  "sourceSha256": "834b7ff6ea4d309e16ac995ba084fb838802fbb2bd384db20633d09bd40fd237",
+  "asset": "assets/audio/MAIN/RUN-098.vi.v1.mp3",
+  "finalSha256": "cea1f0ef2f6272ec2eee5a00839caa41e847b29bd5389a639c95bff7a3823e91",
+  "sourceDurationSeconds": 0.96,
+  "durationSeconds": 1.049841,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 18016
+}

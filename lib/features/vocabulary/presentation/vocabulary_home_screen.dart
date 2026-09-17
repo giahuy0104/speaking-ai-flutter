@@ -47,6 +47,35 @@ class VocabularyActivationController extends ChangeNotifier {
   }
 }
 
+class VocabularyHomeNavigationController {
+  Object? _owner;
+  Future<bool> Function()? _handleBack;
+  Future<void> Function()? _leaveForOtherContent;
+
+  Future<bool> handleBack() async => await _handleBack?.call() ?? false;
+
+  Future<void> leaveForOtherContent() async {
+    await _leaveForOtherContent?.call();
+  }
+
+  void _attach(
+    Object owner, {
+    required Future<bool> Function() handleBack,
+    required Future<void> Function() leaveForOtherContent,
+  }) {
+    _owner = owner;
+    _handleBack = handleBack;
+    _leaveForOtherContent = leaveForOtherContent;
+  }
+
+  void _detach(Object owner) {
+    if (!identical(_owner, owner)) return;
+    _owner = null;
+    _handleBack = null;
+    _leaveForOtherContent = null;
+  }
+}
+
 class VocabularyHomeScreen extends StatefulWidget {
   const VocabularyHomeScreen({
     required this.isReady,
@@ -69,6 +98,7 @@ class VocabularyHomeScreen extends StatefulWidget {
     this.childAge = 5,
     this.autoStartToday = false,
     this.onRequestVoiceChoice,
+    this.navigationController,
     super.key,
   });
 
@@ -91,6 +121,7 @@ class VocabularyHomeScreen extends StatefulWidget {
   final VocabularyActivationController? activationController;
   final int childAge;
   final bool autoStartToday;
+  final VocabularyHomeNavigationController? navigationController;
   final Future<void> Function({
     String? noSpeechRetryPrompt,
     String? noSpeechExitPrompt,
@@ -191,6 +222,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _storeSubscription = widget.store.changes.listen((_) => unawaited(_load()));
     _wasEffectivelyActive = _isEffectivelyActive;
     widget.activationController?.addListener(_handleActivationChanged);
+    _attachNavigationController();
     unawaited(_load());
   }
 
@@ -211,6 +243,13 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     if (oldWidget.activationController != widget.activationController) {
       oldWidget.activationController?.removeListener(_handleActivationChanged);
       widget.activationController?.addListener(_handleActivationChanged);
+    }
+    if (!identical(
+      oldWidget.navigationController,
+      widget.navigationController,
+    )) {
+      oldWidget.navigationController?._detach(this);
+      _attachNavigationController();
     }
     _handleActivationChanged();
   }
@@ -248,6 +287,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   @override
   void dispose() {
     widget.activationController?.removeListener(_handleActivationChanged);
+    widget.navigationController?._detach(this);
     _unregisterActiveLearningModule();
     _searchController
       ..removeListener(_refreshSearch)
@@ -264,6 +304,23 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       unawaited(_mediaService.dispose());
     }
     super.dispose();
+  }
+
+  void _attachNavigationController() {
+    widget.navigationController?._attach(
+      this,
+      handleBack: _handleNavigationBack,
+      leaveForOtherContent: () => _leavePlaybackForOtherContent(
+        announceMenu: false,
+        notifyNavigationExit: false,
+      ),
+    );
+  }
+
+  Future<bool> _handleNavigationBack() async {
+    if (_selectedJourney == null) return false;
+    unawaited(_leavePlaybackForOtherContent());
+    return true;
   }
 
   void _syncActiveLearningRegistration() {
@@ -1828,10 +1885,15 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     return true;
   }
 
-  Future<void> _leavePlaybackForOtherContent({bool announceMenu = true}) async {
+  Future<void> _leavePlaybackForOtherContent({
+    bool announceMenu = true,
+    bool notifyNavigationExit = true,
+  }) async {
     if (_playbackNavigationCleanup != null && announceMenu) return;
     _cancelPendingFixedPrompt();
-    if (!announceMenu) ActiveLearningModuleScope.notifyNavigationExit(context);
+    if (!announceMenu && notifyNavigationExit) {
+      ActiveLearningModuleScope.notifyNavigationExit(context);
+    }
     final journey = _selectedJourney;
     // Touch and MAIN use the same cancellation boundary. Update the screen
     // immediately, while an old audio callback can no longer advance its queue.

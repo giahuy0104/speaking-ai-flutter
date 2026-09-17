@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T01\\C1315-L1-M04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-M04",
+  "sourceText": "Bạn muốn nói 'Mình lên kế hoạch vào Chủ nhật.' Hoàn thành câu: I... plan on Sundays hay study after school?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn muốn nói 'Mình lên kế hoạch vào Chủ nhật.' Hoàn thành câu:",
+      "text": "Bạn muốn nói 'Mình lên kế hoạch vào Chủ nhật.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mình lên kế hoạch vào Chủ nhật.' Hoàn thành câu:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "source_text": "I... plan on Sundays",
+      "text": "I... plan on Sundays",
+      "spoken_text": "I... plan on Sundays",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "source_text": "study after school?",
+      "text": "study after school?",
+      "spoken_text": "study after school?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": "ab489a3109dd4dab2ccd3b99c6f1c0564283332afef708391d9c40d3d987b51f",
+  "id": "LESSON-08283378297741846E40559E",
+  "text": "Bạn muốn nói 'Mình lên kế hoạch vào Chủ nhật.' Hoàn thành câu: I... plan on Sundays hay study after school?",
+  "asset": "assets/audio/CURRICULUM/08283378297741846e40559e.vi.v1.mp3",
+  "sha256": "ab489a3109dd4dab2ccd3b99c6f1c0564283332afef708391d9c40d3d987b51f",
+  "durationSeconds": 10.775125
+}

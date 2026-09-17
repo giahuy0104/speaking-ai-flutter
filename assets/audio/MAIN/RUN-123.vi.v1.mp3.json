@@ -1,0 +1,27 @@
+{
+  "id": "RUN-123",
+  "signature": "561c57c036f27da974bfaa621e972bf4bcffe2d0af32ef4f6366b9aa77f3d027",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Nói theo cô nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:14:45.677Z",
+  "requestId": "xD8dkq1HAEqPeuWytoF5",
+  "characterCost": "9",
+  "sourceSha256": "5d4d72847d34b5a4bd39ae22b6d80f09f9b26a305d9777acf0f67e64b2d1a070",
+  "asset": "assets/audio/MAIN/RUN-123.vi.v1.mp3",
+  "finalSha256": "77c52901cecdccd8f5ef83db719650a5870af893ad734e4099fbfc1afd124d55",
+  "sourceDurationSeconds": 1.36,
+  "durationSeconds": 1.492313,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 25121
+}

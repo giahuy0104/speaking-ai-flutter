@@ -1,0 +1,20 @@
+{
+  "signature": "82e1659a865e5c315dfa7bdad2140756dc6c58e7b13e9757cfea14e9dc083045",
+  "request": {
+    "text": "Mấy giờ rồi nhỉ?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "8cef03517b26ef1f804bb2fba7d0c78d7ad904009a7e9fbd61375b5066c7e1d8",
+  "requestId": "DJrs8269VxszljAx5rjI",
+  "createdAt": "2026-09-15T23:18:25.727Z"
+}

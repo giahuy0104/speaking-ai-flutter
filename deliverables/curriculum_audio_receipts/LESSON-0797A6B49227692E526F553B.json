@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T01-B01\\C67-L1-T01-B01-Q09_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T01-B01-Q09",
+  "sourceText": "Con voi: Elephant hay Flower?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Con voi:",
+      "spoken_text": "Con voi:",
+      "input_index": 48
+    },
+    {
+      "language": "en",
+      "text": "Elephant",
+      "spoken_text": "Elephant",
+      "input_index": 49
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 50
+    },
+    {
+      "language": "en",
+      "text": "Flower?",
+      "spoken_text": "Flower?",
+      "input_index": 51
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-0797A6B49227692E526F553B",
+  "text": "Con voi: Elephant hay Flower?",
+  "asset": "assets/audio/CURRICULUM/0797a6b49227692e526f553b.vi.v1.mp3",
+  "sha256": "e342dfcaa4237cda5f3a841bae5f0f4a4e3739fa2d76acb62ed9131ecafee017",
+  "durationSeconds": 3.901383
+}

@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\MP3\\ROLEPLAY_07\\ROLEPLAY_07_TURN_04_CHILD_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "ROLEPLAY_07_TURN_04_EN",
+  "sourceText": "I agree.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75, VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "I agree.",
+      "generation_key": "8fe5c102e1aae35e"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-5D40616AF0DC4EBAAD949C32",
+  "text": "I agree.",
+  "asset": "assets/audio/CURRICULUM/5d40616af0dc4ebaad949c32.en.v1.mp3",
+  "sha256": "12473728ab65f5cc949620243effa8997c7877f46d782a93c263a23105cd5220",
+  "durationSeconds": 1.171156
+}

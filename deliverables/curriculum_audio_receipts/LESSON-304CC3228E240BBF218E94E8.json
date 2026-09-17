@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T01-B03\\C67-L1-T01-B03-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T01-B03-Q05",
+  "sourceText": "Cửa sổ: Window hay X-ray?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Cửa sổ:",
+      "spoken_text": "Cửa sổ:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Window",
+      "spoken_text": "Window",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "X-ray?",
+      "spoken_text": "X-ray?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-304CC3228E240BBF218E94E8",
+  "text": "Cửa sổ: Window hay X-ray?",
+  "asset": "assets/audio/CURRICULUM/304cc3228e240bbf218e94e8.vi.v1.mp3",
+  "sha256": "bd6c6fb655a928b9ece26524894973b4a86121ca1d7cc7c454cc916155ef9ab9",
+  "durationSeconds": 3.656145
+}

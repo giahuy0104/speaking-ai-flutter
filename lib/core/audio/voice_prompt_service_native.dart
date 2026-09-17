@@ -10,6 +10,7 @@ VoicePromptService createPlatformVoicePromptService() =>
 class MethodChannelVoicePromptService
     implements
         VoicePromptService,
+        AuthoredAudioVoicePromptService,
         SpeechReadyCuePlayer,
         PhoneSpeakerVoicePromptService,
         SelectedMediaOutputVoicePromptService,
@@ -20,6 +21,18 @@ class MethodChannelVoicePromptService
   }) : _channel = channel;
 
   final MethodChannel _channel;
+
+  @override
+  Future<void> playAuthoredAudioAndWait(
+    Uint8List bytes, {
+    bool forcePhoneSpeaker = false,
+    bool forceMediaPlayback = false,
+  }) => _channel.invokeMethod<void>('playAuthoredAudioAndWait', {
+    'bytes': bytes,
+    'gainDb': androidAssistantSpeechBoostDb,
+    'forcePhoneSpeaker': forcePhoneSpeaker,
+    'forceMediaPlayback': forceMediaPlayback,
+  });
 
   @override
   Future<String?> beginMainTurn() async {
@@ -96,7 +109,7 @@ class MethodChannelVoicePromptService
       await _channel.invokeMethod<void>(method, <String, dynamic>{
         'text': text.trim(),
         'locale': locale,
-        'gainDb': androidSpeechBoostDb,
+        'gainDb': androidAssistantSpeechBoostDb,
         'forcePhoneSpeaker': forcePhoneSpeaker,
         'forceMediaPlayback': forceMediaPlayback,
         'speechRate': ?speechRate,

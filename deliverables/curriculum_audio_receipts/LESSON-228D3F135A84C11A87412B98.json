@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T03-B01\\C35-L1-T03-B01-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T03-B01-Q06",
+  "sourceText": "Bạn muốn nói \"Đỏ\". Yellow hay Red?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Đỏ\".",
+      "spoken_text": "Bạn muốn nói \"Đỏ\".",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Yellow",
+      "spoken_text": "Yellow",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Red?",
+      "spoken_text": "Red?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-228D3F135A84C11A87412B98",
+  "text": "Bạn muốn nói \"Đỏ\". Yellow hay Red?",
+  "asset": "assets/audio/CURRICULUM/228d3f135a84c11a87412b98.vi.v1.mp3",
+  "sha256": "7b2b6ccea0d294e9c86b7c6e94fb5b7d5b33ccc5bcdaf51e0dbc2afb159828ff",
+  "durationSeconds": 4.798345
+}

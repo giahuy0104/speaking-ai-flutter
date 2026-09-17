@@ -10,6 +10,7 @@ import 'audio_turn_coordinator.dart';
 import 'browser_audio_playback.dart';
 import 'browser_audio_playback_factory.dart';
 import 'device_audio_cache.dart';
+import 'just_audio_asset_cache_directory.dart';
 
 class PlaybackStartMetrics {
   const PlaybackStartMetrics({
@@ -464,7 +465,13 @@ class JustAudioPlaybackService
     // installations can otherwise keep playing the previously extracted file.
     // Share this future across service instances so the cache is cleared only
     // once per app process and always before the first asset is loaded.
-    return _assetCacheRefresh ??= AudioPlayer.clearAssetCache();
+    return _assetCacheRefresh ??= () async {
+      // just_audio 0.10.6 lists this directory while clearing it, but does not
+      // create it first. A fresh install (or Android clearing app cache) then
+      // throws PathNotFoundException before the first bundled clip can load.
+      await ensureJustAudioAssetCacheDirectory();
+      await AudioPlayer.clearAssetCache();
+    }();
   }
 
   @override

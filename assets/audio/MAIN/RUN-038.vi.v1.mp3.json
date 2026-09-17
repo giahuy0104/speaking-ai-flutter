@@ -1,0 +1,27 @@
+{
+  "id": "RUN-038",
+  "signature": "6c1b771a1cf823668c66cdc5423388fa4012ad2dfc6b80bd8864fb8f97054772",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bắt đầu học thôi con",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:12:21.518Z",
+  "requestId": "J8dzA9WO3Xz5Kp6qIQE2",
+  "characterCost": "11",
+  "sourceSha256": "e62af23cf854c5eb613b889143fcc875c18e13597c9739002971b8cc8ef96ee2",
+  "asset": "assets/audio/MAIN/RUN-038.vi.v1.mp3",
+  "finalSha256": "831adf86522d75236b1cc20b515384e8f33d7e1919dde9560de2a82eaa174887",
+  "sourceDurationSeconds": 1.12,
+  "durationSeconds": 1.236757,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 20942
+}
