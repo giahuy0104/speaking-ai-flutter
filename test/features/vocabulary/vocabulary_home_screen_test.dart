@@ -1048,6 +1048,89 @@ void main() {
     expect(stars.wasHandled, isTrue);
     expect(find.text('Ngôi sao của bạn'), findsOneWidget);
   });
+
+  testWidgets('MAIN vocabulary prompt failure is handled and can retry', (
+    tester,
+  ) async {
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final prompt = _FailingJourneyVoicePromptService();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: ActiveLearningModuleScope(
+          registry: registry,
+          child: DisplayLanguageScope(
+            language: DisplayLanguage.vietnamese,
+            child: VocabularyHomeScreen(
+              isReady: true,
+              isActive: true,
+              store: _MemoryVocabularyStore(),
+              mediaService: _ImmediateLessonMediaService(),
+              voicePromptService: prompt,
+              onReturnToConversation: () {},
+              onHistory: () {},
+              onSettings: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    prompt.fail = true;
+    await registry.execute(ActiveLearningCommand.vocabularyStars);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byType(SnackBar), findsOneWidget);
+    prompt.fail = false;
+    await registry.execute(ActiveLearningCommand.vocabularyParentAdded);
+    await tester.pumpAndSettle();
+    expect(find.text('Ba mẹ đã thêm'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'logical activation enables vocabulary commands before a visual page change',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final activationController = VocabularyActivationController();
+      addTearDown(registry.dispose);
+      addTearDown(activationController.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: ActiveLearningModuleScope(
+            registry: registry,
+            child: DisplayLanguageScope(
+              language: DisplayLanguage.vietnamese,
+              child: VocabularyHomeScreen(
+                isReady: true,
+                isActive: false,
+                activationController: activationController,
+                store: _MemoryVocabularyStore(),
+                voicePromptService: const _FakeVoicePromptService(),
+                onReturnToConversation: () {},
+                onHistory: () {},
+                onSettings: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(registry.activeKind, isNull);
+      activationController.activate();
+
+      expect(registry.activeKind, ActiveLearningModuleKind.vocabulary);
+      final stars = await registry.execute(
+        ActiveLearningCommand.vocabularyStars,
+      );
+      await tester.pumpAndSettle();
+      expect(stars.wasHandled, isTrue);
+      expect(find.text('Ngôi sao của bạn'), findsOneWidget);
+    },
+  );
 }
 
 class _MemoryVocabularyStore extends VocabularyStore {
@@ -1168,6 +1251,15 @@ class _RecordingVoicePromptService implements VoicePromptService {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _FailingJourneyVoicePromptService extends _RecordingVoicePromptService {
+  bool fail = false;
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    if (fail) throw StateError('H20 route unavailable');
+    await super.speakAndWait(text, locale: locale);
+  }
 }
 
 class _ImmediateLessonMediaService extends LessonMediaService {

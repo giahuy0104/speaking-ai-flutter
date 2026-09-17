@@ -184,6 +184,15 @@ class ConversationController extends ChangeNotifier
     final hfpControl = _hfpAudioControl;
     if (hfpControl != null) {
       _hfpStatusSubscription = hfpControl.statusChanges.listen((status) {
+        if (!kIsWeb &&
+            defaultTargetPlatform == TargetPlatform.android &&
+            _usingHfpRoute &&
+            _playbackPlaying &&
+            !status.routeActive &&
+            !status.isBusy &&
+            !_handlingHfpRouteLoss) {
+          unawaited(_stopAfterHfpRouteLoss());
+        }
         if (_hfpInputSelected &&
             status.deviceId == null &&
             !status.isConnected &&
@@ -303,6 +312,7 @@ class ConversationController extends ChangeNotifier
   bool _usingStreamingSpeech = false;
   bool _usingRecordedAudioSpeech = false;
   bool _usingHfpRoute = false;
+  bool _handlingHfpRouteLoss = false;
   bool _continuousHfpSessionActive = false;
   bool _hfpInputSelected;
   bool _preparingMicrophone = false;
@@ -4047,6 +4057,26 @@ class ConversationController extends ChangeNotifier
       return;
     }
     _setError(_friendlyError(error));
+  }
+
+  Future<void> _stopAfterHfpRouteLoss() async {
+    _handlingHfpRouteLoss = true;
+    // Invalidate this turn immediately so a late translated clip cannot start
+    // on the phone after Android removes the selected H20 output.
+    final cancellation = cancelCurrentMainAction();
+    final generation = _conversationTurnGeneration;
+    try {
+      await cancellation;
+      if (!_disposed && generation == _conversationTurnGeneration) {
+        errorMessage = 'Kết nối âm thanh H20 bị gián đoạn. Bạn thử lại nhé.';
+        phase = ConversationPhase.error;
+        notifyListeners();
+      }
+    } catch (error) {
+      debugPrint('HOMI H20 route-loss cleanup failed: $error');
+    } finally {
+      _handlingHfpRouteLoss = false;
+    }
   }
 
   Future<void> _speakUnclearSpeechPrompt() async {

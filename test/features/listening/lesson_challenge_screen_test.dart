@@ -15,6 +15,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('failed Challenge question does not open mic', (tester) async {
+    await _usePhoneSurface(tester);
+    final media = _FakeLessonMediaService();
+    await tester.pumpWidget(
+      _subject(
+        startAge: 7,
+        mediaService: media,
+        voicePromptService: _FailingVoicePromptService(),
+      ),
+    );
+    await _pumpChallengeTransition(tester);
+    expect(media.recordingStarts, 0);
+    expect(
+      find.text('Chưa phát được câu hỏi. Bạn bấm nghe lại nhé.'),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
   testWidgets('Challenge resume uses only RESUME_CHALLENGE before replay', (
     tester,
   ) async {
@@ -51,7 +69,7 @@ void main() {
       containsAllInOrder(<String>[
         'vi-VN|Mình tiếp tục câu thử thách nhé.',
         'vi-VN|Where is the library?',
-        'vi-VN|Bạn nói đáp án bằng tiếng Anh nhé.',
+        'vi-VN|Bạn trả lời nhé',
       ]),
     );
     expect(
@@ -293,7 +311,7 @@ void main() {
       containsAllInOrder(<String>[
         'vi-VN|Bạn thử lại nhé.',
         'vi-VN|Where is the library?',
-        'vi-VN|Bạn nói đáp án bằng tiếng Anh nhé.',
+        'vi-VN|Bạn trả lời nhé',
         'vi-VN|HOMI nói mẫu nhé.',
         'en-US|Go straight.',
       ]),
@@ -772,6 +790,13 @@ class _RecordingVoicePromptService implements VoicePromptService {
 
   @override
   Future<void> stop() async {}
+}
+
+class _FailingVoicePromptService extends _RecordingVoicePromptService {
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    throw StateError('H20 route unavailable');
+  }
 }
 
 class _MissingSecondFinishVoicePromptService implements VoicePromptService {

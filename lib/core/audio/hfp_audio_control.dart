@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 
 import 'audio_input.dart';
 
@@ -206,9 +207,16 @@ class MethodChannelHfpAudioControl implements HfpAudioControl {
         'Cần cho phép Thiết bị ở gần/Bluetooth để dùng HFP.',
       );
     }
-    await _methodChannel.invokeMethod<void>('connect', <String, dynamic>{
-      'deviceId': device.id,
-    });
+    final snapshot = await _methodChannel.invokeMapMethod<dynamic, dynamic>(
+      'connect',
+      <String, dynamic>{'deviceId': device.id},
+    );
+    // Native returns the authoritative selected/profile-connected state.
+    // Applying it synchronously avoids reporting BLE-only success while the
+    // EventChannel update is still queued behind the setup dialog.
+    if (snapshot != null) {
+      _setStatus(_statusFromMap(snapshot));
+    }
   }
 
   @override
@@ -242,13 +250,26 @@ class MethodChannelHfpAudioControl implements HfpAudioControl {
         );
         if (_disposed || requestGeneration != _routeRequestGeneration) return;
         if (snapshot != null) {
-          _setStatus(_statusFromMap(snapshot));
+          final nextStatus = _statusFromMap(snapshot);
+          _setStatus(nextStatus);
+          if (snapshot.containsKey('routeActive') &&
+              (!nextStatus.routeActive ||
+                  nextStatus.inputDeviceName == null ||
+                  nextStatus.outputDeviceName == null)) {
+            throw const HfpAudioException(
+              'Android/iOS chưa xác nhận đủ mic và loa H20 trên đường HFP/SCO.',
+            );
+          }
         }
         return;
       } on PlatformException catch (error) {
         if (_disposed || requestGeneration != _routeRequestGeneration) return;
         final canRetry =
-            error.code == 'HFP_ROUTE_UNAVAILABLE' &&
+            (error.code == 'HFP_ROUTE_UNAVAILABLE' ||
+                error.code == 'HFP_ROUTE_FAILED' ||
+                error.code == 'HFP_ROUTE_TIMEOUT' ||
+                (defaultTargetPlatform == TargetPlatform.android &&
+                    error.code == 'HFP_ROUTE_CANCELLED')) &&
             attempt < retryDelays.length;
         if (!canRetry) {
           throw HfpAudioException(_friendlyError(error));

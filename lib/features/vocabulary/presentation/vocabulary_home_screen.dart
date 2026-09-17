@@ -28,6 +28,25 @@ const _starAsset = 'assets/images/vocabulary/golden-star.png';
 const _reviewAsset = 'assets/images/vocabulary/review-book.png';
 const _avatarAsset = 'assets/images/mascot/penguin-avatar.png';
 
+/// Activates the vocabulary state machine immediately, even when Android has
+/// stopped producing UI frames because the display is locked. The visual page
+/// still follows [VocabularyHomeScreen.isActive] when frames resume.
+class VocabularyActivationController extends ChangeNotifier {
+  bool _active = false;
+
+  bool get isActive => _active;
+
+  void activate() => _setActive(true);
+
+  void deactivate() => _setActive(false);
+
+  void _setActive(bool value) {
+    if (_active == value) return;
+    _active = value;
+    notifyListeners();
+  }
+}
+
 class VocabularyHomeScreen extends StatefulWidget {
   const VocabularyHomeScreen({
     required this.isReady,
@@ -46,6 +65,7 @@ class VocabularyHomeScreen extends StatefulWidget {
     this.dictionaryProvider,
     this.vocabularyAudioService,
     this.fixedPromptAudioService,
+    this.activationController,
     this.childAge = 5,
     this.autoStartToday = false,
     this.onRequestVoiceChoice,
@@ -68,6 +88,7 @@ class VocabularyHomeScreen extends StatefulWidget {
   final VocabularyDictionaryProvider? dictionaryProvider;
   final VocabularyContentAudioService? vocabularyAudioService;
   final VocabularyFixedPromptAudioService? fixedPromptAudioService;
+  final VocabularyActivationController? activationController;
   final int childAge;
   final bool autoStartToday;
   final Future<void> Function({
@@ -102,6 +123,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   bool _todayOffered = false;
   bool _playingCollection = false;
   int _playbackGeneration = 0;
+  int _audioCommandGeneration = 0;
   Future<void>? _playbackNavigationCleanup;
   bool _playbackInterrupted = false;
   List<VocabularyEntry> _playbackQueue = const <VocabularyEntry>[];
@@ -115,6 +137,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   String _lastVoiceChoicePrompt = VocabularyFlowV3.menu;
   ActiveLearningModuleRegistry? _activeLearningRegistry;
   Object? _activeLearningRegistration;
+  late bool _wasEffectivelyActive;
+
+  bool get _isEffectivelyActive =>
+      widget.isActive || (widget.activationController?.isActive ?? false);
 
   @override
   void initState() {
@@ -163,6 +189,8 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     }
     _searchController.addListener(_refreshSearch);
     _storeSubscription = widget.store.changes.listen((_) => unawaited(_load()));
+    _wasEffectivelyActive = _isEffectivelyActive;
+    widget.activationController?.addListener(_handleActivationChanged);
     unawaited(_load());
   }
 
@@ -180,18 +208,25 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   @override
   void didUpdateWidget(VocabularyHomeScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.isActive != widget.isActive) {
-      if (!widget.isActive) {
-        _cancelHiddenPlayback();
-      } else {
-        _pausedForMainAssistant = false;
-      }
-      _syncActiveLearningRegistration();
-      if (widget.isActive && widget.autoStartToday) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) unawaited(_maybeStartToday());
-        });
-      }
+    if (oldWidget.activationController != widget.activationController) {
+      oldWidget.activationController?.removeListener(_handleActivationChanged);
+      widget.activationController?.addListener(_handleActivationChanged);
+    }
+    _handleActivationChanged();
+  }
+
+  void _handleActivationChanged() {
+    final active = _isEffectivelyActive;
+    if (_wasEffectivelyActive == active) return;
+    _wasEffectivelyActive = active;
+    if (!active) {
+      _cancelHiddenPlayback();
+    } else {
+      _pausedForMainAssistant = false;
+    }
+    _syncActiveLearningRegistration();
+    if (active && widget.autoStartToday) {
+      unawaited(_maybeStartToday());
     }
   }
 
@@ -212,6 +247,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   @override
   void dispose() {
+    widget.activationController?.removeListener(_handleActivationChanged);
     _unregisterActiveLearningModule();
     _searchController
       ..removeListener(_refreshSearch)
@@ -232,7 +268,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   void _syncActiveLearningRegistration() {
     final registry = _activeLearningRegistry;
-    if (!widget.isActive || registry == null) {
+    if (!_isEffectivelyActive || registry == null) {
       _unregisterActiveLearningModule();
       return;
     }
@@ -293,6 +329,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   @override
   Future<void> pauseForMainAssistant() async {
+    _audioCommandGeneration += 1;
     _pausedForMainAssistant = true;
     _playbackInterrupted = _playingCollection;
     await Future.wait<void>(<Future<void>>[
@@ -307,7 +344,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   Future<ActiveLearningCommandResult> handleMainCommand(
     ActiveLearningCommand command,
   ) async {
-    if (!mounted || !widget.isActive) {
+    if (!mounted || !_isEffectivelyActive) {
       return const ActiveLearningCommandResult.unavailable();
     }
     switch (command) {
@@ -317,9 +354,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       case ActiveLearningCommand.resume:
         _pausedForMainAssistant = false;
         if (_playbackInterrupted) {
-          unawaited(_resumePlayback(announceResume: true));
+          unawaited(
+            _runAudioCommand(() => _resumePlayback(announceResume: true)),
+          );
         } else if (_waitingForPlaybackContinuation) {
-          unawaited(_continuePlayback());
+          unawaited(_runAudioCommand(_continuePlayback));
         }
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.vocabularyParentAdded:
@@ -330,11 +369,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       case ActiveLearningCommand.vocabularyPracticeAgain:
         if (_awaitingPlaybackEndChoice && _selectedJourney != null) {
           _pausedForMainAssistant = false;
-          unawaited(_restartCompletedPlayback());
+          unawaited(_runAudioCommand(_restartCompletedPlayback));
           return const ActiveLearningCommandResult.handled();
         }
         _pausedForMainAssistant = false;
-        unawaited(_startReview());
+        unawaited(_runAudioCommand(_startReview));
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.vocabularyStars:
         _pausedForMainAssistant = false;
@@ -352,25 +391,25 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         }
         _pausedForMainAssistant = false;
         _playbackInterrupted = true;
-        unawaited(_resumePlayback());
+        unawaited(_runAudioCommand(() => _resumePlayback()));
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.exitToHome:
         if (!_waitingForPlaybackContinuation && !_awaitingPlaybackEndChoice) {
           return const ActiveLearningCommandResult.unavailable();
         }
         _pausedForMainAssistant = false;
-        unawaited(_leavePlaybackForOtherContent());
+        unawaited(_runAudioCommand(_leavePlaybackForOtherContent));
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.nextItem:
         _pausedForMainAssistant = false;
         if (_waitingForPlaybackContinuation) {
-          unawaited(_continuePlayback());
+          unawaited(_runAudioCommand(_continuePlayback));
           return const ActiveLearningCommandResult.handled();
         }
         if (_playbackQueue.isEmpty || _awaitingPlaybackEndChoice) {
           return const ActiveLearningCommandResult.unavailable();
         }
-        unawaited(_moveToNextPlaybackItem());
+        unawaited(_runAudioCommand(_moveToNextPlaybackItem));
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.previousItem:
         if (_playbackQueue.isEmpty ||
@@ -379,7 +418,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
           return const ActiveLearningCommandResult.unavailable();
         }
         _pausedForMainAssistant = false;
-        unawaited(_moveToPreviousPlaybackItem());
+        unawaited(_runAudioCommand(_moveToPreviousPlaybackItem));
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.nextLesson:
       case ActiveLearningCommand.previousLesson:
@@ -387,7 +426,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       case ActiveLearningCommand.restart:
         if (_awaitingPlaybackEndChoice && _selectedJourney != null) {
           _pausedForMainAssistant = false;
-          unawaited(_restartCompletedPlayback());
+          unawaited(_runAudioCommand(_restartCompletedPlayback));
           return const ActiveLearningCommandResult.handled();
         }
         return const ActiveLearningCommandResult.unavailable();
@@ -1111,7 +1150,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       _entries = entries;
       _loading = false;
     });
-    if (widget.isActive && widget.autoStartToday && !_todayOffered) {
+    if (_isEffectivelyActive && widget.autoStartToday && !_todayOffered) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) unawaited(_maybeStartToday());
       });
@@ -1244,7 +1283,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   Future<void> _maybeStartToday() async {
     if (!mounted ||
-        !widget.isActive ||
+        !_isEffectivelyActive ||
         _openingPractice ||
         _startingToday ||
         _pausedForMainAssistant) {
@@ -1258,7 +1297,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       final session = await widget.sessionStore.prepareToday(widget.store);
       _todayOffered = true;
       if (session == null) {
-        if (mounted && widget.isActive) {
+        if (mounted && _isEffectivelyActive) {
           await _speakAndRequestChoice(
             firstEntryToday
                 ? VocabularyFlowV3.todayEmptyMenu
@@ -1267,7 +1306,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         }
         return;
       }
-      if (!mounted || !widget.isActive) return;
+      if (!mounted || !_isEffectivelyActive) return;
       await _runPracticeSession(
         session,
         announceInitialIntro: activeBeforeEntry?.id != session.id,
@@ -1391,7 +1430,25 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     }
   }
 
-  Future<void> _playJourney(_VocabularyJourney journey) async {
+  Future<void> _runAudioCommand(Future<void> Function() action) async {
+    final generation = ++_audioCommandGeneration;
+    try {
+      await action();
+    } catch (error) {
+      if (!mounted ||
+          !_isEffectivelyActive ||
+          _pausedForMainAssistant ||
+          generation != _audioCommandGeneration) {
+        return;
+      }
+      _showMessage(_friendlyPlaybackError(error));
+    }
+  }
+
+  Future<void> _playJourney(_VocabularyJourney journey) =>
+      _runAudioCommand(() => _playJourneyWithOutput(journey));
+
+  Future<void> _playJourneyWithOutput(_VocabularyJourney journey) async {
     final generation = _playbackGeneration;
     await _playbackNavigationCleanup;
     if (!mounted || generation != _playbackGeneration) return;
@@ -1800,7 +1857,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     }
     if (!announceMenu ||
         !mounted ||
-        !widget.isActive ||
+        !_isEffectivelyActive ||
         _selectedJourney != null) {
       return;
     }
@@ -1817,7 +1874,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     final generation = _playbackGeneration;
     _lastVoiceChoicePrompt = prompt;
     await _speakOnSelectedOutput(prompt);
-    if (!mounted || !widget.isActive || generation != _playbackGeneration) {
+    if (!mounted ||
+        !_isEffectivelyActive ||
+        generation != _playbackGeneration) {
       return;
     }
     if (_playingCollection) setState(() => _playingCollection = false);
@@ -1831,7 +1890,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     String? noSpeechRetryPrompt,
     String? noSpeechExitPrompt,
   }) async {
-    if (!mounted || !widget.isActive || widget.onRequestVoiceChoice == null) {
+    if (!mounted ||
+        !_isEffectivelyActive ||
+        widget.onRequestVoiceChoice == null) {
       return;
     }
     await widget.onRequestVoiceChoice!.call(
@@ -2058,17 +2119,25 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     bool allowFixedPrompt = true,
   }) async {
     final generation = _playbackGeneration;
-    if (!mounted || !widget.isActive) return;
+    if (!mounted || !_isEffectivelyActive) return;
     if (allowFixedPrompt &&
         locale.toLowerCase().startsWith('vi') &&
         await _fixedPromptAudioService.playPromptIfAvailable(text)) {
       return;
     }
-    if (!mounted || !widget.isActive || generation != _playbackGeneration) {
+    if (!mounted ||
+        !_isEffectivelyActive ||
+        generation != _playbackGeneration) {
       return;
     }
     final promptService = _voicePromptService;
     if (promptService is SelectedMediaOutputVoicePromptService) {
+      await _mediaService.prepareSelectedLessonOutput();
+      if (!mounted ||
+          !_isEffectivelyActive ||
+          generation != _playbackGeneration) {
+        return;
+      }
       await (promptService as SelectedMediaOutputVoicePromptService)
           .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
       return;

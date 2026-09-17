@@ -1,9 +1,33 @@
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service_native.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('Android awaited TTS failure propagates to the capture gate', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    const channel = MethodChannel('test_failed_model');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          throw PlatformException(code: 'HFP_ROUTE_LOST');
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null),
+    );
+    const service = MethodChannelVoicePromptService(channel: channel);
+    await expectLater(
+      service.speakAndWait('Model'),
+      throwsA(isA<PlatformException>()),
+    );
+    await expectLater(
+      service.speakAndWaitOnSelectedMediaOutput('Model'),
+      throwsA(isA<PlatformException>()),
+    );
+  });
 
   test(
     'translation style stays per utterance and leaves prompt defaults intact',

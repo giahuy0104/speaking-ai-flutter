@@ -314,10 +314,15 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       }
       await _speakPromptAndWait(_challenge.prompt);
       if (!mounted || request != _request) return;
-      await _speakPromptAndWait('Bạn nói đáp án bằng tiếng Anh nhé.');
-    } catch (_) {
-      // The written prompt and recording controls stay available when TTS is
-      // temporarily unavailable.
+      await _speakPromptAndWait('Bạn trả lời nhé');
+    } catch (error) {
+      if (mounted && request == _request) {
+        setState(
+          () => _message = 'Chưa phát được câu hỏi. Bạn bấm nghe lại nhé.',
+        );
+      }
+      // A failed H20/TTS turn must not jump straight into capture.
+      return;
     } finally {
       if (mounted && request == _request) {
         setState(() => _playingPrompt = false);

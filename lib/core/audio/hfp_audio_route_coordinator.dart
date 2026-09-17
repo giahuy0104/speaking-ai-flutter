@@ -54,7 +54,7 @@ class HfpAudioRouteCoordinator {
   Future<HfpAudioRouteToken> _acquire(String owner) {
     return _serialize(() async {
       _ensureActive();
-      if (_active.isEmpty) {
+      if (_active.isEmpty || !_delegate.status.routeActive) {
         await _delegate.startAudioRoute();
       }
       final token = HfpAudioRouteToken(
@@ -148,6 +148,8 @@ class ScopedHfpAudioControl
   final String owner;
   HfpAudioRouteToken? _token;
   bool _disposed = false;
+  Future<void> _scopeOperationTail = Future<void>.value();
+  int _requestGeneration = 0;
 
   HfpAudioControl get _delegate => _coordinator._delegate;
 
@@ -173,43 +175,72 @@ class ScopedHfpAudioControl
   Future<void> connect(HfpAudioDevice device) => _delegate.connect(device);
 
   @override
-  Future<void> disconnect() async {
-    _token = null;
-    await _coordinator.disconnect();
-  }
-
-  @override
-  Future<void> startAudioRoute() async {
-    if (_disposed) {
-      throw StateError('Scoped HFP audio control has been disposed.');
-    }
-    final token = _token;
-    if (token != null) {
-      if (await _coordinator._revalidate(token)) {
-        return;
-      }
+  Future<void> disconnect() {
+    _requestGeneration += 1;
+    return _serializeScope(() async {
       _token = null;
-    }
-    _token = await _coordinator._acquire(owner);
+      await _coordinator.disconnect();
+    });
   }
 
   @override
-  Future<void> stopAudioRoute() async {
-    final token = _token;
-    _token = null;
-    if (token != null) {
-      await _coordinator._release(token);
-    }
+  Future<void> startAudioRoute() {
+    final generation = _requestGeneration;
+    return _serializeScope(() async {
+      if (_disposed) {
+        throw StateError('Scoped HFP audio control has been disposed.');
+      }
+      if (generation != _requestGeneration) {
+        throw const HfpAudioException('Lượt âm thanh đã dừng.');
+      }
+      final token = _token;
+      if (token != null) {
+        if (await _coordinator._revalidate(token)) {
+          if (_disposed || generation != _requestGeneration) {
+            throw const HfpAudioException('Lượt âm thanh đã dừng.');
+          }
+          return;
+        }
+        _token = null;
+      }
+      _token = await _coordinator._acquire(owner);
+      if (_disposed || generation != _requestGeneration) {
+        // stop/dispose may arrive before native SCO confirms. The queued stop
+        // releases this token; never let the stale caller start playback/capture.
+        throw const HfpAudioException('Lượt âm thanh đã dừng.');
+      }
+    });
   }
 
   @override
-  Future<void> handoffAudioRoute() async {
+  Future<void> stopAudioRoute() {
+    _requestGeneration += 1;
+    return _serializeScope(() async {
+      final token = _token;
+      _token = null;
+      if (token != null) {
+        await _coordinator._release(token);
+      }
+    });
+  }
+
+  Future<void> _serializeScope(Future<void> Function() action) {
+    final operation = _scopeOperationTail.then((_) => action());
+    _scopeOperationTail = operation.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace _) {},
+    );
+    return operation;
+  }
+
+  @override
+  Future<void> handoffAudioRoute() => _serializeScope(() async {
     final token = _token;
     _token = null;
     if (token != null) {
       await _coordinator._handoff(token);
     }
-  }
+  });
 
   @override
   Future<void> dispose() async {

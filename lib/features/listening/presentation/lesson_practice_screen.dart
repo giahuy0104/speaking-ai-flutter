@@ -548,12 +548,19 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         // The full EN -> VI -> cue sequence can exceed the registry's command
         // timeout. Hand ownership back immediately and let the screen finish
         // its guarded sequence under the lesson lifecycle ticket.
-        unawaited(_resumeCoreAfterMain());
+        unawaited(_runNavigationSequence(_resumeCoreAfterMain));
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.replayCurrent:
         _pausedForMainAssistant = false;
         _guidedSequenceStarted = false;
-        unawaited(_playSample());
+        unawaited(
+          _runNavigationSequence(
+            () => _activateCurrentSentence(
+              autoPlay: true,
+              restoreExistingRecording: false,
+            ),
+          ),
+        );
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.nextItem:
         if (widget.lesson.usesV4Flow &&
@@ -563,16 +570,22 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           );
         }
         _pausedForMainAssistant = false;
-        unawaited(_advanceToNext(autoPlaySentence: true));
+        unawaited(
+          _runNavigationSequence(() => _advanceToNext(autoPlaySentence: true)),
+        );
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.previousItem:
         if (_sentenceIndex == 0) {
           _pausedForMainAssistant = false;
-          unawaited(_previous(autoPlaySentence: true));
+          unawaited(
+            _runNavigationSequence(() => _previous(autoPlaySentence: true)),
+          );
           return const ActiveLearningCommandResult.handled();
         }
         _pausedForMainAssistant = false;
-        unawaited(_previous(autoPlaySentence: true));
+        unawaited(
+          _runNavigationSequence(() => _previous(autoPlaySentence: true)),
+        );
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.nextLesson:
         final nextLesson = _nextLessonInTopic;
@@ -597,7 +610,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.restart:
         _pausedForMainAssistant = false;
-        unawaited(_restartCurrentLesson());
+        unawaited(_runNavigationSequence(_restartCurrentLesson));
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.vocabularyParentAdded:
       case ActiveLearningCommand.vocabularyPracticeAgain:
@@ -640,6 +653,19 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       autoPlay: true,
       restoreExistingRecording: false,
     );
+  }
+
+  Future<void> _runNavigationSequence(Future<void> Function() action) async {
+    final ticket = _lessonSession.mainPauseTicket;
+    try {
+      await action();
+    } catch (error) {
+      if (mounted &&
+          !_pausedForMainAssistant &&
+          _lessonSession.isCurrentMainPause(ticket)) {
+        _setMessage(error.toString());
+      }
+    }
   }
 
   Future<void> _runVirtualLessonCommand(ActiveLearningCommand command) async {
@@ -916,18 +942,20 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     _cancelIdleReminder();
     _hideCoachPopup();
     if (_usesGuideV2) {
-      await _runMediaAction(() async {
-        if (widget.lesson.usesV4Flow && _attemptNumber >= 2) {
-          await _playEnglishSentenceSample();
-        } else {
-          await _playBilingualSentenceSample();
-        }
-        if (_pausedForMainAssistant) {
+      final ticket = _lessonSession.mainPauseTicket;
+      final played = await _runMediaAction(() async {
+        await _playBilingualSentenceSample();
+        if (_pausedForMainAssistant ||
+            !_lessonSession.isCurrentMainPause(ticket)) {
           return;
         }
         await _playPrompt(_repeatTargetPrompt);
       });
-      if (mounted && !_pausedForMainAssistant && _recordingPath == null) {
+      if (played &&
+          mounted &&
+          !_pausedForMainAssistant &&
+          _lessonSession.isCurrentMainPause(ticket) &&
+          _recordingPath == null) {
         await _startRecording();
       }
       return;
@@ -936,10 +964,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     if (uri == null) {
       if (_usesGuideV2) {
         await _runMediaAction(
-          () => _voicePromptService.speakAndWait(
-            _sentence.english,
-            locale: 'en-US',
-          ),
+          () => _speakLessonPrompt(_sentence.english, locale: 'en-US'),
         );
         if (mounted && _recordingPath == null) {
           await _playPrompt(_repeatTargetPrompt);
@@ -1028,9 +1053,9 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
   }
 
-  Future<void> _runMediaAction(Future<void> Function() action) async {
+  Future<bool> _runMediaAction(Future<void> Function() action) async {
     if (_mediaBusy || _recording) {
-      return;
+      return false;
     }
     final pauseGeneration = _lessonSession.mainPauseTicket;
     setState(() {
@@ -1039,8 +1064,14 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     });
     try {
       await action();
+      return mounted &&
+          !_pausedForMainAssistant &&
+          _lessonSession.isCurrentMainPause(pauseGeneration);
     } catch (error) {
-      _setMessage(error.toString());
+      if (_lessonSession.isCurrentMainPause(pauseGeneration)) {
+        _setMessage(error.toString());
+      }
+      return false;
     } finally {
       if (mounted && _lessonSession.isCurrentMainPause(pauseGeneration)) {
         setState(() => _mediaBusy = false);
@@ -1865,7 +1896,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     if (!isNew) return false;
     await _playFirstStarSoundEffect();
     if (!widget.isRelearn && lessonStarsBefore.isEmpty && mounted) {
-      await _voicePromptService.speakAndWait('Bạn vừa nhận Ngôi sao đầu tiên!');
+      await _speakLessonPrompt('Bạn vừa nhận Ngôi sao đầu tiên!');
     }
     return true;
   }
@@ -2104,9 +2135,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           widget.lesson.id,
           ListeningResumeStage.challenge,
         );
-        await _voicePromptService.speakAndWait(
-          'Tiếp theo là một câu thử thách nhé.',
-        );
+        await _speakLessonPrompt('Tiếp theo là một câu thử thách nhé.');
         if (!mounted) return;
         bool? challengeCorrect;
         final completed = await pushForActiveLearning<bool>(
@@ -2206,13 +2235,11 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
 
   Future<void> _announceV4ActivityMilestone() async {
     final topic = widget.topicContent;
-    await _voicePromptService.speakAndWait(
+    await _speakLessonPrompt(
       'Bạn đã hoàn thành Bài ${widget.lesson.number} rồi!',
     );
     if (topic != null && _nextLessonInTopic == null) {
-      await _voicePromptService.speakAndWait(
-        'Bạn đã hoàn thành Chủ đề ${topic.number} rồi!',
-      );
+      await _speakLessonPrompt('Bạn đã hoàn thành Chủ đề ${topic.number} rồi!');
     }
   }
 
@@ -2250,9 +2277,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         final courseMilestoneCreated = await widget.progressStore
             .hasCourseCompletionEventCreated(courseId);
         if (!courseMilestoneCreated) {
-          await _voicePromptService.speakAndWait(
-            'Bạn đã hoàn thành khóa học rồi!',
-          );
+          await _speakLessonPrompt('Bạn đã hoàn thành khóa học rồi!');
           await widget.progressStore.markCourseCompletionEventCreated(courseId);
         }
         await widget.progressStore.markLevelCompletionEventCreated(level.id);
@@ -2272,7 +2297,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         ],
         nextLevel: level.number + 1,
         beforePrompt: () async {
-          await _voicePromptService.speakAndWait(
+          await _speakLessonPrompt(
             'Bạn đã hoàn thành Level ${level.number} rồi!',
           );
           await widget.progressStore.markLevelCompletionEventCreated(level.id);
@@ -2337,7 +2362,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   ) async {
     switch (stage) {
       case ListeningPendingChoiceStage.lessonEnd:
-        await _voicePromptService.speakAndWait(
+        await _speakLessonPrompt(
           'Bạn đã hoàn thành Bài ${widget.lesson.number} rồi!',
         );
         return;
@@ -2345,7 +2370,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       case ListeningPendingChoiceStage.topicEndOneRemaining:
         final topic = widget.topicContent;
         if (topic != null) {
-          await _voicePromptService.speakAndWait(
+          await _speakLessonPrompt(
             'Bạn đã hoàn thành Chủ đề ${topic.number} rồi!',
           );
         }
@@ -2353,7 +2378,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       case ListeningPendingChoiceStage.nextLevel:
         final level = widget.levelContent;
         if (level != null) {
-          await _voicePromptService.speakAndWait(
+          await _speakLessonPrompt(
             'Bạn đã hoàn thành Level ${level.number} rồi!',
           );
           await widget.progressStore.markLevelCompletionEventCreated(level.id);
@@ -2405,7 +2430,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       topicNumber: widget.topicContent?.number,
       nextLevel: nextLevel,
     );
-    await _voicePromptService.speakAndWait(prompt);
+    await _speakLessonPrompt(prompt);
     if (!mounted) return null;
     _v4CompletionChoiceVisible = true;
     _mainCompletionPrompt = prompt;
@@ -2702,7 +2727,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     const message = 'Bài học chưa có Challenge hợp lệ cho từng Core.';
     if (mounted) setState(() => _message = message);
     try {
-      await _voicePromptService.speakAndWait(message);
+      await _speakLessonPrompt(message);
     } catch (_) {
       // The visible error still blocks invalid lesson completion.
     }
@@ -3460,13 +3485,20 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       }
       await _playPrompt(_repeatTargetPrompt);
     } catch (error) {
-      _setMessage(error.toString());
+      if (_lessonSession.isCurrentMainPause(pauseGeneration)) {
+        _guidedSequenceStarted = false;
+        _setMessage(error.toString());
+      }
+      return;
     } finally {
-      if (mounted) {
+      if (mounted && _lessonSession.isCurrentMainPause(pauseGeneration)) {
         setState(() => _mediaBusy = false);
       }
     }
-    if (mounted && !_pausedForMainAssistant && _recordingPath == null) {
+    if (mounted &&
+        !_pausedForMainAssistant &&
+        _lessonSession.isCurrentMainPause(pauseGeneration) &&
+        _recordingPath == null) {
       await _startRecording();
     }
   }
@@ -3496,7 +3528,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         );
       }
     }
-    await widget.mediaService.prepareSelectedLessonOutput();
     await _speakLessonPrompt(prompt.text);
   }
 
@@ -3504,7 +3535,15 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     String text, {
     String locale = 'vi-VN',
   }) async {
-    if (_exiting || !mounted) return;
+    final ticket = _lessonSession.mainPauseTicket;
+    if (_exiting || !mounted || _pausedForMainAssistant) return;
+    await widget.mediaService.prepareSelectedLessonOutput();
+    if (_exiting ||
+        !mounted ||
+        _pausedForMainAssistant ||
+        !_lessonSession.isCurrentMainPause(ticket)) {
+      return;
+    }
     final promptService = _voicePromptService;
     if (!kIsWeb && promptService is SelectedMediaOutputVoicePromptService) {
       await (promptService as SelectedMediaOutputVoicePromptService)
@@ -3515,8 +3554,11 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   }
 
   Future<void> _playBilingualSentenceSample() async {
+    final ticket = _lessonSession.mainPauseTicket;
     await _playEnglishSentenceSample();
-    if (!mounted || _pausedForMainAssistant) {
+    if (!mounted ||
+        _pausedForMainAssistant ||
+        !_lessonSession.isCurrentMainPause(ticket)) {
       return;
     }
     if (!await _waitForLessonDelay(
@@ -3524,13 +3566,20 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     )) {
       return;
     }
-    if (!mounted || _pausedForMainAssistant) {
+    if (!mounted ||
+        _pausedForMainAssistant ||
+        !_lessonSession.isCurrentMainPause(ticket)) {
       return;
     }
     final vietnameseUri = await _resolveAuthoredAudio(
       _sentence.vietnameseAudioUri,
       _sentence.vietnameseAudioId,
     );
+    if (!mounted ||
+        _pausedForMainAssistant ||
+        !_lessonSession.isCurrentMainPause(ticket)) {
+      return;
+    }
     if (vietnameseUri != null) {
       try {
         await widget.mediaService.playToCompletion(
@@ -3545,7 +3594,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         );
       }
     }
-    await widget.mediaService.prepareSelectedLessonOutput();
+    if (!_lessonSession.isCurrentMainPause(ticket)) return;
     await _speakLessonPrompt(_sentence.vietnamese, locale: 'vi-VN');
   }
 
@@ -3678,10 +3727,16 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), ' ').trim();
 
   Future<void> _playEnglishSentenceSample() async {
+    final ticket = _lessonSession.mainPauseTicket;
     final englishUri = await _resolveAuthoredAudio(
       _sentence.audioUri,
       _sentence.englishAudioId,
     );
+    if (!mounted ||
+        _pausedForMainAssistant ||
+        !_lessonSession.isCurrentMainPause(ticket)) {
+      return;
+    }
     if (englishUri != null) {
       try {
         await widget.mediaService.playToCompletion(
@@ -3695,7 +3750,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         );
       }
     }
-    await widget.mediaService.prepareSelectedLessonOutput();
+    if (!_lessonSession.isCurrentMainPause(ticket)) return;
     await _speakLessonPrompt(_sentence.english, locale: 'en-US');
   }
 

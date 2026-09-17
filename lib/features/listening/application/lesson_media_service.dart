@@ -40,7 +40,32 @@ class LessonMediaService {
        _hfpAudioControl = hfpAudioControl,
        _audioTurnCoordinator = audioTurnCoordinator,
        _audioTurnOwner = audioTurnOwner,
-       historyStore = historyStore ?? const LessonRecordingHistoryStore();
+       historyStore = historyStore ?? const LessonRecordingHistoryStore() {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      _hfpStatusSubscription = _hfpAudioControl?.statusChanges.listen((status) {
+        if (_activeHfpRouteToken == null ||
+            status.routeActive ||
+            status.phase == BluetoothAudioConnectionPhase.connecting ||
+            status.phase == BluetoothAudioConnectionPhase.discovering) {
+          return;
+        }
+        _playbackRequestGeneration += 1;
+        final completion = _activePlaybackCompletion;
+        if (completion != null && !completion.isCompleted) {
+          completion.completeError(
+            const HfpAudioException(
+              'Kết nối âm thanh H20 bị gián đoạn. Bạn bấm nghe lại nhé.',
+            ),
+          );
+        }
+        // Stop the current clip before Android can continue it on the phone.
+        unawaited(_playbackService?.stop().catchError((Object _) {}));
+        if (_recordingStartedAt != null) {
+          unawaited(cancelRecording().catchError((Object _) {}));
+        }
+      });
+    }
+  }
 
   final LessonRecordingHistoryStore historyStore;
 
@@ -55,6 +80,8 @@ class LessonMediaService {
   Completer<void>? _activePlaybackCompletion;
   Future<void> _recordingOperation = Future<void>.value();
   Object? _activeHfpRouteToken;
+  StreamSubscription<BluetoothAudioStatus>? _hfpStatusSubscription;
+  int _playbackRequestGeneration = 0;
 
   AudioRecorder get _activeRecorder => _recorder ??= AudioRecorder();
 
@@ -113,11 +140,20 @@ class LessonMediaService {
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = androidSpeechBoostDb,
   }) async {
+    final generation = ++_playbackRequestGeneration;
     await _preparePlaybackRoute(route);
+    _requireCurrentPlayback(generation);
     // Route/session preparation can rebuild Android's playback chain. Apply
     // gain afterwards so every clip starts with the requested level.
     await _setPlaybackGain(playbackGainDb);
+    _requireCurrentPlayback(generation);
     await _activePlayback.play(uri);
+  }
+
+  void _requireCurrentPlayback(int generation) {
+    if (generation != _playbackRequestGeneration) {
+      throw const LessonMediaException('Lượt phát âm thanh đã dừng.');
+    }
   }
 
   Future<void> _setPlaybackGain(double gainDb) async {
@@ -174,12 +210,19 @@ class LessonMediaService {
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = androidSpeechBoostDb,
   }) async {
+    final generation = ++_playbackRequestGeneration;
     final playback = _activePlayback;
     await _preparePlaybackRoute(route);
+    _requireCurrentPlayback(generation);
     // Keep authored clips, prompts, and child replays deterministic even after
     // Android switches between media and HFP communication attributes.
     await _setPlaybackGain(playbackGainDb);
+    _requireCurrentPlayback(generation);
     final completed = Completer<void>();
+    // A native route-loss event can arrive while play() is still starting.
+    // Observe errors immediately; the awaited future below still propagates
+    // them to the guided sequence instead of reporting successful playback.
+    completed.future.ignore();
     final previousCompletion = _activePlaybackCompletion;
     if (previousCompletion != null && !previousCompletion.isCompleted) {
       previousCompletion.complete();
@@ -239,6 +282,7 @@ class LessonMediaService {
   }
 
   Future<void> stopPlayback() async {
+    _playbackRequestGeneration += 1;
     await _stopPlayback(releaseAudioRoute: true);
   }
 
@@ -246,8 +290,10 @@ class LessonMediaService {
   Future<void> preparePhoneSpeakerOutput() =>
       _preparePlaybackRoute(LessonPlaybackRoute.phoneSpeaker);
 
-  /// Prepares the selected H20 output before native TTS supplies a lesson
-  /// sample whose generated Cloudinary clip is not available yet.
+  /// Prepares and verifies the selected H20 output before native TTS supplies
+  /// lesson guidance. When H20 is selected this is deliberately fail-closed:
+  /// a route negotiation error must stay visible to the caller instead of
+  /// silently moving child-facing speech to the phone speaker.
   Future<void> prepareSelectedLessonOutput() =>
       _preparePlaybackRoute(LessonPlaybackRoute.selectedLessonDevice);
 
@@ -411,7 +457,9 @@ class LessonMediaService {
     // input. This order prevents just_audio's playback preparation from
     // replacing the route selected by the native H20 bridge.
     await playback.prepare();
-    await _activateSelectedHfpRoute();
+    await _activateSelectedHfpRoute(
+      force: !kIsWeb && defaultTargetPlatform == TargetPlatform.android,
+    );
   }
 
   Future<void> _activateSelectedHfpRoute({bool force = false}) async {
@@ -437,7 +485,10 @@ class LessonMediaService {
   }
 
   Future<void> _releaseHfpRoute() async {
-    if (_activeHfpRouteToken == null) {
+    // A start may still be awaiting native confirmation and have no token yet.
+    // Scoped controls serialize stop behind it and invalidate that late start.
+    if (_activeHfpRouteToken == null &&
+        _hfpAudioControl is! HfpAudioRouteLeaseControl) {
       return;
     }
     _activeHfpRouteToken = null;
@@ -605,6 +656,8 @@ class LessonMediaService {
   }
 
   Future<void> dispose() async {
+    _playbackRequestGeneration += 1;
+    await _hfpStatusSubscription?.cancel();
     await _recordingOperation;
     await _releaseHfpRoute();
     await _recorder?.dispose();

@@ -89,6 +89,7 @@ object HomiAndroidRuntime {
         private val clientIdentityStore = AndroidClientIdentityStore(host.applicationContext)
 
         init {
+            hfpAudioBridge.onUnexpectedRouteLoss = voicePromptBridge::stopForRouteLoss
             registerPlatformChannels()
         }
 

@@ -23,6 +23,89 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  for (final command in <ActiveLearningCommand>[
+    ActiveLearningCommand.replayCurrent,
+    ActiveLearningCommand.previousItem,
+    ActiveLearningCommand.nextItem,
+  ]) {
+    testWidgets('V4 $command waits for EN and VI to finish before capture', (
+      tester,
+    ) async {
+      await _usePhoneSurface(tester);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final media = _GuidedMediaService(recordedSentenceNumbers: {1, 2, 3});
+      final prompts = _GatedModelVoicePromptService();
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _subject(
+            _lesson(v4: true, sentenceCount: 3),
+            media,
+            progressStore: _MemoryProgressStore()..currentSentence = 1,
+            guideAudioLibrary: _silentGuideAudioLibrary(),
+            voicePromptService: prompts,
+          ),
+        ),
+      );
+      await _pumpGuidedSpeechTurn(tester);
+      await registry.pauseForMainAssistant();
+      final previousStarts = media.startedSentenceIds.length;
+      prompts.spoken.clear();
+      prompts.englishGate = Completer<void>();
+      prompts.vietnameseGate = Completer<void>();
+      await registry.execute(command);
+      await _pumpGuidedSpeechTurn(tester);
+      final number = command == ActiveLearningCommand.nextItem
+          ? 3
+          : command == ActiveLearningCommand.previousItem
+          ? 1
+          : 2;
+      expect(prompts.spoken, ['en-US|Sentence $number']);
+      expect(media.startedSentenceIds.length, previousStarts);
+      prompts.englishGate!.complete();
+      await tester.pump();
+      await tester.pump(LessonGuideFlowV2.englishToVietnamesePause);
+      expect(prompts.spoken, ['en-US|Sentence $number', 'vi-VN|Câu $number']);
+      expect(media.startedSentenceIds.length, previousStarts);
+      prompts.vietnameseGate!.complete();
+      await tester.pump();
+      await tester.pump();
+      expect(media.startedSentenceIds.length, previousStarts + 1);
+      expect(media.startedSentenceIds.last, 'GUIDED-FLOW_S$number');
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    });
+  }
+
+  testWidgets('failed model never opens mic and replay can recover', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final media = _GuidedMediaService();
+    final prompts = _GatedModelVoicePromptService()..failModel = true;
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: _subject(
+          _lesson(v4: true),
+          media,
+          guideAudioLibrary: _silentGuideAudioLibrary(),
+          voicePromptService: prompts,
+        ),
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+    expect(media.startedSentenceIds, isEmpty);
+    expect(tester.takeException(), isNull);
+    prompts.failModel = false;
+    await registry.interruptAndExecute(ActiveLearningCommand.replayCurrent);
+    await _pumpGuidedSpeechTurn(tester);
+    expect(media.startedSentenceIds, hasLength(1));
+  });
+
   testWidgets(
     'virtual lesson buttons interrupt the current recording and change sentence',
     (tester) async {
@@ -2258,6 +2341,20 @@ class _FakeVoicePromptService implements VoicePromptService {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _GatedModelVoicePromptService extends _FakeVoicePromptService {
+  Completer<void>? englishGate;
+  Completer<void>? vietnameseGate;
+  bool failModel = false;
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    await super.speakAndWait(text, locale: locale);
+    if (failModel) throw StateError('Model audio unavailable');
+    if (locale == 'en-US') await englishGate?.future;
+    if (text.startsWith('Câu ')) await vietnameseGate?.future;
+  }
 }
 
 class _ReadyCueVoicePromptService extends _FakeVoicePromptService

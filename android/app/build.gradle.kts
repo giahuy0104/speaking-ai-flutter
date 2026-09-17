@@ -77,6 +77,7 @@ flutter {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
     implementation("androidx.work:work-runtime:2.11.1")
     // Vosk uses JNA to enter libvosk. Select the Android AAR explicitly;
     // resolving the default JAR can leave native initialization blocked on

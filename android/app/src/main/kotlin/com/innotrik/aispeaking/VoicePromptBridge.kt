@@ -70,6 +70,10 @@ class VoicePromptBridge(
         }
         textToSpeech?.apply {
             setSpeechRate(0.92f)
+            // Keep the direct TextToSpeech fallback on the same communication
+            // stream as synthesized-file playback. Otherwise an OEM TTS engine
+            // that rejects file synthesis can jump from H20 to the phone.
+            setAudioAttributes(voicePromptAudioAttributes())
             setOnUtteranceProgressListener(
                 object : UtteranceProgressListener() {
                     override fun onStart(utteranceId: String?) = Unit
@@ -93,8 +97,14 @@ class VoicePromptBridge(
             )
         }
         pendingPrompt?.let {
-            speak(it.text, it.locale, it.gainDb, completion = it.completion,
-                speechRate = it.speechRate, pitch = it.pitch)
+            speak(
+                it.text,
+                it.locale,
+                it.gainDb,
+                completion = it.completion,
+                speechRate = it.speechRate,
+                pitch = it.pitch,
+            )
         }
         pendingPrompt = null
     }
@@ -212,6 +222,12 @@ class VoicePromptBridge(
     private fun requestedGainDb(call: MethodCall): Double =
         (call.argument<Number>("gainDb")?.toDouble() ?: 8.0).coerceIn(0.0, 12.0)
 
+    private fun voicePromptAudioAttributes(): AudioAttributes =
+        AudioAttributes.Builder()
+            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+            .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+            .build()
+
     private fun handleTtsDone(utteranceId: String?) {
         mainHandler.post {
             if (utteranceId != null && utteranceId == synthesizedPromptId) {
@@ -265,10 +281,7 @@ class VoicePromptBridge(
         promptPlayer = player
         try {
             player.setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-                    .build(),
+                voicePromptAudioAttributes(),
             )
             player.setDataSource(audioFile.absolutePath)
             player.setVolume(1.0f, 1.0f)
@@ -437,6 +450,21 @@ class VoicePromptBridge(
         val completion = readyCueResult
         readyCueResult = null
         completion?.success(null)
+    }
+
+    fun stopForRouteLoss() {
+        // Runs on the bridge's main thread before SCO is released. Complete
+        // with an error so callers cannot interpret a cut-off prompt as heard.
+        pendingPrompt?.completion?.error("HFP_ROUTE_LOST", "Kết nối âm thanh H20 bị gián đoạn. Hãy thử lại.", null)
+        pendingPrompt = null
+        val completion = awaitedResult
+        awaitedResult = null
+        awaitedUtteranceId = null
+        completion?.error("HFP_ROUTE_LOST", "Kết nối âm thanh H20 bị gián đoạn. Hãy thử lại.", null)
+        completeReadyCue()
+        textToSpeech?.stop()
+        clearSynthesizedPrompt()
+        releasePromptPlayback()
     }
 
     fun stopForBackgroundSession() {

@@ -16,7 +16,9 @@ import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.provider.Settings
+import android.util.Log
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
@@ -38,7 +40,10 @@ class HfpAudioBridge(
         private const val CONTROL_CHANNEL = "ailingo_hfp_audio"
         private const val EVENT_CHANNEL = "ailingo_hfp_audio/events"
         private const val PERMISSION_REQUEST_CODE = 7393
-        private const val AUDIO_ROUTE_SETTLE_MS = 300L
+        private const val AUDIO_ROUTE_SETTLE_MS = 150L
+        private const val AUDIO_ROUTE_CONFIRM_INTERVAL_MS = 100L
+        private const val AUDIO_ROUTE_CONFIRM_ATTEMPTS = 25
+        private const val TAG = "HfpAudioBridge"
 
         private val HFP_UUIDS =
             setOf(
@@ -64,17 +69,24 @@ class HfpAudioBridge(
     private var selectedDevice: BluetoothDevice? = null
     private var pendingPermissionResult: MethodChannel.Result? = null
     private var pendingAudioRouteResult: MethodChannel.Result? = null
+    private var pendingAudioRouteGeneration: Int? = null
+    private var audioRouteRequestGeneration = 0
     private var phase = "idle"
     private var statusMessage: String? = null
     private var routeActive = false
     private var previousAudioMode = AudioManager.MODE_NORMAL
     private var audioModeOwned = false
     private var disposed = false
+    private var routeReadiness: HfpRouteReadiness? = null
+    var onUnexpectedRouteLoss: () -> Unit = {}
+    private var communicationDeviceListener: AudioManager.OnCommunicationDeviceChangedListener? = null
 
     private val audioRouteTimeout =
         Runnable {
             val pending = pendingAudioRouteResult ?: return@Runnable
             pendingAudioRouteResult = null
+            pendingAudioRouteGeneration = null
+            audioRouteRequestGeneration += 1
             pending.error(
                 "HFP_ROUTE_TIMEOUT",
                 "Android không mở được đường mic HFP/SCO trong thời gian cho phép.",
@@ -95,24 +107,60 @@ class HfpAudioBridge(
             ) {
                 when (intent?.action) {
                     BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED -> {
+                        if (!isSelectedDeviceEvent(intent)) {
+                            Log.d(TAG, "Ignoring HFP audio event from a non-selected device")
+                            return
+                        }
                         when (
                             intent.getIntExtra(
                                 BluetoothProfile.EXTRA_STATE,
                                 BluetoothHeadset.STATE_AUDIO_DISCONNECTED,
                             )
                         ) {
-                            BluetoothHeadset.STATE_AUDIO_CONNECTED ->
-                                completePendingAudioRoute()
+                            BluetoothHeadset.STATE_AUDIO_CONNECTED -> {
+                                // API 31+ has one polling chain per request. A
+                                // broadcast must not create a second completion.
+                                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                                    completePendingAudioRoute()
+                                }
+                            }
                             BluetoothHeadset.STATE_AUDIO_DISCONNECTED -> {
-                                if (routeActive) {
+                                if (pendingAudioRouteResult != null) {
                                     routeActive = false
+                                    // A delayed disconnect from the previous SCO
+                                    // turn can arrive after setCommunicationDevice.
+                                    // Let the current request confirm or time out.
+                                    Log.i(TAG, "Ignoring SCO disconnect during route negotiation")
+                                } else if (routeActive || audioModeOwned) {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                                        isSelectedCommunicationRouteConfirmed()
+                                    ) return
+                                    onUnexpectedRouteLoss()
+                                    stopAudioRouteInternal()
+                                } else {
                                     refreshSelectedDeviceStatus()
                                 }
                             }
                         }
                     }
-                    BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED ->
-                        refreshSelectedDeviceStatus()
+                    BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED -> {
+                        if (!isSelectedDeviceEvent(intent)) {
+                            Log.d(TAG, "Ignoring HFP connection event from a non-selected device")
+                            return
+                        }
+                        val selected = selectedDevice
+                        if (
+                            selected != null &&
+                            !isHeadsetConnected(selected) &&
+                            pendingAudioRouteResult == null &&
+                            (routeActive || audioModeOwned)
+                        ) {
+                            onUnexpectedRouteLoss()
+                            stopAudioRouteInternal()
+                        } else {
+                            refreshSelectedDeviceStatus()
+                        }
+                    }
                 }
             }
         }
@@ -131,7 +179,8 @@ class HfpAudioBridge(
             override fun onServiceDisconnected(profile: Int) {
                 if (profile != BluetoothProfile.HEADSET) return
                 headset = null
-                if (routeActive) {
+                if (routeActive || audioModeOwned) {
+                    onUnexpectedRouteLoss()
                     stopAudioRouteInternal()
                 }
                 phase = "idle"
@@ -143,6 +192,21 @@ class HfpAudioBridge(
     init {
         methodChannel.setMethodCallHandler(this)
         eventChannel.setStreamHandler(this)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val listener = AudioManager.OnCommunicationDeviceChangedListener {
+                // Re-read the current device: this callback too can be queued
+                // behind a newer route request.
+                if (!disposed && pendingAudioRouteResult == null && routeActive &&
+                    !isSelectedCommunicationRouteConfirmed()
+                ) {
+                    Log.w(TAG, "Selected H20 communication route was lost")
+                    onUnexpectedRouteLoss()
+                    stopAudioRouteInternal()
+                }
+            }
+            communicationDeviceListener = listener
+            audioManager.addOnCommunicationDeviceChangedListener(appContext.mainExecutor, listener)
+        }
         adapter?.let { bluetoothAdapter ->
             runCatching {
                 bluetoothAdapter.getProfileProxy(
@@ -278,7 +342,11 @@ class HfpAudioBridge(
                         mapOf(
                             "id" to device.address,
                             "name" to safeName(device),
-                            "isConnected" to connectedAddresses.contains(device.address),
+                            // The HEADSET profile proxy can arrive a little
+                            // after Flutter startup. Android 12+ already exposes
+                            // the live SCO communication device during that
+                            // window, so use the same complete check as connect().
+                            "isConnected" to isHeadsetConnected(device),
                         )
                     }
             refreshSelectedDeviceStatus()
@@ -323,6 +391,7 @@ class HfpAudioBridge(
             }
             phase = "ready"
             statusMessage = "HFP đã kết nối; mic Bluetooth sẵn sàng."
+            Log.i(TAG, "H20 HFP profile selected and connected")
             emitStatus()
             result.success(snapshot())
         } catch (error: SecurityException) {
@@ -359,6 +428,18 @@ class HfpAudioBridge(
             return
         }
 
+        if (routeActive && isSelectedCommunicationRouteConfirmed()) {
+            phase = "recording"
+            statusMessage = "Đang dùng mic và loa H20 trên đường HFP/SCO hai chiều."
+            emitStatus()
+            result.success(snapshot())
+            return
+        }
+
+        val generation = ++audioRouteRequestGeneration
+        routeReadiness = HfpRouteReadiness(SystemClock.elapsedRealtime())
+        Log.i(TAG, "Starting HFP route generation=$generation")
+
         // Keep the mode that existed before this bridge first took ownership.
         // SCO can disconnect independently and flip routeActive to false while
         // MODE_IN_COMMUNICATION remains set. Overwriting previousAudioMode on
@@ -370,36 +451,19 @@ class HfpAudioBridge(
         }
         audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                val selectedAddress = safeAddress(device)
-                val communicationDevice =
-                    audioManager.availableCommunicationDevices.firstOrNull {
-                        it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO &&
-                            addressesMatch(it.address, selectedAddress)
-                    } ?: audioManager.availableCommunicationDevices.firstOrNull {
-                        it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
-                    }
-                val routed = communicationDevice != null &&
-                    audioManager.setCommunicationDevice(communicationDevice)
-                if (!routed) {
-                    audioManager.mode = previousAudioMode
-                    audioModeOwned = false
-                    fail(
-                        result,
-                        "HFP_ROUTE_FAILED",
-                        "Android chưa mở được đường mic HFP/SCO. Hãy ngắt và kết nối lại tai nghe.",
-                    )
-                    return
-                }
-                routeActive = true
-                phase = "recording"
-                statusMessage = "Đang dùng mic HFP/SCO để nhận diện."
+                pendingAudioRouteResult = result
+                pendingAudioRouteGeneration = generation
+                routeActive = false
+                phase = "connecting"
+                statusMessage = "Đang xác nhận mic và loa H20 trên đường HFP/SCO…"
                 emitStatus()
-                mainHandler.postDelayed(
-                    { result.success(null) },
-                    AUDIO_ROUTE_SETTLE_MS,
+                requestSelectedCommunicationDevice(
+                    generation = generation,
+                    attemptsRemaining = AUDIO_ROUTE_CONFIRM_ATTEMPTS,
                 )
             } else {
                 pendingAudioRouteResult = result
+                pendingAudioRouteGeneration = generation
                 phase = "discovering"
                 statusMessage = "Đang mở đường mic HFP/SCO…"
                 emitStatus()
@@ -411,23 +475,164 @@ class HfpAudioBridge(
             }
     }
 
+    private fun requestSelectedCommunicationDevice(
+        generation: Int,
+        attemptsRemaining: Int,
+    ) {
+        if (
+            pendingAudioRouteResult == null ||
+            pendingAudioRouteGeneration != generation ||
+            audioRouteRequestGeneration != generation ||
+            disposed
+        ) {
+            return
+        }
+        val selected = selectedDevice
+        val communicationDevice = selected?.let(::selectedCommunicationDevice)
+        if (communicationDevice != null) {
+            if (
+                audioManager.communicationDevice?.id == communicationDevice.id ||
+                audioManager.setCommunicationDevice(communicationDevice)
+            ) {
+                waitForSelectedCommunicationDevice(
+                    generation = generation,
+                    attemptsRemaining = AUDIO_ROUTE_CONFIRM_ATTEMPTS,
+                )
+                return
+            }
+        }
+        if (attemptsRemaining <= 0) {
+            failPendingAudioRoute(
+                generation = generation,
+                code = "HFP_ROUTE_FAILED",
+                message =
+                    "Android chưa tìm thấy đúng đường mic và loa H20. Hãy kết nối lại thiết bị rồi thử lại.",
+            )
+            return
+        }
+        mainHandler.postDelayed(
+            {
+                requestSelectedCommunicationDevice(
+                    generation = generation,
+                    attemptsRemaining = attemptsRemaining - 1,
+                )
+            },
+            AUDIO_ROUTE_CONFIRM_INTERVAL_MS,
+        )
+    }
+
     private fun completePendingAudioRoute() {
         val pending = pendingAudioRouteResult ?: return
-        pendingAudioRouteResult = null
-        mainHandler.removeCallbacks(audioRouteTimeout)
+        val generation = pendingAudioRouteGeneration ?: audioRouteRequestGeneration
+        if (generation != audioRouteRequestGeneration) return
         routeActive = true
         phase = "recording"
-        statusMessage = "Đang dùng mic HFP/SCO để nhận diện."
+        statusMessage = "Đang dùng mic và loa H20 trên đường HFP/SCO hai chiều."
+        Log.i(TAG, "H20 HFP/SCO route active")
         emitStatus()
         mainHandler.postDelayed(
-            { pending.success(null) },
+            {
+                if (
+                    pendingAudioRouteResult === pending &&
+                    pendingAudioRouteGeneration == generation &&
+                    audioRouteRequestGeneration == generation &&
+                    routeActive
+                ) {
+                    pendingAudioRouteResult = null
+                    pendingAudioRouteGeneration = null
+                    mainHandler.removeCallbacks(audioRouteTimeout)
+                    pending.success(snapshot())
+                }
+            },
             AUDIO_ROUTE_SETTLE_MS,
         )
     }
 
-    private fun stopAudioRouteInternal() {
+    private fun waitForSelectedCommunicationDevice(
+        generation: Int,
+        attemptsRemaining: Int,
+    ) {
+        val pending = pendingAudioRouteResult ?: return
+        if (
+            disposed ||
+            pendingAudioRouteGeneration != generation ||
+            audioRouteRequestGeneration != generation
+        ) {
+            return
+        }
+        val activeDevice = confirmedSelectedCommunicationDevice()
+        val readiness = routeReadiness ?: return
+        when (readiness.poll(SystemClock.elapsedRealtime(), activeDevice != null)) {
+        HfpRouteReadiness.Result.READY -> {
+            routeActive = true
+            phase = "recording"
+            statusMessage = "Đang dùng mic và loa H20 trên đường HFP/SCO hai chiều."
+            Log.i(
+                TAG,
+                "H20 HFP/SCO route confirmed: id=${activeDevice?.id}, " +
+                    "name=${activeDevice?.productName}, generation=$generation",
+            )
+            emitStatus()
+            pendingAudioRouteResult = null
+            pendingAudioRouteGeneration = null
+            routeReadiness = null
+            pending.success(snapshot())
+            return
+        }
+        HfpRouteReadiness.Result.TIMED_OUT -> {
+            failPendingAudioRoute(
+                generation = generation,
+                code = "HFP_ROUTE_TIMEOUT",
+                message =
+                    "Android chưa xác nhận được cả mic và loa H20 trên đường HFP/SCO.",
+            )
+            return
+        }
+        HfpRouteReadiness.Result.WAITING -> Unit
+        }
+        mainHandler.postDelayed(
+            {
+                waitForSelectedCommunicationDevice(
+                    generation = generation,
+                    attemptsRemaining = attemptsRemaining - 1,
+                )
+            },
+            AUDIO_ROUTE_CONFIRM_INTERVAL_MS,
+        )
+    }
+
+    private fun failPendingAudioRoute(
+        generation: Int,
+        code: String,
+        message: String,
+    ) {
+        val pending = pendingAudioRouteResult ?: return
+        if (
+            pendingAudioRouteGeneration != generation ||
+            audioRouteRequestGeneration != generation
+        ) {
+            return
+        }
+        pendingAudioRouteResult = null
+        pendingAudioRouteGeneration = null
+        audioRouteRequestGeneration += 1
+        pending.error(code, message, null)
+        stopAudioRouteInternal(invalidateRequest = false)
+        phase = "error"
+        statusMessage = message
+        emitStatus()
+    }
+
+    private fun stopAudioRouteInternal(invalidateRequest: Boolean = true) {
+        Log.i(TAG, "Stopping HFP route generation=$audioRouteRequestGeneration pending=${pendingAudioRouteResult != null}")
+        routeReadiness = null
+        routeActive = false
+        if (invalidateRequest) {
+            audioRouteRequestGeneration += 1
+        }
         pendingAudioRouteResult?.let { pending ->
             pendingAudioRouteResult = null
+            pendingAudioRouteGeneration = null
             mainHandler.removeCallbacks(audioRouteTimeout)
             pending.error(
                 "HFP_ROUTE_CANCELLED",
@@ -459,10 +664,21 @@ class HfpAudioBridge(
     }
 
     private fun refreshSelectedDeviceStatus() {
+        if (pendingAudioRouteResult != null) {
+            phase = "connecting"
+            statusMessage = "Đang xác nhận mic và loa H20 trên đường HFP/SCO…"
+            emitStatus()
+            return
+        }
         val selected = selectedDevice
-        if (routeActive && selected != null && isHeadsetConnected(selected)) {
+        if (
+            routeActive &&
+            selected != null &&
+            isHeadsetConnected(selected) &&
+            isSelectedCommunicationRouteConfirmed()
+        ) {
             phase = "recording"
-            statusMessage = "Đang dùng mic HFP/SCO để nhận diện."
+            statusMessage = "Đang dùng mic và loa H20 trên đường HFP/SCO hai chiều."
         } else if (selected != null && isHeadsetConnected(selected)) {
             phase = "ready"
             statusMessage = "HFP đã kết nối; mic Bluetooth sẵn sàng."
@@ -546,6 +762,85 @@ class HfpAudioBridge(
             !second.isNullOrBlank() &&
             first.equals(second, ignoreCase = true)
 
+    private fun isSelectedDeviceEvent(intent: Intent): Boolean {
+        val selected = selectedDevice ?: return false
+        val eventDevice = bluetoothDeviceExtra(intent)
+        if (eventDevice != null) {
+            val selectedAddress = safeAddress(selected)
+            val eventAddress = safeAddress(eventDevice)
+            if (addressesMatch(selectedAddress, eventAddress)) return true
+            return normalizedDeviceName(safeName(selected)) ==
+                normalizedDeviceName(safeName(eventDevice))
+        }
+        val connected = connectedHeadsets()
+        return connected.size == 1 &&
+            addressesMatch(safeAddress(connected.single()), safeAddress(selected))
+    }
+
+    private fun bluetoothDeviceExtra(intent: Intent): BluetoothDevice? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+        }
+
+    private fun normalizedDeviceName(value: String?): String =
+        value
+            ?.lowercase()
+            ?.replace(Regex("[^\\p{L}\\p{N}]+"), "")
+            .orEmpty()
+
+    private fun selectedCommunicationDevice(
+        selected: BluetoothDevice,
+    ): AudioDeviceInfo? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
+        val scoDevices = audioManager.availableCommunicationDevices.filter {
+            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+        }
+        val selectedAddress = safeAddress(selected)
+        scoDevices.firstOrNull {
+            addressesMatch(it.address, selectedAddress)
+        }?.let { return it }
+
+        val selectedName = normalizedDeviceName(safeName(selected))
+        val nameMatches = scoDevices.filter {
+            selectedName.isNotEmpty() &&
+                normalizedDeviceName(it.productName?.toString()) == selectedName
+        }
+        if (nameMatches.size == 1) return nameMatches.single()
+
+        // Some OEMs redact AudioDeviceInfo.address. A single SCO endpoint is
+        // still deterministic only when the selected H20 is also the sole
+        // connected HEADSET profile device.
+        val connected = connectedHeadsets()
+        if (
+            scoDevices.size == 1 &&
+            connected.size == 1 &&
+            addressesMatch(safeAddress(connected.single()), selectedAddress)
+        ) {
+            return scoDevices.single()
+        }
+        return null
+    }
+
+    private fun confirmedSelectedCommunicationDevice(): AudioDeviceInfo? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
+        val selected = selectedDevice ?: return null
+        val expected = selectedCommunicationDevice(selected) ?: return null
+        val active = audioManager.communicationDevice ?: return null
+        return active.takeIf {
+            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO && it.id == expected.id
+        }
+    }
+
+    private fun isSelectedCommunicationRouteConfirmed(): Boolean =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            confirmedSelectedCommunicationDevice() != null
+        } else {
+            routeActive
+        }
+
     private fun hasBluetoothFeature(): Boolean =
         appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)
 
@@ -588,38 +883,49 @@ class HfpAudioBridge(
         result.error(code, message, null)
     }
 
-    private fun snapshot(): Map<String, Any?> =
-        mapOf(
+    private fun snapshot(): Map<String, Any?> {
+        val confirmedRoute = routeActive && isSelectedCommunicationRouteConfirmed()
+        return mapOf(
             "type" to "status",
             "phase" to phase,
             "deviceId" to selectedDevice?.let(::safeAddress),
             "deviceName" to selectedDevice?.let(::safeName),
             "message" to statusMessage,
             "sampleRate" to 16000,
-            "routeActive" to routeActive,
+            "routeActive" to confirmedRoute,
             "inputDeviceName" to activeScoDeviceName(AudioManager.GET_DEVICES_INPUTS),
             "outputDeviceName" to activeScoDeviceName(AudioManager.GET_DEVICES_OUTPUTS),
-            "audioRoute" to if (routeActive) "HFP/SCO two-way" else "system/default",
+            "audioRoute" to if (confirmedRoute) "HFP/SCO two-way" else "system/default",
         )
+    }
 
     private fun activeScoDeviceName(direction: Int): String? {
-        if (!routeActive) return null
+        if (!routeActive || !isSelectedCommunicationRouteConfirmed()) return null
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val communicationDevice = audioManager.communicationDevice
-            if (communicationDevice?.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO) {
-                return communicationDevice.productName?.toString()
-                    ?.trim()
-                    ?.takeUnless { it.isEmpty() }
-                    ?: selectedDevice?.let(::safeName)
-            }
+            val communicationDevice = confirmedSelectedCommunicationDevice() ?: return null
+            return communicationDevice.productName?.toString()
+                ?.trim()
+                ?.takeUnless { it.isEmpty() }
+                ?: selectedDevice?.let(::safeName)
         }
-        return audioManager.getDevices(direction)
-            .firstOrNull { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
+        val selected = selectedDevice ?: return null
+        val selectedAddress = safeAddress(selected)
+        val selectedName = normalizedDeviceName(safeName(selected))
+        val scoDevices = audioManager.getDevices(direction).filter {
+            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+        }
+        val matching = scoDevices.firstOrNull {
+            addressesMatch(it.address, selectedAddress)
+        } ?: scoDevices.singleOrNull {
+            selectedName.isNotEmpty() &&
+                normalizedDeviceName(it.productName?.toString()) == selectedName
+        } ?: scoDevices.singleOrNull()
+        return matching
             ?.productName
             ?.toString()
             ?.trim()
             ?.takeUnless { it.isEmpty() }
-            ?: selectedDevice?.let(::safeName)
+            ?: safeName(selected)
     }
 
     private fun emitStatus() {
@@ -648,6 +954,10 @@ class HfpAudioBridge(
         if (disposed) return
         stopAudioRouteInternal()
         disposed = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            communicationDeviceListener?.let(audioManager::removeOnCommunicationDeviceChangedListener)
+            communicationDeviceListener = null
+        }
         pendingPermissionResult?.error(
             "HFP_DISPOSED",
             "Ứng dụng đã dừng trước khi nhận quyền Bluetooth.",

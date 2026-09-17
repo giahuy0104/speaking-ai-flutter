@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 
 import 'audio_gain.dart';
 import 'voice_prompt_service_base.dart';
@@ -105,8 +106,12 @@ class MethodChannelVoicePromptService
       // The prompt is supplementary. The visible message remains available on
       // platforms where the native bridge has not been implemented yet.
     } on PlatformException {
-      // A device may not have a Vietnamese TTS voice installed. Do not turn a
-      // recognition retry into another user-facing error.
+      // Awaited Android prompts gate capture. Reporting a failed or interrupted
+      // utterance as completed skips the model and opens the microphone early.
+      if (defaultTargetPlatform == TargetPlatform.android &&
+          method == 'speakAndWait') {
+        rethrow;
+      }
     }
   }
 

@@ -12,6 +12,65 @@ import 'package:record/record.dart';
 
 void main() {
   test(
+    'stop during playback preparation prevents a late clip on default output',
+    () async {
+      final playback = _BlockedPreparationPlaybackService();
+      final media = LessonMediaService(playbackService: playback);
+      final playing = media.playToCompletion(
+        Uri.parse('https://example.test/model.mp3'),
+      );
+      final cancelled = expectLater(
+        playing,
+        throwsA(isA<LessonMediaException>()),
+      );
+      await Future<void>.delayed(Duration.zero);
+      await media.stopPlayback();
+      playback.ready.complete();
+      await cancelled;
+      expect(playback.playCalls, 0);
+      await media.dispose();
+    },
+  );
+  test(
+    'Android route loss stops the clip and fails its completion gate',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final events = <String>[];
+      final playback = _RouteAwareControlledPlaybackService(events);
+      final statuses = StreamController<BluetoothAudioStatus>.broadcast();
+      final hfp = _FakeHfpAudioControl(
+        events,
+        status: const BluetoothAudioStatus(
+          phase: BluetoothAudioConnectionPhase.recording,
+          deviceId: 'h20',
+          routeActive: true,
+        ),
+        changes: statuses.stream,
+      );
+      final media = LessonMediaService(
+        playbackService: playback,
+        hfpAudioControl: hfp,
+      );
+      final playing = media.playToCompletion(
+        Uri.parse('https://example.test/model.mp3'),
+      );
+      final failed = expectLater(playing, throwsA(isA<HfpAudioException>()));
+      await Future<void>.delayed(Duration.zero);
+      statuses.add(
+        const BluetoothAudioStatus(
+          phase: BluetoothAudioConnectionPhase.ready,
+          deviceId: 'h20',
+          routeActive: false,
+        ),
+      );
+      await failed;
+      expect(playback.stopCalls, 1);
+      await media.dispose();
+      await statuses.close();
+    },
+  );
+  test(
     'playToCompletion does not finish until playback reports ended',
     () async {
       final playback = _ControlledPlaybackService();
@@ -188,6 +247,44 @@ void main() {
     await future;
     await mediaService.dispose();
   });
+
+  test(
+    'navigation prompt never falls back to the phone when HFP setup fails',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final events = <String>[];
+      final playback = _RouteAwareControlledPlaybackService(events);
+      final hfp = _FakeHfpAudioControl(
+        events,
+        status: const BluetoothAudioStatus(
+          phase: BluetoothAudioConnectionPhase.ready,
+          deviceId: 'h20-uid',
+          deviceName: 'H20',
+          sampleRate: 16000,
+        ),
+        startError: const HfpAudioException('SCO is still settling.'),
+      );
+      final mediaService = LessonMediaService(
+        playbackService: playback,
+        hfpAudioControl: hfp,
+      );
+
+      await expectLater(
+        mediaService.prepareSelectedLessonOutput(),
+        throwsA(
+          isA<HfpAudioException>().having(
+            (error) => error.message,
+            'message',
+            'SCO is still settling.',
+          ),
+        ),
+      );
+
+      expect(events, <String>['communication:true', 'prepare', 'hfp:start']);
+      await mediaService.dispose();
+    },
+  );
 
   test('coach prompt leaves H20 and plays on the phone speaker', () async {
     final events = <String>[];
@@ -403,6 +500,7 @@ void main() {
 class _ControlledPlaybackService implements AudioPlaybackService {
   final StreamController<bool> _playing = StreamController<bool>.broadcast();
   int playCalls = 0;
+  int stopCalls = 0;
 
   @override
   Stream<bool> get playingStream => _playing.stream;
@@ -427,10 +525,19 @@ class _ControlledPlaybackService implements AudioPlaybackService {
   Future<void> preload(Uri uri) async {}
 
   @override
-  Future<void> stop() async => finish();
+  Future<void> stop() async {
+    stopCalls += 1;
+    finish();
+  }
 
   @override
   Future<void> dispose() => _playing.close();
+}
+
+class _BlockedPreparationPlaybackService extends _ControlledPlaybackService {
+  final ready = Completer<void>();
+  @override
+  Future<void> prepare() => ready.future;
 }
 
 class _CompletionAwareControlledPlaybackService
@@ -574,9 +681,16 @@ class _GainAwareControlledPlaybackService
 }
 
 class _FakeHfpAudioControl implements HfpAudioControl {
-  _FakeHfpAudioControl(this.events, {required this.status});
+  _FakeHfpAudioControl(
+    this.events, {
+    required this.status,
+    this.startError,
+    this.changes,
+  });
 
   final List<String> events;
+  final Object? startError;
+  final Stream<BluetoothAudioStatus>? changes;
 
   @override
   BluetoothAudioStatus status;
@@ -589,7 +703,7 @@ class _FakeHfpAudioControl implements HfpAudioControl {
 
   @override
   Stream<BluetoothAudioStatus> get statusChanges =>
-      const Stream<BluetoothAudioStatus>.empty();
+      changes ?? const Stream<BluetoothAudioStatus>.empty();
 
   @override
   Future<void> initialize() async {}
@@ -607,6 +721,8 @@ class _FakeHfpAudioControl implements HfpAudioControl {
   Future<void> startAudioRoute() async {
     startCalls += 1;
     events.add('hfp:start');
+    final error = startError;
+    if (error != null) throw error;
   }
 
   @override
