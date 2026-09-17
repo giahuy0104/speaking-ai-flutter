@@ -61,7 +61,13 @@ class LessonMediaService {
         // Stop the current clip before Android can continue it on the phone.
         unawaited(_playbackService?.stop().catchError((Object _) {}));
         if (_recordingStartedAt != null) {
-          unawaited(cancelRecording().catchError((Object _) {}));
+          const failure = LessonMediaException(
+            'Mic H20 bị ngắt kết nối khi đang ghi âm. Bạn kết nối lại H20 rồi ghi lại nhé.',
+          );
+          final context = _activeContext;
+          if (context != null) {
+            unawaited(_cancelRecordingAfterRouteLoss(failure, context));
+          }
         }
       });
     }
@@ -82,6 +88,12 @@ class LessonMediaService {
   Object? _activeHfpRouteToken;
   StreamSubscription<BluetoothAudioStatus>? _hfpStatusSubscription;
   int _playbackRequestGeneration = 0;
+  LessonMediaException? _recordingRouteFailure;
+  final StreamController<LessonMediaException> _recordingErrors =
+      StreamController<LessonMediaException>.broadcast();
+
+  /// Unexpected capture failures that must also clear a screen's recording UI.
+  Stream<LessonMediaException> get recordingErrors => _recordingErrors.stream;
 
   AudioRecorder get _activeRecorder => _recorder ??= AudioRecorder();
 
@@ -283,7 +295,14 @@ class LessonMediaService {
 
   Future<void> stopPlayback() async {
     _playbackRequestGeneration += 1;
-    await _stopPlayback(releaseAudioRoute: true);
+    // A playback-only stop must not switch a live Android microphone away
+    // from H20. During navigation, cancelRecording releases the route after
+    // the recorder has restored its own AudioManager state.
+    final androidCaptureActive =
+        !kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.android &&
+        _recordingStartedAt != null;
+    await _stopPlayback(releaseAudioRoute: !androidCaptureActive);
   }
 
   /// Explicitly leaves a lesson-owned HFP route and prepares phone output.
@@ -331,7 +350,9 @@ class LessonMediaService {
     String? vietnamese,
     bool saveToHistory = true,
   }) => _serializeRecordingOperation(() async {
+    var recorderStarted = false;
     try {
+      _recordingRouteFailure = null;
       // Keep an already confirmed HFP route alive while switching from the final
       // guide clip to capture. Releasing it here makes iOS renegotiate to the
       // phone between "Con nói lại nhé" and AVAudioRecorder opening its input.
@@ -387,6 +408,12 @@ class LessonMediaService {
         ),
         path: path,
       );
+      recorderStarted = true;
+      if (useSelectedHfp && _hfpAudioControl?.status.routeActive != true) {
+        throw const LessonMediaException(
+          'Mic H20 bị ngắt kết nối khi mở ghi âm. Bạn kết nối lại H20 rồi thử lại nhé.',
+        );
+      }
       _activePath = path;
       _activeContext = _ActiveLessonRecording(
         lessonId: lessonId,
@@ -399,6 +426,9 @@ class LessonMediaService {
       );
       _recordingStartedAt = DateTime.now();
     } catch (_) {
+      if (recorderStarted) {
+        await _recorder?.cancel().catchError((Object _) {});
+      }
       await _releaseHfpRoute();
       rethrow;
     }
@@ -408,10 +438,15 @@ class LessonMediaService {
     AudioRecorder recorder, {
     required bool useSelectedHfp,
   }) async {
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) {
+    if (kIsWeb ||
+        (defaultTargetPlatform != TargetPlatform.iOS &&
+            defaultTargetPlatform != TargetPlatform.android)) {
       return null;
     }
     final devices = await recorder.listInputDevices();
+    // Android's default-input probe can select the built-in stereo mic even
+    // while communication audio is routed to H20. Pinning this device also
+    // makes record_android inspect the selected input's actual capabilities.
     final selected = selectLessonRecordingInput(
       devices,
       useSelectedHfp: useSelectedHfp,
@@ -423,11 +458,11 @@ class LessonMediaService {
     }
     if (useSelectedHfp) {
       throw const LessonMediaException(
-        'iOS chưa mở được mic H20 đã chọn. Hãy kết nối lại H20 rồi thử lại.',
+        'Chưa mở được mic H20 đã chọn. Hãy kết nối lại H20 rồi thử lại.',
       );
     }
     throw const LessonMediaException(
-      'iOS chưa tìm thấy mic tích hợp của iPhone/iPad.',
+      'Chưa tìm thấy micro tích hợp của điện thoại.',
     );
   }
 
@@ -536,6 +571,8 @@ class LessonMediaService {
   Future<LessonRecording> stopRecording() =>
       _serializeRecordingOperation(() async {
         try {
+          final routeFailure = _recordingRouteFailure;
+          if (routeFailure != null) throw routeFailure;
           final recorder = _recorder;
           final startedAt = _recordingStartedAt;
           final expectedPath = _activePath;
@@ -585,9 +622,17 @@ class LessonMediaService {
               await deleteLessonRecording(path);
             }
           }
+          // Keep the lesson's selected output through scoring and feedback.
+          // Dropping SCO here starts a teardown that can arrive while the next
+          // prompt is playing and switch that prompt back to the phone. Keep
+          // the existing lifecycle on the other platforms.
+          if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+            await _releaseHfpRoute();
+          }
           return recording;
-        } finally {
+        } catch (_) {
           await _releaseHfpRoute();
+          rethrow;
         }
       });
 
@@ -627,6 +672,7 @@ class LessonMediaService {
   }
 
   Future<void> cancelRecording() => _serializeRecordingOperation(() async {
+    _recordingRouteFailure = null;
     try {
       await _recorder?.cancel();
       _recordingStartedAt = null;
@@ -634,6 +680,29 @@ class LessonMediaService {
       _activeContext = null;
     } finally {
       await _releaseHfpRoute();
+    }
+  });
+
+  Future<void> _cancelRecordingAfterRouteLoss(
+    LessonMediaException failure,
+    _ActiveLessonRecording context,
+  ) => _serializeRecordingOperation(() async {
+    // A navigation cancellation or a newer capture can overtake the queued
+    // route-loss callback. Only the recording that lost its route may stop.
+    if (_recordingStartedAt == null || !identical(_activeContext, context)) {
+      return;
+    }
+    _recordingRouteFailure = failure;
+    try {
+      await _recorder?.cancel();
+    } catch (_) {
+      // The route is already unavailable; keep the original useful failure.
+    } finally {
+      _recordingStartedAt = null;
+      _activePath = null;
+      _activeContext = null;
+      await _releaseHfpRoute().catchError((Object _) {});
+      _recordingErrors.add(failure);
     }
   });
 
@@ -662,6 +731,7 @@ class LessonMediaService {
     await _releaseHfpRoute();
     await _recorder?.dispose();
     await _playbackService?.dispose();
+    await _recordingErrors.close();
   }
 }
 

@@ -278,6 +278,43 @@ void main() {
   );
 
   test(
+    'MAIN echo repeats the current navigation question instead of the legacy menu',
+    () async {
+      for (final context in const [
+        _VoiceContext(
+          ActiveLearningVoiceNode.core,
+          MasterNavigationContract.coreNavigationPrompt,
+        ),
+        _VoiceContext(
+          ActiveLearningVoiceNode.core,
+          'Bạn muốn học Bài 2 hay học lại Bài 1?',
+        ),
+        _VoiceContext(
+          ActiveLearningVoiceNode.challenge,
+          'Bạn muốn tiếp tục, nghe lại hay dừng lại?',
+        ),
+        _VoiceContext(
+          ActiveLearningVoiceNode.reviewAlternatives,
+          'Mình đã luyện xong rồi. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?',
+        ),
+      ]) {
+        final flow = MainVoiceAssistantFlow();
+        flow.beginActiveLearning(voiceContext: context);
+
+        final turn = await flow.handle(context.mainVoicePrompt);
+
+        expect(turn.promptText, context.mainVoicePrompt);
+        expect(turn.continueListening, isTrue);
+        expect(turn.activeLearningCommand, isNull);
+        expect(turn.navigationBeforePrompt, isNull);
+        expect(turn.navigationAfterPrompt, isNull);
+        expect(flow.stage, MainVoiceAssistantStage.activeLearning);
+        expect(flow.silenceRetryPrompt, context.mainVoicePrompt);
+      }
+    },
+  );
+
+  test(
     'FINAL T09 repairs ambiguous lesson continuation and rejects locked numbers',
     () {
       const resolver = V4CompletionChoiceResolver();

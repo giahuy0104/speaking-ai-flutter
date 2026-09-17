@@ -16,6 +16,7 @@ import '../../../core/device/active_learning_module.dart';
 import '../../../l10n/display_language.dart';
 import '../../vocabulary/data/vocabulary_store.dart';
 import '../../vocabulary/domain/vocabulary_entry.dart';
+import '../../voice_navigation/domain/master_navigation_contract.dart';
 import '../application/lesson_attempt_evaluator.dart';
 import '../application/lesson_guide_audio_library.dart';
 import '../application/lesson_completion_choice_recognizer.dart';
@@ -104,7 +105,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   String get mainVoicePrompt => _v4CompletionChoiceVisible
       ? _mainCompletionPrompt ??
             'Bạn chọn một trong các lựa chọn trên màn hình nhé.'
-      : 'Bạn muốn nghe lại, học câu tiếp theo, học câu trước hay dừng lại?';
+      : MasterNavigationContract.coreNavigationPrompt;
 
   @override
   bool get isMainVoiceChoice => _v4CompletionChoiceVisible;
@@ -156,6 +157,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   bool _guidedSequenceStarted = false;
   bool _recordingStartPending = false;
   Future<void>? _recordingDeviceStartInProgress;
+  StreamSubscription<LessonMediaException>? _recordingErrorSubscription;
   final ListeningLessonSession _lessonSession = ListeningLessonSession();
   int _praiseFireworksSequence = 0;
   bool _praiseFireworksVisible = false;
@@ -226,7 +228,39 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     _completionChoiceRecognizer =
         widget.completionChoiceRecognizer ??
         BackendLessonCompletionChoiceRecognizer();
+    _recordingErrorSubscription = widget.mediaService.recordingErrors.listen(
+      _handleRecordingInterrupted,
+    );
     unawaited(_loadStartingPoint());
+  }
+
+  void _handleRecordingInterrupted(LessonMediaException error) {
+    if (!mounted ||
+        _pausedForMainAssistant ||
+        (!_recording &&
+            !_recordingStartPending &&
+            !_completionChoiceRecording)) {
+      return;
+    }
+    // The media service has already closed this capture. Invalidate the UI
+    // turn too, so its release gesture/endpoint cannot stop a nonexistent mic.
+    _lessonSession.invalidateRecordingStart();
+    _lessonSession.invalidateRecordingLifecycle();
+    _recordingAutoStopTimer?.cancel();
+    _recordingAutoStopTimer = null;
+    _recordingEndpointDetector.cancel();
+    if (_completionChoiceRecording) {
+      _lessonSession.invalidateCompletionChoice();
+      _clearCompletionChoiceListeners();
+    }
+    setState(() {
+      _recording = false;
+      _recordingStartPending = false;
+      _completionChoiceRecording = false;
+      _completionChoiceStopping = false;
+      _mediaBusy = false;
+      _message = error.toString();
+    });
   }
 
   @override
@@ -252,6 +286,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       _activeModuleRegistry?.unregister(registration);
     }
     _lessonSession.dispose();
+    unawaited(_recordingErrorSubscription?.cancel());
     _cancelIdleReminder();
     _coachPopupTimer?.cancel();
     _praiseFireworksTimer?.cancel();
@@ -632,16 +667,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     if (!_usesGuideV2) {
       await _startRecording();
       return;
-    }
-    if (widget.lesson.usesV4Flow) {
-      await _playPrompt(
-        LessonGuidePrompt(
-          audioCode: 'RESUME_CORE',
-          text:
-              'Mình học tiếp Bài ${widget.lesson.number}: '
-              '${widget.lesson.titleVi} nhé.',
-        ),
-      );
     }
     if (_pausedAfterNoResponse) {
       await _resumeAfterNoResponse();
@@ -1629,8 +1654,21 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         )) {
           return false;
         }
-        // After a scored failure the redesigned Core replays English only.
-        await _playSample();
+        // The retry feedback already invites another attempt. Replay only the
+        // English model before capture; the manual sample remains bilingual.
+        final ticket = _lessonSession.mainPauseTicket;
+        final played = await _runMediaAction(_playEnglishSentenceSample);
+        if (played &&
+            mounted &&
+            !_pausedForMainAssistant &&
+            _lessonSession.isCurrentMainPause(ticket) &&
+            _isCurrentEvaluation(
+              evaluationRequest,
+              sentenceIndex,
+              sentence.id,
+            )) {
+          await _startRecording();
+        }
         return false;
       case LessonAttemptOutcome.needsPractice:
         await _markNeedsPracticeAndAdvance(
@@ -2003,12 +2041,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     if (_sentenceIndex == 0) {
       if (!widget.lesson.usesV4Flow) return;
       await _markCurrentSkippedIfPending();
-      await _playPrompt(
-        const LessonGuidePrompt(
-          audioCode: 'CORE_FIRST_PREVIOUS',
-          text: 'Đây là câu đầu tiên. Mình nghe lại nhé.',
-        ),
-      );
       await _activateCurrentSentence(
         autoPlay: true,
         restoreExistingRecording: false,
@@ -4216,7 +4248,7 @@ class _VirtualLessonButton extends StatelessWidget {
   }
 }
 
-class _RecordButton extends StatelessWidget {
+class _RecordButton extends StatefulWidget {
   const _RecordButton({
     required this.recording,
     required this.busy,
@@ -4232,7 +4264,16 @@ class _RecordButton extends StatelessWidget {
   final VoidCallback onLongPressEnd;
 
   @override
+  State<_RecordButton> createState() => _RecordButtonState();
+}
+
+class _RecordButtonState extends State<_RecordButton> {
+  bool _holding = false;
+
+  @override
   Widget build(BuildContext context) {
+    final recording = widget.recording;
+    final busy = widget.busy;
     return Semantics(
       button: true,
       liveRegion: recording,
@@ -4240,9 +4281,19 @@ class _RecordButton extends StatelessWidget {
           ? context.tr('Đang ghi âm, thả để lưu', '正在录音，松开保存')
           : context.tr('Nhấn và giữ để ghi âm', '长按录音'),
       child: GestureDetector(
-        onTap: busy ? null : onTap,
-        onLongPressStart: busy ? null : (_) => onLongPressStart(),
-        onLongPressEnd: busy ? null : (_) => onLongPressEnd(),
+        onTap: busy ? null : widget.onTap,
+        onLongPressStart: (_) {
+          if (widget.busy) return;
+          _holding = true;
+          widget.onLongPressStart();
+        },
+        onLongPressEnd: (_) {
+          if (!_holding) return;
+          _holding = false;
+          // Starting HFP may outlast a short hold. Always deliver its release,
+          // even after the parent switches the button to the busy state.
+          widget.onLongPressEnd();
+        },
         child: AnimatedContainer(
           key: const Key('record-lesson-sentence'),
           duration: const Duration(milliseconds: 180),

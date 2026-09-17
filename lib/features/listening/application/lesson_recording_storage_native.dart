@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'lesson_wav_normalizer.dart';
+
 String lessonRecordingFileExtension({TargetPlatform? platform}) =>
     (platform ?? defaultTargetPlatform) == TargetPlatform.android
     ? 'wav'
@@ -41,5 +43,29 @@ Future<String?> resolveLessonRecording(
   String expectedPath,
 ) async {
   final path = recordedPath ?? expectedPath;
-  return await File(path).exists() ? path : null;
+  final recording = File(path);
+  if (!await recording.exists()) return null;
+  if (defaultTargetPlatform == TargetPlatform.android &&
+      path.toLowerCase().endsWith('.wav')) {
+    final original = await recording.readAsBytes();
+    final normalized = normalizeAndroidLessonWav(original);
+    if (!identical(original, normalized)) {
+      // Write and flush a sibling first. A same-directory rename replaces the
+      // completed recording atomically; failures leave the original intact.
+      final staging = File(
+        '$path.mono-${DateTime.now().microsecondsSinceEpoch}.tmp',
+      );
+      try {
+        await staging.writeAsBytes(normalized, flush: true);
+        await staging.rename(path);
+      } finally {
+        if (await staging.exists()) await staging.delete();
+      }
+      debugPrint(
+        'Lesson WAV normalized: sampleRate=16000 channels=2->1 '
+        'sourceBytes=${original.length} outputBytes=${normalized.length}',
+      );
+    }
+  }
+  return path;
 }

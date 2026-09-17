@@ -23,6 +23,98 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets(
+    'route loss clears capture and its release cannot stop a stale mic',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final media = _RouteLossMediaService();
+      addTearDown(media.errors.close);
+      await tester.pumpWidget(
+        _subject(
+          _lesson(v4: true, sentenceCount: 2),
+          media,
+          guideAudioLibrary: _silentGuideAudioLibrary(),
+        ),
+      );
+      await _pumpGuidedSpeechTurn(tester);
+      expect(media.recording, isTrue);
+      expect(find.text('Thả để lưu bản ghi'), findsOneWidget);
+
+      final button = find.byKey(const Key('record-lesson-sentence'));
+      final hold = await tester.startGesture(tester.getCenter(button));
+      await tester.pump(const Duration(milliseconds: 600));
+      media.interruptRecording();
+      await tester.pump();
+      await tester.pump();
+      expect(
+        find.text(_RouteLossMediaService.routeLossMessage),
+        findsOneWidget,
+      );
+      expect(find.text('Thả để lưu bản ghi'), findsNothing);
+      expect(media.recording, isFalse);
+
+      await hold.up();
+      await tester.pump();
+      expect(media.stopCalls, 0);
+      expect(find.text('Chưa có bản ghi đang thực hiện.'), findsNothing);
+      expect(
+        find.text(_RouteLossMediaService.routeLossMessage),
+        findsOneWidget,
+      );
+
+      await tester.tap(button);
+      await tester.pump();
+      await tester.pump();
+      expect(media.recording, isTrue);
+      expect(media.startedSentenceIds, hasLength(2));
+      expect(find.text('Thả để lưu bản ghi'), findsOneWidget);
+      expect(find.text(_RouteLossMediaService.routeLossMessage), findsNothing);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+  );
+
+  testWidgets('releasing a hold during native start cancels late capture', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final media = _BlockingRecordingStartMediaService();
+    await tester.pumpWidget(
+      _subject(_lesson(), media, guideAudioLibrary: _silentGuideAudioLibrary()),
+    );
+    await _finishInitialLoad(tester);
+    expect(media.startRequested.isCompleted, isFalse);
+
+    final button = find.byKey(const Key('record-lesson-sentence'));
+    final hold = await tester.startGesture(tester.getCenter(button));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(media.startRequested.isCompleted, isTrue);
+    expect(media.recording, isFalse);
+
+    // The parent rebuilt with busy=true while the native HFP start is pending.
+    // Releasing this same gesture must still reach the cancellation handler.
+    await hold.up();
+    await tester.pump();
+    expect(media.cancelCalls, 1);
+    media.releaseStart();
+    await tester.pump();
+    await tester.pump();
+    expect(media.cancelCalls, greaterThanOrEqualTo(2));
+    expect(media.recording, isFalse);
+    expect(find.text('Thả để lưu bản ghi'), findsNothing);
+    expect(find.text('Chưa có bản ghi đang thực hiện.'), findsNothing);
+
+    await tester.tap(button);
+    await tester.pump();
+    await tester.pump();
+    expect(media.recording, isTrue);
+    expect(find.text('Thả để lưu bản ghi'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
   for (final command in <ActiveLearningCommand>[
     ActiveLearningCommand.replayCurrent,
     ActiveLearningCommand.previousItem,
@@ -408,51 +500,54 @@ void main() {
     await tester.pump();
   });
 
-  testWidgets('V4 MAIN resume replays RESUME_CORE then EN-VI before mic', (
-    tester,
-  ) async {
-    await _usePhoneSurface(tester);
-    final registry = ActiveLearningModuleRegistry();
-    addTearDown(registry.dispose);
-    final mediaService = _GuidedMediaService();
-    final voicePrompts = _ReadyCueVoicePromptService();
+  for (final sentenceIndex in <int>[0, 1]) {
+    testWidgets(
+      'V4 MAIN resumes sentence ${sentenceIndex + 1} without lesson title',
+      (tester) async {
+        await _usePhoneSurface(tester);
+        final registry = ActiveLearningModuleRegistry();
+        addTearDown(registry.dispose);
+        final mediaService = _GuidedMediaService();
+        final voicePrompts = _ReadyCueVoicePromptService();
 
-    await tester.pumpWidget(
-      ActiveLearningModuleScope(
-        registry: registry,
-        child: _subject(
-          _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
-          mediaService,
-          guideAudioLibrary: _silentGuideAudioLibrary(),
-          voicePromptService: voicePrompts,
-        ),
-      ),
-    );
-    await _pumpGuidedSpeechTurn(tester);
-    voicePrompts.spoken.clear();
+        await tester.pumpWidget(
+          ActiveLearningModuleScope(
+            registry: registry,
+            child: _subject(
+              _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+              mediaService,
+              progressStore: _MemoryProgressStore()
+                ..currentSentence = sentenceIndex,
+              guideAudioLibrary: _silentGuideAudioLibrary(),
+              voicePromptService: voicePrompts,
+            ),
+          ),
+        );
+        await _pumpGuidedSpeechTurn(tester);
+        voicePrompts.spoken.clear();
 
-    expect(
-      (await registry.execute(ActiveLearningCommand.stop)).wasHandled,
-      isTrue,
-    );
-    expect(
-      (await registry.execute(ActiveLearningCommand.resume)).wasHandled,
-      isTrue,
-    );
-    await _pumpGuidedSpeechTurn(tester);
+        expect(
+          (await registry.execute(ActiveLearningCommand.stop)).wasHandled,
+          isTrue,
+        );
+        expect(
+          (await registry.execute(ActiveLearningCommand.resume)).wasHandled,
+          isTrue,
+        );
+        await _pumpGuidedSpeechTurn(tester);
 
-    expect(
-      voicePrompts.spoken,
-      containsAllInOrder(<String>[
-        'vi-VN|Mình học tiếp Bài 1: Bài hướng dẫn nhé.',
-        'en-US|Sentence 1',
-        'vi-VN|Câu 1',
-        'vi-VN|Bạn nói lại nhé.',
-      ]),
+        expect(voicePrompts.spoken, <String>[
+          'en-US|Sentence ${sentenceIndex + 1}',
+          'vi-VN|Câu ${sentenceIndex + 1}',
+          sentenceIndex == 0 ? 'vi-VN|Bạn nói lại nhé.' : 'vi-VN|Đến lượt bạn.',
+        ]);
+        expect(mediaService.recording, isTrue);
+        expect(mediaService.startedSentenceIds, hasLength(2));
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump();
+      },
     );
-    expect(mediaService.recording, isTrue);
-    expect(mediaService.startedSentenceIds, hasLength(2));
-  });
+  }
 
   testWidgets('V4 praises before explaining the first earned star', (
     tester,
@@ -681,7 +776,7 @@ void main() {
   );
 
   testWidgets(
-    'V2 replays the bilingual model once, then sends a second miss to Review',
+    'V2 retries with feedback and English only, then sends a second miss to Review',
     (tester) async {
       await _usePhoneSurface(tester);
       final mediaService = _GuidedMediaService();
@@ -704,6 +799,7 @@ void main() {
         ),
       );
       await _pumpGuidedSpeechTurn(tester);
+      voicePrompts.spoken.clear();
 
       await tester.tap(find.byKey(const Key('record-lesson-sentence')));
       await _pumpGuidedSpeechTurn(tester);
@@ -715,15 +811,10 @@ void main() {
       );
       expect(progressStore.needsPractice, isEmpty);
       expect(vocabularyStore.entries, isEmpty);
-      expect(
-        voicePrompts.spoken,
-        containsAllInOrder(<String>[
-          'vi-VN|Gần được rồi! Con nghe lại câu này nhé.',
-          'en-US|Sentence 1',
-          'vi-VN|Câu 1',
-          'vi-VN|Bây giờ đến lượt con. Con nói lại nhé.',
-        ]),
-      );
+      expect(voicePrompts.spoken, <String>[
+        'vi-VN|Gần được rồi! Con nghe lại câu này nhé.',
+        'en-US|Sentence 1',
+      ]);
 
       await tester.tap(find.byKey(const Key('record-lesson-sentence')));
       await _pumpGuidedSpeechTurn(tester);
@@ -747,6 +838,46 @@ void main() {
       await tester.pump();
     },
   );
+
+  testWidgets('V4 first miss waits for English only before reopening mic', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final media = _GuidedMediaService();
+    final prompts = _GatedModelVoicePromptService();
+    await tester.pumpWidget(
+      _subject(
+        _lesson(v4: true, sentenceCount: 2),
+        media,
+        guideAudioLibrary: _silentGuideAudioLibrary(),
+        voicePromptService: prompts,
+        attemptEvaluator: _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
+          LessonAttemptOutcome.retry,
+        ]),
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+    prompts.spoken.clear();
+    prompts.englishGate = Completer<void>();
+
+    await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+    await _pumpGuidedSpeechTurn(tester);
+    expect(prompts.spoken, <String>[
+      'vi-VN|Mình thử lại nhé.',
+      'en-US|Sentence 1',
+    ]);
+    expect(media.recording, isFalse);
+    expect(media.startedSentenceIds, hasLength(1));
+
+    prompts.englishGate!.complete();
+    await tester.pump();
+    await tester.pump();
+    expect(prompts.spoken, hasLength(2));
+    expect(media.recording, isTrue);
+    expect(media.startedSentenceIds, hasLength(2));
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
 
   testWidgets(
     'V2 asks neutrally and retries when ASR could not hear the sentence',
@@ -1875,6 +2006,60 @@ void main() {
     await tester.pump();
   });
 
+  for (final resume in <bool>[false, true]) {
+    testWidgets(
+      'V4 ${resume ? "resume" : "entry"} speaks its complete guide before practice',
+      (tester) async {
+        await _usePhoneSurface(tester);
+        final media = _GuidedMediaService();
+        final expected = resume
+            ? 'Mình học tiếp bài Guided lesson nhé.'
+            : 'Chủ đề 1. Bài đầu tiên là Guided lesson. Mình cùng học nhé. Bắt đầu nhé.';
+        final prompts = _GatedIntroVoicePromptService(expected);
+        final lesson = _lesson(
+          v4: true,
+          sentenceCount: 2,
+          introAudioUri: Uri.parse('https://example.test/short-entry-only.mp3'),
+        );
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildAppTheme(),
+            home: LessonIntroScreen(
+              language: DisplayLanguage.vietnamese,
+              startAge: 3,
+              endAge: 5,
+              topic: listeningCatalogs.first.topics.first,
+              topicContent: _topicContent(<ListeningLessonContent>[lesson]),
+              lesson: lesson,
+              progressStore: _MemoryProgressStore()..coreStarted = resume,
+              mediaService: media,
+              voicePromptService: prompts,
+              guideAudioLibrary: _silentGuideAudioLibrary(),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+        expect(prompts.spoken, <String>['vi-VN|$expected']);
+        expect(
+          find.byKey(const Key('lesson-intro-guide-text')),
+          findsOneWidget,
+        );
+        expect(find.text(expected), findsOneWidget);
+        expect(media.playedUris, isEmpty);
+        expect(find.byType(LessonPracticeScreen), findsNothing);
+        expect(media.recording, isFalse);
+
+        prompts.introFinished.complete();
+        await _pumpGuidedSpeechTurn(tester);
+        expect(find.byType(LessonPracticeScreen), findsOneWidget);
+        expect(media.recording, isTrue);
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump();
+      },
+    );
+  }
+
   testWidgets('V2 lesson intro uses introAudioUrl before opening practice', (
     tester,
   ) async {
@@ -2343,6 +2528,28 @@ class _FakeVoicePromptService implements VoicePromptService {
   Future<void> dispose() async {}
 }
 
+class _GatedIntroVoicePromptService extends _FakeVoicePromptService
+    implements AuthoredPromptBudgetProvider {
+  _GatedIntroVoicePromptService(this.authoredText);
+
+  final String authoredText;
+  final introFinished = Completer<void>();
+
+  @override
+  Future<Duration?> authoredPromptBudget(
+    String text, {
+    String locale = 'vi-VN',
+  }) async => text == authoredText && locale == 'vi-VN'
+      ? const Duration(seconds: 20)
+      : null;
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    await super.speakAndWait(text, locale: locale);
+    await introFinished.future;
+  }
+}
+
 class _GatedModelVoicePromptService extends _FakeVoicePromptService {
   Completer<void>? englishGate;
   Completer<void>? vietnameseGate;
@@ -2493,6 +2700,30 @@ class _GuidedMediaService extends LessonMediaService {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _RouteLossMediaService extends _GuidedMediaService {
+  static const routeLossMessage =
+      'Kết nối micro Bluetooth đã ngắt. Hãy thử lại.';
+  final errors = StreamController<LessonMediaException>.broadcast();
+  int stopCalls = 0;
+
+  @override
+  Stream<LessonMediaException> get recordingErrors => errors.stream;
+
+  void interruptRecording() {
+    recording = false;
+    errors.add(const LessonMediaException(routeLossMessage));
+  }
+
+  @override
+  Future<LessonRecording> stopRecording() {
+    stopCalls += 1;
+    if (!recording) {
+      throw const LessonMediaException('Chưa có bản ghi đang thực hiện.');
+    }
+    return super.stopRecording();
+  }
 }
 
 class _FailingAuthoredAudioMediaService extends _GuidedMediaService {

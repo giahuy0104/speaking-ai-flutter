@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
+import 'package:ai_speaking_flutter_app/core/audio/wav_audio.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
@@ -11,6 +13,154 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:record/record.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  group('Android lesson capture route', () {
+    late Directory temporary;
+    late _FakeLessonRecorder recorder;
+    late _FakeHfpAudioControl hfp;
+    late StreamController<BluetoothAudioStatus> statuses;
+    late _RecordingTestMediaService media;
+
+    setUp(() async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      temporary = await Directory.systemTemp.createTemp('lesson-route-test-');
+      recorder = _FakeLessonRecorder();
+      statuses = StreamController<BluetoothAudioStatus>.broadcast();
+      hfp = _FakeHfpAudioControl(
+        <String>[],
+        status: const BluetoothAudioStatus(
+          phase: BluetoothAudioConnectionPhase.recording,
+          deviceId: '00:11:22:33:44:55',
+          deviceName: 'H20',
+          routeActive: true,
+        ),
+        changes: statuses.stream,
+      );
+      media = _RecordingTestMediaService(
+        '${temporary.path}/attempt.wav',
+        recorder: recorder,
+        playbackService: _ControlledPlaybackService(),
+        hfpAudioControl: hfp,
+      );
+    });
+
+    tearDown(() async {
+      await media.dispose();
+      await statuses.close();
+      await temporary.delete(recursive: true);
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    Future<void> start() => media.startRecording(
+      lessonId: 'numbers',
+      sentenceNumber: 1,
+      saveToHistory: false,
+    );
+
+    test('pins H20 input and keeps its output through feedback', () async {
+      await start();
+      expect(recorder.lastConfig?.device, _FakeLessonRecorder.h20);
+      final recording = await media.stopRecording();
+      expect(await File(recording.filePath).exists(), isTrue);
+      expect(hfp.stopCalls, 0);
+
+      await media.play(Uri.parse('https://example.test/feedback.mp3'));
+      expect(hfp.stopCalls, 0);
+      await media.stopPlayback();
+      expect(hfp.stopCalls, 1);
+    });
+
+    test('selected H20 cannot silently fall back to the phone mic', () async {
+      recorder.devices = const [_FakeLessonRecorder.phone];
+      await expectLater(start(), throwsA(isA<LessonMediaException>()));
+      expect(recorder.startCalls, 0);
+    });
+
+    test('playback stop cannot release the live recording route', () async {
+      await start();
+      await media.stopPlayback();
+      expect(hfp.stopCalls, 0);
+      await media.cancelRecording();
+      expect(recorder.cancelCalls, 1);
+      expect(hfp.stopCalls, 1);
+    });
+
+    test(
+      'route lost while recorder starts never reports live capture',
+      () async {
+        final startGate = Completer<void>();
+        recorder.startGate = startGate;
+        final starting = start();
+        final failed = expectLater(
+          starting,
+          throwsA(isA<LessonMediaException>()),
+        );
+        await Future<void>.delayed(Duration.zero);
+        hfp.status = const BluetoothAudioStatus(
+          phase: BluetoothAudioConnectionPhase.ready,
+          deviceId: '00:11:22:33:44:55',
+        );
+        startGate.complete();
+        await failed;
+        expect(recorder.cancelCalls, 1);
+      },
+    );
+
+    test('phone capture still explicitly uses the built-in input', () async {
+      hfp.status = const BluetoothAudioStatus(
+        phase: BluetoothAudioConnectionPhase.idle,
+      );
+      await start();
+      expect(recorder.lastConfig?.device, _FakeLessonRecorder.phone);
+      expect(hfp.startCalls, 0);
+      await media.stopRecording();
+    });
+
+    test(
+      'route loss reports capture failure instead of no recording',
+      () async {
+        await start();
+        final failed = media.recordingErrors.first;
+        statuses.add(
+          const BluetoothAudioStatus(
+            phase: BluetoothAudioConnectionPhase.ready,
+            deviceId: '00:11:22:33:44:55',
+          ),
+        );
+        final failure = await failed;
+        expect(recorder.cancelCalls, 1);
+        await expectLater(media.stopRecording(), throwsA(same(failure)));
+      },
+    );
+
+    test(
+      'delayed loss from an old capture cannot cancel a newer one',
+      () async {
+        await start();
+        final oldStop = Completer<void>();
+        recorder.stopGate = oldStop;
+        final stopping = media.stopRecording();
+        final restarting = start();
+        await Future<void>.delayed(Duration.zero);
+        statuses.add(
+          const BluetoothAudioStatus(
+            phase: BluetoothAudioConnectionPhase.ready,
+            deviceId: '00:11:22:33:44:55',
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+        oldStop.complete();
+        await stopping;
+        await restarting;
+        await Future<void>.delayed(Duration.zero);
+        expect(recorder.startCalls, 2);
+        expect(recorder.cancelCalls, 0);
+        await media.stopRecording();
+      },
+    );
+  });
+
   test(
     'stop during playback preparation prevents a late clip on default output',
     () async {
@@ -532,6 +682,79 @@ class _ControlledPlaybackService implements AudioPlaybackService {
 
   @override
   Future<void> dispose() => _playing.close();
+}
+
+class _RecordingTestMediaService extends LessonMediaService {
+  _RecordingTestMediaService(
+    this.path, {
+    super.recorder,
+    super.playbackService,
+    super.hfpAudioControl,
+  });
+
+  final String path;
+
+  @override
+  Future<String> recordingPath({
+    required String lessonId,
+    required int sentenceNumber,
+    String? extension,
+  }) async => path;
+}
+
+class _FakeLessonRecorder implements AudioRecorder {
+  static const phone = InputDevice(
+    id: '1',
+    label: 'Built-in microphone',
+    type: InputDeviceType.builtIn,
+  );
+  static const h20 = InputDevice(
+    id: '42',
+    label: 'H20',
+    type: InputDeviceType.bluetoothSco,
+  );
+
+  List<InputDevice> devices = const [phone, h20];
+  RecordConfig? lastConfig;
+  String? path;
+  int startCalls = 0;
+  int cancelCalls = 0;
+  Completer<void>? stopGate;
+  Completer<void>? startGate;
+
+  @override
+  Future<bool> hasPermission({bool request = true}) async => true;
+
+  @override
+  Future<List<InputDevice>> listInputDevices() async => devices;
+
+  @override
+  Future<void> start(RecordConfig config, {required String path}) async {
+    lastConfig = config;
+    this.path = path;
+    startCalls += 1;
+    await startGate?.future;
+  }
+
+  @override
+  Future<String?> stop() async {
+    await stopGate?.future;
+    await File(
+      path!,
+    ).writeAsBytes(buildPcm16Wav(Uint8List.fromList([1, 2, 3, 4])));
+    return path;
+  }
+
+  @override
+  Future<void> cancel() async {
+    cancelCalls += 1;
+  }
+
+  @override
+  Future<void> dispose() async {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _BlockedPreparationPlaybackService extends _ControlledPlaybackService {

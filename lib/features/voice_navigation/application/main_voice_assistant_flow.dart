@@ -79,7 +79,7 @@ class MainVoiceAssistantFlow {
   static const String afterTranslationStopPrompt =
       MasterNavigationContract.afterTranslationStop;
   static const String activeLearningPrompt =
-      'Bạn muốn nghe lại, học câu tiếp theo, học câu trước, hay dừng lại?';
+      MasterNavigationContract.coreNavigationPrompt;
   static const String courseRelearnLevelPrompt =
       'Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?';
   static const String alternativeAfterLearningPrompt =
@@ -783,8 +783,8 @@ class MainVoiceAssistantFlow {
 
   MainVoiceAssistantTurn _handleActiveLearning(String normalized) {
     if (_looksLikePromptEcho(normalized)) {
-      return const MainVoiceAssistantTurn(
-        promptText: activeLearningPrompt,
+      return MainVoiceAssistantTurn(
+        promptText: currentPrompt,
         continueListening: true,
       );
     }
@@ -799,8 +799,8 @@ class MainVoiceAssistantFlow {
         continueListening: true,
       );
     }
-    return const MainVoiceAssistantTurn(
-      promptText: activeLearningPrompt,
+    return MainVoiceAssistantTurn(
+      promptText: currentPrompt,
       continueListening: true,
     );
   }

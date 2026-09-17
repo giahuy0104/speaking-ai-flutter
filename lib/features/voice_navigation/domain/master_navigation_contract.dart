@@ -9,6 +9,8 @@ abstract final class MasterNavigationContract {
       'HOMI đây. Bạn muốn dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?';
   static const mainRetry =
       'Bạn muốn dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?';
+  static const coreNavigationPrompt =
+      'Bạn muốn nghe lại, học câu tiếp theo, học câu trước hay dừng lại?';
   static const translationIntro =
       'Bạn cứ nói từng câu. Muốn dừng thì nói “Dừng lại”.';
   static const afterTranslationStop =

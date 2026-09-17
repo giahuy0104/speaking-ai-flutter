@@ -7,6 +7,7 @@ import 'package:ai_speaking_flutter_app/core/audio/audio_turn_coordinator.dart';
 import 'package:ai_speaking_flutter_app/core/audio/coordinated_voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/main_assistant_audio_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
+import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_voice_assistant_flow.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
@@ -394,6 +395,58 @@ void main() {
       final lease = await recording;
       expect(recordingAcquired, true);
       await lease.release();
+    },
+  );
+
+  test(
+    'MAIN opening and Core retries use the updated navigation recordings',
+    () async {
+      const channel = MethodChannel('ailingo_voice_prompt');
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            calls.add(call);
+            return null;
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null),
+      );
+      final service = createVoicePromptService(
+        owner: AudioTurnOwner.mainAssistant,
+        httpClient: createLocalCloudinaryAudioClient(),
+      );
+      addTearDown(service.dispose);
+      final flow = MainVoiceAssistantFlow();
+
+      await service.speakAndWait(flow.begin());
+      final corePrompt = flow.beginActiveLearning(
+        kind: ActiveLearningModuleKind.listeningLesson,
+      );
+      await service.speakAndWait(corePrompt);
+      final echo = await flow.handle(corePrompt);
+      await service.speakAndWait(echo.promptText);
+
+      expect(calls.map((call) => call.method), [
+        'playAuthoredAudioAndWait',
+        'playAuthoredAudioAndWait',
+        'playAuthoredAudioAndWait',
+      ]);
+      final expectedAssets = [
+        'assets/audio/MAIN/RUNTIME-MAIN-NAVIGATION-001.vi.v1.mp3',
+        'assets/audio/MAIN/GAP66/GAP66-002.vi.v1.mp3',
+        'assets/audio/MAIN/GAP66/GAP66-002.vi.v1.mp3',
+      ];
+      for (var index = 0; index < calls.length; index++) {
+        final playedBytes =
+            (calls[index].arguments as Map)['bytes'] as Uint8List;
+        final expectedBytes = await File(expectedAssets[index]).readAsBytes();
+        expect(
+          sha256.convert(playedBytes).toString(),
+          sha256.convert(expectedBytes).toString(),
+          reason: expectedAssets[index],
+        );
+      }
     },
   );
 

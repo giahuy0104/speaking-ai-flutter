@@ -136,9 +136,13 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
       }
       return;
     }
-    // An authored intro clip may contain the first-time Hook. Relearn always
-    // uses the dynamic Star line prepared above so the Hook cannot leak back in.
-    final uri = _usesGuideV2 && widget.relearnFromBeginning
+    // V4's introAudioUri contains only the authored entry, while _guideText
+    // includes the topic/lesson lead and the start cue (or the resume message).
+    // Speak the complete text so the prompt service can select its matching
+    // authored recording instead of substituting the shorter entry clip.
+    final uri =
+        widget.lesson.usesV4Flow ||
+            (_usesGuideV2 && widget.relearnFromBeginning)
         ? null
         : widget.lesson.introAudioUri;
     if (uri == null) {
@@ -200,6 +204,21 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
     String text, {
     required int request,
   }) async {
+    if (widget.lesson.usesV4Flow && prompt is AuthoredPromptBudgetProvider) {
+      final budget = await (prompt as AuthoredPromptBudgetProvider)
+          .authoredPromptBudget(text, locale: 'vi-VN');
+      if (!mounted ||
+          _pausedForMainAssistant ||
+          request != _introPlaybackRequest) {
+        return;
+      }
+      if (budget != null) {
+        // Keep a matching complete recording intact. Without an authored
+        // match, the English title still needs its own English TTS voice.
+        await _speakOnLessonOutput(prompt, text, locale: 'vi-VN');
+        return;
+      }
+    }
     final englishTitle = widget.lesson.titleEn.trim();
     final titleIndex = englishTitle.isEmpty ? -1 : text.indexOf(englishTitle);
     if (titleIndex < 0) {
