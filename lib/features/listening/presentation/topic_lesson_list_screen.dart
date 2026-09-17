@@ -112,6 +112,20 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
     super.dispose();
   }
 
+  Future<void> _speakOnSelectedLessonOutput(
+    String text, {
+    String locale = 'vi-VN',
+  }) async {
+    final prompt = _voicePromptService;
+    if (prompt is SelectedMediaOutputVoicePromptService) {
+      await _mediaService.prepareSelectedLessonOutput();
+      await (prompt as SelectedMediaOutputVoicePromptService)
+          .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
+      return;
+    }
+    await prompt.speakAndWait(text, locale: locale);
+  }
+
   Future<_TopicLessonProgressSnapshot> _loadProgress() async {
     final lessonProgress = await widget.progressStore.readAll();
     final completedV4LessonActivities = await widget.progressStore
@@ -424,7 +438,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
             context,
           ).showSnackBar(SnackBar(content: Text(message)));
         }
-        await _voicePromptService.speakAndWait(message);
+        await _speakOnSelectedLessonOutput(message);
         return;
       }
     }

@@ -42,6 +42,7 @@ class HfpAudioBridge(
         private const val PERMISSION_REQUEST_CODE = 7393
         private const val AUDIO_ROUTE_SETTLE_MS = 150L
         private const val AUDIO_ROUTE_CONFIRM_INTERVAL_MS = 100L
+        private const val AUDIO_ROUTE_REASSERT_DELAY_MS = 250L
         private const val AUDIO_ROUTE_CONFIRM_ATTEMPTS = 25
         private const val TAG = "HfpAudioBridge"
 
@@ -129,8 +130,13 @@ class HfpAudioBridge(
                                     routeActive = false
                                     // A delayed disconnect from the previous SCO
                                     // turn can arrive after setCommunicationDevice.
-                                    // Let the current request confirm or time out.
+                                    // Re-assert the current request after the old
+                                    // teardown settles; merely ignoring this event
+                                    // leaves Android on the handset until timeout.
                                     Log.i(TAG, "Ignoring SCO disconnect during route negotiation")
+                                    pendingAudioRouteGeneration?.let(
+                                        ::reassertPendingCommunicationRouteAfterDisconnect,
+                                    )
                                 } else if (routeActive || audioModeOwned) {
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
                                         isSelectedCommunicationRouteConfirmed()
@@ -164,6 +170,36 @@ class HfpAudioBridge(
                 }
             }
         }
+
+    private fun reassertPendingCommunicationRouteAfterDisconnect(generation: Int) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        mainHandler.postDelayed(
+            {
+                if (
+                    disposed ||
+                    pendingAudioRouteResult == null ||
+                    pendingAudioRouteGeneration != generation ||
+                    audioRouteRequestGeneration != generation ||
+                    isSelectedCommunicationRouteConfirmed()
+                ) {
+                    return@postDelayed
+                }
+                val communicationDevice = selectedDevice?.let(::selectedCommunicationDevice)
+                    ?: return@postDelayed
+                Log.i(
+                    TAG,
+                    "Re-asserting H20 communication route after delayed SCO disconnect " +
+                        "generation=$generation",
+                )
+                runCatching {
+                    audioManager.setCommunicationDevice(communicationDevice)
+                }.onFailure { error ->
+                    Log.w(TAG, "Unable to re-assert H20 communication route", error)
+                }
+            },
+            AUDIO_ROUTE_REASSERT_DELAY_MS,
+        )
+    }
 
     private val profileListener =
         object : BluetoothProfile.ServiceListener {

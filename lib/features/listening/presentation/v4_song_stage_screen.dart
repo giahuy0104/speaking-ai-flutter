@@ -76,6 +76,20 @@ class _V4SongStageScreenState extends State<V4SongStageScreen> {
     super.dispose();
   }
 
+  Future<void> _speakOnSelectedLessonOutput(
+    String text, {
+    String locale = 'vi-VN',
+  }) async {
+    final prompt = _prompt;
+    if (prompt is SelectedMediaOutputVoicePromptService) {
+      await widget.mediaService.prepareSelectedLessonOutput();
+      await (prompt as SelectedMediaOutputVoicePromptService)
+          .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
+      return;
+    }
+    await prompt.speakAndWait(text, locale: locale);
+  }
+
   Future<void> _announceAndPlaySong() async {
     if (!mounted) return;
     final request = ++_request;
@@ -84,7 +98,7 @@ class _V4SongStageScreenState extends State<V4SongStageScreen> {
       _message = null;
     });
     try {
-      await _prompt.speakAndWait(
+      await _speakOnSelectedLessonOutput(
         v4SongStartCue(widget.songTitle),
         locale: 'vi-VN',
       );

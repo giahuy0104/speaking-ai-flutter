@@ -30,9 +30,13 @@ class VoicePromptBridge(
         val completion: MethodChannel.Result?,
         val speechRate: Float = 0.92f,
         val pitch: Float = 1.0f,
+        val forcePhoneSpeaker: Boolean = false,
+        val forceMediaPlayback: Boolean = false,
     )
 
     private val appContext = context.applicationContext
+    private val audioManager =
+        appContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private val methodChannel = MethodChannel(messenger, "ailingo_voice_prompt")
     private val mainHandler = Handler(Looper.getMainLooper())
     private var textToSpeech: TextToSpeech? = null
@@ -46,6 +50,8 @@ class VoicePromptBridge(
     private var synthesizedPromptId: String? = null
     private var synthesizedPromptFile: File? = null
     private var synthesizedPromptGainMillibels = 0
+    private var synthesizedPromptForcePhoneSpeaker = false
+    private var synthesizedPromptForceMediaPlayback = false
     private var promptPlaybackId: String? = null
     private var promptPlaybackFile: File? = null
     private var promptPlayer: MediaPlayer? = null
@@ -104,6 +110,8 @@ class VoicePromptBridge(
                 completion = it.completion,
                 speechRate = it.speechRate,
                 pitch = it.pitch,
+                forcePhoneSpeaker = it.forcePhoneSpeaker,
+                forceMediaPlayback = it.forceMediaPlayback,
             )
         }
         pendingPrompt = null
@@ -119,8 +127,16 @@ class VoicePromptBridge(
                 val text = call.argument<String>("text")?.trim().orEmpty()
                 val locale = call.argument<String>("locale")?.trim().orEmpty()
                 val gainDb = requestedGainDb(call)
+                val forcePhoneSpeaker = call.argument<Boolean>("forcePhoneSpeaker") == true
+                val forceMediaPlayback = call.argument<Boolean>("forceMediaPlayback") == true
                 if (text.isNotEmpty()) {
-                    speak(text, locale.ifEmpty { "vi-VN" }, gainDb)
+                    speak(
+                        text,
+                        locale.ifEmpty { "vi-VN" },
+                        gainDb,
+                        forcePhoneSpeaker = forcePhoneSpeaker,
+                        forceMediaPlayback = forceMediaPlayback,
+                    )
                 }
                 result.success(null)
             }
@@ -128,6 +144,8 @@ class VoicePromptBridge(
                 val text = call.argument<String>("text")?.trim().orEmpty()
                 val locale = call.argument<String>("locale")?.trim().orEmpty()
                 val gainDb = requestedGainDb(call)
+                val forcePhoneSpeaker = call.argument<Boolean>("forcePhoneSpeaker") == true
+                val forceMediaPlayback = call.argument<Boolean>("forceMediaPlayback") == true
                 if (text.isEmpty()) {
                     result.success(null)
                 } else {
@@ -140,6 +158,8 @@ class VoicePromptBridge(
                             .coerceIn(0.5f, 1.5f),
                         pitch = (call.argument<Number>("pitch")?.toFloat() ?: 1.0f)
                             .coerceIn(0.8f, 1.2f),
+                        forcePhoneSpeaker = forcePhoneSpeaker,
+                        forceMediaPlayback = forceMediaPlayback,
                     )
                 }
             }
@@ -164,10 +184,21 @@ class VoicePromptBridge(
         completion: MethodChannel.Result? = null,
         speechRate: Float = 0.92f,
         pitch: Float = 1.0f,
+        forcePhoneSpeaker: Boolean = false,
+        forceMediaPlayback: Boolean = false,
     ) {
         if (!initialized) {
             completePendingPrompt()
-            pendingPrompt = PendingPrompt(text, localeTag, gainDb, completion, speechRate, pitch)
+            pendingPrompt = PendingPrompt(
+                text,
+                localeTag,
+                gainDb,
+                completion,
+                speechRate,
+                pitch,
+                forcePhoneSpeaker,
+                forceMediaPlayback,
+            )
             return
         }
         val engine = textToSpeech
@@ -185,6 +216,12 @@ class VoicePromptBridge(
         // Challenge, vocabulary, or the MAIN assistant's feedback.
         engine.setSpeechRate(speechRate)
         engine.setPitch(pitch)
+        engine.setAudioAttributes(
+            voicePromptAudioAttributes(
+                forcePhoneSpeaker = forcePhoneSpeaker,
+                forceMediaPlayback = forceMediaPlayback,
+            ),
+        )
         val languageResult = engine.setLanguage(requestedLocale)
         if (
             languageResult == TextToSpeech.LANG_MISSING_DATA ||
@@ -206,6 +243,8 @@ class VoicePromptBridge(
         synthesizedPromptId = utteranceId
         synthesizedPromptFile = outputFile
         synthesizedPromptGainMillibels = (gainDb * 100.0).roundToInt()
+        synthesizedPromptForcePhoneSpeaker = forcePhoneSpeaker
+        synthesizedPromptForceMediaPlayback = forceMediaPlayback
         val status =
             engine.synthesizeToFile(text, speechParameters, outputFile, utteranceId)
         if (status == TextToSpeech.ERROR) {
@@ -223,11 +262,27 @@ class VoicePromptBridge(
     private fun requestedGainDb(call: MethodCall): Double =
         (call.argument<Number>("gainDb")?.toDouble() ?: 8.0).coerceIn(0.0, 12.0)
 
-    private fun voicePromptAudioAttributes(): AudioAttributes =
-        AudioAttributes.Builder()
+    private fun voicePromptAudioAttributes(
+        forcePhoneSpeaker: Boolean = false,
+        forceMediaPlayback: Boolean = false,
+    ): AudioAttributes {
+        @Suppress("DEPRECATION")
+        val bluetoothScoOn = audioManager.isBluetoothScoOn
+        val activeScoRoute =
+            (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S &&
+                audioManager.communicationDevice?.type ==
+                android.media.AudioDeviceInfo.TYPE_BLUETOOTH_SCO) || bluetoothScoOn
+        val usage =
+            if (activeScoRoute || (!forcePhoneSpeaker && !forceMediaPlayback)) {
+                AudioAttributes.USAGE_VOICE_COMMUNICATION
+            } else {
+                AudioAttributes.USAGE_MEDIA
+            }
+        return AudioAttributes.Builder()
             .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-            .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+            .setUsage(usage)
             .build()
+    }
 
     private fun playAuthoredAudio(call: MethodCall, result: MethodChannel.Result) {
         val bytes = call.argument<ByteArray>("bytes")
@@ -251,6 +306,10 @@ class VoicePromptBridge(
         synthesizedPromptId = utteranceId
         synthesizedPromptFile = file
         synthesizedPromptGainMillibels = (requestedGainDb(call) * 100.0).roundToInt()
+        synthesizedPromptForcePhoneSpeaker =
+            call.argument<Boolean>("forcePhoneSpeaker") == true
+        synthesizedPromptForceMediaPlayback =
+            call.argument<Boolean>("forceMediaPlayback") == true
         try {
             file.writeBytes(bytes)
             playSynthesizedPrompt(utteranceId)
@@ -313,7 +372,10 @@ class VoicePromptBridge(
         promptPlayer = player
         try {
             player.setAudioAttributes(
-                voicePromptAudioAttributes(),
+                voicePromptAudioAttributes(
+                    forcePhoneSpeaker = synthesizedPromptForcePhoneSpeaker,
+                    forceMediaPlayback = synthesizedPromptForceMediaPlayback,
+                ),
             )
             player.setDataSource(audioFile.absolutePath)
             player.setVolume(1.0f, 1.0f)
@@ -363,6 +425,8 @@ class VoicePromptBridge(
     private fun clearSynthesizedPrompt() {
         synthesizedPromptId = null
         synthesizedPromptGainMillibels = 0
+        synthesizedPromptForcePhoneSpeaker = false
+        synthesizedPromptForceMediaPlayback = false
         synthesizedPromptFile?.delete()
         synthesizedPromptFile = null
     }

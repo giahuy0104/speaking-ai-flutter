@@ -1,5 +1,6 @@
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
+import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/data/listening_progress_store.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_catalog.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
@@ -30,6 +31,8 @@ void main() {
     Future<bool> Function()? onRequestParentAccess,
     Future<void> Function()? onMainPressed,
     VoidCallback? onVocabularyRequested,
+    LessonMediaService? mediaService,
+    VoicePromptService? voicePromptService,
   }) {
     return MaterialApp(
       theme: buildAppTheme(),
@@ -55,7 +58,9 @@ void main() {
           onRequestParentAccess: onRequestParentAccess,
           onMainPressed: onMainPressed,
           onVocabularyRequested: onVocabularyRequested,
-          voicePromptService: _ImmediateVoicePromptService(),
+          mediaService: mediaService,
+          voicePromptService:
+              voicePromptService ?? _ImmediateVoicePromptService(),
         ),
       ),
     );
@@ -93,6 +98,22 @@ void main() {
     expect(mainPresses, 1);
     expect(find.byKey(const Key('listening-topics-tab')), findsOneWidget);
     expect(find.byKey(const Key('listening-vocabulary-tab')), findsOneWidget);
+  });
+
+  testWidgets('topic prompts prepare and use the selected H20 output', (
+    tester,
+  ) async {
+    final media = _SelectedOutputMediaService();
+    final prompt = _SelectedOutputVoicePromptService();
+
+    await tester.pumpWidget(
+      buildSubject(mediaService: media, voicePromptService: prompt),
+    );
+    await tester.pumpAndSettle();
+
+    expect(media.prepareSelectedOutputCalls, greaterThan(0));
+    expect(prompt.selectedOutputPrompts, isNotEmpty);
+    expect(prompt.defaultOutputPrompts, isEmpty);
   });
 
   testWidgets('entering topics restores the current Level intro', (
@@ -706,6 +727,48 @@ class _ImmediateVoicePromptService implements VoicePromptService {
 
   @override
   Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {}
+
+  @override
+  Future<void> stop() async {}
+}
+
+class _SelectedOutputMediaService extends LessonMediaService {
+  int prepareSelectedOutputCalls = 0;
+
+  @override
+  Future<void> prepareSelectedLessonOutput() async {
+    prepareSelectedOutputCalls += 1;
+  }
+
+  @override
+  Future<void> dispose() async {}
+}
+
+class _SelectedOutputVoicePromptService
+    implements VoicePromptService, SelectedMediaOutputVoicePromptService {
+  final List<String> selectedOutputPrompts = <String>[];
+  final List<String> defaultOutputPrompts = <String>[];
+
+  @override
+  Future<void> dispose() async {}
+
+  @override
+  Future<void> speak(String text, {String locale = 'vi-VN'}) async {
+    defaultOutputPrompts.add(text);
+  }
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    defaultOutputPrompts.add(text);
+  }
+
+  @override
+  Future<void> speakAndWaitOnSelectedMediaOutput(
+    String text, {
+    String locale = 'vi-VN',
+  }) async {
+    selectedOutputPrompts.add(text);
+  }
 
   @override
   Future<void> stop() async {}

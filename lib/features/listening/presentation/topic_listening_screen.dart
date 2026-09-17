@@ -62,6 +62,7 @@ class TopicListeningScreen extends StatefulWidget {
     this.onRequestParentAccess,
     this.contentFuture,
     this.progressStore = const ListeningProgressStore(),
+    this.mediaService,
     this.voicePromptService,
     super.key,
   });
@@ -83,6 +84,7 @@ class TopicListeningScreen extends StatefulWidget {
   final Future<bool> Function()? onRequestParentAccess;
   final Future<ListeningContentCatalog>? contentFuture;
   final ListeningProgressStore progressStore;
+  final LessonMediaService? mediaService;
   final VoicePromptService? voicePromptService;
 
   @override
@@ -99,6 +101,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
   Set<String> _completedV4LessonActivities = const <String>{};
   Set<String> _startedLessonIds = const <String>{};
   late final LessonMediaService _historyMediaService;
+  late final bool _ownsHistoryMediaService;
   late final VoicePromptService _voicePromptService;
   late final bool _ownsVoicePromptService;
   bool _initialVoiceTargetHandled = false;
@@ -123,10 +126,13 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     }
     _contentFuture =
         widget.contentFuture ?? AssetListeningContentRepository().load();
-    _historyMediaService = LessonMediaService(
-      hfpAudioControl: widget.controller?.createLearningAudioRouteControl(),
-      audioTurnCoordinator: widget.controller?.audioTurnCoordinator,
-    );
+    _ownsHistoryMediaService = widget.mediaService == null;
+    _historyMediaService =
+        widget.mediaService ??
+        LessonMediaService(
+          hfpAudioControl: widget.controller?.createLearningAudioRouteControl(),
+          audioTurnCoordinator: widget.controller?.audioTurnCoordinator,
+        );
     _ownsVoicePromptService = widget.voicePromptService == null;
     _voicePromptService =
         widget.voicePromptService ??
@@ -142,8 +148,24 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     if (_ownsVoicePromptService) {
       unawaited(_voicePromptService.dispose());
     }
-    unawaited(_historyMediaService.dispose());
+    if (_ownsHistoryMediaService) {
+      unawaited(_historyMediaService.dispose());
+    }
     super.dispose();
+  }
+
+  Future<void> _speakOnSelectedLessonOutput(
+    String text, {
+    String locale = 'vi-VN',
+  }) async {
+    final prompt = _voicePromptService;
+    if (prompt is SelectedMediaOutputVoicePromptService) {
+      await _historyMediaService.prepareSelectedLessonOutput();
+      await (prompt as SelectedMediaOutputVoicePromptService)
+          .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
+      return;
+    }
+    await prompt.speakAndWait(text, locale: locale);
   }
 
   @override
@@ -592,7 +614,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     }
 
     final prompt = v4CompletionPrompt(V4CompletionStage.courseRelearnLevel);
-    await _voicePromptService.speakAndWait(prompt);
+    await _speakOnSelectedLessonOutput(prompt);
     if (!mounted) return;
     final selected = await showModalBottomSheet<int>(
       context: context,
@@ -690,7 +712,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
       return;
     }
     final lead = announceLevel ? 'Bắt đầu Level ${level.number}. ' : '';
-    await _voicePromptService.speakAndWait(
+    await _speakOnSelectedLessonOutput(
       '${lead}Có ${level.topicNumbers.length} Chủ đề. Bạn muốn học Chủ đề số mấy?',
     );
   }
@@ -776,7 +798,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
             context,
           ).showSnackBar(SnackBar(content: Text(message)));
         }
-        await _voicePromptService.speakAndWait(message);
+        await _speakOnSelectedLessonOutput(message);
         return;
       }
       final progressBefore = _ListeningProgressSnapshot(
@@ -823,7 +845,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           lessonNumber =
               firstIncomplete?.number ?? content.lessons.first.number;
           if (state == ListeningTopicLearningState.inProgress) {
-            await _voicePromptService.speakAndWait(
+            await _speakOnSelectedLessonOutput(
               'Mình học tiếp Chủ đề ${content.number} nhé.',
             );
           }
@@ -897,7 +919,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
   Future<bool?> _askCompletedTopicAction(int topicNumber) async {
     final message =
         'Chủ đề $topicNumber bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?';
-    await _voicePromptService.speakAndWait(message);
+    await _speakOnSelectedLessonOutput(message);
     if (!mounted) return null;
     return showModalBottomSheet<bool>(
       context: context,

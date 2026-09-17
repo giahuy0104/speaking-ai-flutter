@@ -562,7 +562,13 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
     try {
       await widget.mediaService.prepareSelectedLessonOutput();
       if (!mounted || _pausedForMainAssistant) return;
-      await _prompt.speakAndWait(prompt);
+      final voicePrompt = _prompt;
+      if (voicePrompt is SelectedMediaOutputVoicePromptService) {
+        await (voicePrompt as SelectedMediaOutputVoicePromptService)
+            .speakAndWaitOnSelectedMediaOutput(prompt);
+      } else {
+        await voicePrompt.speakAndWait(prompt);
+      }
     } catch (_) {
       // The on-screen instruction and physical MAIN path still work if a
       // transient audio route or TTS failure prevents the announcement.

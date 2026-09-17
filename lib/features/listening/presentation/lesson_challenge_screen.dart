@@ -377,7 +377,13 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     _promptCompletionWaiter = waiter;
     unawaited(() async {
       try {
-        await _prompt.speakAndWait(text, locale: locale);
+        final voicePrompt = _prompt;
+        if (voicePrompt is SelectedMediaOutputVoicePromptService) {
+          await (voicePrompt as SelectedMediaOutputVoicePromptService)
+              .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
+        } else {
+          await voicePrompt.speakAndWait(text, locale: locale);
+        }
         if (!waiter.isCompleted) waiter.complete();
       } catch (error, stackTrace) {
         if (!waiter.isCompleted) waiter.completeError(error, stackTrace);
