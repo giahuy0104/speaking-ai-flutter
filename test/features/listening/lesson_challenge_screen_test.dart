@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
+import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
@@ -648,6 +649,112 @@ void main() {
   });
 
   testWidgets(
+    'iOS recognition failure retains its local WAV without backend scoring',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final media = _FakeLessonMediaService();
+      final speech = _RecordingFailureIosInput();
+      final backend = _FailIfCalledAttemptEvaluator();
+      addTearDown(speech.dispose);
+      await tester.pumpWidget(
+        _subject(
+          startAge: 7,
+          mediaService: media,
+          iosSpeechInput: speech,
+          attemptEvaluator: backend,
+        ),
+      );
+      await _pumpChallengeTransition(tester);
+      await tester.tap(find.byKey(const Key('lesson-challenge-record-button')));
+      await _pumpChallengeTransition(tester);
+      expect(speech.takeRecordingCalls, 1);
+      expect(media.completedPlaybackUris, <Uri>[
+        Uri.file('/recordings/answer.wav'),
+      ]);
+      expect(media.recordingStarts, 0);
+      expect(backend.evaluationCalls, 0);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'iOS MAIN cancels a pending native start without cancelling a later turn',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      await _usePhoneSurface(tester);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final startGate = Completer<void>();
+      final speechInput = _FakeLessonEnglishSpeechInput(
+        'Go straight.',
+        startGate: startGate,
+      );
+      final media = _FakeLessonMediaService();
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _subject(
+            startAge: 7,
+            mediaService: media,
+            iosSpeechInput: speechInput,
+            attemptEvaluator: _FailIfCalledAttemptEvaluator(),
+          ),
+        ),
+      );
+      await _pumpChallengeTransition(tester);
+      expect(speechInput.startCalls, 1);
+      await registry.pauseForMainAssistant();
+      expect(speechInput.cancelCalls, 1);
+      startGate.complete();
+      await _pumpChallengeTransition(tester);
+      expect(speechInput.cancelCalls, 1);
+      expect(media.recordingStarts, 0);
+      expect(media.nativeCaptureHandoffs, 0);
+      expect(find.text('Dừng và chấm'), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      debugDefaultTargetPlatformOverride = null;
+    },
+  );
+
+  testWidgets(
+    'iOS native start failure does not upload audio through a hidden fallback',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      await _usePhoneSurface(tester);
+      final media = _FakeLessonMediaService();
+      final backend = _FailIfCalledAttemptEvaluator();
+      final speechInput = _FakeLessonEnglishSpeechInput(
+        '',
+        startError: const StreamingSpeechInputException(
+          'Bộ nhận diện trên iPhone chưa sẵn sàng.',
+          code: 'ON_DEVICE_SPEECH_UNAVAILABLE',
+        ),
+      );
+      await tester.pumpWidget(
+        _subject(
+          startAge: 7,
+          mediaService: media,
+          iosSpeechInput: speechInput,
+          attemptEvaluator: backend,
+        ),
+      );
+      await _pumpChallengeTransition(tester);
+      expect(media.recordingStarts, 0);
+      expect(backend.evaluationCalls, 0);
+      expect(speechInput.cancelCalls, 1);
+      expect(find.textContaining('iPhone chưa sẵn sàng'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      debugDefaultTargetPlatformOverride = null;
+    },
+  );
+
+  testWidgets(
     'iOS challenge surfaces Speech permission denial without backend fallback',
     (tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
@@ -749,6 +856,13 @@ ListeningLessonContent _lesson() {
 }
 
 class _FakeLessonMediaService extends LessonMediaService {
+  @override
+  Future<String> recordingPath({
+    required String lessonId,
+    required int sentenceNumber,
+    String? extension,
+  }) async => '/recordings/answer.${extension ?? 'm4a'}';
+
   int recordingStarts = 0;
   int recordingStops = 0;
   int selectedOutputPreparations = 0;
@@ -894,11 +1008,50 @@ class _FailIfCalledAttemptEvaluator implements LessonAttemptEvaluator {
   }
 }
 
+class _RecordingFailureIosInput extends IOSStreamingSpeechInput {
+  _RecordingFailureIosInput()
+    : super(eventStream: const Stream<dynamic>.empty());
+
+  int takeRecordingCalls = 0;
+
+  @override
+  Future<void> startLessonEnglishRecognitionWithRecording(String path) async {}
+
+  @override
+  Future<StreamingSpeechCapture> stop() async {
+    throw const StreamingSpeechInputException(
+      'Chưa nghe rõ.',
+      code: 'SF_SPEECH_RECOGNIZER_FAILED',
+    );
+  }
+
+  @override
+  Future<void> cancel() async {}
+
+  @override
+  AudioCapture? takeLessonRecordingAudioCapture() {
+    takeRecordingCalls++;
+    return const AudioCapture(
+      filePath: '/recordings/answer.wav',
+      mimeType: 'audio/wav',
+      duration: Duration(seconds: 1),
+      inputLabel: 'Apple Speech',
+      isBluetoothInput: false,
+      initialNoiseRms: null,
+    );
+  }
+}
+
 class _FakeLessonEnglishSpeechInput implements LessonEnglishSpeechInput {
-  _FakeLessonEnglishSpeechInput(this.transcript, {this.startError});
+  _FakeLessonEnglishSpeechInput(
+    this.transcript, {
+    this.startError,
+    this.startGate,
+  });
 
   final String transcript;
   final Object? startError;
+  final Completer<void>? startGate;
   int startCalls = 0;
   int stopCalls = 0;
   int cancelCalls = 0;
@@ -908,6 +1061,7 @@ class _FakeLessonEnglishSpeechInput implements LessonEnglishSpeechInput {
     startCalls += 1;
     final error = startError;
     if (error != null) throw error;
+    await startGate?.future;
   }
 
   @override

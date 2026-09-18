@@ -6,7 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-import '../lib/main.dart' as app;
+import 'package:ai_speaking_flutter_app/main.dart' as app;
 
 void _emit(Map<String, Object?> event) {
   // Intentionally available in the diagnostic release APK's local logcat.
@@ -98,7 +98,7 @@ class _AuditMessenger extends BinaryMessenger {
         catch (e) { error = e.toString(); }
       }
       _emit({...recorded, 'event': 'response', 'elapsedMs': watch.elapsedMilliseconds,
-        'responseBytes': bytes?.lengthInBytes, if (error != null) 'error': error});
+        'responseBytes': bytes?.lengthInBytes, 'error': ?error});
       return bytes;
     }, onError: (Object error, StackTrace stack) {
       _emit({...recorded, 'event': 'response_error',

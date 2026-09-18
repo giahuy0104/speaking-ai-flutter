@@ -20,6 +20,7 @@ import '../core/audio/voice_prompt_service.dart';
 import '../core/device/android_device_hardware.dart';
 import '../core/device/active_learning_module.dart';
 import '../core/device/aiv0_ble_control.dart';
+import '../core/device/aivo_control_dispatcher.dart';
 import '../core/device/client_identity.dart';
 import '../core/device/device_registration_service.dart';
 import '../core/device/main_button_coordinator.dart';
@@ -110,6 +111,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   late final MainAssistantSession _mainAssistantSession;
   late final MainSpeakingSessionController _mainSpeakingSessionController;
   late final MainButtonCoordinator _mainButtonCoordinator;
+  late final AivoControlDispatcher _deviceControlDispatcher;
   final MainSpeakingFallbackFlow _mainSpeakingFallbackFlow =
       MainSpeakingFallbackFlow();
   DeviceRegistrationService? _deviceRegistrationService;
@@ -1185,6 +1187,35 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     );
     controller.setMainButtonDispatcher(mainButtonCoordinator.handle);
     _mainButtonCoordinator = mainButtonCoordinator;
+    _deviceControlDispatcher = AivoControlDispatcher(
+      registry: _activeLearningModules,
+      onMain: mainButtonCoordinator.handle,
+      onPause: _handleMainLongPress,
+      canExecute: () => _startupReady && _voiceAccessEnabled,
+      canResume: () =>
+          !_isActivatingMainAssistant &&
+          !(_voiceNavigationController?.isMainButtonSessionActive ?? false),
+      onModuleHandled: _appFlowCoordinator.forgetPausedModule,
+      platform: defaultTargetPlatform.name,
+      operationTimeout: const Duration(seconds: 30),
+      onContextChanged: (learning, diagnostics) =>
+          aiv0BleControl.setControlContext(
+            learningActive: learning,
+            diagnosticsActive: diagnostics,
+          ),
+    );
+    _activeLearningModules.addListener(_syncHardwareControlContext);
+    controller.setHardwareControlDispatcher((event) async {
+      final result = await _deviceControlDispatcher.dispatch(
+        AivoControlInput.fromBle(event),
+      );
+      return switch (result) {
+        AivoControlStatus.accepted => MainButtonActionResult.accepted,
+        AivoControlStatus.busy ||
+        AivoControlStatus.failed => MainButtonActionResult.busy,
+        _ => MainButtonActionResult.ignored,
+      };
+    });
     _repository = repository;
     _deviceAudioCache = deviceAudioCache;
     _phoneMicrophoneInput = phoneMicrophoneInput;
@@ -1281,12 +1312,6 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (voiceController == null || conversationController == null) {
       return false;
     }
-    if (!await _prepareAndroidMainHfpRoute()) {
-      conversationController.showH20ConnectionMessage(
-        'Chưa kết nối đủ nút MAIN và micro H20. Hãy bật H20 rồi thử lại.',
-      );
-      return false;
-    }
     final activated = await _mainAssistantSession.activate(
       startupReady: _startupReady,
       voiceAccessEnabled: _voiceAccessEnabled,
@@ -1295,6 +1320,15 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           conversationController.isPlaybackPlaying,
       assistantFlowBusy: _mainSpeakingSessionController.isActive,
       canContinue: () => mounted,
+      prepareActivation: () async {
+        final ready = await _prepareAndroidMainHfpRoute();
+        if (!ready && mounted && _mainAssistantSession.isActivationPending) {
+          conversationController.showH20ConnectionMessage(
+            'Chưa kết nối đủ nút MAIN và micro H20. Hãy bật H20 rồi thử lại.',
+          );
+        }
+        return ready;
+      },
       activateVoice: ({required activeLearning, required activeLearningKind}) =>
           voiceController.activateFromMainButton(
             activeLearning: activeLearning,
@@ -1460,6 +1494,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
 
     _isFinishingMainSpeakingMode = true;
+    final canContinue = _mainAssistantSession.captureCancellationGuard();
     _hasMainSpeakingTurnStarted = false;
     _mainSpeakingFallbackFlow.reset();
     if (mounted) {
@@ -1472,20 +1507,28 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           // MAIN is the explicit cancellation boundary. Do not finalize or
           // translate the interrupted sentence before opening the menu.
           final action = await controller.cancelCurrentMainAction();
+          if (!mounted || !canContinue()) return false;
           _invalidateMainSpeakingHfpPreparation();
           await controller.endContinuousHfpSession();
+          if (!mounted || !canContinue()) return false;
           controller.recordAiv0MainDiagnostic(
             'MAIN_INTERRUPT_CANCEL_COMPLETED',
             values: <String, Object?>{'result': action.name},
           );
           controller.clearMessage();
-          return action != MainButtonActionResult.busy;
+          return canContinue() && action != MainButtonActionResult.busy;
         },
         activateAssistant: () async {
+          if (!mounted || !canContinue()) return false;
           controller.recordAiv0MainDiagnostic(
             'MAIN_INTERRUPT_ASSISTANT_STARTING',
           );
-          if (!await _prepareAndroidMainHfpRoute()) {
+          final routeReady = await _prepareAndroidMainHfpRoute();
+          if (!mounted || !canContinue()) {
+            unawaited(_releaseAndroidMainHfpRouteIfIdle());
+            return false;
+          }
+          if (!routeReady) {
             controller.showH20ConnectionMessage(
               'Micro H20 chưa sẵn sàng. Hãy kết nối lại thiết bị rồi nhấn MAIN.',
             );
@@ -1502,7 +1545,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       );
     } finally {
       _isFinishingMainSpeakingMode = false;
-      _mainAssistantSession.setExternalActivation(false);
+      if (canContinue()) _mainAssistantSession.setExternalActivation(false);
     }
   }
 
@@ -1635,6 +1678,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (!_startupReady) {
       return MainButtonActionResult.busy;
     }
+    final cancelledActivation = _mainAssistantSession.isActivationPending;
+    // LONG has priority over pending route preparation / lesson cleanup.
+    // Invalidate that activation before awaiting anything so it cannot later
+    // open a microphone after the user has already requested a pause.
+    _mainAssistantSession.cancelForNavigation();
     final voiceController = _voiceNavigationController;
     if (voiceController?.isMainButtonSessionActive ?? false) {
       // Keep an interrupted lesson paused. Otherwise the controller listener
@@ -1645,8 +1693,12 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       return MainButtonActionResult.accepted;
     }
 
-    final learningResult = await _toggleActiveLearningFromLongPress();
+    final learningResult = await _pauseActiveLearningFromLongPress();
     if (learningResult != null) {
+      if (cancelledActivation &&
+          learningResult == MainButtonActionResult.ignored) {
+        return MainButtonActionResult.accepted;
+      }
       return learningResult;
     }
 
@@ -1677,28 +1729,19 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       return MainButtonActionResult.accepted;
     }
 
-    return MainButtonActionResult.ignored;
+    return cancelledActivation
+        ? MainButtonActionResult.accepted
+        : MainButtonActionResult.ignored;
   }
 
-  Future<MainButtonActionResult?> _toggleActiveLearningFromLongPress() async {
+  Future<MainButtonActionResult?> _pauseActiveLearningFromLongPress() async {
     if (!_activeLearningModules.hasActiveModule) {
       return null;
     }
 
     if (_activeLearningModules.isActiveModulePaused) {
-      // The active module owns its approved resume script. Speaking a generic
-      // acknowledgement here used to prepend "Cùng học tiếp nhé" to
-      // RESUME_CORE/RESUME_CHALLENGE and made the authored navigation line play
-      // twice on the physical/screen MAIN long-press path.
-      final resumed = await _activeLearningModules.execute(
-        ActiveLearningCommand.resume,
-      );
-      if (resumed.wasHandled) {
-        _appFlowCoordinator.forgetPausedModule();
-      }
-      return resumed.wasHandled
-          ? MainButtonActionResult.accepted
-          : MainButtonActionResult.ignored;
+      // LONG is pause-only. SHORT resumes through the shared dispatcher.
+      return MainButtonActionResult.ignored;
     }
 
     final stopped = await _activeLearningModules.execute(
@@ -1713,22 +1756,28 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   }
 
   Future<void> _handleScreenMainLongPress() async {
-    await _mainButtonCoordinator.handle(
-      const MainButtonInputEvent(
-        source: MainButtonSource.screen,
-        gesture: MainButtonGesture.longPress,
+    await _dispatchScreenControl(Aiv0ButtonGesture.longPress);
+  }
+
+  Future<void> _handleScreenMainShortPress() async {
+    await _dispatchScreenControl(Aiv0ButtonGesture.shortPress);
+  }
+
+  Future<void> _dispatchScreenControl(Aiv0ButtonGesture gesture) async {
+    await _deviceControlDispatcher.dispatch(
+      AivoControlInput(
+        source: AivoControlSource.virtualButton,
+        button: Aiv0Button.main,
+        gesture: gesture,
+        occurredAt: DateTime.now(),
+        actionable: true,
+        protocol: 'virtual',
       ),
     );
   }
 
-  Future<void> _handleScreenMainShortPress() async {
-    await _mainButtonCoordinator.handle(
-      const MainButtonInputEvent(
-        source: MainButtonSource.screen,
-        gesture: MainButtonGesture.shortPress,
-      ),
-    );
-  }
+  void _syncHardwareControlContext() =>
+      unawaited(_deviceControlDispatcher.syncNativeContext());
 
   Future<void> _handleScreenMainRelease() async {
     await _mainButtonCoordinator.handle(
@@ -2153,6 +2202,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     _controller?.dispose();
     _deviceRegistrationService?.dispose();
     _deviceAudioCache?.dispose();
+    _activeLearningModules.removeListener(_syncHardwareControlContext);
+    _deviceControlDispatcher.dispose();
     _activeLearningModules.dispose();
     unawaited(_hfpAudioRouteCoordinator?.dispose());
     unawaited(_audioTurnCoordinator?.dispose());
@@ -2179,36 +2230,40 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
             _mainAssistantSession.cancelForNavigation();
             unawaited(_voiceNavigationController?.pause());
           },
-          child: Stack(
-            fit: StackFit.expand,
-            children: <Widget>[
-              child ?? const SizedBox.shrink(),
-              if (voiceController != null &&
-                  !_isGlobalModalOpen &&
-                  _startupReady &&
-                  _voiceAccessEnabled &&
-                  _showFloatingMainButton)
-                Positioned(
-                  right: 16,
-                  bottom: 0,
-                  child: SafeArea(
-                    minimum: const EdgeInsets.only(bottom: 88),
-                    child: MainVoiceAssistantButton(
-                      voiceController: voiceController,
-                      audioState: controller,
-                      speakingSessionController: _mainSpeakingSessionController,
-                      isActivationPending: _isActivatingMainAssistant,
-                      onPressed: _handleScreenMainShortPress,
-                      onLongPressed: _handleScreenMainLongPress,
-                      onLongPressReleased: _handleScreenMainRelease,
+          child: AivoControlScope(
+            controller: _deviceControlDispatcher,
+            child: Stack(
+              fit: StackFit.expand,
+              children: <Widget>[
+                child ?? const SizedBox.shrink(),
+                if (voiceController != null &&
+                    !_isGlobalModalOpen &&
+                    _startupReady &&
+                    _voiceAccessEnabled &&
+                    _showFloatingMainButton)
+                  Positioned(
+                    right: 16,
+                    bottom: 0,
+                    child: SafeArea(
+                      minimum: const EdgeInsets.only(bottom: 88),
+                      child: MainVoiceAssistantButton(
+                        voiceController: voiceController,
+                        audioState: controller,
+                        speakingSessionController:
+                            _mainSpeakingSessionController,
+                        isActivationPending: _isActivatingMainAssistant,
+                        onPressed: _handleScreenMainShortPress,
+                        onLongPressed: _handleScreenMainLongPress,
+                        onLongPressReleased: _handleScreenMainRelease,
+                      ),
                     ),
                   ),
-                ),
-              if (_deviceConnectionFeedbackStage != null)
-                DeviceConnectionFeedbackOverlay(
-                  stage: _deviceConnectionFeedbackStage!,
-                ),
-            ],
+                if (_deviceConnectionFeedbackStage != null)
+                  DeviceConnectionFeedbackOverlay(
+                    stage: _deviceConnectionFeedbackStage!,
+                  ),
+              ],
+            ),
           ),
         );
       },

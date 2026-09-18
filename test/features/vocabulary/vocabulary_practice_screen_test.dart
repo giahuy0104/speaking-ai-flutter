@@ -2,6 +2,10 @@ import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/adaptive_voice_activity_detector.dart';
+import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
+import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
+import 'package:ai_speaking_flutter_app/core/audio/learning_audio_dependencies.dart';
+import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
@@ -19,6 +23,66 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  for (final pendingStart in <bool>[true, false]) {
+    testWidgets(
+      'iOS Review cancels pending ${pendingStart ? "start" : "stop"} without touching a newer turn',
+      (tester) async {
+        final registry = ActiveLearningModuleRegistry();
+        final media = _FakeLessonMediaService();
+        final voice = _FakeVoicePromptService();
+        final speech = _GatedIosLessonInput(
+          startGate: pendingStart ? Completer<void>() : null,
+        );
+        addTearDown(registry.dispose);
+        addTearDown(media.close);
+        addTearDown(speech.dispose);
+        await _mountReview(
+          tester,
+          registry: registry,
+          media: media,
+          voice: voice,
+          evaluator: null,
+          audioDependencies: _IosLearningDependencies(speech),
+        );
+        await tester.tap(
+          find.byKey(const Key('vocabulary-practice-main-action')),
+        );
+        await tester.pumpAndSettle();
+        expect(speech.startCalls, 1);
+        expect(media.startCalls, 0);
+        if (!pendingStart) {
+          await tester.tap(
+            find.byKey(const Key('vocabulary-practice-main-action')),
+          );
+          await tester.pumpAndSettle();
+          expect(speech.stopCalls, 1);
+        }
+        await registry.pauseForMainAssistant();
+        expect(speech.cancelCalls, 1);
+        if (pendingStart) {
+          speech.startGate!.complete();
+        } else {
+          await registry.execute(ActiveLearningCommand.nextItem);
+          await tester.pumpAndSettle();
+          expect(speech.startCalls, 2);
+          speech.stopGate.completeError(
+            const StreamingSpeechInputException(
+              'Old turn cancelled',
+              code: 'SPEECH_START_CANCELLED',
+            ),
+          );
+        }
+        await tester.pumpAndSettle();
+        expect(speech.cancelCalls, 1);
+        expect(speech.takeRecordingCalls, 0);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpAndSettle();
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    );
+  }
+
   for (final systemBack in <bool>[false, true]) {
     testWidgets(
       'unfinished Today exits with ${systemBack ? "system" : "screen"} Back even if audio stop hangs',
@@ -767,7 +831,8 @@ Future<void> _mountReview(
   required ActiveLearningModuleRegistry registry,
   required _FakeLessonMediaService media,
   required VoicePromptService voice,
-  LessonAttemptEvaluator evaluator = const RecordedAttemptEvaluator(),
+  LessonAttemptEvaluator? evaluator = const RecordedAttemptEvaluator(),
+  LearningAudioDependencies? audioDependencies,
 }) async {
   SharedPreferences.setMockInitialValues(<String, Object>{});
   const store = VocabularyStore();
@@ -805,6 +870,7 @@ Future<void> _mountReview(
           mediaService: media,
           voicePromptService: voice,
           attemptEvaluator: evaluator,
+          audioDependencies: audioDependencies,
           autoStart: false,
           samplePause: Duration.zero,
         ),
@@ -824,6 +890,13 @@ class _FakeLessonMediaService extends LessonMediaService {
 
   @override
   Stream<double> get recordingAmplitudeDbfs => amplitudes.stream;
+
+  @override
+  Future<String> recordingPath({
+    required String lessonId,
+    required int sentenceNumber,
+    String? extension,
+  }) async => '/recordings/$lessonId-$sentenceNumber.${extension ?? 'm4a'}';
 
   @override
   Future<void> prepareSelectedLessonOutput() async {
@@ -864,6 +937,54 @@ class _FakeLessonMediaService extends LessonMediaService {
   Future<void> stopPlayback() async {}
 
   Future<void> close() => amplitudes.close();
+}
+
+class _GatedIosLessonInput extends IOSStreamingSpeechInput {
+  _GatedIosLessonInput({this.startGate})
+    : super(eventStream: const Stream<dynamic>.empty());
+
+  final Completer<void>? startGate;
+  final stopGate = Completer<StreamingSpeechCapture>();
+  int startCalls = 0;
+  int stopCalls = 0;
+  int cancelCalls = 0;
+  int takeRecordingCalls = 0;
+
+  @override
+  Future<void> startLessonEnglishRecognitionWithRecording(String path) async {
+    startCalls++;
+    await startGate?.future;
+  }
+
+  @override
+  Future<StreamingSpeechCapture> stop() {
+    stopCalls++;
+    return stopGate.future;
+  }
+
+  @override
+  Future<void> cancel() async {
+    cancelCalls++;
+  }
+
+  @override
+  AudioCapture? takeLessonRecordingAudioCapture() {
+    takeRecordingCalls++;
+    return null;
+  }
+}
+
+class _IosLearningDependencies implements LearningAudioDependencies {
+  const _IosLearningDependencies(this.learningSpeechInput);
+
+  @override
+  final StreamingSpeechInput learningSpeechInput;
+
+  @override
+  AudioTurnCoordinator? get audioTurnCoordinator => null;
+
+  @override
+  HfpAudioControl? createLearningAudioRouteControl() => null;
 }
 
 class _BlockedBackVoice extends _FakeVoicePromptService {

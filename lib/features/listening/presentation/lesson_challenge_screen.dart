@@ -100,6 +100,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   int _attemptNumber = 0;
   bool _playingPrompt = false;
   bool _recording = false;
+  bool _recordingStartPending = false;
   bool _recordingUsesIosSpeech = false;
   bool _busy = false;
   String? _message;
@@ -168,7 +169,8 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   @override
   void dispose() {
     final wasPlayingPrompt = _playingPrompt;
-    final wasRecording = _recording || _recordingUsesIosSpeech;
+    final wasRecording =
+        _recording || _recordingStartPending || _recordingUsesIosSpeech;
     final registration = _activeModuleRegistration;
     if (registration != null) {
       _activeModuleRegistry?.unregister(registration);
@@ -223,12 +225,13 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     final waiter = _promptCompletionWaiter;
     _promptCompletionWaiter = null;
     if (waiter != null && !waiter.isCompleted) waiter.complete();
-    final wasRecording = _recording;
+    final wasRecording = _recording || _recordingStartPending;
     final usedIosSpeech = _recordingUsesIosSpeech;
     if (mounted) {
       setState(() {
         _playingPrompt = false;
         _recording = false;
+        _recordingStartPending = false;
         _recordingUsesIosSpeech = false;
         _busy = false;
         _message = 'Phần thử thách đang tạm dừng.';
@@ -480,37 +483,36 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
           ? widget.iosSpeechInput
           : null;
       if (iosSpeechInput != null) {
-        try {
-          if (iosSpeechInput is IOSStreamingSpeechInput) {
-            _activeAttemptAudioPath = await widget.mediaService.recordingPath(
-              lessonId: '${widget.lesson.id}-challenge',
-              sentenceNumber: _recordingNumber,
-              extension: 'wav',
-            );
-            await iosSpeechInput.startLessonEnglishRecognitionWithRecording(
-              _activeAttemptAudioPath!,
-            );
-          } else {
-            _activeAttemptAudioPath = null;
-            await iosSpeechInput.startLessonEnglishRecognition();
-          }
-          usesIosSpeech = true;
-          // startLessonEnglishRecognition now owns the same native HFP lease
-          // that kept the question on H20. Future prompts must reacquire it.
-          widget.mediaService.handoffSelectedLessonOutputToNativeCapture();
-        } on StreamingSpeechInputException catch (error) {
-          if (_isPermissionFailure(error)) {
-            rethrow;
-          }
-          debugPrint(
-            'HOMI iOS challenge on-device recognition unavailable; '
-            'using recorded/backend fallback: $error',
+        if (iosSpeechInput is IOSStreamingSpeechInput) {
+          _activeAttemptAudioPath = await widget.mediaService.recordingPath(
+            lessonId: '${widget.lesson.id}-challenge',
+            sentenceNumber: _recordingNumber,
+            extension: 'wav',
           );
-          await iosSpeechInput.cancel().catchError((Object _) {});
+        } else {
+          _activeAttemptAudioPath = null;
         }
+        if (!mounted || _pausedForMainAssistant || request != _request) return;
+        // Publish capture ownership before awaiting native start so MAIN/Back
+        // can cancel route preparation, not just an already-open microphone.
+        _recordingStartPending = true;
+        _recordingUsesIosSpeech = true;
+        usesIosSpeech = true;
+        if (iosSpeechInput is IOSStreamingSpeechInput) {
+          await iosSpeechInput.startLessonEnglishRecognitionWithRecording(
+            _activeAttemptAudioPath!,
+          );
+        } else {
+          await iosSpeechInput.startLessonEnglishRecognition();
+        }
+        if (!mounted || _pausedForMainAssistant || request != _request) return;
+        // The selected iOS policy is on-device scoring. A native failure must
+        // never silently start a second recorder and upload the child's audio.
+        widget.mediaService.handoffSelectedLessonOutputToNativeCapture();
       }
       if (!usesIosSpeech) {
         _activeAttemptAudioPath = null;
+        _recordingStartPending = true;
         await widget.mediaService.startRecording(
           lessonId: widget.lesson.id,
           sentenceNumber: _recordingNumber,
@@ -522,9 +524,9 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         );
       }
       if (!mounted || _pausedForMainAssistant || request != _request) {
-        if (usesIosSpeech) {
-          await iosSpeechInput?.cancel().catchError((Object _) {});
-        } else {
+        // The owner that invalidated a native start already cancelled it.
+        // Cancelling here could kill a newer MAIN turn on the shared engine.
+        if (!usesIosSpeech) {
           await widget.mediaService.cancelRecording().catchError((Object _) {});
         }
         return;
@@ -535,6 +537,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       if (!mounted || _pausedForMainAssistant || request != _request) return;
       setState(() {
         _recording = true;
+        _recordingStartPending = false;
         _recordingUsesIosSpeech = usesIosSpeech;
         _busy = false;
       });
@@ -553,18 +556,18 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     } catch (error) {
       if (!mounted || _pausedForMainAssistant || request != _request) return;
       _recordingEndpointDetector.cancel();
+      if (_recordingUsesIosSpeech) {
+        await widget.iosSpeechInput?.cancel().catchError((Object _) {});
+        if (!mounted || _pausedForMainAssistant || request != _request) return;
+      }
       setState(() {
+        _recordingStartPending = false;
         _recordingUsesIosSpeech = false;
         _busy = false;
         _message = _friendlyError(error);
       });
     }
   }
-
-  bool _isPermissionFailure(StreamingSpeechInputException error) =>
-      error.code == 'SPEECH_PERMISSION_DENIED' ||
-      error.code == 'MICROPHONE_PERMISSION_DENIED' ||
-      error.code == 'MICROPHONE_PERMISSION_PENDING';
 
   Future<void> _stopRecording() async {
     if (!_recording || _busy || !mounted) return;
@@ -579,7 +582,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       LessonRecording? completedRecording;
       final evaluatedAttemptNumber = _attemptNumber + 1;
       if (usesIosSpeech) {
-        final result = await _stopAndScoreIosOnDevice();
+        final result = await _stopAndScoreIosOnDevice(request);
         outcome = result.$1;
         completedRecording = result.$2;
       } else {
@@ -679,12 +682,18 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     }
   }
 
-  Future<(LessonAttemptOutcome, LessonRecording?)>
-  _stopAndScoreIosOnDevice() async {
+  Future<(LessonAttemptOutcome, LessonRecording?)> _stopAndScoreIosOnDevice(
+    int request,
+  ) async {
     final speechInput = widget.iosSpeechInput;
     if (speechInput == null) return (LessonAttemptOutcome.unclear, null);
+    final expectedEnglish = _expectedEnglish;
+    final acceptedVariants = _acceptedRecognitionVariants;
+    bool isCurrent() =>
+        mounted && !_pausedForMainAssistant && request == _request;
     try {
       final capture = await speechInput.stop();
+      if (!isCurrent()) return (LessonAttemptOutcome.unclear, null);
       final recordedAudio = capture.recordedAudio;
       final recording = recordedAudio == null
           ? null
@@ -692,31 +701,28 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
               filePath: recordedAudio.filePath,
               duration: recordedAudio.duration,
             );
-      final candidates = <String>{
-        capture.sourceText,
-        ...capture.alternatives,
-      }.where((candidate) => candidate.trim().isNotEmpty);
-      if (candidates.isEmpty) {
-        return (LessonAttemptOutcome.noResponse, recording);
-      }
-      final outcome =
-          candidates.any(
-            (candidate) => matchesRecognizedLessonEnglish(
-              _expectedEnglish,
-              candidate,
-              acceptedVariants: _acceptedRecognitionVariants,
-              requireAllExpectedTokens: false,
-            ),
-          )
-          ? LessonAttemptOutcome.good
-          : LessonAttemptOutcome.retry;
+      final outcome = evaluateNativeLessonTranscripts(
+        expectedEnglish: expectedEnglish,
+        transcripts: <String>[capture.sourceText, ...capture.alternatives],
+        acceptedVariants: acceptedVariants,
+      );
       return (outcome, recording);
     } on StreamingSpeechInputException catch (error) {
+      if (!isCurrent()) return (LessonAttemptOutcome.unclear, null);
+      final recordedAudio = speechInput is IOSStreamingSpeechInput
+          ? speechInput.takeLessonRecordingAudioCapture()
+          : null;
+      final recording = recordedAudio == null
+          ? null
+          : LessonRecording(
+              filePath: recordedAudio.filePath,
+              duration: recordedAudio.duration,
+            );
       debugPrint(
         'HOMI iOS challenge recognition returned no usable speech: '
         'code=${error.code ?? 'unknown'}',
       );
-      return (LessonAttemptOutcome.unclear, null);
+      return (nativeLessonRecognitionFailureOutcome(error.code), recording);
     } catch (error) {
       debugPrint('HOMI iOS challenge recognition failed locally: $error');
       return (LessonAttemptOutcome.unclear, null);
@@ -877,8 +883,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   int get _recordingNumber => 100 + _challengeIndex + 1;
 
   String _friendlyError(Object error) {
-    if (error is StreamingSpeechInputException &&
-        error.code == 'SPEECH_PERMISSION_DENIED') {
+    if (error is StreamingSpeechInputException) {
       return error.message;
     }
     final text = error.toString();

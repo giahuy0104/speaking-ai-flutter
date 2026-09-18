@@ -6,6 +6,8 @@ import 'package:ai_speaking_flutter_app/features/listening/domain/listening_cont
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_curriculum_flow.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +39,62 @@ void main() {
         lesson['id'] as String: lesson as Map<String, dynamic>,
   };
   final catalog = ListeningContentCatalog.fromJson(raw);
+
+  for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+    test(
+      '$platform bundles the same 50 topics, patched lessons and target audio',
+      () async {
+        debugDefaultTargetPlatformOverride = platform;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        // An explicit bundle avoids sharing the cached catalog between platforms.
+        final loaded = await AssetListeningContentRepository(
+          bundle: rootBundle,
+        ).load();
+        List<Object?> snapshot(ListeningContentCatalog value) => [
+          for (final group in value.groups)
+            [
+              group.startAge,
+              for (final topic in group.topics)
+                [
+                  topic.id,
+                  topic.titleVi,
+                  topic.titleEn,
+                  for (final lesson in topic.lessons)
+                    [
+                      lesson.id,
+                      lesson.titleVi,
+                      lesson.titleEn,
+                      lesson.intro,
+                      lesson.outro,
+                      for (final sentence in lesson.sentences)
+                        [
+                          sentence.id,
+                          sentence.english,
+                          sentence.vietnamese,
+                          sentence.audioUri.toString(),
+                        ],
+                      for (final question in lesson.challengeBank)
+                        [
+                          question.id,
+                          question.prompt,
+                          question.correctAnswer,
+                          question.targetId,
+                        ],
+                    ],
+                ],
+            ],
+        ];
+        expect(snapshot(loaded), snapshot(catalog));
+        expect(loaded.groups.expand((group) => group.topics), hasLength(50));
+        expect(
+          loaded.groups
+              .expand((group) => group.topics)
+              .expand((topic) => topic.lessons),
+          hasLength(109),
+        );
+      },
+    );
+  }
 
   test('four-topic patch leaves every other topic and lesson unchanged', () {
     expect(raw['contentVersion'], '4.2');

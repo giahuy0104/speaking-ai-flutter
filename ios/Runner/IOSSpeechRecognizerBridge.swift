@@ -108,6 +108,23 @@ struct IOSAudioBufferLevel {
   }
 }
 
+/// Persist a conventional little-endian PCM16 WAV independently of the
+/// hardware's processing format. Keep the actual route rate/channel count:
+/// relabelling a 48 kHz iPhone buffer as 16 kHz corrupts duration and playback.
+struct IOSLessonRecordingFormat {
+  static func settings(for inputFormat: AVAudioFormat) -> [String: Any] {
+    [
+      AVFormatIDKey: kAudioFormatLinearPCM,
+      AVSampleRateKey: inputFormat.sampleRate,
+      AVNumberOfChannelsKey: inputFormat.channelCount,
+      AVLinearPCMBitDepthKey: 16,
+      AVLinearPCMIsFloatKey: false,
+      AVLinearPCMIsBigEndianKey: false,
+      AVLinearPCMIsNonInterleaved: false,
+    ]
+  }
+}
+
 /// Raises only the persisted child recording (about +8 dB). Recognition still
 /// receives the untouched microphone buffer, so matching accuracy and voice
 /// activity thresholds are unchanged.
@@ -788,7 +805,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     }
     recordingFile = try AVAudioFile(
       forWriting: url,
-      settings: format.settings,
+      settings: IOSLessonRecordingFormat.settings(for: format),
       commonFormat: format.commonFormat,
       interleaved: format.isInterleaved
     )
@@ -1420,10 +1437,14 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
 
   private func finalizeActiveRecording() {
     let path = activeRecordingPath
+    let recordedFrameCount = recordingFile?.length ?? 0
     recordingFile = nil
     activeRecordingPath = nil
     guard let path else { return }
-    guard let attributes = try? FileManager.default.attributesOfItem(atPath: path),
+    // A WAV container can contain a header/padding larger than 44 bytes even
+    // when capture never delivered a frame. Do not expose it as a recording.
+    guard recordedFrameCount > 0,
+      let attributes = try? FileManager.default.attributesOfItem(atPath: path),
       let byteLength = (attributes[.size] as? NSNumber)?.intValue,
       byteLength > 44
     else {

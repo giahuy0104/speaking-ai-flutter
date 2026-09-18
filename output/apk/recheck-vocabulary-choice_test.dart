@@ -1,3 +1,6 @@
+// Retain this tracked diagnostic artifact's established path.
+// ignore_for_file: file_names
+
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
@@ -12,6 +15,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Diagnostic only: no application code or existing test expectations changed.
 void main() {
+  // This is a Flutter test invoked explicitly outside the conventional test/ folder.
+  // ignore: invalid_use_of_visible_for_testing_member
   setUp(() => SharedPreferences.setMockInitialValues(<String, Object>{}));
   for (final stars in [false, true]) {
     testWidgets(

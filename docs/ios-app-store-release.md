@@ -45,6 +45,69 @@
 No `.p8`, certificate, provisioning profile, Apple password or signing secret
 belongs in this repository.
 
+## H20 Settings diagnostics and iOS feature parity
+
+The vocabulary, topic/listening, translation and assistant screens are shared
+Flutter flows, not separate iOS copies. Keep their command dispatcher, progress
+and grading rules shared; only microphone, speech, audio route and hardware
+adapters are platform-specific.
+
+The parent Settings H20 diagnostics panel records raw control observations:
+
+- BLE retains every packet, including unknown/draft bytes. Only the previously
+  observed 12-byte MAIN SHORT shape is labelled as such.
+- iOS listens for play, pause, togglePlayPause, nextTrack and previousTrack in
+  a foreground learning/diagnostics context with an H20 Bluetooth audio route.
+  Listening does not start recording, activate AVAudioSession or create an
+  artificial Now Playing session.
+- Remote commands are labelled `iosRemoteCommand` with the original command
+  name. They do **not** synthesize BLE packets or claim that MAIN, Power or a
+  long press occurred. Until real firmware evidence is approved, these unknown
+  physical mappings remain diagnostic-only.
+- iPhone Power and volume buttons are not intercepted. Remote command delivery
+  is controlled by iOS and its active media session; no callback is not proof
+  that the accessory button is defective. Test BLE separately.
+- Copy only the new bounded control-event log when collecting button evidence.
+  Do not export the older general audio timeline: it can include speech text.
+- Keep `AIV0_DRAFT_PROTOCOL_CONFIRMED=false`. Both Codemagic workflows reject
+  an unverified draft mapping. Do not flip this flag merely to make a test pass.
+
+The existing native iOS speech adapter prefers on-device SpeechAnalyzer on
+supported iOS 26 devices/locales, then on-device SFSpeechRecognizer. Unsupported
+locales/models, denied permissions and route failures must use the explicit
+existing failure/fallback policy, not silently start a second recorder or send
+audio to a new service. Native lesson recordings now use PCM16 WAV at the
+actual input sample rate/channel count (not a falsely labelled fixed 16 kHz).
+The conversion does not modify the recognition buffer. Files are finalized
+before their path/MIME/rate metadata is returned; cancellation invalidates old callbacks.
+Translation model download and installation credentials already have iOS
+adapters (ML Kit with the parent's Wi-Fi preference, and Keychain respectively).
+Do not put backend provider/API keys in Dart defines.
+
+Before building a release:
+
+1. Run `ios-bootstrap` to compile the real Swift/Pod integration and execute
+   RunnerTests on the configured iPhone simulator. Download the
+   `RunnerTests.xcresult` artifact if it fails. Windows Flutter tests cannot
+   establish native iOS compilation or physical H20 behavior.
+2. Run `ios-app-store` with the existing signing/privacy group. It also runs
+   the same simulator/native tests before signing; a native failure blocks the
+   IPA. This is an explicit build/upload workflow; editing these files does not
+   trigger a Codemagic build or upload.
+3. On TestFlight, pair H20 audio in iPhone Settings and connect BLE in HOMI.
+   Open the H20 control diagnostics panel. Record the real button/gesture
+   matrix in `docs/h20-physical-buttons-android-ios-test-plan.md`.
+4. Separately test vocabulary (star/parent-added/relearn), topic selection,
+   listening Core/Challenge/Resume, Vietnamese-to-English translation, and MAIN
+   assistant navigation. Include microphone denial, missing speech/translation
+   model, offline/API failure, cancel while grading, calls and route disconnect.
+5. Only promote physical-button capability after the Android and iOS device
+   runs independently pass. Simulator/fake input cannot verify radio delivery,
+   HFP microphone quality, long-press signals or locked-screen behavior.
+
+References: [Apple remote command center](https://developer.apple.com/documentation/mediaplayer/mpremotecommandcenter)
+and [Codemagic Flutter workflows](https://docs.codemagic.io/yaml-quick-start/building-a-flutter-app/).
+
 ## Required product/legal decisions before App Review
 
 The release workflow intentionally fails when legal URLs, provider disclosure,

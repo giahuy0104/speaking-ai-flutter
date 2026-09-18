@@ -83,7 +83,7 @@ void main() {
     expect(receivedCall?.arguments, <String, dynamic>{
       'text': 'Con đưa micro lại gần và nói rõ hơn nhé.',
       'locale': 'vi-VN',
-      'gainDb': 12.0,
+      'gainDb': 8.0,
       'forcePhoneSpeaker': false,
       'forceMediaPlayback': false,
     });
@@ -111,7 +111,7 @@ void main() {
       expect(receivedCall?.arguments, <String, dynamic>{
         'text': 'HOMI nghe đây.',
         'locale': 'vi-VN',
-        'gainDb': 12.0,
+        'gainDb': 8.0,
         'forcePhoneSpeaker': false,
         'forceMediaPlayback': false,
       });
@@ -138,7 +138,7 @@ void main() {
     expect(receivedCall?.arguments, <String, dynamic>{
       'text': 'Nói theo cô nhé.',
       'locale': 'vi-VN',
-      'gainDb': 12.0,
+      'gainDb': 8.0,
       'forcePhoneSpeaker': true,
       'forceMediaPlayback': false,
     });
@@ -164,7 +164,7 @@ void main() {
     expect(receivedCall?.arguments, <String, dynamic>{
       'text': 'Con nói lại nhé.',
       'locale': 'vi-VN',
-      'gainDb': 12.0,
+      'gainDb': 8.0,
       'forcePhoneSpeaker': false,
       'forceMediaPlayback': true,
     });

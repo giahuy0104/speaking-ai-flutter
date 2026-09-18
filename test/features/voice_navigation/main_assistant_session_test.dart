@@ -7,6 +7,99 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
+    'external translation handoff stays cancelled after a newer MAIN starts',
+    () {
+      final harness = _SessionHarness(module: _FakeActiveModule());
+      addTearDown(harness.dispose);
+      final oldHandoff = harness.session.captureCancellationGuard();
+      harness.session.setExternalActivation(true);
+      expect(oldHandoff(), isTrue);
+      harness.session.cancelForNavigation();
+      final newHandoff = harness.session.captureCancellationGuard();
+      harness.session.setExternalActivation(true);
+      expect(oldHandoff(), isFalse);
+      expect(newHandoff(), isTrue);
+      if (oldHandoff()) harness.session.setExternalActivation(false);
+      expect(harness.session.isActivationPending, isTrue);
+    },
+  );
+  test(
+    'cancel during preparation cannot pause or activate a stale MAIN',
+    () async {
+      final module = _FakeActiveModule();
+      final harness = _SessionHarness(module: module);
+      addTearDown(harness.dispose);
+      final oldPreparation = Completer<bool>();
+      final newPreparation = Completer<bool>();
+      var voiceCalls = 0;
+      Future<bool> activate(Completer<bool> preparation) =>
+          harness.session.activate(
+            startupReady: true,
+            voiceAccessEnabled: true,
+            conversationBusy: false,
+            assistantFlowBusy: false,
+            canContinue: () => true,
+            prepareActivation: () => preparation.future,
+            activateVoice:
+                ({required activeLearning, activeLearningKind}) async {
+                  voiceCalls++;
+                  return true;
+                },
+          );
+      final oldActivation = activate(oldPreparation);
+      expect(harness.session.isActivationPending, isTrue);
+      expect(module.pauseCount, 0);
+      harness.session.cancelForNavigation();
+      final newActivation = activate(newPreparation);
+      oldPreparation.complete(true);
+      expect(await oldActivation, isFalse);
+      expect(harness.session.isActivationPending, isTrue);
+      expect(module.pauseCount, 0);
+      expect(voiceCalls, 0);
+      newPreparation.complete(true);
+      expect(await newActivation, isTrue);
+      expect(module.pauseCount, 1);
+      expect(voiceCalls, 1);
+      expect(harness.session.isActivationPending, isFalse);
+      expect(harness.activationStates, [true, false, true, false]);
+    },
+  );
+
+  for (final preparationSucceeded in <bool>[false, true]) {
+    test(
+      'preparation result $preparationSucceeded respects current lifecycle',
+      () async {
+        final module = _FakeActiveModule();
+        final harness = _SessionHarness(module: module);
+        addTearDown(harness.dispose);
+        final preparation = Completer<bool>();
+        var current = true;
+        var voiceCalls = 0;
+        final activation = harness.session.activate(
+          startupReady: true,
+          voiceAccessEnabled: true,
+          conversationBusy: false,
+          assistantFlowBusy: false,
+          canContinue: () => current,
+          prepareActivation: () => preparation.future,
+          activateVoice: ({required activeLearning, activeLearningKind}) async {
+            voiceCalls++;
+            return true;
+          },
+        );
+        // A false preparation must stop by itself. A true preparation must also
+        // stop if the owner was disposed/navigated while the route was settling.
+        if (preparationSucceeded) current = false;
+        preparation.complete(preparationSucceeded);
+        expect(await activation, isFalse);
+        expect(module.pauseCount, 0);
+        expect(voiceCalls, 0);
+        expect(harness.session.isActivationPending, isFalse);
+      },
+    );
+  }
+
+  test(
     'Back invalidates pending MAIN takeover without resuming the exited module',
     () async {
       final gate = Completer<void>();

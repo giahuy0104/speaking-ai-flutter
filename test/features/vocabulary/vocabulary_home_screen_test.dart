@@ -25,71 +25,78 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
-  testWidgets('touch back changes UI immediately and cancels old audio queue', (
-    tester,
-  ) async {
-    final registry = ActiveLearningModuleRegistry();
-    addTearDown(registry.dispose);
-    final audio = _BlockingVocabularyAudioService();
-    final store = _MemoryVocabularyStore([
-      for (final word in ['Apple', 'Banana'])
-        VocabularyEntry(
-          id: word,
-          word: word,
-          meaning: 'Nghĩa $word',
-          addedAt: DateTime(2026, 9, 10),
-          status: VocabularyLearningStatus.learnedWell,
-          source: VocabularySource.parent,
-          parentState: ParentVocabularyState.unlocked,
-        ),
-    ]);
-    await tester.pumpWidget(
-      ActiveLearningModuleScope(
-        registry: registry,
-        child: MaterialApp(
-          theme: buildAppTheme(),
-          home: DisplayLanguageScope(
-            language: DisplayLanguage.vietnamese,
-            child: VocabularyHomeScreen(
-              isReady: true,
-              store: store,
-              mediaService: _ImmediateLessonMediaService(),
-              voicePromptService: const _FakeVoicePromptService(),
-              vocabularyAudioService: audio,
-              fixedPromptAudioService:
-                  const _UnavailableFixedPromptAudioService(),
-              onReturnToConversation: () {},
-              onHistory: () {},
-              onSettings: () {},
+  testWidgets(
+    'touch back changes UI immediately and cancels old audio queue',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final audio = _BlockingVocabularyAudioService();
+      final store = _MemoryVocabularyStore([
+        for (final word in ['Apple', 'Banana'])
+          VocabularyEntry(
+            id: word,
+            word: word,
+            meaning: 'Nghĩa $word',
+            addedAt: DateTime(2026, 9, 10),
+            status: VocabularyLearningStatus.learnedWell,
+            source: VocabularySource.parent,
+            parentState: ParentVocabularyState.unlocked,
+          ),
+      ]);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: MaterialApp(
+            theme: buildAppTheme(),
+            home: DisplayLanguageScope(
+              language: DisplayLanguage.vietnamese,
+              child: VocabularyHomeScreen(
+                isReady: true,
+                store: store,
+                mediaService: _ImmediateLessonMediaService(),
+                voicePromptService: const _FakeVoicePromptService(),
+                vocabularyAudioService: audio,
+                fixedPromptAudioService:
+                    const _UnavailableFixedPromptAudioService(),
+                onReturnToConversation: () {},
+                onHistory: () {},
+                onSettings: () {},
+              ),
             ),
           ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
-    await tester.pumpAndSettle();
-    final play = find.byKey(const ValueKey<String>('vocabulary-family-action'));
-    await tester.ensureVisible(play);
-    await tester.tap(play);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    expect(audio.spoken, ['en-US:Apple']);
-    expect(
-      (registry.controller! as ActiveLearningVoiceContext).mainVoicePrompt,
-      MasterNavigationContract.coreControlPrompt,
-    );
-    final back = find.byKey(const Key('vocabulary-home-back-button'));
-    await tester.ensureVisible(back);
-    await tester.tap(back);
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('vocabulary-family-card')), findsOneWidget);
-    expect(audio.stopCalls, 1);
-    // Simulate a slow platform stop. Neither UI nor the next item waits on it.
-    audio.stopGate.complete();
-    await tester.pumpAndSettle();
-    expect(audio.spoken, ['en-US:Apple']);
-  });
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+      await tester.pumpAndSettle();
+      final play = find.byKey(
+        const ValueKey<String>('vocabulary-family-action'),
+      );
+      await tester.ensureVisible(play);
+      await tester.tap(play);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(audio.spoken, ['en-US:Apple']);
+      expect(
+        (registry.controller! as ActiveLearningVoiceContext).mainVoicePrompt,
+        MasterNavigationContract.coreControlPrompt,
+      );
+      final back = find.byKey(const Key('vocabulary-home-back-button'));
+      await tester.ensureVisible(back);
+      await tester.tap(back);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('vocabulary-family-card')), findsOneWidget);
+      expect(audio.stopCalls, 1);
+      // Simulate a slow platform stop. Neither UI nor the next item waits on it.
+      audio.stopGate.complete();
+      await tester.pumpAndSettle();
+      expect(audio.spoken, ['en-US:Apple']);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
 
   testWidgets('leaving the vocabulary tab stops active collection audio', (
     tester,
@@ -157,103 +164,111 @@ void main() {
     expect(audio.spoken, ['en-US:Apple']);
   });
 
-  testWidgets('opens the three vocabulary journeys from the redesigned home', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(390, 844);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    final store = _MemoryVocabularyStore();
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: buildAppTheme(),
-        home: DisplayLanguageScope(
-          language: DisplayLanguage.vietnamese,
-          child: VocabularyHomeScreen(
-            isReady: true,
-            store: store,
-            voicePromptService: const _FakeVoicePromptService(),
-            onReturnToConversation: () {},
-            onHistory: () {},
-            onSettings: () {},
+  testWidgets(
+    'opens the three vocabulary journeys from the redesigned home',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final store = _MemoryVocabularyStore();
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: DisplayLanguageScope(
+            language: DisplayLanguage.vietnamese,
+            child: VocabularyHomeScreen(
+              isReady: true,
+              store: store,
+              voicePromptService: const _FakeVoicePromptService(),
+              onReturnToConversation: () {},
+              onHistory: () {},
+              onSettings: () {},
+            ),
           ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('vocabulary-family-card')), findsOneWidget);
-    expect(find.byKey(const Key('vocabulary-stars-card')), findsOneWidget);
-    expect(find.byKey(const Key('vocabulary-review-card')), findsOneWidget);
-    final familyCard = find.byKey(const Key('vocabulary-family-card'));
-    final starsCard = find.byKey(const Key('vocabulary-stars-card'));
-    final reviewCard = find.byKey(const Key('vocabulary-review-card'));
-    final firstGap =
-        tester.getTopLeft(starsCard).dy - tester.getBottomLeft(familyCard).dy;
-    final secondGap =
-        tester.getTopLeft(reviewCard).dy - tester.getBottomLeft(starsCard).dy;
-    expect(firstGap, greaterThanOrEqualTo(24));
-    expect(secondGap, closeTo(firstGap, 0.01));
+      expect(find.byKey(const Key('vocabulary-family-card')), findsOneWidget);
+      expect(find.byKey(const Key('vocabulary-stars-card')), findsOneWidget);
+      expect(find.byKey(const Key('vocabulary-review-card')), findsOneWidget);
+      final familyCard = find.byKey(const Key('vocabulary-family-card'));
+      final starsCard = find.byKey(const Key('vocabulary-stars-card'));
+      final reviewCard = find.byKey(const Key('vocabulary-review-card'));
+      final firstGap =
+          tester.getTopLeft(starsCard).dy - tester.getBottomLeft(familyCard).dy;
+      final secondGap =
+          tester.getTopLeft(reviewCard).dy - tester.getBottomLeft(starsCard).dy;
+      expect(firstGap, greaterThanOrEqualTo(24));
+      expect(secondGap, closeTo(firstGap, 0.01));
 
-    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
-    await tester.pumpAndSettle();
-    expect(find.text('Ba mẹ đã thêm'), findsOneWidget);
-    expect(find.byKey(const Key('vocabulary-back-to-journeys')), findsNothing);
-    final familyHeader = tester.widget<Container>(
-      find.byKey(const Key('vocabulary-journey-detail-header')),
-    );
-    expect(
-      (familyHeader.decoration! as BoxDecoration).color,
-      AppColors.primaryNavy,
-    );
-    final waitingQueue = tester.widget<Container>(
-      find.byKey(const Key('vocabulary-waiting-queue')),
-    );
-    final waitingDecoration = waitingQueue.decoration! as BoxDecoration;
-    expect(waitingDecoration.color, AppColors.mintSoft);
-    expect(waitingDecoration.border, isNotNull);
-    expect(
-      find.byKey(const Key('vocabulary-waiting-count-chip')),
-      findsOneWidget,
-    );
-    final familyTitle = tester.widget<Text>(
-      find.byKey(const Key('vocabulary-journey-title')),
-    );
-    expect(familyTitle.textAlign, TextAlign.center);
+      await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+      await tester.pumpAndSettle();
+      expect(find.text('Ba mẹ đã thêm'), findsOneWidget);
+      expect(
+        find.byKey(const Key('vocabulary-back-to-journeys')),
+        findsNothing,
+      );
+      final familyHeader = tester.widget<Container>(
+        find.byKey(const Key('vocabulary-journey-detail-header')),
+      );
+      expect(
+        (familyHeader.decoration! as BoxDecoration).color,
+        AppColors.primaryNavy,
+      );
+      final waitingQueue = tester.widget<Container>(
+        find.byKey(const Key('vocabulary-waiting-queue')),
+      );
+      final waitingDecoration = waitingQueue.decoration! as BoxDecoration;
+      expect(waitingDecoration.color, AppColors.mintSoft);
+      expect(waitingDecoration.border, isNotNull);
+      expect(
+        find.byKey(const Key('vocabulary-waiting-count-chip')),
+        findsOneWidget,
+      );
+      final familyTitle = tester.widget<Text>(
+        find.byKey(const Key('vocabulary-journey-title')),
+      );
+      expect(familyTitle.textAlign, TextAlign.center);
 
-    await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('vocabulary-stars-card')));
-    await tester.pumpAndSettle();
-    expect(find.text('Ngôi sao của bạn'), findsOneWidget);
-    expect(
-      (tester
-                  .widget<Container>(
-                    find.byKey(const Key('vocabulary-journey-detail-header')),
-                  )
-                  .decoration!
-              as BoxDecoration)
-          .color,
-      AppColors.primaryNavy,
-    );
+      await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-stars-card')));
+      await tester.pumpAndSettle();
+      expect(find.text('Ngôi sao của bạn'), findsOneWidget);
+      expect(
+        (tester
+                    .widget<Container>(
+                      find.byKey(const Key('vocabulary-journey-detail-header')),
+                    )
+                    .decoration!
+                as BoxDecoration)
+            .color,
+        AppColors.primaryNavy,
+      );
 
-    await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('vocabulary-review-card')));
-    await tester.pumpAndSettle();
-    expect(find.text('Luyện lại'), findsOneWidget);
-    expect(
-      (tester
-                  .widget<Container>(
-                    find.byKey(const Key('vocabulary-journey-detail-header')),
-                  )
-                  .decoration!
-              as BoxDecoration)
-          .color,
-      AppColors.primaryNavy,
-    );
-  });
+      await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-review-card')));
+      await tester.pumpAndSettle();
+      expect(find.text('Luyện lại'), findsOneWidget);
+      expect(
+        (tester
+                    .widget<Container>(
+                      find.byKey(const Key('vocabulary-journey-detail-header')),
+                    )
+                    .decoration!
+                as BoxDecoration)
+            .color,
+        AppColors.primaryNavy,
+      );
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
 
   testWidgets(
     'shows search in Stars and Review without exposing add controls',

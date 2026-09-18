@@ -9,10 +9,13 @@ import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_fl
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/approved_assistant_tts_fallbacks.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late Map<String, dynamic> manifest;
   late List<Map<String, dynamic>> entries;
+  late List<Map<String, dynamic>> runtimeEntries;
   setUpAll(() async {
     manifest =
         jsonDecode(
@@ -22,9 +25,22 @@ void main() {
             )
             as Map<String, dynamic>;
     entries = (manifest['prompts'] as List).cast<Map<String, dynamic>>();
+    // Match the enabled packs composed by createVoicePromptService. Each pack
+    // keeps its own receipt/hash checks; coverage is a property of their union.
+    runtimeEntries = [...entries];
+    for (final path in [
+      'assets/data/curriculum_audio.json',
+      'assets/data/homi_gap66_audio.json',
+    ]) {
+      final pack = jsonDecode(await File(path).readAsString()) as Map;
+      expect(pack['enabled'], true);
+      runtimeEntries.addAll(
+        (pack['prompts'] as List).cast<Map<String, dynamic>>(),
+      );
+    }
   });
   test(
-    'all fixed catalog, silence and fallback texts are covered without duplicates',
+    'fixed texts have one authored match or an explicitly approved TTS fallback',
     () {
       final fixed = <String>[
         ...HomiFallbackCatalog.assistantPromptById.values.where(
@@ -41,9 +57,18 @@ void main() {
           for (final kind in LessonFeedbackKind.values)
             ...LessonAgeFeedbackLibrary.messages(age: age, kind: kind),
       ];
+      final missing = <String>{};
       for (final text in fixed.toSet()) {
+        if (!runtimeEntries.any(
+          (entry) =>
+              entry['text'] == text ||
+              (entry['lookupTexts'] as List? ?? const []).contains(text),
+        )) {
+          if (!approvedAssistantTtsFallbacks.contains(text)) missing.add(text);
+          continue;
+        }
         expect(
-          entries.where(
+          runtimeEntries.where(
             (entry) =>
                 entry['text'] == text ||
                 ((entry['lookupTexts'] as List<dynamic>?) ?? const []).contains(
@@ -54,6 +79,7 @@ void main() {
           reason: text,
         );
       }
+      expect(missing, isEmpty, reason: jsonEncode(missing.toList()));
       expect(entries.map((e) => e['text']).toSet().length, entries.length);
       final lookupKeys = entries
           .expand<String>(
@@ -79,20 +105,36 @@ void main() {
         .listSync(recursive: true)
         .whereType<File>()
         .where((file) => file.path.endsWith('.dart'));
+    final missing = <String>{};
     for (final file in sources) {
       final source = file.readAsStringSync();
       for (final pattern in patterns) {
         for (final match in pattern.allMatches(source)) {
           final text = match.group(1)!;
           if (text.contains(r'$') || text.contains('{')) continue;
+          if (!runtimeEntries.any(
+            (entry) =>
+                entry['text'] == text ||
+                (entry['lookupTexts'] as List? ?? const []).contains(text),
+          )) {
+            if (!approvedAssistantTtsFallbacks.contains(text)) {
+              missing.add(text);
+            }
+            continue;
+          }
           expect(
-            entries.where((entry) => entry['text'] == text),
+            runtimeEntries.where(
+              (entry) =>
+                  entry['text'] == text ||
+                  (entry['lookupTexts'] as List? ?? const []).contains(text),
+            ),
             hasLength(1),
             reason: '${file.path}: $text',
           );
         }
       }
     }
+    expect(missing, isEmpty, reason: jsonEncode(missing.toList()));
   });
   test(
     'every generated entry is enabled, reachable and matches its Eleven v3 receipt',
@@ -113,9 +155,17 @@ void main() {
                 .having((uri) => uri.host, 'host', 'res.cloudinary.com'),
           );
         } else {
+          final asset = entry['asset'] as String;
+          final parentDirectory = asset.substring(
+            0,
+            asset.lastIndexOf('/') + 1,
+          );
           expect(
-            pubspec,
-            contains('    - ${entry['asset']}'),
+            pubspec.contains('    - $asset') ||
+                pubspec
+                    .split('\n')
+                    .any((line) => line.trim() == '- $parentDirectory'),
+            isTrue,
             reason: '${entry['id']} must be bundled when it has no remote URL',
           );
         }

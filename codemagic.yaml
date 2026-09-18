@@ -1,3 +1,37 @@
+definitions:
+  scripts:
+    - &ios_native_validation
+      name: Build simulator and run iOS native unit tests
+      script: |
+        set -euo pipefail
+        flutter build ios \
+          --simulator \
+          --debug \
+          --dart-define=BACKEND_BASE_URL="$BACKEND_BASE_URL" \
+          --dart-define=USE_DEMO_BACKEND="$USE_DEMO_BACKEND" \
+          --dart-define=CHILD_AGE="$CHILD_AGE" \
+          --dart-define=PREFER_BLE_STREAMING="$PREFER_BLE_STREAMING" \
+          --dart-define=REALTIME_BATCH_FALLBACK="$REALTIME_BATCH_FALLBACK" \
+          --dart-define=REALTIME_FALLBACK_BUFFER_BYTES="$REALTIME_FALLBACK_BUFFER_BYTES" \
+          --dart-define=ENABLE_AIV0_BLE_CONTROL="$ENABLE_AIV0_BLE_CONTROL" \
+          --dart-define=AIV0_DRAFT_PROTOCOL_CONFIRMED="$AIV0_DRAFT_PROTOCOL_CONFIRMED" \
+          --dart-define=ENABLE_HFP_AUDIO="$ENABLE_HFP_AUDIO"
+        SIMULATOR_UDID="$(
+          xcrun simctl list devices available -j |
+            python3 -c 'import json, sys; data = json.load(sys.stdin); devices = [device for runtime in data["devices"].values() for device in runtime if device.get("isAvailable") and device.get("name", "").startswith("iPhone")]; print(devices[0]["udid"] if devices else "")'
+        )"
+        if [ -z "$SIMULATOR_UDID" ]; then
+          echo "No available iPhone simulator was found."
+          exit 1
+        fi
+        mkdir -p build/ios/test-results
+        xcodebuild test \
+          -workspace ios/Runner.xcworkspace \
+          -scheme Runner \
+          -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
+          -resultBundlePath build/ios/test-results/RunnerTests.xcresult \
+          CODE_SIGNING_ALLOWED=NO
+
 workflows:
   ios-app-store:
     name: HOMI iOS App Store IPA and TestFlight Upload
@@ -36,6 +70,11 @@ workflows:
           set -euo pipefail
           flutter --version
           xcodebuild -version
+
+          if [ "$AIV0_DRAFT_PROTOCOL_CONFIRMED" != "false" ]; then
+            echo "Unverified H20 firmware mappings must remain disabled."
+            exit 1
+          fi
 
           for name in CERTIFICATE_PRIVATE_KEY PRIVACY_POLICY_URL TERMS_URL SUPPORT_URL AI_SUBPROCESSORS DATA_RETENTION_SUMMARY; do
             if [ -z "${!name:-}" ]; then
@@ -97,6 +136,8 @@ workflows:
           fi
           flutter test $NON_GOLDEN_TESTS
 
+      - *ios_native_validation
+
       - name: Initialize iOS signing keychain
         script: |
           set -euo pipefail
@@ -146,6 +187,7 @@ workflows:
       - build/ios/ipa/*.ipa
       - build/ios/archive/*.xcarchive
       - build/ios/archive/*.xcarchive/dSYMs/*.dSYM
+      - build/ios/test-results/*.xcresult
 
     publishing:
       app_store_connect:
@@ -182,6 +224,11 @@ workflows:
           flutter --version
           dart --version
           xcodebuild -version
+
+          if [ "$AIV0_DRAFT_PROTOCOL_CONFIRMED" != "false" ]; then
+            echo "Unverified H20 firmware mappings must remain disabled."
+            exit 1
+          fi
 
       - name: Generate the iOS platform when missing
         script: |
@@ -236,38 +283,7 @@ workflows:
           fi
           flutter test $NON_GOLDEN_TESTS
 
-      - name: Build unsigned iOS Simulator app
-        script: |
-          set -euo pipefail
-          flutter build ios \
-            --simulator \
-            --debug \
-            --dart-define=BACKEND_BASE_URL="$BACKEND_BASE_URL" \
-            --dart-define=USE_DEMO_BACKEND="$USE_DEMO_BACKEND" \
-            --dart-define=CHILD_AGE="$CHILD_AGE" \
-            --dart-define=PREFER_BLE_STREAMING="$PREFER_BLE_STREAMING" \
-            --dart-define=REALTIME_BATCH_FALLBACK="$REALTIME_BATCH_FALLBACK" \
-            --dart-define=REALTIME_FALLBACK_BUFFER_BYTES="$REALTIME_FALLBACK_BUFFER_BYTES" \
-            --dart-define=ENABLE_AIV0_BLE_CONTROL="$ENABLE_AIV0_BLE_CONTROL" \
-            --dart-define=AIV0_DRAFT_PROTOCOL_CONFIRMED="$AIV0_DRAFT_PROTOCOL_CONFIRMED" \
-            --dart-define=ENABLE_HFP_AUDIO="$ENABLE_HFP_AUDIO"
-
-      - name: Run iOS native unit tests
-        script: |
-          set -euo pipefail
-          SIMULATOR_UDID="$(
-            xcrun simctl list devices available -j |
-              python3 -c 'import json, sys; data = json.load(sys.stdin); devices = [device for runtime in data["devices"].values() for device in runtime if device.get("isAvailable") and device.get("name", "").startswith("iPhone")]; print(devices[0]["udid"] if devices else "")'
-          )"
-          if [ -z "$SIMULATOR_UDID" ]; then
-            echo "No available iPhone simulator was found."
-            exit 1
-          fi
-          xcodebuild test \
-            -workspace ios/Runner.xcworkspace \
-            -scheme Runner \
-            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
-            CODE_SIGNING_ALLOWED=NO
+      - *ios_native_validation
 
       - name: Package generated iOS scaffold
         script: |
@@ -280,3 +296,4 @@ workflows:
     artifacts:
       - ios-scaffold.zip
       - build/ios/iphonesimulator/*.app
+      - build/ios/test-results/*.xcresult

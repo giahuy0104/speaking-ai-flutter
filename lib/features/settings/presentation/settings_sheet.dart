@@ -10,6 +10,7 @@ import '../../../config/app_config.dart';
 import '../../../core/audio/audio_input.dart';
 import '../../../core/audio/hfp_audio_control.dart';
 import '../../../core/device/aiv0_ble_control.dart';
+import '../../../core/device/aivo_control_dispatcher.dart';
 import '../../../core/privacy/parental_gate.dart';
 import '../../../l10n/display_language.dart';
 import '../../conversation/application/conversation_settings_port.dart';
@@ -19,6 +20,7 @@ import '../../listening/application/android_offline_speech_model_service.dart';
 import '../../listening/domain/listening_catalog.dart';
 import '../application/parent_media_settings.dart';
 import 'history_sheet.dart';
+import 'h20_control_diagnostics_screen.dart';
 
 class SettingsSheet extends StatelessWidget {
   const SettingsSheet({
@@ -60,6 +62,7 @@ class SettingsSheet extends StatelessWidget {
         final isAndroid =
             !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
         final isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+        final deviceControls = AivoControlScope.maybeOf(context);
         final nativeDiagnostic = controller.nativeSpeechDiagnostic;
         final h20State = controller.h20ConnectionState();
         final nativeDiagnosticTimeline = controller
@@ -313,6 +316,27 @@ class SettingsSheet extends StatelessWidget {
                                 onScan: () => _scanAndConnectAiv0(context),
                                 onDisconnect: controller.disconnectAiv0Device,
                               ),
+                              if ((isAndroid || isIOS) &&
+                                  deviceControls != null)
+                                OutlinedButton.icon(
+                                  key: const Key(
+                                    'open-h20-control-diagnostics',
+                                  ),
+                                  icon: const Icon(
+                                    Icons.settings_remote_outlined,
+                                  ),
+                                  label: const Text('Điều khiển thiết bị H20'),
+                                  onPressed: () =>
+                                      Navigator.of(context).push<void>(
+                                        MaterialPageRoute<void>(
+                                          builder: (_) =>
+                                              H20ControlDiagnosticsScreen(
+                                                controller: controller,
+                                                controls: deviceControls,
+                                              ),
+                                        ),
+                                      ),
+                                ),
                               const _SettingsDivider(),
                               _HfpStatusCard(
                                 embedded: true,

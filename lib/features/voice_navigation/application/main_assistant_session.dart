@@ -32,6 +32,13 @@ class MainAssistantSession {
 
   bool get isActivationPending => _activationPending;
 
+  /// Guards external MAIN handoffs which await recorder/route cleanup before
+  /// entering the assistant. A later pause/navigation cancels that handoff.
+  bool Function() captureCancellationGuard() {
+    final generation = _generation;
+    return () => generation == _generation;
+  }
+
   void setExternalActivation(bool pending) => _setActivationPending(pending);
 
   Future<bool> activate({
@@ -41,6 +48,7 @@ class MainAssistantSession {
     required bool assistantFlowBusy,
     required bool Function() canContinue,
     required MainAssistantActivation activateVoice,
+    Future<bool> Function()? prepareActivation,
   }) async {
     if (!startupReady ||
         !voiceAccessEnabled ||
@@ -55,6 +63,13 @@ class MainAssistantSession {
     final generation = ++_generation;
     _setActivationPending(true);
     try {
+      if (generation != _generation || !canContinue()) return false;
+      if (prepareActivation != null) {
+        final prepared = await prepareActivation();
+        if (!prepared || generation != _generation || !canContinue()) {
+          return false;
+        }
+      }
       final pause = await _appFlowCoordinator.pauseForMainAssistant();
       if (generation != _generation || !canContinue()) return false;
       final activated = await activateVoice(

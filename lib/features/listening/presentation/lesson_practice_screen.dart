@@ -301,9 +301,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             _completionChoiceAndroidSpeechInput != null)) {
       if (_completionChoiceAndroidSpeechInput case final input?) {
         unawaited(input.cancel().catchError((Object _) {}));
-      } else if (_usesIosNativeLessonRecognition &&
-          (!_completionChoiceRecording ||
-              _completionChoiceUsesIosNativeSpeech)) {
+      } else if (_completionChoiceUsesIosNativeSpeech ||
+          (_usesIosNativeLessonRecognition &&
+              (!_completionChoiceRecording ||
+                  _completionChoiceUsesIosNativeSpeech))) {
         unawaited(_iosLessonSpeechInput!.cancel());
       } else {
         widget.mediaService.cancelRecording();
@@ -329,7 +330,8 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
 
   Future<void> _cancelLessonAttemptCapture() async {
     _recordingEndpointDetector.cancel();
-    if (_completionChoiceAndroidSpeechInput != null) {
+    if (_completionChoiceAndroidSpeechInput != null ||
+        _completionChoiceUsesIosNativeSpeech) {
       await _cancelCompletionChoiceCapture();
       return;
     }
@@ -501,7 +503,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         _completionChoiceRecording ||
         _recordingStartPending ||
         _recordingDeviceStartInProgress != null;
-    final wasCompletionChoiceRecording = _completionChoiceRecording;
+    final wasCompletionChoiceRecording =
+        _completionChoiceRecording ||
+        _completionChoiceUsesIosNativeSpeech ||
+        _completionChoiceAndroidSpeechInput != null;
     final pendingDeviceStart = _recordingDeviceStartInProgress;
     // The request/generation guards already make a late completion stale.
     // Detach it now so a native start that never returns cannot own the module
@@ -1434,11 +1439,19 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     IOSStreamingSpeechInput speechInput, {
     required int recordingGeneration,
   }) async {
+    final evaluatedSentenceIndex = _sentenceIndex;
+    final evaluatedSentence = _sentence;
+    final evaluatedAttemptNumber = _attemptNumber;
+    bool isCurrentCapture() =>
+        mounted &&
+        !_pausedForMainAssistant &&
+        _lessonSession.isCurrentRecordingLifecycle(recordingGeneration);
     LessonAttemptOutcome outcome;
     Duration? captureDuration;
     LessonRecording? recording;
     try {
       final capture = await speechInput.stop();
+      if (!isCurrentCapture()) return;
       captureDuration = capture.duration;
       final recordedAudio = capture.recordedAudio;
       if (recordedAudio != null) {
@@ -1447,26 +1460,14 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           duration: recordedAudio.duration,
         );
       }
-      final recognizedCandidates = <String>{
-        capture.sourceText,
-        ...capture.alternatives,
-      };
-      outcome =
-          recognizedCandidates.any(
-            (candidate) => matchesRecognizedLessonEnglish(
-              _sentence.english,
-              candidate,
-              acceptedVariants: _sentence.recognitionVariants,
-              requireAllExpectedTokens: _sentence.requiresAllExpectedTokens,
-            ),
-          )
-          ? LessonAttemptOutcome.good
-          : LessonAttemptOutcome.retry;
-      debugPrint(
-        'HOMI iOS lesson recognition completed: '
-        'candidateCount=${recognizedCandidates.length}, outcome=$outcome',
+      outcome = evaluateNativeLessonTranscripts(
+        expectedEnglish: evaluatedSentence.english,
+        transcripts: <String>[capture.sourceText, ...capture.alternatives],
+        acceptedVariants: evaluatedSentence.recognitionVariants,
+        requireAllExpectedTokens: evaluatedSentence.requiresAllExpectedTokens,
       );
     } on StreamingSpeechInputException catch (error) {
+      if (!isCurrentCapture()) return;
       final recordedAudio = speechInput.takeLessonRecordingAudioCapture();
       if (recordedAudio != null) {
         recording = LessonRecording(
@@ -1475,22 +1476,15 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         );
         captureDuration = recordedAudio.duration;
       }
-      outcome = LessonAttemptOutcome.unclear;
+      outcome = nativeLessonRecognitionFailureOutcome(error.code);
       debugPrint(
         'HOMI iOS lesson recognition returned no usable speech: '
         'code=${error.code ?? 'unknown'}',
       );
     }
 
-    if (!mounted ||
-        _pausedForMainAssistant ||
-        !_lessonSession.isCurrentRecordingLifecycle(recordingGeneration)) {
-      return;
-    }
+    if (!isCurrentCapture()) return;
     final evaluationRequest = _lessonSession.beginAttemptEvaluation();
-    final evaluatedSentenceIndex = _sentenceIndex;
-    final evaluatedSentence = _sentence;
-    final evaluatedAttemptNumber = _attemptNumber;
     setState(() {
       _recording = false;
       _recordingPath = recording?.filePath;
@@ -1514,6 +1508,13 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         debugPrint(
           'HOMI could not archive the Apple Speech lesson WAV: $error',
         );
+      }
+      if (!_isCurrentEvaluation(
+        evaluationRequest,
+        evaluatedSentenceIndex,
+        evaluatedSentence.id,
+      )) {
+        return;
       }
       await _playAttemptRecordingToCompletion(completedRecording);
       if (!_isCurrentEvaluation(
@@ -3012,14 +3013,14 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           !_lessonSession.isCurrentCompletionChoice(choiceGeneration)) {
         return;
       }
-      // iOS cannot create a second recorder after the app is already hidden
-      // or locked. Reuse the Apple Speech engine that was prearmed while the
-      // app was still active. Android uses live command ASR when available;
-      // foreground iOS and custom recognizers keep their backend flow.
+      // End-of-lesson navigation uses the same Apple Speech command pipeline
+      // in foreground and background. Never start a second recorder/upload
+      // just because the iPhone screen is visible. Explicit custom recognizers
+      // retain their injected behavior for tests/integrations.
       completionIosSpeechInput =
-          _usesIosNativeLessonRecognition &&
-              _ownsCompletionChoiceRecognizer &&
-              isActiveLearningAppBackground()
+          !kIsWeb &&
+              defaultTargetPlatform == TargetPlatform.iOS &&
+              _ownsCompletionChoiceRecognizer
           ? _iosLessonSpeechInput
           : null;
       _completionChoiceUsesIosNativeSpeech = completionIosSpeechInput != null;
@@ -3058,15 +3059,8 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           _pausedForMainAssistant ||
           !_lessonSession.isCurrentMainPause(pauseGeneration) ||
           !_lessonSession.isCurrentCompletionChoice(choiceGeneration)) {
-        if (_completionChoiceAndroidSpeechInput case final input?) {
-          await input.cancel().catchError((Object _) {});
-          _completionChoiceAndroidSpeechInput = null;
-        } else if (_completionChoiceUsesIosNativeSpeech) {
-          await completionIosSpeechInput!.cancel().catchError((Object _) {});
-        } else {
-          await widget.mediaService.cancelRecording();
-        }
-        _completionChoiceUsesIosNativeSpeech = false;
+        // Pause/exit already released this request. A late start callback must
+        // not cancel the shared recognizer now owned by MAIN or a new choice.
         return;
       }
       if (!cueBeforeStart && readyCuePlayer is SpeechReadyCuePlayer) {
@@ -3105,6 +3099,12 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         }
       });
     } catch (error) {
+      if (!mounted ||
+          _pausedForMainAssistant ||
+          !_lessonSession.isCurrentMainPause(pauseGeneration) ||
+          !_lessonSession.isCurrentCompletionChoice(choiceGeneration)) {
+        return;
+      }
       final androidInput = _completionChoiceAndroidSpeechInput;
       _completionChoiceAndroidSpeechInput = null;
       _clearCompletionChoiceListeners();
@@ -3165,13 +3165,25 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           : useIosNativeSpeech
           ? await _iosLessonSpeechInput!.stop()
           : null;
+      if (!mounted ||
+          !_lessonSession.isCurrentCompletionChoice(choiceGeneration)) {
+        return;
+      }
       _completionChoiceAndroidSpeechInput = null;
       final transcript = nativeCapture != null
           ? nativeCapture.sourceText
           : await () async {
               recording = await widget.mediaService.stopRecording();
+              if (!mounted ||
+                  !_lessonSession.isCurrentCompletionChoice(choiceGeneration)) {
+                return '';
+              }
               return _completionChoiceRecognizer.transcribe(recording!);
             }();
+      if (!mounted ||
+          !_lessonSession.isCurrentCompletionChoice(choiceGeneration)) {
+        return;
+      }
       _completionChoiceUsesIosNativeSpeech = false;
       if (mounted) {
         setState(() {
@@ -3218,6 +3230,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       setState(() => _mediaBusy = false);
       await _handleCompletionChoice(choice);
     } catch (error) {
+      if (!mounted ||
+          !_lessonSession.isCurrentCompletionChoice(choiceGeneration)) {
+        return;
+      }
       if (_lessonSession.isCurrentCompletionChoice(choiceGeneration)) {
         await androidInput?.cancel().catchError((Object _) {});
       }
@@ -3247,9 +3263,11 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             .deleteRecording(completedRecording.filePath)
             .catchError((Object _) {});
       }
-      _completionChoiceStopping = false;
-      if (mounted) {
-        setState(() => _mediaBusy = false);
+      if (_lessonSession.isCurrentCompletionChoice(choiceGeneration)) {
+        _completionChoiceStopping = false;
+        if (mounted) {
+          setState(() => _mediaBusy = false);
+        }
       }
     }
   }
@@ -3266,6 +3284,8 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         _recordingDeviceStartInProgress != null ||
         _completionChoiceAndroidSpeechInput != null ||
         _completionChoiceUsesIosNativeSpeech;
+    final wasStopping = _completionChoiceStopping;
+    _completionChoiceStopping = false;
     _completionChoiceRecording = false;
     final useIosNativeSpeech = _completionChoiceUsesIosNativeSpeech;
     final androidInput = _completionChoiceAndroidSpeechInput;
@@ -3278,7 +3298,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         _mediaBusy = false;
       });
     }
-    if (shouldCancel && !_completionChoiceStopping) {
+    if (shouldCancel && !wasStopping) {
       if (androidInput != null) {
         await androidInput.cancel().catchError((Object _) {});
       } else if (useIosNativeSpeech) {

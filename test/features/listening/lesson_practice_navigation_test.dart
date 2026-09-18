@@ -21,6 +21,218 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  for (final lateFailure in [false, true]) {
+    testWidgets(
+      'iOS pending completion start cannot cancel newer MAIN (lateFailure=$lateFailure)',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        await _usePhoneSurface(tester);
+        final registry = ActiveLearningModuleRegistry();
+        addTearDown(registry.dispose);
+        final store = _MemoryProgressStore()
+          ..completedSentences = 1
+          ..challengeProcessed = true
+          ..pendingCompletionChoice = ListeningPendingChoiceStage.lessonEnd
+          ..resumeStage = ListeningResumeStage.waitingForChoice;
+        final gate = Completer<void>();
+        final speech = _IosCompletionCommandSpeechInput('Học lại')
+          ..firstStartGate = gate
+          ..firstStartFails = lateFailure;
+        addTearDown(speech.dispose);
+        await tester.pumpWidget(
+          ActiveLearningModuleScope(
+            registry: registry,
+            child: _subject(
+              _v4Lesson(),
+              store,
+              const Key('ios-pending-choice'),
+              mediaService: _SilentMediaService(),
+              voicePromptService: _SilentVoicePromptService(),
+              controller: _LearningAudioDependencies(speech),
+              initialResumeStage: ListeningResumeStage.waitingForChoice,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(speech.commands.commandStarts, 1);
+        expect(await registry.pauseForMainAssistant(), isTrue);
+        expect(speech.commands.cancels, 1);
+        await speech.startCommandRecognition(); // New owner: MAIN.
+        gate.complete();
+        await tester.pumpAndSettle();
+        expect(speech.commands.commandStarts, 2);
+        expect(speech.commands.cancels, 1);
+        expect(find.byType(LessonIntroScreen), findsNothing);
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump();
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    );
+  }
+  testWidgets(
+    'iOS old completion result cannot navigate after MAIN resumes a new choice',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      await _usePhoneSurface(tester);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final store = _MemoryProgressStore()
+        ..completedSentences = 1
+        ..challengeProcessed = true
+        ..pendingCompletionChoice = ListeningPendingChoiceStage.lessonEnd
+        ..resumeStage = ListeningResumeStage.waitingForChoice;
+      final gate = Completer<void>();
+      final speech = _IosCompletionCommandSpeechInput('Học lại')
+        ..firstStopGate = gate;
+      addTearDown(speech.dispose);
+      final media = _SilentMediaService();
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _subject(
+            _v4Lesson(),
+            store,
+            const Key('ios-stale-choice'),
+            mediaService: media,
+            voicePromptService: _SilentVoicePromptService(),
+            controller: _LearningAudioDependencies(speech),
+            initialResumeStage: ListeningResumeStage.waitingForChoice,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      speech.commands.partial.add('Học lại');
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 701));
+      await tester.pump();
+      expect(speech.commands.stops, 1);
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      await tester.pump();
+      final resume = registry.execute(ActiveLearningCommand.resume);
+      await tester.pumpAndSettle();
+      expect((await resume).wasHandled, isTrue);
+      expect(speech.commands.commandStarts, 2);
+      gate.complete();
+      await tester.pumpAndSettle();
+      expect(find.byType(LessonIntroScreen), findsNothing);
+      expect(
+        find.byKey(const ValueKey<String>('v4-choice-stop')),
+        findsOneWidget,
+      );
+      expect(
+        store.pendingCompletionChoice,
+        ListeningPendingChoiceStage.lessonEnd,
+      );
+      expect(media.startRecordingCount, 0);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+  testWidgets(
+    'iOS completion permission failure leaves touch choices without recorder fallback',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      await _usePhoneSurface(tester);
+      final store = _MemoryProgressStore()
+        ..completedSentences = 1
+        ..challengeProcessed = true
+        ..pendingCompletionChoice = ListeningPendingChoiceStage.lessonEnd
+        ..resumeStage = ListeningResumeStage.waitingForChoice;
+      final speech = _IosCompletionCommandSpeechInput('Dừng lại')
+        ..failStart = true;
+      addTearDown(speech.dispose);
+      final media = _SilentMediaService();
+      await tester.pumpWidget(
+        _subject(
+          _v4Lesson(),
+          store,
+          const Key('ios-failed-choice'),
+          mediaService: media,
+          voicePromptService: _SilentVoicePromptService(),
+          controller: _LearningAudioDependencies(speech),
+          initialResumeStage: ListeningResumeStage.waitingForChoice,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(speech.commands.commandStarts, 1);
+      expect(media.startRecordingCount, 0);
+      expect(
+        find.byKey(const ValueKey<String>('v4-choice-stop')),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const ValueKey<String>('v4-choice-stop')));
+      await tester.pumpAndSettle();
+      expect(store.pendingCompletionChoice, isNull);
+      expect(store.resumeStage, ListeningResumeStage.completed);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  for (final choice in [('Học lại', 1, true), ('Bài 2', 2, false)]) {
+    testWidgets(
+      'iOS foreground completion "$choice" uses Apple Speech without a second recorder',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        await _usePhoneSurface(tester);
+        final lesson = _v4Lesson();
+        final store = _MemoryProgressStore()
+          ..completedSentences = 1
+          ..challengeProcessed = true
+          ..pendingCompletionChoice = ListeningPendingChoiceStage.lessonEnd
+          ..resumeStage = ListeningResumeStage.waitingForChoice;
+        final speech = _IosCompletionCommandSpeechInput(choice.$1);
+        addTearDown(speech.dispose);
+        final media = _SilentMediaService();
+        final prompts = _ReadyCueVoicePromptService(() {
+          expect(
+            speech.commands.commandStarts,
+            0,
+            reason: 'iOS drains ting before opening Apple Speech',
+          );
+        });
+        await tester.pumpWidget(
+          _subject(
+            lesson,
+            store,
+            Key('ios-choice-${choice.$2}'),
+            mediaService: media,
+            voicePromptService: prompts,
+            controller: _LearningAudioDependencies(speech),
+            topicContent: ListeningTopicContent(
+              id: 'topic-1',
+              number: 1,
+              titleVi: 'Chủ đề 1',
+              titleEn: 'Topic 1',
+              lessons: [lesson, _v4Lesson(number: 2)],
+            ),
+            initialResumeStage: ListeningResumeStage.waitingForChoice,
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(prompts.readyCues, 1);
+        expect(speech.commands.commandStarts, 1);
+        expect(media.startRecordingCount, 0);
+        speech.commands.partial.add(choice.$1);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 701));
+        await tester.pump();
+        final intro = tester.widget<LessonIntroScreen>(
+          find.byType(LessonIntroScreen),
+        );
+        expect(intro.lesson.number, choice.$2);
+        expect(intro.relearnFromBeginning, choice.$3);
+        expect(speech.commands.stops, 1);
+        expect(store.pendingCompletionChoice, isNull);
+        expect(media.startRecordingCount, 0);
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump();
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    );
+  }
   for (final systemBack in <bool>[false, true]) {
     testWidgets(
       'paused silent lesson exits via ${systemBack ? "system" : "screen"} Back with stalled audio',
@@ -1160,6 +1372,54 @@ class _CompletionCommandSpeechInput
   Future<void> dispose() async {
     await partial.close();
   }
+}
+
+class _IosCompletionCommandSpeechInput extends IOSStreamingSpeechInput {
+  _IosCompletionCommandSpeechInput(String transcript)
+    : commands = _CompletionCommandSpeechInput(transcript),
+      super(eventStream: const Stream<dynamic>.empty());
+  final _CompletionCommandSpeechInput commands;
+  bool failStart = false;
+  Completer<void>? firstStopGate;
+  Completer<void>? firstStartGate;
+  bool firstStartFails = false;
+  @override
+  Stream<double> get amplitudeDbfs => commands.amplitudeDbfs;
+  @override
+  Stream<void> get completed => commands.completed;
+  @override
+  Stream<String> get partialText => commands.partialText;
+  @override
+  Future<void> startCommandRecognition() async {
+    await commands.startCommandRecognition();
+    if (commands.commandStarts == 1) {
+      await firstStartGate?.future;
+      if (firstStartFails) {
+        throw const StreamingSpeechInputException(
+          'Old start failed',
+          code: 'CANCELLED',
+        );
+      }
+    }
+    if (failStart) {
+      throw const StreamingSpeechInputException(
+        'Speech permission denied',
+        code: 'SPEECH_PERMISSION_DENIED',
+      );
+    }
+  }
+
+  @override
+  Future<StreamingSpeechCapture> stop() async {
+    final capture = await commands.stop();
+    if (commands.stops == 1) await firstStopGate?.future;
+    return capture;
+  }
+
+  @override
+  Future<void> cancel() => commands.cancel();
+  @override
+  Future<void> dispose() => commands.dispose();
 }
 
 class _ReadyCueVoicePromptService extends _SilentVoicePromptService

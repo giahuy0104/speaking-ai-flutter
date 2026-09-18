@@ -3,6 +3,7 @@ package com.innotrik.aispeaking
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 
@@ -17,6 +18,21 @@ class MainActivity : FlutterActivity() {
         HomiAndroidRuntime.getOrCreateEngine(applicationContext)
 
     override fun shouldDestroyEngineWithHost(): Boolean = false
+
+    override fun onStart() {
+        super.onStart()
+        HomiAndroidRuntime.setControlForeground(true)
+    }
+
+    override fun onStop() {
+        HomiAndroidRuntime.setControlForeground(false)
+        super.onStop()
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        HomiAndroidRuntime.observeMediaKey(event)
+        return super.dispatchKeyEvent(event)
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         // The shared engine registers plugins and process-scoped bridges once.

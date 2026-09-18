@@ -668,6 +668,40 @@ String _normalizeLessonEnglish(String value) {
       .join(' ');
 }
 
+/// Shared on-device scoring for Core, Challenge and vocabulary practice.
+/// Silence is not an incorrect answer and must not consume an answer retry.
+LessonAttemptOutcome evaluateNativeLessonTranscripts({
+  required String expectedEnglish,
+  required Iterable<String> transcripts,
+  Iterable<String> acceptedVariants = const <String>[],
+  bool requireAllExpectedTokens = false,
+}) {
+  final candidates = transcripts
+      .map((text) => text.trim())
+      .where((text) => text.isNotEmpty)
+      .toSet();
+  if (candidates.isEmpty) return LessonAttemptOutcome.noResponse;
+  return candidates.any(
+        (candidate) => matchesRecognizedLessonEnglish(
+          expectedEnglish,
+          candidate,
+          acceptedVariants: acceptedVariants,
+          requireAllExpectedTokens: requireAllExpectedTokens,
+        ),
+      )
+      ? LessonAttemptOutcome.good
+      : LessonAttemptOutcome.retry;
+}
+
+LessonAttemptOutcome nativeLessonRecognitionFailureOutcome(String? code) =>
+    switch (code) {
+      'NO_SPEECH' ||
+      'NO_RESPONSE' ||
+      'SPEECH_TIMEOUT' ||
+      'AUDIO_TOO_SHORT' => LessonAttemptOutcome.noResponse,
+      _ => LessonAttemptOutcome.unclear,
+    };
+
 /// Performs the encouraging local pass/fail check used after an on-device
 /// recognizer produces an English transcript for a listening lesson.
 ///

@@ -14,6 +14,56 @@ import 'package:http/testing.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  group('shared iOS on-device grading', () {
+    test('silence does not consume an incorrect-answer retry', () {
+      expect(
+        evaluateNativeLessonTranscripts(
+          expectedEnglish: 'K. Kite.',
+          transcripts: const <String>['', '  '],
+        ),
+        LessonAttemptOutcome.noResponse,
+      );
+    });
+
+    test('uses authored alternatives without weakening strict targets', () {
+      expect(
+        evaluateNativeLessonTranscripts(
+          expectedEnglish: 'K. Kite.',
+          transcripts: const <String>['cat', 'kite'],
+          acceptedVariants: const <String>['Kite'],
+          requireAllExpectedTokens: true,
+        ),
+        LessonAttemptOutcome.good,
+      );
+      expect(
+        evaluateNativeLessonTranscripts(
+          expectedEnglish: 'K. Kite.',
+          transcripts: const <String>['kite'],
+          requireAllExpectedTokens: true,
+        ),
+        LessonAttemptOutcome.retry,
+      );
+    });
+
+    test('Apple no-speech and unclear failures remain distinct', () {
+      for (final code in <String>[
+        'NO_SPEECH',
+        'NO_RESPONSE',
+        'SPEECH_TIMEOUT',
+        'AUDIO_TOO_SHORT',
+      ]) {
+        expect(
+          nativeLessonRecognitionFailureOutcome(code),
+          LessonAttemptOutcome.noResponse,
+        );
+      }
+      expect(
+        nativeLessonRecognitionFailureOutcome('SF_SPEECH_RECOGNIZER_FAILED'),
+        LessonAttemptOutcome.unclear,
+      );
+    });
+  });
+
   test('Android recorded recognizer uses the HOMI offline channel', () async {
     const channel = MethodChannel('test.homi-offline-speech');
     MethodCall? receivedCall;

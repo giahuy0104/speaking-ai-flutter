@@ -77,6 +77,6 @@ void main() {
     final combined = {...domain,'screenContexts':contexts.length,
       'rows':[...domain['rows'] as List,...additions]};
     File('$dir/context-domain-audit.json').writeAsStringSync(const JsonEncoder.withIndent('  ').convert(combined));
-    print('Screen contexts: ${contexts.length}; distinct additional outputs: ${additions.length}');
+    stdout.writeln('Screen contexts: ${contexts.length}; distinct additional outputs: ${additions.length}');
   });
 }

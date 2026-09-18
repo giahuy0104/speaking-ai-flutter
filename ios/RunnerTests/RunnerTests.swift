@@ -224,76 +224,99 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(filter.duplicateCount, 1)
   }
 
-  func testH20RemoteMainPolicyOnlyHandlesForegroundH20AudioInteraction() {
+  func testH20RemoteControlsRequireForegroundH20AndAnExplicitContext() {
     XCTAssertTrue(
-      H20RemoteMainPolicy.shouldHandle(
+      H20RemoteControlPolicy.shouldListen(
         applicationIsActive: true,
-        speechCaptureActive: true,
-        hfpRouteActive: false,
-        hfpPortNames: ["H20"]
+        learningActive: true,
+        diagnosticsActive: false,
+        bluetoothPortNames: ["H20"]
       )
     )
     XCTAssertFalse(
-      H20RemoteMainPolicy.shouldHandle(
+      H20RemoteControlPolicy.shouldListen(
         applicationIsActive: false,
-        speechCaptureActive: true,
-        hfpRouteActive: false,
-        hfpPortNames: ["H20 Hands-Free"]
+        learningActive: true,
+        diagnosticsActive: true,
+        bluetoothPortNames: ["H20 Hands-Free"]
       )
     )
     XCTAssertFalse(
-      H20RemoteMainPolicy.shouldHandle(
+      H20RemoteControlPolicy.shouldListen(
         applicationIsActive: true,
-        speechCaptureActive: false,
-        hfpRouteActive: false,
-        hfpPortNames: ["H20"]
+        learningActive: false,
+        diagnosticsActive: false,
+        bluetoothPortNames: ["H20"]
       )
     )
     XCTAssertFalse(
-      H20RemoteMainPolicy.shouldHandle(
+      H20RemoteControlPolicy.shouldListen(
         applicationIsActive: true,
-        speechCaptureActive: true,
-        hfpRouteActive: false,
-        hfpPortNames: ["iPhone Microphone"]
+        learningActive: true,
+        diagnosticsActive: true,
+        bluetoothPortNames: ["AirPods Pro"]
       )
     )
     XCTAssertTrue(
-      H20RemoteMainPolicy.shouldHandle(
+      H20RemoteControlPolicy.shouldListen(
         applicationIsActive: true,
-        speechCaptureActive: false,
-        hfpRouteActive: true,
-        hfpPortNames: ["H20 Hands-Free"]
+        learningActive: false,
+        diagnosticsActive: true,
+        bluetoothPortNames: ["H20 Stereo"]
       )
     )
   }
 
-  func testH20RemoteMainPolicyBuildsObservedH20Packet() {
-    let packet = H20RemoteMainPolicy.syntheticPacket(
-      sequence: 0x2A,
-      batteryPercent: 55,
-      uptimeMilliseconds: 0x1234_5678
-    )
-
-    XCTAssertEqual(packet.count, 12)
-    XCTAssertEqual(Array(packet.prefix(4)), [0x01, 0x01, 0x2A, 0x01])
-    XCTAssertEqual(Array(packet[4 ... 7]), [0xFF, 0xFF, 0x37, 0x00])
-    XCTAssertEqual(Array(packet.suffix(4)), [0x78, 0x56, 0x34, 0x12])
+  func testH20RemoteControlsNeverInventAPhysicalButtonOrBLEPacket() {
+    for command in ["play", "pause", "togglePlayPause", "nextTrack", "previousTrack"] {
+      let event = H20RemoteControlPolicy.observation(
+        command: command,
+        receivedAtEpochMs: 123
+      )
+      XCTAssertEqual(event["type"] as? String, "controlObservation")
+      XCTAssertEqual(event["source"] as? String, "iosRemoteCommand")
+      XCTAssertEqual(event["mediaCommand"] as? String, command)
+      XCTAssertEqual(event["rawPayload"] as? String, command)
+      XCTAssertEqual(event["button"] as? String, "unknown")
+      XCTAssertEqual(event["gesture"] as? String, "unknown")
+      XCTAssertEqual(event["protocol"] as? String, "unknown")
+      XCTAssertEqual(event["receivedAtEpochMs"] as? Int, 123)
+      XCTAssertNil(event["bytes"])
+      XCTAssertNil(event["sequence"])
+    }
   }
 
-  func testH20RemoteAndBleMainShareTheSameDuplicateWindow() {
-    var filter = Aiv0DuplicatePacketFilter()
-    let remotePacket = H20RemoteMainPolicy.syntheticPacket(
-      sequence: 1,
-      batteryPercent: 55,
-      uptimeMilliseconds: 1_000
-    )
+  func testH20BLEDiagnosticsDescribeOnlyObservedMainShort() {
     let blePacket: [UInt8] = [
       0x01, 0x01, 0x19, 0x01, 0x01, 0x00, 0x37, 0x00, 0x10, 0x04, 0x00, 0x00,
     ]
+    let event = H20BleControlObservation.fields(for: blePacket)
+    XCTAssertEqual(event["button"] as? String, "main")
+    XCTAssertEqual(event["gesture"] as? String, "shortPress")
+    XCTAssertEqual(event["protocol"] as? String, "observedV1")
+    XCTAssertEqual(event["sequence"] as? Int, 0x19)
+    XCTAssertEqual(event["rawPayload"] as? String, "01 01 19 01 01 00 37 00 10 04 00 00")
+  }
 
-    XCTAssertFalse(filter.register(bytes: remotePacket, uptimeMilliseconds: 1_000))
-    XCTAssertTrue(filter.register(bytes: blePacket, uptimeMilliseconds: 1_200))
-    XCTAssertFalse(filter.register(bytes: blePacket, uptimeMilliseconds: 1_951))
+  func testH20BLEDiagnosticsKeepDraftAndMalformedPacketsUnknown() {
+    let packets: [[UInt8]] = [
+      [],
+      [0x01, 0x01],
+      [0x01, 0x01, 0x19, 0x02, 0x01, 0x00, 0x37, 0x00, 0x10, 0x04, 0x00, 0x00],
+      [0x01, 0x02, 0x19, 0x01, 0x01, 0x00, 0x37, 0x00, 0x10, 0x04, 0x00, 0x00],
+      [0xA5, 0x01, 0x01, 0x01, 0x01, 0x00, 0x37, 0x00, 0x10, 0x04, 0x00, 0x00],
+    ]
+    for packet in packets {
+      let event = H20BleControlObservation.fields(for: packet)
+      XCTAssertEqual(event["button"] as? String, "unknown")
+      XCTAssertEqual(event["gesture"] as? String, "unknown")
+      XCTAssertEqual(event["protocol"] as? String, "unknown")
+      XCTAssertNil(event["sequence"])
+      XCTAssertEqual(
+        event["rawPayload"] as? String,
+        packet.map { String(format: "%02X", $0) }.joined(separator: " ")
+      )
+    }
   }
 
   func testAiv0ReconnectPolicyCapsBackoffAfterTheFifthAttempt() {
@@ -1030,6 +1053,61 @@ class RunnerTests: XCTestCase {
 
     XCTAssertEqual(try XCTUnwrap(IOSAudioBufferLevel.dbfs(floatBuffer)), -6.02, accuracy: 0.1)
     XCTAssertEqual(try XCTUnwrap(IOSAudioBufferLevel.dbfs(int16Buffer)), -6.02, accuracy: 0.1)
+  }
+
+  func testIOSLessonRecordingFormatKeepsHfpAndPhoneRatesWithPCM16Storage() throws {
+    for rate in [8_000.0, 16_000.0, 48_000.0] {
+      let format = try XCTUnwrap(
+        AVAudioFormat(
+          commonFormat: .pcmFormatFloat32,
+          sampleRate: rate,
+          channels: 1,
+          interleaved: false
+        )
+      )
+      let settings = IOSLessonRecordingFormat.settings(for: format)
+      XCTAssertEqual(settings[AVSampleRateKey] as? Double, rate)
+      XCTAssertEqual(settings[AVNumberOfChannelsKey] as? AVAudioChannelCount, 1)
+      XCTAssertEqual(settings[AVLinearPCMBitDepthKey] as? Int, 16)
+      XCTAssertEqual(settings[AVLinearPCMIsFloatKey] as? Bool, false)
+      XCTAssertEqual(settings[AVLinearPCMIsBigEndianKey] as? Bool, false)
+    }
+  }
+
+  func testIOSLessonRecordingWritesReadablePCM16WavWithoutMutatingASRBuffer() throws {
+    let format = try XCTUnwrap(
+      AVAudioFormat(
+        commonFormat: .pcmFormatFloat32,
+        sampleRate: 48_000,
+        channels: 1,
+        interleaved: false
+      )
+    )
+    let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 480))
+    buffer.frameLength = 480
+    for index in 0..<480 { buffer.floatChannelData?[0][index] = 0.25 }
+    let url = FileManager.default.temporaryDirectory
+      .appendingPathComponent("homi-pcm16-test-\(UUID().uuidString).wav")
+    defer { try? FileManager.default.removeItem(at: url) }
+    var writer: AVAudioFile? = try AVAudioFile(
+      forWriting: url,
+      settings: IOSLessonRecordingFormat.settings(for: format),
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    try writer?.write(from: buffer)
+    writer = nil
+
+    let reader = try AVAudioFile(forReading: url)
+    XCTAssertEqual(reader.fileFormat.commonFormat, .pcmFormatInt16)
+    XCTAssertEqual(reader.fileFormat.sampleRate, 48_000)
+    XCTAssertEqual(reader.length, 480)
+    XCTAssertEqual(try XCTUnwrap(buffer.floatChannelData?[0][0]), 0.25, accuracy: 0.0001)
+    let readBack = try XCTUnwrap(
+      AVAudioPCMBuffer(pcmFormat: reader.processingFormat, frameCapacity: 480)
+    )
+    try reader.read(into: readBack)
+    XCTAssertEqual(try XCTUnwrap(readBack.floatChannelData?[0][0]), 0.25, accuracy: 0.0001)
   }
 
   func testIOSLessonRecordingGainRaisesAndClipsPersistedSamples() throws {

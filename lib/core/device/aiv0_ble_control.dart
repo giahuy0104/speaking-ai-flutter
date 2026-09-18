@@ -17,15 +17,13 @@ enum Aiv0BlePhase {
   error,
 }
 
-/// V1 exposes one application-controlled physical button: MAIN.
-///
-/// Power and volume stay local to the device. Unknown values are retained in
-/// the raw log instead of being interpreted as a retired REPLAY command.
-enum Aiv0Button { main, unknown }
+/// Additional buttons are domain values for simulation, NOT firmware IDs.
+/// The production parser still recognizes only observed MAIN packets.
+enum Aiv0Button { main, unknown, volumeUp, volumeDown, power }
 
 enum Aiv0ButtonGesture { shortPress, longPress, release, unknown }
 
-enum Aiv0AppState { idle, recording, processing, ready, playing, error }
+enum Aiv0AppState { idle, recording, processing, ready, playing, error, paused }
 
 enum Aiv0AppResult {
   accepted,
@@ -106,6 +104,7 @@ class Aiv0ButtonEvent {
     this.isObservedH20Packet = false,
     this.isDraftPacket = false,
     this.isDuplicate = false,
+    this.rawDescription,
   });
 
   final Uint8List rawBytes;
@@ -121,6 +120,7 @@ class Aiv0ButtonEvent {
   final bool isObservedH20Packet;
   final bool isDraftPacket;
   final bool isDuplicate;
+  final String? rawDescription;
 
   /// Whether this notification has enough information to enter the unified
   /// MAIN handler. Observed H20 packets are actionable even while the separate
@@ -521,6 +521,23 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     if (map != null) _updateStatus(map);
   }
 
+  /// Observation only: native adapters must not claim audio focus or infer
+  /// accessory buttons from phone volume/power keys.
+  Future<void> setControlContext({
+    required bool learningActive,
+    required bool diagnosticsActive,
+  }) async {
+    if (!_enabled) return;
+    try {
+      await _methodChannel.invokeMethod<void>('setControlContext', {
+        'learningActive': learningActive,
+        'diagnosticsActive': diagnosticsActive,
+      });
+    } on MissingPluginException {
+      // Older native builds have no media-key observation support.
+    }
+  }
+
   /// Requests the platform Bluetooth permission used by AIV0 before the child
   /// operates the physical MAIN button.
   Future<bool> requestPermissions() async {
@@ -720,6 +737,60 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
 
   void _handleEvent(Object? event) {
     if (event is! Map<Object?, Object?>) return;
+    if (event['type'] == 'controlObservation') {
+      final source = event['source']?.toString();
+      if (source != 'iosRemoteCommand' && source != 'androidMediaKey') return;
+      // Never turn an OS command into an accessory MAIN/Power/Volume guess.
+      // Export only allowlisted command names/numbers, never arbitrary native
+      // diagnostic messages (which may contain speech or credentials).
+      final command = event['mediaCommand']?.toString();
+      const commands = {
+        'play',
+        'pause',
+        'togglePlayPause',
+        'nextTrack',
+        'previousTrack',
+        'stop',
+        'next',
+        'previous',
+        'playPause',
+        'headsetHook',
+        'fastForward',
+        'rewind',
+        'volumeUp',
+        'volumeDown',
+      };
+      final description = <String>[
+        if (commands.contains(command)) 'command=$command',
+        for (final key in [
+          'keyCode',
+          'action',
+          'repeatCount',
+          'holdDurationMs',
+        ])
+          if (event[key] is num) '$key=${(event[key] as num).toInt()}',
+      ].join(' ');
+      _buttonController.add(
+        Aiv0ButtonEvent(
+          rawBytes: Uint8List(0),
+          receivedAt:
+              _dateTimeFromEpochMilliseconds(event['receivedAtEpochMs']) ??
+              DateTime.now(),
+          deviceId: event['deviceId']?.toString(),
+          transportSource: source,
+          gesture: switch (event['gesture']) {
+            'longPress' => Aiv0ButtonGesture.longPress,
+            'release' => Aiv0ButtonGesture.release,
+            _ => Aiv0ButtonGesture.unknown,
+          },
+          rawDescription: description.isEmpty
+              ? 'unknown native command'
+              : description,
+          isDuplicate: event['duplicate'] == true,
+        ),
+      );
+      return;
+    }
     if (event['type'] == 'button') {
       final bytes = (event['bytes'] as List<Object?>? ?? const [])
           .whereType<num>()

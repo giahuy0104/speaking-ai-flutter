@@ -28,76 +28,84 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  testWidgets('opens vocabulary, returns to communication, and opens topics', (
-    tester,
-  ) async {
-    SharedPreferences.setMockInitialValues(<String, Object>{});
-    tester.view.physicalSize = const Size(390, 844);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets(
+    'opens vocabulary, returns to communication, and opens topics',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    final controller = _controller();
-    addTearDown(controller.dispose);
+      final controller = _controller();
+      addTearDown(controller.dispose);
 
-    await tester.pumpWidget(_app(controller));
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(_app(controller));
+      await tester.pumpAndSettle();
 
-    expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
-    expect(
-      find.byKey(const Key('vocabulary-edge-tab')).hitTestable(),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const Key('topic-listening-edge-tab')).hitTestable(),
-      findsOneWidget,
-    );
-    final vocabularyTabRect = tester.getRect(
-      find.byKey(const Key('vocabulary-edge-tab')),
-    );
-    final topicTabRect = tester.getRect(
-      find.byKey(const Key('topic-listening-edge-tab')),
-    );
-    expect(vocabularyTabRect.width, closeTo(50, 0.01));
-    expect(vocabularyTabRect.height, closeTo(176, 0.01));
-    expect(topicTabRect.width, closeTo(50, 0.01));
-    expect(topicTabRect.height, closeTo(176, 0.01));
-    expect(topicTabRect.top - vocabularyTabRect.top, closeTo(18, 0.01));
-    expect(vocabularyTabRect.top, closeTo(844 * 0.27, 0.01));
-    expect(find.byKey(const Key('conversation-bottom-tab')), findsNothing);
-    expect(find.byKey(const Key('main-voice-assistant-button')), findsNothing);
-    expect(find.byKey(const Key('history-bottom-tab')), findsNothing);
-    expect(find.text('Câu tiếng Việt'), findsOneWidget);
-    expect(find.text('Câu tiếng Anh'), findsOneWidget);
-    expect(find.text('Con nói tiếng Việt'), findsNothing);
-    expect(find.text('Mình sẽ giúp nói bằng tiếng Anh'), findsNothing);
-    expect(find.text('Câu bạn nói sẽ hiện ở đây'), findsOneWidget);
-    expect(find.byKey(const Key('topic-listening-shortcut')), findsNothing);
-    expect(find.text('50 chủ đề'), findsNothing);
+      expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
+      expect(
+        find.byKey(const Key('vocabulary-edge-tab')).hitTestable(),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('topic-listening-edge-tab')).hitTestable(),
+        findsOneWidget,
+      );
+      final vocabularyTabRect = tester.getRect(
+        find.byKey(const Key('vocabulary-edge-tab')),
+      );
+      final topicTabRect = tester.getRect(
+        find.byKey(const Key('topic-listening-edge-tab')),
+      );
+      expect(vocabularyTabRect.width, closeTo(50, 0.01));
+      expect(vocabularyTabRect.height, closeTo(176, 0.01));
+      expect(topicTabRect.width, closeTo(50, 0.01));
+      expect(topicTabRect.height, closeTo(176, 0.01));
+      expect(topicTabRect.top - vocabularyTabRect.top, closeTo(18, 0.01));
+      expect(vocabularyTabRect.top, closeTo(844 * 0.27, 0.01));
+      expect(find.byKey(const Key('conversation-bottom-tab')), findsNothing);
+      expect(
+        find.byKey(const Key('main-voice-assistant-button')),
+        findsNothing,
+      );
+      expect(find.byKey(const Key('history-bottom-tab')), findsNothing);
+      expect(find.text('Câu tiếng Việt'), findsOneWidget);
+      expect(find.text('Câu tiếng Anh'), findsOneWidget);
+      expect(find.text('Con nói tiếng Việt'), findsNothing);
+      expect(find.text('Mình sẽ giúp nói bằng tiếng Anh'), findsNothing);
+      expect(find.text('Câu bạn nói sẽ hiện ở đây'), findsOneWidget);
+      expect(find.byKey(const Key('topic-listening-shortcut')), findsNothing);
+      expect(find.text('50 chủ đề'), findsNothing);
 
-    await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
-    await tester.pumpAndSettle();
-    expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
-    expect(
-      find.byKey(const Key('vocabulary-home-back-button')),
-      findsOneWidget,
-    );
-    expect(find.byKey(const Key('search-vocabulary-button')), findsNothing);
-    expect(find.byKey(const Key('vocabulary-landing-homi')), findsOneWidget);
-    expect(find.byKey(const Key('vocabulary-edge-tab')), findsNothing);
-    expect(find.byKey(const Key('topic-listening-edge-tab')), findsNothing);
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
+      expect(
+        find.byKey(const Key('vocabulary-home-back-button')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('search-vocabulary-button')), findsNothing);
+      expect(find.byKey(const Key('vocabulary-landing-homi')), findsOneWidget);
+      expect(find.byKey(const Key('vocabulary-edge-tab')), findsNothing);
+      expect(find.byKey(const Key('topic-listening-edge-tab')), findsNothing);
 
-    await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
-    await tester.pumpAndSettle();
-    expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
+      await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
+      await tester.pumpAndSettle();
+      expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('topic-listening-edge-tab')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 180));
-    expect(find.text('Chủ đề'), findsWidgets);
-    await tester.pumpAndSettle();
-    expect(find.byType(TopicListeningScreen), findsOneWidget);
-  });
+      await tester.tap(find.byKey(const Key('topic-listening-edge-tab')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 180));
+      expect(find.text('Chủ đề'), findsWidgets);
+      await tester.pumpAndSettle();
+      expect(find.byType(TopicListeningScreen), findsOneWidget);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
 
   testWidgets('system Back closes vocabulary detail before leaving the tab', (
     tester,
@@ -368,61 +376,65 @@ void main() {
     debugDefaultTargetPlatformOverride = null;
   });
 
-  testWidgets('opens vocabulary from a recognized voice command', (
-    tester,
-  ) async {
-    SharedPreferences.setMockInitialValues(<String, Object>{});
-    tester.view.physicalSize = const Size(390, 844);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets(
+    'opens vocabulary from a recognized voice command',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    final speechInput = _FakeStreamingSpeechInput();
-    final voiceNavigationController = VoiceNavigationController(
-      speechInput: speechInput,
-      ownsSpeechInput: true,
-    );
-    final controller = _controller();
-    addTearDown(controller.dispose);
-    addTearDown(voiceNavigationController.dispose);
+      final speechInput = _FakeStreamingSpeechInput();
+      final voiceNavigationController = VoiceNavigationController(
+        speechInput: speechInput,
+        ownsSpeechInput: true,
+      );
+      final controller = _controller();
+      addTearDown(controller.dispose);
+      addTearDown(voiceNavigationController.dispose);
 
-    await tester.pumpWidget(
-      _app(
-        controller,
-        voiceNavigationController: voiceNavigationController,
-        listeningContentFuture: AssetListeningContentRepository(
-          bundle: rootBundle,
-        ).load(),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(await voiceNavigationController.activateFromMainButton(), isTrue);
-    final handled = await voiceNavigationController.dispatchRecognizedText(
-      'Con muốn học từ vựng',
-    );
-    await tester.pump();
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        _app(
+          controller,
+          voiceNavigationController: voiceNavigationController,
+          listeningContentFuture: AssetListeningContentRepository(
+            bundle: rootBundle,
+          ).load(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(await voiceNavigationController.activateFromMainButton(), isTrue);
+      final handled = await voiceNavigationController.dispatchRecognizedText(
+        'Con muốn học từ vựng',
+      );
+      await tester.pump();
+      await tester.pumpAndSettle();
 
-    expect(handled, isTrue);
-    expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
-    expect(find.textContaining('Đã nhận lệnh giọng nói'), findsOneWidget);
+      expect(handled, isTrue);
+      expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
+      expect(find.textContaining('Đã nhận lệnh giọng nói'), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('vocabulary-practice-button')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('topic-listening-edge-tab')));
-    await tester.pumpAndSettle();
-    expect(find.byType(TopicListeningScreen), findsOneWidget);
+      await tester.tap(find.byKey(const Key('vocabulary-practice-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('topic-listening-edge-tab')));
+      await tester.pumpAndSettle();
+      expect(find.byType(TopicListeningScreen), findsOneWidget);
 
-    expect(await voiceNavigationController.activateFromMainButton(), isTrue);
-    final returnToVocabulary = voiceNavigationController.dispatchRecognizedText(
-      'Con muốn học từ vựng',
-    );
-    await tester.pumpAndSettle();
+      expect(await voiceNavigationController.activateFromMainButton(), isTrue);
+      final returnToVocabulary = voiceNavigationController
+          .dispatchRecognizedText('Con muốn học từ vựng');
+      await tester.pumpAndSettle();
 
-    expect(await returnToVocabulary, isTrue);
-    expect(find.byType(TopicListeningScreen), findsNothing);
-    expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
-  });
+      expect(await returnToVocabulary, isTrue);
+      expect(find.byType(TopicListeningScreen), findsNothing);
+      expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
 
   testWidgets('starts continuous voice navigation on Android', (tester) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -875,6 +887,10 @@ void main() {
         findsOneWidget,
       );
     },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
   );
 
   testWidgets(
@@ -926,67 +942,76 @@ void main() {
       speakingSessionController.dispose();
       await tester.pumpWidget(const SizedBox.shrink());
     },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
   );
 
-  testWidgets('translation choice enters continuous translation directly', (
-    tester,
-  ) async {
-    SharedPreferences.setMockInitialValues(<String, Object>{});
-    tester.view.physicalSize = const Size(390, 844);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets(
+    'translation choice enters continuous translation directly',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    final speechInput = _FakeStreamingSpeechInput();
-    final speakingSessionController = MainSpeakingSessionController();
-    late final VoiceNavigationController voiceNavigationController;
-    final controller = _controller(
-      streamingSpeechInput: speechInput,
-      beforeRecordingStart: () async {
-        if (speakingSessionController.isActive) return;
-        await voiceNavigationController.pause();
-      },
-    );
-    voiceNavigationController = VoiceNavigationController(
-      speechInput: speechInput,
-      ownsSpeechInput: false,
-    );
-    var didStartContinuousMode = false;
-
-    await tester.pumpWidget(
-      _app(
-        controller,
-        voiceNavigationController: voiceNavigationController,
-        speakingSessionController: speakingSessionController,
-        onMainSpeakingModeStarted: () async {
-          didStartContinuousMode = true;
-          speakingSessionController.enter();
-          await controller.startRecording(
-            noSpeechTimeout: const Duration(seconds: 6),
-            speakNoSpeechPrompt: false,
-          );
+      final speechInput = _FakeStreamingSpeechInput();
+      final speakingSessionController = MainSpeakingSessionController();
+      late final VoiceNavigationController voiceNavigationController;
+      final controller = _controller(
+        streamingSpeechInput: speechInput,
+        beforeRecordingStart: () async {
+          if (speakingSessionController.isActive) return;
+          await voiceNavigationController.pause();
         },
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      voiceNavigationController = VoiceNavigationController(
+        speechInput: speechInput,
+        ownsSpeechInput: false,
+      );
+      var didStartContinuousMode = false;
 
-    expect(await voiceNavigationController.activateFromMainButton(), isTrue);
-    speechInput.emitPartial('Dịch sang tiếng Anh');
-    await tester.pump(const Duration(milliseconds: 700));
-    await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpWidget(
+        _app(
+          controller,
+          voiceNavigationController: voiceNavigationController,
+          speakingSessionController: speakingSessionController,
+          onMainSpeakingModeStarted: () async {
+            didStartContinuousMode = true;
+            speakingSessionController.enter();
+            await controller.startRecording(
+              noSpeechTimeout: const Duration(seconds: 6),
+              speakNoSpeechPrompt: false,
+            );
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
-    expect(didStartContinuousMode, isTrue);
-    expect(controller.isRecording, isTrue);
-    expect(speechInput.cancelCount, 1);
-    expect(speechInput.startCount, 2);
+      expect(await voiceNavigationController.activateFromMainButton(), isTrue);
+      speechInput.emitPartial('Dịch sang tiếng Anh');
+      await tester.pump(const Duration(milliseconds: 700));
+      await tester.pump(const Duration(milliseconds: 500));
 
-    controller.dispose();
-    voiceNavigationController.dispose();
-    speakingSessionController.dispose();
-    await speechInput.dispose();
-    await tester.pumpWidget(const SizedBox.shrink());
-  });
+      expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
+      expect(didStartContinuousMode, isTrue);
+      expect(controller.isRecording, isTrue);
+      expect(speechInput.cancelCount, 1);
+      expect(speechInput.startCount, 2);
+
+      controller.dispose();
+      voiceNavigationController.dispose();
+      speakingSessionController.dispose();
+      await speechInput.dispose();
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
 
   testWidgets(
     'leaving listening waits for the continuous translation microphone handoff',

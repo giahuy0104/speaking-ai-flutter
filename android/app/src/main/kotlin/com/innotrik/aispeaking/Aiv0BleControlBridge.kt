@@ -18,6 +18,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.KeyEvent
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
@@ -54,6 +55,7 @@ class Aiv0BleControlBridge(
     private val runtimePreferences =
         appContext.getSharedPreferences(RUNTIME_PREFERENCES, Context.MODE_PRIVATE)
     private val bufferedButtonEvents = ArrayDeque<Map<String, Any?>>()
+    private val mediaKeyObserver = H20MediaKeyObserver(appContext, ::emitButtonEvent)
 
     private var eventSink: EventChannel.EventSink? = null
     private var phase = "idle"
@@ -103,6 +105,14 @@ class Aiv0BleControlBridge(
             "disconnect" -> disconnect(result)
             "sendAppState" -> sendAppState(call, result)
             "status" -> result.success(snapshot())
+            "setControlContext" -> {
+                mediaKeyObserver.setControlContext(
+                    learningActive = call.argument<Boolean>("learningActive") == true,
+                    diagnosticsActive = call.argument<Boolean>("diagnosticsActive") == true,
+                )
+                result.success(snapshot())
+                emitStatus()
+            }
             "dispose" -> {
                 // The native bridge belongs to the process-scoped HOMI runtime,
                 // not to an individual Dart controller. A screen/controller may
@@ -110,6 +120,7 @@ class Aiv0BleControlBridge(
                 // EventChannel.onCancel detaches the old Dart listener; a later
                 // controller can subscribe again and receive the current state.
                 eventSink = null
+                mediaKeyObserver.setControlContext(false, false)
                 result.success(null)
             }
             else -> result.notImplemented()
@@ -126,6 +137,17 @@ class Aiv0BleControlBridge(
 
     override fun onCancel(arguments: Any?) {
         eventSink = null
+        mediaKeyObserver.setControlContext(false, false)
+    }
+
+    fun observeMediaKey(key: KeyEvent) {
+        // Activity remains non-consuming: phone volume/power behavior is untouched.
+        mediaKeyObserver.observe(key, "activity")
+    }
+
+    fun setControlForeground(foreground: Boolean) {
+        mediaKeyObserver.setForeground(foreground)
+        emitStatus()
     }
 
     private fun initialize(result: MethodChannel.Result) {
@@ -535,7 +557,7 @@ class Aiv0BleControlBridge(
             }
             emitStatus()
             emitButtonEvent(
-                mapOf(
+                H20ControlObservation.bleMetadata(value) + mapOf(
                     "type" to "button",
                     "deviceId" to deviceId,
                     "bytes" to value.map { it.toInt() and 0xFF },
@@ -713,6 +735,7 @@ class Aiv0BleControlBridge(
         "invalidPacketCount" to invalidPacketCount,
         "duplicatePacketCount" to duplicatePacketCount,
         "reconnectCount" to reconnectCount,
+        "mediaKeyObservationActive" to mediaKeyObserver.active,
     )
 
     private fun emitStatus() {
@@ -779,6 +802,7 @@ class Aiv0BleControlBridge(
     fun dispose() {
         if (disposed) return
         disposed = true
+        mediaKeyObserver.dispose()
         shouldReconnect = false
         mainHandler.removeCallbacksAndMessages(null)
         stopScan(complete = false)
@@ -811,10 +835,7 @@ class Aiv0BleControlBridge(
     }
 
     private fun isObservedH20MainPacket(value: ByteArray): Boolean =
-        value.size == 12 &&
-            (value[0].toInt() and 0xFF) == 0x01 &&
-            (value[1].toInt() and 0xFF) == 0x01 &&
-            (value[3].toInt() and 0xFF) == 0x01
+        H20ControlObservation.isObservedMainPacket(value)
 
     private fun ByteArray.toHex(): String = joinToString(" ") {
         (it.toInt() and 0xFF).toString(16).padStart(2, '0').uppercase(Locale.ROOT)

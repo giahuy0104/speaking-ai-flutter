@@ -269,6 +269,8 @@ class ConversationController extends ChangeNotifier
   _onRecognizedSpeechCommand;
   Future<MainButtonActionResult> Function(MainButtonInputEvent event)?
   _mainButtonDispatcher;
+  Future<MainButtonActionResult> Function(Aiv0ButtonEvent event)?
+  _hardwareControlDispatcher;
   final RealtimeFallbackBuffer _realtimeFallbackBuffer;
   final AdaptiveVoiceActivityDetector _voiceActivityDetector =
       AdaptiveVoiceActivityDetector();
@@ -874,6 +876,12 @@ class ConversationController extends ChangeNotifier
     _mainButtonDispatcher = dispatcher;
   }
 
+  void setHardwareControlDispatcher(
+    Future<MainButtonActionResult> Function(Aiv0ButtonEvent event)? dispatcher,
+  ) {
+    _hardwareControlDispatcher = dispatcher;
+  }
+
   /// Opens one HFP route for a hands-free translation session.
   ///
   /// BLE MAIN is an independent best-effort control transport. Some H20/iOS
@@ -1142,8 +1150,45 @@ class ConversationController extends ChangeNotifier
   void _onAiv0ButtonEvent(Aiv0ButtonEvent event) {
     if (_disposed) return;
     _aiv0ButtonEventLog.insert(0, event);
-    if (_aiv0ButtonEventLog.length > 12) {
-      _aiv0ButtonEventLog.removeRange(12, _aiv0ButtonEventLog.length);
+    if (_aiv0ButtonEventLog.length > 80) {
+      _aiv0ButtonEventLog.removeRange(80, _aiv0ButtonEventLog.length);
+    }
+    final hardwareDispatcher = _hardwareControlDispatcher;
+    if (hardwareDispatcher != null) {
+      unawaited(() async {
+        try {
+          final result = await hardwareDispatcher(event);
+          if (_disposed) return;
+          _recordAiv0MainDispatch(
+            '${event.button.name} • ${result.name}',
+            stage: 'CONTROL_DART_DISPATCH_COMPLETED',
+            values: {
+              'source': event.transportSource ?? 'ble',
+              'result': result.name,
+            },
+          );
+          if (event.isActionable) {
+            await _syncAiv0AppState(
+              sequence: event.sequence ?? 0,
+              resultCode: event.isDuplicate
+                  ? Aiv0AppResult.duplicate
+                  : switch (result) {
+                      MainButtonActionResult.accepted => Aiv0AppResult.accepted,
+                      MainButtonActionResult.busy => Aiv0AppResult.busy,
+                      MainButtonActionResult.ignored => Aiv0AppResult.noResult,
+                    },
+            );
+          }
+        } catch (_) {
+          if (!_disposed) {
+            _recordAiv0MainDispatch(
+              'control dispatch failed',
+              stage: 'CONTROL_DART_DISPATCH_ERROR',
+            );
+          }
+        }
+      }());
+      return;
     }
     if (!event.isActionable) {
       _recordAiv0MainDispatch(

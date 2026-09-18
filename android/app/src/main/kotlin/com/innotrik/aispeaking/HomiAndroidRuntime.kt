@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.StatFs
+import android.view.KeyEvent
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineCache
 import io.flutter.embedding.engine.dart.DartExecutor
@@ -62,6 +63,14 @@ object HomiAndroidRuntime {
     fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean =
         bridges?.onActivityResult(requestCode, resultCode, data) == true
 
+    fun observeMediaKey(key: KeyEvent) {
+        bridges?.observeMediaKey(key)
+    }
+
+    fun setControlForeground(foreground: Boolean) {
+        bridges?.setControlForeground(foreground)
+    }
+
     fun onBackgroundSessionStarted(context: Context) {
         getOrCreateEngine(context)
         bridges?.onBackgroundSessionStarted()
@@ -102,6 +111,11 @@ object HomiAndroidRuntime {
 
         fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean =
             backgroundLearningBridge.onActivityResult(requestCode, resultCode, data)
+
+        fun observeMediaKey(key: KeyEvent) = aiv0BleControlBridge.observeMediaKey(key)
+
+        fun setControlForeground(foreground: Boolean) =
+            aiv0BleControlBridge.setControlForeground(foreground)
 
         fun onBackgroundSessionStarted() {
             aiv0BleControlBridge.onBackgroundSessionStarted()

@@ -374,3 +374,53 @@ Một nút vật lý chỉ được đánh dấu hoàn thành khi:
 6. Nếu Android và iOS nhận tín hiệu khác nhau, chỉ adapter native khác nhau;
    intent và nghiệp vụ Flutter vẫn dùng chung.
 
+## 16. Màn hình kiểm thử đã triển khai
+
+Vào **Cài đặt → Điều khiển thiết bị H20** trên Android hoặc iPhone. Kết nối
+audio H20 trong cài đặt Bluetooth của điện thoại và kết nối BLE trong ứng dụng
+trước khi thu bằng chứng. BLE kết nối không đồng nghĩa micro/audio route đã sẵn sàng.
+
+1. Mặc định chỉ quan sát, không thực thi lệnh. Chọn **Thử 8 giây**, rồi thao tác
+   nút thật; xem nguồn, raw, gesture, intent, kết quả và trạng thái trước/sau.
+2. **Đã nhận** chỉ áp dụng cho tín hiệu vật lý đã nhận diện trên nền tảng đang
+   chạy. **Không nhận trong 8 giây** không phải kết luận không hỗ trợ phần cứng.
+3. Các nút mô phỏng dùng dispatcher chung. Muốn chạy vào bài học đang mở, bật
+   **Chạy lệnh thử vào bài đang mở**; có thể dừng ghi âm/chuyển câu/mở trợ lý.
+   Mô phỏng không xác nhận firmware. Thoát màn hình sẽ tắt chế độ thực thi thử.
+4. MAIN LONG chỉ dừng; MAIN SHORT tiếp tục bài đã dừng khi không có lượt trợ lý
+   đang hoạt động. Khi không có bài tạm dừng, MAIN SHORT dùng luồng trợ lý hiện có.
+5. **Sao chép log** xuất tối đa 80 sự kiện trong RAM; không xuất bản ghi, transcript,
+   khóa API hoặc mã thiết bị. Không thay bằng log audio/timeline cũ vì chúng có
+   thể chứa nội dung lời nói. **Xóa log** không xóa tiến độ hay bản ghi bài học.
+
+Hiện chỉ mẫu BLE MAIN SHORT đã quan sát được nhận diện. Các packet lạ và lệnh
+media của hệ điều hành vẫn là UNKNOWN, không tự đổi thành MAIN/Power. iOS không
+còn tạo packet BLE giả từ play/pause. Cần kiểm thử H20 thật riêng trên từng hệ
+điều hành trước khi mở thêm mapping; `AIV0_DRAFT_PROTOCOL_CONFIRMED=false`.
+
+Trong hạng mục iOS bổ sung theo yêu cầu riêng của người dùng, Core/Challenge/
+từ vựng tiếp tục nhận giọng nói và đối chiếu đáp án trên máy. Nếu Apple Speech
+không khởi động được, không tự mở recorder khác để gửi audio lên API chấm.
+Bản ghi luyện tập dùng WAV PCM16 theo sample rate thực của route; dịch/trợ lý
+giữ luồng riêng hiện có. Các thay đổi này không bật API chấm audio mới cho iOS.
+
+Build trên Codemagic: chạy `ios-bootstrap` trước để kiểm tra Swift và RunnerTests,
+sau đó `ios-app-store` khi cần IPA/TestFlight và đã có cấu hình signing/privacy.
+Kiểm thử Flutter trên Windows không thay thế việc build Xcode hoặc kiểm thử H20
+vật lý. Xem thêm `docs/ios-app-store-release.md`.
+
+### Trạng thái kiểm chứng và điều kiện build
+
+- `flutter analyze --no-pub` và kiểm tra ranh giới kiến trúc: đạt.
+- 33 unit test native Android: đạt. Swift/XCTest chưa chạy trên Windows.
+- Các test mới về màn hình Settings, bridge, dispatcher, hủy MAIN và chấm cục bộ
+  iOS đã đạt; vẫn cần điện thoại/H20 thật để xác nhận khả năng phần cứng.
+- Ngày 2026-09-19, người dùng xác nhận giữ native TTS cho câu thiếu audio,
+  không tạo audio mới. Hai ca coverage đã được cập nhật với danh sách chính xác
+  16 câu trong `test/support/approved_assistant_tts_fallbacks.dart`. Không bỏ qua
+  kiểm thử: câu thiếu mới ngoài danh sách vẫn báo lỗi; asset/hash/receipt vẫn
+  được kiểm tra. Test riêng xác minh mỗi câu chỉ phát TTS một lần trên đúng
+  route của Android/iOS. Chi tiết đồng bộ luồng: `docs/ios-feature-parity.md`.
+- Diagnostic cũ ngoài bộ `test/`,
+  `output/apk/recheck-vocabulary-choice_test.dart`, cũng còn hai kỳ vọng ban đầu
+  `choiceRequests == 1` không đạt; chưa sửa hành vi/fixture ngoài phạm vi này.

@@ -97,6 +97,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   bool _loading = true;
   bool _busy = false;
   bool _recording = false;
+  bool _capturePending = false;
   bool _paused = false;
   bool _pausedAfterNoResponse = false;
   bool _completed = false;
@@ -174,7 +175,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     if (_activeRegistry != null && _activeRegistration != null) {
       _activeRegistry!.unregister(_activeRegistration!);
     }
-    if (!_exiting && _recording) {
+    if (!_exiting && (_recording || _capturePending)) {
       if (_usesIosNativeRecognition) {
         unawaited(_iosSpeechInput!.cancel());
       } else {
@@ -372,8 +373,11 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
           sentenceNumber: _index + 1,
           extension: 'wav',
         );
+        if (!_isCurrent(generation, entry.id)) return;
+        _capturePending = true;
         await _iosSpeechInput!.startLessonEnglishRecognitionWithRecording(path);
       } else {
+        _capturePending = true;
         await widget.mediaService.startRecording(
           lessonId: _recordingLessonId,
           sentenceNumber: _index + 1,
@@ -389,7 +393,9 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         );
       }
       if (!_isCurrent(generation, entry.id)) {
-        await _cancelCapture();
+        // MAIN/Back already cancelled this native turn. A late cancellation
+        // here could stop the newer owner of the shared Apple Speech engine.
+        if (!_usesIosNativeRecognition) await _cancelCapture();
         return;
       }
       if (!cueBeforeStart && _voicePromptService is SpeechReadyCuePlayer) {
@@ -397,11 +403,12 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
             .playSpeechReadyCue();
       }
       if (!_isCurrent(generation, entry.id)) {
-        await _cancelCapture();
+        if (!_usesIosNativeRecognition) await _cancelCapture();
         return;
       }
       setState(() {
         _recording = true;
+        _capturePending = false;
         _busy = false;
         _message = 'Đến lượt bạn.';
       });
@@ -420,6 +427,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       if (!_isCurrent(generation, entry.id)) return;
       setState(() {
         _recording = false;
+        _capturePending = false;
         _busy = false;
         _message = _friendlyError(error);
       });
@@ -435,6 +443,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     final entry = _entry;
     setState(() {
       _recording = false;
+      _capturePending = true;
       _busy = true;
       _message = 'HOMI đang nghe lại…';
     });
@@ -445,6 +454,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       }
       final recording = await widget.mediaService.stopRecording();
       if (!_isCurrent(generation, entry.id)) return;
+      _capturePending = false;
       final outcome = await _attemptEvaluator.evaluate(
         lessonCode: _recordingLessonId,
         sentenceId: entry.id,
@@ -466,6 +476,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     } catch (error) {
       if (!_isCurrent(generation, entry.id)) return;
       setState(() {
+        _capturePending = false;
         _busy = false;
         _message = _friendlyError(error);
       });
@@ -480,24 +491,22 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     String? recordingPath;
     try {
       final capture = await _iosSpeechInput!.stop();
+      if (!_isCurrent(generation, entry.id)) return;
+      _capturePending = false;
       recordingPath = capture.recordedAudio?.filePath;
-      final candidates = <String>{capture.sourceText, ...capture.alternatives};
-      outcome =
-          candidates.any(
-            (candidate) => matchesRecognizedLessonEnglish(
-              entry.word,
-              candidate,
-              acceptedVariants: VocabularyFlowV3.acceptedVariantsFor(entry),
-              requireAllExpectedTokens: false,
-            ),
-          )
-          ? LessonAttemptOutcome.good
-          : LessonAttemptOutcome.retry;
-    } on StreamingSpeechInputException {
+      outcome = evaluateNativeLessonTranscripts(
+        expectedEnglish: entry.word,
+        transcripts: <String>[capture.sourceText, ...capture.alternatives],
+        acceptedVariants: VocabularyFlowV3.acceptedVariantsFor(entry),
+      );
+    } on StreamingSpeechInputException catch (error) {
+      // A stale stop must not consume a newer MAIN/lesson turn's local WAV.
+      if (!_isCurrent(generation, entry.id)) return;
+      _capturePending = false;
       recordingPath = _iosSpeechInput!
           .takeLessonRecordingAudioCapture()
           ?.filePath;
-      outcome = LessonAttemptOutcome.unclear;
+      outcome = nativeLessonRecognitionFailureOutcome(error.code);
     }
     if (!_isCurrent(generation, entry.id)) return;
     await _applyOutcome(
@@ -740,8 +749,9 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       (fixedPrompt as CancellableVocabularyFixedPromptAudioService)
           .cancelPending();
     }
-    final wasRecording = _recording;
+    final wasRecording = _recording || _capturePending;
     _recording = false;
+    _capturePending = false;
     _recordingEndpointDetector.cancel();
     if (mounted) {
       setState(() {
@@ -1364,8 +1374,9 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     _paused = true;
     _generation++;
     _recordingEndpointDetector.cancel();
-    final wasRecording = _recording;
+    final wasRecording = _recording || _capturePending;
     _recording = false;
+    _capturePending = false;
     // Invalidate first, then release each owner independently. Neither native
     // stop nor checkpoint persistence may hold the navigation route hostage.
     for (final operation in <Future<void> Function()>[
