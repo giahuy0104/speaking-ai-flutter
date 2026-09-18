@@ -24,8 +24,8 @@ void main() {
       expect(catalog.groups, hasLength(5));
       expect(topics, hasLength(50));
       expect(lessons, hasLength(109));
-      expect(targets, hasLength(601));
-      expect(challenges, hasLength(601));
+      expect(targets, hasLength(565));
+      expect(challenges, hasLength(565));
       expect(
         topics.every(
           (topic) =>
@@ -133,8 +133,8 @@ void main() {
       final alphabet = lessons.singleWhere(
         (lesson) => lesson.id == 'c35-l1-t01-b01',
       );
-      expect(alphabet.titleVi, 'Các chữ cái từ A đến I');
-      expect(alphabet.titleEn, 'A to I Letters');
+      expect(alphabet.titleVi, 'Các chữ cái từ A đến E');
+      expect(alphabet.titleEn, 'A to E Letters');
       expect(
         alphabet.sentences.every(
           (target) =>
@@ -163,7 +163,7 @@ void main() {
         if (lesson.songTitle != null) lesson.id: lesson.songTitle,
     };
     const expectedSongs = <String, String>{
-      'c35-l1-t02-b02': 'Count with Me',
+      'c35-l1-t02-b03': 'Count with Me',
       'c35-l3-t09-b02': 'What Should I Wear?',
       'c35-l3-t10-b02': 'My Happy Day',
       'c67-l3-t08-b01': "Let's Play Together",

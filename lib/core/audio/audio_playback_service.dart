@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 
 import 'audio_gain.dart';
+import 'audio_diagnostics.dart';
 import 'audio_turn_coordinator.dart';
 import 'browser_audio_playback.dart';
 import 'browser_audio_playback_factory.dart';
@@ -120,6 +122,9 @@ class JustAudioPlaybackService
   static const MethodChannel _backgroundLearningChannel = MethodChannel(
     'ailingo_background_learning',
   );
+  static const MethodChannel _levelChannel = MethodChannel(
+    'ailingo_voice_prompt',
+  );
   // A modest boost makes speech clearer on small speakers and HFP headsets
   // without pushing typical voice recordings into heavy clipping.
   static const double androidPlaybackGainDb = androidSpeechBoostDb;
@@ -211,17 +216,72 @@ class JustAudioPlaybackService
   int _preloadRevision = 0;
   bool _communicationRouteActive = false;
   double _playbackRate = 1.0;
+  double _fallbackGainDb = androidPlaybackGainDb;
   _PlaybackRequest? _playbackRequest;
   bool _disposed = false;
 
   @override
   Future<void> setPlaybackGainDb(double gainDb) async {
+    _fallbackGainDb = gainDb.clamp(0.0, androidMaxPlaybackGainDb).toDouble();
+    AudioDiagnostics.event('media.gain.request', {
+      'owner': _audioTurnOwner.name,
+      'gainDb': gainDb,
+    });
     final enhancer = _androidLoudnessEnhancer;
     if (enhancer == null) return;
     await enhancer.setTargetGain(
       gainDb.clamp(0.0, androidMaxPlaybackGainDb).toDouble(),
     );
     await enhancer.setEnabled(true);
+  }
+
+  Future<double?> _measurePlaybackGain(Uri uri) async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return null;
+    final Map<String, Object?> arguments;
+    if (uri.isScheme('file')) {
+      arguments = {'path': uri.toFilePath()};
+    } else if (uri.isScheme('asset')) {
+      arguments = {'asset': uri.path.replaceFirst(RegExp(r'^/'), '')};
+    } else {
+      return null; // Never add a blocking network download to playback.
+    }
+    try {
+      final result = await _levelChannel
+          .invokeMapMethod<String, Object?>('analyzePlaybackLevel', arguments)
+          .timeout(const Duration(milliseconds: 450));
+      final gain = (result?['gainDb'] as num?)?.toDouble();
+      return gain != null && gain.isFinite
+          ? gain.clamp(-96.0, androidMaxPlaybackGainDb).toDouble()
+          : null;
+    } on MissingPluginException {
+      return null;
+    } on PlatformException {
+      return null;
+    } on TimeoutException {
+      return null;
+    }
+  }
+
+  Future<void> _applySourceLevel(Uri uri, _PlaybackRequest request) async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+    // Metering does not mutate the player. Cancelling this wait lets the next
+    // queued source start immediately; a late meter response cannot apply gain.
+    final measuredGain = await request.wait(_measurePlaybackGain(uri));
+    _requireCurrentPlayback(request);
+    final gain = measuredGain ?? _fallbackGainDb;
+    // Reset attenuation even if this source cannot be measured, including
+    // injected players without an Android effect pipeline.
+    await _player.setVolume(
+      math.pow(10.0, math.min(gain, 0.0) / 20.0).toDouble(),
+    );
+    _requireCurrentPlayback(request);
+    await _androidLoudnessEnhancer?.setTargetGain(math.max(gain, 0.0));
+    _requireCurrentPlayback(request);
+    AudioDiagnostics.event('media.level.applied', {
+      'owner': _audioTurnOwner.name,
+      'gainDb': gain,
+      'measured': measuredGain != null,
+    });
   }
 
   @override
@@ -588,6 +648,9 @@ class JustAudioPlaybackService
     if (_disposed || cachedUri == null || revision != _preloadRevision) {
       return;
     }
+    unawaited(
+      _measurePlaybackGain(cachedUri),
+    ); // Warm the native bounded meter cache.
     await _queueSource(() async {
       if (_disposed ||
           revision != _preloadRevision ||
@@ -605,6 +668,11 @@ class JustAudioPlaybackService
 
   @override
   Future<PlaybackStartMetrics> play(Uri uri) async {
+    AudioDiagnostics.event('media.play.request', {
+      'owner': _audioTurnOwner.name,
+      'communicationRoute': _communicationRouteActive,
+      'scheme': uri.scheme,
+    });
     if (_disposed) throw const PlaybackException('Lượt phát âm thanh đã dừng.');
     _playbackRequest?.cancel();
     final request = _PlaybackRequest(_communicationRouteActive);
@@ -612,7 +680,12 @@ class JustAudioPlaybackService
     try {
       await _acquireAudioTurn(request);
       _requireCurrentPlayback(request);
-      return await _playWithoutTurnCoordination(uri, request);
+      final metrics = await _playWithoutTurnCoordination(uri, request);
+      AudioDiagnostics.event('media.play.started', {
+        'owner': _audioTurnOwner.name,
+        'startDelayMs': metrics.startedAfterRequest.inMilliseconds,
+      });
+      return metrics;
     } catch (_) {
       // An older failed/cancelled start cannot release the next clip's lease.
       if (identical(_playbackRequest, request)) {
@@ -706,6 +779,10 @@ class JustAudioPlaybackService
     );
     _requireCurrentPlayback(request);
     final loadedAt = DateTime.now();
+    await request.wait(
+      _queueSource(() => _applySourceLevel(resolvedUri, request)),
+    );
+    _requireCurrentPlayback(request);
     assert(() {
       debugPrint(
         'Audio source ready for $uri after '

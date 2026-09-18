@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "4.0",
+  "contentVersion": "4.2",
   "source": "AIV0_HOMI_Spec_Thiet_ke_noi_dung_hoc_tap_IT_V4_FINAL_BAN_TIENg_VIET.txt",
   "entries": [
     {
@@ -13,9 +13,10 @@
       "vietnamese": "Quả táo.",
       "normalized": "a apple",
       "acceptedVariants": [
-        "A. Apple."
+        "A. Apple.",
+        "Apple."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
       "id": "C35-L1-T01-B01-T02",
@@ -27,9 +28,10 @@
       "vietnamese": "Quả bóng.",
       "normalized": "b ball",
       "acceptedVariants": [
-        "B. Ball."
+        "B. Ball.",
+        "Ball."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
       "id": "C35-L1-T01-B01-T03",
@@ -41,9 +43,10 @@
       "vietnamese": "Con mèo.",
       "normalized": "c cat",
       "acceptedVariants": [
-        "C. Cat."
+        "C. Cat.",
+        "Cat."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
       "id": "C35-L1-T01-B01-T04",
@@ -55,9 +58,10 @@
       "vietnamese": "Con chó.",
       "normalized": "d dog",
       "acceptedVariants": [
-        "D. Dog."
+        "D. Dog.",
+        "Dog."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
       "id": "C35-L1-T01-B01-T05",
@@ -69,65 +73,70 @@
       "vietnamese": "Quả trứng.",
       "normalized": "e egg",
       "acceptedVariants": [
-        "E. Egg."
+        "E. Egg.",
+        "Egg."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
       "id": "C35-L1-T01-B01-T06",
       "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B01",
+      "lessonCode": "C35-L1-T01-B02",
       "topicNumber": 1,
       "course": "3-5",
       "english": "F. Fish.",
       "vietnamese": "Con cá.",
       "normalized": "f fish",
       "acceptedVariants": [
-        "F. Fish."
+        "F. Fish.",
+        "Fish."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
       "id": "C35-L1-T01-B01-T07",
       "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B01",
+      "lessonCode": "C35-L1-T01-B02",
       "topicNumber": 1,
       "course": "3-5",
       "english": "G. Grape.",
       "vietnamese": "Quả nho.",
       "normalized": "g grape",
       "acceptedVariants": [
-        "G. Grape."
+        "G. Grape.",
+        "Grape."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
       "id": "C35-L1-T01-B01-T08",
       "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B01",
+      "lessonCode": "C35-L1-T01-B02",
       "topicNumber": 1,
       "course": "3-5",
       "english": "H. Hat.",
       "vietnamese": "Cái mũ.",
       "normalized": "h hat",
       "acceptedVariants": [
-        "H. Hat."
+        "H. Hat.",
+        "Hat."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
       "id": "C35-L1-T01-B01-T09",
       "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B01",
+      "lessonCode": "C35-L1-T01-B02",
       "topicNumber": 1,
       "course": "3-5",
       "english": "I. Ice cream.",
       "vietnamese": "Kem.",
       "normalized": "i ice cream",
       "acceptedVariants": [
-        "I. Ice cream."
+        "I. Ice cream.",
+        "Ice cream."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
       "id": "C35-L1-T01-B02-T01",
@@ -139,233 +148,10 @@
       "vietnamese": "Nước ép.",
       "normalized": "j juice",
       "acceptedVariants": [
-        "J. Juice."
+        "J. Juice.",
+        "Juice."
       ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C35-L1-T01-B02-T02",
-      "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B02",
-      "topicNumber": 1,
-      "course": "3-5",
-      "english": "K. Kite.",
-      "vietnamese": "Cái diều.",
-      "normalized": "k kite",
-      "acceptedVariants": [
-        "K. Kite."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C35-L1-T01-B02-T03",
-      "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B02",
-      "topicNumber": 1,
-      "course": "3-5",
-      "english": "L. Lion.",
-      "vietnamese": "Con sư tử.",
-      "normalized": "l lion",
-      "acceptedVariants": [
-        "L. Lion."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C35-L1-T01-B02-T04",
-      "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B02",
-      "topicNumber": 1,
-      "course": "3-5",
-      "english": "M. Milk.",
-      "vietnamese": "Sữa.",
-      "normalized": "m milk",
-      "acceptedVariants": [
-        "M. Milk."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C35-L1-T01-B02-T05",
-      "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B02",
-      "topicNumber": 1,
-      "course": "3-5",
-      "english": "N. Nose.",
-      "vietnamese": "Cái mũi.",
-      "normalized": "n nose",
-      "acceptedVariants": [
-        "N. Nose."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C35-L1-T01-B02-T06",
-      "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B02",
-      "topicNumber": 1,
-      "course": "3-5",
-      "english": "O. Orange.",
-      "vietnamese": "Quả cam.",
-      "normalized": "o orange",
-      "acceptedVariants": [
-        "O. Orange."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C35-L1-T01-B02-T07",
-      "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B02",
-      "topicNumber": 1,
-      "course": "3-5",
-      "english": "P. Pig.",
-      "vietnamese": "Con lợn.",
-      "normalized": "p pig",
-      "acceptedVariants": [
-        "P. Pig."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C35-L1-T01-B02-T08",
-      "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B02",
-      "topicNumber": 1,
-      "course": "3-5",
-      "english": "Q. Queen.",
-      "vietnamese": "Nữ hoàng.",
-      "normalized": "q queen",
-      "acceptedVariants": [
-        "Q. Queen."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C35-L1-T01-B02-T09",
-      "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B02",
-      "topicNumber": 1,
-      "course": "3-5",
-      "english": "R. Rabbit.",
-      "vietnamese": "Con thỏ.",
-      "normalized": "r rabbit",
-      "acceptedVariants": [
-        "R. Rabbit."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C35-L1-T01-B03-T01",
-      "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B03",
-      "topicNumber": 1,
-      "course": "3-5",
-      "english": "S. Sun.",
-      "vietnamese": "Mặt trời.",
-      "normalized": "s sun",
-      "acceptedVariants": [
-        "S. Sun."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C35-L1-T01-B03-T02",
-      "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B03",
-      "topicNumber": 1,
-      "course": "3-5",
-      "english": "T. Toy.",
-      "vietnamese": "Đồ chơi.",
-      "normalized": "t toy",
-      "acceptedVariants": [
-        "T. Toy."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C35-L1-T01-B03-T03",
-      "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B03",
-      "topicNumber": 1,
-      "course": "3-5",
-      "english": "U. Umbrella.",
-      "vietnamese": "Cái ô.",
-      "normalized": "u umbrella",
-      "acceptedVariants": [
-        "U. Umbrella."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C35-L1-T01-B03-T04",
-      "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B03",
-      "topicNumber": 1,
-      "course": "3-5",
-      "english": "V. Van.",
-      "vietnamese": "Xe van.",
-      "normalized": "v van",
-      "acceptedVariants": [
-        "V. Van."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C35-L1-T01-B03-T05",
-      "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B03",
-      "topicNumber": 1,
-      "course": "3-5",
-      "english": "W. Water.",
-      "vietnamese": "Nước.",
-      "normalized": "w water",
-      "acceptedVariants": [
-        "W. Water."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C35-L1-T01-B03-T06",
-      "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B03",
-      "topicNumber": 1,
-      "course": "3-5",
-      "english": "X. X-ray.",
-      "vietnamese": "Ảnh X-quang.",
-      "normalized": "x x ray",
-      "acceptedVariants": [
-        "X. X-ray."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C35-L1-T01-B03-T07",
-      "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B03",
-      "topicNumber": 1,
-      "course": "3-5",
-      "english": "Y. Yo-yo.",
-      "vietnamese": "Đồ chơi yo-yo.",
-      "normalized": "y yo yo",
-      "acceptedVariants": [
-        "Y. Yo-yo."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C35-L1-T01-B03-T08",
-      "kind": "coreTarget",
-      "lessonCode": "C35-L1-T01-B03",
-      "topicNumber": 1,
-      "course": "3-5",
-      "english": "Z. Zebra.",
-      "vietnamese": "Ngựa vằn.",
-      "normalized": "z zebra",
-      "acceptedVariants": [
-        "Z. Zebra."
-      ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
       "id": "C35-L1-T02-B01-T01",
@@ -440,7 +226,7 @@
     {
       "id": "C35-L1-T02-B01-T06",
       "kind": "coreTarget",
-      "lessonCode": "C35-L1-T02-B01",
+      "lessonCode": "C35-L1-T02-B02",
       "topicNumber": 2,
       "course": "3-5",
       "english": "Six.",
@@ -454,7 +240,7 @@
     {
       "id": "C35-L1-T02-B01-T07",
       "kind": "coreTarget",
-      "lessonCode": "C35-L1-T02-B01",
+      "lessonCode": "C35-L1-T02-B02",
       "topicNumber": 2,
       "course": "3-5",
       "english": "Seven.",
@@ -468,7 +254,7 @@
     {
       "id": "C35-L1-T02-B01-T08",
       "kind": "coreTarget",
-      "lessonCode": "C35-L1-T02-B01",
+      "lessonCode": "C35-L1-T02-B02",
       "topicNumber": 2,
       "course": "3-5",
       "english": "Eight.",
@@ -482,7 +268,7 @@
     {
       "id": "C35-L1-T02-B01-T09",
       "kind": "coreTarget",
-      "lessonCode": "C35-L1-T02-B01",
+      "lessonCode": "C35-L1-T02-B02",
       "topicNumber": 2,
       "course": "3-5",
       "english": "Nine.",
@@ -496,7 +282,7 @@
     {
       "id": "C35-L1-T02-B01-T10",
       "kind": "coreTarget",
-      "lessonCode": "C35-L1-T02-B01",
+      "lessonCode": "C35-L1-T02-B02",
       "topicNumber": 2,
       "course": "3-5",
       "english": "Ten.",
@@ -510,7 +296,7 @@
     {
       "id": "C35-L1-T02-B02-T01",
       "kind": "coreTarget",
-      "lessonCode": "C35-L1-T02-B02",
+      "lessonCode": "C35-L1-T02-B03",
       "topicNumber": 2,
       "course": "3-5",
       "english": "One clap.",
@@ -524,7 +310,7 @@
     {
       "id": "C35-L1-T02-B02-T02",
       "kind": "coreTarget",
-      "lessonCode": "C35-L1-T02-B02",
+      "lessonCode": "C35-L1-T02-B03",
       "topicNumber": 2,
       "course": "3-5",
       "english": "Two claps.",
@@ -538,7 +324,7 @@
     {
       "id": "C35-L1-T02-B02-T03",
       "kind": "coreTarget",
-      "lessonCode": "C35-L1-T02-B02",
+      "lessonCode": "C35-L1-T02-B03",
       "topicNumber": 2,
       "course": "3-5",
       "english": "Three claps.",
@@ -552,7 +338,7 @@
     {
       "id": "C35-L1-T02-B02-T04",
       "kind": "coreTarget",
-      "lessonCode": "C35-L1-T02-B02",
+      "lessonCode": "C35-L1-T02-B03",
       "topicNumber": 2,
       "course": "3-5",
       "english": "Four claps.",
@@ -566,7 +352,7 @@
     {
       "id": "C35-L1-T02-B02-T05",
       "kind": "coreTarget",
-      "lessonCode": "C35-L1-T02-B02",
+      "lessonCode": "C35-L1-T02-B03",
       "topicNumber": 2,
       "course": "3-5",
       "english": "Five claps.",
@@ -1687,329 +1473,202 @@
       "requiresAllExpectedTokens": false
     },
     {
-      "id": "C67-L1-T01-B01-T01",
+      "id": "C35-L1-T01-B02-T02",
       "kind": "coreTarget",
       "lessonCode": "C67-L1-T01-B01",
       "topicNumber": 1,
       "course": "6-7",
-      "english": "A. Ant.",
-      "vietnamese": "Con kiến.",
-      "normalized": "a ant",
+      "english": "K. Kite.",
+      "vietnamese": "Cái diều.",
+      "normalized": "k kite",
       "acceptedVariants": [
-        "A. Ant."
+        "K. Kite.",
+        "Kite."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
-      "id": "C67-L1-T01-B01-T02",
+      "id": "C35-L1-T01-B02-T03",
       "kind": "coreTarget",
       "lessonCode": "C67-L1-T01-B01",
       "topicNumber": 1,
       "course": "6-7",
-      "english": "B. Book.",
-      "vietnamese": "Quyển sách.",
-      "normalized": "b book",
+      "english": "L. Lion.",
+      "vietnamese": "Con sư tử.",
+      "normalized": "l lion",
       "acceptedVariants": [
-        "B. Book."
+        "L. Lion.",
+        "Lion."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
-      "id": "C67-L1-T01-B01-T03",
+      "id": "C35-L1-T01-B02-T04",
       "kind": "coreTarget",
       "lessonCode": "C67-L1-T01-B01",
       "topicNumber": 1,
       "course": "6-7",
-      "english": "C. Cake.",
-      "vietnamese": "Bánh ngọt.",
-      "normalized": "c cake",
+      "english": "M. Milk.",
+      "vietnamese": "Sữa.",
+      "normalized": "m milk",
       "acceptedVariants": [
-        "C. Cake."
+        "M. Milk.",
+        "Milk."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
-      "id": "C67-L1-T01-B01-T04",
+      "id": "C35-L1-T01-B02-T05",
       "kind": "coreTarget",
       "lessonCode": "C67-L1-T01-B01",
       "topicNumber": 1,
       "course": "6-7",
-      "english": "D. Desk.",
-      "vietnamese": "Bàn học.",
-      "normalized": "d desk",
+      "english": "N. Nose.",
+      "vietnamese": "Cái mũi.",
+      "normalized": "n nose",
       "acceptedVariants": [
-        "D. Desk."
+        "N. Nose.",
+        "Nose."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
-      "id": "C67-L1-T01-B01-T05",
+      "id": "C35-L1-T01-B02-T06",
       "kind": "coreTarget",
       "lessonCode": "C67-L1-T01-B01",
       "topicNumber": 1,
       "course": "6-7",
-      "english": "E. Elephant.",
-      "vietnamese": "Con voi.",
-      "normalized": "e elephant",
+      "english": "O. Orange.",
+      "vietnamese": "Quả cam.",
+      "normalized": "o orange",
       "acceptedVariants": [
-        "E. Elephant."
+        "O. Orange.",
+        "Orange."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
-      "id": "C67-L1-T01-B01-T06",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T01-B01",
-      "topicNumber": 1,
-      "course": "6-7",
-      "english": "F. Flower.",
-      "vietnamese": "Bông hoa.",
-      "normalized": "f flower",
-      "acceptedVariants": [
-        "F. Flower."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C67-L1-T01-B01-T07",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T01-B01",
-      "topicNumber": 1,
-      "course": "6-7",
-      "english": "G. Game.",
-      "vietnamese": "Trò chơi.",
-      "normalized": "g game",
-      "acceptedVariants": [
-        "G. Game."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C67-L1-T01-B01-T08",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T01-B01",
-      "topicNumber": 1,
-      "course": "6-7",
-      "english": "H. House.",
-      "vietnamese": "Ngôi nhà.",
-      "normalized": "h house",
-      "acceptedVariants": [
-        "H. House."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C67-L1-T01-B01-T09",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T01-B01",
-      "topicNumber": 1,
-      "course": "6-7",
-      "english": "I. Insect.",
-      "vietnamese": "Côn trùng.",
-      "normalized": "i insect",
-      "acceptedVariants": [
-        "I. Insect."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C67-L1-T01-B02-T01",
+      "id": "C35-L1-T01-B02-T07",
       "kind": "coreTarget",
       "lessonCode": "C67-L1-T01-B02",
       "topicNumber": 1,
       "course": "6-7",
-      "english": "J. Jacket.",
-      "vietnamese": "Áo khoác.",
-      "normalized": "j jacket",
+      "english": "P. Pig.",
+      "vietnamese": "Con lợn.",
+      "normalized": "p pig",
       "acceptedVariants": [
-        "J. Jacket."
+        "P. Pig.",
+        "Pig."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
-      "id": "C67-L1-T01-B02-T02",
+      "id": "C35-L1-T01-B02-T08",
       "kind": "coreTarget",
       "lessonCode": "C67-L1-T01-B02",
       "topicNumber": 1,
       "course": "6-7",
-      "english": "K. Key.",
-      "vietnamese": "Chìa khóa.",
-      "normalized": "k key",
+      "english": "Q. Queen.",
+      "vietnamese": "Nữ hoàng.",
+      "normalized": "q queen",
       "acceptedVariants": [
-        "K. Key."
+        "Q. Queen.",
+        "Queen."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
-      "id": "C67-L1-T01-B02-T03",
+      "id": "C35-L1-T01-B02-T09",
       "kind": "coreTarget",
       "lessonCode": "C67-L1-T01-B02",
       "topicNumber": 1,
       "course": "6-7",
-      "english": "L. Lamp.",
-      "vietnamese": "Cái đèn.",
-      "normalized": "l lamp",
+      "english": "R. Rabbit.",
+      "vietnamese": "Con thỏ.",
+      "normalized": "r rabbit",
       "acceptedVariants": [
-        "L. Lamp."
+        "R. Rabbit.",
+        "Rabbit."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
-      "id": "C67-L1-T01-B02-T04",
+      "id": "C35-L1-T01-B03-T01",
       "kind": "coreTarget",
       "lessonCode": "C67-L1-T01-B02",
       "topicNumber": 1,
       "course": "6-7",
-      "english": "M. Moon.",
-      "vietnamese": "Mặt trăng.",
-      "normalized": "m moon",
+      "english": "S. Sun.",
+      "vietnamese": "Mặt trời.",
+      "normalized": "s sun",
       "acceptedVariants": [
-        "M. Moon."
+        "S. Sun.",
+        "Sun."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
-      "id": "C67-L1-T01-B02-T05",
+      "id": "C35-L1-T01-B03-T02",
       "kind": "coreTarget",
       "lessonCode": "C67-L1-T01-B02",
       "topicNumber": 1,
       "course": "6-7",
-      "english": "N. Notebook.",
-      "vietnamese": "Quyển vở.",
-      "normalized": "n notebook",
+      "english": "T. Toy.",
+      "vietnamese": "Đồ chơi.",
+      "normalized": "t toy",
       "acceptedVariants": [
-        "N. Notebook."
+        "T. Toy.",
+        "Toy."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
-      "id": "C67-L1-T01-B02-T06",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T01-B02",
-      "topicNumber": 1,
-      "course": "6-7",
-      "english": "O. Octopus.",
-      "vietnamese": "Bạch tuộc.",
-      "normalized": "o octopus",
-      "acceptedVariants": [
-        "O. Octopus."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C67-L1-T01-B02-T07",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T01-B02",
-      "topicNumber": 1,
-      "course": "6-7",
-      "english": "P. Pencil.",
-      "vietnamese": "Bút chì.",
-      "normalized": "p pencil",
-      "acceptedVariants": [
-        "P. Pencil."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C67-L1-T01-B02-T08",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T01-B02",
-      "topicNumber": 1,
-      "course": "6-7",
-      "english": "Q. Quiz.",
-      "vietnamese": "Câu đố.",
-      "normalized": "q quiz",
-      "acceptedVariants": [
-        "Q. Quiz."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C67-L1-T01-B02-T09",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T01-B02",
-      "topicNumber": 1,
-      "course": "6-7",
-      "english": "R. Robot.",
-      "vietnamese": "Rô-bốt.",
-      "normalized": "r robot",
-      "acceptedVariants": [
-        "R. Robot."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C67-L1-T01-B03-T01",
+      "id": "C35-L1-T01-B03-T03",
       "kind": "coreTarget",
       "lessonCode": "C67-L1-T01-B03",
       "topicNumber": 1,
       "course": "6-7",
-      "english": "S. School.",
-      "vietnamese": "Trường học.",
-      "normalized": "s school",
+      "english": "U. Umbrella.",
+      "vietnamese": "Cái ô.",
+      "normalized": "u umbrella",
       "acceptedVariants": [
-        "S. School."
+        "U. Umbrella.",
+        "Umbrella."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
-      "id": "C67-L1-T01-B03-T02",
+      "id": "C35-L1-T01-B03-T04",
       "kind": "coreTarget",
       "lessonCode": "C67-L1-T01-B03",
       "topicNumber": 1,
       "course": "6-7",
-      "english": "T. Table.",
-      "vietnamese": "Cái bàn.",
-      "normalized": "t table",
+      "english": "V. Van.",
+      "vietnamese": "Xe van.",
+      "normalized": "v van",
       "acceptedVariants": [
-        "T. Table."
+        "V. Van.",
+        "Van."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
-      "id": "C67-L1-T01-B03-T03",
+      "id": "C35-L1-T01-B03-T05",
       "kind": "coreTarget",
       "lessonCode": "C67-L1-T01-B03",
       "topicNumber": 1,
       "course": "6-7",
-      "english": "U. Uniform.",
-      "vietnamese": "Đồng phục.",
-      "normalized": "u uniform",
+      "english": "W. Water.",
+      "vietnamese": "Nước.",
+      "normalized": "w water",
       "acceptedVariants": [
-        "U. Uniform."
+        "W. Water.",
+        "Water."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
-      "id": "C67-L1-T01-B03-T04",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T01-B03",
-      "topicNumber": 1,
-      "course": "6-7",
-      "english": "V. Violin.",
-      "vietnamese": "Đàn vi-ô-lông.",
-      "normalized": "v violin",
-      "acceptedVariants": [
-        "V. Violin."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C67-L1-T01-B03-T05",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T01-B03",
-      "topicNumber": 1,
-      "course": "6-7",
-      "english": "W. Window.",
-      "vietnamese": "Cửa sổ.",
-      "normalized": "w window",
-      "acceptedVariants": [
-        "W. Window."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C67-L1-T01-B03-T06",
+      "id": "C35-L1-T01-B03-T06",
       "kind": "coreTarget",
       "lessonCode": "C67-L1-T01-B03",
       "topicNumber": 1,
@@ -2018,182 +1677,45 @@
       "vietnamese": "Ảnh X-quang.",
       "normalized": "x x ray",
       "acceptedVariants": [
-        "X. X-ray."
+        "X. X-ray.",
+        "X-ray."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
-      "id": "C67-L1-T01-B03-T07",
+      "id": "C35-L1-T01-B03-T07",
       "kind": "coreTarget",
       "lessonCode": "C67-L1-T01-B03",
       "topicNumber": 1,
       "course": "6-7",
-      "english": "Y. Yogurt.",
-      "vietnamese": "Sữa chua.",
-      "normalized": "y yogurt",
+      "english": "Y. Yo-yo.",
+      "vietnamese": "Đồ chơi yo-yo.",
+      "normalized": "y yo yo",
       "acceptedVariants": [
-        "Y. Yogurt."
+        "Y. Yo-yo.",
+        "Yo-yo."
       ],
-      "requiresAllExpectedTokens": true
+      "requiresAllExpectedTokens": false
     },
     {
-      "id": "C67-L1-T01-B03-T08",
+      "id": "C35-L1-T01-B03-T08",
       "kind": "coreTarget",
       "lessonCode": "C67-L1-T01-B03",
       "topicNumber": 1,
       "course": "6-7",
-      "english": "Z. Zoo.",
-      "vietnamese": "Sở thú.",
-      "normalized": "z zoo",
+      "english": "Z. Zebra.",
+      "vietnamese": "Ngựa vằn.",
+      "normalized": "z zebra",
       "acceptedVariants": [
-        "Z. Zoo."
-      ],
-      "requiresAllExpectedTokens": true
-    },
-    {
-      "id": "C67-L1-T02-B01-T01",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T02-B01",
-      "topicNumber": 2,
-      "course": "6-7",
-      "english": "One.",
-      "vietnamese": "Một.",
-      "normalized": "one",
-      "acceptedVariants": [
-        "One."
-      ],
-      "requiresAllExpectedTokens": false
-    },
-    {
-      "id": "C67-L1-T02-B01-T02",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T02-B01",
-      "topicNumber": 2,
-      "course": "6-7",
-      "english": "Two.",
-      "vietnamese": "Hai.",
-      "normalized": "two",
-      "acceptedVariants": [
-        "Two."
-      ],
-      "requiresAllExpectedTokens": false
-    },
-    {
-      "id": "C67-L1-T02-B01-T03",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T02-B01",
-      "topicNumber": 2,
-      "course": "6-7",
-      "english": "Three.",
-      "vietnamese": "Ba.",
-      "normalized": "three",
-      "acceptedVariants": [
-        "Three."
-      ],
-      "requiresAllExpectedTokens": false
-    },
-    {
-      "id": "C67-L1-T02-B01-T04",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T02-B01",
-      "topicNumber": 2,
-      "course": "6-7",
-      "english": "Four.",
-      "vietnamese": "Bốn.",
-      "normalized": "four",
-      "acceptedVariants": [
-        "Four."
-      ],
-      "requiresAllExpectedTokens": false
-    },
-    {
-      "id": "C67-L1-T02-B01-T05",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T02-B01",
-      "topicNumber": 2,
-      "course": "6-7",
-      "english": "Five.",
-      "vietnamese": "Năm.",
-      "normalized": "five",
-      "acceptedVariants": [
-        "Five."
-      ],
-      "requiresAllExpectedTokens": false
-    },
-    {
-      "id": "C67-L1-T02-B01-T06",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T02-B01",
-      "topicNumber": 2,
-      "course": "6-7",
-      "english": "Six.",
-      "vietnamese": "Sáu.",
-      "normalized": "six",
-      "acceptedVariants": [
-        "Six."
-      ],
-      "requiresAllExpectedTokens": false
-    },
-    {
-      "id": "C67-L1-T02-B01-T07",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T02-B01",
-      "topicNumber": 2,
-      "course": "6-7",
-      "english": "Seven.",
-      "vietnamese": "Bảy.",
-      "normalized": "seven",
-      "acceptedVariants": [
-        "Seven."
-      ],
-      "requiresAllExpectedTokens": false
-    },
-    {
-      "id": "C67-L1-T02-B01-T08",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T02-B01",
-      "topicNumber": 2,
-      "course": "6-7",
-      "english": "Eight.",
-      "vietnamese": "Tám.",
-      "normalized": "eight",
-      "acceptedVariants": [
-        "Eight."
-      ],
-      "requiresAllExpectedTokens": false
-    },
-    {
-      "id": "C67-L1-T02-B01-T09",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T02-B01",
-      "topicNumber": 2,
-      "course": "6-7",
-      "english": "Nine.",
-      "vietnamese": "Chín.",
-      "normalized": "nine",
-      "acceptedVariants": [
-        "Nine."
-      ],
-      "requiresAllExpectedTokens": false
-    },
-    {
-      "id": "C67-L1-T02-B01-T10",
-      "kind": "coreTarget",
-      "lessonCode": "C67-L1-T02-B01",
-      "topicNumber": 2,
-      "course": "6-7",
-      "english": "Ten.",
-      "vietnamese": "Mười.",
-      "normalized": "ten",
-      "acceptedVariants": [
-        "Ten."
+        "Z. Zebra.",
+        "Zebra."
       ],
       "requiresAllExpectedTokens": false
     },
     {
       "id": "C67-L1-T02-B02-T01",
       "kind": "coreTarget",
-      "lessonCode": "C67-L1-T02-B02",
+      "lessonCode": "C67-L1-T02-B01",
       "topicNumber": 2,
       "course": "6-7",
       "english": "Eleven.",
@@ -2207,7 +1729,7 @@
     {
       "id": "C67-L1-T02-B02-T02",
       "kind": "coreTarget",
-      "lessonCode": "C67-L1-T02-B02",
+      "lessonCode": "C67-L1-T02-B01",
       "topicNumber": 2,
       "course": "6-7",
       "english": "Twelve.",
@@ -2221,7 +1743,7 @@
     {
       "id": "C67-L1-T02-B02-T03",
       "kind": "coreTarget",
-      "lessonCode": "C67-L1-T02-B02",
+      "lessonCode": "C67-L1-T02-B01",
       "topicNumber": 2,
       "course": "6-7",
       "english": "Thirteen.",
@@ -2235,7 +1757,7 @@
     {
       "id": "C67-L1-T02-B02-T04",
       "kind": "coreTarget",
-      "lessonCode": "C67-L1-T02-B02",
+      "lessonCode": "C67-L1-T02-B01",
       "topicNumber": 2,
       "course": "6-7",
       "english": "Fourteen.",
@@ -2249,7 +1771,7 @@
     {
       "id": "C67-L1-T02-B02-T05",
       "kind": "coreTarget",
-      "lessonCode": "C67-L1-T02-B02",
+      "lessonCode": "C67-L1-T02-B01",
       "topicNumber": 2,
       "course": "6-7",
       "english": "Fifteen.",
@@ -8820,7 +8342,6 @@
         "C35-L2-T05-B02-T03",
         "C35-L2-T05-B02-T04",
         "C35-L2-T05-B02-T05",
-        "C67-L1-T01-B01-T01",
         "C67-L2-T06-B02-T04",
         "C67-L3-T10-B02-T02",
         "C810-L1-T02-B02-T03",
@@ -8947,12 +8468,6 @@
       ]
     },
     {
-      "term": "ant",
-      "entryIds": [
-        "C67-L1-T01-B01-T01"
-      ]
-    },
-    {
       "term": "anything",
       "entryIds": [
         "C1315-L3-T08-B02-T03",
@@ -9042,8 +8557,7 @@
     {
       "term": "b",
       "entryIds": [
-        "C35-L1-T01-B01-T02",
-        "C67-L1-T01-B01-T02"
+        "C35-L1-T01-B01-T02"
       ]
     },
     {
@@ -9173,7 +8687,6 @@
     {
       "term": "book",
       "entryIds": [
-        "C67-L1-T01-B01-T02",
         "C67-L2-T05-B01-T02",
         "C67-L3-T07-B01-T01",
         "C67-L3-T07-B02-T01"
@@ -9271,14 +8784,7 @@
     {
       "term": "c",
       "entryIds": [
-        "C35-L1-T01-B01-T03",
-        "C67-L1-T01-B01-T03"
-      ]
-    },
-    {
-      "term": "cake",
-      "entryIds": [
-        "C67-L1-T01-B01-T03"
+        "C35-L1-T01-B01-T03"
       ]
     },
     {
@@ -9539,8 +9045,7 @@
     {
       "term": "d",
       "entryIds": [
-        "C35-L1-T01-B01-T04",
-        "C67-L1-T01-B01-T04"
+        "C35-L1-T01-B01-T04"
       ]
     },
     {
@@ -9582,7 +9087,6 @@
     {
       "term": "desk",
       "entryIds": [
-        "C67-L1-T01-B01-T04",
         "C67-L3-T07-B01-T03"
       ]
     },
@@ -9698,8 +9202,7 @@
     {
       "term": "e",
       "entryIds": [
-        "C35-L1-T01-B01-T05",
-        "C67-L1-T01-B01-T05"
+        "C35-L1-T01-B01-T05"
       ]
     },
     {
@@ -9742,7 +9245,6 @@
       "term": "eight",
       "entryIds": [
         "C35-L1-T02-B01-T08",
-        "C67-L1-T02-B01-T08",
         "C810-L1-T01-B01-T02",
         "C810-L1-T01-B02-T02"
       ]
@@ -9756,7 +9258,6 @@
     {
       "term": "elephant",
       "entryIds": [
-        "C67-L1-T01-B01-T05",
         "C67-L1-T03-B01-T01"
       ]
     },
@@ -9850,8 +9351,7 @@
     {
       "term": "f",
       "entryIds": [
-        "C35-L1-T01-B01-T06",
-        "C67-L1-T01-B01-T06"
+        "C35-L1-T01-B01-T06"
       ]
     },
     {
@@ -9930,15 +9430,8 @@
         "C1315-L3-T07-B02-T05",
         "C35-L1-T02-B01-T05",
         "C35-L1-T02-B02-T05",
-        "C67-L1-T02-B01-T05",
         "C67-L1-T02-B03-T03",
         "C810-L3-T07-B02-T02"
-      ]
-    },
-    {
-      "term": "flower",
-      "entryIds": [
-        "C67-L1-T01-B01-T06"
       ]
     },
     {
@@ -9975,8 +9468,7 @@
       "term": "four",
       "entryIds": [
         "C35-L1-T02-B01-T04",
-        "C35-L1-T02-B02-T04",
-        "C67-L1-T02-B01-T04"
+        "C35-L1-T02-B02-T04"
       ]
     },
     {
@@ -9995,14 +9487,12 @@
     {
       "term": "g",
       "entryIds": [
-        "C35-L1-T01-B01-T07",
-        "C67-L1-T01-B01-T07"
+        "C35-L1-T01-B01-T07"
       ]
     },
     {
       "term": "game",
       "entryIds": [
-        "C67-L1-T01-B01-T07",
         "C67-L3-T08-B02-T05"
       ]
     },
@@ -10069,8 +9559,7 @@
     {
       "term": "h",
       "entryIds": [
-        "C35-L1-T01-B01-T08",
-        "C67-L1-T01-B01-T08"
+        "C35-L1-T01-B01-T08"
       ]
     },
     {
@@ -10178,12 +9667,6 @@
       ]
     },
     {
-      "term": "house",
-      "entryIds": [
-        "C67-L1-T01-B01-T08"
-      ]
-    },
-    {
       "term": "how",
       "entryIds": [
         "C1112-L3-T07-B02-RP02",
@@ -10263,7 +9746,6 @@
         "C1315-L3-T10-B02-T05",
         "C1315-L3-T10-B02-T06",
         "C35-L1-T01-B01-T09",
-        "C67-L1-T01-B01-T09",
         "C67-L2-T04-B02-T01",
         "C67-L2-T04-B02-T02",
         "C67-L2-T04-B02-T04",
@@ -10314,12 +9796,6 @@
         "C810-L1-T02-B02-RP01",
         "C810-L1-T02-B02-T01",
         "C810-L1-T02-B02-T02"
-      ]
-    },
-    {
-      "term": "insect",
-      "entryIds": [
-        "C67-L1-T01-B01-T09"
       ]
     },
     {
@@ -10423,15 +9899,13 @@
     {
       "term": "j",
       "entryIds": [
-        "C35-L1-T01-B02-T01",
-        "C67-L1-T01-B02-T01"
+        "C35-L1-T01-B02-T01"
       ]
     },
     {
       "term": "jacket",
       "entryIds": [
         "C35-L3-T09-B02-T04",
-        "C67-L1-T01-B02-T01",
         "C810-L2-T05-B02-T05"
       ]
     },
@@ -10457,8 +9931,7 @@
     {
       "term": "k",
       "entryIds": [
-        "C35-L1-T01-B02-T02",
-        "C67-L1-T01-B02-T02"
+        "C35-L1-T01-B02-T02"
       ]
     },
     {
@@ -10473,8 +9946,7 @@
     {
       "term": "key",
       "entryIds": [
-        "C1112-L3-T09-B01-T01",
-        "C67-L1-T01-B02-T02"
+        "C1112-L3-T09-B01-T01"
       ]
     },
     {
@@ -10493,14 +9965,7 @@
     {
       "term": "l",
       "entryIds": [
-        "C35-L1-T01-B02-T03",
-        "C67-L1-T01-B02-T03"
-      ]
-    },
-    {
-      "term": "lamp",
-      "entryIds": [
-        "C67-L1-T01-B02-T03"
+        "C35-L1-T01-B02-T03"
       ]
     },
     {
@@ -10642,8 +10107,7 @@
     {
       "term": "m",
       "entryIds": [
-        "C35-L1-T01-B02-T04",
-        "C67-L1-T01-B02-T04"
+        "C35-L1-T01-B02-T04"
       ]
     },
     {
@@ -10748,12 +10212,6 @@
       ]
     },
     {
-      "term": "moon",
-      "entryIds": [
-        "C67-L1-T01-B02-T04"
-      ]
-    },
-    {
       "term": "more",
       "entryIds": [
         "C1315-L1-T02-B01-T03",
@@ -10833,8 +10291,7 @@
     {
       "term": "n",
       "entryIds": [
-        "C35-L1-T01-B02-T05",
-        "C67-L1-T01-B02-T05"
+        "C35-L1-T01-B02-T05"
       ]
     },
     {
@@ -10874,8 +10331,7 @@
     {
       "term": "nine",
       "entryIds": [
-        "C35-L1-T02-B01-T09",
-        "C67-L1-T02-B01-T09"
+        "C35-L1-T02-B01-T09"
       ]
     },
     {
@@ -10933,12 +10389,6 @@
       ]
     },
     {
-      "term": "notebook",
-      "entryIds": [
-        "C67-L1-T01-B02-T05"
-      ]
-    },
-    {
       "term": "notes",
       "entryIds": [
         "C1112-L1-T02-B01-T01",
@@ -10957,15 +10407,8 @@
       "term": "o",
       "entryIds": [
         "C35-L1-T01-B02-T06",
-        "C67-L1-T01-B02-T06",
         "C810-L1-T01-B01-T01",
         "C810-L1-T01-B01-T02"
-      ]
-    },
-    {
-      "term": "octopus",
-      "entryIds": [
-        "C67-L1-T01-B02-T06"
       ]
     },
     {
@@ -11007,7 +10450,6 @@
         "C1315-L3-T09-B02-T06",
         "C35-L1-T02-B01-T01",
         "C35-L1-T02-B02-T01",
-        "C67-L1-T02-B01-T01",
         "C810-L3-T07-B03-T01",
         "C810-L3-T07-B03-T02",
         "C810-L3-T07-B03-T04"
@@ -11041,8 +10483,7 @@
     {
       "term": "p",
       "entryIds": [
-        "C35-L1-T01-B02-T07",
-        "C67-L1-T01-B02-T07"
+        "C35-L1-T01-B02-T07"
       ]
     },
     {
@@ -11083,7 +10524,6 @@
     {
       "term": "pencil",
       "entryIds": [
-        "C67-L1-T01-B02-T07",
         "C67-L2-T05-B01-T03",
         "C67-L3-T07-B01-T02",
         "C67-L3-T07-B02-T02",
@@ -11297,8 +10737,7 @@
     {
       "term": "q",
       "entryIds": [
-        "C35-L1-T01-B02-T08",
-        "C67-L1-T01-B02-T08"
+        "C35-L1-T01-B02-T08"
       ]
     },
     {
@@ -11308,16 +10747,9 @@
       ]
     },
     {
-      "term": "quiz",
-      "entryIds": [
-        "C67-L1-T01-B02-T08"
-      ]
-    },
-    {
       "term": "r",
       "entryIds": [
-        "C35-L1-T01-B02-T09",
-        "C67-L1-T01-B02-T09"
+        "C35-L1-T01-B02-T09"
       ]
     },
     {
@@ -11356,8 +10788,7 @@
     {
       "term": "ray",
       "entryIds": [
-        "C35-L1-T01-B03-T06",
-        "C67-L1-T01-B03-T06"
+        "C35-L1-T01-B03-T06"
       ]
     },
     {
@@ -11456,12 +10887,6 @@
       ]
     },
     {
-      "term": "robot",
-      "entryIds": [
-        "C67-L1-T01-B02-T09"
-      ]
-    },
-    {
       "term": "round",
       "entryIds": [
         "C67-L2-T05-B02-T01",
@@ -11471,8 +10896,7 @@
     {
       "term": "s",
       "entryIds": [
-        "C35-L1-T01-B03-T01",
-        "C67-L1-T01-B03-T01"
+        "C35-L1-T01-B03-T01"
       ]
     },
     {
@@ -11515,7 +10939,6 @@
         "C1315-L1-T01-B01-T01",
         "C1315-L1-T01-B01-T02",
         "C1315-L1-T01-B02-T01",
-        "C67-L1-T01-B03-T01",
         "C67-L3-T09-B01-T01",
         "C67-L3-T09-B02-T01",
         "C810-L1-T01-B01-T04",
@@ -11549,7 +10972,6 @@
       "term": "seven",
       "entryIds": [
         "C35-L1-T02-B01-T07",
-        "C67-L1-T02-B01-T07",
         "C810-L1-T01-B01-T01",
         "C810-L1-T01-B02-T01"
       ]
@@ -11643,8 +11065,7 @@
     {
       "term": "six",
       "entryIds": [
-        "C35-L1-T02-B01-T06",
-        "C67-L1-T02-B01-T06"
+        "C35-L1-T02-B01-T06"
       ]
     },
     {
@@ -11888,14 +11309,7 @@
       "term": "t",
       "entryIds": [
         "C35-L1-T01-B03-T02",
-        "C35-L3-T09-B02-T03",
-        "C67-L1-T01-B03-T02"
-      ]
-    },
-    {
-      "term": "table",
-      "entryIds": [
-        "C67-L1-T01-B03-T02"
+        "C35-L3-T09-B02-T03"
       ]
     },
     {
@@ -11975,7 +11389,6 @@
       "term": "ten",
       "entryIds": [
         "C35-L1-T02-B01-T10",
-        "C67-L1-T02-B01-T10",
         "C67-L1-T02-B03-T04",
         "C810-L3-T07-B02-T03"
       ]
@@ -12102,7 +11515,6 @@
         "C1315-L3-T07-B02-T03",
         "C35-L1-T02-B01-T03",
         "C35-L1-T02-B02-T03",
-        "C67-L1-T02-B01-T03",
         "C67-L1-T02-B03-T02"
       ]
     },
@@ -12248,27 +11660,19 @@
       "entryIds": [
         "C35-L1-T02-B01-T02",
         "C35-L1-T02-B02-T02",
-        "C67-L1-T02-B01-T02",
         "C67-L1-T02-B03-T01"
       ]
     },
     {
       "term": "u",
       "entryIds": [
-        "C35-L1-T01-B03-T03",
-        "C67-L1-T01-B03-T03"
+        "C35-L1-T01-B03-T03"
       ]
     },
     {
       "term": "umbrella",
       "entryIds": [
         "C35-L1-T01-B03-T03"
-      ]
-    },
-    {
-      "term": "uniform",
-      "entryIds": [
-        "C67-L1-T01-B03-T03"
       ]
     },
     {
@@ -12322,8 +11726,7 @@
     {
       "term": "v",
       "entryIds": [
-        "C35-L1-T01-B03-T04",
-        "C67-L1-T01-B03-T04"
+        "C35-L1-T01-B03-T04"
       ]
     },
     {
@@ -12339,12 +11742,6 @@
       ]
     },
     {
-      "term": "violin",
-      "entryIds": [
-        "C67-L1-T01-B03-T04"
-      ]
-    },
-    {
       "term": "visited",
       "entryIds": [
         "C810-L3-T09-B01-T03",
@@ -12354,8 +11751,7 @@
     {
       "term": "w",
       "entryIds": [
-        "C35-L1-T01-B03-T05",
-        "C67-L1-T01-B03-T05"
+        "C35-L1-T01-B03-T05"
       ]
     },
     {
@@ -12515,12 +11911,6 @@
       ]
     },
     {
-      "term": "window",
-      "entryIds": [
-        "C67-L1-T01-B03-T05"
-      ]
-    },
-    {
       "term": "windy",
       "entryIds": [
         "C810-L2-T05-B01-T03"
@@ -12580,15 +11970,13 @@
     {
       "term": "x",
       "entryIds": [
-        "C35-L1-T01-B03-T06",
-        "C67-L1-T01-B03-T06"
+        "C35-L1-T01-B03-T06"
       ]
     },
     {
       "term": "y",
       "entryIds": [
-        "C35-L1-T01-B03-T07",
-        "C67-L1-T01-B03-T07"
+        "C35-L1-T01-B03-T07"
       ]
     },
     {
@@ -12613,12 +12001,6 @@
       "term": "yo",
       "entryIds": [
         "C35-L1-T01-B03-T07"
-      ]
-    },
-    {
-      "term": "yogurt",
-      "entryIds": [
-        "C67-L1-T01-B03-T07"
       ]
     },
     {
@@ -12685,8 +12067,7 @@
     {
       "term": "z",
       "entryIds": [
-        "C35-L1-T01-B03-T08",
-        "C67-L1-T01-B03-T08"
+        "C35-L1-T01-B03-T08"
       ]
     },
     {
@@ -12698,9 +12079,9 @@
     {
       "term": "zoo",
       "entryIds": [
-        "C67-L1-T01-B03-T08",
         "C810-L3-T10-B01-T01"
       ]
     }
-  ]
+  ],
+  "contentPatch": "alphabet-numbers-v42"
 }

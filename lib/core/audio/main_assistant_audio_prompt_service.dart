@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
+import 'audio_diagnostics.dart';
 import 'voice_prompt_service_base.dart';
 
 /// Allowlisted fixed assistant prompts. It is wrapped INSIDE the existing
@@ -26,6 +27,7 @@ class MainAssistantAudioPromptService
     this.assetLoadTimeout = const Duration(milliseconds: 500),
     this.remoteAudioLoadTimeout = const Duration(seconds: 8),
     this.cacheLateRemoteAudio = false,
+    this.preferBundledAudio = false,
     this.additionalManifestAssets = const [],
     this.groupEnabled = const {},
     http.Client? httpClient,
@@ -47,6 +49,7 @@ class MainAssistantAudioPromptService
   final Duration assetLoadTimeout;
   final Duration remoteAudioLoadTimeout;
   final bool cacheLateRemoteAudio;
+  final bool preferBundledAudio;
   final List<String> additionalManifestAssets;
   final Map<String, bool> groupEnabled;
   final http.Client _httpClient;
@@ -57,6 +60,7 @@ class MainAssistantAudioPromptService
   // not download the same short prompt again while holding the headset route.
   final Map<String, Uint8List> _verifiedAudio = {};
   final Map<String, Future<Uint8List>> _remoteAudioLoads = {};
+  final Set<String> _unavailableBundledAudio = {};
   static const _maximumCachedAudioBytes = 4 * 1024 * 1024;
   int _generation = 0;
   bool _disposed = false;
@@ -177,6 +181,8 @@ class MainAssistantAudioPromptService
   }) async {
     if (_disposed) return;
     final generation = _generation;
+    final promptId = AudioDiagnostics.nextId();
+    final loadingWatch = Stopwatch()..start();
     final player = _delegate;
     var startedAudio = false;
     if (enabled && player is AuthoredAudioVoicePromptService) {
@@ -203,8 +209,16 @@ class MainAssistantAudioPromptService
               throw const FormatException('Invalid MAIN audio entry.');
             }
             final checksum = entry['sha256'] as String;
+            final cached = _verifiedAudio[checksum];
+            if (cached != null) {
+              AudioDiagnostics.event('prompt.audio.cache.hit', {
+                'promptId': promptId,
+                'asset': asset,
+              });
+            }
             final bytes =
-                _verifiedAudio[checksum] ?? await _loadAudioBytes(entry, asset);
+                cached ??
+                await _loadAudioBytes(entry, asset, generation, promptId);
             if (!_isCurrent(generation)) return;
             if (bytes.isEmpty ||
                 bytes.length > 2 * 1024 * 1024 ||
@@ -212,6 +226,11 @@ class MainAssistantAudioPromptService
               throw const FormatException('MAIN audio integrity check failed.');
             }
             _rememberVerifiedAudio(checksum, bytes);
+            AudioDiagnostics.event('prompt.audio.loaded', {
+              'promptId': promptId,
+              'asset': asset,
+              'loadMs': loadingWatch.elapsedMilliseconds,
+            });
             startedAudio = true;
             await _bounded(
               (player as AuthoredAudioVoicePromptService)
@@ -229,6 +248,13 @@ class MainAssistantAudioPromptService
         // Cancellation is not a playback failure: never resurrect a stale
         // prompt with TTS after MAIN has stopped or handed over to a lesson.
         if (!_isCurrent(generation)) return;
+        AudioDiagnostics.event('prompt.audio.fallback', {
+          'promptId': promptId,
+          'loadMs': loadingWatch.elapsedMilliseconds,
+          'reason': error is TimeoutException
+              ? 'timeout'
+              : '${error.runtimeType}',
+        });
         if (startedAudio) await _delegate.stop();
         // Losing the selected headset is not a decoder failure. Native route
         // cleanup has closed SCO, so a TTS retry could play on the phone.
@@ -256,12 +282,45 @@ class MainAssistantAudioPromptService
   Future<Uint8List> _loadAudioBytes(
     Map<String, dynamic> entry,
     String asset,
+    int generation,
+    int promptId,
   ) async {
+    // Navigation and vocabulary menus are packaged with the Android app. Use
+    // their verified bytes before trying the optional CDN copy; a network
+    // outage must not add a timeout to each selection. Missing curriculum
+    // files still use the remote/TTS policy below.
+    if (preferBundledAudio && !_unavailableBundledAudio.contains(asset)) {
+      try {
+        final data = await _bounded(_bundle.load(asset), assetLoadTimeout);
+        final bytes = data.buffer.asUint8List(
+          data.offsetInBytes,
+          data.lengthInBytes,
+        );
+        if (bytes.isEmpty ||
+            bytes.length > 2 * 1024 * 1024 ||
+            sha256.convert(bytes).toString() != entry['sha256']) {
+          throw const FormatException('Bundled prompt integrity check failed.');
+        }
+        AudioDiagnostics.event('prompt.audio.bundled', {
+          'promptId': promptId,
+          'asset': asset,
+        });
+        return bytes;
+      } catch (_) {
+        if (!_isCurrent(generation)) rethrow;
+        _unavailableBundledAudio.add(asset);
+      }
+    }
     final remoteValue = entry['url'];
     final remoteUri = remoteValue is String ? Uri.tryParse(remoteValue) : null;
     if (remoteUri != null &&
         remoteUri.isScheme('https') &&
         remoteUri.host == 'res.cloudinary.com') {
+      AudioDiagnostics.event('prompt.audio.remote.wait', {
+        'promptId': promptId,
+        'asset': asset,
+        'timeoutMs': remoteAudioLoadTimeout.inMilliseconds,
+      });
       if (cacheLateRemoteAudio) {
         final checksum = entry['sha256'] as String;
         final download = _remoteAudioLoads.putIfAbsent(
@@ -412,6 +471,7 @@ class MainAssistantAudioPromptService
     await stop();
     _verifiedAudio.clear();
     _remoteAudioLoads.clear();
+    _unavailableBundledAudio.clear();
     if (_ownsHttpClient) _httpClient.close();
     await _delegate.dispose();
   }

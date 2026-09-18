@@ -815,6 +815,7 @@ class HfpAudioBridge(
     }
 
     private fun stopAudioRouteInternal(invalidateRequest: Boolean = true) {
+        AudioDiagnostics.event("hfp.stop.begin", mapOf("generation" to audioRouteRequestGeneration))
         Log.i(TAG, "Stopping HFP route generation=$audioRouteRequestGeneration pending=${pendingAudioRouteResult != null}")
         routeReadiness = null
         routeActive = false
@@ -840,8 +841,10 @@ class HfpAudioBridge(
             run { audioManager.isBluetoothScoOn = false }
         }
         if (audioModeOwned) {
+            AudioDiagnostics.event("hfp.stop.restore_mode.begin")
             audioManager.mode = previousAudioMode
             audioModeOwned = false
+            AudioDiagnostics.event("hfp.stop.restore_mode.end")
         }
         routeActive = false
         if (selectedDevice != null && isHeadsetConnected(selectedDevice!!)) {
@@ -852,6 +855,7 @@ class HfpAudioBridge(
             statusMessage = null
         }
         emitStatus()
+        AudioDiagnostics.event("hfp.stop.completed", mapOf("generation" to audioRouteRequestGeneration))
     }
 
     private fun refreshSelectedDeviceStatus() {

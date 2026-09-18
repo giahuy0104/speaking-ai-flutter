@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../../core/audio/audio_diagnostics.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -956,6 +957,14 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   void _showVocabulary() {
+    AudioDiagnostics.event('screen.vocabulary.activate');
+    if (AudioDiagnostics.enabled) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          AudioDiagnostics.event('screen.vocabulary.activation_frame');
+        }
+      });
+    }
     _vocabularyActivationController.activate();
     if (_page != 1 && mounted) {
       setState(() => _page = 1);

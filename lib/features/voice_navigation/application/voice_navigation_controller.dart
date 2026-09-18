@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../../../core/audio/streaming_speech_input.dart';
+import '../../../core/audio/audio_diagnostics.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/active_learning_module.dart';
 import '../../listening/domain/listening_content.dart';
@@ -75,6 +76,12 @@ class VoiceNavigationController extends ChangeNotifier {
     _speechActivitySubscription = activityInput?.speechStarted.listen((_) {
       _markSpeechActivity();
     });
+    final endpointInput = _speechInput is CommandSpeechEndpointInput
+        ? _speechInput as CommandSpeechEndpointInput
+        : null;
+    _speechEndpointSubscription = endpointInput?.commandSpeechEnded.listen(
+      _handleCommandSpeechEnded,
+    );
     final alternativeInput =
         _speechInput is AlternativeTranscriptStreamingSpeechInput
         ? _speechInput as AlternativeTranscriptStreamingSpeechInput
@@ -110,6 +117,7 @@ class VoiceNavigationController extends ChangeNotifier {
   StreamSubscription<String>? _partialTextSubscription;
   StreamSubscription<double>? _amplitudeSubscription;
   StreamSubscription<void>? _speechActivitySubscription;
+  StreamSubscription<String>? _speechEndpointSubscription;
   StreamSubscription<List<String>>? _alternativeTextSubscription;
   Timer? _restartTimer;
   Timer? _noSpeechTimer;
@@ -467,12 +475,22 @@ class VoiceNavigationController extends ChangeNotifier {
     String recognizedText,
     int generation,
   ) async {
+    AudioDiagnostics.event('main.command.received', {
+      'generation': generation,
+      'characters': recognizedText.length,
+    });
     _commandWindowTimer?.cancel();
     _commandWindowTimer = null;
     _awaitingCommand = false;
     notifyListeners();
 
     final turn = await _mainAssistantFlow.handle(recognizedText);
+    AudioDiagnostics.event('main.command.resolved', {
+      'generation': generation,
+      'destination': (turn.navigationAfterPrompt ?? turn.navigationBeforePrompt)
+          ?.destination
+          .name,
+    });
     // A valid transcript starts a new response window at the resulting node.
     _mainNoSpeechRetryCount = 0;
     if (_disposed || generation != _generation || !_buttonCommandSession) {
@@ -521,7 +539,11 @@ class VoiceNavigationController extends ChangeNotifier {
       return true;
     }
 
+    AudioDiagnostics.event('main.handoff.request', {'generation': generation});
     await _suspendForExternalSpeechHandoff();
+    AudioDiagnostics.event('main.handoff.completed', {
+      'generation': generation,
+    });
     if (_disposed || generation != _generation) {
       return false;
     }
@@ -535,10 +557,16 @@ class VoiceNavigationController extends ChangeNotifier {
     // The MAIN controller is the sole owner of the native turn. Apple Speech
     // may start, stop, or be replaced several times while the assistant asks
     // follow-up questions, so recognition callbacks must not release HFP/BLE.
+    AudioDiagnostics.event('main.native_end.request', {
+      'generation': generation,
+    });
     await _endNativeMainTurn(
       'main_assistant_completed',
       generation: generation,
     );
+    AudioDiagnostics.event('main.native_end.completed', {
+      'generation': generation,
+    });
     final activeLearningCommand = turn.activeLearningCommand;
     if (activeLearningCommand != null) {
       final handler = _activeLearningCommandHandler;
@@ -607,6 +635,10 @@ class VoiceNavigationController extends ChangeNotifier {
               ]
             : promptSequence;
         for (final utterance in utterances) {
+          AudioDiagnostics.event('main.prompt.prepare', {
+            'generation': generation,
+            'characters': utterance.text.length,
+          });
           if (_disposed || generation != _generation) {
             return false;
           }
@@ -622,6 +654,10 @@ class VoiceNavigationController extends ChangeNotifier {
                     )
               : null;
           if (_disposed || generation != _generation) return false;
+          AudioDiagnostics.event('main.prompt.budget_ready', {
+            'generation': generation,
+            'budgetMs': budget?.inMilliseconds,
+          });
           if (!kIsWeb &&
               promptService is SelectedMediaOutputVoicePromptService &&
               _prepareSelectedOutput != null &&
@@ -643,12 +679,18 @@ class VoiceNavigationController extends ChangeNotifier {
           await promptPlayback.timeout(
             budget ?? _voicePromptTimeout,
             onTimeout: () async {
+              AudioDiagnostics.event('main.prompt.timeout', {
+                'generation': generation,
+              });
               if (!_disposed && generation == _generation) {
                 await _boundedCleanup(promptService.stop());
               }
               throw TimeoutException('MAIN prompt playback did not finish.');
             },
           );
+          AudioDiagnostics.event('main.prompt.completed', {
+            'generation': generation,
+          });
         }
       }
     } catch (error) {
@@ -674,9 +716,15 @@ class VoiceNavigationController extends ChangeNotifier {
     }
     try {
       final readyCuePlayer = _voicePromptService;
-      if ((defaultTargetPlatform != TargetPlatform.android ||
-              !_buttonCommandSession) &&
+      // Android owns the cue only in _startSession, after speech.ready.
+      // Playing here as well can double the cue in a continuous wake turn.
+      if (defaultTargetPlatform != TargetPlatform.android &&
           readyCuePlayer is SpeechReadyCuePlayer) {
+        AudioDiagnostics.event('main.cue.request', {
+          'generation': generation,
+          'caller': 'acknowledge',
+          'buttonSession': _buttonCommandSession,
+        });
         // AudioServices completion is not guaranteed to arrive promptly while
         // iOS is switching a Bluetooth HFP route after prompt playback. Never
         // let a missing ready-cue callback prevent Apple Speech from opening.
@@ -822,7 +870,15 @@ class VoiceNavigationController extends ChangeNotifier {
     if (handler == null || _disposed) {
       return false;
     }
+    AudioDiagnostics.event('navigation.dispatch', {
+      'generation': _generation,
+      'destination': intent.destination.name,
+    });
     await handler(intent);
+    AudioDiagnostics.event('navigation.handler.completed', {
+      'generation': _generation,
+      'destination': intent.destination.name,
+    });
     return true;
   }
 
@@ -869,6 +925,9 @@ class VoiceNavigationController extends ChangeNotifier {
           ? _speechInput as NativeSpeechDiagnostics
           : null;
       diagnostics?.reportNativeSpeechStage('microphone_start_requested');
+      AudioDiagnostics.event('main.microphone.start', {
+        'generation': generation,
+      });
       final startOperation = commandInput != null
           ? commandInput.startCommandRecognition()
           : _speechInput.start();
@@ -896,6 +955,11 @@ class VoiceNavigationController extends ChangeNotifier {
           _awaitingCommand &&
           _voicePromptService is SpeechReadyCuePlayer) {
         try {
+          AudioDiagnostics.event('main.cue.request', {
+            'generation': generation,
+            'caller': 'startSession',
+            'buttonSession': _buttonCommandSession,
+          });
           await (_voicePromptService as SpeechReadyCuePlayer)
               .playSpeechReadyCue()
               .timeout(_speechReadyCueTimeout);
@@ -1040,6 +1104,23 @@ class VoiceNavigationController extends ChangeNotifier {
       // _scheduleSession no longer rejects the retry as an active start.
       _scheduleSession(Duration.zero);
     });
+  }
+
+  void _handleCommandSpeechEnded(String text) {
+    if (_disposed || !_listening || _finishing || !_awaitingCommand) return;
+    final actionable = _buttonCommandSession
+        ? _mainAssistantFlow.canHandle(text)
+        : _resolver.resolve(text, allowShortDirectCommand: false) != null;
+    AudioDiagnostics.event('main.command.endpoint', {
+      'generation': _generation,
+      'stage': _mainAssistantFlow.stage.name,
+      'actionable': actionable,
+    });
+    if (!actionable) return;
+    // The native recognizer has detected the end of the utterance. Ask it to
+    // finalize now, preserving stop()'s grace for a corrected final transcript;
+    // do not cancel and dispatch the provisional number like a partial intent.
+    unawaited(_finishSession(_generation));
   }
 
   void _handlePartialText(String text) {
@@ -1353,6 +1434,7 @@ class VoiceNavigationController extends ChangeNotifier {
     unawaited(_partialTextSubscription?.cancel());
     unawaited(_amplitudeSubscription?.cancel());
     unawaited(_speechActivitySubscription?.cancel());
+    unawaited(_speechEndpointSubscription?.cancel());
     unawaited(_alternativeTextSubscription?.cancel());
     if (_ownsSpeechInput) {
       unawaited(_speechInput.dispose());

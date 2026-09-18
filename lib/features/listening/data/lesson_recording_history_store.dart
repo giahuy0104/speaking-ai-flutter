@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'lesson_recording_history_persistence.dart';
+import 'listening_topic_patch_migration.dart';
 
 class LessonRecordingHistoryEntry {
   const LessonRecordingHistoryEntry({
@@ -14,6 +15,7 @@ class LessonRecordingHistoryEntry {
     required this.filePath,
     required this.duration,
     required this.createdAt,
+    this.curriculumVersion,
   });
 
   factory LessonRecordingHistoryEntry.fromJson(Map<String, Object?> json) {
@@ -30,6 +32,7 @@ class LessonRecordingHistoryEntry {
       createdAt:
           DateTime.tryParse(json['createdAt'] as String? ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
+      curriculumVersion: json['curriculumVersion'] as int?,
     );
   }
 
@@ -43,6 +46,7 @@ class LessonRecordingHistoryEntry {
   final String filePath;
   final Duration duration;
   final DateTime createdAt;
+  final int? curriculumVersion;
 
   Map<String, Object?> toJson() => <String, Object?>{
     'id': id,
@@ -55,19 +59,26 @@ class LessonRecordingHistoryEntry {
     'filePath': filePath,
     'durationMs': duration.inMilliseconds,
     'createdAt': createdAt.toUtc().toIso8601String(),
+    if (curriculumVersion != null) 'curriculumVersion': curriculumVersion,
   };
 }
 
 class LessonRecordingHistoryStore {
-  const LessonRecordingHistoryStore({this.customPath, this.maxPerSentence = 3});
+  const LessonRecordingHistoryStore({
+    this.customPath,
+    this.maxPerSentence = 3,
+    this.topicPatchMigration,
+  });
 
   final String? customPath;
   final int maxPerSentence;
+  final ListeningTopicPatchMigration? topicPatchMigration;
 
   LessonRecordingHistoryPersistence get _persistence =>
       LessonRecordingHistoryPersistence(customPath: customPath);
 
   Future<List<LessonRecordingHistoryEntry>> readAll() async {
+    final List<LessonRecordingHistoryEntry> original;
     try {
       final raw = await _persistence.read();
       if (raw == null || raw.trim().isEmpty) {
@@ -77,16 +88,68 @@ class LessonRecordingHistoryStore {
       if (decoded is! List<Object?>) {
         return <LessonRecordingHistoryEntry>[];
       }
-      final entries = decoded
+      original = decoded
           .whereType<Map<String, Object?>>()
           .map(LessonRecordingHistoryEntry.fromJson)
           .where((entry) => entry.id.isNotEmpty && entry.filePath.isNotEmpty)
           .toList();
-      entries.sort((left, right) => right.createdAt.compareTo(left.createdAt));
-      return entries;
     } catch (_) {
       return <LessonRecordingHistoryEntry>[];
     }
+    // Fail without overwriting history if migration metadata is unavailable.
+    final entries = await _migrateEntries(original);
+    if (entries.indexed.any((item) => !identical(item.$2, original[item.$1]))) {
+      await _persistence.write(
+        jsonEncode(entries.map((entry) => entry.toJson()).toList()),
+      );
+    }
+    entries.sort((left, right) => right.createdAt.compareTo(left.createdAt));
+    return entries;
+  }
+
+  Future<List<LessonRecordingHistoryEntry>> _migrateEntries(
+    List<LessonRecordingHistoryEntry> entries,
+  ) async {
+    final affectedId = RegExp(r'^c(?:35|67)-l1-t0[12]-b\d+$');
+    final affectedTarget = RegExp(r'^C(?:35|67)-L1-T0[12]-B\d+-T\d+$');
+    if (!entries.any(
+      (entry) =>
+          affectedId.hasMatch(entry.lessonId) &&
+          affectedTarget.hasMatch(entry.sentenceId),
+    )) {
+      return entries;
+    }
+    final patch =
+        topicPatchMigration ?? await ListeningTopicPatchMigration.load();
+    return entries.map((entry) {
+      if (!patch.isAffectedLessonId(entry.lessonId)) return entry;
+      final destination = patch.destinationForTarget(entry.sentenceId);
+      if (destination == null && !patch.isDeprecatedTarget(entry.sentenceId)) {
+        return entry;
+      }
+      final newLessonId =
+          destination?.lessonId ??
+          ListeningTopicPatchMigration.archivedLessonId(entry.lessonId);
+      final newTitle = destination == null
+          ? entry.lessonTitle
+          : patch.newLessons[newLessonId]!.titleVi;
+      final newNumber = destination == null
+          ? entry.sentenceNumber
+          : destination.sentenceIndex + 1;
+      if (entry.lessonId == newLessonId &&
+          entry.lessonTitle == newTitle &&
+          entry.sentenceNumber == newNumber &&
+          entry.curriculumVersion == 42) {
+        return entry;
+      }
+      return LessonRecordingHistoryEntry.fromJson(<String, Object?>{
+        ...entry.toJson(),
+        'lessonId': newLessonId,
+        'lessonTitle': newTitle,
+        'sentenceNumber': newNumber,
+        'curriculumVersion': 42,
+      });
+    }).toList();
   }
 
   Future<List<LessonRecordingHistoryEntry>> readForSentence(
@@ -104,6 +167,9 @@ class LessonRecordingHistoryStore {
 
   Future<List<String>> addSuccessful(LessonRecordingHistoryEntry entry) async {
     final entries = await readAll();
+    entry = (await _migrateEntries(<LessonRecordingHistoryEntry>[
+      entry,
+    ])).single;
     entries.insert(0, entry);
     final matching = entries
         .where(

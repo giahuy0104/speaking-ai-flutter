@@ -1,0 +1,123 @@
+00:00 +0: loading D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart
+00:00 +0: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: Android handoff reuses SCO and stale timer cannot stop new owner
+00:00 +1: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: disposing retained route releases it immediately once
+00:00 +2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: disconnect cancels pending handoff cleanup
+00:00 +3: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: stop during native start releases the late lease and cancels its caller
+00:00 +4: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: parallel starts in one scope cannot leak an extra route lease
+00:00 +5: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: next owner reopens a dropped native route despite an old Dart lease
+00:00 +6: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: disposing during native start leaves no owner or unobserved future
+00:00 +7: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: first owner opens HFP and final owner closes it
+00:00 +8: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: revalidating one scope keeps the same lease and route
+00:00 +9: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: handoff does not close a route retained by native speech
+00:00 +10: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: disposing an old scope cannot close the next owner
+00:00 +11: loading D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_routing_test.dart
+00:01 +11: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_routing_test.dart: stop removes a queued play before its H20 route can be released
+Audio source ready for file:///second.wav after 5 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:01 +12: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_routing_test.dart: late cache result cannot restart a stopped clip or release a newer turn
+Audio source ready for file:///second.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:01 +13: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_routing_test.dart: stop during native source loading prevents late play and permits next clip
+Audio source ready for file:///second.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+Audio source ready for file:///second.wav after 1 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:01 +14: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_routing_test.dart: stop immediately before native play keeps the phone silent
+Audio source ready for file:///first.wav after 1 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+Audio playback failed: Lượt phát âm thanh đã dừng.
+00:01 +15: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_routing_test.dart: dispose cancels pending cache work without reviving the player
+00:01 +16: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_routing_test.dart: each Android player keeps its selected output when another session prepares media
+Audio source ready for file:///first.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+Audio source ready for file:///second.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+Audio source ready for file:///second.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:01 +17: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_routing_test.dart: late cancelled preparation cannot overwrite the next output
+Audio source ready for file:///second.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:01 +18: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_routing_test.dart: iOS playback does not receive Android attribute overrides
+Audio source ready for file:///first.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:01 +19: loading D:/Documents/ai-speaking-flutter-app/test/core_audio_coordinated_voice_prompt_service_test.dart
+00:01 +19: D:/Documents/ai-speaking-flutter-app/test/core_audio_coordinated_voice_prompt_service_test.dart: selected HFP output confirms before speech and stays until completion
+00:02 +20: D:/Documents/ai-speaking-flutter-app/test/core_audio_coordinated_voice_prompt_service_test.dart: cancelling pending HFP confirmation never starts the stale prompt
+00:02 +21: D:/Documents/ai-speaking-flutter-app/test/core_audio_coordinated_voice_prompt_service_test.dart: failed selected route does not fall back to phone audio
+00:02 +22: D:/Documents/ai-speaking-flutter-app/test/core_audio_coordinated_voice_prompt_service_test.dart: route loss stops an in-flight prompt instead of continuing on phone
+00:02 +23: D:/Documents/ai-speaking-flutter-app/test/core_audio_coordinated_voice_prompt_service_test.dart: no selected Bluetooth leaves ordinary phone output unchanged
+00:02 +24: D:/Documents/ai-speaking-flutter-app/test/core_audio_coordinated_voice_prompt_service_test.dart: explicit phone-speaker prompt does not acquire selected HFP
+00:02 +25: D:/Documents/ai-speaking-flutter-app/test/core_audio_coordinated_voice_prompt_service_test.dart: serializes prompts from different feature owners
+00:02 +26: D:/Documents/ai-speaking-flutter-app/test/core_audio_coordinated_voice_prompt_service_test.dart: stopping an old prompt cannot stop the next owner
+00:02 +27: D:/Documents/ai-speaking-flutter-app/test/core_audio_coordinated_voice_prompt_service_test.dart: forwards selected-output and ready-cue capabilities
+00:02 +28: loading D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart
+00:02 +28: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete start timeout cannot cancel the current mic
+00:03 +29: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: old prompt completion cannot clear a newer MAIN activation
+00:03 +30: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete microphone start (false) cannot stop the newer MAIN
+00:03 +31: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete microphone start (true) cannot stop the newer MAIN
+00:03 +32: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: failed MAIN prompt closes its turn without opening microphone
+00:03 +33: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: failed command acknowledgment does not execute lesson action
+00:03 +34: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: timed-out prompt never becomes a successful question
+00:03 +35: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: authored prompt longer than eight seconds finishes before command window opens
+00:03 +36: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: forced pause stops assistant audio when HOMI leaves foreground
+00:03 +37: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: MAIN-only configuration never starts or acknowledges voice wake
+00:03 +38: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: two silent active-module windows dispatch STOP rather than resume
+00:03 +39: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: two silent song windows pause the song at its checkpoint
+00:03 +40: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: silent topic selection resumes the same Level when MAIN is pressed again
+00:03 +41: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: navigation transcript is handled without entering conversation
+00:03 +42: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main button speaks the menu then starts the speaking flow
+00:04 +43: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: transfer from ActiveLearningModuleKind.listeningLesson waits for transition and intro before mic
+00:04 +44: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: transfer from ActiveLearningModuleKind.vocabulary waits for transition and intro before mic
+00:04 +45: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: cancelled/failed translation intro (false) never starts mic
+00:04 +46: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: cancelled/failed translation intro (true) never starts mic
+00:04 +47: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: MAIN handles an unambiguous fallback phrase from a stable partial
+00:04 +48: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS MAIN prompts use the selected H20 media output
+00:04 +49: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Android MAIN prompts use the selected H20 HFP output
+00:04 +50: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main opens the microphone when the native ready cue never completes
+00:04 +51: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:05 +52: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main prompt reopens the mic immediately after final recognition
+00:05 +53: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: HFP speech activity extends MAIN command window before transcript
+00:05 +54: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main exposes its first microphone start failure without retrying
+00:05 +55: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main pauses its command deadline while a premature completion recovers
+00:05 +56: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Android MAIN recovers a transient recognizer timeout without showing a mic error
+00:05 +57: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: repeated Android timeouts use the normal spoken no-speech retry
+00:05 +58: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main stops automatic retries and exposes the microphone error
+00:05 +59: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main activation never exposes a transient inactive session
+00:05 +60: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main delegates missing profile age to the topic screen
+00:05 +61: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: saved age lets MAIN open Level selection without the legacy total
+00:05 +62: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: completed topic prompt continues through topic and lesson
+00:05 +63: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: completed Course Level choice is handled by the MAIN microphone
+00:05 +64: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: speaking command opens the other-learning voice menu
+00:05 +65: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: two silent translation-switch windows pause without redirecting
+00:05 +66: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: translation STOP keeps both menus and mic closed until explicit MAIN
+00:05 +67: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main opens today practice when parent vocabulary is pending
+00:05 +68: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: active lesson Main next answer advances through the module bridge
+00:05 +69: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: active lesson Main previous answer moves back through the module bridge
+00:05 +70: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: active lesson Main dispatches the remaining D07 and D08 commands
+00:05 +71: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: active lesson exit choice keeps listening then opens vocabulary
+00:05 +72: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: MAIN finalizes buffered iOS transcript when its command window ends
+00:05 +73: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main asks once after silence then exits on the second timeout
+00:06 +74: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: every branch uses the shared second-silence pause prompt
+00:06 +75: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: pauses navigation recognizer before conversation can reuse it
+00:06 +76: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: handles an explicit command from a stable partial result
+00:06 +77: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: hears the wake phrase from a secondary Android transcript
+00:06 +78: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: uses final Android alternatives when the primary text misses
+00:06 +79: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: wake-word MAIN exits after its two silent command windows
+00:06 +80: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: does not reopen the microphone until the wake reply finishes
+00:06 +81: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: pause waits for a pending navigation start to release the mic
+00:06 +82: loading D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart
+00:07 +82: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: Android lesson capture route pins H20 input and keeps its output through feedback
+00:07 +83: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: Android lesson capture route selected H20 cannot silently fall back to the phone mic
+00:07 +84: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: Android lesson capture route playback stop cannot release the live recording route
+00:07 +85: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: Android lesson capture route route lost while recorder starts never reports live capture
+00:07 +86: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: Android lesson capture route phone capture still explicitly uses the built-in input
+00:07 +87: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: Android lesson capture route route loss reports capture failure instead of no recording
+00:07 +88: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: Android lesson capture route delayed loss from an old capture cannot cancel a newer one
+00:07 +89: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: stop during playback preparation prevents a late clip on default output
+00:07 +90: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: Android route loss stops the clip and fails its completion gate
+00:07 +91: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: playToCompletion does not finish until playback reports ended
+00:07 +92: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: completion-aware playback ignores a temporary playing false state
+00:07 +93: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: completion-aware playback ignores a completed state from the old source
+00:07 +94: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: Android selected H20 route is prepared before lesson playback starts
+00:07 +95: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: iOS selected H20 lesson playback holds HFP for output
+00:07 +96: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: phone playback does not activate an unselected HFP route
+00:07 +97: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: navigation prompt never falls back to the phone when HFP setup fails
+00:07 +98: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: coach prompt leaves H20 and plays on the phone speaker
+00:07 +99: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: consecutive H20 clips revalidate a dropped SCO route
+00:07 +100: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: per-play gain is applied after H20 preparation and then reset
+00:07 +101: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: iOS lesson recording configuration is input-capable
+00:07 +102: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: Android capture leaves routing owned by HFP bridge and phone flow
+00:07 +103: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_media_service_test.dart: iOS recording input selects exact H20 UID and built-in phone mic
+00:07 +104: loading D:/Documents/ai-speaking-flutter-app/test/core_audio_gain_test.dart
+00:08 +104: D:/Documents/ai-speaking-flutter-app/test/core_audio_gain_test.dart: unmeasurable sources share one bounded Android fallback
+00:08 +105: All tests passed!

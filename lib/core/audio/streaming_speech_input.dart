@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'audio_input.dart';
+import 'audio_diagnostics.dart';
 import 'hfp_audio_control.dart';
 
 const _incompleteVietnameseEndings = <String>{
@@ -161,6 +162,13 @@ abstract interface class CommandStreamingSpeechInput {
   Future<void> startCommandRecognition();
 }
 
+/// Native end-of-speech with the latest command hypothesis. Consumers must
+/// validate it against their current menu before calling stop; this signal is
+/// not a final transcript and must not commit an incomplete number prefix.
+abstract interface class CommandSpeechEndpointInput {
+  Stream<String> get commandSpeechEnded;
+}
+
 enum NativeSpeechAudioSource {
   builtInMic('builtInMic'),
   hfp('hfp');
@@ -282,6 +290,7 @@ class AndroidStreamingSpeechInput
         SpeechActivityStreamingSpeechInput,
         RecordedAudioStreamingSpeechInput,
         CommandStreamingSpeechInput,
+        CommandSpeechEndpointInput,
         AlternativeTranscriptStreamingSpeechInput,
         NativeSpeechFallbackAudioProvider,
         NativeSpeechAudioSourceControl,
@@ -333,6 +342,8 @@ class AndroidStreamingSpeechInput
       StreamController<void>.broadcast();
   final StreamController<String> _partialTextController =
       StreamController<String>.broadcast();
+  final StreamController<String> _commandSpeechEndedController =
+      StreamController<String>.broadcast();
   final StreamController<List<String>> _transcriptAlternativesController =
       StreamController<List<String>>.broadcast();
   final StreamController<NativeSpeechDiagnostic> _nativeDiagnosticsController =
@@ -361,6 +372,8 @@ class AndroidStreamingSpeechInput
   int? _nativeFirstPartialMs;
   int? _nativeFinalTranscriptMs;
   bool _active = false;
+  bool _commandMode = false;
+  bool _commandSpeechEnded = false;
   bool _hasReceivedReady = false;
   int _recognitionTurn = 0;
   bool _disposed = false;
@@ -383,6 +396,9 @@ class AndroidStreamingSpeechInput
 
   @override
   Stream<String> get partialText => _partialTextController.stream;
+
+  @override
+  Stream<String> get commandSpeechEnded => _commandSpeechEndedController.stream;
 
   @override
   Stream<List<String>> get transcriptAlternatives =>
@@ -510,6 +526,8 @@ class AndroidStreamingSpeechInput
     AudioCapture capture,
   ) async {
     final turn = await _beginRecognitionTurn();
+    _commandMode = false;
+    _commandSpeechEnded = false;
     final supported = await supportsRecordedAudioRecognition();
     _requireCurrentRecognitionTurn(turn);
     if (!supported) {
@@ -661,6 +679,8 @@ class AndroidStreamingSpeechInput
     _observeReadyCompletion(readyCompleter);
     _readyCompleter = readyCompleter;
     _active = true;
+    _commandMode = commandMode;
+    _commandSpeechEnded = false;
     _activeAudioSource = audioSource;
     // Constructing SpeechRecognizer does not bind its system service. Allow
     // the first Android binding a larger ceiling, but never delay readiness
@@ -900,7 +920,9 @@ class AndroidStreamingSpeechInput
         ? Duration.zero
         : DateTime.now().difference(latestTextUpdatedAt);
     final hasEnoughSpeech =
-        latestText.length >= 8 || latestText.split(RegExp(r'\s+')).length >= 2;
+        latestText.length >= 8 ||
+        latestText.split(RegExp(r'\s+')).length >= 2 ||
+        (_commandMode && _commandSpeechEnded);
     return latestText.isNotEmpty &&
             hasEnoughSpeech &&
             stableFor >= minimumStableFor
@@ -923,6 +945,8 @@ class AndroidStreamingSpeechInput
     }
     _readyCompleter = null;
     _active = false;
+    _commandMode = false;
+    _commandSpeechEnded = false;
     _startedAt = null;
     _latestText = '';
     _latestAlternatives = const <String>[];
@@ -978,6 +1002,10 @@ class AndroidStreamingSpeechInput
       return;
     }
     if (type == 'speech.ready') {
+      AudioDiagnostics.event('speech.ready', {
+        'turnId': event['turnId'],
+        'audioSource': event['audioSource'],
+      });
       _hasReceivedReady = true;
       _readNativeTelemetry(event);
       reportNativeSpeechStage(
@@ -992,12 +1020,29 @@ class AndroidStreamingSpeechInput
       return;
     }
     if (type == 'speech.begin') {
+      _commandSpeechEnded = false;
       reportNativeSpeechStage(
         'speech.begin',
         audioSource: event['audioSource'] as String?,
         audioRoute: event['audioRoute'] as String?,
       );
       _speechStartedController.add(null);
+      return;
+    }
+    if (type == 'speech.end') {
+      AudioDiagnostics.event('speech.end', {
+        'turnId': event['turnId'],
+        'commandMode': _commandMode,
+        'characters': _latestText.trim().length,
+      });
+      if (_platformName == 'Android' &&
+          _active &&
+          _commandMode &&
+          !_commandSpeechEnded) {
+        _commandSpeechEnded = true;
+        final candidate = _latestText.trim();
+        if (candidate.isNotEmpty) _commandSpeechEndedController.add(candidate);
+      }
       return;
     }
     if (type == 'speech.rms') {
@@ -1054,6 +1099,7 @@ class AndroidStreamingSpeechInput
     }
 
     if (type == 'speech.final') {
+      AudioDiagnostics.event('speech.final', {'turnId': event['turnId']});
       final confidence = (event['confidence'] as num?)?.toDouble();
       final finalText = event['text'];
       final finalWasPreserved =
@@ -1232,6 +1278,7 @@ class AndroidStreamingSpeechInput
     await _speechStartedController.close();
     await _completedController.close();
     await _partialTextController.close();
+    await _commandSpeechEndedController.close();
     await _transcriptAlternativesController.close();
     await _nativeDiagnosticsController.close();
   }

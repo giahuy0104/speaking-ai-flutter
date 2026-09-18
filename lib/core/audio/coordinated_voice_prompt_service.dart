@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'audio_turn_coordinator.dart';
+import 'audio_diagnostics.dart';
 import 'hfp_audio_control.dart';
 import 'voice_prompt_service_base.dart';
 
@@ -87,6 +88,7 @@ class CoordinatedVoicePromptService
 
   @override
   Future<void> playSpeechReadyCue() => _runPrompt(() {
+    AudioDiagnostics.event('cue.delegate', {'owner': _owner.name});
     final delegate = _delegate;
     return delegate is SpeechReadyCuePlayer
         ? (delegate as SpeechReadyCuePlayer).playSpeechReadyCue()
@@ -124,6 +126,12 @@ class CoordinatedVoicePromptService
       return;
     }
     final cancellation = _pendingCancellation;
+    final diagnosticId = AudioDiagnostics.nextId();
+    final diagnosticFields = <String, Object?>{
+      'operation': diagnosticId,
+      'owner': _owner.name,
+    };
+    AudioDiagnostics.event('prompt.lease.request', diagnosticFields);
     final lease = await _coordinator.acquire(
       owner: _owner,
       mode: AudioTurnMode.promptPlayback,
@@ -134,6 +142,7 @@ class CoordinatedVoicePromptService
       return;
     }
     _activeLease = lease;
+    AudioDiagnostics.event('prompt.lease.acquired', diagnosticFields);
     Future<void> Function()? releaseRoute;
     StreamSubscription<dynamic>? routeSubscription;
     HfpAudioException? routeLoss;
@@ -149,7 +158,15 @@ class CoordinatedVoicePromptService
           Future<void>? release;
           releaseRoute = () => release ??= route.stopAudioRoute();
           _releaseActiveRoute = releaseRoute;
+          AudioDiagnostics.event(
+            'prompt.route.start.request',
+            diagnosticFields,
+          );
           await route.startAudioRoute();
+          AudioDiagnostics.event(
+            'prompt.route.start.completed',
+            diagnosticFields,
+          );
           if (_disposed || cancellation.isCancelled) return;
           void checkSelectedRoute() {
             if (routeLoss != null || cancellation.isCancelled) return;
@@ -171,9 +188,12 @@ class CoordinatedVoicePromptService
         }
       }
       if (_disposed || cancellation.isCancelled) return;
+      AudioDiagnostics.event('prompt.delegate.start', diagnosticFields);
       await action();
+      AudioDiagnostics.event('prompt.delegate.completed', diagnosticFields);
       if (routeLoss != null) throw routeLoss!;
     } catch (_) {
+      AudioDiagnostics.event('prompt.failed', diagnosticFields);
       if (!_disposed && !cancellation.isCancelled) rethrow;
     } finally {
       // Finish this exact scope before granting another audio turn. An old
@@ -183,7 +203,15 @@ class CoordinatedVoicePromptService
         try {
           await routeLossStop;
         } finally {
+          AudioDiagnostics.event(
+            'prompt.route.release.request',
+            diagnosticFields,
+          );
           await releaseRoute?.call();
+          AudioDiagnostics.event(
+            'prompt.route.release.completed',
+            diagnosticFields,
+          );
         }
       } finally {
         if (identical(_releaseActiveRoute, releaseRoute)) {
@@ -193,6 +221,7 @@ class CoordinatedVoicePromptService
           _activeLease = null;
         }
         await lease.release();
+        AudioDiagnostics.event('prompt.lease.released', diagnosticFields);
       }
     }
   }

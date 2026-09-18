@@ -55,10 +55,11 @@ void main() {
         expect(levels, hasLength(15));
         expect(topics, hasLength(50));
         expect(lessons, hasLength(109));
-        expect(targets, hasLength(601));
+        expect(catalog.contentVersion, '4.2');
+        expect(targets, hasLength(565));
         expect(
           lessons.expand((lesson) => lesson.challengeBank),
-          hasLength(601),
+          hasLength(565),
         );
         expect(levels.expand((level) => level.missionBank), isEmpty);
 
@@ -122,7 +123,7 @@ void main() {
         for (final target in targets) target.id: target,
       };
 
-      expect(targetById, hasLength(601));
+      expect(targetById, hasLength(565));
       for (final lesson in lessons) {
         expect(lesson.challengeBank, hasLength(lesson.sentences.length));
         expect(
@@ -188,7 +189,7 @@ void main() {
           for (final lesson in songLessons) lesson.id: lesson.songTitle!,
         },
         equals(const <String, String>{
-          'c35-l1-t02-b02': 'Count with Me',
+          'c35-l1-t02-b03': 'Count with Me',
           'c35-l3-t09-b02': 'What Should I Wear?',
           'c35-l3-t10-b02': 'My Happy Day',
           'c67-l3-t08-b01': "Let's Play Together",
@@ -196,7 +197,7 @@ void main() {
         }),
       );
       const expectedSongPaths = <String, String>{
-        'c35-l1-t02-b02': '/homi/audio/A-6-7/SONGS/A067_T05_SONG01_FULL_EN.mp3',
+        'c35-l1-t02-b03': '/homi/audio/A-6-7/SONGS/A067_T05_SONG01_FULL_EN.mp3',
         'c35-l3-t09-b02': '/homi/audio/A-6-7/SONGS/A067_T08_SONG01_FULL_EN.mp3',
         'c35-l3-t10-b02': '/homi/audio/A-6-7/SONGS/A067_T07_SONG01_FULL_EN.mp3',
         'c67-l3-t08-b01':
@@ -206,7 +207,13 @@ void main() {
       };
       for (final lesson in songLessons) {
         expect(lesson.hasV4SongStage, isTrue, reason: lesson.id);
-        expect(lesson.songAudioId, '${lesson.code}_SONG', reason: lesson.id);
+        expect(
+          lesson.songAudioId,
+          lesson.id == 'c35-l1-t02-b03'
+              ? 'C35-L1-T02-B02_SONG'
+              : '${lesson.code}_SONG',
+          reason: lesson.id,
+        );
         expect(lesson.fullAudioUri, isNull, reason: lesson.id);
         final uri = lesson.songAudioUri!;
         expect(uri.scheme, 'https', reason: lesson.id);

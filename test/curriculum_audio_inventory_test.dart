@@ -34,6 +34,18 @@ void main() {
   });
   Map<String, dynamic> find(String text, String locale) =>
       prompts.singleWhere((p) => p['text'] == text && p['locale'] == locale);
+  const patchedTitlesWithoutNewRecordings = <String>{
+    'A to E Letters',
+    'F to J Letters',
+    'One to Five',
+    'Six to Ten',
+    'K to O Letters',
+    'P to T Letters',
+    'U to Z Letters',
+    'Numbers 11-15',
+    'Numbers 16-20',
+  };
+  final fallbackTexts = <String>{};
   test('every concrete curriculum manifest text has enabled audio', () async {
     final source =
         jsonDecode(
@@ -57,82 +69,105 @@ void main() {
       prompts.length,
     );
   });
-  test(
-    'all 109 lessons retain IDs and bundle all 1202 bilingual core samples',
-    () {
-      var lessons = 0;
-      var samples = 0;
-      var songs = 0;
-      for (final group in catalog.groups) {
-        for (final topic in group.topics) {
-          for (final lesson in topic.lessons) {
-            lessons++;
-            expect(lesson.code, isNotEmpty);
-            for (final sentence in lesson.sentences) {
-              expect(
-                sentence.audioUri.toString(),
-                find(sentence.english, 'en-US')['url'],
-              );
-              expect(
-                sentence.vietnameseAudioUri.toString(),
-                find(sentence.vietnamese, 'vi-VN')['url'],
-              );
-              samples += 2;
-            }
-            for (final question in lesson.challengeBank) {
-              expect(find(question.prompt, 'vi-VN')['enabled'], true);
-              expect(find(question.correctAnswer, 'en-US')['enabled'], true);
-              expect(
-                find(question.correctVietnamese, 'vi-VN')['enabled'],
-                true,
-              );
-            }
-            if (lesson.hasV4SongStage) {
-              songs++;
-              expect(lesson.songAudioUri, isNotNull);
-              expect(
-                lesson.songAudioUri.toString(),
-                isNot(contains('/CURRICULUM/')),
-              );
-            }
-          }
-        }
-      }
-      expect(lessons, 109);
-      expect(samples, 1202);
-      expect(songs, 5);
-    },
-  );
-  test('runtime intro and resume strings have their own exact audio', () {
+  test('all 109 lessons reuse the 1130 active bilingual core samples', () {
+    var lessons = 0;
+    var samples = 0;
+    var songs = 0;
     for (final group in catalog.groups) {
       for (final topic in group.topics) {
         for (final lesson in topic.lessons) {
-          final topicLead = lesson.number == 1
-              ? 'Chủ đề ${topic.number}. '
-              : '';
-          final lessonLead = lesson.number == 1
-              ? 'Bài đầu tiên là ${lesson.titleEn}. '
-              : 'Bài này là ${lesson.titleEn}. ';
-          final text =
-              '$topicLead$lessonLead${lesson.entry?.text ?? ''} Bắt đầu nhé.'
-                  .replaceAll(RegExp(r'\s+'), ' ')
-                  .trim();
-          expect(find(text, 'vi-VN')['enabled'], true, reason: lesson.code);
-          expect(
-            find(
-              'Mình học tiếp bài ${lesson.titleEn} nhé.',
-              'vi-VN',
-            )['enabled'],
-            true,
-          );
-          expect(
-            find('Mình học lại bài ${lesson.titleEn} nhé.', 'vi-VN')['enabled'],
-            true,
-          );
+          lessons++;
+          expect(lesson.code, isNotEmpty);
+          for (final sentence in lesson.sentences) {
+            expect(
+              sentence.audioUri.toString(),
+              find(sentence.english, 'en-US')['url'],
+            );
+            expect(
+              sentence.vietnameseAudioUri.toString(),
+              find(sentence.vietnamese, 'vi-VN')['url'],
+            );
+            samples += 2;
+          }
+          for (final question in lesson.challengeBank) {
+            expect(find(question.prompt, 'vi-VN')['enabled'], true);
+            expect(find(question.correctAnswer, 'en-US')['enabled'], true);
+            expect(find(question.correctVietnamese, 'vi-VN')['enabled'], true);
+          }
+          if (lesson.hasV4SongStage) {
+            songs++;
+            expect(lesson.songAudioUri, isNotNull);
+            expect(
+              lesson.songAudioUri.toString(),
+              isNot(contains('/CURRICULUM/')),
+            );
+          }
         }
       }
     }
+    expect(lessons, 109);
+    expect(samples, 1130);
+    expect(songs, 5);
   });
+  test(
+    'unchanged titles retain audio; nine new titles use verified TTS fallback',
+    () async {
+      void checkPrompt(ListeningLessonContent lesson, String text) {
+        final matches = prompts.where(
+          (p) => p['text'] == text && p['locale'] == 'vi-VN',
+        );
+        if (matches.isEmpty &&
+            patchedTitlesWithoutNewRecordings.contains(lesson.titleEn)) {
+          fallbackTexts.add(text);
+        } else {
+          expect(find(text, 'vi-VN')['enabled'], true, reason: lesson.code);
+        }
+      }
+
+      for (final group in catalog.groups) {
+        for (final topic in group.topics) {
+          for (final lesson in topic.lessons) {
+            final topicLead = lesson.number == 1
+                ? 'Chủ đề ${topic.number}. '
+                : '';
+            final lessonLead = lesson.number == 1
+                ? 'Bài đầu tiên là ${lesson.titleEn}. '
+                : 'Bài này là ${lesson.titleEn}. ';
+            final text =
+                '$topicLead$lessonLead${lesson.entry?.text ?? ''} Bắt đầu nhé.'
+                    .replaceAll(RegExp(r'\s+'), ' ')
+                    .trim();
+            checkPrompt(lesson, text);
+            checkPrompt(lesson, 'Mình học tiếp bài ${lesson.titleEn} nhé.');
+            checkPrompt(lesson, 'Mình học lại bài ${lesson.titleEn} nhé.');
+          }
+        }
+      }
+      expect(fallbackTexts, hasLength(27));
+      const channel = MethodChannel('ailingo_voice_prompt');
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            calls.add(call);
+            return null;
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null),
+      );
+      final service = createVoicePromptService(
+        owner: AudioTurnOwner.listeningLesson,
+        httpClient: createLocalCloudinaryAudioClient(),
+      );
+      addTearDown(service.dispose);
+      for (final text in fallbackTexts) {
+        calls.clear();
+        await service.speakAndWait(text);
+        expect(calls.map((call) => call.method), ['speakAndWait']);
+        expect((calls.single.arguments as Map)['text'], text);
+      }
+    },
+  );
   test(
     'all uploaded curriculum files match their SHA-256 and receipts',
     () async {

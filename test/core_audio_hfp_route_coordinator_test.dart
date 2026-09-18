@@ -6,6 +6,104 @@ import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_route_coordinator.d
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('explicit phone switch flushes retained HFP without a timer', (
+    tester,
+  ) async {
+    final native = _FakeHfpAudioControl();
+    final coordinator = HfpAudioRouteCoordinator(
+      native,
+      handoffGrace: const Duration(milliseconds: 750),
+    );
+    final main = coordinator.createScope('main');
+    final lesson = coordinator.createScope('lesson');
+    await main.startAudioRoute();
+    await main.stopAudioRoute();
+    await (lesson as HfpImmediateRouteReleaseControl)
+        .stopAudioRouteImmediately();
+    expect(native.stopCalls, 1);
+    await tester.pump(const Duration(seconds: 1));
+    expect(native.stopCalls, 1);
+    await coordinator.dispose();
+  });
+
+  test('immediate release never closes another live owner', () async {
+    final native = _FakeHfpAudioControl();
+    final coordinator = HfpAudioRouteCoordinator(
+      native,
+      handoffGrace: const Duration(milliseconds: 750),
+    );
+    final main = coordinator.createScope('main');
+    final lesson = coordinator.createScope('lesson');
+    await main.startAudioRoute();
+    await lesson.startAudioRoute();
+    await (lesson as HfpImmediateRouteReleaseControl)
+        .stopAudioRouteImmediately();
+    expect(native.stopCalls, 0);
+    await coordinator.dispose();
+    expect(native.stopCalls, 1);
+  });
+
+  testWidgets(
+    'Android handoff reuses SCO and stale timer cannot stop new owner',
+    (tester) async {
+      final native = _FakeHfpAudioControl();
+      final coordinator = HfpAudioRouteCoordinator(
+        native,
+        handoffGrace: const Duration(milliseconds: 750),
+        revalidateOnAcquire: true,
+      );
+      final main = coordinator.createScope('main');
+      final vocabulary = coordinator.createScope('vocabulary');
+      await main.startAudioRoute();
+      await main.stopAudioRoute();
+      expect(native.stopCalls, 0);
+      await tester.pump(const Duration(milliseconds: 100));
+      await vocabulary.startAudioRoute();
+      await tester.pump(const Duration(seconds: 1));
+      expect(native.stopCalls, 0);
+      expect(
+        native.startCalls,
+        2,
+      ); // Revalidate the existing native route/mode.
+      await vocabulary.stopAudioRoute();
+      await tester.pump(const Duration(milliseconds: 751));
+      expect(native.stopCalls, 1);
+      await coordinator.dispose();
+      expect(native.stopCalls, 1);
+    },
+  );
+
+  testWidgets('disposing retained route releases it immediately once', (
+    tester,
+  ) async {
+    final native = _FakeHfpAudioControl();
+    final coordinator = HfpAudioRouteCoordinator(
+      native,
+      handoffGrace: const Duration(milliseconds: 750),
+    );
+    final scope = coordinator.createScope('main');
+    await scope.startAudioRoute();
+    await scope.stopAudioRoute();
+    await coordinator.dispose();
+    await tester.pump(const Duration(seconds: 1));
+    expect(native.stopCalls, 1);
+  });
+
+  testWidgets('disconnect cancels pending handoff cleanup', (tester) async {
+    final native = _FakeHfpAudioControl();
+    final coordinator = HfpAudioRouteCoordinator(
+      native,
+      handoffGrace: const Duration(milliseconds: 750),
+    );
+    final scope = coordinator.createScope('main');
+    await scope.startAudioRoute();
+    await scope.stopAudioRoute();
+    await coordinator.disconnect();
+    await tester.pump(const Duration(seconds: 1));
+    expect(native.stopCalls, 0); // disconnect owns teardown.
+    await coordinator.dispose();
+  });
+
   test(
     'stop during native start releases the late lease and cancels its caller',
     () async {

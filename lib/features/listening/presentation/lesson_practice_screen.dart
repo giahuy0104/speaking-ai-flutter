@@ -2881,7 +2881,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       );
     }
     if (lesson.usesV4Flow) {
-      await widget.progressStore.resetLessonRun(lesson.id);
+      await widget.progressStore.prepareNextLessonRun(
+        lesson.id,
+        relearn: continueRelearn,
+      );
     } else {
       await widget.progressStore.saveCurrentSentence(lesson.id, 0);
     }

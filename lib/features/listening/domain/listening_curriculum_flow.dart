@@ -57,6 +57,11 @@ abstract final class ListeningCurriculumFlow {
     Set<String> completedV4Activities,
   ) {
     if (lessonIndex <= 0) return true;
+    if (lessonIndex < topic.lessons.length &&
+        progress['__topic-patch-v42-unlocked-lesson:${topic.lessons[lessonIndex].id}'] ==
+            1) {
+      return true;
+    }
     return lessonCompleted(
       topic.lessons[lessonIndex - 1],
       progress,
@@ -97,7 +102,9 @@ abstract final class ListeningCurriculumFlow {
     Map<String, int> progress,
     Set<String> completedActivities,
   ) {
+    final retainedLevel = _retainedUnlockedLevel(group, progress);
     for (final level in group.levels) {
+      if (level.number < retainedLevel) continue;
       if (!allTopicsInLevelCompleted(
         group,
         level,
@@ -116,8 +123,10 @@ abstract final class ListeningCurriculumFlow {
     Map<String, int> progress,
     Set<String> completedActivities,
   ) {
+    final retainedLevel = _retainedUnlockedLevel(group, progress);
     for (final previous in group.levels) {
       if (previous.number >= level.number) break;
+      if (previous.number < retainedLevel) continue;
       if (!allTopicsInLevelCompleted(
         group,
         previous,
@@ -128,5 +137,20 @@ abstract final class ListeningCurriculumFlow {
       }
     }
     return true;
+  }
+
+  // Access already earned before the four-topic content migration is retained;
+  // this is deliberately NOT treated as completion of the replacement Cores.
+  static int _retainedUnlockedLevel(
+    ListeningContentAgeGroup group,
+    Map<String, int> progress,
+  ) {
+    if (!((group.startAge == 3 && group.endAge == 5) ||
+        (group.startAge == 6 && group.endAge == 7))) {
+      return 1;
+    }
+    return (progress['__topic-patch-v42-unlocked-level:${group.startAge}-${group.endAge}'] ??
+            1)
+        .clamp(1, group.levels.isEmpty ? 1 : group.levels.last.number);
   }
 }

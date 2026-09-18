@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_turn_coordinator.dart';
@@ -12,6 +13,7 @@ import 'package:just_audio/just_audio.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   const sessionChannel = MethodChannel('com.ryanheise.audio_session');
+  const levelChannel = MethodChannel('ailingo_voice_prompt');
   final messenger =
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
   final firstUri = Uri.parse('file:///first.wav');
@@ -20,10 +22,12 @@ void main() {
   setUp(() {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     messenger.setMockMethodCallHandler(sessionChannel, (_) async => null);
+    messenger.setMockMethodCallHandler(levelChannel, (_) async => null);
   });
   tearDown(() {
     debugDefaultTargetPlatformOverride = null;
     messenger.setMockMethodCallHandler(sessionChannel, null);
+    messenger.setMockMethodCallHandler(levelChannel, null);
   });
 
   test(
@@ -255,6 +259,157 @@ void main() {
     expect(player.attributes, isNull);
     expect(player.playedPaths, <String>[firstUri.toFilePath()]);
   });
+
+  test(
+    'measured negative gain attenuates the source before playback',
+    () async {
+      final calls = <MethodCall>[];
+      messenger.setMockMethodCallHandler(levelChannel, (call) async {
+        calls.add(call);
+        return <String, Object?>{'gainDb': -6.0};
+      });
+      final player = _ControlledPlayer();
+      final cache = _ControlledCache();
+      final service = JustAudioPlaybackService(player: player, cache: cache);
+      addTearDown(() async {
+        await service.dispose();
+        cache.dispose();
+      });
+
+      await service.play(firstUri);
+
+      expect(calls.single.method, 'analyzePlaybackLevel');
+      expect(calls.single.arguments, {'path': firstUri.toFilePath()});
+      expect(player.volumesAtPlay.single, closeTo(math.pow(10, -6 / 20), 1e-9));
+      expect(player.volumeChanges, player.volumesAtPlay);
+    },
+  );
+
+  for (final followingGain in <double>[0.0, 6.0]) {
+    test(
+      'measured $followingGain dB resets a previous clip attenuation',
+      () async {
+        messenger.setMockMethodCallHandler(levelChannel, (call) async {
+          final path = (call.arguments as Map<Object?, Object?>)['path'];
+          return {
+            'gainDb': path == firstUri.toFilePath() ? -12.0 : followingGain,
+          };
+        });
+        final player = _ControlledPlayer();
+        final cache = _ControlledCache();
+        final service = JustAudioPlaybackService(player: player, cache: cache);
+        addTearDown(() async {
+          await service.dispose();
+          cache.dispose();
+        });
+
+        await service.play(firstUri);
+        await service.play(secondUri);
+
+        expect(player.volumesAtPlay.first, lessThan(1.0));
+        expect(player.volumesAtPlay.last, 1.0);
+      },
+    );
+  }
+
+  test(
+    'cancelled measurement neither delays nor changes the following clip',
+    () async {
+      final pendingMeasurement = Completer<Map<String, Object?>>();
+      final measurementEntered = Completer<void>();
+      messenger.setMockMethodCallHandler(levelChannel, (call) async {
+        final path = (call.arguments as Map<Object?, Object?>)['path'];
+        if (path == firstUri.toFilePath()) {
+          measurementEntered.complete();
+          return pendingMeasurement.future;
+        }
+        return {'gainDb': 0.0};
+      });
+      final player = _ControlledPlayer();
+      final cache = _ControlledCache();
+      final service = JustAudioPlaybackService(player: player, cache: cache);
+      addTearDown(() async {
+        await service.dispose();
+        cache.dispose();
+      });
+
+      final firstPlay = service.play(firstUri);
+      final cancelled = expectLater(
+        firstPlay,
+        throwsA(isA<PlaybackException>()),
+      );
+      await measurementEntered.future;
+      await service.stop();
+      await cancelled;
+      final next = service.play(secondUri);
+      try {
+        await _flush();
+        expect(player.playedPaths, <String>[secondUri.toFilePath()]);
+        expect(player.volumeChanges, <double>[1.0]);
+      } finally {
+        pendingMeasurement.complete({'gainDb': -24.0});
+        await next;
+      }
+      await _flush();
+      expect(player.playedPaths, <String>[secondUri.toFilePath()]);
+      expect(player.volumeChanges, <double>[1.0]);
+    },
+  );
+
+  test(
+    'unsupported measurement resets attenuation and uses fallback immediately',
+    () async {
+      messenger.setMockMethodCallHandler(levelChannel, (call) async {
+        final path = (call.arguments as Map<Object?, Object?>)['path'];
+        return path == firstUri.toFilePath() ? {'gainDb': -6.0} : null;
+      });
+      final player = _ControlledPlayer();
+      final cache = _ControlledCache();
+      final service = JustAudioPlaybackService(player: player, cache: cache);
+      addTearDown(() async {
+        await service.dispose();
+        cache.dispose();
+      });
+
+      await service.play(firstUri);
+      await service.play(secondUri).timeout(const Duration(seconds: 1));
+
+      expect(player.volumesAtPlay.first, lessThan(1.0));
+      expect(player.volumesAtPlay.last, 1.0);
+    },
+  );
+
+  test(
+    'timed out measurement falls back and ignores its late gain result',
+    () async {
+      final pendingMeasurement = Completer<Map<String, Object?>>();
+      messenger.setMockMethodCallHandler(levelChannel, (call) async {
+        final path = (call.arguments as Map<Object?, Object?>)['path'];
+        return path == firstUri.toFilePath()
+            ? {'gainDb': -6.0}
+            : pendingMeasurement.future;
+      });
+      final player = _ControlledPlayer();
+      final cache = _ControlledCache();
+      final service = JustAudioPlaybackService(player: player, cache: cache);
+      addTearDown(() async {
+        await service.dispose();
+        cache.dispose();
+      });
+
+      await service.play(firstUri);
+      await service.play(secondUri).timeout(const Duration(seconds: 2));
+      expect(player.volumesAtPlay.last, 1.0);
+      final changesBeforeLateResult = List<double>.of(player.volumeChanges);
+      pendingMeasurement.complete({'gainDb': -30.0});
+      await _flush();
+      expect(player.volumeChanges, changesBeforeLateResult);
+      expect(player.playedPaths, <String>[
+        firstUri.toFilePath(),
+        secondUri.toFilePath(),
+      ]);
+    },
+  );
 }
 
 Future<void> _flush() async {
@@ -283,6 +438,8 @@ class _ControlledPlayer implements AudioPlayer {
   final _states = StreamController<PlayerState>.broadcast(sync: true);
   final _positions = StreamController<Duration>.broadcast(sync: true);
   final List<String> playedPaths = <String>[];
+  final List<double> volumeChanges = <double>[];
+  final List<double> volumesAtPlay = <double>[];
   final List<AndroidAudioAttributes> attributesAtPlay =
       <AndroidAudioAttributes>[];
   final blockedLoadEntered = Completer<void>();
@@ -293,6 +450,7 @@ class _ControlledPlayer implements AudioPlayer {
   String? loadedPath;
   int disposeCalls = 0;
   bool _playing = false;
+  double _volume = 1.0;
 
   @override
   bool get playing => _playing;
@@ -335,8 +493,15 @@ class _ControlledPlayer implements AudioPlayer {
   }
 
   @override
+  Future<void> setVolume(double volume) async {
+    _volume = volume;
+    volumeChanges.add(volume);
+  }
+
+  @override
   Future<void> play() async {
     playedPaths.add(loadedPath!);
+    volumesAtPlay.add(_volume);
     if (attributes != null) attributesAtPlay.add(attributes!);
     _playing = true;
     _states.add(PlayerState(true, ProcessingState.ready));

@@ -494,7 +494,7 @@ class LessonMediaService {
     if (!useSelectedHfp) {
       // Clear SCO before configuring ordinary playback. This prevents a coach
       // prompt from inheriting the preceding H20 communication route.
-      await _releaseHfpRoute();
+      await _releaseHfpRoute(immediately: true);
       await playback.prepare();
       return;
     }
@@ -529,7 +529,7 @@ class LessonMediaService {
         : Object();
   }
 
-  Future<void> _releaseHfpRoute() async {
+  Future<void> _releaseHfpRoute({bool immediately = false}) async {
     // A start may still be awaiting native confirmation and have no token yet.
     // Scoped controls serialize stop behind it and invalidate that late start.
     if (_activeHfpRouteToken == null &&
@@ -537,7 +537,13 @@ class LessonMediaService {
       return;
     }
     _activeHfpRouteToken = null;
-    await _hfpAudioControl?.stopAudioRoute();
+    final control = _hfpAudioControl;
+    if (immediately && control is HfpImmediateRouteReleaseControl) {
+      await (control as HfpImmediateRouteReleaseControl)
+          .stopAudioRouteImmediately();
+    } else {
+      await control?.stopAudioRoute();
+    }
   }
 
   @visibleForTesting

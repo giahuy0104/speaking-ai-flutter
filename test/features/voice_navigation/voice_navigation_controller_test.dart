@@ -13,6 +13,81 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test(
+    'topic endpoint validates a complete choice and keeps final correction',
+    () async {
+      final speech = _FakeNavigationSpeechInput(stopText: 'Chủ đề 3');
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: _FakeVoicePromptService(),
+        mainAssistantFlow: MainVoiceAssistantFlow(
+          contentLoader: _loadMainAssistantContent,
+        ),
+      );
+      final intents = <VoiceNavigationIntent>[];
+      controller.setIntentHandler(intents.add);
+      await controller.activateLevelTopicSelection(
+        childAge: 6,
+        levelNumber: 1,
+        topicNumbers: [1, 2, 3],
+        completedTopicNumbers: [],
+        announceLevel: false,
+      );
+
+      speech.emitPartial('Chủ đề số');
+      speech.emitCommandEndpoint('Chủ đề số');
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(speech.stopCalls, 0);
+      expect(controller.isListening, isTrue);
+
+      // Even a complete number remains provisional until native end-of-speech.
+      speech.emitPartial('Chủ đề 2');
+      await Future<void>.delayed(const Duration(milliseconds: 180));
+      expect(speech.stopCalls, 0);
+      speech.emitCommandEndpoint('Chủ đề 2');
+      await _waitUntil(() => intents.isNotEmpty);
+      expect(speech.stopCalls, 1);
+      expect(
+        intents.single.topicNumber,
+        3,
+        reason: 'final ASR correction wins',
+      );
+      await controller.pause();
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  test(
+    'Android continuous wake emits one cue at command microphone readiness',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final speech = _FakeNavigationSpeechInput();
+      final prompt = _FakeVoicePromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+        restartDelay: const Duration(milliseconds: 1),
+        partialIntentDebounce: const Duration(milliseconds: 1),
+      );
+      controller.startContinuous();
+      await _waitUntil(() => controller.isListening);
+      expect(prompt.readyCueCount, 0);
+      speech.emitPartial('Hey HOMI');
+      await _waitUntil(
+        () => controller.isAwaitingCommand && controller.isListening,
+      );
+      expect(prompt.readyCueCount, 1);
+      expect(speech.events.where((event) => event == 'start'), hasLength(2));
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+      expect(prompt.readyCueCount, 1);
+      await controller.pause();
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
   testWidgets('obsolete start timeout cannot cancel the current mic', (
     tester,
   ) async {
@@ -1736,6 +1811,7 @@ class _FakeNavigationSpeechInput
     implements
         StreamingSpeechInput,
         SpeechActivityStreamingSpeechInput,
+        CommandSpeechEndpointInput,
         AlternativeTranscriptStreamingSpeechInput,
         NativeSpeechDiagnostics {
   _FakeNavigationSpeechInput({
@@ -1751,17 +1827,21 @@ class _FakeNavigationSpeechInput
       StreamController<void>.broadcast();
   final StreamController<String> _partialTextController =
       StreamController<String>.broadcast();
+  final StreamController<String> _commandEndpointController =
+      StreamController<String>.broadcast();
   final StreamController<List<String>> _alternativeTextController =
       StreamController<List<String>>.broadcast();
   final StreamController<NativeSpeechDiagnostic> _diagnosticsController =
       StreamController<NativeSpeechDiagnostic>.broadcast();
   final List<String> events = <String>[];
   final List<String> diagnosticStages = <String>[];
+  int stopCalls = 0;
   final String stopText;
   final List<String> stopAlternatives;
   NativeSpeechDiagnostic? _nativeDiagnostic;
 
   void emitPartial(String text) => _partialTextController.add(text);
+  void emitCommandEndpoint(String text) => _commandEndpointController.add(text);
 
   void emitAlternatives(List<String> alternatives) =>
       _alternativeTextController.add(alternatives);
@@ -1784,6 +1864,9 @@ class _FakeNavigationSpeechInput
 
   @override
   Stream<String> get partialText => _partialTextController.stream;
+
+  @override
+  Stream<String> get commandSpeechEnded => _commandEndpointController.stream;
 
   @override
   Stream<List<String>> get transcriptAlternatives =>
@@ -1834,15 +1917,18 @@ class _FakeNavigationSpeechInput
   }
 
   @override
-  Future<StreamingSpeechCapture> stop() async => StreamingSpeechCapture(
-    sourceText: stopText,
-    duration: const Duration(seconds: 1),
-    inputLabel: 'Navigation ASR',
-    confidence: 0.9,
-    firstResultMs: 100,
-    finalAfterStopMs: 20,
-    alternatives: stopAlternatives,
-  );
+  Future<StreamingSpeechCapture> stop() async {
+    stopCalls++;
+    return StreamingSpeechCapture(
+      sourceText: stopText,
+      duration: const Duration(seconds: 1),
+      inputLabel: 'Navigation ASR',
+      confidence: 0.9,
+      firstResultMs: 100,
+      finalAfterStopMs: 20,
+      alternatives: stopAlternatives,
+    );
+  }
 
   @override
   Future<void> cancel() async {
@@ -1855,6 +1941,7 @@ class _FakeNavigationSpeechInput
     await _speechStartedController.close();
     await _completedController.close();
     await _partialTextController.close();
+    await _commandEndpointController.close();
     await _alternativeTextController.close();
     await _diagnosticsController.close();
   }

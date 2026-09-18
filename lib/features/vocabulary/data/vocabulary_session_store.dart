@@ -355,7 +355,17 @@ class VocabularySessionStore {
     VocabularyStore vocabularyStore,
   ) async {
     final entries = await vocabularyStore.read();
-    final available = entries.map((entry) => entry.id).toSet();
+    // A pre-upgrade active Review can contain retired topic targets even when
+    // the new review menu no longer lists them. Reconcile with the same active
+    // target policy, while leaving Today and its fixed parent queue unchanged.
+    final available = entries
+        .where(
+          (entry) =>
+              session.mode != VocabularyPracticeMode.review ||
+              VocabularyStore.isActiveReviewEntry(entry),
+        )
+        .map((entry) => entry.id)
+        .toSet();
     final originalCurrentId = session.entryIds.isEmpty
         ? null
         : session.entryIds[session.currentIndex.clamp(

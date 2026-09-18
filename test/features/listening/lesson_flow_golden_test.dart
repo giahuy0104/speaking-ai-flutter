@@ -138,13 +138,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    const songLessonId = 'c35-l1-t02-b02';
+    const songLessonId = 'c35-l1-t02-b03';
     expect(find.byKey(const Key('topic-song-count')), findsOneWidget);
     expect(find.text('1 bài hát'), findsOneWidget);
-    expect(
-      find.byKey(const ValueKey('lesson-song-indicator-$songLessonId')),
-      findsOneWidget,
-    );
     expect(
       find.byKey(const ValueKey('lesson-song-indicator-c35-l1-t02-b01')),
       findsNothing,
@@ -152,10 +148,6 @@ void main() {
     expect(
       tester.getTopLeft(find.text('Numbers')).dy,
       lessThan(tester.getTopLeft(find.text('Số đếm')).dy),
-    );
-    expect(
-      tester.getTopLeft(find.text('Lesson 2 · Count With Me')).dy,
-      lessThan(tester.getTopLeft(find.text('Bài 2 · Cùng mình đếm số')).dy),
     );
     expect(
       find.byWidgetPredicate(
@@ -171,6 +163,19 @@ void main() {
     await expectLater(
       find.byType(TopicLessonListScreen),
       matchesGoldenFile('goldens/topic-song-journey-390x844.png'),
+    );
+    // Count With Me is now the third card, below the lazy-list viewport.
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('start-lesson-$songLessonId')),
+      180,
+    );
+    expect(
+      find.byKey(const ValueKey('lesson-song-indicator-$songLessonId')),
+      findsOneWidget,
+    );
+    expect(
+      tester.getTopLeft(find.text('Lesson 3 · Count With Me')).dy,
+      lessThan(tester.getTopLeft(find.text('Bài 3 · Cùng mình đếm số')).dy),
     );
   });
 
@@ -254,7 +259,7 @@ void main() {
     await tester.pump();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 700));
-    final authoredGuide = find.textContaining('Bài đầu tiên là A to I Letters');
+    final authoredGuide = find.textContaining('Bài đầu tiên là A to E Letters');
     for (
       var attempt = 0;
       attempt < 20 && authoredGuide.evaluate().isEmpty;

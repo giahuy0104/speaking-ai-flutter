@@ -192,11 +192,11 @@ void main() {
     expect(find.byKey(const Key('topic-lesson-list-screen')), findsOneWidget);
     expect(find.byKey(const Key('topic-header-english-title')), findsOneWidget);
     expect(find.text('ABC Words'), findsOneWidget);
-    expect(find.text('Lesson 1 · A to I Words'), findsOneWidget);
-    expect(find.text('Bài 1 · Từ vựng A đến I'), findsOneWidget);
+    expect(find.text('Lesson 1 · K to O Letters'), findsOneWidget);
+    expect(find.text('Bài 1 · Các chữ cái từ K đến O'), findsOneWidget);
     expect(
-      tester.getTopLeft(find.text('Lesson 1 · A to I Words')).dy,
-      lessThan(tester.getTopLeft(find.text('Bài 1 · Từ vựng A đến I')).dy),
+      tester.getTopLeft(find.text('Lesson 1 · K to O Letters')).dy,
+      lessThan(tester.getTopLeft(find.text('Bài 1 · Các chữ cái từ K đến O')).dy),
     );
   });
 
@@ -485,7 +485,7 @@ void main() {
       expect(find.text('Bài hát & chant'), findsNothing);
       expect(find.byKey(const ValueKey('song-c35-l1-t02-b02')), findsNothing);
       final songMilestone = find.byKey(
-        const ValueKey('start-lesson-c35-l1-t02-b02'),
+        const ValueKey('start-lesson-c35-l1-t02-b03'),
       );
       await tester.scrollUntilVisible(songMilestone, 180);
       expect(songMilestone, findsOneWidget);
@@ -514,7 +514,7 @@ void main() {
       expect(topics, hasLength(50));
       expect(levels, hasLength(15));
       expect(lessons, hasLength(109));
-      expect(targets, hasLength(601));
+      expect(targets, hasLength(565));
       expect(
         lessons.map((lesson) => lesson.id).toSet(),
         hasLength(lessons.length),
@@ -527,8 +527,8 @@ void main() {
       final alphabet = content.topic(startAge: 3, endAge: 5, topicNumber: 1);
       expect(alphabet.titleVi, 'Bảng chữ cái');
       expect(alphabet.levelNumber, 1);
-      expect(alphabet.lessons, hasLength(3));
-      expect(alphabet.sentenceCount, 26);
+      expect(alphabet.lessons, hasLength(2));
+      expect(alphabet.sentenceCount, 10);
       expect(alphabet.lessons.first.id, 'c35-l1-t01-b01');
       expect(alphabet.lessons.first.sentences.first.english, 'A. Apple.');
       expect(

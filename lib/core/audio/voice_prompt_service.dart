@@ -24,9 +24,13 @@ VoicePromptService createVoicePromptService({
   final service = MainAssistantAudioPromptService(
     delegate: platformService,
     httpClient: httpClient,
-    // Keep first-use navigation responsive while Android TTS is available.
-    // Other platforms retain their existing authored-audio wait policy.
-    remoteAudioLoadTimeout: Duration(seconds: isAndroid ? 2 : 8),
+    // Fixed Android menus are bundled so selection never waits on the CDN.
+    // Unbundled curriculum gets a short first-use attempt, then native TTS;
+    // verified late downloads warm subsequent turns without replaying them.
+    preferBundledAudio: isAndroid,
+    remoteAudioLoadTimeout: isAndroid
+        ? const Duration(milliseconds: 350)
+        : const Duration(seconds: 8),
     cacheLateRemoteAudio: isAndroid,
     groupEnabled: const <String, bool>{
       ...homiGap66AudioGroups,

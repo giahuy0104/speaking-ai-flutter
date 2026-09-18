@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "4.1",
+  "contentVersion": "4.2",
   "source": "AIV0_HOMI_9_Nhom_Thay_doi_FINAL_gui_IT.docx",
   "entries": [
     {
@@ -139,97 +139,6 @@
       "lessonCode": "C35-L1-T01-B01"
     },
     {
-      "audioId": "CORE_SPEAK_05",
-      "kind": "systemPrompt",
-      "locale": "vi-VN",
-      "sourceText": "Bạn nói tiếng Anh nhé.",
-      "qaStatus": "PENDING_TTS"
-    },
-    {
-      "audioId": "CORE_SPEAK_04",
-      "kind": "systemPrompt",
-      "locale": "vi-VN",
-      "sourceText": "Nói lại câu này.",
-      "qaStatus": "PENDING_TTS"
-    },
-    {
-      "audioId": "CORE_SPEAK_03",
-      "kind": "systemPrompt",
-      "locale": "vi-VN",
-      "sourceText": "Bạn thử nói nhé.",
-      "qaStatus": "PENDING_TTS"
-    },
-    {
-      "audioId": "CORE_SPEAK_02",
-      "kind": "systemPrompt",
-      "locale": "vi-VN",
-      "sourceText": "Đến lượt bạn.",
-      "qaStatus": "PENDING_TTS"
-    },
-    {
-      "audioId": "CORE_SPEAK_01",
-      "kind": "systemPrompt",
-      "locale": "vi-VN",
-      "sourceText": "Bạn nói lại nhé.",
-      "qaStatus": "PENDING_TTS"
-    },
-    {
-      "audioId": "ALL_TOPICS_COMPLETED",
-      "kind": "systemPrompt",
-      "locale": "vi-VN",
-      "sourceText": "Bạn đã hoàn thành tất cả Chủ đề rồi!",
-      "qaStatus": "PENDING_TTS"
-    },
-    {
-      "audioId": "ONE_TOPIC_REMAINING",
-      "kind": "systemPrompt",
-      "locale": "vi-VN",
-      "sourceText": "Bạn còn một Chủ đề chưa học. Bạn muốn học tiếp hay học lại?",
-      "qaStatus": "PENDING_TTS"
-    },
-    {
-      "audioId": "LESSON_LOCKED",
-      "kind": "systemPrompt",
-      "locale": "vi-VN",
-      "sourceText": "Bạn cần học xong Bài [PREVIOUS_LESSON] trước nhé.",
-      "qaStatus": "PENDING_TTS"
-    },
-    {
-      "audioId": "TOPIC_COMPLETED",
-      "kind": "systemPrompt",
-      "locale": "vi-VN",
-      "sourceText": "Chủ đề [TOPIC_NO] bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
-      "qaStatus": "PENDING_TTS"
-    },
-    {
-      "audioId": "TOPIC_RESUME",
-      "kind": "systemPrompt",
-      "locale": "vi-VN",
-      "sourceText": "Mình học tiếp Chủ đề [TOPIC_NO] nhé.",
-      "qaStatus": "PENDING_TTS"
-    },
-    {
-      "audioId": "LEVEL_LOCKED",
-      "kind": "systemPrompt",
-      "locale": "vi-VN",
-      "sourceText": "Bạn cần hoàn thành Level [CURRENT_LEVEL] trước nhé.",
-      "qaStatus": "PENDING_TTS"
-    },
-    {
-      "audioId": "TOPIC_SELECTION_REPLAY",
-      "kind": "systemPrompt",
-      "locale": "vi-VN",
-      "sourceText": "Bạn chọn học Chủ đề số mấy?",
-      "qaStatus": "PENDING_TTS"
-    },
-    {
-      "audioId": "TOPIC_SELECTION",
-      "kind": "systemPrompt",
-      "locale": "vi-VN",
-      "sourceText": "Có [TOPIC_COUNT] Chủ đề. Bạn muốn học Chủ đề số mấy?",
-      "qaStatus": "PENDING_TTS"
-    },
-    {
       "audioId": "C35-L1-T01-B01-T01_VI",
       "kind": "coreVietnamese",
       "locale": "vi-VN",
@@ -338,102 +247,6 @@
       "lessonCode": "C35-L1-T01-B01"
     },
     {
-      "audioId": "C35-L1-T01-B01-T06_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "F. Fish.",
-      "targetId": "C35-L1-T01-B01-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B01"
-    },
-    {
-      "audioId": "C35-L1-T01-B01-T06_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Con cá.",
-      "targetId": "C35-L1-T01-B01-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B01"
-    },
-    {
-      "audioId": "C35-L1-T01-B01-T07_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "G. Grape.",
-      "targetId": "C35-L1-T01-B01-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B01"
-    },
-    {
-      "audioId": "C35-L1-T01-B01-T07_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Quả nho.",
-      "targetId": "C35-L1-T01-B01-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B01"
-    },
-    {
-      "audioId": "C35-L1-T01-B01-T08_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "H. Hat.",
-      "targetId": "C35-L1-T01-B01-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B01"
-    },
-    {
-      "audioId": "C35-L1-T01-B01-T08_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Cái mũ.",
-      "targetId": "C35-L1-T01-B01-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B01"
-    },
-    {
-      "audioId": "C35-L1-T01-B01-T09_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "I. Ice cream.",
-      "targetId": "C35-L1-T01-B01-T09",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B01"
-    },
-    {
-      "audioId": "C35-L1-T01-B01-T09_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Kem.",
-      "targetId": "C35-L1-T01-B01-T09",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B01"
-    },
-    {
       "audioId": "C35-L1-T01-B01-Q01_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
@@ -486,52 +299,13 @@
       "lessonCode": "C35-L1-T01-B01"
     },
     {
-      "audioId": "C35-L1-T01-B01-Q05_PROMPT",
+      "audioId": "C35-L1-T01-B01-Q09_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Con cá: Fish hay Grape?",
-      "questionId": "C35-L1-T01-B01-Q05",
-      "targetId": "C35-L1-T01-B01-T06",
+      "sourceText": "Quả trứng: Egg hay Fish?",
       "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B01"
-    },
-    {
-      "audioId": "C35-L1-T01-B01-Q06_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Quả nho: Grape hay Hat?",
-      "questionId": "C35-L1-T01-B01-Q06",
-      "targetId": "C35-L1-T01-B01-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B01"
-    },
-    {
-      "audioId": "C35-L1-T01-B01-Q07_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Cái mũ: Hat hay Ice cream?",
-      "questionId": "C35-L1-T01-B01-Q07",
-      "targetId": "C35-L1-T01-B01-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B01"
-    },
-    {
-      "audioId": "C35-L1-T01-B01-Q08_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Kem: Ice cream hay Apple?",
-      "questionId": "C35-L1-T01-B01-Q08",
-      "targetId": "C35-L1-T01-B01-T09",
-      "qaStatus": "PENDING_TTS",
+      "questionId": "C35-L1-T01-B01-Q09",
+      "targetId": "C35-L1-T01-B01-T05",
       "course": "3-5",
       "level": "L1",
       "topic": 1,
@@ -542,6 +316,102 @@
       "kind": "microObjective",
       "locale": "vi-VN",
       "sourceText": "Mình cùng học các chữ cái và từ quen thuộc nhé.",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 1,
+      "lessonCode": "C35-L1-T01-B02"
+    },
+    {
+      "audioId": "C35-L1-T01-B01-T06_EN",
+      "kind": "coreEnglish",
+      "locale": "en-US",
+      "sourceText": "F. Fish.",
+      "targetId": "C35-L1-T01-B01-T06",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 1,
+      "lessonCode": "C35-L1-T01-B02"
+    },
+    {
+      "audioId": "C35-L1-T01-B01-T06_VI",
+      "kind": "coreVietnamese",
+      "locale": "vi-VN",
+      "sourceText": "Con cá.",
+      "targetId": "C35-L1-T01-B01-T06",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 1,
+      "lessonCode": "C35-L1-T01-B02"
+    },
+    {
+      "audioId": "C35-L1-T01-B01-T07_EN",
+      "kind": "coreEnglish",
+      "locale": "en-US",
+      "sourceText": "G. Grape.",
+      "targetId": "C35-L1-T01-B01-T07",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 1,
+      "lessonCode": "C35-L1-T01-B02"
+    },
+    {
+      "audioId": "C35-L1-T01-B01-T07_VI",
+      "kind": "coreVietnamese",
+      "locale": "vi-VN",
+      "sourceText": "Quả nho.",
+      "targetId": "C35-L1-T01-B01-T07",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 1,
+      "lessonCode": "C35-L1-T01-B02"
+    },
+    {
+      "audioId": "C35-L1-T01-B01-T08_EN",
+      "kind": "coreEnglish",
+      "locale": "en-US",
+      "sourceText": "H. Hat.",
+      "targetId": "C35-L1-T01-B01-T08",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 1,
+      "lessonCode": "C35-L1-T01-B02"
+    },
+    {
+      "audioId": "C35-L1-T01-B01-T08_VI",
+      "kind": "coreVietnamese",
+      "locale": "vi-VN",
+      "sourceText": "Cái mũ.",
+      "targetId": "C35-L1-T01-B01-T08",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 1,
+      "lessonCode": "C35-L1-T01-B02"
+    },
+    {
+      "audioId": "C35-L1-T01-B01-T09_EN",
+      "kind": "coreEnglish",
+      "locale": "en-US",
+      "sourceText": "I. Ice cream.",
+      "targetId": "C35-L1-T01-B01-T09",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 1,
+      "lessonCode": "C35-L1-T01-B02"
+    },
+    {
+      "audioId": "C35-L1-T01-B01-T09_VI",
+      "kind": "coreVietnamese",
+      "locale": "vi-VN",
+      "sourceText": "Kem.",
+      "targetId": "C35-L1-T01-B01-T09",
       "qaStatus": "PENDING_TTS",
       "course": "3-5",
       "level": "L1",
@@ -573,23 +443,12 @@
       "lessonCode": "C35-L1-T01-B02"
     },
     {
-      "audioId": "C35-L1-T01-B02-T02_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "K. Kite.",
-      "targetId": "C35-L1-T01-B02-T02",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
-    },
-    {
-      "audioId": "C35-L1-T01-B02-T02_VI",
-      "kind": "coreVietnamese",
+      "audioId": "C35-L1-T01-B01-Q05_PROMPT",
+      "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Cái diều.",
-      "targetId": "C35-L1-T01-B02-T02",
+      "sourceText": "Con cá: Fish hay Grape?",
+      "questionId": "C35-L1-T01-B01-Q05",
+      "targetId": "C35-L1-T01-B01-T06",
       "qaStatus": "PENDING_TTS",
       "course": "3-5",
       "level": "L1",
@@ -597,23 +456,12 @@
       "lessonCode": "C35-L1-T01-B02"
     },
     {
-      "audioId": "C35-L1-T01-B02-T03_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "L. Lion.",
-      "targetId": "C35-L1-T01-B02-T03",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
-    },
-    {
-      "audioId": "C35-L1-T01-B02-T03_VI",
-      "kind": "coreVietnamese",
+      "audioId": "C35-L1-T01-B01-Q06_PROMPT",
+      "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Con sư tử.",
-      "targetId": "C35-L1-T01-B02-T03",
+      "sourceText": "Quả nho: Grape hay Hat?",
+      "questionId": "C35-L1-T01-B01-Q06",
+      "targetId": "C35-L1-T01-B01-T07",
       "qaStatus": "PENDING_TTS",
       "course": "3-5",
       "level": "L1",
@@ -621,23 +469,12 @@
       "lessonCode": "C35-L1-T01-B02"
     },
     {
-      "audioId": "C35-L1-T01-B02-T04_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "M. Milk.",
-      "targetId": "C35-L1-T01-B02-T04",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
-    },
-    {
-      "audioId": "C35-L1-T01-B02-T04_VI",
-      "kind": "coreVietnamese",
+      "audioId": "C35-L1-T01-B01-Q07_PROMPT",
+      "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Sữa.",
-      "targetId": "C35-L1-T01-B02-T04",
+      "sourceText": "Cái mũ: Hat hay Ice cream?",
+      "questionId": "C35-L1-T01-B01-Q07",
+      "targetId": "C35-L1-T01-B01-T08",
       "qaStatus": "PENDING_TTS",
       "course": "3-5",
       "level": "L1",
@@ -645,119 +482,12 @@
       "lessonCode": "C35-L1-T01-B02"
     },
     {
-      "audioId": "C35-L1-T01-B02-T05_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "N. Nose.",
-      "targetId": "C35-L1-T01-B02-T05",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
-    },
-    {
-      "audioId": "C35-L1-T01-B02-T05_VI",
-      "kind": "coreVietnamese",
+      "audioId": "C35-L1-T01-B01-Q08_PROMPT",
+      "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Cái mũi.",
-      "targetId": "C35-L1-T01-B02-T05",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
-    },
-    {
-      "audioId": "C35-L1-T01-B02-T06_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "O. Orange.",
-      "targetId": "C35-L1-T01-B02-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
-    },
-    {
-      "audioId": "C35-L1-T01-B02-T06_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Quả cam.",
-      "targetId": "C35-L1-T01-B02-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
-    },
-    {
-      "audioId": "C35-L1-T01-B02-T07_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "P. Pig.",
-      "targetId": "C35-L1-T01-B02-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
-    },
-    {
-      "audioId": "C35-L1-T01-B02-T07_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Con lợn.",
-      "targetId": "C35-L1-T01-B02-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
-    },
-    {
-      "audioId": "C35-L1-T01-B02-T08_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "Q. Queen.",
-      "targetId": "C35-L1-T01-B02-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
-    },
-    {
-      "audioId": "C35-L1-T01-B02-T08_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Nữ hoàng.",
-      "targetId": "C35-L1-T01-B02-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
-    },
-    {
-      "audioId": "C35-L1-T01-B02-T09_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "R. Rabbit.",
-      "targetId": "C35-L1-T01-B02-T09",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
-    },
-    {
-      "audioId": "C35-L1-T01-B02-T09_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Con thỏ.",
-      "targetId": "C35-L1-T01-B02-T09",
+      "sourceText": "Kem: Ice cream hay Apple?",
+      "questionId": "C35-L1-T01-B01-Q08",
+      "targetId": "C35-L1-T01-B01-T09",
       "qaStatus": "PENDING_TTS",
       "course": "3-5",
       "level": "L1",
@@ -778,402 +508,95 @@
       "lessonCode": "C35-L1-T01-B02"
     },
     {
-      "audioId": "C35-L1-T01-B02-Q02_PROMPT",
-      "kind": "challengePrompt",
+      "audioId": "CORE_SPEAK_05",
+      "kind": "systemPrompt",
       "locale": "vi-VN",
-      "sourceText": "Cái diều: Kite hay Lion?",
-      "questionId": "C35-L1-T01-B02-Q02",
-      "targetId": "C35-L1-T01-B02-T02",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
+      "sourceText": "Bạn nói tiếng Anh nhé.",
+      "qaStatus": "PENDING_TTS"
     },
     {
-      "audioId": "C35-L1-T01-B02-Q03_PROMPT",
-      "kind": "challengePrompt",
+      "audioId": "CORE_SPEAK_04",
+      "kind": "systemPrompt",
       "locale": "vi-VN",
-      "sourceText": "Con sư tử: Lion hay Milk?",
-      "questionId": "C35-L1-T01-B02-Q03",
-      "targetId": "C35-L1-T01-B02-T03",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
+      "sourceText": "Nói lại câu này.",
+      "qaStatus": "PENDING_TTS"
     },
     {
-      "audioId": "C35-L1-T01-B02-Q04_PROMPT",
-      "kind": "challengePrompt",
+      "audioId": "CORE_SPEAK_03",
+      "kind": "systemPrompt",
       "locale": "vi-VN",
-      "sourceText": "Sữa: Milk hay Nose?",
-      "questionId": "C35-L1-T01-B02-Q04",
-      "targetId": "C35-L1-T01-B02-T04",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
+      "sourceText": "Bạn thử nói nhé.",
+      "qaStatus": "PENDING_TTS"
     },
     {
-      "audioId": "C35-L1-T01-B02-Q05_PROMPT",
-      "kind": "challengePrompt",
+      "audioId": "CORE_SPEAK_02",
+      "kind": "systemPrompt",
       "locale": "vi-VN",
-      "sourceText": "Quả cam: Orange hay Pig?",
-      "questionId": "C35-L1-T01-B02-Q05",
-      "targetId": "C35-L1-T01-B02-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
+      "sourceText": "Đến lượt bạn.",
+      "qaStatus": "PENDING_TTS"
     },
     {
-      "audioId": "C35-L1-T01-B02-Q06_PROMPT",
-      "kind": "challengePrompt",
+      "audioId": "CORE_SPEAK_01",
+      "kind": "systemPrompt",
       "locale": "vi-VN",
-      "sourceText": "Con lợn: Pig hay Queen?",
-      "questionId": "C35-L1-T01-B02-Q06",
-      "targetId": "C35-L1-T01-B02-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
+      "sourceText": "Bạn nói lại nhé.",
+      "qaStatus": "PENDING_TTS"
     },
     {
-      "audioId": "C35-L1-T01-B02-Q07_PROMPT",
-      "kind": "challengePrompt",
+      "audioId": "ALL_TOPICS_COMPLETED",
+      "kind": "systemPrompt",
       "locale": "vi-VN",
-      "sourceText": "Nữ hoàng: Queen hay Rabbit?",
-      "questionId": "C35-L1-T01-B02-Q07",
-      "targetId": "C35-L1-T01-B02-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
+      "sourceText": "Bạn đã hoàn thành tất cả Chủ đề rồi!",
+      "qaStatus": "PENDING_TTS"
     },
     {
-      "audioId": "C35-L1-T01-B02-Q08_PROMPT",
-      "kind": "challengePrompt",
+      "audioId": "ONE_TOPIC_REMAINING",
+      "kind": "systemPrompt",
       "locale": "vi-VN",
-      "sourceText": "Con thỏ: Rabbit hay Juice?",
-      "questionId": "C35-L1-T01-B02-Q08",
-      "targetId": "C35-L1-T01-B02-T09",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B02"
+      "sourceText": "Bạn còn một Chủ đề chưa học. Bạn muốn học tiếp hay học lại?",
+      "qaStatus": "PENDING_TTS"
     },
     {
-      "audioId": "C35-L1-T01-B03_ENTRY",
-      "kind": "microObjective",
+      "audioId": "LESSON_LOCKED",
+      "kind": "systemPrompt",
       "locale": "vi-VN",
-      "sourceText": "Mình cùng học các chữ cái và từ quen thuộc nhé.",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
+      "sourceText": "Bạn cần học xong Bài [PREVIOUS_LESSON] trước nhé.",
+      "qaStatus": "PENDING_TTS"
     },
     {
-      "audioId": "C35-L1-T01-B03-T01_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "S. Sun.",
-      "targetId": "C35-L1-T01-B03-T01",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-T01_VI",
-      "kind": "coreVietnamese",
+      "audioId": "TOPIC_COMPLETED",
+      "kind": "systemPrompt",
       "locale": "vi-VN",
-      "sourceText": "Mặt trời.",
-      "targetId": "C35-L1-T01-B03-T01",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
+      "sourceText": "Chủ đề [TOPIC_NO] bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "qaStatus": "PENDING_TTS"
     },
     {
-      "audioId": "C35-L1-T01-B03-T02_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "T. Toy.",
-      "targetId": "C35-L1-T01-B03-T02",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-T02_VI",
-      "kind": "coreVietnamese",
+      "audioId": "TOPIC_RESUME",
+      "kind": "systemPrompt",
       "locale": "vi-VN",
-      "sourceText": "Đồ chơi.",
-      "targetId": "C35-L1-T01-B03-T02",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
+      "sourceText": "Mình học tiếp Chủ đề [TOPIC_NO] nhé.",
+      "qaStatus": "PENDING_TTS"
     },
     {
-      "audioId": "C35-L1-T01-B03-T03_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "U. Umbrella.",
-      "targetId": "C35-L1-T01-B03-T03",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-T03_VI",
-      "kind": "coreVietnamese",
+      "audioId": "LEVEL_LOCKED",
+      "kind": "systemPrompt",
       "locale": "vi-VN",
-      "sourceText": "Cái ô.",
-      "targetId": "C35-L1-T01-B03-T03",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
+      "sourceText": "Bạn cần hoàn thành Level [CURRENT_LEVEL] trước nhé.",
+      "qaStatus": "PENDING_TTS"
     },
     {
-      "audioId": "C35-L1-T01-B03-T04_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "V. Van.",
-      "targetId": "C35-L1-T01-B03-T04",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-T04_VI",
-      "kind": "coreVietnamese",
+      "audioId": "TOPIC_SELECTION_REPLAY",
+      "kind": "systemPrompt",
       "locale": "vi-VN",
-      "sourceText": "Xe van.",
-      "targetId": "C35-L1-T01-B03-T04",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
+      "sourceText": "Bạn chọn học Chủ đề số mấy?",
+      "qaStatus": "PENDING_TTS"
     },
     {
-      "audioId": "C35-L1-T01-B03-T05_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "W. Water.",
-      "targetId": "C35-L1-T01-B03-T05",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-T05_VI",
-      "kind": "coreVietnamese",
+      "audioId": "TOPIC_SELECTION",
+      "kind": "systemPrompt",
       "locale": "vi-VN",
-      "sourceText": "Nước.",
-      "targetId": "C35-L1-T01-B03-T05",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-T06_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "X. X-ray.",
-      "targetId": "C35-L1-T01-B03-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-T06_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Ảnh X-quang.",
-      "targetId": "C35-L1-T01-B03-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-T07_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "Y. Yo-yo.",
-      "targetId": "C35-L1-T01-B03-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-T07_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Đồ chơi yo-yo.",
-      "targetId": "C35-L1-T01-B03-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-T08_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "Z. Zebra.",
-      "targetId": "C35-L1-T01-B03-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-T08_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Ngựa vằn.",
-      "targetId": "C35-L1-T01-B03-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-Q01_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Mặt trời: Sun hay Toy?",
-      "questionId": "C35-L1-T01-B03-Q01",
-      "targetId": "C35-L1-T01-B03-T01",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-Q02_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Đồ chơi: Toy hay Umbrella?",
-      "questionId": "C35-L1-T01-B03-Q02",
-      "targetId": "C35-L1-T01-B03-T02",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-Q03_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Cái ô: Umbrella hay Van?",
-      "questionId": "C35-L1-T01-B03-Q03",
-      "targetId": "C35-L1-T01-B03-T03",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-Q04_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Xe van: Van hay Water?",
-      "questionId": "C35-L1-T01-B03-Q04",
-      "targetId": "C35-L1-T01-B03-T04",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-Q05_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Nước: Water hay X-ray?",
-      "questionId": "C35-L1-T01-B03-Q05",
-      "targetId": "C35-L1-T01-B03-T05",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-Q06_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Ảnh X-quang: X-ray hay Yo-yo?",
-      "questionId": "C35-L1-T01-B03-Q06",
-      "targetId": "C35-L1-T01-B03-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-Q07_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Đồ chơi yo-yo: Yo-yo hay Zebra?",
-      "questionId": "C35-L1-T01-B03-Q07",
-      "targetId": "C35-L1-T01-B03-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
-    },
-    {
-      "audioId": "C35-L1-T01-B03-Q08_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Ngựa vằn: Zebra hay Sun?",
-      "questionId": "C35-L1-T01-B03-Q08",
-      "targetId": "C35-L1-T01-B03-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C35-L1-T01-B03"
+      "sourceText": "Có [TOPIC_COUNT] Chủ đề. Bạn muốn học Chủ đề số mấy?",
+      "qaStatus": "PENDING_TTS"
     },
     {
       "audioId": "C35-L1-T02-B01_ENTRY",
@@ -1307,126 +730,6 @@
       "lessonCode": "C35-L1-T02-B01"
     },
     {
-      "audioId": "C35-L1-T02-B01-T06_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "Six.",
-      "targetId": "C35-L1-T02-B01-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C35-L1-T02-B01"
-    },
-    {
-      "audioId": "C35-L1-T02-B01-T06_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Sáu.",
-      "targetId": "C35-L1-T02-B01-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C35-L1-T02-B01"
-    },
-    {
-      "audioId": "C35-L1-T02-B01-T07_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "Seven.",
-      "targetId": "C35-L1-T02-B01-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C35-L1-T02-B01"
-    },
-    {
-      "audioId": "C35-L1-T02-B01-T07_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Bảy.",
-      "targetId": "C35-L1-T02-B01-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C35-L1-T02-B01"
-    },
-    {
-      "audioId": "C35-L1-T02-B01-T08_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "Eight.",
-      "targetId": "C35-L1-T02-B01-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C35-L1-T02-B01"
-    },
-    {
-      "audioId": "C35-L1-T02-B01-T08_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Tám.",
-      "targetId": "C35-L1-T02-B01-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C35-L1-T02-B01"
-    },
-    {
-      "audioId": "C35-L1-T02-B01-T09_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "Nine.",
-      "targetId": "C35-L1-T02-B01-T09",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C35-L1-T02-B01"
-    },
-    {
-      "audioId": "C35-L1-T02-B01-T09_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Chín.",
-      "targetId": "C35-L1-T02-B01-T09",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C35-L1-T02-B01"
-    },
-    {
-      "audioId": "C35-L1-T02-B01-T10_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "Ten.",
-      "targetId": "C35-L1-T02-B01-T10",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C35-L1-T02-B01"
-    },
-    {
-      "audioId": "C35-L1-T02-B01-T10_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Mười.",
-      "targetId": "C35-L1-T02-B01-T10",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C35-L1-T02-B01"
-    },
-    {
       "audioId": "C35-L1-T02-B01-Q01_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
@@ -1447,6 +750,19 @@
       "questionId": "C35-L1-T02-B01-Q02",
       "targetId": "C35-L1-T02-B01-T02",
       "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C35-L1-T02-B01"
+    },
+    {
+      "audioId": "C35-L1-T02-B01-Q09_PROMPT",
+      "kind": "challengePrompt",
+      "locale": "vi-VN",
+      "sourceText": "Ba: Three hay Four?",
+      "qaStatus": "PENDING_TTS",
+      "questionId": "C35-L1-T02-B01-Q09",
+      "targetId": "C35-L1-T02-B01-T03",
       "course": "3-5",
       "level": "L1",
       "topic": 2,
@@ -1479,6 +795,137 @@
       "lessonCode": "C35-L1-T02-B01"
     },
     {
+      "audioId": "C35-L1-T02-B02_ENTRY",
+      "kind": "microObjective",
+      "locale": "vi-VN",
+      "sourceText": "Mình cùng học cách đếm số nhé.",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C35-L1-T02-B02"
+    },
+    {
+      "audioId": "C35-L1-T02-B01-T06_EN",
+      "kind": "coreEnglish",
+      "locale": "en-US",
+      "sourceText": "Six.",
+      "targetId": "C35-L1-T02-B01-T06",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C35-L1-T02-B02"
+    },
+    {
+      "audioId": "C35-L1-T02-B01-T06_VI",
+      "kind": "coreVietnamese",
+      "locale": "vi-VN",
+      "sourceText": "Sáu.",
+      "targetId": "C35-L1-T02-B01-T06",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C35-L1-T02-B02"
+    },
+    {
+      "audioId": "C35-L1-T02-B01-T07_EN",
+      "kind": "coreEnglish",
+      "locale": "en-US",
+      "sourceText": "Seven.",
+      "targetId": "C35-L1-T02-B01-T07",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C35-L1-T02-B02"
+    },
+    {
+      "audioId": "C35-L1-T02-B01-T07_VI",
+      "kind": "coreVietnamese",
+      "locale": "vi-VN",
+      "sourceText": "Bảy.",
+      "targetId": "C35-L1-T02-B01-T07",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C35-L1-T02-B02"
+    },
+    {
+      "audioId": "C35-L1-T02-B01-T08_EN",
+      "kind": "coreEnglish",
+      "locale": "en-US",
+      "sourceText": "Eight.",
+      "targetId": "C35-L1-T02-B01-T08",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C35-L1-T02-B02"
+    },
+    {
+      "audioId": "C35-L1-T02-B01-T08_VI",
+      "kind": "coreVietnamese",
+      "locale": "vi-VN",
+      "sourceText": "Tám.",
+      "targetId": "C35-L1-T02-B01-T08",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C35-L1-T02-B02"
+    },
+    {
+      "audioId": "C35-L1-T02-B01-T09_EN",
+      "kind": "coreEnglish",
+      "locale": "en-US",
+      "sourceText": "Nine.",
+      "targetId": "C35-L1-T02-B01-T09",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C35-L1-T02-B02"
+    },
+    {
+      "audioId": "C35-L1-T02-B01-T09_VI",
+      "kind": "coreVietnamese",
+      "locale": "vi-VN",
+      "sourceText": "Chín.",
+      "targetId": "C35-L1-T02-B01-T09",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C35-L1-T02-B02"
+    },
+    {
+      "audioId": "C35-L1-T02-B01-T10_EN",
+      "kind": "coreEnglish",
+      "locale": "en-US",
+      "sourceText": "Ten.",
+      "targetId": "C35-L1-T02-B01-T10",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C35-L1-T02-B02"
+    },
+    {
+      "audioId": "C35-L1-T02-B01-T10_VI",
+      "kind": "coreVietnamese",
+      "locale": "vi-VN",
+      "sourceText": "Mười.",
+      "targetId": "C35-L1-T02-B01-T10",
+      "qaStatus": "PENDING_TTS",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C35-L1-T02-B02"
+    },
+    {
       "audioId": "C35-L1-T02-B01-Q05_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
@@ -1489,7 +936,7 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B01"
+      "lessonCode": "C35-L1-T02-B02"
     },
     {
       "audioId": "C35-L1-T02-B01-Q06_PROMPT",
@@ -1502,36 +949,49 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B01"
+      "lessonCode": "C35-L1-T02-B02"
     },
     {
-      "audioId": "C35-L1-T02-B01-Q07_PROMPT",
+      "audioId": "C35-L1-T02-B01-Q10_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Bạn muốn nói \"Một\". One hay Three?",
-      "questionId": "C35-L1-T02-B01-Q07",
-      "targetId": "C35-L1-T02-B01-T01",
+      "sourceText": "Tám: Eight hay Seven?",
       "qaStatus": "PENDING_TTS",
+      "questionId": "C35-L1-T02-B01-Q10",
+      "targetId": "C35-L1-T02-B01-T08",
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B01"
+      "lessonCode": "C35-L1-T02-B02"
     },
     {
-      "audioId": "C35-L1-T02-B01-Q08_PROMPT",
+      "audioId": "C35-L1-T02-B01-Q11_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Bạn muốn nói \"Hai\". Four hay Two?",
-      "questionId": "C35-L1-T02-B01-Q08",
-      "targetId": "C35-L1-T02-B01-T02",
+      "sourceText": "Chín: Nine hay Ten?",
       "qaStatus": "PENDING_TTS",
+      "questionId": "C35-L1-T02-B01-Q11",
+      "targetId": "C35-L1-T02-B01-T09",
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B01"
+      "lessonCode": "C35-L1-T02-B02"
     },
     {
-      "audioId": "C35-L1-T02-B02_ENTRY",
+      "audioId": "C35-L1-T02-B01-Q12_PROMPT",
+      "kind": "challengePrompt",
+      "locale": "vi-VN",
+      "sourceText": "Mười: Ten hay Nine?",
+      "qaStatus": "PENDING_TTS",
+      "questionId": "C35-L1-T02-B01-Q12",
+      "targetId": "C35-L1-T02-B01-T10",
+      "course": "3-5",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C35-L1-T02-B02"
+    },
+    {
+      "audioId": "C35-L1-T02-B03_ENTRY",
       "kind": "hook",
       "locale": "vi-VN",
       "sourceText": "Nghe thật kỹ nhé.",
@@ -1539,7 +999,7 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
+      "lessonCode": "C35-L1-T02-B03"
     },
     {
       "audioId": "C35-L1-T02-B02-T01_EN",
@@ -1551,7 +1011,7 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
+      "lessonCode": "C35-L1-T02-B03"
     },
     {
       "audioId": "C35-L1-T02-B02-T01_VI",
@@ -1563,7 +1023,7 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
+      "lessonCode": "C35-L1-T02-B03"
     },
     {
       "audioId": "C35-L1-T02-B02-T02_EN",
@@ -1575,7 +1035,7 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
+      "lessonCode": "C35-L1-T02-B03"
     },
     {
       "audioId": "C35-L1-T02-B02-T02_VI",
@@ -1587,7 +1047,7 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
+      "lessonCode": "C35-L1-T02-B03"
     },
     {
       "audioId": "C35-L1-T02-B02-T03_EN",
@@ -1599,7 +1059,7 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
+      "lessonCode": "C35-L1-T02-B03"
     },
     {
       "audioId": "C35-L1-T02-B02-T03_VI",
@@ -1611,7 +1071,7 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
+      "lessonCode": "C35-L1-T02-B03"
     },
     {
       "audioId": "C35-L1-T02-B02-T04_EN",
@@ -1623,7 +1083,7 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
+      "lessonCode": "C35-L1-T02-B03"
     },
     {
       "audioId": "C35-L1-T02-B02-T04_VI",
@@ -1635,7 +1095,7 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
+      "lessonCode": "C35-L1-T02-B03"
     },
     {
       "audioId": "C35-L1-T02-B02-T05_EN",
@@ -1647,7 +1107,7 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
+      "lessonCode": "C35-L1-T02-B03"
     },
     {
       "audioId": "C35-L1-T02-B02-T05_VI",
@@ -1659,7 +1119,7 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
+      "lessonCode": "C35-L1-T02-B03"
     },
     {
       "audioId": "C35-L1-T02-B02-Q01_PROMPT",
@@ -1672,7 +1132,7 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
+      "lessonCode": "C35-L1-T02-B03"
     },
     {
       "audioId": "C35-L1-T02-B02-Q02_PROMPT",
@@ -1685,7 +1145,7 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
+      "lessonCode": "C35-L1-T02-B03"
     },
     {
       "audioId": "C35-L1-T02-B02-Q03_PROMPT",
@@ -1698,7 +1158,7 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
+      "lessonCode": "C35-L1-T02-B03"
     },
     {
       "audioId": "C35-L1-T02-B02-Q04_PROMPT",
@@ -1711,7 +1171,7 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
+      "lessonCode": "C35-L1-T02-B03"
     },
     {
       "audioId": "C35-L1-T02-B02-Q05_PROMPT",
@@ -1724,46 +1184,7 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
-    },
-    {
-      "audioId": "C35-L1-T02-B02-Q06_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Three claps hay Five claps?",
-      "questionId": "C35-L1-T02-B02-Q06",
-      "targetId": "C35-L1-T02-B02-T03",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
-    },
-    {
-      "audioId": "C35-L1-T02-B02-Q07_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Five claps hay Two claps?",
-      "questionId": "C35-L1-T02-B02-Q07",
-      "targetId": "C35-L1-T02-B02-T05",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
-    },
-    {
-      "audioId": "C35-L1-T02-B02-Q08_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Bạn muốn nói \"Một tiếng vỗ tay\". Three claps hay One clap?",
-      "questionId": "C35-L1-T02-B02-Q08",
-      "targetId": "C35-L1-T02-B02-T01",
-      "qaStatus": "PENDING_TTS",
-      "course": "3-5",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
+      "lessonCode": "C35-L1-T02-B03"
     },
     {
       "audioId": "C35-L1-T02-B02_SONG",
@@ -1775,7 +1196,7 @@
       "course": "3-5",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C35-L1-T02-B02"
+      "lessonCode": "C35-L1-T02-B03"
     },
     {
       "audioId": "C35-L1-T03-B01_ENTRY",
@@ -5525,11 +4946,11 @@
       "lessonCode": "C67-L1-T01-B01"
     },
     {
-      "audioId": "C67-L1-T01-B01-T01_EN",
+      "audioId": "C35-L1-T01-B02-T02_EN",
       "kind": "coreEnglish",
       "locale": "en-US",
-      "sourceText": "A. Ant.",
-      "targetId": "C67-L1-T01-B01-T01",
+      "sourceText": "K. Kite.",
+      "targetId": "C35-L1-T01-B02-T02",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5537,11 +4958,11 @@
       "lessonCode": "C67-L1-T01-B01"
     },
     {
-      "audioId": "C67-L1-T01-B01-T01_VI",
+      "audioId": "C35-L1-T01-B02-T02_VI",
       "kind": "coreVietnamese",
       "locale": "vi-VN",
-      "sourceText": "Con kiến.",
-      "targetId": "C67-L1-T01-B01-T01",
+      "sourceText": "Cái diều.",
+      "targetId": "C35-L1-T01-B02-T02",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5549,11 +4970,11 @@
       "lessonCode": "C67-L1-T01-B01"
     },
     {
-      "audioId": "C67-L1-T01-B01-T02_EN",
+      "audioId": "C35-L1-T01-B02-T03_EN",
       "kind": "coreEnglish",
       "locale": "en-US",
-      "sourceText": "B. Book.",
-      "targetId": "C67-L1-T01-B01-T02",
+      "sourceText": "L. Lion.",
+      "targetId": "C35-L1-T01-B02-T03",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5561,11 +4982,11 @@
       "lessonCode": "C67-L1-T01-B01"
     },
     {
-      "audioId": "C67-L1-T01-B01-T02_VI",
+      "audioId": "C35-L1-T01-B02-T03_VI",
       "kind": "coreVietnamese",
       "locale": "vi-VN",
-      "sourceText": "Quyển sách.",
-      "targetId": "C67-L1-T01-B01-T02",
+      "sourceText": "Con sư tử.",
+      "targetId": "C35-L1-T01-B02-T03",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5573,11 +4994,11 @@
       "lessonCode": "C67-L1-T01-B01"
     },
     {
-      "audioId": "C67-L1-T01-B01-T03_EN",
+      "audioId": "C35-L1-T01-B02-T04_EN",
       "kind": "coreEnglish",
       "locale": "en-US",
-      "sourceText": "C. Cake.",
-      "targetId": "C67-L1-T01-B01-T03",
+      "sourceText": "M. Milk.",
+      "targetId": "C35-L1-T01-B02-T04",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5585,11 +5006,11 @@
       "lessonCode": "C67-L1-T01-B01"
     },
     {
-      "audioId": "C67-L1-T01-B01-T03_VI",
+      "audioId": "C35-L1-T01-B02-T04_VI",
       "kind": "coreVietnamese",
       "locale": "vi-VN",
-      "sourceText": "Bánh ngọt.",
-      "targetId": "C67-L1-T01-B01-T03",
+      "sourceText": "Sữa.",
+      "targetId": "C35-L1-T01-B02-T04",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5597,11 +5018,11 @@
       "lessonCode": "C67-L1-T01-B01"
     },
     {
-      "audioId": "C67-L1-T01-B01-T04_EN",
+      "audioId": "C35-L1-T01-B02-T05_EN",
       "kind": "coreEnglish",
       "locale": "en-US",
-      "sourceText": "D. Desk.",
-      "targetId": "C67-L1-T01-B01-T04",
+      "sourceText": "N. Nose.",
+      "targetId": "C35-L1-T01-B02-T05",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5609,11 +5030,11 @@
       "lessonCode": "C67-L1-T01-B01"
     },
     {
-      "audioId": "C67-L1-T01-B01-T04_VI",
+      "audioId": "C35-L1-T01-B02-T05_VI",
       "kind": "coreVietnamese",
       "locale": "vi-VN",
-      "sourceText": "Bàn học.",
-      "targetId": "C67-L1-T01-B01-T04",
+      "sourceText": "Cái mũi.",
+      "targetId": "C35-L1-T01-B02-T05",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5621,11 +5042,11 @@
       "lessonCode": "C67-L1-T01-B01"
     },
     {
-      "audioId": "C67-L1-T01-B01-T05_EN",
+      "audioId": "C35-L1-T01-B02-T06_EN",
       "kind": "coreEnglish",
       "locale": "en-US",
-      "sourceText": "E. Elephant.",
-      "targetId": "C67-L1-T01-B01-T05",
+      "sourceText": "O. Orange.",
+      "targetId": "C35-L1-T01-B02-T06",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5633,11 +5054,11 @@
       "lessonCode": "C67-L1-T01-B01"
     },
     {
-      "audioId": "C67-L1-T01-B01-T05_VI",
+      "audioId": "C35-L1-T01-B02-T06_VI",
       "kind": "coreVietnamese",
       "locale": "vi-VN",
-      "sourceText": "Con voi.",
-      "targetId": "C67-L1-T01-B01-T05",
+      "sourceText": "Quả cam.",
+      "targetId": "C35-L1-T01-B02-T06",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5645,108 +5066,12 @@
       "lessonCode": "C67-L1-T01-B01"
     },
     {
-      "audioId": "C67-L1-T01-B01-T06_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "F. Flower.",
-      "targetId": "C67-L1-T01-B01-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B01"
-    },
-    {
-      "audioId": "C67-L1-T01-B01-T06_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Bông hoa.",
-      "targetId": "C67-L1-T01-B01-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B01"
-    },
-    {
-      "audioId": "C67-L1-T01-B01-T07_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "G. Game.",
-      "targetId": "C67-L1-T01-B01-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B01"
-    },
-    {
-      "audioId": "C67-L1-T01-B01-T07_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Trò chơi.",
-      "targetId": "C67-L1-T01-B01-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B01"
-    },
-    {
-      "audioId": "C67-L1-T01-B01-T08_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "H. House.",
-      "targetId": "C67-L1-T01-B01-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B01"
-    },
-    {
-      "audioId": "C67-L1-T01-B01-T08_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Ngôi nhà.",
-      "targetId": "C67-L1-T01-B01-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B01"
-    },
-    {
-      "audioId": "C67-L1-T01-B01-T09_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "I. Insect.",
-      "targetId": "C67-L1-T01-B01-T09",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B01"
-    },
-    {
-      "audioId": "C67-L1-T01-B01-T09_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Côn trùng.",
-      "targetId": "C67-L1-T01-B01-T09",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B01"
-    },
-    {
-      "audioId": "C67-L1-T01-B01-Q01_PROMPT",
+      "audioId": "C35-L1-T01-B02-Q02_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Con kiến: Ant hay Book?",
-      "questionId": "C67-L1-T01-B01-Q01",
-      "targetId": "C67-L1-T01-B01-T01",
+      "sourceText": "Cái diều: Kite hay Lion?",
+      "questionId": "C35-L1-T01-B02-Q02",
+      "targetId": "C35-L1-T01-B02-T02",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5754,12 +5079,12 @@
       "lessonCode": "C67-L1-T01-B01"
     },
     {
-      "audioId": "C67-L1-T01-B01-Q02_PROMPT",
+      "audioId": "C35-L1-T01-B02-Q03_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Quyển sách: Book hay Cake?",
-      "questionId": "C67-L1-T01-B01-Q02",
-      "targetId": "C67-L1-T01-B01-T02",
+      "sourceText": "Con sư tử: Lion hay Milk?",
+      "questionId": "C35-L1-T01-B02-Q03",
+      "targetId": "C35-L1-T01-B02-T03",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5767,12 +5092,12 @@
       "lessonCode": "C67-L1-T01-B01"
     },
     {
-      "audioId": "C67-L1-T01-B01-Q03_PROMPT",
+      "audioId": "C35-L1-T01-B02-Q04_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Bánh ngọt: Cake hay Desk?",
-      "questionId": "C67-L1-T01-B01-Q03",
-      "targetId": "C67-L1-T01-B01-T03",
+      "sourceText": "Sữa: Milk hay Nose?",
+      "questionId": "C35-L1-T01-B02-Q04",
+      "targetId": "C35-L1-T01-B02-T04",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5780,64 +5105,25 @@
       "lessonCode": "C67-L1-T01-B01"
     },
     {
-      "audioId": "C67-L1-T01-B01-Q04_PROMPT",
+      "audioId": "C35-L1-T01-B02-Q09_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Bàn học: Desk hay Elephant?",
-      "questionId": "C67-L1-T01-B01-Q04",
-      "targetId": "C67-L1-T01-B01-T04",
+      "sourceText": "Cái mũi: Nose hay Orange?",
       "qaStatus": "PENDING_TTS",
+      "questionId": "C35-L1-T01-B02-Q09",
+      "targetId": "C35-L1-T01-B02-T05",
       "course": "6-7",
       "level": "L1",
       "topic": 1,
       "lessonCode": "C67-L1-T01-B01"
     },
     {
-      "audioId": "C67-L1-T01-B01-Q05_PROMPT",
+      "audioId": "C35-L1-T01-B02-Q05_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Bông hoa: Flower hay Game?",
-      "questionId": "C67-L1-T01-B01-Q05",
-      "targetId": "C67-L1-T01-B01-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B01"
-    },
-    {
-      "audioId": "C67-L1-T01-B01-Q06_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Trò chơi: Game hay House?",
-      "questionId": "C67-L1-T01-B01-Q06",
-      "targetId": "C67-L1-T01-B01-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B01"
-    },
-    {
-      "audioId": "C67-L1-T01-B01-Q07_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Ngôi nhà: House hay Insect?",
-      "questionId": "C67-L1-T01-B01-Q07",
-      "targetId": "C67-L1-T01-B01-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B01"
-    },
-    {
-      "audioId": "C67-L1-T01-B01-Q08_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Côn trùng: Insect hay Ant?",
-      "questionId": "C67-L1-T01-B01-Q08",
-      "targetId": "C67-L1-T01-B01-T09",
+      "sourceText": "Quả cam: Orange hay Pig?",
+      "questionId": "C35-L1-T01-B02-Q05",
+      "targetId": "C35-L1-T01-B02-T06",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5856,11 +5142,11 @@
       "lessonCode": "C67-L1-T01-B02"
     },
     {
-      "audioId": "C67-L1-T01-B02-T01_EN",
+      "audioId": "C35-L1-T01-B02-T07_EN",
       "kind": "coreEnglish",
       "locale": "en-US",
-      "sourceText": "J. Jacket.",
-      "targetId": "C67-L1-T01-B02-T01",
+      "sourceText": "P. Pig.",
+      "targetId": "C35-L1-T01-B02-T07",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5868,11 +5154,11 @@
       "lessonCode": "C67-L1-T01-B02"
     },
     {
-      "audioId": "C67-L1-T01-B02-T01_VI",
+      "audioId": "C35-L1-T01-B02-T07_VI",
       "kind": "coreVietnamese",
       "locale": "vi-VN",
-      "sourceText": "Áo khoác.",
-      "targetId": "C67-L1-T01-B02-T01",
+      "sourceText": "Con lợn.",
+      "targetId": "C35-L1-T01-B02-T07",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5880,11 +5166,11 @@
       "lessonCode": "C67-L1-T01-B02"
     },
     {
-      "audioId": "C67-L1-T01-B02-T02_EN",
+      "audioId": "C35-L1-T01-B02-T08_EN",
       "kind": "coreEnglish",
       "locale": "en-US",
-      "sourceText": "K. Key.",
-      "targetId": "C67-L1-T01-B02-T02",
+      "sourceText": "Q. Queen.",
+      "targetId": "C35-L1-T01-B02-T08",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5892,11 +5178,11 @@
       "lessonCode": "C67-L1-T01-B02"
     },
     {
-      "audioId": "C67-L1-T01-B02-T02_VI",
+      "audioId": "C35-L1-T01-B02-T08_VI",
       "kind": "coreVietnamese",
       "locale": "vi-VN",
-      "sourceText": "Chìa khóa.",
-      "targetId": "C67-L1-T01-B02-T02",
+      "sourceText": "Nữ hoàng.",
+      "targetId": "C35-L1-T01-B02-T08",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5904,11 +5190,11 @@
       "lessonCode": "C67-L1-T01-B02"
     },
     {
-      "audioId": "C67-L1-T01-B02-T03_EN",
+      "audioId": "C35-L1-T01-B02-T09_EN",
       "kind": "coreEnglish",
       "locale": "en-US",
-      "sourceText": "L. Lamp.",
-      "targetId": "C67-L1-T01-B02-T03",
+      "sourceText": "R. Rabbit.",
+      "targetId": "C35-L1-T01-B02-T09",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5916,11 +5202,11 @@
       "lessonCode": "C67-L1-T01-B02"
     },
     {
-      "audioId": "C67-L1-T01-B02-T03_VI",
+      "audioId": "C35-L1-T01-B02-T09_VI",
       "kind": "coreVietnamese",
       "locale": "vi-VN",
-      "sourceText": "Cái đèn.",
-      "targetId": "C67-L1-T01-B02-T03",
+      "sourceText": "Con thỏ.",
+      "targetId": "C35-L1-T01-B02-T09",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5928,11 +5214,11 @@
       "lessonCode": "C67-L1-T01-B02"
     },
     {
-      "audioId": "C67-L1-T01-B02-T04_EN",
+      "audioId": "C35-L1-T01-B03-T01_EN",
       "kind": "coreEnglish",
       "locale": "en-US",
-      "sourceText": "M. Moon.",
-      "targetId": "C67-L1-T01-B02-T04",
+      "sourceText": "S. Sun.",
+      "targetId": "C35-L1-T01-B03-T01",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5940,11 +5226,11 @@
       "lessonCode": "C67-L1-T01-B02"
     },
     {
-      "audioId": "C67-L1-T01-B02-T04_VI",
+      "audioId": "C35-L1-T01-B03-T01_VI",
       "kind": "coreVietnamese",
       "locale": "vi-VN",
-      "sourceText": "Mặt trăng.",
-      "targetId": "C67-L1-T01-B02-T04",
+      "sourceText": "Mặt trời.",
+      "targetId": "C35-L1-T01-B03-T01",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5952,11 +5238,11 @@
       "lessonCode": "C67-L1-T01-B02"
     },
     {
-      "audioId": "C67-L1-T01-B02-T05_EN",
+      "audioId": "C35-L1-T01-B03-T02_EN",
       "kind": "coreEnglish",
       "locale": "en-US",
-      "sourceText": "N. Notebook.",
-      "targetId": "C67-L1-T01-B02-T05",
+      "sourceText": "T. Toy.",
+      "targetId": "C35-L1-T01-B03-T02",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5964,11 +5250,11 @@
       "lessonCode": "C67-L1-T01-B02"
     },
     {
-      "audioId": "C67-L1-T01-B02-T05_VI",
+      "audioId": "C35-L1-T01-B03-T02_VI",
       "kind": "coreVietnamese",
       "locale": "vi-VN",
-      "sourceText": "Quyển vở.",
-      "targetId": "C67-L1-T01-B02-T05",
+      "sourceText": "Đồ chơi.",
+      "targetId": "C35-L1-T01-B03-T02",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -5976,108 +5262,12 @@
       "lessonCode": "C67-L1-T01-B02"
     },
     {
-      "audioId": "C67-L1-T01-B02-T06_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "O. Octopus.",
-      "targetId": "C67-L1-T01-B02-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B02"
-    },
-    {
-      "audioId": "C67-L1-T01-B02-T06_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Bạch tuộc.",
-      "targetId": "C67-L1-T01-B02-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B02"
-    },
-    {
-      "audioId": "C67-L1-T01-B02-T07_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "P. Pencil.",
-      "targetId": "C67-L1-T01-B02-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B02"
-    },
-    {
-      "audioId": "C67-L1-T01-B02-T07_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Bút chì.",
-      "targetId": "C67-L1-T01-B02-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B02"
-    },
-    {
-      "audioId": "C67-L1-T01-B02-T08_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "Q. Quiz.",
-      "targetId": "C67-L1-T01-B02-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B02"
-    },
-    {
-      "audioId": "C67-L1-T01-B02-T08_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Câu đố.",
-      "targetId": "C67-L1-T01-B02-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B02"
-    },
-    {
-      "audioId": "C67-L1-T01-B02-T09_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "R. Robot.",
-      "targetId": "C67-L1-T01-B02-T09",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B02"
-    },
-    {
-      "audioId": "C67-L1-T01-B02-T09_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Rô-bốt.",
-      "targetId": "C67-L1-T01-B02-T09",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B02"
-    },
-    {
-      "audioId": "C67-L1-T01-B02-Q01_PROMPT",
+      "audioId": "C35-L1-T01-B02-Q06_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Áo khoác: Jacket hay Key?",
-      "questionId": "C67-L1-T01-B02-Q01",
-      "targetId": "C67-L1-T01-B02-T01",
+      "sourceText": "Con lợn: Pig hay Queen?",
+      "questionId": "C35-L1-T01-B02-Q06",
+      "targetId": "C35-L1-T01-B02-T07",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6085,12 +5275,12 @@
       "lessonCode": "C67-L1-T01-B02"
     },
     {
-      "audioId": "C67-L1-T01-B02-Q02_PROMPT",
+      "audioId": "C35-L1-T01-B02-Q07_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Chìa khóa: Key hay Lamp?",
-      "questionId": "C67-L1-T01-B02-Q02",
-      "targetId": "C67-L1-T01-B02-T02",
+      "sourceText": "Nữ hoàng: Queen hay Rabbit?",
+      "questionId": "C35-L1-T01-B02-Q07",
+      "targetId": "C35-L1-T01-B02-T08",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6098,12 +5288,12 @@
       "lessonCode": "C67-L1-T01-B02"
     },
     {
-      "audioId": "C67-L1-T01-B02-Q03_PROMPT",
+      "audioId": "C35-L1-T01-B02-Q08_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Cái đèn: Lamp hay Moon?",
-      "questionId": "C67-L1-T01-B02-Q03",
-      "targetId": "C67-L1-T01-B02-T03",
+      "sourceText": "Con thỏ: Rabbit hay Juice?",
+      "questionId": "C35-L1-T01-B02-Q08",
+      "targetId": "C35-L1-T01-B02-T09",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6111,12 +5301,12 @@
       "lessonCode": "C67-L1-T01-B02"
     },
     {
-      "audioId": "C67-L1-T01-B02-Q04_PROMPT",
+      "audioId": "C35-L1-T01-B03-Q01_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Mặt trăng: Moon hay Notebook?",
-      "questionId": "C67-L1-T01-B02-Q04",
-      "targetId": "C67-L1-T01-B02-T04",
+      "sourceText": "Mặt trời: Sun hay Toy?",
+      "questionId": "C35-L1-T01-B03-Q01",
+      "targetId": "C35-L1-T01-B03-T01",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6124,51 +5314,12 @@
       "lessonCode": "C67-L1-T01-B02"
     },
     {
-      "audioId": "C67-L1-T01-B02-Q05_PROMPT",
+      "audioId": "C35-L1-T01-B03-Q02_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Bạch tuộc: Octopus hay Pencil?",
-      "questionId": "C67-L1-T01-B02-Q05",
-      "targetId": "C67-L1-T01-B02-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B02"
-    },
-    {
-      "audioId": "C67-L1-T01-B02-Q06_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Bút chì: Pencil hay Quiz?",
-      "questionId": "C67-L1-T01-B02-Q06",
-      "targetId": "C67-L1-T01-B02-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B02"
-    },
-    {
-      "audioId": "C67-L1-T01-B02-Q07_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Câu đố: Quiz hay Robot?",
-      "questionId": "C67-L1-T01-B02-Q07",
-      "targetId": "C67-L1-T01-B02-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B02"
-    },
-    {
-      "audioId": "C67-L1-T01-B02-Q08_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Rô-bốt: Robot hay Jacket?",
-      "questionId": "C67-L1-T01-B02-Q08",
-      "targetId": "C67-L1-T01-B02-T09",
+      "sourceText": "Đồ chơi: Toy hay Umbrella?",
+      "questionId": "C35-L1-T01-B03-Q02",
+      "targetId": "C35-L1-T01-B03-T02",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6187,11 +5338,11 @@
       "lessonCode": "C67-L1-T01-B03"
     },
     {
-      "audioId": "C67-L1-T01-B03-T01_EN",
+      "audioId": "C35-L1-T01-B03-T03_EN",
       "kind": "coreEnglish",
       "locale": "en-US",
-      "sourceText": "S. School.",
-      "targetId": "C67-L1-T01-B03-T01",
+      "sourceText": "U. Umbrella.",
+      "targetId": "C35-L1-T01-B03-T03",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6199,11 +5350,11 @@
       "lessonCode": "C67-L1-T01-B03"
     },
     {
-      "audioId": "C67-L1-T01-B03-T01_VI",
+      "audioId": "C35-L1-T01-B03-T03_VI",
       "kind": "coreVietnamese",
       "locale": "vi-VN",
-      "sourceText": "Trường học.",
-      "targetId": "C67-L1-T01-B03-T01",
+      "sourceText": "Cái ô.",
+      "targetId": "C35-L1-T01-B03-T03",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6211,11 +5362,11 @@
       "lessonCode": "C67-L1-T01-B03"
     },
     {
-      "audioId": "C67-L1-T01-B03-T02_EN",
+      "audioId": "C35-L1-T01-B03-T04_EN",
       "kind": "coreEnglish",
       "locale": "en-US",
-      "sourceText": "T. Table.",
-      "targetId": "C67-L1-T01-B03-T02",
+      "sourceText": "V. Van.",
+      "targetId": "C35-L1-T01-B03-T04",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6223,11 +5374,11 @@
       "lessonCode": "C67-L1-T01-B03"
     },
     {
-      "audioId": "C67-L1-T01-B03-T02_VI",
+      "audioId": "C35-L1-T01-B03-T04_VI",
       "kind": "coreVietnamese",
       "locale": "vi-VN",
-      "sourceText": "Cái bàn.",
-      "targetId": "C67-L1-T01-B03-T02",
+      "sourceText": "Xe van.",
+      "targetId": "C35-L1-T01-B03-T04",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6235,11 +5386,11 @@
       "lessonCode": "C67-L1-T01-B03"
     },
     {
-      "audioId": "C67-L1-T01-B03-T03_EN",
+      "audioId": "C35-L1-T01-B03-T05_EN",
       "kind": "coreEnglish",
       "locale": "en-US",
-      "sourceText": "U. Uniform.",
-      "targetId": "C67-L1-T01-B03-T03",
+      "sourceText": "W. Water.",
+      "targetId": "C35-L1-T01-B03-T05",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6247,11 +5398,11 @@
       "lessonCode": "C67-L1-T01-B03"
     },
     {
-      "audioId": "C67-L1-T01-B03-T03_VI",
+      "audioId": "C35-L1-T01-B03-T05_VI",
       "kind": "coreVietnamese",
       "locale": "vi-VN",
-      "sourceText": "Đồng phục.",
-      "targetId": "C67-L1-T01-B03-T03",
+      "sourceText": "Nước.",
+      "targetId": "C35-L1-T01-B03-T05",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6259,59 +5410,11 @@
       "lessonCode": "C67-L1-T01-B03"
     },
     {
-      "audioId": "C67-L1-T01-B03-T04_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "V. Violin.",
-      "targetId": "C67-L1-T01-B03-T04",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B03"
-    },
-    {
-      "audioId": "C67-L1-T01-B03-T04_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Đàn vi-ô-lông.",
-      "targetId": "C67-L1-T01-B03-T04",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B03"
-    },
-    {
-      "audioId": "C67-L1-T01-B03-T05_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "W. Window.",
-      "targetId": "C67-L1-T01-B03-T05",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B03"
-    },
-    {
-      "audioId": "C67-L1-T01-B03-T05_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Cửa sổ.",
-      "targetId": "C67-L1-T01-B03-T05",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B03"
-    },
-    {
-      "audioId": "C67-L1-T01-B03-T06_EN",
+      "audioId": "C35-L1-T01-B03-T06_EN",
       "kind": "coreEnglish",
       "locale": "en-US",
       "sourceText": "X. X-ray.",
-      "targetId": "C67-L1-T01-B03-T06",
+      "targetId": "C35-L1-T01-B03-T06",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6319,11 +5422,11 @@
       "lessonCode": "C67-L1-T01-B03"
     },
     {
-      "audioId": "C67-L1-T01-B03-T06_VI",
+      "audioId": "C35-L1-T01-B03-T06_VI",
       "kind": "coreVietnamese",
       "locale": "vi-VN",
       "sourceText": "Ảnh X-quang.",
-      "targetId": "C67-L1-T01-B03-T06",
+      "targetId": "C35-L1-T01-B03-T06",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6331,11 +5434,11 @@
       "lessonCode": "C67-L1-T01-B03"
     },
     {
-      "audioId": "C67-L1-T01-B03-T07_EN",
+      "audioId": "C35-L1-T01-B03-T07_EN",
       "kind": "coreEnglish",
       "locale": "en-US",
-      "sourceText": "Y. Yogurt.",
-      "targetId": "C67-L1-T01-B03-T07",
+      "sourceText": "Y. Yo-yo.",
+      "targetId": "C35-L1-T01-B03-T07",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6343,11 +5446,11 @@
       "lessonCode": "C67-L1-T01-B03"
     },
     {
-      "audioId": "C67-L1-T01-B03-T07_VI",
+      "audioId": "C35-L1-T01-B03-T07_VI",
       "kind": "coreVietnamese",
       "locale": "vi-VN",
-      "sourceText": "Sữa chua.",
-      "targetId": "C67-L1-T01-B03-T07",
+      "sourceText": "Đồ chơi yo-yo.",
+      "targetId": "C35-L1-T01-B03-T07",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6355,11 +5458,11 @@
       "lessonCode": "C67-L1-T01-B03"
     },
     {
-      "audioId": "C67-L1-T01-B03-T08_EN",
+      "audioId": "C35-L1-T01-B03-T08_EN",
       "kind": "coreEnglish",
       "locale": "en-US",
-      "sourceText": "Z. Zoo.",
-      "targetId": "C67-L1-T01-B03-T08",
+      "sourceText": "Z. Zebra.",
+      "targetId": "C35-L1-T01-B03-T08",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6367,11 +5470,11 @@
       "lessonCode": "C67-L1-T01-B03"
     },
     {
-      "audioId": "C67-L1-T01-B03-T08_VI",
+      "audioId": "C35-L1-T01-B03-T08_VI",
       "kind": "coreVietnamese",
       "locale": "vi-VN",
-      "sourceText": "Sở thú.",
-      "targetId": "C67-L1-T01-B03-T08",
+      "sourceText": "Ngựa vằn.",
+      "targetId": "C35-L1-T01-B03-T08",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6379,12 +5482,12 @@
       "lessonCode": "C67-L1-T01-B03"
     },
     {
-      "audioId": "C67-L1-T01-B03-Q01_PROMPT",
+      "audioId": "C35-L1-T01-B03-Q03_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Trường học: School hay Table?",
-      "questionId": "C67-L1-T01-B03-Q01",
-      "targetId": "C67-L1-T01-B03-T01",
+      "sourceText": "Cái ô: Umbrella hay Van?",
+      "questionId": "C35-L1-T01-B03-Q03",
+      "targetId": "C35-L1-T01-B03-T03",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6392,12 +5495,12 @@
       "lessonCode": "C67-L1-T01-B03"
     },
     {
-      "audioId": "C67-L1-T01-B03-Q02_PROMPT",
+      "audioId": "C35-L1-T01-B03-Q04_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Cái bàn: Table hay Uniform?",
-      "questionId": "C67-L1-T01-B03-Q02",
-      "targetId": "C67-L1-T01-B03-T02",
+      "sourceText": "Xe van: Van hay Water?",
+      "questionId": "C35-L1-T01-B03-Q04",
+      "targetId": "C35-L1-T01-B03-T04",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6405,12 +5508,12 @@
       "lessonCode": "C67-L1-T01-B03"
     },
     {
-      "audioId": "C67-L1-T01-B03-Q03_PROMPT",
+      "audioId": "C35-L1-T01-B03-Q05_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Đồng phục: Uniform hay Violin?",
-      "questionId": "C67-L1-T01-B03-Q03",
-      "targetId": "C67-L1-T01-B03-T03",
+      "sourceText": "Nước: Water hay X-ray?",
+      "questionId": "C35-L1-T01-B03-Q05",
+      "targetId": "C35-L1-T01-B03-T05",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6418,12 +5521,12 @@
       "lessonCode": "C67-L1-T01-B03"
     },
     {
-      "audioId": "C67-L1-T01-B03-Q04_PROMPT",
+      "audioId": "C35-L1-T01-B03-Q06_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Đàn vi-ô-lông: Violin hay Window?",
-      "questionId": "C67-L1-T01-B03-Q04",
-      "targetId": "C67-L1-T01-B03-T04",
+      "sourceText": "Ảnh X-quang: X-ray hay Yo-yo?",
+      "questionId": "C35-L1-T01-B03-Q06",
+      "targetId": "C35-L1-T01-B03-T06",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6431,12 +5534,12 @@
       "lessonCode": "C67-L1-T01-B03"
     },
     {
-      "audioId": "C67-L1-T01-B03-Q05_PROMPT",
+      "audioId": "C35-L1-T01-B03-Q07_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Cửa sổ: Window hay X-ray?",
-      "questionId": "C67-L1-T01-B03-Q05",
-      "targetId": "C67-L1-T01-B03-T05",
+      "sourceText": "Đồ chơi yo-yo: Yo-yo hay Zebra?",
+      "questionId": "C35-L1-T01-B03-Q07",
+      "targetId": "C35-L1-T01-B03-T07",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6444,38 +5547,12 @@
       "lessonCode": "C67-L1-T01-B03"
     },
     {
-      "audioId": "C67-L1-T01-B03-Q06_PROMPT",
+      "audioId": "C35-L1-T01-B03-Q08_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Ảnh X-quang: X-ray hay Yogurt?",
-      "questionId": "C67-L1-T01-B03-Q06",
-      "targetId": "C67-L1-T01-B03-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B03"
-    },
-    {
-      "audioId": "C67-L1-T01-B03-Q07_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Sữa chua: Yogurt hay Zoo?",
-      "questionId": "C67-L1-T01-B03-Q07",
-      "targetId": "C67-L1-T01-B03-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 1,
-      "lessonCode": "C67-L1-T01-B03"
-    },
-    {
-      "audioId": "C67-L1-T01-B03-Q08_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Sở thú: Zoo hay School?",
-      "questionId": "C67-L1-T01-B03-Q08",
-      "targetId": "C67-L1-T01-B03-T08",
+      "sourceText": "Ngựa vằn: Zebra hay Sun?",
+      "questionId": "C35-L1-T01-B03-Q08",
+      "targetId": "C35-L1-T01-B03-T08",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -6494,361 +5571,6 @@
       "lessonCode": "C67-L1-T02-B01"
     },
     {
-      "audioId": "C67-L1-T02-B01-T01_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "One.",
-      "targetId": "C67-L1-T02-B01-T01",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T01_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Một.",
-      "targetId": "C67-L1-T02-B01-T01",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T02_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "Two.",
-      "targetId": "C67-L1-T02-B01-T02",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T02_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Hai.",
-      "targetId": "C67-L1-T02-B01-T02",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T03_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "Three.",
-      "targetId": "C67-L1-T02-B01-T03",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T03_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Ba.",
-      "targetId": "C67-L1-T02-B01-T03",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T04_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "Four.",
-      "targetId": "C67-L1-T02-B01-T04",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T04_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Bốn.",
-      "targetId": "C67-L1-T02-B01-T04",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T05_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "Five.",
-      "targetId": "C67-L1-T02-B01-T05",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T05_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Năm.",
-      "targetId": "C67-L1-T02-B01-T05",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T06_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "Six.",
-      "targetId": "C67-L1-T02-B01-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T06_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Sáu.",
-      "targetId": "C67-L1-T02-B01-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T07_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "Seven.",
-      "targetId": "C67-L1-T02-B01-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T07_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Bảy.",
-      "targetId": "C67-L1-T02-B01-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T08_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "Eight.",
-      "targetId": "C67-L1-T02-B01-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T08_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Tám.",
-      "targetId": "C67-L1-T02-B01-T08",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T09_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "Nine.",
-      "targetId": "C67-L1-T02-B01-T09",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T09_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Chín.",
-      "targetId": "C67-L1-T02-B01-T09",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T10_EN",
-      "kind": "coreEnglish",
-      "locale": "en-US",
-      "sourceText": "Ten.",
-      "targetId": "C67-L1-T02-B01-T10",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-T10_VI",
-      "kind": "coreVietnamese",
-      "locale": "vi-VN",
-      "sourceText": "Mười.",
-      "targetId": "C67-L1-T02-B01-T10",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-Q01_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Một: One hay Two?",
-      "questionId": "C67-L1-T02-B01-Q01",
-      "targetId": "C67-L1-T02-B01-T01",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-Q02_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Hai: Three hay Two?",
-      "questionId": "C67-L1-T02-B01-Q02",
-      "targetId": "C67-L1-T02-B01-T02",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-Q03_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Bốn: Four hay Five?",
-      "questionId": "C67-L1-T02-B01-Q03",
-      "targetId": "C67-L1-T02-B01-T04",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-Q04_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Năm: Six hay Five?",
-      "questionId": "C67-L1-T02-B01-Q04",
-      "targetId": "C67-L1-T02-B01-T05",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-Q05_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Sáu: Six hay Seven?",
-      "questionId": "C67-L1-T02-B01-Q05",
-      "targetId": "C67-L1-T02-B01-T06",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-Q06_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Bảy: Eight hay Seven?",
-      "questionId": "C67-L1-T02-B01-Q06",
-      "targetId": "C67-L1-T02-B01-T07",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-Q07_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Bạn muốn nói \"Một\". One hay Three?",
-      "questionId": "C67-L1-T02-B01-Q07",
-      "targetId": "C67-L1-T02-B01-T01",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B01-Q08_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Bạn muốn nói \"Hai\". Four hay Two?",
-      "questionId": "C67-L1-T02-B01-Q08",
-      "targetId": "C67-L1-T02-B01-T02",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B01"
-    },
-    {
-      "audioId": "C67-L1-T02-B02_ENTRY",
-      "kind": "microObjective",
-      "locale": "vi-VN",
-      "sourceText": "Mình cùng học các số trong đời sống nhé.",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B02"
-    },
-    {
       "audioId": "C67-L1-T02-B02-T01_EN",
       "kind": "coreEnglish",
       "locale": "en-US",
@@ -6858,7 +5580,7 @@
       "course": "6-7",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C67-L1-T02-B02"
+      "lessonCode": "C67-L1-T02-B01"
     },
     {
       "audioId": "C67-L1-T02-B02-T01_VI",
@@ -6870,7 +5592,7 @@
       "course": "6-7",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C67-L1-T02-B02"
+      "lessonCode": "C67-L1-T02-B01"
     },
     {
       "audioId": "C67-L1-T02-B02-T02_EN",
@@ -6882,7 +5604,7 @@
       "course": "6-7",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C67-L1-T02-B02"
+      "lessonCode": "C67-L1-T02-B01"
     },
     {
       "audioId": "C67-L1-T02-B02-T02_VI",
@@ -6894,7 +5616,7 @@
       "course": "6-7",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C67-L1-T02-B02"
+      "lessonCode": "C67-L1-T02-B01"
     },
     {
       "audioId": "C67-L1-T02-B02-T03_EN",
@@ -6906,7 +5628,7 @@
       "course": "6-7",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C67-L1-T02-B02"
+      "lessonCode": "C67-L1-T02-B01"
     },
     {
       "audioId": "C67-L1-T02-B02-T03_VI",
@@ -6918,7 +5640,7 @@
       "course": "6-7",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C67-L1-T02-B02"
+      "lessonCode": "C67-L1-T02-B01"
     },
     {
       "audioId": "C67-L1-T02-B02-T04_EN",
@@ -6930,7 +5652,7 @@
       "course": "6-7",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C67-L1-T02-B02"
+      "lessonCode": "C67-L1-T02-B01"
     },
     {
       "audioId": "C67-L1-T02-B02-T04_VI",
@@ -6942,7 +5664,7 @@
       "course": "6-7",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C67-L1-T02-B02"
+      "lessonCode": "C67-L1-T02-B01"
     },
     {
       "audioId": "C67-L1-T02-B02-T05_EN",
@@ -6954,7 +5676,7 @@
       "course": "6-7",
       "level": "L1",
       "topic": 2,
-      "lessonCode": "C67-L1-T02-B02"
+      "lessonCode": "C67-L1-T02-B01"
     },
     {
       "audioId": "C67-L1-T02-B02-T05_VI",
@@ -6962,6 +5684,82 @@
       "locale": "vi-VN",
       "sourceText": "Mười lăm.",
       "targetId": "C67-L1-T02-B02-T05",
+      "qaStatus": "PENDING_TTS",
+      "course": "6-7",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C67-L1-T02-B01"
+    },
+    {
+      "audioId": "C67-L1-T02-B02-Q01_PROMPT",
+      "kind": "challengePrompt",
+      "locale": "vi-VN",
+      "sourceText": "Mười một: Eleven hay Twelve?",
+      "questionId": "C67-L1-T02-B02-Q01",
+      "targetId": "C67-L1-T02-B02-T01",
+      "qaStatus": "PENDING_TTS",
+      "course": "6-7",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C67-L1-T02-B01"
+    },
+    {
+      "audioId": "C67-L1-T02-B02-Q02_PROMPT",
+      "kind": "challengePrompt",
+      "locale": "vi-VN",
+      "sourceText": "Mười hai: Thirteen hay Twelve?",
+      "questionId": "C67-L1-T02-B02-Q02",
+      "targetId": "C67-L1-T02-B02-T02",
+      "qaStatus": "PENDING_TTS",
+      "course": "6-7",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C67-L1-T02-B01"
+    },
+    {
+      "audioId": "C67-L1-T02-B02-Q09_PROMPT",
+      "kind": "challengePrompt",
+      "locale": "vi-VN",
+      "sourceText": "Mười ba: Thirteen hay Fourteen?",
+      "qaStatus": "PENDING_TTS",
+      "questionId": "C67-L1-T02-B02-Q09",
+      "targetId": "C67-L1-T02-B02-T03",
+      "course": "6-7",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C67-L1-T02-B01"
+    },
+    {
+      "audioId": "C67-L1-T02-B02-Q03_PROMPT",
+      "kind": "challengePrompt",
+      "locale": "vi-VN",
+      "sourceText": "Mười bốn: Fourteen hay Fifteen?",
+      "questionId": "C67-L1-T02-B02-Q03",
+      "targetId": "C67-L1-T02-B02-T04",
+      "qaStatus": "PENDING_TTS",
+      "course": "6-7",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C67-L1-T02-B01"
+    },
+    {
+      "audioId": "C67-L1-T02-B02-Q04_PROMPT",
+      "kind": "challengePrompt",
+      "locale": "vi-VN",
+      "sourceText": "Mười lăm: Sixteen hay Fifteen?",
+      "questionId": "C67-L1-T02-B02-Q04",
+      "targetId": "C67-L1-T02-B02-T05",
+      "qaStatus": "PENDING_TTS",
+      "course": "6-7",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C67-L1-T02-B01"
+    },
+    {
+      "audioId": "C67-L1-T02-B02_ENTRY",
+      "kind": "microObjective",
+      "locale": "vi-VN",
+      "sourceText": "Mình cùng học các số trong đời sống nhé.",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -7089,58 +5887,6 @@
       "lessonCode": "C67-L1-T02-B02"
     },
     {
-      "audioId": "C67-L1-T02-B02-Q01_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Mười một: Eleven hay Twelve?",
-      "questionId": "C67-L1-T02-B02-Q01",
-      "targetId": "C67-L1-T02-B02-T01",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B02"
-    },
-    {
-      "audioId": "C67-L1-T02-B02-Q02_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Mười hai: Thirteen hay Twelve?",
-      "questionId": "C67-L1-T02-B02-Q02",
-      "targetId": "C67-L1-T02-B02-T02",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B02"
-    },
-    {
-      "audioId": "C67-L1-T02-B02-Q03_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Mười bốn: Fourteen hay Fifteen?",
-      "questionId": "C67-L1-T02-B02-Q03",
-      "targetId": "C67-L1-T02-B02-T04",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B02"
-    },
-    {
-      "audioId": "C67-L1-T02-B02-Q04_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Mười lăm: Sixteen hay Fifteen?",
-      "questionId": "C67-L1-T02-B02-Q04",
-      "targetId": "C67-L1-T02-B02-T05",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B02"
-    },
-    {
       "audioId": "C67-L1-T02-B02-Q05_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
@@ -7167,26 +5913,39 @@
       "lessonCode": "C67-L1-T02-B02"
     },
     {
-      "audioId": "C67-L1-T02-B02-Q07_PROMPT",
+      "audioId": "C67-L1-T02-B02-Q10_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Bạn muốn nói \"Mười một\". Eleven hay Thirteen?",
-      "questionId": "C67-L1-T02-B02-Q07",
-      "targetId": "C67-L1-T02-B02-T01",
+      "sourceText": "Mười tám: Eighteen hay Seventeen?",
       "qaStatus": "PENDING_TTS",
+      "questionId": "C67-L1-T02-B02-Q10",
+      "targetId": "C67-L1-T02-B02-T08",
       "course": "6-7",
       "level": "L1",
       "topic": 2,
       "lessonCode": "C67-L1-T02-B02"
     },
     {
-      "audioId": "C67-L1-T02-B02-Q08_PROMPT",
+      "audioId": "C67-L1-T02-B02-Q11_PROMPT",
       "kind": "challengePrompt",
       "locale": "vi-VN",
-      "sourceText": "Bạn muốn nói \"Mười hai\". Fourteen hay Twelve?",
-      "questionId": "C67-L1-T02-B02-Q08",
-      "targetId": "C67-L1-T02-B02-T02",
+      "sourceText": "Mười chín: Nineteen hay Twenty?",
       "qaStatus": "PENDING_TTS",
+      "questionId": "C67-L1-T02-B02-Q11",
+      "targetId": "C67-L1-T02-B02-T09",
+      "course": "6-7",
+      "level": "L1",
+      "topic": 2,
+      "lessonCode": "C67-L1-T02-B02"
+    },
+    {
+      "audioId": "C67-L1-T02-B02-Q12_PROMPT",
+      "kind": "challengePrompt",
+      "locale": "vi-VN",
+      "sourceText": "Hai mươi: Twenty hay Nineteen?",
+      "qaStatus": "PENDING_TTS",
+      "questionId": "C67-L1-T02-B02-Q12",
+      "targetId": "C67-L1-T02-B02-T10",
       "course": "6-7",
       "level": "L1",
       "topic": 2,
@@ -7382,45 +6141,6 @@
       "sourceText": "Hai mươi ngôi sao: Twenty stars hay Two books?",
       "questionId": "C67-L1-T02-B03-Q05",
       "targetId": "C67-L1-T02-B03-T05",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B03"
-    },
-    {
-      "audioId": "C67-L1-T02-B03-Q06_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Bạn muốn nói \"Hai quyển sách\". Five apples hay Two books?",
-      "questionId": "C67-L1-T02-B03-Q06",
-      "targetId": "C67-L1-T02-B03-T01",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B03"
-    },
-    {
-      "audioId": "C67-L1-T02-B03-Q07_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Bạn muốn nói \"Ba cây bút chì\". Three pencils hay Ten crayons?",
-      "questionId": "C67-L1-T02-B03-Q07",
-      "targetId": "C67-L1-T02-B03-T02",
-      "qaStatus": "PENDING_TTS",
-      "course": "6-7",
-      "level": "L1",
-      "topic": 2,
-      "lessonCode": "C67-L1-T02-B03"
-    },
-    {
-      "audioId": "C67-L1-T02-B03-Q08_PROMPT",
-      "kind": "challengePrompt",
-      "locale": "vi-VN",
-      "sourceText": "Bạn muốn nói \"Năm quả táo\". Twenty stars hay Five apples?",
-      "questionId": "C67-L1-T02-B03-Q08",
-      "targetId": "C67-L1-T02-B03-T03",
       "qaStatus": "PENDING_TTS",
       "course": "6-7",
       "level": "L1",
@@ -28040,50 +26760,6 @@
       "qaStatus": "PENDING_TTS"
     },
     {
-      "audioId": "C67-L1-M01_PROMPT",
-      "kind": "missionPrompt",
-      "locale": "vi-VN",
-      "sourceText": "Trường học: School hay Table?",
-      "questionId": "C67-L1-M01",
-      "targetId": "C67-L1-T01-B03-T01",
-      "course": "6-7",
-      "level": 1,
-      "qaStatus": "PENDING_TTS"
-    },
-    {
-      "audioId": "C67-L1-M02_PROMPT",
-      "kind": "missionPrompt",
-      "locale": "vi-VN",
-      "sourceText": "Đồng phục: Uniform hay Violin?",
-      "questionId": "C67-L1-M02",
-      "targetId": "C67-L1-T01-B03-T03",
-      "course": "6-7",
-      "level": 1,
-      "qaStatus": "PENDING_TTS"
-    },
-    {
-      "audioId": "C67-L1-M03_PROMPT",
-      "kind": "missionPrompt",
-      "locale": "vi-VN",
-      "sourceText": "Quyển sách: Book hay Cake?",
-      "questionId": "C67-L1-M03",
-      "targetId": "C67-L1-T01-B01-T02",
-      "course": "6-7",
-      "level": 1,
-      "qaStatus": "PENDING_TTS"
-    },
-    {
-      "audioId": "C67-L1-M04_PROMPT",
-      "kind": "missionPrompt",
-      "locale": "vi-VN",
-      "sourceText": "Rô-bốt: Robot hay Jacket?",
-      "questionId": "C67-L1-M04",
-      "targetId": "C67-L1-T01-B02-T09",
-      "course": "6-7",
-      "level": 1,
-      "qaStatus": "PENDING_TTS"
-    },
-    {
       "audioId": "C67-L1-M05_PROMPT",
       "kind": "missionPrompt",
       "locale": "vi-VN",
@@ -28101,17 +26777,6 @@
       "sourceText": "Năm quả táo: Five apples hay Ten crayons?",
       "questionId": "C67-L1-M06",
       "targetId": "C67-L1-T02-B03-T03",
-      "course": "6-7",
-      "level": 1,
-      "qaStatus": "PENDING_TTS"
-    },
-    {
-      "audioId": "C67-L1-M07_PROMPT",
-      "kind": "missionPrompt",
-      "locale": "vi-VN",
-      "sourceText": "Hai: Two hay Three?",
-      "questionId": "C67-L1-M07",
-      "targetId": "C67-L1-T02-B01-T02",
       "course": "6-7",
       "level": 1,
       "qaStatus": "PENDING_TTS"
@@ -29623,5 +28288,6 @@
       "level": 3,
       "qaStatus": "PENDING_TTS"
     }
-  ]
+  ],
+  "contentPatch": "alphabet-numbers-v42"
 }

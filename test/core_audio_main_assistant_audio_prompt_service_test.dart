@@ -9,6 +9,7 @@ import 'package:ai_speaking_flutter_app/core/audio/main_assistant_audio_prompt_s
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_voice_assistant_flow.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_flow_v3.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -44,9 +45,12 @@ void main() {
       final android = target == TargetPlatform.android;
       expect(
         service.remoteAudioLoadTimeout,
-        Duration(seconds: android ? 2 : 8),
+        android
+            ? const Duration(milliseconds: 350)
+            : const Duration(seconds: 8),
       );
       expect(service.cacheLateRemoteAudio, android);
+      expect(service.preferBundledAudio, android);
       await service.dispose();
     }
     final defaultService = MainAssistantAudioPromptService(
@@ -57,8 +61,115 @@ void main() {
     await defaultService.dispose();
   });
 
+  test('bundled verified prompt bypasses its remote URL', () async {
+    var downloads = 0;
+    final client = MockClient((_) async {
+      downloads++;
+      throw StateError('Offline');
+    });
+    final delegate = _Delegate();
+    final service = MainAssistantAudioPromptService(
+      delegate: delegate,
+      bundle: _Bundle(mode: 'remote'),
+      httpClient: client,
+      preferBundledAudio: true,
+    );
+    addTearDown(service.dispose);
+    addTearDown(client.close);
+    await service.speakAndWaitOnSelectedMediaOutput(_text);
+    expect(downloads, 0);
+    expect(delegate.events, ['audio:selected']);
+  });
+
+  test('corrupt bundled prompt recovers from verified remote bytes', () async {
+    final bundle = _Bundle(mode: 'remote')..corruptAsset = true;
+    var downloads = 0;
+    final client = MockClient((_) async {
+      downloads++;
+      return http.Response.bytes(bundle.bytes, 200);
+    });
+    final delegate = _Delegate();
+    final service = MainAssistantAudioPromptService(
+      delegate: delegate,
+      bundle: bundle,
+      httpClient: client,
+      preferBundledAudio: true,
+    );
+    addTearDown(service.dispose);
+    addTearDown(client.close);
+    await service.speakAndWait(_text);
+    expect(downloads, 1);
+    expect(delegate.events, ['audio:normal']);
+  });
+
+  test('stop during bundled lookup cannot start a remote retry', () async {
+    final bundle = _Bundle(mode: 'remote')..blockAsset = true;
+    var downloads = 0;
+    final client = MockClient((_) async {
+      downloads++;
+      return http.Response.bytes(bundle.bytes, 200);
+    });
+    final delegate = _Delegate();
+    final service = MainAssistantAudioPromptService(
+      delegate: delegate,
+      bundle: bundle,
+      httpClient: client,
+      preferBundledAudio: true,
+    );
+    addTearDown(service.dispose);
+    addTearDown(client.close);
+    final play = service.speakAndWait(_text);
+    await bundle.assetStarted.future;
+    await service.stop();
+    await play;
+    bundle.assetCompletion.complete();
+    expect(downloads, 0);
+    expect(delegate.events, ['stop']);
+  });
+
+  test(
+    'Android topic and vocabulary menus are playable fully offline',
+    () async {
+      const channel = MethodChannel('ailingo_voice_prompt');
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            calls.add(call);
+            return null;
+          });
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() {
+        debugDefaultTargetPlatformOverride = null;
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null);
+      });
+      var downloads = 0;
+      final client = MockClient((_) async {
+        downloads++;
+        throw StateError('Offline');
+      });
+      final service = createVoicePromptService(httpClient: client);
+      addTearDown(service.dispose);
+      addTearDown(client.close);
+      final prompts = <String>{
+        _text,
+        ...VocabularyFlowV3.fixedPrompts.map((prompt) => prompt.text),
+        'Bạn chọn học Chủ đề số mấy?',
+        'Bắt đầu Level 1. Có 3 Chủ đề. Bạn muốn học Chủ đề số mấy?',
+        'Bắt đầu Level 2. Có 3 Chủ đề. Bạn muốn học Chủ đề số mấy?',
+        'Bắt đầu Level 3. Có 4 Chủ đề. Bạn muốn học Chủ đề số mấy?',
+        'Mình học tiếp Chủ đề 1 nhé.',
+      };
+      for (final prompt in prompts) {
+        await service.speakAndWait(prompt);
+        expect(calls.last.method, 'playAuthoredAudioAndWait', reason: prompt);
+      }
+      expect(downloads, 0);
+    },
+  );
+
   testWidgets(
-    'slow Android download falls back at 2s and warms only a later turn',
+    'unbundled Android prompt falls back at 350ms and warms only a later turn',
     (tester) async {
       final response = Completer<http.Response>();
       final bundle = _Bundle(mode: 'remote');
@@ -72,13 +183,13 @@ void main() {
         delegate: delegate,
         bundle: bundle,
         httpClient: client,
-        remoteAudioLoadTimeout: const Duration(seconds: 2),
+        remoteAudioLoadTimeout: const Duration(milliseconds: 350),
         cacheLateRemoteAudio: true,
       );
       final play = service.speakAndWait(_text);
       await tester.pump();
       expect(downloads, 1);
-      await tester.pump(const Duration(milliseconds: 1999));
+      await tester.pump(const Duration(milliseconds: 349));
       expect(delegate.events, isEmpty);
       await tester.pump(const Duration(milliseconds: 1));
       await play;
@@ -748,6 +859,7 @@ class _Bundle extends CachingAssetBundle {
   final assetStarted = Completer<void>();
   final assetCompletion = Completer<void>();
   bool blockAsset = false;
+  bool corruptAsset = false;
   bool blockManifest = false;
   final manifestCompletion = Completer<void>();
   int manifestLoads = 0;
@@ -792,7 +904,7 @@ class _Bundle extends CachingAssetBundle {
     if (!assetStarted.isCompleted) assetStarted.complete();
     if (blockAsset) await assetCompletion.future;
     if (mode == 'missing') throw StateError('No audio');
-    return ByteData.sublistView(bytes);
+    return ByteData.sublistView(corruptAsset ? Uint8List.fromList([9]) : bytes);
   }
 }
 

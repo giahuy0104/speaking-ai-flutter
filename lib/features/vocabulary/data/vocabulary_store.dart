@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../listening/data/listening_topic_patch_migration.dart';
 import '../domain/vocabulary_entry.dart';
 
 class VocabularyTodayView {
@@ -35,12 +36,16 @@ class VocabularyTodayView {
 }
 
 class VocabularyStore {
-  const VocabularyStore();
+  const VocabularyStore({this.topicPatchMigration});
+
+  final ListeningTopicPatchMigration? topicPatchMigration;
 
   static const _key = 'innotrik.vocabulary.v1';
   static const _parentAddCountKeyPrefix =
       'innotrik.vocabulary-parent-add-count.v2.';
   static const _todayViewKey = 'innotrik.vocabulary-today-view.v4';
+  static const _topicPatchVersionKey =
+      'innotrik.vocabulary-topic-patch-version';
   static const int parentDailyLimit = 5;
   static const int parentWaitingLimit = 5;
   static const Set<String> _legacyStarterIds = <String>{
@@ -60,40 +65,112 @@ class VocabularyStore {
       return const <VocabularyEntry>[];
     }
 
+    final List<VocabularyEntry> entries;
     try {
       final decoded = jsonDecode(encoded);
       if (decoded is! List<Object?>) {
         return const <VocabularyEntry>[];
       }
-      final entries = decoded
+      entries = decoded
           .whereType<Map<String, Object?>>()
           .map(VocabularyEntry.fromJson)
           .toList(growable: false);
-      final migrated = entries
-          .where((entry) => !_legacyStarterIds.contains(entry.id))
-          .toList(growable: false);
-      final normalized = jsonEncode(
-        migrated.map((entry) => entry.toJson()).toList(),
-      );
-      if (normalized != encoded) {
-        // Rewrite legacy vocabulary.v1 data in place.  Do not emit a change
-        // event while reading: listeners may otherwise recursively reload.
-        await preferences.setString(_key, normalized);
-      }
-      return migrated;
     } catch (_) {
       return const <VocabularyEntry>[];
     }
+    // Migration failures must not masquerade as an empty library: a later
+    // upsert could otherwise overwrite the user's preserved entries.
+    final migrated = await _migrateTopicEntries(
+      entries
+          .where((entry) => !_legacyStarterIds.contains(entry.id))
+          .toList(growable: false),
+    );
+    final normalized = jsonEncode(
+      migrated.map((entry) => entry.toJson()).toList(),
+    );
+    if (normalized != encoded) {
+      // Do not emit a read-time event: listeners may recursively reload.
+      await preferences.setString(_key, normalized);
+    }
+    if (preferences.getInt(_topicPatchVersionKey) != 42) {
+      await preferences.setInt(_topicPatchVersionKey, 42);
+    }
+    return migrated;
   }
 
   Future<void> write(List<VocabularyEntry> entries) async {
     final preferences = await SharedPreferences.getInstance();
+    final migrated = await _migrateTopicEntries(entries);
     await preferences.setString(
       _key,
-      jsonEncode(entries.map((entry) => entry.toJson()).toList()),
+      jsonEncode(migrated.map((entry) => entry.toJson()).toList()),
     );
+    await preferences.setInt(_topicPatchVersionKey, 42);
     _changes.add(null);
   }
+
+  /// Keep queue IDs and recordings stable while moving their source metadata.
+  /// Canonicalizing on both read and write also handles a stale in-memory entry
+  /// being saved after the one-time app upgrade.
+  Future<List<VocabularyEntry>> _migrateTopicEntries(
+    List<VocabularyEntry> entries,
+  ) async {
+    if (!entries.any(_mayNeedTopicPatch)) return entries;
+    final patch =
+        topicPatchMigration ?? await ListeningTopicPatchMigration.load();
+    return entries.map((entry) => _migrateTopicEntry(entry, patch)).toList();
+  }
+
+  static bool _mayNeedTopicPatch(VocabularyEntry entry) =>
+      !entry.isParentAdded &&
+      RegExp(
+        r'^C(?:35|67)-L1-T0[12]-B\d+$',
+      ).hasMatch(entry.sourceLessonCode ?? '') &&
+      RegExp(
+        r'^C(?:35|67)-L1-T0[12]-B\d+-T\d+$',
+      ).hasMatch(entry.sourceSentenceId ?? '');
+
+  static VocabularyEntry _migrateTopicEntry(
+    VocabularyEntry entry,
+    ListeningTopicPatchMigration patch,
+  ) {
+    final oldCode = entry.sourceLessonCode;
+    if (entry.isParentAdded ||
+        oldCode == null ||
+        !patch.isAffectedLessonCode(oldCode)) {
+      return entry;
+    }
+    final targetId = entry.sourceSentenceId;
+    final destination = targetId == null
+        ? null
+        : patch.destinationForTarget(targetId);
+    if (destination == null &&
+        (targetId == null || !patch.isDeprecatedTarget(targetId))) {
+      return entry;
+    }
+    final newCode =
+        destination?.lessonCode ??
+        ListeningTopicPatchMigration.archivedLessonCode(oldCode);
+    final oldSlot = entry.starSlotId;
+    final newSlot = !entry.isStar
+        ? oldSlot
+        : destination != null && entry.source == VocabularySource.topicCore
+        ? '$newCode:core:$targetId'
+        : oldSlot == null
+        ? null
+        : oldSlot.startsWith('$oldCode:')
+        ? '$newCode:${oldSlot.substring(oldCode.length + 1)}'
+        : '$newCode:$oldSlot';
+    if (newCode == oldCode && newSlot == oldSlot) return entry;
+    return entry.copyWith(sourceLessonCode: newCode, starSlotId: newSlot);
+  }
+
+  /// Deprecated curriculum targets retain their history and earned Stars, but
+  /// must not enter a new active review queue after the content replacement.
+  static bool isActiveReviewEntry(VocabularyEntry entry) =>
+      entry.needsPractice &&
+      !entry.isParentAdded &&
+      !(entry.sourceLessonCode?.startsWith('LEGACY-V41:') ?? false);
 
   Future<List<VocabularyEntry>> parentEntries() async {
     final entries = (await read())
@@ -312,11 +389,8 @@ class VocabularyStore {
   }
 
   Future<List<VocabularyEntry>> reviewEntries() async {
-    final entries =
-        (await read())
-            .where((entry) => entry.needsPractice && !entry.isParentAdded)
-            .toList()
-          ..sort((a, b) => a.addedAt.compareTo(b.addedAt));
+    final entries = (await read()).where(isActiveReviewEntry).toList()
+      ..sort((a, b) => a.addedAt.compareTo(b.addedAt));
     final byTarget = <String, VocabularyEntry>{};
     for (final entry in entries) {
       final target = _normalizedText(entry.word);
@@ -726,6 +800,28 @@ class VocabularyStore {
     DateTime? occurredAt,
   }) async {
     final entries = await read();
+    // A resumed pre-patch caller may still supply an old lesson code. Resolve
+    // by the stable target ID, never by the reused lesson number.
+    final candidate = VocabularyEntry(
+      id: '',
+      word: english,
+      meaning: vietnamese,
+      addedAt: occurredAt ?? DateTime.now(),
+      collection: collection,
+      source: source,
+      sourceLessonCode: lessonCode,
+      sourceSentenceId: sentenceId,
+      starSlotId: starSlotId ?? '$lessonCode:$sentenceId',
+    );
+    final canonical = (await _migrateTopicEntries(<VocabularyEntry>[
+      candidate,
+    ])).single;
+    lessonCode = canonical.sourceLessonCode ?? lessonCode;
+    starSlotId = canonical.starSlotId;
+    if (collection == VocabularyCollection.review &&
+        lessonCode.startsWith('LEGACY-V41:')) {
+      return;
+    }
     final normalizedEnglish = english.trim().toLowerCase();
     final eventTime = occurredAt ?? DateTime.now();
     final resolvedStarSlotId = collection == VocabularyCollection.star
@@ -740,6 +836,18 @@ class VocabularyStore {
           .where((entry) => entry.starSlotId == resolvedStarSlotId)
           .firstOrNull;
     }
+    final previousReview = collection == VocabularyCollection.review
+        ? entries
+              .where(
+                (entry) =>
+                    !entry.isParentAdded &&
+                    !entry.isStar &&
+                    entry.sourceLessonCode == lessonCode &&
+                    entry.sourceSentenceId == sentenceId &&
+                    entry.needsPractice,
+              )
+              .firstOrNull
+        : null;
     final updated = entries
         .where((entry) {
           if ((entry.id == stableId &&
@@ -780,10 +888,10 @@ class VocabularyStore {
     updated.insert(
       0,
       VocabularyEntry(
-        id: previousStar?.id ?? stableId,
+        id: previousStar?.id ?? previousReview?.id ?? stableId,
         word: english.trim(),
         meaning: vietnamese.trim(),
-        addedAt: previousStar?.addedAt ?? eventTime,
+        addedAt: previousStar?.addedAt ?? previousReview?.addedAt ?? eventTime,
         collection: collection,
         status: collection == VocabularyCollection.review
             ? VocabularyLearningStatus.needsPractice

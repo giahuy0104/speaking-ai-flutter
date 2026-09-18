@@ -123,6 +123,60 @@ void main() {
       isTrue,
     );
   });
+
+  test('patch retains earned access without crediting replacement Cores', () {
+    final progress = <String, int>{
+      '__topic-patch-v42-unlocked-level:3-5': 2,
+      '__topic-patch-v42-unlocked-lesson:${topics.first.lessons[1].id}': 1,
+    };
+    expect(
+      ListeningCurriculumFlow.currentUnlockedLevelNumber(group, progress, {}),
+      2,
+    );
+    expect(
+      ListeningCurriculumFlow.levelUnlocked(group, levels[1], progress, {}),
+      isTrue,
+    );
+    expect(
+      ListeningCurriculumFlow.lessonUnlocked(topics.first, 1, progress, {}),
+      isTrue,
+    );
+    expect(
+      ListeningCurriculumFlow.topicState(topics.first, progress, {}),
+      ListeningTopicLearningState.notStarted,
+    );
+    expect(
+      ListeningCurriculumFlow.allTopicsInLevelCompleted(
+        group,
+        levels.first,
+        progress,
+        {},
+      ),
+      isFalse,
+    );
+  });
+
+  test('young-course access never becomes a prerequisite for six-seven', () {
+    final older = ListeningContentAgeGroup(
+      startAge: 6,
+      endAge: 7,
+      topics: topics,
+      levels: levels,
+    );
+    final youngOnly = {'__topic-patch-v42-unlocked-level:3-5': 2};
+    expect(
+      ListeningCurriculumFlow.levelUnlocked(older, levels.first, {}, {}),
+      isTrue,
+    );
+    expect(
+      ListeningCurriculumFlow.levelUnlocked(older, levels[1], youngOnly, {}),
+      isFalse,
+    );
+    expect(
+      ListeningCurriculumFlow.currentUnlockedLevelNumber(older, youngOnly, {}),
+      1,
+    );
+  });
 }
 
 ListeningTopicContent _topic(int number, {int levelNumber = 1}) {

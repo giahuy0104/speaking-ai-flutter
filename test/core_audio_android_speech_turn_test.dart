@@ -41,6 +41,89 @@ void main() {
     messenger.setMockMethodCallHandler(channel, null);
   });
 
+  test(
+    'only current Android command endpoint emits a provisional candidate',
+    () async {
+      final candidates = <String>[];
+      final completions = <void>[];
+      final endpointSubscription = input.commandSpeechEnded.listen(
+        candidates.add,
+      );
+      final completionSubscription = input.completed.listen(completions.add);
+      addTearDown(endpointSubscription.cancel);
+      addTearDown(completionSubscription.cancel);
+
+      await input.start();
+      final ordinaryTurn = turns.last;
+      events.add({
+        'type': 'speech.partial',
+        'turnId': ordinaryTurn,
+        'text': 'lesson answer',
+      });
+      events.add({'type': 'speech.end', 'turnId': ordinaryTurn});
+      await Future<void>.delayed(Duration.zero);
+      expect(candidates, isEmpty);
+      expect(completions, isEmpty);
+
+      await input.cancel();
+      await input.startCommandRecognition();
+      final commandTurn = turns.last;
+      events.add({'type': 'speech.end', 'turnId': ordinaryTurn});
+      events.add({
+        'type': 'speech.partial',
+        'turnId': commandTurn,
+        'text': 'Chủ đề 3',
+      });
+      events.add({'type': 'speech.end', 'turnId': commandTurn});
+      events.add({'type': 'speech.end', 'turnId': commandTurn});
+      await Future<void>.delayed(Duration.zero);
+      expect(candidates, ['Chủ đề 3']);
+      expect(completions, isEmpty, reason: 'endpoint is not a final result');
+    },
+  );
+
+  test(
+    'command endpoint can finalize a stable one-word number promptly',
+    () async {
+      await input.startCommandRecognition();
+      events.add({
+        'type': 'speech.partial',
+        'turnId': turns.single,
+        'text': 'ba',
+      });
+      await Future<void>.delayed(const Duration(milliseconds: 360));
+      events.add({'type': 'speech.end', 'turnId': turns.single});
+      await Future<void>.delayed(Duration.zero);
+      final stopwatch = Stopwatch()..start();
+      final result = await input.stop();
+      expect(result.sourceText, 'ba');
+      expect(stopwatch.elapsed, lessThan(const Duration(milliseconds: 700)));
+      expect(cancels, 1);
+    },
+  );
+
+  test(
+    'corrected final during endpoint grace replaces provisional topic number',
+    () async {
+      await input.startCommandRecognition();
+      final turn = turns.single;
+      events.add({
+        'type': 'speech.partial',
+        'turnId': turn,
+        'text': 'Chủ đề 1',
+      });
+      await Future<void>.delayed(const Duration(milliseconds: 360));
+      events.add({'type': 'speech.end', 'turnId': turn});
+      await Future<void>.delayed(Duration.zero);
+      final resultFuture = input.stop();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      events.add({'type': 'speech.final', 'turnId': turn, 'text': 'Chủ đề 10'});
+      final result = await resultFuture;
+      expect(result.sourceText, 'Chủ đề 10');
+      expect(cancels, 0);
+    },
+  );
+
   test('cancelled turn error and final cannot overwrite replacement', () async {
     await input.start();
     final old = turns.single;

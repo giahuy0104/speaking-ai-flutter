@@ -5,17 +5,24 @@ import 'package:flutter/services.dart';
 
 @immutable
 class ListeningContentCatalog {
-  const ListeningContentCatalog({required this.groups});
+  const ListeningContentCatalog({
+    required this.groups,
+    this.contentVersion = '',
+  });
 
   factory ListeningContentCatalog.fromJson(Map<String, Object?> json) {
     final groups = (json['groups'] as List<Object?>? ?? const <Object?>[])
         .whereType<Map<String, Object?>>()
         .map(ListeningContentAgeGroup.fromJson)
         .toList(growable: false);
-    return ListeningContentCatalog(groups: groups);
+    return ListeningContentCatalog(
+      groups: groups,
+      contentVersion: json['contentVersion'] as String? ?? '',
+    );
   }
 
   final List<ListeningContentAgeGroup> groups;
+  final String contentVersion;
 
   ListeningTopicContent topic({
     required int startAge,

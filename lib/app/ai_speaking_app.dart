@@ -1023,6 +1023,13 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
     final hfpAudioRouteCoordinator = HfpAudioRouteCoordinator(
       rawHfpAudioControl,
+      // MAIN and the destination mount/release on adjacent frames. Retain SCO
+      // briefly across this owner gap, then close it when truly idle.
+      handoffGrace: supportsAndroidNativeSpeech
+          ? const Duration(milliseconds: 750)
+          : Duration.zero,
+      // Android SpeechRecognizer can restore MODE_NORMAL while SCO stays set.
+      revalidateOnAcquire: supportsAndroidNativeSpeech,
     );
     final conversationHfpAudioControl = hfpAudioRouteCoordinator.createScope(
       'continuous-translation',

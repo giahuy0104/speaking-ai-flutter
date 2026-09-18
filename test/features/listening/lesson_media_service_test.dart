@@ -517,7 +517,7 @@ void main() {
     await mediaService.dispose();
   });
 
-  test('child recording gain is applied after H20 route preparation', () async {
+  test('per-play gain is applied after H20 preparation and then reset', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     final events = <String>[];
@@ -538,20 +538,20 @@ void main() {
 
     await mediaService.play(
       Uri.file('child-recording.wav'),
-      playbackGainDb: lessonRecordingPlaybackGainDb,
+      playbackGainDb: 11.0,
     );
 
     expect(events, <String>[
       'communication:true',
       'prepare',
       'hfp:start',
-      'gain:$lessonRecordingPlaybackGainDb',
+      'gain:11.0',
       'play',
     ]);
     events.clear();
     await mediaService.play(Uri.parse('asset:///lesson-english.mp3'));
     expect(events, contains('gain:$androidSpeechBoostDb'));
-    expect(events, isNot(contains('gain:$lessonRecordingPlaybackGainDb')));
+    expect(events, isNot(contains('gain:11.0')));
     await mediaService.dispose();
   });
 

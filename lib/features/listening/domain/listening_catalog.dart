@@ -71,7 +71,7 @@ const listeningCatalogs = <ListeningAgeCatalog>[
         background: _purpleWash,
         foreground: _indigo,
         completed: 0,
-        total: 3,
+        total: 2,
         imagePath: 'assets/images/topics/fun-alphabet.jpg',
       ),
       ListeningTopic(
@@ -81,7 +81,7 @@ const listeningCatalogs = <ListeningAgeCatalog>[
         background: _amberWash,
         foreground: _amber,
         completed: 0,
-        total: 2,
+        total: 3,
         imagePath: 'assets/images/topics/counting-1-10.jpg',
       ),
       ListeningTopic(

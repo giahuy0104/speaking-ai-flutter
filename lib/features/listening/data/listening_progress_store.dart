@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import '../domain/listening_content.dart';
 import 'listening_progress_persistence.dart';
+import 'listening_topic_patch_migration.dart';
 
 enum ListeningResumeStage {
   core,
@@ -41,6 +43,8 @@ class ListeningTopicSelectionCheckpoint {
 
 class ListeningProgressStore {
   const ListeningProgressStore({this.progressFilePath});
+
+  static final Map<String, Future<Map<String, int>>> _patchMigrations = {};
 
   static const String _resumeSuffix = '::current-sentence';
   static const String _skippedMarker = '::skipped-sentence::';
@@ -85,6 +89,11 @@ class ListeningProgressStore {
     final progress = await _readRaw();
     progress.removeWhere(
       (key, _) =>
+          key == ListeningTopicPatchMigration.marker ||
+          key.startsWith(ListeningTopicPatchMigration.archivePrefix) ||
+          key.startsWith(ListeningTopicPatchMigration.legacyPrefix) ||
+          key.endsWith(ListeningTopicPatchMigration.retainedRunSuffix) ||
+          key.contains(ListeningTopicPatchMigration.processedCoreMarker) ||
           key.endsWith(_resumeSuffix) ||
           key == _learningGuideOpenedKey ||
           key.contains(_skippedMarker) ||
@@ -116,21 +125,72 @@ class ListeningProgressStore {
   }
 
   Future<Map<String, int>> _readRaw() async {
+    late final Map<String, int> progress;
     try {
       final raw = await _persistence.read();
       if (raw == null || raw.trim().isEmpty) {
-        return <String, int>{};
+        return <String, int>{ListeningTopicPatchMigration.marker: 42};
       }
       final decoded = jsonDecode(raw);
       if (decoded is! Map<String, Object?>) {
         return <String, int>{};
       }
-      return decoded.map(
+      progress = decoded.map(
         (key, value) => MapEntry(key, value is int ? value : 0),
       );
     } catch (_) {
-      return <String, int>{};
+      return <String, int>{ListeningTopicPatchMigration.marker: 42};
     }
+    if (progress[ListeningTopicPatchMigration.marker] == 42) return progress;
+    final hasAffectedLessons = progress.keys.any(
+      (key) => RegExp(r'^c(?:35|67)-l1-t0[12]-b\d\d(?:::|$)').hasMatch(key),
+    );
+    if (!hasAffectedLessons) {
+      progress[ListeningTopicPatchMigration.marker] = 42;
+      return progress;
+    }
+    // Migration failures must not masquerade as empty progress: a subsequent
+    // write could otherwise replace a recoverable V4.1 file with empty data.
+    return Map.of(await _migrateTopicPatch());
+  }
+
+  Future<Map<String, int>> _migrateTopicPatch() {
+    final key = progressFilePath ?? '__default-listening-progress';
+    final pending = _patchMigrations[key];
+    if (pending != null) return pending;
+    final operation = () async {
+      // Re-read after entering the migration gate: another reader may already
+      // have migrated the file since this caller first observed V4.1 data.
+      final decoded =
+          jsonDecode((await _persistence.read())!) as Map<String, dynamic>;
+      final original = decoded.map(
+        (key, value) => MapEntry(key, value is int ? value : 0),
+      );
+      if (original[ListeningTopicPatchMigration.marker] == 42) return original;
+      final patch = await ListeningTopicPatchMigration.load();
+      final catalog = await AssetListeningContentRepository().load();
+      final migrated = patch.migrateProgress(original, catalog: catalog);
+      await _writeRaw(migrated);
+      return migrated;
+    }();
+    _patchMigrations[key] = operation;
+    operation.then<void>(
+      (_) => _patchMigrations.remove(key),
+      onError: (Object _, StackTrace _) => _patchMigrations.remove(key),
+    );
+    return operation;
+  }
+
+  /// Original affected lesson keys, retained for an old active-route pointer.
+  Future<Map<String, int>> readBeforeTopicPatch() async {
+    final progress = await _readRaw();
+    return {
+      for (final entry in progress.entries)
+        if (entry.key.startsWith(ListeningTopicPatchMigration.archivePrefix))
+          entry.key.substring(
+            ListeningTopicPatchMigration.archivePrefix.length,
+          ): entry.value,
+    };
   }
 
   Future<int> readLesson(String lessonId) async {
@@ -247,7 +307,11 @@ class ListeningProgressStore {
     final completed = progress.entries
         .where(
           (entry) =>
-              entry.value == 1 && entry.key.endsWith(_lessonCompletedMarker),
+              entry.value == 1 &&
+              !entry.key.startsWith(
+                ListeningTopicPatchMigration.archivePrefix,
+              ) &&
+              entry.key.endsWith(_lessonCompletedMarker),
         )
         .map(
           (entry) => entry.key.substring(
@@ -262,6 +326,7 @@ class ListeningProgressStore {
     // genuinely completed historical lessons.
     for (final entry in progress.entries) {
       if (entry.value != 1 ||
+          entry.key.startsWith(ListeningTopicPatchMigration.archivePrefix) ||
           !entry.key.endsWith(_legacyV4LessonActivityPassedMarker)) {
         continue;
       }
@@ -288,6 +353,9 @@ class ListeningProgressStore {
   Future<void> markV4LessonActivityCompleted(String lessonId) async {
     final progress = await _readRaw();
     progress['$lessonId$_lessonCompletedMarker'] = 1;
+    progress.remove(
+      '$lessonId${ListeningTopicPatchMigration.retainedRunSuffix}',
+    );
     progress.remove('$lessonId$_currentChallengeIndexSuffix');
     await _writeRaw(progress);
   }
@@ -355,7 +423,48 @@ class ListeningProgressStore {
       return;
     }
     progress[key] = result.index;
+    if (result != ListeningSessionResult.pending) {
+      progress.remove(
+        '$lessonId${ListeningTopicPatchMigration.processedCoreMarker}$sentenceIndex',
+      );
+    }
     await _writeRaw(progress);
+  }
+
+  /// Legacy Core completion whose outcome was never recorded. Kept separate
+  /// from session results so migration cannot manufacture achievement or fail.
+  Future<Set<int>> readRetainedProcessedSentences(String lessonId) async {
+    final prefix =
+        '$lessonId${ListeningTopicPatchMigration.processedCoreMarker}';
+    final progress = await _readRaw();
+    return {
+      for (final entry in progress.entries)
+        if (entry.value == 1 && entry.key.startsWith(prefix))
+          int.tryParse(entry.key.substring(prefix.length)),
+    }.whereType<int>().toSet();
+  }
+
+  /// Normal Next preserves a moved in-progress run once. Explicit Relearn and
+  /// all later fresh entries retain the existing reset behavior.
+  Future<void> prepareNextLessonRun(
+    String lessonId, {
+    bool relearn = false,
+  }) async {
+    // Unrelated lessons keep the original path, with no migration I/O on Next.
+    if (relearn ||
+        !RegExp(r'^c(?:35|67)-l1-t0[12]-b\d\d$').hasMatch(lessonId)) {
+      await resetLessonRun(lessonId);
+      return;
+    }
+    if (!relearn) {
+      final progress = await _readRaw();
+      final key = '$lessonId${ListeningTopicPatchMigration.retainedRunSuffix}';
+      if (progress.remove(key) == 1) {
+        await _writeRaw(progress);
+        return;
+      }
+    }
+    await resetLessonRun(lessonId);
   }
 
   Future<int?> readCurrentChallengeIndex(String lessonId) async {
@@ -396,11 +505,15 @@ class ListeningProgressStore {
       ..remove('$lessonId$_currentChallengeIndexSuffix')
       ..remove('$lessonId$_coreStartedSuffix')
       ..remove('$lessonId$_resumeSuffix')
-      ..remove('$lessonId$_resumeStageSuffix');
+      ..remove('$lessonId$_resumeStageSuffix')
+      ..remove('$lessonId${ListeningTopicPatchMigration.retainedRunSuffix}');
     progress.removeWhere(
       (key, _) =>
           key.startsWith('$lessonId$_sessionResultMarker') ||
           key.startsWith('$lessonId$_skippedMarker') ||
+          key.startsWith(
+            '$lessonId${ListeningTopicPatchMigration.processedCoreMarker}',
+          ) ||
           key.startsWith('$lessonId$_needsPracticeMarker'),
     );
     progress['$lessonId$_resumeSuffix'] = 0;
@@ -475,6 +588,9 @@ class ListeningProgressStore {
   Future<void> markLessonCoreStarted(String lessonId) async {
     final progress = await _readRaw();
     progress['$lessonId$_coreStartedSuffix'] = 1;
+    progress.remove(
+      '$lessonId${ListeningTopicPatchMigration.retainedRunSuffix}',
+    );
     progress.remove('$lessonId$_lessonRelearnPendingSuffix');
     await _writeRaw(progress);
   }
@@ -488,7 +604,12 @@ class ListeningProgressStore {
     final progress = await _readRaw();
     return progress.entries
         .where(
-          (entry) => entry.value == 1 && entry.key.endsWith(_coreStartedSuffix),
+          (entry) =>
+              entry.value == 1 &&
+              !entry.key.startsWith(
+                ListeningTopicPatchMigration.archivePrefix,
+              ) &&
+              entry.key.endsWith(_coreStartedSuffix),
         )
         .map(
           (entry) => entry.key.substring(
@@ -648,7 +769,14 @@ class ListeningProgressStore {
   Future<int> readTotalEarnedStars() async {
     final progress = await _readRaw();
     return progress.entries
-        .where((entry) => entry.key.contains(_starMarker) && entry.value == 1)
+        .where(
+          (entry) =>
+              !entry.key.startsWith(
+                ListeningTopicPatchMigration.archivePrefix,
+              ) &&
+              entry.key.contains(_starMarker) &&
+              entry.value == 1,
+        )
         .length;
   }
 
@@ -724,11 +852,17 @@ class ListeningProgressStore {
       progress.remove('$lessonId$_challengeProcessedMarker');
       progress.remove('$lessonId$_currentChallengeIndexSuffix');
       progress.remove('$lessonId$_coreStartedSuffix');
+      progress.remove(
+        '$lessonId${ListeningTopicPatchMigration.retainedRunSuffix}',
+      );
       progress['$lessonId$_lessonRelearnPendingSuffix'] = 1;
       progress.removeWhere(
         (key, _) =>
             key.startsWith('$lessonId$_skippedMarker') ||
             key.startsWith('$lessonId$_needsPracticeMarker') ||
+            key.startsWith(
+              '$lessonId${ListeningTopicPatchMigration.processedCoreMarker}',
+            ) ||
             key.startsWith('$lessonId$_sessionResultMarker'),
       );
     }
@@ -748,11 +882,17 @@ class ListeningProgressStore {
       progress.remove('$lessonId$_challengeProcessedMarker');
       progress.remove('$lessonId$_currentChallengeIndexSuffix');
       progress.remove('$lessonId$_coreStartedSuffix');
+      progress.remove(
+        '$lessonId${ListeningTopicPatchMigration.retainedRunSuffix}',
+      );
       progress['$lessonId$_lessonRelearnPendingSuffix'] = 1;
       progress.removeWhere(
         (key, _) =>
             key.startsWith('$lessonId$_skippedMarker') ||
             key.startsWith('$lessonId$_needsPracticeMarker') ||
+            key.startsWith(
+              '$lessonId${ListeningTopicPatchMigration.processedCoreMarker}',
+            ) ||
             key.startsWith('$lessonId$_sessionResultMarker'),
       );
     }

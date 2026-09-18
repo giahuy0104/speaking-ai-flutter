@@ -2,12 +2,16 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'listening_progress_store.dart';
+import 'listening_topic_patch_migration.dart';
+
 class ActiveListeningSessionCheckpoint {
   const ActiveListeningSessionCheckpoint({
     required this.childAge,
     required this.topicNumber,
     required this.lessonNumber,
     required this.updatedAtEpochMs,
+    this.contentVersion = '4.2',
   });
 
   factory ActiveListeningSessionCheckpoint.fromJson(Map<String, Object?> json) {
@@ -16,6 +20,7 @@ class ActiveListeningSessionCheckpoint {
       topicNumber: (json['topicNumber'] as num?)?.toInt() ?? 0,
       lessonNumber: (json['lessonNumber'] as num?)?.toInt() ?? 0,
       updatedAtEpochMs: (json['updatedAtEpochMs'] as num?)?.toInt() ?? 0,
+      contentVersion: json['contentVersion'] as String? ?? '',
     );
   }
 
@@ -23,6 +28,7 @@ class ActiveListeningSessionCheckpoint {
   final int topicNumber;
   final int lessonNumber;
   final int updatedAtEpochMs;
+  final String contentVersion;
 
   bool get isValid => childAge > 0 && topicNumber > 0 && lessonNumber > 0;
 
@@ -31,6 +37,7 @@ class ActiveListeningSessionCheckpoint {
     'topicNumber': topicNumber,
     'lessonNumber': lessonNumber,
     'updatedAtEpochMs': updatedAtEpochMs,
+    'contentVersion': contentVersion,
   };
 }
 
@@ -42,20 +49,82 @@ class ActiveListeningSessionCheckpoint {
 /// progress is deliberately never checkpointed and is therefore restarted
 /// from the beginning of its item.
 class ActiveListeningSessionStore {
-  const ActiveListeningSessionStore();
+  const ActiveListeningSessionStore({
+    this.progressStore = const ListeningProgressStore(),
+  });
+
+  final ListeningProgressStore progressStore;
 
   static const String _preferenceKey = 'active-listening-session-v1';
 
   Future<ActiveListeningSessionCheckpoint?> read() async {
     try {
-      final raw = (await SharedPreferences.getInstance()).getString(
-        _preferenceKey,
-      );
+      final preferences = await SharedPreferences.getInstance();
+      final raw = preferences.getString(_preferenceKey);
       if (raw == null || raw.isEmpty) return null;
       final decoded = jsonDecode(raw);
       if (decoded is! Map<String, Object?>) return null;
+      if (decoded['invalidatedByTopicPatch'] == true) return null;
       final checkpoint = ActiveListeningSessionCheckpoint.fromJson(decoded);
-      return checkpoint.isValid ? checkpoint : null;
+      if (!checkpoint.isValid) return null;
+      if (checkpoint.contentVersion == '4.2' ||
+          checkpoint.childAge > 7 ||
+          checkpoint.topicNumber > 2) {
+        return checkpoint;
+      }
+      final migration = await ListeningTopicPatchMigration.load();
+      final oldLesson = migration.oldLessons.values
+          .where(
+            (lesson) =>
+                checkpoint.childAge >= lesson.startAge &&
+                checkpoint.childAge <= lesson.endAge &&
+                checkpoint.topicNumber == lesson.topicNumber &&
+                checkpoint.lessonNumber == lesson.number,
+          )
+          .firstOrNull;
+      if (oldLesson == null) return checkpoint;
+      final oldProgress = await progressStore.readBeforeTopicPatch();
+      final oldIndex =
+          (oldProgress['${oldLesson.id}::current-sentence'] ??
+                  oldProgress[oldLesson.id] ??
+                  0)
+              .clamp(0, oldLesson.targetIds.length - 1);
+      final destination = migration.destinationForTarget(
+        oldLesson.targetIds[oldIndex],
+      );
+      // Preserve the original pointer for rollback. A removed target, or one
+      // moved to another course, must not silently change the child's age group.
+      const archiveKey = 'active-listening-session-before-topic-patch-v42';
+      if (!preferences.containsKey(archiveKey)) {
+        await preferences.setString(archiveKey, raw);
+      }
+      // A newer navigation may have saved its checkpoint while assets/progress
+      // were loading. Never overwrite that current route with an old pointer.
+      if (preferences.getString(_preferenceKey) != raw) return read();
+      if (destination == null ||
+          checkpoint.childAge < destination.startAge ||
+          checkpoint.childAge > destination.endAge) {
+        await preferences.setString(
+          _preferenceKey,
+          jsonEncode({
+            ...decoded,
+            'contentVersion': '4.2',
+            'invalidatedByTopicPatch': true,
+          }),
+        );
+        return null;
+      }
+      final migrated = ActiveListeningSessionCheckpoint(
+        childAge: checkpoint.childAge,
+        topicNumber: destination.topicNumber,
+        lessonNumber: destination.lessonNumber,
+        updatedAtEpochMs: checkpoint.updatedAtEpochMs,
+      );
+      await preferences.setString(
+        _preferenceKey,
+        jsonEncode(migrated.toJson()),
+      );
+      return migrated;
     } catch (_) {
       return null;
     }

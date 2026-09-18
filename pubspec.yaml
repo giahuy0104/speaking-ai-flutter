@@ -34,18 +34,45 @@ flutter:
   uses-material-design: true
   assets:
     - assets/data/listening_lessons.json
+    - assets/data/listening_topic_patch_v42.json
     - assets/data/listening_audio_manifest_v4.json
     - assets/data/listening_ai_lexicon_v4.json
     - assets/data/homi_ai_fallback_catalog_v1.json
     - assets/data/main_assistant_audio.json
     - assets/data/homi_gap66_audio.json
+    # Fixed navigation/vocabulary prompts must be available without the CDN.
+    - assets/audio/MAIN/
     - assets/audio/MAIN/GAP66/
-    - assets/audio/MAIN/RUNTIME-CHALLENGE-CUE-001.vi.v1.mp3
-    - assets/audio/MAIN/RUNTIME-CONVERSATION-RECOVERY-001.vi.v1.mp3
-    - assets/audio/MAIN/RUNTIME-MAIN-NAVIGATION-001.vi.v1.mp3
-    - assets/audio/MAIN/RUNTIME-MAIN-NAVIGATION-002.vi.v1.mp3
-    - assets/audio/MAIN/RUNTIME-TRANSLATION-CONTROL-001.vi.v1.mp3
-    - assets/audio/MAIN/RUNTIME-TRANSLATION-CONTROL-002.vi.v1.mp3
+    # Compact curriculum system and topic-selection prompts (not full lessons).
+    - assets/audio/CURRICULUM/ed3ba010c50d9440f2eb9692.vi.v1.mp3
+    - assets/audio/CURRICULUM/ca9aea52e38a6261f087e2f5.vi.v1.mp3
+    - assets/audio/CURRICULUM/ad80daee847248f9361d1c86.vi.v1.mp3
+    - assets/audio/CURRICULUM/e16880a055eff913e492e9be.vi.v1.mp3
+    - assets/audio/CURRICULUM/55f08c63325b91c2e71cda64.vi.v1.mp3
+    - assets/audio/CURRICULUM/349950e8ae8327049c08fe55.vi.v1.mp3
+    - assets/audio/CURRICULUM/247faadf91437070e32cd579.vi.v1.mp3
+    - assets/audio/CURRICULUM/3ad138c39be73a46cbc68e2a.vi.v1.mp3
+    - assets/audio/CURRICULUM/cb8fc595c85b75ec2e4ef41c.vi.v1.mp3
+    - assets/audio/CURRICULUM/427ce8dfed0cb514d247ff21.vi.v1.mp3
+    - assets/audio/CURRICULUM/fc1c2ddb2a4ebab846ecc075.vi.v1.mp3
+    - assets/audio/CURRICULUM/cb9be44d7872b2dd579f7d65.vi.v1.mp3
+    - assets/audio/CURRICULUM/00ddd30a1cc933b8aea18e5c.vi.v1.mp3
+    - assets/audio/CURRICULUM/d8fa654bb8b458b55d4def22.vi.v1.mp3
+    - assets/audio/CURRICULUM/062e0b0017072a5758712772.vi.v1.mp3
+    - assets/audio/CURRICULUM/e1ef7e5d8a01fea6743e5b74.vi.v1.mp3
+    - assets/audio/CURRICULUM/9db559d9bb78ca1a3ae53170.vi.v1.mp3
+    - assets/audio/CURRICULUM/fa2aff1bdfd1ee63b3219037.vi.v1.mp3
+    - assets/audio/CURRICULUM/96067e19b9c99288b5eee21e.vi.v1.mp3
+    - assets/audio/CURRICULUM/7d03cdd82767f4eb62ac640e.vi.v1.mp3
+    - assets/audio/CURRICULUM/05a1cbd5bffdd3268861d32d.vi.v1.mp3
+    - assets/audio/CURRICULUM/1c802872451f0ad0ac401638.vi.v1.mp3
+    - assets/audio/CURRICULUM/7be154a9460477f35ae0cd00.vi.v1.mp3
+    - assets/audio/CURRICULUM/9f744eb4e70f66fb0a866b2f.vi.v1.mp3
+    - assets/audio/CURRICULUM/3735e8558af8564b30a1e13b.vi.v1.mp3
+    - assets/audio/CURRICULUM/93c921bd66c026b947d8fe5f.vi.v1.mp3
+    - assets/audio/CURRICULUM/9424847a933b45c420000ed4.vi.v1.mp3
+    - assets/audio/CURRICULUM/74fc4557ebac5ec8afaf001b.vi.v1.mp3
+    - assets/audio/CURRICULUM/341883a73e9ba340a99dbde2.vi.v1.mp3
     - assets/data/cloudinary_audio_manifest.json
     - assets/data/curriculum_audio.json
     - assets/data/vietnamese_speech_corrections_v1.json

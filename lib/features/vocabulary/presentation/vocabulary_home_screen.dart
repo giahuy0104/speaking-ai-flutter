@@ -1342,7 +1342,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                   entry.source == VocabularySource.topicCore &&
                   (entry.correctAudioPath?.trim().isNotEmpty ?? false),
             _VocabularyJourney.review =>
-              entry.needsPractice && !entry.isParentAdded,
+              VocabularyStore.isActiveReviewEntry(entry),
           },
         )
         .toList();

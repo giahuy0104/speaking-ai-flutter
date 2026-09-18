@@ -4,7 +4,8 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
-import android.media.ToneGenerator
+import android.media.AudioDeviceInfo
+import android.os.Build
 import android.media.audiofx.LoudnessEnhancer
 import android.os.Bundle
 import android.os.Handler
@@ -16,6 +17,8 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
 import java.util.Locale
+import java.util.concurrent.Executors
+import kotlin.math.pow
 import kotlin.math.roundToInt
 
 class VoicePromptBridge(
@@ -44,9 +47,10 @@ class VoicePromptBridge(
     private var pendingPrompt: PendingPrompt? = null
     private var awaitedUtteranceId: String? = null
     private var awaitedResult: MethodChannel.Result? = null
-    private var readyCueGenerator: ToneGenerator? = null
+    private var readyCuePlayer: MediaPlayer? = null
     private var readyCueCompletion: Runnable? = null
-    private var readyCueResult: MethodChannel.Result? = null
+    private val readyCueResults = mutableListOf<MethodChannel.Result>()
+    private val levelWorker = Executors.newSingleThreadExecutor()
     private var synthesizedPromptId: String? = null
     private var synthesizedPromptFile: File? = null
     private var synthesizedPromptGainMillibels = 0
@@ -57,8 +61,10 @@ class VoicePromptBridge(
     private var promptPlayer: MediaPlayer? = null
     private var promptLoudnessEnhancer: LoudnessEnhancer? = null
     private var utteranceSequence = 0L
+    private var diagnosticCueSequence = 0L
 
     init {
+        AudioDiagnostics.event("diagnostics.native.ready", mapOf("build" to "audio-fix-v2"))
         methodChannel.setMethodCallHandler(this)
         textToSpeech = TextToSpeech(appContext, this)
     }
@@ -122,6 +128,7 @@ class VoicePromptBridge(
         result: MethodChannel.Result,
     ) {
         when (call.method) {
+            "analyzePlaybackLevel" -> analyzePlaybackLevel(call, result)
             "playAuthoredAudioAndWait" -> playAuthoredAudio(call, result)
             "speak" -> {
                 val text = call.argument<String>("text")?.trim().orEmpty()
@@ -231,6 +238,7 @@ class VoicePromptBridge(
         }
         utteranceSequence += 1
         val utteranceId = "voice-prompt-$utteranceSequence"
+        AudioDiagnostics.output("tts.synthesis.request", audioManager, mapOf("id" to utteranceId, "gainDb" to gainDb, "characters" to text.length))
         if (completion != null) {
             awaitedUtteranceId = utteranceId
             awaitedResult = completion
@@ -261,6 +269,29 @@ class VoicePromptBridge(
 
     private fun requestedGainDb(call: MethodCall): Double =
         (call.argument<Number>("gainDb")?.toDouble() ?: 8.0).coerceIn(0.0, 12.0)
+
+    private fun analyzePlaybackLevel(call: MethodCall, result: MethodChannel.Result) {
+        val path = call.argument<String>("path")
+        val asset = call.argument<String>("asset")
+        levelWorker.execute {
+            val measured = runCatching {
+                val file = if (asset != null && asset.startsWith("assets/") && !asset.contains("..")) {
+                    val stamp = appContext.packageManager.getPackageInfo(appContext.packageName, 0).lastUpdateTime
+                    val key = java.security.MessageDigest.getInstance("SHA-256")
+                        .digest(asset.toByteArray()).joinToString("") { "%02x".format(it) }
+                    File(appContext.cacheDir, "level-$stamp-$key.audio").also { target ->
+                        if (!target.exists()) {
+                            appContext.assets.open("flutter_assets/$asset").use { input ->
+                                target.outputStream().use { output -> input.copyTo(output) }
+                            }
+                        }
+                    }
+                } else if (path != null) File(path) else null
+                file?.let(AndroidPlaybackLoudness::analyze)?.toMap()
+            }.getOrNull()
+            mainHandler.post { result.success(measured) }
+        }
+    }
 
     private fun voicePromptAudioAttributes(
         forcePhoneSpeaker: Boolean = false,
@@ -351,6 +382,7 @@ class VoicePromptBridge(
     }
 
     private fun playSynthesizedPrompt(utteranceId: String) {
+        AudioDiagnostics.event("prompt.native.prepare", mapOf("id" to utteranceId))
         if (utteranceId != synthesizedPromptId) {
             return
         }
@@ -383,17 +415,40 @@ class VoicePromptBridge(
                 if (promptPlayer !== preparedPlayer || promptPlaybackId != utteranceId) {
                     return@setOnPreparedListener
                 }
-                promptLoudnessEnhancer = try {
-                    LoudnessEnhancer(preparedPlayer.audioSessionId).apply {
-                        setTargetGain(gainMillibels)
-                        enabled = true
+                var levelApplied = false
+                fun startWithLevel(measured: PlaybackLoudnessResult?) {
+                    if (levelApplied || promptPlayer !== preparedPlayer || promptPlaybackId != utteranceId) return
+                    levelApplied = true
+                    try {
+                        val gainDb = measured?.gainDb ?: (gainMillibels / 100.0).coerceIn(0.0, 8.0)
+                        val volume = 10.0.pow(gainDb.coerceAtMost(0.0) / 20.0).toFloat()
+                        preparedPlayer.setVolume(volume, volume)
+                        promptLoudnessEnhancer = try {
+                            LoudnessEnhancer(preparedPlayer.audioSessionId).apply {
+                                setTargetGain((gainDb.coerceAtLeast(0.0) * 100).roundToInt())
+                                enabled = true
+                            }
+                        } catch (_: RuntimeException) { null }
+                        AudioDiagnostics.event("prompt.level.applied", mapOf("id" to utteranceId, "gainDb" to gainDb, "measured" to (measured != null)))
+                        preparedPlayer.start()
+                        AudioDiagnostics.output("prompt.native.started", audioManager, mapOf("id" to utteranceId, "gainDb" to gainDb, "durationMs" to preparedPlayer.duration, "sessionId" to preparedPlayer.audioSessionId))
+                    } catch (error: RuntimeException) {
+                        finishPromptPlayback(utteranceId, error.message ?: "Unable to start prompt.")
                     }
-                } catch (_: RuntimeException) {
-                    null
                 }
-                preparedPlayer.start()
+                // A slow OEM codec must not reintroduce a seconds-long wait.
+                val levelTimeout = Runnable { startWithLevel(null) }
+                mainHandler.postDelayed(levelTimeout, 450L)
+                levelWorker.execute {
+                    val measured = runCatching { AndroidPlaybackLoudness.analyze(audioFile) }.getOrNull()
+                    mainHandler.post {
+                        mainHandler.removeCallbacks(levelTimeout)
+                        startWithLevel(measured)
+                    }
+                }
             }
             player.setOnCompletionListener {
+                AudioDiagnostics.event("prompt.native.audio_completed", mapOf("id" to utteranceId))
                 mainHandler.post { finishPromptPlayback(utteranceId) }
             }
             player.setOnErrorListener { _, _, _ ->
@@ -473,86 +528,88 @@ class VoicePromptBridge(
     }
 
     private fun playSpeechReadyCue(result: MethodChannel.Result) {
-        completeReadyCue()
-        val streamType = readyCueStreamType()
-        var generator = try {
-            ToneGenerator(streamType, 100).also {
-                readyCueGenerator = it
-            }
-        } catch (error: RuntimeException) {
+        // Concurrent requests share this one sound and its completion.
+        if (readyCuePlayer != null) {
+            readyCueResults.add(result)
+            AudioDiagnostics.event("cue.native.coalesced", mapOf("cueId" to diagnosticCueSequence))
+            return
+        }
+        diagnosticCueSequence += 1
+        val cueId = diagnosticCueSequence
+        val player = try { MediaPlayer() } catch (error: RuntimeException) {
             result.error("READY_CUE_UNAVAILABLE", error.message, null)
             return
         }
-        val toneStarted = try {
-            generator.startTone(ToneGenerator.TONE_PROP_BEEP, 120)
-        } catch (_: RuntimeException) {
-            false
-        }
-        if (!toneStarted) {
-            // Recreate once instead of silently losing the cue on an OEM route
-            // transition. The first instance is never reused across turns.
-            runCatching { generator.release() }
-            readyCueGenerator = null
-            generator = try {
-                ToneGenerator(streamType, 100).also {
-                    readyCueGenerator = it
+        readyCuePlayer = player
+        readyCueResults.add(result)
+        try {
+            val file = File(appContext.cacheDir, "speech-ready-v2.wav")
+            val waveform = ReadyCueWaveform.wavBytes()
+            if (!file.exists() || file.length() != waveform.size.toLong()) {
+                file.writeBytes(waveform)
+            }
+            player.setAudioAttributes(voicePromptAudioAttributes(forceMediaPlayback = true))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                audioManager.communicationDevice?.takeIf { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
+                    ?.let { player.setPreferredDevice(it) }
+            }
+            player.setDataSource(file.absolutePath)
+            player.setVolume(1f, 1f) // PCM already generated at the common target.
+            player.setOnPreparedListener {
+                if (readyCuePlayer !== player) return@setOnPreparedListener
+                AudioDiagnostics.output("cue.native.start", audioManager, mapOf("cueId" to cueId, "sessionId" to player.audioSessionId))
+                try {
+                    player.start() // Exactly one start; no hidden retry on a second renderer.
+                } catch (_: RuntimeException) {
+                    completeReadyCue("READY_CUE_UNAVAILABLE")
+                    return@setOnPreparedListener
                 }
-            } catch (error: RuntimeException) {
-                result.error("READY_CUE_UNAVAILABLE", error.message, null)
-                return
+                mainHandler.postDelayed({
+                    if (readyCuePlayer === player) {
+                        runCatching {
+                            AudioDiagnostics.event("cue.native.routed", mapOf("cueId" to cueId, "deviceType" to player.routedDevice?.type, "deviceId" to player.routedDevice?.id))
+                        }
+                    }
+                }, 40L)
             }
-            val retryStarted = try {
-                generator.startTone(ToneGenerator.TONE_PROP_BEEP, 120)
-            } catch (_: RuntimeException) {
-                false
+            player.setOnCompletionListener {
+                if (readyCuePlayer !== player) return@setOnCompletionListener
+                readyCueCompletion?.let(mainHandler::removeCallbacks)
+                // Keep the existing acoustic-tail guard before lesson recording.
+                val tail = Runnable { if (readyCuePlayer === player) completeReadyCue() }
+                readyCueCompletion = tail
+                mainHandler.postDelayed(tail, 180L)
             }
-            if (!retryStarted) {
-                completeReadyCue()
-                result.error("READY_CUE_UNAVAILABLE", "Unable to play the ready cue.", null)
-                return
+            player.setOnErrorListener { _, what, extra ->
+                if (readyCuePlayer === player) {
+                    AudioDiagnostics.event("cue.native.error", mapOf("cueId" to cueId, "what" to what, "extra" to extra))
+                    completeReadyCue("READY_CUE_UNAVAILABLE")
+                }
+                true
             }
-        }
-        readyCueResult = result
-        // Capture must start AFTER the cue, not merely arm VAD afterwards:
-        // otherwise the WAV still contains the beep even if VAD ignores it.
-        // Leave 180 ms after the 120 ms tone for the SCO output/acoustic tail.
-        // This is a bounded guard, not another route teardown/reconnect.
-        val completion = Runnable { completeReadyCue() }
-        readyCueCompletion = completion
-        mainHandler.postDelayed(completion, 300L)
-    }
-
-    private fun readyCueStreamType(): Int {
-        val audioManager = appContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        @Suppress("DEPRECATION")
-        val bluetoothScoOn = audioManager.isBluetoothScoOn
-        // Callers prepare H20 before the cue and only open capture afterwards.
-        // Keep the cue on that communication route; STREAM_MUSIC can still be
-        // on the phone even though H20's input/output have been selected.
-        return if (
-            audioManager.mode == AudioManager.MODE_IN_COMMUNICATION ||
-                bluetoothScoOn
-        ) {
-            AudioManager.STREAM_VOICE_CALL
-        } else {
-            AudioManager.STREAM_MUSIC
+            val timeout = Runnable { if (readyCuePlayer === player) completeReadyCue("READY_CUE_TIMEOUT") }
+            readyCueCompletion = timeout
+            mainHandler.postDelayed(timeout, 1500L)
+            player.prepareAsync()
+        } catch (_: Exception) {
+            completeReadyCue("READY_CUE_UNAVAILABLE")
         }
     }
 
     private fun completeReadyCue(errorCode: String? = null) {
+        if (readyCuePlayer != null || readyCueResults.isNotEmpty()) {
+            AudioDiagnostics.event("cue.native.complete", mapOf("cueId" to diagnosticCueSequence, "errorCode" to errorCode))
+        }
         readyCueCompletion?.let(mainHandler::removeCallbacks)
         readyCueCompletion = null
-        readyCueGenerator?.let { generator ->
-            runCatching { generator.stopTone() }
-            runCatching { generator.release() }
-        }
-        readyCueGenerator = null
-        val completion = readyCueResult
-        readyCueResult = null
-        if (errorCode == null) {
-            completion?.success(null)
-        } else {
-            completion?.error(errorCode, "Kết nối âm thanh H20 bị gián đoạn. Hãy thử lại.", null)
+        val player = readyCuePlayer
+        readyCuePlayer = null
+        runCatching { player?.release() }
+        val completions = readyCueResults.toList()
+        readyCueResults.clear()
+        for (completion in completions) {
+            if (errorCode == null) completion.success(null)
+            else completion.error(errorCode, "Không thể phát tín hiệu sẵn sàng trên đường âm thanh đã chọn.", null)
         }
     }
 
@@ -593,5 +650,6 @@ class VoicePromptBridge(
         methodChannel.setMethodCallHandler(null)
         textToSpeech?.shutdown()
         textToSpeech = null
+        levelWorker.shutdown()
     }
 }

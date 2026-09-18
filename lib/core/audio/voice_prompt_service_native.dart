@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 
 import 'audio_gain.dart';
+import 'audio_diagnostics.dart';
 import 'voice_prompt_service_base.dart';
 
 VoicePromptService createPlatformVoicePromptService() =>
@@ -146,7 +147,9 @@ class MethodChannelVoicePromptService
   @override
   Future<void> playSpeechReadyCue() async {
     try {
+      AudioDiagnostics.event('cue.channel.request');
       await _channel.invokeMethod<void>('playSpeechReadyCue');
+      AudioDiagnostics.event('cue.channel.completed');
     } on MissingPluginException {
       // Optional native capability.
     } on PlatformException {

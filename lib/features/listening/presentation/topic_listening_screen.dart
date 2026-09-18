@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../../core/audio/audio_diagnostics.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -113,6 +114,12 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
   void initState() {
     super.initState();
     final requestedAge = widget.initialVoiceTarget?.childAge ?? widget.childAge;
+    AudioDiagnostics.event('screen.topics.init');
+    if (AudioDiagnostics.enabled) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) AudioDiagnostics.event('screen.topics.first_frame');
+      });
+    }
     _selectedCatalogIndex = listeningCatalogs.indexWhere(
       (catalog) =>
           requestedAge >= catalog.startAge && requestedAge <= catalog.endAge,
