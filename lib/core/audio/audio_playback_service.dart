@@ -58,6 +58,12 @@ abstract interface class ProgressAwareAudioPlaybackService {
   Duration? get duration;
 }
 
+/// Optional capability for long-form audio that must restart from the
+/// beginning without replacing its source or changing the selected route.
+abstract interface class SeekableAudioPlaybackService {
+  Future<void> seek(Duration position);
+}
+
 /// Optional capability used by browsers that require audio playback to be
 /// started directly from a user gesture before later automatic playback.
 abstract interface class UserGestureAudioPlaybackService {
@@ -104,6 +110,7 @@ class JustAudioPlaybackService
         AudioPlaybackService,
         CompletionAwareAudioPlaybackService,
         ProgressAwareAudioPlaybackService,
+        SeekableAudioPlaybackService,
         UserGestureAudioPlaybackService,
         DirectUserGestureAudioPlaybackService,
         CommunicationRouteAwareAudioPlaybackService,
@@ -487,6 +494,17 @@ class JustAudioPlaybackService
 
   @override
   Duration? get duration => _browserPlayback?.duration ?? _player.duration;
+
+  @override
+  Future<void> seek(Duration position) async {
+    final safePosition = position.isNegative ? Duration.zero : position;
+    final browserPlayback = _browserPlayback;
+    if (browserPlayback != null) {
+      await browserPlayback.seek(safePosition);
+      return;
+    }
+    await _player.seek(safePosition);
+  }
 
   Future<void> _refreshAssetCacheOnce() {
     if (kIsWeb) {

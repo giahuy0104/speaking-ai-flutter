@@ -329,6 +329,21 @@ class _HtmlAudioElementPlayback implements BrowserAudioPlayback {
   }
 
   @override
+  Future<void> seek(Duration position) async {
+    if (_disposed) return;
+    final seconds = position.inMicroseconds / Duration.microsecondsPerSecond;
+    try {
+      _element.currentTime = seconds.isFinite && seconds >= 0 ? seconds : 0;
+      if (!_positionController.isClosed) {
+        _positionController.add(position.isNegative ? Duration.zero : position);
+      }
+    } catch (_) {
+      // Metadata may still be loading. Replaying the current source will retain
+      // the browser's safest available position.
+    }
+  }
+
+  @override
   Future<void> pause() async {
     if (_disposed) {
       return;

@@ -506,7 +506,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
                                     )
                                   : _introPlaybackFailed
                                   ? context.tr(
-                                      'Không thể phát lời mở đầu. Con hãy bấm Bỏ qua để tiếp tục.',
+                                      'Không thể phát lời mở đầu. Bạn hãy bấm Bỏ qua để tiếp tục.',
                                       '无法播放开场介绍，请点击跳过继续。',
                                     )
                                   : context.tr(
@@ -603,7 +603,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.previousItem:
         return const ActiveLearningCommandResult.unavailable(
-          spokenReply: 'Con đang ở phần đầu bài học rồi.',
+          spokenReply: 'Bạn đang ở phần đầu bài học rồi.',
         );
       case ActiveLearningCommand.nextLesson:
       case ActiveLearningCommand.previousLesson:
@@ -613,7 +613,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
       case ActiveLearningCommand.vocabularyLatest:
       case ActiveLearningCommand.vocabularyAll:
         return const ActiveLearningCommandResult.unavailable(
-          spokenReply: 'Con hãy vào bài học trước nhé.',
+          spokenReply: 'Bạn hãy vào bài học trước nhé.',
         );
       case ActiveLearningCommand.exitToHome:
         await pauseForMainAssistant();

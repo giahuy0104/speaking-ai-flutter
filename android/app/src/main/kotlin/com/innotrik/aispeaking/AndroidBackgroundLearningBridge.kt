@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
@@ -57,6 +58,10 @@ class AndroidBackgroundLearningBridge(
                 result.success(null)
             }
             "isActive" -> result.success(BackgroundLearningService.isActive())
+            "isScreenInteractive" -> {
+                val powerManager = appContext.getSystemService(PowerManager::class.java)
+                result.success(powerManager?.isInteractive ?: true)
+            }
             "requestNotificationPermission" -> requestNotificationPermission(result)
             "companion.status" -> result.success(
                 companionDeviceManager.status(call.argument<String>("deviceId")),

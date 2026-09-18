@@ -1,12 +1,15 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
 import '../../../core/audio/voice_prompt_service.dart';
+import '../../../core/device/active_learning_module.dart';
 import '../../../l10n/display_language.dart';
+import '../../voice_navigation/domain/master_navigation_contract.dart';
 import '../application/lesson_media_service.dart';
 import '../domain/lesson_guide_flow.dart';
 
@@ -37,13 +40,33 @@ class V4SongStageScreen extends StatefulWidget {
   State<V4SongStageScreen> createState() => _V4SongStageScreenState();
 }
 
-class _V4SongStageScreenState extends State<V4SongStageScreen> {
+class _V4SongStageScreenState extends State<V4SongStageScreen>
+    implements ActiveLearningModuleController, ActiveLearningVoiceContext {
   VoicePromptService? _voicePromptService;
   late final bool _ownsVoicePromptService;
   bool _announcing = true;
   bool _playing = false;
+  bool _pausedForMainAssistant = false;
+  bool _resumeSongAfterMain = false;
+  bool _resumeAnnouncementAfterMain = false;
+  bool _leaving = false;
   String? _message;
   int _request = 0;
+  ActiveLearningModuleRegistry? _activeModuleRegistry;
+  Object? _activeModuleRegistration;
+
+  @override
+  ActiveLearningModuleKind get moduleKind =>
+      ActiveLearningModuleKind.listeningLesson;
+
+  @override
+  bool get isPausedForMain => _pausedForMainAssistant;
+
+  @override
+  ActiveLearningVoiceNode get mainVoiceNode => ActiveLearningVoiceNode.song;
+
+  @override
+  String get mainVoicePrompt => MasterNavigationContract.songControlPrompt;
 
   VoicePromptService get _prompt {
     final current = _voicePromptService;
@@ -62,7 +85,25 @@ class _V4SongStageScreenState extends State<V4SongStageScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final registry = ActiveLearningModuleScope.maybeOf(context);
+    if (identical(registry, _activeModuleRegistry)) return;
+    final oldRegistry = _activeModuleRegistry;
+    final oldRegistration = _activeModuleRegistration;
+    if (oldRegistry != null && oldRegistration != null) {
+      oldRegistry.unregister(oldRegistration);
+    }
+    _activeModuleRegistry = registry;
+    _activeModuleRegistration = registry?.register(this);
+  }
+
+  @override
   void dispose() {
+    final registration = _activeModuleRegistration;
+    if (registration != null) {
+      _activeModuleRegistry?.unregister(registration);
+    }
     _request += 1;
     unawaited(widget.mediaService.stopPlayback());
     final prompt = _voicePromptService;
@@ -76,32 +117,33 @@ class _V4SongStageScreenState extends State<V4SongStageScreen> {
     super.dispose();
   }
 
-  Future<void> _speakOnSelectedLessonOutput(
-    String text, {
-    String locale = 'vi-VN',
-  }) async {
-    final prompt = _prompt;
-    if (prompt is SelectedMediaOutputVoicePromptService) {
-      await widget.mediaService.prepareSelectedLessonOutput();
-      await (prompt as SelectedMediaOutputVoicePromptService)
-          .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
-      return;
-    }
-    await prompt.speakAndWait(text, locale: locale);
-  }
-
   Future<void> _announceAndPlaySong() async {
-    if (!mounted) return;
+    if (!mounted || _pausedForMainAssistant || _leaving) return;
     final request = ++_request;
     setState(() {
       _announcing = true;
       _message = null;
     });
     try {
-      await _speakOnSelectedLessonOutput(
-        v4SongStartCue(widget.songTitle),
-        locale: 'vi-VN',
-      );
+      await widget.mediaService.prepareSelectedLessonOutput();
+      if (!mounted || request != _request) return;
+    } catch (error) {
+      if (!mounted || request != _request) return;
+      setState(() {
+        _announcing = false;
+        _message = 'Chưa xác nhận được loa và mic H20. Bạn thử lại nhé.';
+      });
+      return;
+    }
+    try {
+      final prompt = _prompt;
+      final cue = v4SongStartCue(widget.songTitle);
+      if (!kIsWeb && prompt is SelectedMediaOutputVoicePromptService) {
+        await (prompt as SelectedMediaOutputVoicePromptService)
+            .speakAndWaitOnSelectedMediaOutput(cue, locale: 'vi-VN');
+      } else {
+        await prompt.speakAndWait(cue, locale: 'vi-VN');
+      }
     } catch (_) {
       // The approved song still starts if a device TTS voice is unavailable.
     }
@@ -117,7 +159,13 @@ class _V4SongStageScreenState extends State<V4SongStageScreen> {
 
   Future<void> _playSongAndContinue({int? request}) async {
     final uri = widget.songAudioUri;
-    if (uri == null || _playing || !mounted) return;
+    if (uri == null ||
+        _playing ||
+        !mounted ||
+        _pausedForMainAssistant ||
+        _leaving) {
+      return;
+    }
     final playRequest = request ?? ++_request;
     if (playRequest != _request) return;
     setState(() {
@@ -145,10 +193,94 @@ class _V4SongStageScreenState extends State<V4SongStageScreen> {
   }
 
   Future<void> _finish(V4SongStageAction action) async {
+    if (_leaving) return;
+    _leaving = true;
+    _pausedForMainAssistant = false;
     _request += 1;
     unawaited(_prompt.stop());
     await widget.mediaService.stopPlayback().catchError((Object _) {});
     if (mounted) Navigator.of(context).pop(action);
+  }
+
+  @override
+  Future<void> pauseForMainAssistant() async {
+    if (_pausedForMainAssistant || _leaving) return;
+    _resumeSongAfterMain = _playing;
+    _resumeAnnouncementAfterMain = _announcing;
+    _pausedForMainAssistant = true;
+    _request += 1;
+    if (mounted) {
+      setState(() {
+        _playing = false;
+        _announcing = false;
+        _message = 'Bài hát đang tạm dừng.';
+      });
+    }
+    await Future.wait<void>(<Future<void>>[
+      _prompt.stop().catchError((Object _) {}),
+      widget.mediaService.stopPlayback().catchError((Object _) {}),
+    ]);
+  }
+
+  Future<void> _resumeFromMain({required bool replay}) async {
+    if (!mounted || _leaving) return;
+    final resumeSong = replay || _resumeSongAfterMain;
+    final resumeAnnouncement = !replay && _resumeAnnouncementAfterMain;
+    _pausedForMainAssistant = false;
+    _resumeSongAfterMain = false;
+    _resumeAnnouncementAfterMain = false;
+    setState(() => _message = null);
+    if (replay) {
+      await widget.mediaService.rewindPlayback();
+    }
+    if (resumeAnnouncement) {
+      unawaited(_announceAndPlaySong());
+    } else if (resumeSong) {
+      unawaited(_playSongAndContinue());
+    }
+  }
+
+  @override
+  Future<ActiveLearningCommandResult> handleMainCommand(
+    ActiveLearningCommand command,
+  ) async {
+    if (!mounted || _leaving) {
+      return const ActiveLearningCommandResult.unavailable();
+    }
+    switch (command) {
+      case ActiveLearningCommand.stop:
+        await pauseForMainAssistant();
+        return const ActiveLearningCommandResult.handled(
+          spokenReply: 'Đã dừng.',
+        );
+      case ActiveLearningCommand.resume:
+        await _resumeFromMain(replay: false);
+        return const ActiveLearningCommandResult.handled();
+      case ActiveLearningCommand.replayCurrent:
+      case ActiveLearningCommand.restart:
+        await _resumeFromMain(replay: true);
+        return const ActiveLearningCommandResult.handled();
+      case ActiveLearningCommand.nextItem:
+        await _finish(V4SongStageAction.skipped);
+        return const ActiveLearningCommandResult.handled();
+      case ActiveLearningCommand.exitToHome:
+        await pauseForMainAssistant();
+        if (!mounted) {
+          return const ActiveLearningCommandResult.unavailable();
+        }
+        _leaving = true;
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        return const ActiveLearningCommandResult.handled();
+      case ActiveLearningCommand.previousItem:
+      case ActiveLearningCommand.nextLesson:
+      case ActiveLearningCommand.previousLesson:
+      case ActiveLearningCommand.vocabularyParentAdded:
+      case ActiveLearningCommand.vocabularyPracticeAgain:
+      case ActiveLearningCommand.vocabularyStars:
+      case ActiveLearningCommand.vocabularyLatest:
+      case ActiveLearningCommand.vocabularyAll:
+        return const ActiveLearningCommandResult.unavailable();
+    }
   }
 
   @override

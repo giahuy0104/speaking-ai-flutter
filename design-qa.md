@@ -123,6 +123,107 @@ No actionable P0, P1 or P2 findings remain. Minor platform-specific text rasteri
 
 final result: passed
 
+## Vocabulary detail polish — centered titles, numbered queue, quiet selection
+
+### Visual truth and captures
+
+- Source visual truth paths: `C:\Users\Windows\AppData\Local\Temp\codex-clipboard-53305828-eaa7-40c6-94e3-96f7b5604068.png` and `C:\Users\Windows\AppData\Local\Temp\codex-clipboard-909b60a1-2983-48ef-904f-e18afc51174e.png`.
+- Source pixels: both references are 859 × 1908 px and include Android system chrome.
+- Rendered implementation screenshots: `D:\Documents\ai-speaking-flutter-app\test\features\vocabulary\goldens\vocabulary-family-homi-390x844.png` and `D:\Documents\ai-speaking-flutter-app\test\features\vocabulary\goldens\vocabulary-suggestions-390x844.png`.
+- Same-state comparison boards: `D:\Documents\ai-speaking-flutter-app\output\design\vocabulary-detail-polish\family-queue-comparison.png` and `D:\Documents\ai-speaking-flutter-app\output\design\vocabulary-detail-polish\suggestion-comparison.png`.
+- Viewport and density: Flutter 390 × 844 logical/pixel px at device-pixel ratio 1. Source references were proportionally scaled to 844 px high and centered within a 390 px column; the implementation remained at native 390 × 844. No non-proportional stretching was used.
+- State: Vietnamese, light theme, Parent Added with three waiting items and the suggestion dialog with the first of three suggestions selected.
+
+### Full-view and focused comparison evidence
+
+- The Parent Added title is horizontally centered in the navy header. The same shared detail-header component centers “Ngôi sao của bạn” and “Luyện lại”, including their count chips.
+- The waiting queue preserves the three-item order from the reference while adding prominent 1–3 navy badges, individual warm-white cards, a pink count chip and visually distinct mint edit/pink delete actions.
+- The selected suggestion keeps its checkbox and the footer selection count, but its card now uses the same neutral outline as every other suggestion. The pink frame and “Đã chọn” badge are absent.
+- Both comparison boards keep the requested title, queue controls, suggestion cards and footer actions readable at full 390 × 844 density, so separate crops were not required.
+
+### Required fidelity surfaces
+
+- Fonts and typography: the golden harness loads Roboto regular, medium and bold. Vietnamese diacritics are intact, header titles are centered, and long queue meanings wrap to two lines without overlap.
+- Spacing and layout rhythm: the queue uses a consistent 9 px item gap, 17 px item radius, 34 px number badge and 44–48 px edit/delete targets. The dialog keeps its existing scrollable layout and fixed action footer.
+- Colors and visual tokens: the implementation stays within HOMI navy, mint, warm white and pink tokens. Pink is reserved for the queue count, selection checkbox and destructive delete action instead of outlining an entire selected card.
+- Image quality and assets: existing HOMI and scenic raster assets are unchanged and remain sharp; no source artwork was approximated.
+- Copy and content: “Ba mẹ đã thêm”, “Ngôi sao của bạn” and “Luyện lại” are preserved. The redundant “Đã chọn” label is removed while `1/3 đã chọn` remains as the useful aggregate status.
+
+### Comparison history
+
+| Severity | Earlier finding | Fix | Post-fix evidence |
+| --- | --- | --- | --- |
+| P2 | Shared detail titles were left-aligned, so the three collection screens did not feel consistently anchored. | Centered the title and count chip in the shared detail-header component. | Final family, stars and review 390 × 844 goldens. |
+| P2 | Waiting entries were flat rows without a visible order and the actions blended into the mint panel. | Rebuilt each row as a numbered card with stronger semantic color separation and retained edit/delete behavior. | Final family queue comparison board with three ordered items. |
+| P2 | A selected suggestion used both a saturated pink outline and an “Đã chọn” badge, duplicating the checked state. | Removed the selected border treatment and badge while retaining the checkbox and footer count. | Final suggestion comparison board. |
+
+### Verification
+
+- Primary interactions tested: open all three journeys, verify centered shared titles, add/select up to three suggestions, edit-and-auto-select, confirm suggestions, and edit/delete queued entries.
+- Native visual captures render at 390 × 844 with no overflow or hidden persistent action.
+- Browser console checks are not applicable to these native Flutter widget captures.
+
+No actionable P0, P1 or P2 findings remain.
+
+final result: passed
+
+## Vocabulary detail tiles — Navy Anchor option 2
+
+### Visual truth and captures
+
+- Selected mock-up: `D:\CodexData\.codex\generated_images\01a0a88a-39c2-7520-8a0a-f82730210e8d\exec-462be0a9-c2c3-4052-8de2-8d2672a0ef4f.png`.
+- Parent Added capture: `D:\Documents\ai-speaking-flutter-app\test\features\vocabulary\goldens\vocabulary-family-homi-390x844.png`.
+- Stars capture: `D:\Documents\ai-speaking-flutter-app\test\features\vocabulary\goldens\vocabulary-stars-homi-390x844.png`.
+- Review capture: `D:\Documents\ai-speaking-flutter-app\test\features\vocabulary\goldens\vocabulary-review-homi-390x844.png`.
+- Viewport: 390 × 844 logical/pixel px at device-pixel ratio 1, Vietnamese, light theme.
+
+### Fidelity review
+
+- All three detail headers use the selected deep navy anchor surface, white high-contrast title and mint count/status chip.
+- Parent Added uses the selected mint waiting-queue surface with a navy clock badge, mint outline and a separate count pill.
+- The duplicate Back control was removed from all detail tiles. The single Back control in the global HOMI header now returns from a detail to the vocabulary journey list, while retaining its original home-navigation behavior on the landing page.
+- Existing search, add, queue edit/delete, playback and practice controls retain their behavior and placement.
+- Dark-theme equivalents use the existing HOMI dark navy, mint and outline tokens.
+
+### Verification
+
+- `flutter analyze lib/features/vocabulary/presentation/vocabulary_home_screen.dart test/features/vocabulary/vocabulary_home_screen_test.dart test/features/vocabulary/vocabulary_practice_golden_test.dart`: passed with no issues.
+- `flutter test test/features/vocabulary/vocabulary_home_screen_test.dart`: 15 tests passed.
+- `flutter test test/features/vocabulary/vocabulary_practice_golden_test.dart`: 4 golden tests passed.
+- `flutter test test/features/vocabulary`: all 72 vocabulary tests passed.
+- Touch Back was verified while collection playback was active; the detail closes immediately and the previous audio queue is cancelled.
+- All three journey headers are asserted to use `AppColors.primaryNavy`; Parent Added waiting queue is asserted to use `AppColors.mintSoft` and expose its count chip.
+- No actionable P0, P1 or P2 visual findings remain.
+
+final result: passed
+
+## Topic journey — song indicators and English-first hierarchy
+
+### Visual truth and captures
+
+- Source reference: `C:\Users\Windows\AppData\Local\Temp\codex-clipboard-d7ae0968-11b6-4707-8187-0c1b60bc52ea.png`.
+- Rendered Flutter capture: `D:\Documents\ai-speaking-flutter-app\test\features\listening\goldens\topic-song-journey-390x844.png`.
+- State: Vietnamese UI, age 3–5, Level 1, Numbers topic, lesson 2 locked.
+
+### Final review
+
+- English now leads the bilingual hierarchy in both the topic header and every lesson row; Vietnamese remains directly below as supporting text.
+- The topic summary adds one compact pink music-note count only when authored song metadata exists.
+- The exact lesson containing the song receives a separate pink music-note indicator, including while the lesson is locked; ordinary lessons receive no marker.
+- The decorative waving HOMI image is removed, so it no longer obscures the second lesson or competes with the bottom navigation.
+- Existing topic artwork, progress rail, lesson locking, actions and bottom navigation retain their prior layout and behavior.
+- The 390 × 844 capture has no clipping, overflow or overlap. No actionable P0, P1 or P2 findings remain.
+
+### Verification
+
+- Targeted Flutter analysis: passed with no issues.
+- Topic navigation suite: 15 tests passed.
+- Updated no-song journey goldens and the new song journey golden: passed.
+- Compact 320 × 568 layout at 130% text scale: passed without overflow.
+- Existing song-stage and lesson-navigation suites: 19 tests passed; song behavior is unchanged.
+
+final result: passed
+
 ## Listening catalog — bilingual topic and lesson titles
 
 ### Visual truth and captures
@@ -451,6 +552,60 @@ The three-column comparison shows the crossed-out original Today section, the re
 - `flutter analyze` on the changed screen and tests: passed with no issues.
 - Related vocabulary suite: 21 tests passed.
 - Native golden capture: passed at 390 × 844 with no RenderFlex overflow.
+- Browser console checks are not applicable to this native Flutter widget capture.
+
+No actionable P0, P1 or P2 findings remain.
+
+final result: passed
+
+## Latest handoff validation — Vocabulary detail polish
+
+- Detailed visual comparison: see “Vocabulary detail polish — centered titles, numbered queue, quiet selection” above.
+- Source-to-implementation boards: `D:\Documents\ai-speaking-flutter-app\output\design\vocabulary-detail-polish\family-queue-comparison.png` and `D:\Documents\ai-speaking-flutter-app\output\design\vocabulary-detail-polish\suggestion-comparison.png`.
+- Static analysis: passed with no issues in the changed vocabulary screen and its widget/golden tests.
+- Full automated suite: 873/873 tests passed, including all five vocabulary goldens at 390 × 844.
+- Release artifacts: ARM64 and Universal APKs built successfully for version `1.0.8+10`.
+- Final visual check: all three detail titles are centered; the Parent Added queue has visible ordered cards; the selected suggestion has neither a pink outline nor the redundant “Đã chọn” badge.
+
+No actionable P0, P1 or P2 findings remain.
+
+final result: passed
+
+## Vocabulary suggestion refinement — navy selection border and compact header
+
+### Visual truth and captures
+
+- Source visual truth paths: `C:\Users\Windows\AppData\Local\Temp\codex-clipboard-22611823-0d8e-4f86-a0e0-c42aec7cdc56.png` (317 × 230 px) and `C:\Users\Windows\AppData\Local\Temp\codex-clipboard-4741849f-a274-45f8-bc30-30fb5da96871.png` (279 × 116 px).
+- Rendered implementation screenshot: `D:\Documents\ai-speaking-flutter-app\test\features\vocabulary\goldens\vocabulary-suggestions-390x844.png` (390 × 844 px at device-pixel ratio 1).
+- Focused same-state comparison: `D:\Documents\ai-speaking-flutter-app\output\design\vocabulary-suggestion-blue-border\suggestion-refinement-comparison.png` (920 × 650 px).
+- State: Vietnamese, light theme, suggestion dialog open, first of three suggestions selected.
+
+### Full-view and focused comparison evidence
+
+- The full Flutter capture keeps the complete dialog, scroll area and fixed footer visible at 390 × 844 without overflow.
+- The focused comparison places both requested source crops beside the rendered title and selected card. The instructional paragraph is absent, while the selected card has a clear navy outline rather than the earlier pink outline.
+- The checkbox remains pink and the footer still reports `1/3 đã chọn`; only the card outline uses navy, preserving the HOMI state hierarchy requested by the user.
+
+### Required fidelity surfaces
+
+- Fonts and typography: Roboto remains loaded in the golden harness; removing the paragraph leaves a two-line title with no truncation and no orphaned spacing.
+- Spacing and layout rhythm: the header becomes shorter while retaining 18 px top and 14 px bottom padding; the first card starts immediately after the divider with the existing 14 px content gap.
+- Colors and visual tokens: selected outline is `colorScheme.primary` (HOMI navy) at 1.5 px; unselected outlines retain `outlineVariant`; selection checkbox and aggregate count remain pink.
+- Image quality and assets: no image assets changed; existing HOMI and scenic assets remain sharp.
+- Copy and content: the full “Chọn tối đa 3 nội dung…” instructional paragraph is removed in normal and editing states. Title, field labels, controls and footer actions remain unchanged.
+
+### Comparison history
+
+| Severity | Earlier finding | Fix | Post-fix evidence |
+| --- | --- | --- | --- |
+| P2 | The previous pass removed the selected-card outline completely, while the latest user direction asks for the outline to return in blue. | Restored a 1.5 px selected outline using the HOMI primary navy token. | Focused comparison and updated suggestion golden. |
+| P2 | The instructional paragraph consumed header height after the user explicitly removed it. | Removed the paragraph and its spacing in both normal and editing states. | Updated 390 × 844 golden and focused comparison. |
+
+### Verification
+
+- Static analysis passes with no issues in the changed screen and related tests.
+- Vocabulary behavior suite: 15/15 tests passed.
+- Vocabulary golden suite: 5/5 tests passed, including the selected suggestion state.
 - Browser console checks are not applicable to this native Flutter widget capture.
 
 No actionable P0, P1 or P2 findings remain.

@@ -70,6 +70,29 @@ void main() {
     expect(calls.last.arguments, <String, bool>{'active': false});
   });
 
+  test('reads whether the Android display is interactive', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    const channel = MethodChannel('test_background_screen_state');
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    MethodCall? captured;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      captured = call;
+      return false;
+    });
+    addTearDown(() {
+      debugDefaultTargetPlatformOverride = null;
+      messenger.setMockMethodCallHandler(channel, null);
+    });
+
+    final interactive = await MethodChannelBackgroundLearningSession(
+      methodChannel: channel,
+    ).isScreenInteractive();
+
+    expect(interactive, isFalse);
+    expect(captured?.method, 'isScreenInteractive');
+  });
+
   test(
     'requests parent-visible H20 companion association on Android',
     () async {

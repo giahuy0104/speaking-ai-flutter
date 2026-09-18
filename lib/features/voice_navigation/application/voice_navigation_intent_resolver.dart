@@ -1,4 +1,5 @@
 import '../domain/homi_fallback_catalog.dart';
+import '../domain/master_navigation_contract.dart';
 
 enum VoiceNavigationDestination {
   conversation,
@@ -47,6 +48,7 @@ class VoiceNavigationIntentResolver {
   static final List<String> _wakePhrases =
       <String>[
             ...?HomiFallbackCatalog.childPhrasesByIntent['INT-022'],
+            ...?MasterNavigationContract.phrases['WAKE_WORD'],
             'HOMI ơi',
             'Hey HOMI',
             'Bạn HOMI ơi',

@@ -206,6 +206,16 @@ class LessonMediaService {
         : null;
   }
 
+  /// Rewinds the currently loaded long-form source without replacing it.
+  /// Song flows use this for the explicit "nghe lại" command; ordinary lesson
+  /// prompts continue to use their existing source lifecycle.
+  Future<bool> rewindPlayback() async {
+    final playback = _activePlayback;
+    if (playback is! SeekableAudioPlaybackService) return false;
+    await (playback as SeekableAudioPlaybackService).seek(Duration.zero);
+    return true;
+  }
+
   Future<void> preload(Uri uri) => _activePlayback.preload(uri);
 
   Future<void> unlockPlaybackForUserGesture() async {
@@ -360,7 +370,7 @@ class LessonMediaService {
       final recorder = _activeRecorder;
       if (!await recorder.hasPermission()) {
         throw const LessonMediaException(
-          'Ứng dụng cần quyền micro để lưu bản ghi của con.',
+          'Ứng dụng cần quyền micro để lưu bản ghi của bạn.',
         );
       }
 

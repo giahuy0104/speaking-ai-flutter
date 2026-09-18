@@ -14,6 +14,7 @@ void main() {
         'OPEN_SUBJECT': VoiceNavigationDestination.topics,
         'OPEN_VOCAB': VoiceNavigationDestination.vocabulary,
         'OPEN_TRANSLATE': VoiceNavigationDestination.conversation,
+        'TRANSLATE_CONTINUOUS': VoiceNavigationDestination.conversation,
       }.entries) {
         for (final text in MasterNavigationContract.phrases[entry.key]!) {
           final flow = MainVoiceAssistantFlow(childAge: 6)..begin();
@@ -24,6 +25,236 @@ void main() {
           expect(turn.continueListening, isFalse, reason: text);
         }
       }
+    },
+  );
+
+  test('continuous translation stops only on the approved exact phrase', () {
+    expect(MasterNavigationContract.isTranslationStop('Dừng lại'), isTrue);
+    expect(MasterNavigationContract.isTranslationStop('  dỪnG LạI! '), isTrue);
+    for (final text in <String>[
+      'Dừng dịch',
+      'Dừng dịch liên tục',
+      'Ngừng',
+      'Thôi dừng lại',
+      'Mình muốn dừng',
+      'Không dịch nữa',
+      'Thoát dịch',
+    ]) {
+      expect(
+        MasterNavigationContract.isTranslationStop(text),
+        isFalse,
+        reason: text,
+      );
+    }
+  });
+
+  test('SKIP_SONG is separate and excludes sentence-shaped commands', () async {
+    const resolver = ActiveLearningCommandResolver();
+    for (final text in MasterNavigationContract.phrases['SKIP_SONG']!) {
+      expect(
+        resolver.resolve(text, node: ActiveLearningVoiceNode.song),
+        ActiveLearningCommand.nextItem,
+        reason: text,
+      );
+    }
+    for (final text in <String>[
+      'Bỏ câu này nhé',
+      'Chuyển sang câu khác',
+      'Mình không muốn nghe câu này',
+    ]) {
+      expect(
+        resolver.resolve(text, node: ActiveLearningVoiceNode.song),
+        isNull,
+        reason: text,
+      );
+    }
+
+    final flow = MainVoiceAssistantFlow();
+    expect(
+      flow.beginActiveLearning(
+        kind: ActiveLearningModuleKind.listeningLesson,
+        voiceContext: const _VoiceContext(
+          ActiveLearningVoiceNode.song,
+          MasterNavigationContract.songControlPrompt,
+        ),
+      ),
+      MasterNavigationContract.songControlPrompt,
+    );
+    final skipped = await flow.handle('Bỏ qua bài hát');
+    expect(skipped.promptText, MasterNavigationContract.songSkipped);
+    expect(skipped.activeLearningCommand, ActiveLearningCommand.nextItem);
+  });
+
+  test(
+    'song fallback repeats once then resumes the current position',
+    () async {
+      final flow = MainVoiceAssistantFlow();
+      flow.beginActiveLearning(
+        kind: ActiveLearningModuleKind.listeningLesson,
+        voiceContext: const _VoiceContext(
+          ActiveLearningVoiceNode.song,
+          MasterNavigationContract.songControlPrompt,
+        ),
+      );
+
+      final first = await flow.handle('Hôm nay trời nắng');
+      expect(first.promptText, MasterNavigationContract.songControlPrompt);
+      expect(first.continueListening, isTrue);
+      final second = await flow.handle('Mình đang ngồi đây');
+      expect(second.promptText, MasterNavigationContract.keepCurrentContent);
+      expect(second.activeLearningCommand, ActiveLearningCommand.resume);
+      expect(second.continueListening, isFalse);
+    },
+  );
+
+  test(
+    'every active learning node resumes after the second fallback',
+    () async {
+      for (final node in <ActiveLearningVoiceNode>[
+        ActiveLearningVoiceNode.core,
+        ActiveLearningVoiceNode.challenge,
+        ActiveLearningVoiceNode.review,
+        ActiveLearningVoiceNode.today,
+        ActiveLearningVoiceNode.parent,
+        ActiveLearningVoiceNode.star,
+      ]) {
+        final flow = MainVoiceAssistantFlow();
+        const prompt = MasterNavigationContract.coreControlPrompt;
+        flow.beginActiveLearning(
+          kind: ActiveLearningModuleKind.listeningLesson,
+          voiceContext: _VoiceContext(node, prompt),
+        );
+
+        final first = await flow.handle('Hôm nay trời nắng');
+        expect(first.promptText, prompt, reason: '$node first fallback');
+        expect(first.continueListening, isTrue, reason: '$node first fallback');
+
+        final second = await flow.handle('Mình đang ngồi đây');
+        expect(
+          second.promptText,
+          MasterNavigationContract.keepCurrentContent,
+          reason: '$node second fallback',
+        );
+        expect(
+          second.activeLearningCommand,
+          ActiveLearningCommand.resume,
+          reason: '$node second fallback',
+        );
+        expect(second.continueListening, isFalse);
+      }
+    },
+  );
+
+  test(
+    'all explicit module samples work while another module is active',
+    () async {
+      final cases =
+          <
+            ({
+              String intent,
+              ActiveLearningModuleKind source,
+              VoiceNavigationDestination destination,
+              String confirmation,
+            })
+          >[
+            (
+              intent: 'OPEN_SUBJECT',
+              source: ActiveLearningModuleKind.vocabulary,
+              destination: VoiceNavigationDestination.topics,
+              confirmation: MasterNavigationContract.switchedToSubject,
+            ),
+            (
+              intent: 'OPEN_VOCAB',
+              source: ActiveLearningModuleKind.listeningLesson,
+              destination: VoiceNavigationDestination.vocabulary,
+              confirmation: MasterNavigationContract.switchedToVocabulary,
+            ),
+            (
+              intent: 'OPEN_TRANSLATE',
+              source: ActiveLearningModuleKind.listeningLesson,
+              destination: VoiceNavigationDestination.conversation,
+              confirmation: MasterNavigationContract.switchedToTranslation,
+            ),
+            (
+              intent: 'TRANSLATE_CONTINUOUS',
+              source: ActiveLearningModuleKind.vocabulary,
+              destination: VoiceNavigationDestination.conversation,
+              confirmation: MasterNavigationContract.switchedToTranslation,
+            ),
+          ];
+
+      for (final testCase in cases) {
+        for (final text in MasterNavigationContract.phrases[testCase.intent]!) {
+          final flow = MainVoiceAssistantFlow()
+            ..beginActiveLearning(kind: testCase.source);
+          final turn = await flow.handle(text);
+          expect(turn.promptText, testCase.confirmation, reason: text);
+          expect(
+            turn.navigationAfterPrompt?.destination,
+            testCase.destination,
+            reason: text,
+          );
+          expect(turn.continueListening, isFalse, reason: text);
+          expect(flow.stage, MainVoiceAssistantStage.idle, reason: text);
+        }
+      }
+    },
+  );
+
+  test(
+    'vague module requests ask, retry once, then keep current content',
+    () async {
+      for (final text
+          in MasterNavigationContract.phrases['SWITCH_MODULE_MENU']!) {
+        final flow = MainVoiceAssistantFlow()
+          ..beginActiveLearning(kind: ActiveLearningModuleKind.listeningLesson);
+        final question = await flow.handle(text);
+        expect(
+          question.promptText,
+          MasterNavigationContract.translationSwitch,
+          reason: text,
+        );
+        expect(flow.stage, MainVoiceAssistantStage.chooseModuleSwitch);
+
+        final first = await flow.handle('Hôm nay trời nắng');
+        expect(
+          first.promptText,
+          MasterNavigationContract.translationSwitch,
+          reason: text,
+        );
+        final second = await flow.handle('Mình đang ngồi đây');
+        expect(
+          second.promptText,
+          MasterNavigationContract.keepCurrentContent,
+          reason: text,
+        );
+        expect(second.activeLearningCommand, ActiveLearningCommand.resume);
+      }
+    },
+  );
+
+  test(
+    'selecting the current module resumes it with the approved wording',
+    () async {
+      final subjectFlow = MainVoiceAssistantFlow()
+        ..beginActiveLearning(kind: ActiveLearningModuleKind.listeningLesson);
+      final subjectTurn = await subjectFlow.handle('Học Chủ đề');
+      expect(subjectTurn.promptText, MasterNavigationContract.continueSubject);
+      expect(subjectTurn.activeLearningCommand, ActiveLearningCommand.resume);
+      expect(subjectTurn.navigationAfterPrompt, isNull);
+
+      final vocabularyFlow = MainVoiceAssistantFlow()
+        ..beginActiveLearning(kind: ActiveLearningModuleKind.vocabulary);
+      final vocabularyTurn = await vocabularyFlow.handle('Bộ từ vựng');
+      expect(
+        vocabularyTurn.promptText,
+        MasterNavigationContract.continueVocabulary,
+      );
+      expect(
+        vocabularyTurn.activeLearningCommand,
+        ActiveLearningCommand.resume,
+      );
+      expect(vocabularyTurn.navigationAfterPrompt, isNull);
     },
   );
 
@@ -75,6 +306,26 @@ void main() {
   );
 
   test(
+    'translation switch fallback keeps the current translation session',
+    () async {
+      final flow = MainVoiceAssistantFlow()..beginOtherLearning();
+
+      final first = await flow.handle('Hôm nay trời nắng');
+      expect(first.promptText, MasterNavigationContract.translationSwitch);
+      expect(first.continueListening, isTrue);
+
+      final second = await flow.handle('Mình đang ngồi đây');
+      expect(second.promptText, MasterNavigationContract.keepCurrentContent);
+      expect(
+        second.navigationAfterPrompt?.destination,
+        VoiceNavigationDestination.conversation,
+      );
+      expect(second.navigationAfterPrompt?.enterMainSpeakingMode, isTrue);
+      expect(flow.stage, MainVoiceAssistantStage.idle);
+    },
+  );
+
+  test(
     'numbers are scoped to the current menu and cannot come from free speech',
     () async {
       for (final text in [
@@ -121,6 +372,35 @@ void main() {
       expect(invalid.promptText, 'Level này có 3 Chủ đề. Bạn chọn lại nhé.');
     },
   );
+
+  test('every navigation state pauses after the second silence', () async {
+    final flow = MainVoiceAssistantFlow();
+
+    flow.beginOtherLearning();
+    var turn = flow.handleSilenceExit();
+    expect(turn.promptText, MasterNavigationContract.pause);
+    expect(turn.navigationAfterPrompt, isNull);
+    expect(turn.activeLearningCommand, isNull);
+
+    flow.beginActiveLearning(kind: ActiveLearningModuleKind.vocabulary);
+    await flow.handle('Mình muốn học cái khác');
+    turn = flow.handleSilenceExit();
+    expect(turn.promptText, MasterNavigationContract.pause);
+    expect(turn.navigationAfterPrompt, isNull);
+    expect(turn.activeLearningCommand, isNull);
+
+    flow.beginActiveLearning(
+      kind: ActiveLearningModuleKind.listeningLesson,
+      voiceContext: const _VoiceContext(
+        ActiveLearningVoiceNode.song,
+        'Bạn muốn nghe lại hay nghe tiếp?',
+      ),
+    );
+    turn = flow.handleSilenceExit();
+    expect(turn.promptText, MasterNavigationContract.pause);
+    expect(turn.navigationAfterPrompt, isNull);
+    expect(turn.activeLearningCommand, ActiveLearningCommand.stop);
+  });
 
   test('vocabulary choices are closed and replay keeps its scope', () {
     const resolver = ActiveLearningCommandResolver();
@@ -213,6 +493,17 @@ void main() {
       isNull,
     );
     expect(
+      resolver.resolve(
+        'Câu tiếp theo',
+        node: ActiveLearningVoiceNode.todayAfterEnVi,
+      ),
+      ActiveLearningCommand.nextItem,
+    );
+    expect(
+      resolver.resolve('Bỏ qua', node: ActiveLearningVoiceNode.todayAfterEnVi),
+      isNull,
+    );
+    expect(
       resolver.resolve('Nội dung khác', node: ActiveLearningVoiceNode.parent),
       isNull,
     );
@@ -230,24 +521,28 @@ void main() {
     );
     expect(
       resolver.resolve('Tiếp theo', node: ActiveLearningVoiceNode.challenge),
-      ActiveLearningCommand.resume,
+      isNull,
     );
   });
 
-  test('deprecated replay-or-stop prompt is silent for Challenge', () async {
+  test('Challenge exposes only replay or stop controls', () async {
     final flow = MainVoiceAssistantFlow();
-    const context = _VoiceContext(ActiveLearningVoiceNode.challenge, '');
+    const context = _VoiceContext(
+      ActiveLearningVoiceNode.challenge,
+      MasterNavigationContract.challengeControlPrompt,
+    );
 
     expect(
       flow.beginActiveLearning(
         kind: ActiveLearningModuleKind.listeningLesson,
         voiceContext: context,
       ),
-      isEmpty,
+      MasterNavigationContract.challengeControlPrompt,
     );
     final turn = await flow.handle('Tiếp tục');
-    expect(turn.activeLearningCommand, ActiveLearningCommand.resume);
-    expect(turn.promptText, isEmpty);
+    expect(turn.activeLearningCommand, isNull);
+    expect(turn.promptText, MasterNavigationContract.challengeControlPrompt);
+    expect(turn.continueListening, isTrue);
   });
 
   test(
@@ -283,7 +578,7 @@ void main() {
       for (final context in const [
         _VoiceContext(
           ActiveLearningVoiceNode.core,
-          MasterNavigationContract.coreNavigationPrompt,
+          MasterNavigationContract.coreControlPrompt,
         ),
         _VoiceContext(
           ActiveLearningVoiceNode.core,

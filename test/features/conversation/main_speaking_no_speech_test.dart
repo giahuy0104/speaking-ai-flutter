@@ -124,7 +124,7 @@ void main() {
       expect(controller.phase, ConversationPhase.idle);
       expect(controller.lastTurnEndReason, ConversationTurnEndReason.noSpeech);
       expect(promptService.spokenTexts, <String>[
-        'Cô chưa nghe thấy bạn nói. Bạn nói lại nhé.',
+        'HOMI chưa nghe thấy bạn nói. Bạn nói lại nhé.',
       ]);
     },
   );

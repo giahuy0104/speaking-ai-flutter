@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('shows HOMI progress while BLE is connecting', (tester) async {
+  testWidgets('shows HOMI progress while H20 transports are connecting', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: buildAppTheme(),
@@ -19,7 +21,7 @@ void main() {
     expect(find.byType(Image), findsOneWidget);
   });
 
-  testWidgets('shows a distinct short success state after BLE connects', (
+  testWidgets('shows success only after MAIN control and H20 mic connect', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -36,6 +38,6 @@ void main() {
       find.byKey(const Key('device-connection-success-icon')),
       findsOneWidget,
     );
-    expect(find.textContaining('nút MAIN'), findsOneWidget);
+    expect(find.textContaining('Nút MAIN và micro H20'), findsOneWidget);
   });
 }

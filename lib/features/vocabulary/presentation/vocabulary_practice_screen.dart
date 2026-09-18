@@ -99,6 +99,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   bool _paused = false;
   bool _pausedAfterNoResponse = false;
   bool _completed = false;
+  bool _todayEnViCompleted = false;
   bool _exiting = false;
   bool _reviewHasMore = true;
   int _invalidResponseCount = 0;
@@ -218,7 +219,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       _loading = false;
       _message = _isToday
           ? VocabularyFlowV3.todayIntro
-          : 'Con nghe kỹ rồi nói lại nhé.';
+          : 'Bạn nghe kỹ rồi nói lại nhé.';
     });
     if (widget.autoStart) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -239,7 +240,9 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
             ? ActiveLearningVoiceNode.blockEnd
             : ActiveLearningVoiceNode.reviewAlternatives)
       : _isToday
-      ? ActiveLearningVoiceNode.today
+      ? _todayEnViCompleted
+            ? ActiveLearningVoiceNode.todayAfterEnVi
+            : ActiveLearningVoiceNode.today
       : ActiveLearningVoiceNode.review;
 
   @override
@@ -250,7 +253,9 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
             ? VocabularyFlowV3.reviewGroupCompletion
             : VocabularyFlowV3.reviewCycleFinished)
       : _isToday
-      ? 'Bạn muốn nghe lại, nghe câu trước hay dừng lại?'
+      ? _todayEnViCompleted
+            ? 'Bạn muốn nghe lại, nghe câu trước, câu tiếp theo hay dừng lại?'
+            : 'Bạn muốn nghe lại, nghe câu trước hay dừng lại?'
       : '';
   bool get _isReview => _session.mode == VocabularyPracticeMode.review;
 
@@ -269,6 +274,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     final includeResume = !includeIntro && _resumeAnnouncementPending;
     _resumeAnnouncementPending = false;
     setState(() {
+      if (_isToday) _todayEnViCompleted = false;
       _busy = true;
       _message = includeIntro
           ? (_isToday
@@ -279,8 +285,8 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
                 ? VocabularyFlowV3.todayResume
                 : VocabularyFlowV3.reviewResume)
           : _isToday
-          ? 'Con nghe nhé.'
-          : 'Con nghe kỹ rồi nói lại nhé.';
+          ? 'Bạn nghe nhé.'
+          : 'Bạn nghe kỹ rồi nói lại nhé.';
     });
     try {
       await widget.mediaService.prepareSelectedLessonOutput();
@@ -308,9 +314,14 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         await widget.store.markTodayHeard(entry.id);
         if (!_isCurrent(generation, entry.id)) return;
         setState(() {
+          _todayEnViCompleted = true;
           _busy = false;
           _message = 'Đã nghe xong.';
         });
+        // FINAL T04 permits NEXT_ITEM only after the full EN + VI pair. Keep a
+        // short MAIN command window, then continue automatically as before.
+        await Future<void>.delayed(const Duration(milliseconds: 650));
+        if (!_isCurrent(generation, entry.id)) return;
         await _advance();
         return;
       }
@@ -850,6 +861,15 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         }
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.nextItem:
+        if (_isToday && _todayEnViCompleted && !_completed) {
+          _paused = false;
+          _todayEnViCompleted = false;
+          unawaited(_advance());
+          return const ActiveLearningCommandResult.handled();
+        }
+        return const ActiveLearningCommandResult.unavailable(
+          spokenReply: 'Mình học xong lượt này trước nhé.',
+        );
       case ActiveLearningCommand.nextLesson:
       case ActiveLearningCommand.previousLesson:
       case ActiveLearningCommand.restart:
@@ -1129,7 +1149,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
             : _isToday
             ? 'Bắt đầu nghe'
             : _recording
-            ? 'Con nói xong'
+            ? 'Bạn nói xong'
             : 'Nghe và nói lại',
       ),
       style: FilledButton.styleFrom(
@@ -1169,10 +1189,10 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     return Semantics(
       image: true,
       label: _completed
-          ? 'HOMI chúc mừng con'
+          ? 'HOMI chúc mừng bạn'
           : _recording
-          ? 'HOMI đang nghe con nói'
-          : 'HOMI đang lắng nghe cùng con',
+          ? 'HOMI đang nghe bạn nói'
+          : 'HOMI đang lắng nghe cùng bạn',
       child: SizedBox(
         key: const Key('vocabulary-practice-homi-stage'),
         width: double.infinity,
@@ -1318,6 +1338,8 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     if (_exiting || !mounted) return;
     final promptService = _voicePromptService;
     if (!kIsWeb && promptService is SelectedMediaOutputVoicePromptService) {
+      await widget.mediaService.prepareSelectedLessonOutput();
+      if (_exiting || !mounted) return;
       await (promptService as SelectedMediaOutputVoicePromptService)
           .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
       return;

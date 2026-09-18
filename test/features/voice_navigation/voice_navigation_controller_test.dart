@@ -7,6 +7,7 @@ import 'package:ai_speaking_flutter_app/features/listening/domain/listening_cont
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_voice_assistant_flow.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_intent_resolver.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -77,7 +78,7 @@ void main() {
   test(
     'two silent active-module windows dispatch STOP rather than resume',
     () async {
-      final speech = _FakeNavigationSpeechInput();
+      final speech = _FakeNavigationSpeechInput(stopText: '');
       final prompt = _FakeVoicePromptService();
       final commands = <ActiveLearningCommand>[];
       final controller = VoiceNavigationController(
@@ -103,6 +104,34 @@ void main() {
       await speech.dispose();
     },
   );
+
+  test('two silent song windows pause the song at its checkpoint', () async {
+    final speech = _FakeNavigationSpeechInput(stopText: '');
+    final prompt = _FakeVoicePromptService();
+    final commands = <ActiveLearningCommand>[];
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: prompt,
+      commandWindowDuration: const Duration(milliseconds: 25),
+      activeLearningCommandHandler: (command) async {
+        commands.add(command);
+        return const ActiveLearningCommandResult.handled();
+      },
+    );
+    await controller.activateFromMainButton(
+      activeLearning: true,
+      activeLearningKind: ActiveLearningModuleKind.listeningLesson,
+      activeVoiceContext: const _SongVoiceContext(),
+    );
+
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+
+    expect(commands, <ActiveLearningCommand>[ActiveLearningCommand.stop]);
+    expect(prompt.spokenTexts.last, MasterNavigationContract.pause);
+    expect(controller.isMainButtonSessionActive, isFalse);
+    controller.dispose();
+    await speech.dispose();
+  });
 
   test(
     'silent topic selection resumes the same Level when MAIN is pressed again',
@@ -281,9 +310,14 @@ void main() {
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     final speechInput = _FakeNavigationSpeechInput();
     final voicePrompt = _SelectedMediaVoicePromptService();
+    var routePreparationCount = 0;
     final controller = VoiceNavigationController(
       speechInput: speechInput,
       voicePromptService: voicePrompt,
+      prepareSelectedOutput: () async {
+        routePreparationCount += 1;
+        return true;
+      },
     );
     addTearDown(() async {
       controller.dispose();
@@ -295,6 +329,7 @@ void main() {
     expect(voicePrompt.mediaOutputTexts, <String>[
       MainVoiceAssistantFlow.openingPrompt,
     ]);
+    expect(routePreparationCount, 1);
     expect(voicePrompt.regularOutputTexts, isEmpty);
   });
 
@@ -770,7 +805,7 @@ void main() {
     );
     expect(
       voicePrompt.spokenTexts.last,
-      MainVoiceAssistantFlow.otherLearningPrompt,
+      MasterNavigationContract.switchedToVocabulary,
     );
     expect(receivedIntent?.destination, VoiceNavigationDestination.vocabulary);
     expect(controller.isMainButtonSessionActive, isFalse);
@@ -778,6 +813,31 @@ void main() {
     controller.dispose();
     await speechInput.dispose();
   });
+
+  test(
+    'two silent translation-switch windows pause without redirecting',
+    () async {
+      final speechInput = _FakeNavigationSpeechInput(stopText: '');
+      final voicePrompt = _FakeVoicePromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: voicePrompt,
+        commandWindowDuration: const Duration(milliseconds: 25),
+      );
+      VoiceNavigationIntent? receivedIntent;
+      controller.setIntentHandler((intent) => receivedIntent = intent);
+
+      expect(await controller.activateOtherLearningFromSpeaking(), isTrue);
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+
+      expect(voicePrompt.spokenTexts.last, MasterNavigationContract.pause);
+      expect(receivedIntent, isNull);
+      expect(controller.isMainButtonSessionActive, isFalse);
+
+      controller.dispose();
+      await speechInput.dispose();
+    },
+  );
 
   test(
     'translation STOP keeps both menus and mic closed until explicit MAIN',
@@ -1090,7 +1150,7 @@ void main() {
     },
   );
 
-  test('vocabulary star branch uses its exact silence prompts', () async {
+  test('every branch uses the shared second-silence pause prompt', () async {
     final speechInput = _FakeNavigationSpeechInput(stopText: '');
     final voicePrompt = _FakeMainTurnVoicePromptService();
     final controller = VoiceNavigationController(
@@ -1115,7 +1175,7 @@ void main() {
 
     expect(voicePrompt.spokenTexts, <String>[
       'Bạn chọn Ngôi sao mới nhất hoặc nghe lại tất cả nhé.',
-      'Mình dừng ở đây nhé.',
+      MainVoiceAssistantFlow.noSpeechExitPrompt,
     ]);
 
     controller.dispose();
@@ -1530,6 +1590,16 @@ class _FakeNavigationSpeechInput
   }
 }
 
+class _SongVoiceContext implements ActiveLearningVoiceContext {
+  const _SongVoiceContext();
+
+  @override
+  ActiveLearningVoiceNode get mainVoiceNode => ActiveLearningVoiceNode.song;
+
+  @override
+  String get mainVoicePrompt => MasterNavigationContract.songControlPrompt;
+}
+
 class _TransientFailureNavigationSpeechInput
     extends _FakeNavigationSpeechInput {
   _TransientFailureNavigationSpeechInput({required this.failuresRemaining});
@@ -1637,7 +1707,6 @@ class _BlockingVoicePromptService extends _FakeVoicePromptService {
 
 class _LongAuthoredVoicePromptService extends _BlockingVoicePromptService
     implements AuthoredPromptBudgetProvider {
-  int stopCalls = 0;
   @override
   Future<Duration?> authoredPromptBudget(
     String text, {

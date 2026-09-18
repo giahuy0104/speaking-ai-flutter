@@ -133,9 +133,18 @@ class ActiveLearningCommandResolver {
           'OPEN_PARENT': ActiveLearningCommand.vocabularyParentAdded,
           'OPEN_STAR': ActiveLearningCommand.vocabularyStars,
         },
+      ActiveLearningVoiceNode.song => <String, ActiveLearningCommand>{
+        'SKIP_SONG': ActiveLearningCommand.nextItem,
+        'LISTEN_AGAIN': ActiveLearningCommand.replayCurrent,
+      },
       ActiveLearningVoiceNode.todayEnd => <String, ActiveLearningCommand>{
         'OTHER_CONTENT': ActiveLearningCommand.exitToHome,
         'REPLAY_TODAY': ActiveLearningCommand.restart,
+      },
+      ActiveLearningVoiceNode.todayAfterEnVi => <String, ActiveLearningCommand>{
+        'PREVIOUS_ITEM': ActiveLearningCommand.previousItem,
+        'NEXT_ITEM': ActiveLearningCommand.nextItem,
+        'LISTEN_AGAIN': ActiveLearningCommand.replayCurrent,
       },
       ActiveLearningVoiceNode.listEnd => <String, ActiveLearningCommand>{
         'OTHER_CONTENT': ActiveLearningCommand.exitToHome,
@@ -161,7 +170,9 @@ class ActiveLearningCommandResolver {
             node == ActiveLearningVoiceNode.star)
           'SKIP_ITEM': ActiveLearningCommand.nextItem,
         'LISTEN_AGAIN': ActiveLearningCommand.replayCurrent,
-        'RESUME_ACTIVITY': ActiveLearningCommand.resume,
+        if (node != ActiveLearningVoiceNode.challenge &&
+            node != ActiveLearningVoiceNode.review)
+          'RESUME_ACTIVITY': ActiveLearningCommand.resume,
       },
     };
     for (final entry in choices.entries) {

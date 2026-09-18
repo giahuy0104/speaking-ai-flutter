@@ -129,7 +129,7 @@ class _LessonRecordingHistorySheetState
           SnackBar(
             content: Text(
               context.tr(
-                'Không thể phát bản ghi này. Con có thể ghi lại câu mới.',
+                'Không thể phát bản ghi này. Bạn có thể ghi lại câu mới.',
                 '无法播放这条录音，可以重新录制。',
               ),
             ),

@@ -11,7 +11,7 @@ void main() {
       LessonGuideFlowV2.englishToVietnamesePause,
       const Duration(seconds: 2),
     );
-    expect(LessonGuideFlowV2.beforeSentence.text, 'Nói theo cô nhé.');
+    expect(LessonGuideFlowV2.beforeSentence.text, 'Nói theo mình nhé.');
   });
 
   test('keeps the exact V4.1 Challenge and Mission introductions', () {
@@ -98,7 +98,7 @@ void main() {
     );
     expect(
       LessonGuideFlowV2.completionChoiceUnclear.text,
-      'Nói lại lựa chọn của con nhé',
+      'Bạn nói lại lựa chọn nhé.',
     );
     expect(LessonGuideFlowV2.good.audioCode, 'AI_GUIDE_GOOD');
     expect(LessonGuideFlowV2.retryFirst.audioCode, 'AI_GUIDE_RETRY_1');

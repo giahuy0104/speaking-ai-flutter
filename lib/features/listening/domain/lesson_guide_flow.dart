@@ -209,12 +209,12 @@ class LessonGuideFlowV2 {
 
   static const LessonGuidePrompt beforeSentence = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_BEFORE_SENTENCE',
-    text: 'Nói theo cô nhé.',
+    text: 'Nói theo mình nhé.',
   );
 
   static const LessonGuidePrompt afterSample = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_AFTER_SAMPLE',
-    text: 'Bây giờ đến lượt con. Con nói lại nhé.',
+    text: 'Bây giờ đến lượt bạn. Bạn nói lại nhé.',
   );
 
   /// The approved V4 Core speak-cue library. Callers rotate by target index;
@@ -235,32 +235,32 @@ class LessonGuideFlowV2 {
 
   static const LessonGuidePrompt completionChoice = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_COMPLETION_CHOICE',
-    text: 'Con hãy nói “Luyện lại từ đầu” hoặc “Bài tiếp theo” nhé.',
+    text: 'Bạn hãy nói “Luyện lại từ đầu” hoặc “Bài tiếp theo” nhé.',
   );
 
   static const LessonGuidePrompt completionChoiceUnclear = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_COMPLETION_CHOICE_UNCLEAR',
-    text: 'Nói lại lựa chọn của con nhé',
+    text: 'Bạn nói lại lựa chọn nhé.',
   );
 
   static const LessonGuidePrompt topicCompleted = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_TOPIC_COMPLETED',
-    text: 'Con đã học xong chủ đề này rồi. Con chọn tiếp chủ đề mới nhé.',
+    text: 'Bạn đã học xong chủ đề này rồi. Bạn chọn tiếp chủ đề mới nhé.',
   );
 
   static const LessonGuidePrompt good = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_GOOD',
-    text: 'Con làm tốt lắm',
+    text: 'Bạn làm tốt lắm',
   );
 
   static const LessonGuidePrompt unclear = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_UNCLEAR',
-    text: 'Cô chưa nghe rõ. Con nói lại nhé.',
+    text: 'HOMI chưa nghe rõ. Bạn nói lại nhé.',
   );
 
   static const LessonGuidePrompt focusAndRetry = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_FOCUS_RETRY',
-    text: 'Con tập trung học đi',
+    text: 'Bạn tập trung học nhé.',
   );
 
   static const LessonGuidePrompt moveToNext = LessonGuidePrompt(
@@ -270,17 +270,17 @@ class LessonGuideFlowV2 {
 
   static const LessonGuidePrompt retryFirst = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_RETRY_1',
-    text: 'Gần được rồi! Con nghe lại câu này nhé.',
+    text: 'Gần được rồi! Bạn nghe lại câu này nhé.',
   );
 
   static const LessonGuidePrompt retrySecond = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_RETRY_2',
-    text: 'Bây giờ con thử nói lại lần nữa nhé.',
+    text: 'Bây giờ bạn thử nói lại lần nữa nhé.',
   );
 
   static const LessonGuidePrompt needsPractice = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_NEEDS_PRACTICE',
-    text: 'Con đã cố gắng rồi! Mình sẽ luyện thêm sau. Cùng học câu tiếp nào.',
+    text: 'Bạn đã cố gắng rồi! Mình sẽ luyện thêm sau. Cùng học câu tiếp nào.',
   );
 
   static LessonGuidePrompt entry({
@@ -292,9 +292,9 @@ class LessonGuideFlowV2 {
       LessonEntryGuideKind.first => LessonGuidePrompt(
         audioCode: '${lessonCode}_FIRST',
         text:
-            'Chào con! Hôm nay mình bắt đầu với bài “$lessonTitle”. '
-            'Con nghe cô trước, rồi nói lại theo cô. Nếu muốn nghe lại hoặc '
-            'dừng, con bấm nút Main nhé.',
+            'Chào bạn! Hôm nay mình bắt đầu với bài “$lessonTitle”. '
+            'Bạn nghe mình trước, rồi nói lại theo mình. Nếu muốn nghe lại hoặc '
+            'dừng, bạn bấm nút Main nhé.',
       ),
       LessonEntryGuideKind.newLesson => LessonGuidePrompt(
         audioCode: '${lessonCode}_NEW',
@@ -315,7 +315,7 @@ class LessonGuideFlowV2 {
   }) => LessonGuidePrompt(
     audioCode: '${lessonCode}_END',
     text:
-        'Giỏi lắm! Con đã học xong bài “$lessonTitleVi” rồi. '
-        'Con muốn luyện lại từ đầu hay học bài tiếp theo?',
+        'Giỏi lắm! Bạn đã học xong bài “$lessonTitleVi” rồi. '
+        'Bạn muốn luyện lại từ đầu hay học bài tiếp theo?',
   );
 }

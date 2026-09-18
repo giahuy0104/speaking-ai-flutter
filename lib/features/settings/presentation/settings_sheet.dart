@@ -17,6 +17,7 @@ import '../../conversation/application/offline_language_service.dart';
 import '../../conversation/domain/conversation_models.dart';
 import '../../listening/application/android_offline_speech_model_service.dart';
 import '../../listening/domain/listening_catalog.dart';
+import '../application/parent_media_settings.dart';
 import 'history_sheet.dart';
 
 class SettingsSheet extends StatelessWidget {
@@ -32,7 +33,7 @@ class SettingsSheet extends StatelessWidget {
     this.onRequestVoiceAccess,
     this.onManagePrivacyConsent,
     this.onRevokePrivacyConsent,
-    this.stopMediaWhenBackgrounded = true,
+    this.stopMediaWhenBackgrounded,
     this.onStopMediaWhenBackgroundedChanged,
     super.key,
   });
@@ -48,7 +49,7 @@ class SettingsSheet extends StatelessWidget {
   final VoidCallback? onRequestVoiceAccess;
   final VoidCallback? onManagePrivacyConsent;
   final Future<void> Function()? onRevokePrivacyConsent;
-  final bool stopMediaWhenBackgrounded;
+  final bool? stopMediaWhenBackgrounded;
   final ValueChanged<bool>? onStopMediaWhenBackgroundedChanged;
 
   @override
@@ -176,7 +177,9 @@ class SettingsSheet extends StatelessWidget {
                     const SizedBox(height: 12),
                     if (!kIsWeb) ...<Widget>[
                       _BackgroundMediaSwitchCard(
-                        value: stopMediaWhenBackgrounded,
+                        value:
+                            stopMediaWhenBackgrounded ??
+                            defaultStopMediaWhenBackgrounded(),
                         onChanged: onStopMediaWhenBackgroundedChanged,
                       ),
                       const SizedBox(height: 12),

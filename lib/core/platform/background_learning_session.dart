@@ -44,6 +44,14 @@ abstract interface class ActiveLearningBackgroundSessionControl {
   Future<void> setActiveLearning(bool active);
 }
 
+/// Optional Android capability used to distinguish locking the phone from
+/// covering HOMI with another application. Flutter reports both situations as
+/// a paused/hidden lifecycle, but parent media policy only applies to the
+/// latter.
+abstract interface class DeviceScreenStateBackgroundSessionControl {
+  Future<bool?> isScreenInteractive();
+}
+
 /// Keeps an explicitly-started HOMI learning session eligible to run while
 /// the screen is locked or the app is covered by a silent foreground app.
 ///
@@ -54,7 +62,8 @@ abstract interface class ActiveLearningBackgroundSessionControl {
 class MethodChannelBackgroundLearningSession
     implements
         BackgroundLearningSessionControl,
-        ActiveLearningBackgroundSessionControl {
+        ActiveLearningBackgroundSessionControl,
+        DeviceScreenStateBackgroundSessionControl {
   MethodChannelBackgroundLearningSession({
     MethodChannel methodChannel = const MethodChannel(
       'ailingo_background_learning',
@@ -154,6 +163,20 @@ class MethodChannelBackgroundLearningSession
       // Older native builds safely keep the existing foreground-only behavior.
     } on PlatformException {
       // The lesson UI remains usable even when the OS rejects a wake lease.
+    }
+  }
+
+  @override
+  Future<bool?> isScreenInteractive() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return null;
+    }
+    try {
+      return await _methodChannel.invokeMethod<bool>('isScreenInteractive');
+    } on MissingPluginException {
+      return null;
+    } on PlatformException {
+      return null;
     }
   }
 

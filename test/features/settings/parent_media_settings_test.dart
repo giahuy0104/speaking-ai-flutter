@@ -1,4 +1,5 @@
 import 'package:ai_speaking_flutter_app/features/settings/application/parent_media_settings.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,18 +8,32 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test(
-    'stopping media outside HOMI defaults to enabled and persists',
+    'Android keeps HOMI media running by default and persists an override',
     () async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
       const store = SharedPreferencesParentMediaSettingsStore();
 
-      expect(await store.readStopMediaWhenBackgrounded(), isTrue);
-
-      await store.writeStopMediaWhenBackgrounded(false);
-
       expect(await store.readStopMediaWhenBackgrounded(), isFalse);
+
+      await store.writeStopMediaWhenBackgrounded(true);
+
+      expect(await store.readStopMediaWhenBackgrounded(), isTrue);
     },
   );
+
+  test('iOS retains the stop-on-background default', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+    expect(
+      await const SharedPreferencesParentMediaSettingsStore()
+          .readStopMediaWhenBackgrounded(),
+      isTrue,
+    );
+  });
 
   test('lifecycle policy stops only after HOMI has left the foreground', () {
     for (final state in <AppLifecycleState>[

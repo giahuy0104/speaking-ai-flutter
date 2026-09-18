@@ -12,6 +12,7 @@ import '../../../core/audio/audio_gain.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/active_learning_module.dart';
 import '../../../l10n/display_language.dart';
+import '../../voice_navigation/domain/master_navigation_contract.dart';
 import '../application/lesson_attempt_evaluator.dart';
 import '../application/lesson_media_service.dart';
 import '../application/lesson_recording_endpoint_detector.dart';
@@ -87,7 +88,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       ActiveLearningVoiceNode.challenge;
 
   @override
-  String get mainVoicePrompt => '';
+  String get mainVoicePrompt => MasterNavigationContract.challengeControlPrompt;
   static const Duration _promptCompletionTimeout = Duration(seconds: 10);
 
   late final LessonAttemptEvaluator _attemptEvaluator;

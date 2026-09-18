@@ -14,6 +14,7 @@ abstract interface class BrowserAudioPlayback {
   Future<void> unlockForUserGesture();
   Future<void> preload(Uri uri);
   Future<void> play(Uri uri);
+  Future<void> seek(Duration position);
   Future<void> pause();
   Future<void> dispose();
 }

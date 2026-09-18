@@ -22,6 +22,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late ListeningTopicContent topicContent;
+  late ListeningTopicContent numbersContent;
   late ListeningTopicContent favoriteFoodContent;
   late _GoldenMediaService mediaService;
   late _GoldenProgressStore progressStore;
@@ -30,6 +31,7 @@ void main() {
     await _loadGoldenFonts();
     final catalog = await AssetListeningContentRepository().load();
     topicContent = catalog.topic(startAge: 3, endAge: 5, topicNumber: 1);
+    numbersContent = catalog.topic(startAge: 3, endAge: 5, topicNumber: 2);
     favoriteFoodContent = catalog.topic(startAge: 6, endAge: 7, topicNumber: 4);
   });
 
@@ -106,6 +108,99 @@ void main() {
       find.byType(TopicLessonListScreen),
       matchesGoldenFile('goldens/topic-favorite-food-390x844.png'),
     );
+  });
+
+  testWidgets('song journey uses English-first titles and music markers', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    await tester.pumpWidget(
+      _GoldenApp(
+        child: TopicLessonListScreen(
+          language: DisplayLanguage.vietnamese,
+          startAge: 3,
+          endAge: 5,
+          topic: listeningCatalogs.first.topics[1],
+          content: numbersContent,
+          progressStore: progressStore,
+          mediaService: mediaService,
+          onMainPressed: _noopMainPress,
+        ),
+      ),
+    );
+    await _precache(
+      tester,
+      find.byType(TopicLessonListScreen),
+      const <AssetImage>[
+        AssetImage('assets/images/learning-minimal-sky-background.png'),
+        AssetImage('assets/images/topics/counting-1-10.jpg'),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    const songLessonId = 'c35-l1-t02-b02';
+    expect(find.byKey(const Key('topic-song-count')), findsOneWidget);
+    expect(find.text('1 bài hát'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('lesson-song-indicator-$songLessonId')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('lesson-song-indicator-c35-l1-t02-b01')),
+      findsNothing,
+    );
+    expect(
+      tester.getTopLeft(find.text('Numbers')).dy,
+      lessThan(tester.getTopLeft(find.text('Số đếm')).dy),
+    );
+    expect(
+      tester.getTopLeft(find.text('Lesson 2 · Count With Me')).dy,
+      lessThan(tester.getTopLeft(find.text('Bài 2 · Cùng mình đếm số')).dy),
+    );
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName ==
+                'assets/images/mascot/penguin-wave.png',
+      ),
+      findsNothing,
+    );
+
+    await expectLater(
+      find.byType(TopicLessonListScreen),
+      matchesGoldenFile('goldens/topic-song-journey-390x844.png'),
+    );
+  });
+
+  testWidgets('song summary remains responsive on a compact phone', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 568));
+    tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+    addTearDown(() {
+      tester.binding.setSurfaceSize(null);
+      tester.platformDispatcher.clearTextScaleFactorTestValue();
+    });
+
+    await tester.pumpWidget(
+      _GoldenApp(
+        child: TopicLessonListScreen(
+          language: DisplayLanguage.vietnamese,
+          startAge: 3,
+          endAge: 5,
+          topic: listeningCatalogs.first.topics[1],
+          content: numbersContent,
+          progressStore: progressStore,
+          mediaService: mediaService,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('topic-song-count')), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('completed lessons offer review instead of continue', (

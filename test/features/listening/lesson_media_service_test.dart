@@ -613,7 +613,13 @@ void main() {
         recordConfig.androidConfig.audioManagerMode,
         AudioManagerMode.modeNormal,
       );
+      expect(recordConfig.audioInterruption, AudioInterruptionMode.pause);
     }
+    final session = lessonRecordingAudioSessionConfiguration(
+      useSelectedHfp: true,
+    );
+    expect(session.androidAudioFocusGainType, AndroidAudioFocusGainType.gain);
+    expect(session.androidWillPauseWhenDucked, isTrue);
   });
 
   test('iOS recording input selects exact H20 UID and built-in phone mic', () {

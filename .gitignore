@@ -57,6 +57,7 @@ flutter_*.log
 *.ipa
 *.zip
 /.codex-tmp/
+/.codex_tmp/
 /test/**/failures/
 
 # Deployed from its own Sites source repository.

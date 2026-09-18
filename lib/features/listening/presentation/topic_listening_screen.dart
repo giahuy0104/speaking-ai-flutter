@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
@@ -159,8 +160,9 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     String locale = 'vi-VN',
   }) async {
     final prompt = _voicePromptService;
-    if (prompt is SelectedMediaOutputVoicePromptService) {
+    if (!kIsWeb && prompt is SelectedMediaOutputVoicePromptService) {
       await _historyMediaService.prepareSelectedLessonOutput();
+      if (!mounted) return;
       await (prompt as SelectedMediaOutputVoicePromptService)
           .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
       return;
@@ -212,7 +214,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
                         Expanded(
                           flex: 3,
                           child: Text(
-                            context.tr('Hành trình của con', '孩子的学习旅程'),
+                            context.tr('Hành trình của bạn', '孩子的学习旅程'),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.headlineMedium,

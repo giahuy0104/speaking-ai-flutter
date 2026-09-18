@@ -87,13 +87,13 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
   bool get _privacyChoiceMade =>
       widget.privacyConsentGranted || widget.limitedModeSelected;
 
-  bool get _h20Ready => widget.h20BleConnected;
+  bool get _h20Ready => widget.h20BleConnected && widget.h20HfpConfigured;
 
   bool get _canComplete =>
       widget.limitedModeSelected ||
       (widget.microphoneGranted &&
           (!widget.bluetoothRequired ||
-              (widget.bluetoothGranted && widget.h20BleConnected)));
+              (widget.bluetoothGranted && _h20Ready)));
 
   @override
   void initState() {
@@ -478,9 +478,6 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
                   title: const Text(
                     'Cho phép tải dữ liệu giọng nói và dịch offline',
                   ),
-                  subtitle: const Text(
-                    'HOMI tự tải các gói tiếng Anh, tiếng Việt và model dịch ML Kit của Google trong nền khi có Wi-Fi. Dữ liệu di động không được dùng; nhận dạng và dịch offline chạy trên điện thoại, không gửi bản ghi hoặc transcript tới Google/Vosk. Nhờ đó bài học, thử thách và dịch liên tục vẫn hoạt động khi mất mạng.',
-                  ),
                 ),
               ),
             ],
@@ -493,11 +490,9 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
                   'Bật thiết bị và Bluetooth trên điện thoại, sau đó nhấn nút bên dưới. HOMI sẽ tự kiểm tra kết nối.',
               selected: _h20Ready,
               status: _h20Ready
-                  ? widget.h20HfpConfigured
-                        ? 'Đã kết nối và chọn mic thiết bị'
-                        : 'BLE đã kết nối • mic sẽ được tự chọn khi sẵn sàng'
-                  : widget.h20HfpConfigured
-                  ? 'Đang hoàn tất kết nối…'
+                  ? 'Đã kết nối nút MAIN và micro H20'
+                  : widget.h20BleConnected || widget.h20HfpConfigured
+                  ? 'Đang hoàn tất kết nối còn lại…'
                   : _h20SetupRequested
                   ? 'Chưa kết nối • kiểm tra thiết bị đã bật và ở gần'
                   : 'Chưa kết nối • có thể thực hiện ngay hoặc để sau',
@@ -511,7 +506,7 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
               const _InfoBox(
                 icon: Icons.phone_iphone_rounded,
                 text:
-                    'Cần kết nối BLE với thiết bị trước khi bắt đầu phiên học. Việc chọn micro HFP sẽ được HOMI thực hiện tự động sau đó.',
+                    'Cần kết nối cả nút MAIN qua BLE và micro H20 trước khi bắt đầu phiên học.',
               ),
             ],
           ],
@@ -540,7 +535,7 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
           const SizedBox(height: 10),
           Text(
             widget.microphoneGranted && widget.bluetoothGranted
-                ? 'Cần kết nối BLE với thiết bị để bắt đầu, hoặc quay lại chọn chế độ không dùng giọng nói.'
+                ? 'Cần kết nối cả nút MAIN và micro H20 để bắt đầu, hoặc quay lại chọn chế độ không dùng giọng nói.'
                 : 'Cần cấp đủ quyền micro và Bluetooth để tiếp tục, hoặc quay lại chọn chế độ không dùng giọng nói.',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(

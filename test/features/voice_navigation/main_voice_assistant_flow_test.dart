@@ -2,6 +2,7 @@ import 'package:ai_speaking_flutter_app/features/listening/domain/listening_cont
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_voice_assistant_flow.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_intent_resolver.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -293,7 +294,7 @@ void main() {
   );
 
   test(
-    'offers translation or vocabulary after leaving an active lesson',
+    'asks the final three-module question before leaving an active lesson',
     () async {
       final flow = MainVoiceAssistantFlow(
         contentLoader: _loadContent,
@@ -301,36 +302,34 @@ void main() {
       );
       flow.beginActiveLearning();
 
-      final leaveTurn = await flow.handle('Con muốn học cái khác');
-      expect(
-        leaveTurn.promptText,
-        MainVoiceAssistantFlow.alternativeAfterLearningPrompt,
-      );
+      final leaveTurn = await flow.handle('Mình muốn học cái khác');
+      expect(leaveTurn.promptText, MasterNavigationContract.translationSwitch);
       expect(leaveTurn.continueListening, isTrue);
-      expect(
-        flow.stage,
-        MainVoiceAssistantStage.chooseAlternativeAfterLearning,
-      );
+      expect(flow.stage, MainVoiceAssistantStage.chooseModuleSwitch);
 
-      final vocabularyTurn = await flow.handle('Con muốn học từ vựng');
-      expect(vocabularyTurn.promptText, isEmpty);
+      final vocabularyTurn = await flow.handle('Mình muốn học từ vựng');
+      expect(
+        vocabularyTurn.promptText,
+        MasterNavigationContract.switchedToVocabulary,
+      );
       expect(vocabularyTurn.continueListening, isFalse);
       expect(
-        vocabularyTurn.navigationBeforePrompt?.destination,
+        vocabularyTurn.navigationAfterPrompt?.destination,
         VoiceNavigationDestination.vocabulary,
       );
+      expect(flow.stage, MainVoiceAssistantStage.idle);
     },
   );
 
   test('can choose translation after leaving an active lesson', () async {
     final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
     flow.beginActiveLearning();
-    await flow.handle('Con không muốn học nữa');
+    await flow.handle('Mình muốn học cái khác');
 
     final translationTurn = await flow.handle('Dịch sang tiếng Anh');
     expect(
       translationTurn.promptText,
-      MainVoiceAssistantFlow.continuousTranslationPrompt,
+      MasterNavigationContract.switchedToTranslation,
     );
     expect(translationTurn.continueListening, isFalse);
     expect(
@@ -392,19 +391,26 @@ void main() {
       vocabularyFlow.beginOtherLearning(),
       MainVoiceAssistantFlow.otherLearningPrompt,
     );
-    final vocabularyTurn = await vocabularyFlow.handle('Con muốn học từ vựng');
-    expect(vocabularyTurn.promptText, isEmpty);
+    final vocabularyTurn = await vocabularyFlow.handle('Mình muốn học từ vựng');
+    expect(
+      vocabularyTurn.promptText,
+      MasterNavigationContract.switchedToVocabulary,
+    );
     expect(vocabularyTurn.continueListening, isFalse);
     expect(
-      vocabularyTurn.navigationBeforePrompt?.destination,
+      vocabularyTurn.navigationAfterPrompt?.destination,
       VoiceNavigationDestination.vocabulary,
     );
 
     final topicFlow = MainVoiceAssistantFlow(contentLoader: _loadContent);
     topicFlow.beginOtherLearning();
-    final topicTurn = await topicFlow.handle('Con muốn học chủ đề');
-    expect(topicTurn.promptText, isEmpty);
+    final topicTurn = await topicFlow.handle('Mình muốn học chủ đề');
+    expect(topicTurn.promptText, MasterNavigationContract.switchedToSubject);
     expect(topicTurn.continueListening, isFalse);
+    expect(
+      topicTurn.navigationAfterPrompt?.destination,
+      VoiceNavigationDestination.topics,
+    );
     expect(topicFlow.stage, MainVoiceAssistantStage.idle);
   });
 

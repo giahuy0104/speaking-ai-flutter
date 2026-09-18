@@ -6,10 +6,11 @@ import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
 import '../../../app/mascot_assets.dart';
 import '../../../core/device/active_learning_module.dart';
+import '../../../core/navigation/active_learning_navigation.dart';
 import '../../../l10n/display_language.dart';
+import '../../voice_navigation/domain/master_navigation_contract.dart';
 import '../application/lesson_media_service.dart';
 import '../domain/listening_content.dart';
-import '../../../core/navigation/active_learning_navigation.dart';
 
 bool shouldUseSongKaraoke({
   required int startAge,
@@ -43,7 +44,7 @@ class SongKaraokeScreen extends StatefulWidget {
 }
 
 class _SongKaraokeScreenState extends State<SongKaraokeScreen>
-    implements ActiveLearningModuleController {
+    implements ActiveLearningModuleController, ActiveLearningVoiceContext {
   Timer? _autoPlayTimer;
   Timer? _countdownTimer;
   StreamSubscription<bool>? _playingSubscription;
@@ -71,6 +72,12 @@ class _SongKaraokeScreenState extends State<SongKaraokeScreen>
 
   @override
   bool get isPausedForMain => _pausedForMainAssistant;
+
+  @override
+  ActiveLearningVoiceNode get mainVoiceNode => ActiveLearningVoiceNode.song;
+
+  @override
+  String get mainVoicePrompt => MasterNavigationContract.songControlPrompt;
 
   Uri? get _songUri => widget.lesson.fullAudioUri;
 
@@ -461,7 +468,7 @@ class _SongKaraokeScreenState extends State<SongKaraokeScreen>
       if (mounted) {
         setState(() {
           _message = context.tr(
-            'Chưa thể phát bài hát. Con hãy bấm Phát nhạc để thử lại.',
+            'Chưa thể phát bài hát. Bạn hãy bấm Phát nhạc để thử lại.',
             '暂时无法播放歌曲，请点击播放重试。',
           );
         });
@@ -509,6 +516,9 @@ class _SongKaraokeScreenState extends State<SongKaraokeScreen>
     _resumePlaybackAfterMain = false;
     _resumeAutoPlayAfterMain = false;
     setState(() => _message = null);
+    if (replay) {
+      await widget.mediaService.rewindPlayback();
+    }
     if (replay || resumePlayback) {
       await _playSong();
     } else if (resumeAutoPlay) {
@@ -596,7 +606,7 @@ class _SongKaraokeScreenState extends State<SongKaraokeScreen>
       case ActiveLearningCommand.vocabularyLatest:
       case ActiveLearningCommand.vocabularyAll:
         return const ActiveLearningCommandResult.unavailable(
-          spokenReply: 'Con hãy học xong bài hát này trước nhé.',
+          spokenReply: 'Bạn hãy học xong bài hát này trước nhé.',
         );
       case ActiveLearningCommand.exitToHome:
         await pauseForMainAssistant();
@@ -1033,7 +1043,7 @@ class _SongEndDialog extends StatelessWidget {
         ),
       ),
       title: Text(
-        context.tr('Con muốn làm gì tiếp?', '接下来想做什么？'),
+        context.tr('Bạn muốn làm gì tiếp?', '接下来想做什么？'),
         textAlign: TextAlign.center,
       ),
       content: Column(
@@ -1041,7 +1051,7 @@ class _SongEndDialog extends StatelessWidget {
         children: <Widget>[
           Text(
             context.tr(
-              'Con có thể luyện từng dòng của “$songTitle” hoặc kết thúc tại đây.',
+              'Bạn có thể luyện từng dòng của “$songTitle” hoặc kết thúc tại đây.',
               '你可以逐句练习《$songTitle》，也可以在这里结束。',
             ),
             textAlign: TextAlign.center,
