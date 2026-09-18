@@ -420,6 +420,7 @@ class BackendLessonAttemptEvaluator
       );
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
+      _throwIfScoringServiceFailed(response.statusCode);
       final errorPayload = decoded is Map<String, dynamic>
           ? decoded['error']
           : null;
@@ -535,6 +536,7 @@ class BackendLessonAttemptEvaluator
       );
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
+      _throwIfScoringServiceFailed(response.statusCode);
       final errorPayload = decoded is Map<String, dynamic>
           ? decoded['error']
           : null;
@@ -577,6 +579,17 @@ class BackendLessonAttemptEvaluator
 
   @override
   void dispose() => _client.close();
+
+  void _throwIfScoringServiceFailed(int statusCode) {
+    if (statusCode == 429 || statusCode >= 500) {
+      // An upstream outage is not evidence that the child spoke unclearly.
+      // Keep this separate from connectivity failures: online API failures
+      // must not silently switch scoring to the offline recognizer.
+      throw const LessonAttemptEvaluationException(
+        'Dịch vụ chấm điểm đang bận. Bạn thử lại sau nhé.',
+      );
+    }
+  }
 
   Future<void> _ensureInstallationAuthenticated() async {
     final client = _client;

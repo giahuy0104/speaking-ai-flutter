@@ -25,6 +25,7 @@ class MainAssistantAudioPromptService
     this.enabled = true,
     this.assetLoadTimeout = const Duration(milliseconds: 500),
     this.remoteAudioLoadTimeout = const Duration(seconds: 8),
+    this.cacheLateRemoteAudio = false,
     this.additionalManifestAssets = const [],
     this.groupEnabled = const {},
     http.Client? httpClient,
@@ -45,6 +46,7 @@ class MainAssistantAudioPromptService
   final bool enabled;
   final Duration assetLoadTimeout;
   final Duration remoteAudioLoadTimeout;
+  final bool cacheLateRemoteAudio;
   final List<String> additionalManifestAssets;
   final Map<String, bool> groupEnabled;
   final http.Client _httpClient;
@@ -54,6 +56,7 @@ class MainAssistantAudioPromptService
   // Reuse only checksum-verified, immutable audio. Repeated MAIN turns should
   // not download the same short prompt again while holding the headset route.
   final Map<String, Uint8List> _verifiedAudio = {};
+  final Map<String, Future<Uint8List>> _remoteAudioLoads = {};
   static const _maximumCachedAudioBytes = 4 * 1024 * 1024;
   int _generation = 0;
   bool _disposed = false;
@@ -259,6 +262,14 @@ class MainAssistantAudioPromptService
     if (remoteUri != null &&
         remoteUri.isScheme('https') &&
         remoteUri.host == 'res.cloudinary.com') {
+      if (cacheLateRemoteAudio) {
+        final checksum = entry['sha256'] as String;
+        final download = _remoteAudioLoads.putIfAbsent(
+          checksum,
+          () => _downloadVerifiedAudio(remoteUri, checksum),
+        );
+        return _bounded(download, remoteAudioLoadTimeout);
+      }
       final response = await _bounded(
         _httpClient.get(remoteUri),
         remoteAudioLoadTimeout,
@@ -275,6 +286,30 @@ class MainAssistantAudioPromptService
     // Cloudinary migration. Production manifests include a Cloudinary URL.
     final data = await _bounded(_bundle.load(asset), assetLoadTimeout);
     return data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+  }
+
+  Future<Uint8List> _downloadVerifiedAudio(Uri uri, String checksum) async {
+    try {
+      final response = await _httpClient.get(uri);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw StateError(
+          'Cloudinary audio request failed (${response.statusCode}).',
+        );
+      }
+      final bytes = response.bodyBytes;
+      if (bytes.isEmpty ||
+          bytes.length > 2 * 1024 * 1024 ||
+          sha256.convert(bytes).toString() != checksum) {
+        throw const FormatException('MAIN audio integrity check failed.');
+      }
+      // A short Android wait can fall back to TTS while HTTP finishes. Only
+      // retain immutable, verified bytes here: never replay a timed-out or
+      // cancelled utterance. A later explicit turn may reuse them after stop.
+      if (!_disposed) _rememberVerifiedAudio(checksum, bytes);
+      return bytes;
+    } finally {
+      _remoteAudioLoads.remove(checksum);
+    }
   }
 
   @override
@@ -376,6 +411,7 @@ class MainAssistantAudioPromptService
     _disposed = true;
     await stop();
     _verifiedAudio.clear();
+    _remoteAudioLoads.clear();
     if (_ownsHttpClient) _httpClient.close();
     await _delegate.dispose();
   }

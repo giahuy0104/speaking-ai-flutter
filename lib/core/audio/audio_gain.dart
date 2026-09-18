@@ -11,9 +11,12 @@ const double androidAssistantSpeechBoostDb = 12.0;
 /// Highest gain that Android's playback pipeline may request from its
 /// LoudnessEnhancer. Child recordings intentionally need more gain than the
 /// authored samples, while this ceiling still bounds accidental values.
-const double androidMaxPlaybackGainDb = 24.0;
+const double androidMaxPlaybackGainDb = 30.0;
 
-/// Raises child-attempt replay by 2.5x in linear amplitude compared with the
-/// previous 15.52 dB setting. This only affects the child's recording replay;
-/// authored English/Vietnamese samples keep [androidSpeechBoostDb].
-const double lessonRecordingPlaybackGainDb = 23.480625354554377;
+/// An additional 80% linear amplitude (20 * log10(1.8), or 5.105 dB) above
+/// the previous child-recording replay setting of 23.480625354554377 dB.
+/// This is playback-only: saved originals and scoring audio are not rewritten.
+/// Android's LoudnessEnhancer compresses peaks outside the sample range, so
+/// this is a target gain, not a promise of 80% more loudness on every device.
+/// Authored English/Vietnamese samples keep [androidSpeechBoostDb].
+const double lessonRecordingPlaybackGainDb = 28.5860754566205;

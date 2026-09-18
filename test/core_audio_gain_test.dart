@@ -11,10 +11,10 @@ void main() {
   });
 
   test(
-    'child recording playback is 2.5 times louder than its former level',
+    'child recording target gains 80 percent without the old 24 dB clamp',
     () {
-      const previousGainDb = 15.521825181113627;
-      final expectedGainDb = previousGainDb + 20 * math.log(2.5) / math.ln10;
+      const previousGainDb = 23.480625354554377;
+      final expectedGainDb = previousGainDb + 20 * math.log(1.8) / math.ln10;
 
       expect(lessonRecordingPlaybackGainDb, closeTo(expectedGainDb, 1e-12));
       expect(

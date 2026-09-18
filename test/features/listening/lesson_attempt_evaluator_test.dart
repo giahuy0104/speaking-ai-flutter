@@ -264,27 +264,104 @@ void main() {
     evaluator.dispose();
   });
 
-  test('fallback keeps an ASR failure separate from a wrong answer', () async {
-    final evaluator = BackendLessonAttemptEvaluator(
-      config: _config,
-      client: MockClient((request) async {
-        if (request.method == 'GET') {
-          return http.Response.bytes(<int>[1, 2, 3], 200);
-        }
-        if (request.url.path == '/api/listening/evaluate-attempt') {
-          return http.Response('<html>Not Found</html>', 404);
-        }
-        return _jsonResponse(<String, Object?>{
-          'error': <String, Object?>{
-            'code': 'ASR_FAILED',
-            'message': 'Cloudflare Workers AI không dịch được đoạn ghi âm này.',
-          },
-        }, 502);
-      }),
+  test(
+    'fallback reports an ASR service failure without blaming speech',
+    () async {
+      final evaluator = BackendLessonAttemptEvaluator(
+        config: _config,
+        client: MockClient((request) async {
+          if (request.method == 'GET') {
+            return http.Response.bytes(<int>[1, 2, 3], 200);
+          }
+          if (request.url.path == '/api/listening/evaluate-attempt') {
+            return http.Response('<html>Not Found</html>', 404);
+          }
+          return _jsonResponse(<String, Object?>{
+            'error': <String, Object?>{
+              'code': 'ASR_FAILED',
+              'message':
+                  'Cloudflare Workers AI không dịch được đoạn ghi âm này.',
+            },
+          }, 502);
+        }),
+      );
+
+      await expectLater(_evaluate(evaluator), throwsA(_scoringServiceFailure));
+      evaluator.dispose();
+    },
+  );
+
+  for (final useLegacyRoute in <bool>[false, true]) {
+    final route = useLegacyRoute ? 'legacy audio route' : 'lesson route';
+    for (final statusCode in <int>[429, 500, 502, 503, 504]) {
+      test(
+        '$route does not treat ASR_FAILED $statusCode as child speech',
+        () async {
+          final evaluator = BackendLessonAttemptEvaluator(
+            config: _config,
+            client: _scoringErrorClient(
+              statusCode: statusCode,
+              code: 'ASR_FAILED',
+              useLegacyRoute: useLegacyRoute,
+            ),
+          );
+          addTearDown(evaluator.dispose);
+
+          await expectLater(
+            _evaluate(evaluator),
+            throwsA(_scoringServiceFailure),
+          );
+        },
+      );
+    }
+
+    test(
+      '$route keeps genuine low confidence separate from service failure',
+      () async {
+        final evaluator = BackendLessonAttemptEvaluator(
+          config: _config,
+          client: _scoringErrorClient(
+            statusCode: 422,
+            code: 'ASR_LOW_CONFIDENCE',
+            useLegacyRoute: useLegacyRoute,
+          ),
+        );
+        addTearDown(evaluator.dispose);
+
+        expect(await _evaluate(evaluator), LessonAttemptOutcome.unclear);
+      },
     );
 
-    expect(await _evaluate(evaluator), LessonAttemptOutcome.unclear);
-    evaluator.dispose();
+    test('$route does not treat upstream timeout as child silence', () async {
+      final evaluator = BackendLessonAttemptEvaluator(
+        config: _config,
+        client: _scoringErrorClient(
+          statusCode: 503,
+          code: 'SPEECH_TIMEOUT',
+          useLegacyRoute: useLegacyRoute,
+        ),
+      );
+      addTearDown(evaluator.dispose);
+
+      await expectLater(_evaluate(evaluator), throwsA(_scoringServiceFailure));
+    });
+  }
+
+  test('overloaded online scorer does not activate offline scoring', () async {
+    final recognizer = _FakeLessonRecordedSpeechRecognizer(
+      const LessonRecordedSpeechRecognition(transcript: "I'm An"),
+    );
+    final evaluator = BackendFirstLessonAttemptEvaluator(
+      backendEvaluator: BackendLessonAttemptEvaluator(
+        config: _config,
+        client: _scoringErrorClient(statusCode: 429, code: 'ASR_FAILED'),
+      ),
+      recognizer: recognizer,
+    );
+    addTearDown(evaluator.dispose);
+
+    await expectLater(_evaluate(evaluator), throwsA(_scoringServiceFailure));
+    expect(recognizer.calls, 0);
   });
 
   test('handles a non-JSON server error without FormatException', () async {
@@ -612,7 +689,7 @@ Future<LessonAttemptOutcome> _evaluateBackendFirst(
 );
 
 Future<LessonAttemptOutcome> _evaluate(
-  BackendLessonAttemptEvaluator evaluator, {
+  LessonAttemptEvaluator evaluator, {
   String expectedEnglish = "I'm An",
   bool requireAllExpectedTokens = false,
 }) {
@@ -627,6 +704,41 @@ Future<LessonAttemptOutcome> _evaluate(
     requireAllExpectedTokens: requireAllExpectedTokens,
   );
 }
+
+final Matcher _scoringServiceFailure = isA<LessonAttemptEvaluationException>()
+    .having(
+      (error) => error.message,
+      'service message',
+      'Dịch vụ chấm điểm đang bận. Bạn thử lại sau nhé.',
+    )
+    .having(
+      (error) => error.backendUnavailable,
+      'offline fallback eligible',
+      false,
+    );
+
+MockClient _scoringErrorClient({
+  required int statusCode,
+  required String code,
+  bool useLegacyRoute = false,
+}) => MockClient((request) async {
+  if (request.method == 'GET') {
+    return http.Response.bytes(<int>[1, 2, 3], 200);
+  }
+  if (useLegacyRoute && request.url.path == '/api/listening/evaluate-attempt') {
+    return http.Response('<html>Not Found</html>', 404);
+  }
+  expect(
+    request.url.path,
+    useLegacyRoute ? '/api/audio/translate' : '/api/listening/evaluate-attempt',
+  );
+  return _jsonResponse(<String, Object?>{
+    'error': <String, Object?>{
+      'code': code,
+      'message': 'Upstream recognition response.',
+    },
+  }, statusCode);
+});
 
 MockClient _lessonAttemptClient({
   required bool matched,

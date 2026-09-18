@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../app/app_theme.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
+import '../../../core/audio/audio_gain.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/active_learning_module.dart';
@@ -1880,7 +1881,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         ? Uri.parse(path)
         : Uri.file(path);
     try {
-      await _mediaService.playToCompletion(uri);
+      await _mediaService.playToCompletion(
+        uri,
+        playbackGainDb: lessonRecordingPlaybackGainDb,
+      );
     } catch (error) {
       if (journey == _VocabularyJourney.stars) {
         debugPrint(

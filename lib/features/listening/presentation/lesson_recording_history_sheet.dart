@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
+import '../../../core/audio/audio_gain.dart';
 import '../../../l10n/display_language.dart';
 import '../application/lesson_media_service.dart';
 import '../data/lesson_recording_history_store.dart';
@@ -122,7 +123,10 @@ class _LessonRecordingHistorySheetState
         ? parsed
         : Uri.file(entry.filePath);
     try {
-      await widget.mediaService.play(uri);
+      await widget.mediaService.play(
+        uri,
+        playbackGainDb: lessonRecordingPlaybackGainDb,
+      );
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

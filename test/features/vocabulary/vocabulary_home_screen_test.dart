@@ -1,4 +1,6 @@
 import 'dart:async';
+
+import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
 import 'dart:convert';
 
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
@@ -1056,6 +1058,14 @@ void main() {
     await tester.tap(find.byKey(const Key('vocabulary-stars-action')));
     await tester.pumpAndSettle();
 
+    final childReplays = media.played.where(
+      (clip) => clip.uri.path.toLowerCase().endsWith('.wav'),
+    );
+    expect(childReplays, isNotEmpty);
+    expect(
+      childReplays.map((clip) => clip.gainDb),
+      everyElement(lessonRecordingPlaybackGainDb),
+    );
     expect(
       voice.spokenTexts.where((text) => text == VocabularyFlowV3.starMyVoice),
       hasLength(1),
@@ -1421,6 +1431,8 @@ class _FailingJourneyVoicePromptService extends _RecordingVoicePromptService {
 }
 
 class _ImmediateLessonMediaService extends LessonMediaService {
+  final played = <({Uri uri, double gainDb})>[];
+
   @override
   Future<void> prepareSelectedLessonOutput() async {}
 
@@ -1430,7 +1442,9 @@ class _ImmediateLessonMediaService extends LessonMediaService {
     Duration timeout = const Duration(seconds: 15),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
-  }) async {}
+  }) async {
+    played.add((uri: uri, gainDb: playbackGainDb));
+  }
 
   @override
   Future<void> stopPlayback() async {}

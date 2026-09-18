@@ -2017,14 +2017,13 @@ class ConversationController extends ChangeNotifier
       _realtimeConnectionFuture = null;
       _realtimeFallbackBuffer.clear();
       // Native Android/iOS speech has one recognition path. HFP is an audio
-      // source, never a separate ASR mode. Audio reaches Cloudflare only when
-      // native recognition cannot start or fails without a usable transcript.
-      if (!_isWebRuntime &&
-          _streamingSpeechInput != null &&
-          (asrMode == AsrMode.hfpStreaming || asrMode == AsrMode.batchChunks)) {
+      // source, never a separate ASR mode. Only explicitly fallback-capable
+      // platforms may send failed native recognition audio to cloud ASR.
+      if (!_isWebRuntime && _streamingSpeechInput != null) {
         asrMode = AsrMode.androidStreaming;
       }
       final preferAvailableBle =
+          (_isWebRuntime || _streamingSpeechInput == null) &&
           _preferBleStreaming &&
           _audioInput.isBluetooth &&
           _audioInput is ChunkedAudioInput;
@@ -2152,6 +2151,8 @@ class ConversationController extends ChangeNotifier
               !supportsBatchFallback) {
             await _stopHfpRoute();
             asrMode = AsrMode.androidStreaming;
+            debugPrint('Android native recognition start failed: $error');
+            if (error is StreamingSpeechInputException) rethrow;
             throw const StreamingSpeechInputException(
               'Chế độ tiêu chuẩn chưa sẵn sàng. Hãy kiểm tra quyền micro hoặc kết nối H20 rồi thử lại.',
               code: 'ANDROID_STANDARD_RECOGNITION_UNAVAILABLE',
@@ -2874,7 +2875,9 @@ class ConversationController extends ChangeNotifier
           } else {
             _usingStreamingSpeech = false;
             final fallbackAudio =
-                _streamingSpeechInput is NativeSpeechFallbackAudioProvider
+                _streamingSpeechInput
+                        is BatchFallbackCapableNativeSpeechInput &&
+                    _streamingSpeechInput is NativeSpeechFallbackAudioProvider
                 ? (_streamingSpeechInput! as NativeSpeechFallbackAudioProvider)
                       .takeFallbackAudioCapture()
                 : null;
@@ -2982,13 +2985,13 @@ class ConversationController extends ChangeNotifier
               recognizerReportedNoSpeech = true;
             } else {
               _usingRecordedAudioSpeech = false;
-              // Some OEM recognition services advertise Android 13 audio-source
-              // support but still reject an injected WAV. Keep the recording and
-              // process it through the proven multipart Cloudflare path instead
-              // of asking the child to repeat or losing admin audio.
-              transientMessage =
-                  'Chế độ tiêu chuẩn chưa đọc được bản ghi; đang chuyển sang Cloudflare.';
-              debugPrint('Recorded Android recognition fell back: $error');
+              // Android ASR must never silently upload a failed native WAV to
+              // Cloudflare. Keep translation/TTS online, not audio recognition.
+              asrMode = AsrMode.androidStreaming;
+              throw const StreamingSpeechInputException(
+                'Android chưa nhận diện được bản ghi. Bạn nói lại nhé.',
+                code: 'ANDROID_RECORDED_RECOGNITION_FAILED',
+              );
             }
           }
         }

@@ -75,6 +75,12 @@ void main() {
             expect(flow.stage, MainVoiceAssistantStage.idle);
             if (entry.value == VoiceNavigationDestination.conversation) {
               expect(turn.navigationAfterPrompt?.enterMainSpeakingMode, isTrue);
+              expect(turn.promptSequence.map((utterance) => utterance.text), [
+                MasterNavigationContract.switchedToTranslation,
+                MasterNavigationContract.translationIntro,
+              ]);
+            } else {
+              expect(turn.promptSequence, isEmpty);
             }
           }
         }
@@ -140,9 +146,24 @@ void main() {
       translation.promptText,
       MainVoiceAssistantFlow.continuousTranslationPrompt,
     );
+    expect(translation.promptSequence, isEmpty);
     expect(translation.navigationAfterPrompt?.enterMainSpeakingMode, isTrue);
     expect(flow.stage, MainVoiceAssistantStage.idle);
   });
+
+  test(
+    'explicit translation resume keeps its short prompt without extra intro',
+    () async {
+      final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
+      flow.beginAfterTranslationStop();
+
+      final turn = await flow.handle('Tiếp tục dịch');
+
+      expect(turn.promptText, MasterNavigationContract.translationContinue);
+      expect(turn.promptSequence, isEmpty);
+      expect(turn.navigationAfterPrompt?.enterMainSpeakingMode, isTrue);
+    },
+  );
 
   test('after translation stop offers topic, vocabulary, or stop', () async {
     final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
@@ -406,6 +427,10 @@ void main() {
       translationTurn.promptText,
       MasterNavigationContract.switchedToTranslation,
     );
+    expect(translationTurn.promptSequence.map((utterance) => utterance.text), [
+      MasterNavigationContract.switchedToTranslation,
+      MasterNavigationContract.translationIntro,
+    ]);
     expect(translationTurn.continueListening, isFalse);
     expect(
       translationTurn.navigationAfterPrompt?.destination,
@@ -417,6 +442,37 @@ void main() {
     );
     expect(flow.stage, MainVoiceAssistantStage.idle);
   });
+
+  for (final kind in ActiveLearningModuleKind.values) {
+    for (final node in [
+      ActiveLearningVoiceNode.core,
+      ActiveLearningVoiceNode.review,
+      ActiveLearningVoiceNode.parent,
+      ActiveLearningVoiceNode.star,
+    ]) {
+      test(
+        'transfer from $kind/$node includes translation intro once',
+        () async {
+          final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
+          flow.beginActiveLearning(
+            kind: kind,
+            voiceContext: _TranslationSourceVoiceContext(node),
+          );
+
+          final turn = await flow.handle('Dịch tiếng Anh');
+
+          expect(turn.promptSequence.map((utterance) => utterance.text), [
+            MasterNavigationContract.switchedToTranslation,
+            MasterNavigationContract.translationIntro,
+          ]);
+          expect(turn.continueListening, isFalse);
+          expect(turn.navigationBeforePrompt, isNull);
+          expect(turn.navigationAfterPrompt?.enterMainSpeakingMode, isTrue);
+          expect(turn.activeLearningCommand, isNull);
+        },
+      );
+    }
+  }
 
   test(
     'missing profile age is handed to Topics without asking for spoken age',
@@ -901,6 +957,16 @@ void main() {
     expect(replay.navigationAfterPrompt?.lessonNumber, 1);
     expect(replay.navigationAfterPrompt?.relearnLesson, isTrue);
   });
+}
+
+class _TranslationSourceVoiceContext implements ActiveLearningVoiceContext {
+  const _TranslationSourceVoiceContext(this.mainVoiceNode);
+
+  @override
+  final ActiveLearningVoiceNode mainVoiceNode;
+
+  @override
+  String get mainVoicePrompt => MasterNavigationContract.coreControlPrompt;
 }
 
 Future<ListeningContentCatalog> _loadContent() async {

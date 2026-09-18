@@ -10,6 +10,7 @@ import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_voice_assistant_flow.dart';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -22,6 +23,188 @@ const _asset = 'assets/audio/MAIN/AI-001.vi.v1.mp3';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('factory shortens only Android authored downloads', () async {
+    const channel = MethodChannel('ailingo_voice_prompt');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (_) async => null);
+    addTearDown(() {
+      debugDefaultTargetPlatformOverride = null;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+    for (final target in [
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+      TargetPlatform.windows,
+    ]) {
+      debugDefaultTargetPlatformOverride = target;
+      final service =
+          createVoicePromptService() as MainAssistantAudioPromptService;
+      final android = target == TargetPlatform.android;
+      expect(
+        service.remoteAudioLoadTimeout,
+        Duration(seconds: android ? 2 : 8),
+      );
+      expect(service.cacheLateRemoteAudio, android);
+      await service.dispose();
+    }
+    final defaultService = MainAssistantAudioPromptService(
+      delegate: _Delegate(),
+    );
+    expect(defaultService.remoteAudioLoadTimeout, const Duration(seconds: 8));
+    expect(defaultService.cacheLateRemoteAudio, isFalse);
+    await defaultService.dispose();
+  });
+
+  testWidgets(
+    'slow Android download falls back at 2s and warms only a later turn',
+    (tester) async {
+      final response = Completer<http.Response>();
+      final bundle = _Bundle(mode: 'remote');
+      var downloads = 0;
+      final client = MockClient((_) {
+        downloads++;
+        return response.future;
+      });
+      final delegate = _Delegate();
+      final service = MainAssistantAudioPromptService(
+        delegate: delegate,
+        bundle: bundle,
+        httpClient: client,
+        remoteAudioLoadTimeout: const Duration(seconds: 2),
+        cacheLateRemoteAudio: true,
+      );
+      final play = service.speakAndWait(_text);
+      await tester.pump();
+      expect(downloads, 1);
+      await tester.pump(const Duration(milliseconds: 1999));
+      expect(delegate.events, isEmpty);
+      await tester.pump(const Duration(milliseconds: 1));
+      await play;
+      expect(delegate.events, ['tts:vi-VN:$_text']);
+
+      response.complete(http.Response.bytes(bundle.bytes, 200));
+      await tester.pump();
+      expect(delegate.events, ['tts:vi-VN:$_text']);
+      await service.stop();
+      final retry = service.speakAndWait(_text);
+      await tester.pump();
+      await retry;
+      expect(downloads, 1);
+      expect(delegate.events, ['tts:vi-VN:$_text', 'stop', 'audio:normal']);
+      await service.dispose();
+      client.close();
+    },
+  );
+
+  testWidgets(
+    'a retry joins a pending Android download instead of duplicating it',
+    (tester) async {
+      final response = Completer<http.Response>();
+      final bundle = _Bundle(mode: 'remote');
+      var downloads = 0;
+      final client = MockClient((_) {
+        downloads++;
+        return response.future;
+      });
+      final delegate = _Delegate();
+      final service = MainAssistantAudioPromptService(
+        delegate: delegate,
+        bundle: bundle,
+        httpClient: client,
+        remoteAudioLoadTimeout: const Duration(seconds: 2),
+        cacheLateRemoteAudio: true,
+      );
+      final first = service.speakAndWait(_text);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 2));
+      await first;
+      final retry = service.speakAndWait(_text);
+      await tester.pump();
+      expect(downloads, 1);
+      response.complete(http.Response.bytes(bundle.bytes, 200));
+      await tester.pump();
+      await retry;
+      expect(delegate.events, ['tts:vi-VN:$_text', 'audio:normal']);
+      await service.dispose();
+      client.close();
+    },
+  );
+
+  testWidgets('late corrupt Android response is not played or cached', (
+    tester,
+  ) async {
+    final response = Completer<http.Response>();
+    final bundle = _Bundle(mode: 'remote');
+    var downloads = 0;
+    final client = MockClient((_) {
+      downloads++;
+      return downloads == 1
+          ? response.future
+          : Future.value(http.Response.bytes(bundle.bytes, 200));
+    });
+    final delegate = _Delegate();
+    final service = MainAssistantAudioPromptService(
+      delegate: delegate,
+      bundle: bundle,
+      httpClient: client,
+      remoteAudioLoadTimeout: const Duration(seconds: 2),
+      cacheLateRemoteAudio: true,
+    );
+    final play = service.speakAndWait(_text);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    await play;
+    response.complete(http.Response.bytes([9], 200));
+    await tester.pump();
+    expect(delegate.events, ['tts:vi-VN:$_text']);
+    final retry = service.speakAndWait(_text);
+    await tester.pump();
+    await retry;
+    expect(downloads, 2);
+    expect(delegate.events, ['tts:vi-VN:$_text', 'audio:normal']);
+    await service.dispose();
+    client.close();
+  });
+
+  for (final shouldDispose in [false, true]) {
+    testWidgets(
+      '${shouldDispose ? 'dispose' : 'stop'} prevents late Android HTTP from speaking',
+      (tester) async {
+        final response = Completer<http.Response>();
+        final bundle = _Bundle(mode: 'remote');
+        final client = MockClient((_) => response.future);
+        final delegate = _Delegate();
+        final service = MainAssistantAudioPromptService(
+          delegate: delegate,
+          bundle: bundle,
+          httpClient: client,
+          remoteAudioLoadTimeout: const Duration(seconds: 2),
+          cacheLateRemoteAudio: true,
+        );
+        final play = service.speakAndWait(_text);
+        await tester.pump();
+        if (shouldDispose) {
+          await service.dispose();
+        } else {
+          await service.stop();
+        }
+        await play;
+        response.complete(http.Response.bytes(bundle.bytes, 200));
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 3));
+        expect(delegate.events, ['stop', if (shouldDispose) 'dispose']);
+        if (shouldDispose) {
+          await service.speakAndWait(_text);
+          expect(delegate.events, ['stop', 'dispose']);
+        } else {
+          await service.dispose();
+        }
+        client.close();
+      },
+    );
+  }
 
   test('repeated MAIN reuses verified remote audio after stop', () async {
     final bundle = _Bundle(mode: 'remote');

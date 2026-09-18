@@ -429,6 +429,102 @@ void main() {
     await speechInput.dispose();
   });
 
+  for (final kind in ActiveLearningModuleKind.values) {
+    test(
+      'transfer from $kind waits for transition and intro before mic',
+      () async {
+        final speech = _FakeNavigationSpeechInput();
+        final prompt = _TranslationTransferPromptService();
+        final controller = VoiceNavigationController(
+          speechInput: speech,
+          voicePromptService: prompt,
+        );
+        final intents = <VoiceNavigationIntent>[];
+        controller.setIntentHandler(intents.add);
+        expect(
+          await controller.activateFromMainButton(
+            activeLearning: true,
+            activeLearningKind: kind,
+            promptAlreadySpoken: true,
+          ),
+          isTrue,
+        );
+        final microphoneStarts = speech.events
+            .where((e) => e == 'start')
+            .length;
+
+        final transfer = controller.dispatchRecognizedText('Dịch tiếng Anh');
+        await _waitUntil(() => prompt.spokenTexts.isNotEmpty);
+        expect(prompt.spokenTexts, [
+          MasterNavigationContract.switchedToTranslation,
+        ]);
+        expect(intents, isEmpty);
+
+        prompt.transition.complete();
+        await _waitUntil(() => prompt.spokenTexts.length == 2);
+        expect(prompt.spokenTexts, [
+          MasterNavigationContract.switchedToTranslation,
+          MasterNavigationContract.translationIntro,
+        ]);
+        expect(intents, isEmpty);
+        expect(
+          speech.events.where((e) => e == 'start'),
+          hasLength(microphoneStarts),
+        );
+
+        prompt.intro.complete();
+        expect(await transfer, isTrue);
+        expect(intents, hasLength(1));
+        expect(intents.single.enterMainSpeakingMode, isTrue);
+        expect(
+          intents.single.destination,
+          VoiceNavigationDestination.conversation,
+        );
+        expect(controller.continuousRequested, isFalse);
+        controller.dispose();
+        await speech.dispose();
+      },
+    );
+  }
+
+  for (final failIntro in [false, true]) {
+    test(
+      'cancelled/failed translation intro ($failIntro) never starts mic',
+      () async {
+        final speech = _FakeNavigationSpeechInput();
+        final prompt = _TranslationTransferPromptService();
+        final controller = VoiceNavigationController(
+          speechInput: speech,
+          voicePromptService: prompt,
+        );
+        final intents = <VoiceNavigationIntent>[];
+        controller.setIntentHandler(intents.add);
+        await controller.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: ActiveLearningModuleKind.vocabulary,
+          promptAlreadySpoken: true,
+        );
+        final transfer = controller.dispatchRecognizedText('Dịch tiếng Anh');
+        await _waitUntil(() => prompt.spokenTexts.isNotEmpty);
+        prompt.transition.complete();
+        await _waitUntil(() => prompt.spokenTexts.length == 2);
+        if (failIntro) {
+          prompt.intro.completeError(StateError('H20 intro playback failed'));
+        } else {
+          await controller.pause();
+          prompt.intro.complete();
+        }
+
+        expect(await transfer, isFalse);
+        expect(intents, isEmpty);
+        expect(controller.continuousRequested, isFalse);
+        expect(controller.isListening, isFalse);
+        controller.dispose();
+        await speech.dispose();
+      },
+    );
+  }
+
   test(
     'MAIN handles an unambiguous fallback phrase from a stable partial',
     () async {
@@ -1850,6 +1946,22 @@ class _FirstPromptBlockedService extends _FakeMainTurnVoicePromptService {
   Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
     await super.speakAndWait(text, locale: locale);
     if (spokenTexts.length == 1) await firstPrompt.future;
+  }
+}
+
+class _TranslationTransferPromptService
+    extends _FakeMainTurnVoicePromptService {
+  final transition = Completer<void>();
+  final intro = Completer<void>();
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    await super.speakAndWait(text, locale: locale);
+    if (text == MasterNavigationContract.switchedToTranslation) {
+      await transition.future;
+    } else if (text == MasterNavigationContract.translationIntro) {
+      await intro.future;
+    }
   }
 }
 

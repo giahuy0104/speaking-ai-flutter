@@ -390,7 +390,10 @@ void main() {
       expect(streaming.startCount, 1);
       expect(repository.realtimeStarted, 0);
       expect(repository.batchStarted, 0);
-      expect(controller.errorMessage, contains('Chế độ tiêu chuẩn'));
+      expect(
+        controller.errorMessage,
+        contains('Android streaming start failed'),
+      );
       controller.dispose();
     },
   );
@@ -2174,6 +2177,84 @@ void main() {
     },
   );
 
+  for (final mode in AsrMode.values) {
+    test('Android coerces legacy ${mode.name} to native ASR', () async {
+      final repository = _FallbackRepository();
+      final streaming = _FakeStreamingSpeechInput();
+      final input = _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Phone',
+      );
+      final controller = ConversationController(
+        audioInput: input,
+        streamingSpeechInput: streaming,
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        childAge: 6,
+        initialAsrMode: mode,
+        hfpAudioControl: _FakeHfpAudioControl(),
+      );
+      await controller.startRecording();
+      expect(streaming.startCount, 1);
+      expect(input.startCount, 0);
+      expect(repository.batchStarted, 0);
+      expect(controller.asrMode, AsrMode.androidStreaming);
+      controller.dispose();
+    });
+  }
+
+  test('Android native path does not divert connected BLE to Batch', () async {
+    final input = _FakeChunkedInput(
+      available: true,
+      bluetooth: true,
+      label: 'BLE',
+    );
+    final streaming = _FakeStreamingSpeechInput();
+    final repository = _FallbackRepository();
+    final controller = ConversationController(
+      audioInput: input,
+      streamingSpeechInput: streaming,
+      playbackService: const _FakePlaybackService(),
+      repository: repository,
+      childAge: 6,
+      preferBleStreaming: true,
+      initialAsrMode: AsrMode.deviceStreaming,
+    );
+    await controller.startRecording();
+    expect(streaming.startCount, 1);
+    expect(input.startCount, 0);
+    expect(repository.batchStarted, 0);
+    expect(controller.asrMode, AsrMode.androidStreaming);
+    controller.dispose();
+  });
+
+  test(
+    'Android failure with local PCM still cannot use cloud fallback',
+    () async {
+      final repository = _FallbackRepository();
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Phone',
+        ),
+        streamingSpeechInput: _AndroidWithFallbackAudio(),
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        childAge: 6,
+      );
+      await controller.startRecording();
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await controller.stopRecording(manual: true);
+      expect(repository.fullFileUploads, 0);
+      expect(repository.batchStarted, 0);
+      expect(controller.phase, ConversationPhase.error);
+      expect(controller.asrMode, AsrMode.androidStreaming);
+      controller.dispose();
+    },
+  );
+
   test('recorded Android audio archive remains an explicit opt-in', () async {
     final input = _FakeChunkedInput(
       available: true,
@@ -2207,7 +2288,7 @@ void main() {
   });
 
   test(
-    'Android injected-audio failure keeps WAV via Cloudflare fallback',
+    'Android injected-audio failure never uploads WAV to Cloudflare',
     () async {
       final input = _FakeChunkedInput(
         available: true,
@@ -2231,9 +2312,12 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 500));
       await controller.stopRecording(manual: true);
 
-      expect(repository.fullFileUploads, 1);
-      expect(repository.audioCapture?.filePath, 'fake.wav');
-      expect(controller.result?.conversationId, 'file-result');
+      expect(repository.fullFileUploads, 0);
+      expect(repository.batchStarted, 0);
+      expect(repository.audioCapture, isNull);
+      expect(controller.result, isNull);
+      expect(controller.asrMode, AsrMode.androidStreaming);
+      expect(controller.errorMessage, contains('Android chưa nhận diện'));
       controller.dispose();
     },
   );
@@ -2462,6 +2546,21 @@ class _FakeStreamingSpeechInput implements StreamingSpeechInput {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _AndroidWithFallbackAudio extends _FakeStreamingSpeechInput
+    implements NativeSpeechFallbackAudioProvider {
+  _AndroidWithFallbackAudio() : super(failOnStop: true);
+
+  @override
+  AudioCapture? takeFallbackAudioCapture() => AudioCapture(
+    filePath: 'local-only.wav',
+    mimeType: 'audio/wav',
+    duration: const Duration(seconds: 1),
+    inputLabel: 'Android',
+    isBluetoothInput: false,
+    initialNoiseRms: null,
+  );
 }
 
 class _FakeIOSStreamingSpeechInput extends _FakeStreamingSpeechInput

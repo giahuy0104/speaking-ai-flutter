@@ -548,6 +548,10 @@ void main() {
       'gain:$lessonRecordingPlaybackGainDb',
       'play',
     ]);
+    events.clear();
+    await mediaService.play(Uri.parse('asset:///lesson-english.mp3'));
+    expect(events, contains('gain:$androidSpeechBoostDb'));
+    expect(events, isNot(contains('gain:$lessonRecordingPlaybackGainDb')));
     await mediaService.dispose();
   });
 

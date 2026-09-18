@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import '../../../core/audio/adaptive_voice_activity_detector.dart';
 
 enum LessonRecordingEndpointReason { silence, maximumDuration }
@@ -23,6 +25,11 @@ class LessonRecordingEndpointDetector {
              minimumSpeechVariationDb: 2,
              startMarginDb: 7,
              stopMarginDb: 4,
+             // Quiet H20 recordings can peak below the shared VAD's -46 dBFS
+             // floor. Keep ambient-relative margins without forcing those
+             // utterances to wait for the entire six-second recording cap.
+             minimumStartThresholdDbfs: _usesAndroidCapture ? -60 : -46,
+             minimumStopThresholdDbfs: _usesAndroidCapture ? -64 : -50,
            ),
        _now = now ?? DateTime.now;
 
@@ -30,6 +37,10 @@ class LessonRecordingEndpointDetector {
   final Duration maximumDuration;
   final AdaptiveVoiceActivityDetector _voiceActivityDetector;
   final DateTime Function() _now;
+  final bool _recoverQuietCapture = _usesAndroidCapture;
+
+  static bool get _usesAndroidCapture =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
   StreamSubscription<double>? _amplitudeSubscription;
   Timer? _silenceTimer;
@@ -40,6 +51,11 @@ class LessonRecordingEndpointDetector {
   bool _endpointSent = false;
   int _generation = 0;
   DateTime? _sustainedVoiceStartedAt;
+  DateTime? _earlyVoiceStartedAt;
+  double? _earlyVoiceMinimum;
+  double? _earlyVoiceMaximum;
+  int _earlyVoiceSamples = 0;
+  bool _earlyVoiceFinished = false;
 
   /// HFP AGC can flatten a short child's utterance enough that the adaptive
   /// detector sees almost no dB variation. A clearly elevated signal sustained
@@ -61,6 +77,11 @@ class LessonRecordingEndpointDetector {
     _speechDetected = false;
     _endpointSent = false;
     _sustainedVoiceStartedAt = null;
+    _earlyVoiceStartedAt = null;
+    _earlyVoiceMinimum = null;
+    _earlyVoiceMaximum = null;
+    _earlyVoiceSamples = 0;
+    _earlyVoiceFinished = false;
 
     if (amplitudeDbfs != null) {
       _amplitudeSubscription = amplitudeDbfs.listen(
@@ -103,12 +124,16 @@ class LessonRecordingEndpointDetector {
 
   void _handleAmplitude(double dbfs, int generation) {
     if (generation != _generation || _endpointSent) return;
+    if (!dbfs.isFinite) return;
     final startedAt = _startedAt;
     final activity = _voiceActivityDetector.addSample(
       dbfs,
       elapsed: startedAt == null ? Duration.zero : _now().difference(startedAt),
     );
     if (activity.speechStarted) _speechDetected = true;
+    if (_recoverQuietCapture && !_speechDetected) {
+      _recoverSpeechDuringCalibration(dbfs);
+    }
 
     if (!_speechDetected && !activity.isCalibrating) {
       if (dbfs >= activity.startThresholdDbfs) {
@@ -133,6 +158,54 @@ class LessonRecordingEndpointDetector {
       return;
     }
     _scheduleSilenceEndpoint(generation);
+  }
+
+  /// A child can begin with the very first microphone samples. In that case
+  /// calibration learns the child's voice as the ambient floor and never
+  /// reports speech. Recover only a sustained opening burst followed by a
+  /// clear level drop; a single impact or continuous fan noise does not qualify.
+  void _recoverSpeechDuringCalibration(double dbfs) {
+    if (_earlyVoiceFinished) return;
+    final startedAt = _startedAt;
+    if (startedAt == null) return;
+    final now = _now();
+    if (_earlyVoiceStartedAt == null) {
+      if (now.difference(startedAt) > const Duration(milliseconds: 300)) {
+        _earlyVoiceFinished = true;
+        return;
+      }
+      if (dbfs < -60) return;
+      _earlyVoiceStartedAt = now;
+      _earlyVoiceMinimum = dbfs;
+      _earlyVoiceMaximum = dbfs;
+      _earlyVoiceSamples = 1;
+      return;
+    }
+
+    final minimum = _earlyVoiceMinimum!;
+    final maximum = _earlyVoiceMaximum!;
+    if (dbfs <= minimum - 10) {
+      _earlyVoiceFinished = true;
+      final duration = now.difference(_earlyVoiceStartedAt!);
+      final sustained =
+          _earlyVoiceSamples >= 3 &&
+          duration >= const Duration(milliseconds: 180);
+      final speechLike =
+          maximum - minimum >= 2 || duration >= _flatSpeechConfirmation;
+      if (sustained && speechLike) {
+        _voiceActivityDetector.confirmSpeech();
+        _speechDetected = true;
+      }
+      return;
+    }
+    // Anchor the comparison to the opening calibration window. Following every
+    // lower sample lets a gradually fading syllable drag the reference all the
+    // way into silence, so the required 10 dB drop would never be observed.
+    if (_earlyVoiceSamples < 3 && dbfs < minimum) {
+      _earlyVoiceMinimum = dbfs;
+    }
+    if (dbfs > maximum) _earlyVoiceMaximum = dbfs;
+    _earlyVoiceSamples += 1;
   }
 
   void _scheduleSilenceEndpoint(int generation) {

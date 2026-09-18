@@ -8,6 +8,7 @@ import 'voice_prompt_service_native.dart'
     if (dart.library.js_interop) 'voice_prompt_service_web.dart'
     as platform;
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 
 export 'voice_prompt_service_base.dart';
 export 'audio_turn_coordinator.dart' show AudioTurnCoordinator, AudioTurnOwner;
@@ -19,9 +20,14 @@ VoicePromptService createVoicePromptService({
   HfpAudioControl? selectedOutputRoute,
 }) {
   final platformService = platform.createPlatformVoicePromptService();
+  final isAndroid = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
   final service = MainAssistantAudioPromptService(
     delegate: platformService,
     httpClient: httpClient,
+    // Keep first-use navigation responsive while Android TTS is available.
+    // Other platforms retain their existing authored-audio wait policy.
+    remoteAudioLoadTimeout: Duration(seconds: isAndroid ? 2 : 8),
+    cacheLateRemoteAudio: isAndroid,
     groupEnabled: const <String, bool>{
       ...homiGap66AudioGroups,
       MainAssistantAudioPromptService.mainNavigationGroup: bool.fromEnvironment(

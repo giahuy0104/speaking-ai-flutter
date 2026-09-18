@@ -680,6 +680,16 @@ class MainVoiceAssistantFlow {
   }) {
     final turn = MainVoiceAssistantTurn(
       promptText: promptText,
+      // A module transfer starts a new translation session. Keep its authored
+      // introduction in the same awaited prompt sequence as the transition so
+      // the destination cannot open its microphone between the two utterances.
+      // Direct MAIN entry and explicit resume already own their own prompts.
+      promptSequence: destination == VoiceNavigationDestination.conversation
+          ? <MainVoiceAssistantUtterance>[
+              MainVoiceAssistantUtterance(promptText),
+              const MainVoiceAssistantUtterance(continuousTranslationPrompt),
+            ]
+          : const <MainVoiceAssistantUtterance>[],
       continueListening: false,
       navigationAfterPrompt: VoiceNavigationIntent(
         destination: destination,

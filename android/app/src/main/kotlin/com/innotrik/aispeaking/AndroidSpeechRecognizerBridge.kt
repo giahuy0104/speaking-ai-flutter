@@ -9,6 +9,7 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
+import android.os.SystemClock
 import android.speech.RecognitionListener
 import android.speech.RecognitionSupport
 import android.speech.RecognitionSupportCallback
@@ -52,6 +53,8 @@ class AndroidSpeechRecognizerBridge(
     private var pendingFileResult: MethodChannel.Result? = null
     private var activeRequireOnDevice = false
     private var recognitionGeneration = 0
+    private var clientTurnId: Int? = null
+    private var recognitionStartedAtMs = 0L
     private var capturedPcm = ByteArrayOutputStream()
     private var capturedAudioFile: File? = null
     private var injectedAudioRead: ParcelFileDescriptor? = null
@@ -94,8 +97,7 @@ class AndroidSpeechRecognizerBridge(
                 result.success(true)
             }
             "speech.cancel" -> {
-                recognitionGeneration += 1
-                recognizer?.cancel()
+                retireRecognizer()
                 closeInjectedAudio()
                 listening = false
                 completePendingFileError(
@@ -112,6 +114,7 @@ class AndroidSpeechRecognizerBridge(
         call: MethodCall,
         result: MethodChannel.Result,
     ) {
+        clientTurnId = call.argument<Int>("turnId")
         val commandMode = call.argument<Boolean>("commandMode") == true
         val preferOnDevice = call.argument<Boolean>("preferOnDevice") == true
         val requireOnDevice = call.argument<Boolean>("requireOnDevice") == true
@@ -266,8 +269,7 @@ class AndroidSpeechRecognizerBridge(
 
     fun onBackgroundSessionStopped() {
         host.runOnMain {
-            recognitionGeneration += 1
-            recognizer?.cancel()
+            retireRecognizer()
             closeInjectedAudio()
             listening = false
             completePendingFileError(
@@ -380,6 +382,7 @@ class AndroidSpeechRecognizerBridge(
             )
             return
         }
+        if (listening) retireRecognizer()
         if (!ensureRecognizer(requestedMode)) {
             result.error(
                 if (requireOnDevice) "ON_DEVICE_SPEECH_UNAVAILABLE" else "SPEECH_UNAVAILABLE",
@@ -393,15 +396,14 @@ class AndroidSpeechRecognizerBridge(
             return
         }
 
-        if (listening) {
-            recognizer?.cancel()
-        }
+        // Each terminal/cancelled turn has a distinct callback generation.
+        recognitionGeneration += 1
         closeInjectedAudio()
         resetCapturedAudio()
 
         listening = true
         activeRequireOnDevice = requireOnDevice
-        recognitionGeneration += 1
+        bindTurnListener()
         recognizer?.startListening(
             createRecognizerIntent(
                 commandMode = commandMode,
@@ -465,6 +467,7 @@ class AndroidSpeechRecognizerBridge(
             return
         }
         val path = call.argument<String>("path")
+        clientTurnId = call.argument<Int>("turnId")
         val locale = call.argument<String>("locale")?.ifBlank { defaultLocale } ?: defaultLocale
         val preferOnDevice = call.argument<Boolean>("preferOnDevice") == true
         val requireOnDevice = call.argument<Boolean>("requireOnDevice") == true
@@ -509,6 +512,7 @@ class AndroidSpeechRecognizerBridge(
             } else {
                 RecognizerMode.STANDARD
             }
+        if (listening) retireRecognizer()
         if (!ensureRecognizer(requestedMode)) {
             result.error(
                 if (requireOnDevice) "ON_DEVICE_SPEECH_UNAVAILABLE" else "SPEECH_UNAVAILABLE",
@@ -526,9 +530,7 @@ class AndroidSpeechRecognizerBridge(
             "SPEECH_REPLACED",
             "Một lượt nhận diện mới đã thay thế lượt trước.",
         )
-        if (listening) {
-            recognizer?.cancel()
-        }
+        recognitionGeneration += 1
         closeInjectedAudio()
         resetCapturedAudio()
         capturedAudioFile = audioFile
@@ -537,7 +539,7 @@ class AndroidSpeechRecognizerBridge(
                 locale = locale,
                 preferOnDevice = preferOnDevice || requireOnDevice,
             )
-        val generation = ++recognitionGeneration
+        val generation = recognitionGeneration
         if (waitForFinalResult) {
             pendingFileResult = result
         }
@@ -610,6 +612,7 @@ class AndroidSpeechRecognizerBridge(
 
             listening = true
             activeRequireOnDevice = requireOnDevice
+            bindTurnListener()
             recognizer?.startListening(intent)
             val feeder =
                 Thread(
@@ -683,15 +686,7 @@ class AndroidSpeechRecognizerBridge(
         if (!available) {
             return false
         }
-        if (recognizer != null && recognizerMode != requestedMode) {
-            recognizer?.cancel()
-            closeInjectedAudio()
-            recognizer?.destroy()
-            recognizer = null
-            recognizerMode = null
-            listening = false
-            activeRequireOnDevice = false
-        }
+        if (recognizer != null && recognizerMode != requestedMode) retireRecognizer()
         if (recognizer == null) {
             recognizer = try {
                 val created = when (requestedMode) {
@@ -701,15 +696,74 @@ class AndroidSpeechRecognizerBridge(
                         SpeechRecognizer.createOnDeviceSpeechRecognizer(appContext)
                     }
                 }
-                created.also {
-                    it.setRecognitionListener(this)
-                }
+                created
             } catch (_: UnsupportedOperationException) {
                 null
             }
             recognizerMode = if (recognizer == null) null else requestedMode
         }
         return recognizer != null
+    }
+
+    private fun retireRecognizer() {
+        // AOSP dispatches queued callbacks through a mutable listener on each
+        // SpeechRecognizer instance. Replacing only the listener cannot isolate
+        // a late cancel/error from a new turn; retire the cancelled instance.
+        recognitionGeneration += 1
+        // A permission dialog can outlive MAIN/Back or the foreground session.
+        // Granting it later must not open the cancelled turn's microphone.
+        pendingPermissionResult?.error(
+            "SPEECH_START_CANCELLED",
+            "Lượt nhận diện đã dừng trước khi cấp quyền micro.",
+            null,
+        )
+        pendingPermissionResult = null
+        pendingPermissionCommandMode = false
+        pendingPermissionPreferOnDevice = false
+        pendingPermissionRequireOnDevice = false
+        pendingPermissionLocale = defaultLocale
+        val retired = recognizer
+        recognizer = null
+        recognizerMode = null
+        listening = false
+        activeRequireOnDevice = false
+        closeInjectedAudio()
+        retired?.cancel()
+        retired?.destroy()
+    }
+
+    private fun bindTurnListener() {
+        recognitionStartedAtMs = SystemClock.elapsedRealtime()
+        Log.i(logTag, "Starting native recognition generation=$recognitionGeneration mode=$recognizerMode")
+        val gate = SpeechRecognitionTurnGate(recognitionGeneration) { recognitionGeneration }
+        val delegate = this
+        recognizer?.setRecognitionListener(object : RecognitionListener {
+            override fun onReadyForSpeech(params: Bundle?) {
+                if (gate.accepts()) delegate.onReadyForSpeech(params)
+            }
+            override fun onBeginningOfSpeech() {
+                if (gate.accepts()) delegate.onBeginningOfSpeech()
+            }
+            override fun onRmsChanged(rmsdB: Float) {
+                if (gate.accepts()) delegate.onRmsChanged(rmsdB)
+            }
+            override fun onBufferReceived(buffer: ByteArray?) {
+                if (gate.accepts()) delegate.onBufferReceived(buffer)
+            }
+            override fun onEndOfSpeech() {
+                if (gate.accepts()) delegate.onEndOfSpeech()
+            }
+            override fun onError(error: Int) {
+                if (gate.accepts(terminal = true)) delegate.onError(error)
+            }
+            override fun onResults(results: Bundle?) {
+                if (gate.accepts(terminal = true)) delegate.onResults(results)
+            }
+            override fun onPartialResults(partialResults: Bundle?) {
+                if (gate.accepts()) delegate.onPartialResults(partialResults)
+            }
+            override fun onEvent(eventType: Int, params: Bundle?) = Unit
+        })
     }
 
     private fun isOnDeviceRecognitionAvailable(): Boolean =
@@ -984,6 +1038,7 @@ class AndroidSpeechRecognizerBridge(
     }
 
     override fun onReadyForSpeech(params: Bundle?) {
+        Log.i(logTag, "Speech ready generation=$recognitionGeneration elapsedMs=${SystemClock.elapsedRealtime() - recognitionStartedAtMs}")
         if (pendingFileResult == null) emit("speech.ready")
     }
 
@@ -996,6 +1051,7 @@ class AndroidSpeechRecognizerBridge(
         events?.success(
             mapOf(
                 "type" to "speech.rms",
+                "turnId" to clientTurnId,
                 "rmsDb" to rmsdB.toDouble(),
             ),
         )
@@ -1025,7 +1081,7 @@ class AndroidSpeechRecognizerBridge(
         val wasRequiredOnDevice = activeRequireOnDevice
         Log.w(
             logTag,
-            "Speech recognition failed: error=$error mode=$recognizerMode " +
+            "Speech recognition failed: error=$error generation=$recognitionGeneration mode=$recognizerMode " +
                 "requiredOnDevice=$wasRequiredOnDevice",
         )
         listening = false
@@ -1048,6 +1104,7 @@ class AndroidSpeechRecognizerBridge(
                 "message" to errorMessage(error),
             )
         payload.putAll(finishCapturedAudio())
+        clientTurnId?.let { payload["turnId"] = it }
         events?.success(payload)
     }
 
@@ -1071,7 +1128,9 @@ class AndroidSpeechRecognizerBridge(
     override fun onEvent(eventType: Int, params: Bundle?) = Unit
 
     private fun emitResult(type: String, bundle: Bundle?) {
-        events?.success(resultPayload(type, bundle))
+        val payload = resultPayload(type, bundle)
+        clientTurnId?.let { payload["turnId"] = it }
+        events?.success(payload)
     }
 
     private fun resultPayload(type: String, bundle: Bundle?): MutableMap<String, Any> {
@@ -1186,7 +1245,7 @@ class AndroidSpeechRecognizerBridge(
     }
 
     private fun emit(type: String) {
-        events?.success(mapOf("type" to type))
+        events?.success(mapOf("type" to type, "turnId" to clientTurnId))
     }
 
     private fun errorMessage(error: Int): String =

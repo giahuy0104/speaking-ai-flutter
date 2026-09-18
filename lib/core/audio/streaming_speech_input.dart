@@ -296,6 +296,7 @@ class AndroidStreamingSpeechInput
     bool preferOnDevice = false,
     bool failOnRuntimeError = false,
     Duration readyTimeout = const Duration(seconds: 2),
+    Duration? firstReadyTimeout,
     Duration nativeCommandTimeout = const Duration(seconds: 2),
   }) : _methodChannel = methodChannel,
        _platformName = platformName,
@@ -304,6 +305,12 @@ class AndroidStreamingSpeechInput
        _preferOnDevice = preferOnDevice,
        _failOnRuntimeError = failOnRuntimeError,
        _readyTimeout = readyTimeout,
+       _firstReadyTimeout =
+           firstReadyTimeout ??
+           (platformName == 'Android' &&
+                   readyTimeout == const Duration(seconds: 2)
+               ? const Duration(seconds: 4)
+               : readyTimeout),
        _nativeCommandTimeout = nativeCommandTimeout {
     _eventSubscription = (eventStream ?? eventChannel.receiveBroadcastStream())
         .listen(_handleEvent, onError: _handleChannelError);
@@ -316,6 +323,7 @@ class AndroidStreamingSpeechInput
   final bool _preferOnDevice;
   final bool _failOnRuntimeError;
   final Duration _readyTimeout;
+  final Duration _firstReadyTimeout;
   final Duration _nativeCommandTimeout;
   final StreamController<double> _amplitudeController =
       StreamController<double>.broadcast();
@@ -353,6 +361,8 @@ class AndroidStreamingSpeechInput
   int? _nativeFirstPartialMs;
   int? _nativeFinalTranscriptMs;
   bool _active = false;
+  bool _hasReceivedReady = false;
+  int _recognitionTurn = 0;
   bool _disposed = false;
   bool? _availabilityCache;
   NativeSpeechAudioSource? _nextAudioSource;
@@ -499,10 +509,10 @@ class AndroidStreamingSpeechInput
   Future<StreamingSpeechCapture> recognizeRecordedAudio(
     AudioCapture capture,
   ) async {
-    if (_active) {
-      await cancel();
-    }
-    if (!await supportsRecordedAudioRecognition()) {
+    final turn = await _beginRecognitionTurn();
+    final supported = await supportsRecordedAudioRecognition();
+    _requireCurrentRecognitionTurn(turn);
+    if (!supported) {
       throw const StreamingSpeechInputException(
         'Thiết bị chưa hỗ trợ nhận diện từ bản ghi âm.',
         code: 'RECORDED_AUDIO_RECOGNITION_UNAVAILABLE',
@@ -528,20 +538,27 @@ class AndroidStreamingSpeechInput
       ),
     );
     final readyCompleter = Completer<void>();
+    _observeReadyCompletion(readyCompleter);
     _readyCompleter = readyCompleter;
     final recognitionStartedAt = DateTime.now();
     _startedAt = recognitionStartedAt;
     _active = true;
 
     try {
-      await _methodChannel.invokeMethod<void>('speech.recognizeFile', {
-        'path': capture.filePath,
-        'sampleRate': capture.recordingSampleRate ?? 16000,
-      });
+      await _methodChannel
+          .invokeMethod<void>('speech.recognizeFile', {
+            'turnId': turn,
+            'path': capture.filePath,
+            'sampleRate': capture.recordingSampleRate ?? 16000,
+          })
+          .timeout(_nativeCommandTimeout);
+      _requireCurrentRecognitionTurn(turn);
       await readyCompleter.future.timeout(const Duration(seconds: 2));
+      _requireCurrentRecognitionTurn(turn);
       final sourceText = await resultCompleter.future.timeout(
         const Duration(seconds: 12),
       );
+      _requireCurrentRecognitionTurn(turn);
       if (sourceText.trim().isEmpty) {
         throw const StreamingSpeechInputException(
           'Không nghe rõ câu nói. Hãy nói lại gần micro hơn.',
@@ -568,12 +585,14 @@ class AndroidStreamingSpeechInput
         recordedAudio: capture,
       );
     } on TimeoutException {
+      if (turn != _recognitionTurn) rethrow;
       await cancel();
       throw const StreamingSpeechInputException(
         'Nhận diện bản ghi âm mất quá nhiều thời gian.',
         code: 'RECORDED_AUDIO_RECOGNITION_TIMEOUT',
       );
     } on PlatformException catch (error) {
+      if (turn != _recognitionTurn) rethrow;
       _active = false;
       throw StreamingSpeechInputException(
         error.message ?? 'Không thể nhận diện bản ghi âm.',
@@ -608,10 +627,10 @@ class AndroidStreamingSpeechInput
     String? localeIdentifier,
     String? recordingPath,
   }) async {
-    if (_active) {
-      await cancel();
-    }
-    if (!await checkAvailability()) {
+    final turn = await _beginRecognitionTurn();
+    final available = await checkAvailability();
+    _requireCurrentRecognitionTurn(turn);
+    if (!available) {
       throw StreamingSpeechInputException(
         'Thiết bị chưa có dịch vụ nhận diện giọng nói $_platformName.',
       );
@@ -639,12 +658,18 @@ class AndroidStreamingSpeechInput
     );
     _startedAt = null;
     final readyCompleter = Completer<void>();
+    _observeReadyCompletion(readyCompleter);
     _readyCompleter = readyCompleter;
     _active = true;
     _activeAudioSource = audioSource;
+    // Constructing SpeechRecognizer does not bind its system service. Allow
+    // the first Android binding a larger ceiling, but never delay readiness
+    // or widen subsequent (warm) turns and existing iOS/custom timeouts.
+    final readyTimeout = _hasReceivedReady ? _readyTimeout : _firstReadyTimeout;
     try {
       await _methodChannel
           .invokeMethod<void>('speech.start', {
+            'turnId': turn,
             'commandMode': commandMode,
             // Navigation commands use a fixed local corpus. Keep the wider
             // conversation/translation flow eligible for Android's normal
@@ -656,11 +681,15 @@ class AndroidStreamingSpeechInput
             'recordingPath': ?recordingPath,
           })
           .timeout(_nativeCommandTimeout);
-      await readyCompleter.future.timeout(_readyTimeout);
+      _requireCurrentRecognitionTurn(turn);
+      await readyCompleter.future.timeout(readyTimeout);
+      _requireCurrentRecognitionTurn(turn);
       _startedAt = DateTime.now();
     } on TimeoutException {
+      if (turn != _recognitionTurn) rethrow;
       _active = false;
       await _cancelNativeRecognitionBounded();
+      _requireCurrentRecognitionTurn(turn);
       reportNativeSpeechStage(
         'error',
         code: 'SPEECH_READY_TIMEOUT',
@@ -671,6 +700,7 @@ class AndroidStreamingSpeechInput
         code: 'SPEECH_READY_TIMEOUT',
       );
     } on PlatformException catch (error) {
+      if (turn != _recognitionTurn) rethrow;
       _active = false;
       reportNativeSpeechStage(
         'error',
@@ -690,6 +720,7 @@ class AndroidStreamingSpeechInput
 
   @override
   Future<StreamingSpeechCapture> stop() async {
+    final turn = _recognitionTurn;
     final startedAt = _startedAt;
     final completer = _resultCompleter;
     final stopRequestedAt = DateTime.now();
@@ -700,88 +731,134 @@ class AndroidStreamingSpeechInput
       );
     }
 
-    if (_active) {
-      await _methodChannel.invokeMethod<void>('speech.stop');
-    }
-
-    String sourceText;
-    final partialAtStop = _stablePartialTranscript(
-      minimumStableFor: const Duration(milliseconds: 350),
-    );
-    if (partialAtStop != null) {
-      // A stable partial keeps stop responsive, but the Android final result is
-      // often more accurate for softly spoken child speech. Give it a short,
-      // bounded grace period before falling back to the partial transcript.
-      try {
-        sourceText = await completer.future.timeout(
-          const Duration(milliseconds: 220),
-        );
-      } on TimeoutException {
-        sourceText = partialAtStop;
-        _resultAt = DateTime.now();
+    try {
+      if (_active) {
+        await _methodChannel
+            .invokeMethod<void>('speech.stop')
+            .timeout(_nativeCommandTimeout);
       }
-    } else {
-      try {
-        sourceText = await completer.future.timeout(
-          const Duration(milliseconds: 500),
-        );
-      } on TimeoutException {
-        final usablePartial = _stablePartialTranscript(
-          minimumStableFor: const Duration(milliseconds: 200),
-        );
-        if (usablePartial != null) {
-          sourceText = usablePartial;
-          _resultAt = DateTime.now();
-        } else {
+      _requireCurrentRecognitionTurn(turn);
+
+      String sourceText;
+      final partialAtStop = _stablePartialTranscript(
+        minimumStableFor: const Duration(milliseconds: 350),
+      );
+      if (partialAtStop != null) {
+        // A stable partial keeps stop responsive, but the Android final result is
+        // often more accurate for softly spoken child speech. Give it a short,
+        // bounded grace period before falling back to the partial transcript.
+        try {
           sourceText = await completer.future.timeout(
-            const Duration(milliseconds: 700),
-            onTimeout: () => _latestText,
+            const Duration(milliseconds: 220),
           );
+        } on TimeoutException {
+          _requireCurrentRecognitionTurn(turn);
+          sourceText = partialAtStop;
+          _resultAt = DateTime.now();
+        }
+      } else {
+        try {
+          sourceText = await completer.future.timeout(
+            const Duration(milliseconds: 500),
+          );
+        } on TimeoutException {
+          _requireCurrentRecognitionTurn(turn);
+          final usablePartial = _stablePartialTranscript(
+            minimumStableFor: const Duration(milliseconds: 200),
+          );
+          if (usablePartial != null) {
+            sourceText = usablePartial;
+            _resultAt = DateTime.now();
+          } else {
+            sourceText = await completer.future.timeout(
+              const Duration(milliseconds: 700),
+              onTimeout: () => _latestText,
+            );
+          }
         }
       }
-    }
-    _active = false;
+      _requireCurrentRecognitionTurn(turn);
+      _active = false;
 
-    if (sourceText.trim().isEmpty) {
+      if (sourceText.trim().isEmpty) {
+        throw const StreamingSpeechInputException(
+          'Không nghe rõ câu nói. Hãy nói lại gần micro hơn.',
+        );
+      }
+
+      final recordedAudioPath = _recordedAudioPath;
+      final recordedAudioByteLength = _recordedAudioByteLength ?? 0;
+      final recordedAudio =
+          recordedAudioPath != null && recordedAudioByteLength > 44
+          ? AudioCapture(
+              filePath: recordedAudioPath,
+              mimeType: _recordedAudioMimeType ?? 'audio/wav',
+              duration: DateTime.now().difference(startedAt),
+              inputLabel: label,
+              isBluetoothInput: false,
+              initialNoiseRms: null,
+              recordingSampleRate: _recordedAudioSampleRate,
+              streamedAudioBytes: recordedAudioByteLength - 44,
+            )
+          : null;
+      return StreamingSpeechCapture(
+        sourceText: sourceText.trim(),
+        duration: DateTime.now().difference(startedAt),
+        inputLabel: label,
+        confidence: _confidence,
+        firstResultMs: _firstResultAt?.difference(startedAt).inMilliseconds,
+        finalAfterStopMs: math
+            .max(
+              0,
+              (_resultAt ?? DateTime.now())
+                  .difference(stopRequestedAt)
+                  .inMilliseconds,
+            )
+            .toInt(),
+        alternatives: List<String>.unmodifiable(_latestAlternatives),
+        asrMode: _asrMode,
+        isBluetoothInput: _recordedAudioBluetoothInput,
+        extraBenchmark: _nativeBenchmark,
+        recordedAudio: recordedAudio,
+      );
+    } finally {
+      // A stable partial may beat the final result. Explicitly drain that
+      // recognizer before its owner releases H20 / starts the next turn.
+      if (turn == _recognitionTurn &&
+          identical(_resultCompleter, completer) &&
+          !completer.isCompleted) {
+        _active = false;
+        await _cancelNativeRecognitionBounded();
+      }
+    }
+  }
+
+  Future<int> _beginRecognitionTurn() async {
+    // cancel() invalidates the old owner synchronously. Reserve the new token
+    // before awaiting its cleanup or an availability query, so a Back/MAIN
+    // cancellation during cold-start preparation cannot open a stale mic.
+    final cleanup = _active || _readyCompleter != null ? cancel() : null;
+    final turn = ++_recognitionTurn;
+    if (cleanup != null) await cleanup;
+    _requireCurrentRecognitionTurn(turn);
+    return turn;
+  }
+
+  void _requireCurrentRecognitionTurn(int turn) {
+    if (_disposed || turn != _recognitionTurn) {
       throw const StreamingSpeechInputException(
-        'Không nghe rõ câu nói. Hãy nói lại gần micro hơn.',
+        'Lượt nhận diện đã được thay thế.',
+        code: 'SPEECH_START_CANCELLED',
       );
     }
+  }
 
-    final recordedAudioPath = _recordedAudioPath;
-    final recordedAudioByteLength = _recordedAudioByteLength ?? 0;
-    final recordedAudio =
-        recordedAudioPath != null && recordedAudioByteLength > 44
-        ? AudioCapture(
-            filePath: recordedAudioPath,
-            mimeType: _recordedAudioMimeType ?? 'audio/wav',
-            duration: DateTime.now().difference(startedAt),
-            inputLabel: label,
-            isBluetoothInput: false,
-            initialNoiseRms: null,
-            recordingSampleRate: _recordedAudioSampleRate,
-            streamedAudioBytes: recordedAudioByteLength - 44,
-          )
-        : null;
-    return StreamingSpeechCapture(
-      sourceText: sourceText.trim(),
-      duration: DateTime.now().difference(startedAt),
-      inputLabel: label,
-      confidence: _confidence,
-      firstResultMs: _firstResultAt?.difference(startedAt).inMilliseconds,
-      finalAfterStopMs: math
-          .max(
-            0,
-            (_resultAt ?? DateTime.now())
-                .difference(stopRequestedAt)
-                .inMilliseconds,
-          )
-          .toInt(),
-      alternatives: List<String>.unmodifiable(_latestAlternatives),
-      asrMode: _asrMode,
-      isBluetoothInput: _recordedAudioBluetoothInput,
-      extraBenchmark: _nativeBenchmark,
-      recordedAudio: recordedAudio,
+  void _observeReadyCompletion(Completer<void> completer) {
+    // Cancellation/errors may arrive before speech.start's channel reply.
+    // Keep the error observable by the awaited future without letting Dart
+    // report it as unhandled during that earlier native-command window.
+    unawaited(
+      completer.future.then<void>((_) {}, onError: (Object _, StackTrace _) {}),
     );
   }
 
@@ -833,6 +910,7 @@ class AndroidStreamingSpeechInput
 
   @override
   Future<void> cancel() async {
+    _recognitionTurn += 1;
     final readyCompleter = _readyCompleter;
     final shouldCancelNative = _active || readyCompleter != null;
     if (readyCompleter != null && !readyCompleter.isCompleted) {
@@ -845,9 +923,6 @@ class AndroidStreamingSpeechInput
     }
     _readyCompleter = null;
     _active = false;
-    if (shouldCancelNative) {
-      await _cancelNativeRecognitionBounded();
-    }
     _startedAt = null;
     _latestText = '';
     _latestAlternatives = const <String>[];
@@ -857,6 +932,11 @@ class AndroidStreamingSpeechInput
       completer.complete('');
     }
     _resultCompleter = null;
+    // Clear old Dart state before awaiting native cleanup, so a new owner
+    // cannot have its completers cleared by this cancelled owner's return.
+    if (shouldCancelNative) {
+      await _cancelNativeRecognitionBounded();
+    }
   }
 
   Future<void> _cancelNativeRecognitionBounded() async {
@@ -874,6 +954,8 @@ class AndroidStreamingSpeechInput
     if (_disposed || event is! Map<dynamic, dynamic>) {
       return;
     }
+    final eventTurn = event['turnId'];
+    if (eventTurn is num && eventTurn.toInt() != _recognitionTurn) return;
 
     final type = event['type'];
     if (type == 'speech.stage') {
@@ -896,6 +978,7 @@ class AndroidStreamingSpeechInput
       return;
     }
     if (type == 'speech.ready') {
+      _hasReceivedReady = true;
       _readNativeTelemetry(event);
       reportNativeSpeechStage(
         'speech.ready',

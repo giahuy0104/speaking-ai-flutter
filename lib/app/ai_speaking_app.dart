@@ -1155,7 +1155,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           : AsrMode.batchChunks,
       // Keep continuous translation on Android's live SpeechRecognizer path.
       // Recording a WAV first and injecting it only after stop adds the 4-5s
-      // delay reported on devices. Cloudflare batch remains a failure fallback.
+      // delay reported on devices. Android never uses cloud ASR as a fallback;
+      // the backend still handles text translation and speech synthesis.
       recordAndroidAudioForArchive: false,
       voiceDataProcessingAllowed: () => _voiceAccessEnabled,
       networkTransportAvailable: NetworkAvailability.hasTransport,
