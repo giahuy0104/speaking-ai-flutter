@@ -10,6 +10,7 @@ import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
 import '../../../core/audio/streaming_speech_input.dart';
 import '../../../core/audio/audio_gain.dart';
+import '../../../core/audio/hfp_audio_control.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/active_learning_module.dart';
@@ -598,28 +599,47 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         );
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.nextItem:
-        if (widget.lesson.usesV4Flow &&
-            _sentenceIndex == widget.lesson.sentences.length - 1) {
-          return const ActiveLearningCommandResult.unavailable(
-            spokenReply: 'Đây là câu cuối. Bạn hãy hoàn thành câu này nhé.',
+        if (_sentenceIndex == widget.lesson.sentences.length - 1) {
+          _pausedForMainAssistant = false;
+          unawaited(
+            _runNavigationSequence(
+              () => _replayBoundarySentence(
+                'Đây là câu cuối. Bạn hãy hoàn thành câu này nhé.',
+              ),
+            ),
           );
+          return const ActiveLearningCommandResult.handled();
         }
         _pausedForMainAssistant = false;
         unawaited(
-          _runNavigationSequence(() => _advanceToNext(autoPlaySentence: true)),
+          _runNavigationSequence(
+            () => _navigateWithLead(
+              MasterNavigationContract.nextItemPrompt,
+              () => _advanceToNext(autoPlaySentence: true),
+            ),
+          ),
         );
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.previousItem:
         if (_sentenceIndex == 0) {
           _pausedForMainAssistant = false;
           unawaited(
-            _runNavigationSequence(() => _previous(autoPlaySentence: true)),
+            _runNavigationSequence(
+              () => _replayBoundarySentence(
+                'Đây là câu đầu tiên. Mình nghe lại nhé.',
+              ),
+            ),
           );
           return const ActiveLearningCommandResult.handled();
         }
         _pausedForMainAssistant = false;
         unawaited(
-          _runNavigationSequence(() => _previous(autoPlaySentence: true)),
+          _runNavigationSequence(
+            () => _navigateWithLead(
+              'Mình nghe lại câu trước nhé',
+              () => _previous(autoPlaySentence: true),
+            ),
+          ),
         );
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.nextLesson:
@@ -678,6 +698,38 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       autoPlay: true,
       restoreExistingRecording: false,
     );
+  }
+
+  Future<void> _replayBoundarySentence(String lead) async {
+    await _navigateWithLead(
+      lead,
+      () => _activateCurrentSentence(
+        autoPlay: true,
+        restoreExistingRecording: false,
+      ),
+    );
+  }
+
+  Future<void> _navigateWithLead(
+    String lead,
+    Future<void> Function() action,
+  ) async {
+    final ticket = _lessonSession.mainPauseTicket;
+    if (!mounted || _pausedForMainAssistant) return;
+    setState(() => _mediaBusy = true);
+    try {
+      await _speakLessonPrompt(lead);
+    } finally {
+      if (mounted && _lessonSession.isCurrentMainPause(ticket)) {
+        setState(() => _mediaBusy = false);
+      }
+    }
+    if (!mounted ||
+        _pausedForMainAssistant ||
+        !_lessonSession.isCurrentMainPause(ticket)) {
+      return;
+    }
+    await action();
   }
 
   Future<void> _runNavigationSequence(Future<void> Function() action) async {
@@ -1134,7 +1186,15 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     try {
       final readyCuePlayer = _voicePromptService;
       final cueBeforeStart =
-          !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+          !kIsWeb &&
+          (defaultTargetPlatform == TargetPlatform.iOS ||
+              defaultTargetPlatform == TargetPlatform.android);
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        await widget.mediaService.prepareSelectedLessonOutput();
+        if (!mounted || !_lessonSession.isCurrentRecordingStart(request)) {
+          return;
+        }
+      }
       if (cueBeforeStart && readyCuePlayer is SpeechReadyCuePlayer) {
         await (readyCuePlayer as SpeechReadyCuePlayer).playSpeechReadyCue();
       }
@@ -1180,8 +1240,8 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         }
         return;
       }
-      // On Android the ready tone must mean capture is already live, not that
-      // recorder/audio-route initialization is only about to start.
+      // Mobile capture starts only after the ready tone and its acoustic tail.
+      // Otherwise the child's saved recording contains HOMI's own cue.
       if (!cueBeforeStart && readyCuePlayer is SpeechReadyCuePlayer) {
         await (readyCuePlayer as SpeechReadyCuePlayer).playSpeechReadyCue();
       }
@@ -3555,6 +3615,12 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         );
         return;
       } catch (error) {
+        if (!mounted ||
+            _pausedForMainAssistant ||
+            !_lessonSession.isCurrentMainPause(pauseGeneration)) {
+          return;
+        }
+        if (error is HfpAudioException) rethrow;
         debugPrint(
           'HOMI authored guide audio unavailable; using local TTS: $error',
         );
@@ -3620,6 +3686,12 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         );
         return;
       } catch (error) {
+        if (!mounted ||
+            _pausedForMainAssistant ||
+            !_lessonSession.isCurrentMainPause(ticket)) {
+          return;
+        }
+        if (error is HfpAudioException) rethrow;
         debugPrint(
           'HOMI Vietnamese authored audio unavailable; using local TTS: '
           '$error',
@@ -3777,6 +3849,12 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         );
         return;
       } catch (error) {
+        if (!mounted ||
+            _pausedForMainAssistant ||
+            !_lessonSession.isCurrentMainPause(ticket)) {
+          return;
+        }
+        if (error is HfpAudioException) rethrow;
         debugPrint(
           'HOMI English authored audio unavailable; using local TTS: $error',
         );

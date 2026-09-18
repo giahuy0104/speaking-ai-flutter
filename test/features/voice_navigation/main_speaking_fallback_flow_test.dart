@@ -50,4 +50,16 @@ void main() {
     expect(help?.promptText, MasterNavigationContract.translationIntro);
     expect(flow.handle('Hôm nay mình không hiểu bài này'), isNull);
   });
+
+  test('named module requests are consumed before translation', () {
+    final flow = MainSpeakingFallbackFlow();
+    for (final text in ['Học Chủ đề', 'Bộ từ vựng']) {
+      expect(flow.canHandle(text), isTrue);
+      expect(
+        flow.handle(text)?.action,
+        MainSpeakingFallbackAction.openOtherLearning,
+      );
+    }
+    expect(flow.canHandle('Tôi đang học Chủ đề gia đình'), isFalse);
+  });
 }

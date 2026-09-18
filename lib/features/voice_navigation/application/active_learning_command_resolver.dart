@@ -16,7 +16,7 @@ class ActiveLearningCommandResolver {
     ControlledSpeechState state = ControlledSpeechState.course,
     ActiveLearningVoiceNode? node,
   }) {
-    if (node != null) return _resolveNode(transcript, node);
+    if (node != null) return _resolveNode(transcript, node, state);
     final controlled = _controlledLexicon.resolve(transcript, state: state);
     final controlledCommand = switch (controlled?.intent) {
       ControlledSpeechIntent.globalStop => ActiveLearningCommand.stop,
@@ -105,7 +105,11 @@ class ActiveLearningCommandResolver {
   ActiveLearningCommand? _resolveNode(
     String text,
     ActiveLearningVoiceNode node,
+    ControlledSpeechState state,
   ) {
+    final isVocabularyReview =
+        node == ActiveLearningVoiceNode.review &&
+        state == ControlledSpeechState.vocabulary;
     bool matches(String intent) =>
         MasterNavigationContract.matches(intent, text);
     if (matches('STOP_GLOBAL') ||
@@ -159,9 +163,10 @@ class ActiveLearningCommandResolver {
         // authored catalog. In Core/Parent/Star it means the next item; only a
         // paused node without next-item support may interpret it as resume.
         if (node != ActiveLearningVoiceNode.challenge &&
-            node != ActiveLearningVoiceNode.review)
+            (node != ActiveLearningVoiceNode.review || isVocabularyReview))
           'PREVIOUS_ITEM': ActiveLearningCommand.previousItem,
         if (node == ActiveLearningVoiceNode.core ||
+            isVocabularyReview ||
             node == ActiveLearningVoiceNode.parent ||
             node == ActiveLearningVoiceNode.star)
           'NEXT_ITEM': ActiveLearningCommand.nextItem,

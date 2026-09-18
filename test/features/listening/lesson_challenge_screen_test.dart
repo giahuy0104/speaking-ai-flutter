@@ -15,6 +15,107 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  for (final cancel in <bool>[false, true]) {
+    testWidgets(
+      'Android Challenge waits for ready cue${cancel ? " and MAIN cancels pending capture" : " before recording"}',
+      (tester) async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        await _usePhoneSurface(tester);
+        final registry = ActiveLearningModuleRegistry();
+        addTearDown(registry.dispose);
+        final media = _FakeLessonMediaService();
+        final prompts = _GatedChallengeCuePrompt();
+        await tester.pumpWidget(
+          ActiveLearningModuleScope(
+            registry: registry,
+            child: _subject(
+              startAge: 7,
+              mediaService: media,
+              voicePromptService: prompts,
+            ),
+          ),
+        );
+        await _pumpChallengeTransition(tester);
+        expect(prompts.cueStarted, isTrue);
+        expect(media.recordingStarts, 0);
+        expect(media.selectedOutputPreparations, 2);
+        if (cancel) await registry.pauseForMainAssistant();
+        prompts.cue.complete();
+        await _pumpChallengeTransition(tester);
+        expect(media.recordingStarts, cancel ? 0 : 1);
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump();
+        debugDefaultTargetPlatformOverride = null;
+      },
+    );
+  }
+
+  testWidgets('failed Challenge retry prompt cannot reopen capture', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final media = _FakeLessonMediaService();
+    final prompts = _FailingRetryQuestionPrompt();
+    await tester.pumpWidget(
+      _subject(
+        startAge: 7,
+        mediaService: media,
+        voicePromptService: prompts,
+        attemptEvaluator: _QueuedAttemptEvaluator(<LessonAttemptOutcome>[
+          LessonAttemptOutcome.retry,
+        ]),
+      ),
+    );
+    await _pumpChallengeTransition(tester);
+    expect(media.recordingStarts, 1);
+    await tester.tap(find.byKey(const Key('lesson-challenge-record-button')));
+    await _pumpChallengeTransition(tester);
+    expect(prompts.questionCalls, 2);
+    expect(media.recordingStarts, 1);
+    expect(
+      find.text('Chưa phát được câu hỏi. Bạn bấm nghe lại nhé.'),
+      findsOneWidget,
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets(
+    'MAIN during old Challenge feedback cannot advance the resumed question',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final media = _FakeLessonMediaService();
+      final prompts = _GatedChallengeFeedbackPrompt();
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _subject(
+            startAge: 7,
+            mediaService: media,
+            voicePromptService: prompts,
+          ),
+        ),
+      );
+      await _pumpChallengeTransition(tester);
+      await tester.tap(find.byKey(const Key('lesson-challenge-record-button')));
+      await _pumpChallengeTransition(tester);
+      expect(prompts.feedbackStarted, isTrue);
+      await registry.pauseForMainAssistant();
+      await registry.execute(ActiveLearningCommand.replayCurrent);
+      await _pumpChallengeTransition(tester);
+      final starts = media.recordingStarts;
+      prompts.feedback.complete();
+      await _pumpChallengeTransition(tester);
+      expect(media.recordingStarts, starts);
+      expect(find.byType(LessonChallengeScreen), findsOneWidget);
+      expect(find.text('Dừng và chấm'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+  );
   testWidgets('failed Challenge question does not open mic', (tester) async {
     await _usePhoneSurface(tester);
     final media = _FakeLessonMediaService();
@@ -189,6 +290,8 @@ void main() {
   testWidgets(
     'opens the H20 microphone when iOS TTS omits its finish callback',
     (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
       await _usePhoneSurface(tester);
       final mediaService = _FakeLessonMediaService();
       final voicePromptService = _MissingSecondFinishVoicePromptService();
@@ -208,6 +311,58 @@ void main() {
       expect(voicePromptService.stopCalls, greaterThanOrEqualTo(1));
       expect(mediaService.recordingStarts, 1);
       expect(find.text('Dừng và chấm'), findsOneWidget);
+      debugDefaultTargetPlatformOverride = null;
+    },
+  );
+
+  testWidgets('Android prompt timeout stops speech without opening mic', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    await _usePhoneSurface(tester);
+    final media = _FakeLessonMediaService();
+    final prompt = _MissingSecondFinishVoicePromptService();
+    await tester.pumpWidget(
+      _subject(startAge: 7, mediaService: media, voicePromptService: prompt),
+    );
+    await _pumpChallengeTransition(tester);
+    await tester.pump(const Duration(seconds: 10));
+    await _pumpChallengeTransition(tester);
+    expect(prompt.stopCalls, 1);
+    expect(media.recordingStarts, 0);
+    expect(
+      find.text('Chưa phát được câu hỏi. Bạn bấm nghe lại nhé.'),
+      findsOneWidget,
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets(
+    'Android timeout cannot become success when stop completes speech',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      await _usePhoneSurface(tester);
+      final media = _FakeLessonMediaService();
+      final prompt = _StopCompletesPromptVoiceService();
+      await tester.pumpWidget(
+        _subject(startAge: 7, mediaService: media, voicePromptService: prompt),
+      );
+      await _pumpChallengeTransition(tester);
+      await tester.pump(const Duration(seconds: 10));
+      await _pumpChallengeTransition(tester);
+      expect(prompt.stopCalls, 1);
+      expect(media.recordingStarts, 0);
+      expect(
+        find.text('Chưa phát được câu hỏi. Bạn bấm nghe lại nhé.'),
+        findsOneWidget,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      debugDefaultTargetPlatformOverride = null;
     },
   );
 
@@ -817,6 +972,41 @@ class _FailingVoicePromptService extends _RecordingVoicePromptService {
   }
 }
 
+class _GatedChallengeCuePrompt extends _RecordingVoicePromptService
+    implements SpeechReadyCuePlayer {
+  final cue = Completer<void>();
+  bool cueStarted = false;
+  @override
+  Future<void> playSpeechReadyCue() async {
+    cueStarted = true;
+    await cue.future;
+  }
+}
+
+class _FailingRetryQuestionPrompt extends _RecordingVoicePromptService {
+  int questionCalls = 0;
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    if (text == 'Where is the library?' && ++questionCalls == 2) {
+      throw StateError('Question playback unavailable');
+    }
+    await super.speakAndWait(text, locale: locale);
+  }
+}
+
+class _GatedChallengeFeedbackPrompt extends _RecordingVoicePromptService {
+  final feedback = Completer<void>();
+  bool feedbackStarted = false;
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    await super.speakAndWait(text, locale: locale);
+    if (text == 'Đúng rồi!') {
+      feedbackStarted = true;
+      await feedback.future;
+    }
+  }
+}
+
 class _LongAuthoredChallengePrompt extends _RecordingVoicePromptService
     implements AuthoredPromptBudgetProvider {
   final completion = Completer<void>();
@@ -863,6 +1053,22 @@ class _MissingSecondFinishVoicePromptService implements VoicePromptService {
   @override
   Future<void> stop() async {
     stopCalls += 1;
+  }
+}
+
+class _StopCompletesPromptVoiceService
+    extends _MissingSecondFinishVoicePromptService {
+  final completion = Completer<void>();
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    speakCalls += 1;
+    if (speakCalls > 1) await completion.future;
+  }
+
+  @override
+  Future<void> stop() async {
+    await super.stop();
+    if (!completion.isCompleted) completion.complete();
   }
 }
 

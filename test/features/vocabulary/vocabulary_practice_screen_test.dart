@@ -7,6 +7,7 @@ import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart'
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_recording_endpoint_detector.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/lesson_guide_flow.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_session_store.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_store.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
@@ -535,7 +536,7 @@ void main() {
     );
   });
 
-  testWidgets('system Back cannot leave an unfinished Today session', (
+  testWidgets('system Back preserves an unfinished Today checkpoint', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -549,9 +550,8 @@ void main() {
       now: DateTime(2026, 9, 10, 9),
     );
     final media = _FakeLessonMediaService();
-    final voice = _BlockingExitVoicePromptService();
+    final voice = _FakeVoicePromptService();
     addTearDown(media.close);
-    addTearDown(voice.release);
     VocabularyPracticeResult? result;
 
     await tester.pumpWidget(
@@ -586,21 +586,236 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.binding.handlePopRoute();
-    await tester.pump();
-    await voice.exitPromptStarted.future.timeout(const Duration(seconds: 1));
-    await tester.pump();
-
-    expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
-    expect(find.text(VocabularyFlowV3.finishActiveGroupFirst), findsOneWidget);
-    expect(await sessionStore.readActive(), isNotNull);
-    expect(result, isNull);
-
-    voice.release();
     await tester.pumpAndSettle();
+
+    expect(find.byType(VocabularyPracticeScreen), findsNothing);
+    expect(find.text(VocabularyFlowV3.finishActiveGroupFirst), findsNothing);
+    expect((await sessionStore.readActive())?.currentIndex, 0);
+    expect(voice.spoken, isEmpty);
+    expect(result, isNull);
   });
+
+  testWidgets(
+    'Review MAIN controls always play EN then VI before cue and mic',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final media = _FakeLessonMediaService();
+      final voice = _GatedCueVoice(media);
+      addTearDown(registry.dispose);
+      addTearDown(media.close);
+      await _mountReview(
+        tester,
+        registry: registry,
+        media: media,
+        voice: voice,
+      );
+      final context = registry.controller! as ActiveLearningVoiceContext;
+      expect(context.mainVoiceNode, ActiveLearningVoiceNode.review);
+      expect(
+        context.mainVoicePrompt,
+        MasterNavigationContract.coreControlPrompt,
+      );
+      for (final scenario in <(ActiveLearningCommand, String, String, String?)>[
+        (
+          ActiveLearningCommand.previousItem,
+          'Apple',
+          'Quả táo',
+          'Đây là câu đầu tiên. Mình nghe lại nhé.',
+        ),
+        (
+          ActiveLearningCommand.nextItem,
+          'Banana',
+          'Quả chuối',
+          MasterNavigationContract.nextItemPrompt,
+        ),
+        (
+          ActiveLearningCommand.nextItem,
+          'Banana',
+          'Quả chuối',
+          'Đây là câu cuối. Bạn hãy hoàn thành câu này nhé.',
+        ),
+        (ActiveLearningCommand.previousItem, 'Apple', 'Quả táo', null),
+        (ActiveLearningCommand.replayCurrent, 'Apple', 'Quả táo', null),
+      ]) {
+        await registry.pauseForMainAssistant();
+        final before = media.startCalls;
+        voice.spoken.clear();
+        voice.gates = <String, Completer<void>>{
+          'en-US:${scenario.$2}': Completer<void>(),
+          'vi-VN:${scenario.$3}': Completer<void>(),
+        };
+        voice.cue = Completer<void>();
+        final command = registry.execute(scenario.$1);
+        await tester.pumpAndSettle();
+        expect(voice.spoken, <String>[
+          if (scenario.$4 != null) 'vi-VN:${scenario.$4}',
+          'en-US:${scenario.$2}',
+        ]);
+        expect(media.startCalls, before);
+        voice.gates['en-US:${scenario.$2}']!.complete();
+        await tester.pumpAndSettle();
+        expect(voice.spoken.last, 'vi-VN:${scenario.$3}');
+        expect(media.startCalls, before);
+        voice.gates['vi-VN:${scenario.$3}']!.complete();
+        await tester.pumpAndSettle();
+        expect(media.events.last, 'cue');
+        expect(media.events[media.events.length - 2], 'prepare');
+        expect(media.startCalls, before);
+        voice.cue!.complete();
+        await tester.pumpAndSettle();
+        expect((await command).wasHandled, isTrue);
+        expect(media.startCalls, before + 1);
+        expect(media.events.last, 'record');
+      }
+      await registry.pauseForMainAssistant();
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpAndSettle();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  for (final cancel in <bool>[false, true]) {
+    testWidgets(
+      'Android Review does not record after cue ${cancel ? "cancellation" : "failure"}',
+      (tester) async {
+        final registry = ActiveLearningModuleRegistry();
+        final media = _FakeLessonMediaService();
+        final voice = _GatedCueVoice(media)..cue = Completer<void>();
+        addTearDown(registry.dispose);
+        addTearDown(media.close);
+        await _mountReview(
+          tester,
+          registry: registry,
+          media: media,
+          voice: voice,
+        );
+        await tester.tap(
+          find.byKey(const Key('vocabulary-practice-main-action')),
+        );
+        await tester.pumpAndSettle();
+        expect(media.events.last, 'cue');
+        expect(media.startCalls, 0);
+        if (cancel) {
+          await registry.pauseForMainAssistant();
+          voice.cue!.complete();
+        } else {
+          voice.cue!.completeError(StateError('H20 cue failed'));
+        }
+        await tester.pumpAndSettle();
+        expect(media.startCalls, 0);
+        expect(media.recording, isFalse);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+        await tester.pumpAndSettle();
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.android),
+    );
+  }
+
+  testWidgets(
+    'Review next keeps skipped items pending after completing the block',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final media = _FakeLessonMediaService();
+      final voice = _FakeVoicePromptService();
+      addTearDown(registry.dispose);
+      addTearDown(media.close);
+      await _mountReview(
+        tester,
+        registry: registry,
+        media: media,
+        voice: voice,
+        evaluator: _QueuedAttemptEvaluator([LessonAttemptOutcome.good]),
+      );
+      await registry.pauseForMainAssistant();
+      expect(
+        (await registry.execute(ActiveLearningCommand.nextItem)).wasHandled,
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+      expect(media.recording, isTrue);
+      expect(voice.spoken.take(3), [
+        'vi-VN:${MasterNavigationContract.nextItemPrompt}',
+        'en-US:Banana',
+        'vi-VN:Quả chuối',
+      ]);
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pumpAndSettle();
+      const store = VocabularyStore();
+      const sessions = VocabularySessionStore();
+      final entries = await store.reviewEntries();
+      expect(entries.map((entry) => entry.word), contains('Apple'));
+      expect(await sessions.hasPendingReviewEntries(store), isTrue);
+      final snapshot = (await sessions.readReviewSessionSnapshot())!;
+      expect(snapshot.triedEntryIds, hasLength(1));
+      expect(
+        snapshot.triedEntryIds,
+        isNot(
+          contains(entries.singleWhere((entry) => entry.word == 'Apple').id),
+        ),
+      );
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpAndSettle();
+    },
+  );
+}
+
+Future<void> _mountReview(
+  WidgetTester tester, {
+  required ActiveLearningModuleRegistry registry,
+  required _FakeLessonMediaService media,
+  required VoicePromptService voice,
+  LessonAttemptEvaluator evaluator = const RecordedAttemptEvaluator(),
+}) async {
+  SharedPreferences.setMockInitialValues(<String, Object>{});
+  const store = VocabularyStore();
+  const sessions = VocabularySessionStore();
+  for (final item in <(String, String)>[
+    ('Apple', 'Quả táo'),
+    ('Banana', 'Quả chuối'),
+  ]) {
+    await store.upsertLessonSentence(
+      lessonCode: 'L01',
+      sentenceId: item.$1,
+      english: item.$1,
+      vietnamese: item.$2,
+      collection: VocabularyCollection.review,
+      source: VocabularySource.topicCore,
+    );
+  }
+  final prepared = (await sessions.prepareReview(store))!;
+  final entries = (await store.read()).toList()
+    ..sort((left, right) => left.word.compareTo(right.word));
+  final session = prepared.copyWith(
+    entryIds: entries.map((entry) => entry.id).toList(),
+  );
+  await tester.pumpWidget(
+    ActiveLearningModuleScope(
+      registry: registry,
+      child: MaterialApp(
+        theme: buildAppTheme(),
+        home: VocabularyPracticeScreen(
+          language: DisplayLanguage.vietnamese,
+          childAge: 6,
+          session: session,
+          store: store,
+          sessionStore: sessions,
+          mediaService: media,
+          voicePromptService: voice,
+          attemptEvaluator: evaluator,
+          autoStart: false,
+          samplePause: Duration.zero,
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
 }
 
 class _FakeLessonMediaService extends LessonMediaService {
+  final events = <String>[];
   bool recording = false;
   int startCalls = 0;
   int stopCalls = 0;
@@ -611,7 +826,9 @@ class _FakeLessonMediaService extends LessonMediaService {
   Stream<double> get recordingAmplitudeDbfs => amplitudes.stream;
 
   @override
-  Future<void> prepareSelectedLessonOutput() async {}
+  Future<void> prepareSelectedLessonOutput() async {
+    events.add('prepare');
+  }
 
   @override
   Future<void> startRecording({
@@ -623,6 +840,7 @@ class _FakeLessonMediaService extends LessonMediaService {
     String? vietnamese,
     bool saveToHistory = true,
   }) async {
+    events.add('record');
     recording = true;
     startCalls += 1;
   }
@@ -708,28 +926,21 @@ class _FakeVoicePromptService implements VoicePromptService {
   Future<void> stop() async {}
 }
 
-class _BlockingExitVoicePromptService implements VoicePromptService {
-  final Completer<void> exitPromptStarted = Completer<void>();
-  final Completer<void> _release = Completer<void>();
-
-  @override
-  Future<void> dispose() async => release();
-
-  @override
-  Future<void> speak(String text, {String locale = 'vi-VN'}) =>
-      speakAndWait(text, locale: locale);
-
+class _GatedCueVoice extends _FakeVoicePromptService
+    implements SpeechReadyCuePlayer {
+  _GatedCueVoice(this.media);
+  final _FakeLessonMediaService media;
+  Map<String, Completer<void>> gates = {};
+  Completer<void>? cue;
   @override
   Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
-    if (text != VocabularyFlowV3.finishActiveGroupFirst) return;
-    if (!exitPromptStarted.isCompleted) exitPromptStarted.complete();
-    await _release.future;
+    spoken.add('$locale:$text');
+    await gates['$locale:$text']?.future;
   }
 
   @override
-  Future<void> stop() async {}
-
-  void release() {
-    if (!_release.isCompleted) _release.complete();
+  Future<void> playSpeechReadyCue() async {
+    media.events.add('cue');
+    await cue?.future;
   }
 }

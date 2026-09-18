@@ -150,7 +150,9 @@ class MethodChannelVoicePromptService
     } on MissingPluginException {
       // Optional native capability.
     } on PlatformException {
-      // A missing audio route must not prevent the child from speaking.
+      // Android capture is gated by this cue. Do not silently open a recorder
+      // after a failed cue/route and make the child speak without a ready signal.
+      if (defaultTargetPlatform == TargetPlatform.android) rethrow;
     }
   }
 

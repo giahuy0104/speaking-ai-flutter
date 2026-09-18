@@ -12,6 +12,8 @@ import 'package:ai_speaking_flutter_app/features/voice_navigation/application/ma
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 import 'support/local_cloudinary_audio_client.dart';
 
@@ -20,6 +22,52 @@ const _asset = 'assets/audio/MAIN/AI-001.vi.v1.mp3';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('repeated MAIN reuses verified remote audio after stop', () async {
+    final bundle = _Bundle(mode: 'remote');
+    var downloads = 0;
+    final client = MockClient((_) async {
+      downloads++;
+      return http.Response.bytes(bundle.bytes, 200);
+    });
+    final delegate = _Delegate();
+    final service = MainAssistantAudioPromptService(
+      delegate: delegate,
+      bundle: bundle,
+      httpClient: client,
+    );
+    await service.speakAndWait(_text);
+    await service.stop();
+    await service.speakAndWait(_text);
+    expect(downloads, 1);
+    expect(delegate.events, ['audio:normal', 'stop', 'audio:normal']);
+    await service.dispose();
+    client.close();
+  });
+
+  test(
+    'corrupt remote audio is never cached and a later retry recovers',
+    () async {
+      final bundle = _Bundle(mode: 'remote');
+      var downloads = 0;
+      final client = MockClient((_) async {
+        downloads++;
+        return http.Response.bytes(downloads == 1 ? [9] : bundle.bytes, 200);
+      });
+      final delegate = _Delegate();
+      final service = MainAssistantAudioPromptService(
+        delegate: delegate,
+        bundle: bundle,
+        httpClient: client,
+      );
+      await service.speakAndWait(_text);
+      await service.speakAndWait(_text);
+      expect(downloads, 2);
+      expect(delegate.events, ['tts:vi-VN:$_text', 'audio:normal']);
+      await service.dispose();
+      client.close();
+    },
+  );
 
   test(
     'optional curriculum pack plays locally with its duration budget',
@@ -142,9 +190,11 @@ void main() {
         'vi': {'voiceId': '5CVDNcIPiOYgRUQuxXd7', 'speed': 0.9},
       });
       final entry = (manifest['prompts'] as List).cast<Map>().singleWhere(
-        (entry) => entry['text'] == _text,
+        (entry) =>
+            entry['text'] == _text ||
+            (entry['lookupTexts'] as List? ?? []).contains(_text),
       );
-      expect(entry['text'], _text);
+      expect((entry['text'] as String).toLowerCase(), _text.toLowerCase());
       expect(
         entry['durationSeconds'],
         lessThanOrEqualTo(MainAssistantAudioPromptService.maximumAudioSeconds),
@@ -422,7 +472,7 @@ void main() {
   );
 
   test(
-    'MAIN opening and Core retries use the updated navigation recordings',
+    'MAIN keeps its recording but new Core wording never plays the old script',
     () async {
       const channel = MethodChannel('ailingo_voice_prompt');
       final calls = <MethodCall>[];
@@ -452,23 +502,16 @@ void main() {
 
       expect(calls.map((call) => call.method), [
         'playAuthoredAudioAndWait',
-        'playAuthoredAudioAndWait',
-        'playAuthoredAudioAndWait',
+        'speakAndWait',
+        'speakAndWait',
       ]);
-      final expectedAssets = [
+      final playedBytes = (calls.first.arguments as Map)['bytes'] as Uint8List;
+      final expectedBytes = await File(
         'assets/audio/MAIN/RUNTIME-MAIN-NAVIGATION-001.vi.v1.mp3',
-        'assets/audio/MAIN/GAP66/GAP66-002.vi.v1.mp3',
-        'assets/audio/MAIN/GAP66/GAP66-002.vi.v1.mp3',
-      ];
-      for (var index = 0; index < calls.length; index++) {
-        final playedBytes =
-            (calls[index].arguments as Map)['bytes'] as Uint8List;
-        final expectedBytes = await File(expectedAssets[index]).readAsBytes();
-        expect(
-          sha256.convert(playedBytes).toString(),
-          sha256.convert(expectedBytes).toString(),
-          reason: expectedAssets[index],
-        );
+      ).readAsBytes();
+      expect(sha256.convert(playedBytes), sha256.convert(expectedBytes));
+      for (final call in calls.skip(1)) {
+        expect((call.arguments as Map)['text'], corePrompt);
       }
     },
   );
@@ -544,6 +587,7 @@ class _Bundle extends CachingAssetBundle {
       if (mode == 'grouped')
         'group': MainAssistantAudioPromptService.challengeCueGroup,
       'asset': _asset,
+      if (mode == 'remote') 'url': 'https://res.cloudinary.com/test/main.mp3',
       'sha256': mode == 'hash' ? 'wrong' : sha256.convert(bytes).toString(),
       'durationSeconds': mode == 'too-long'
           ? 46

@@ -23,7 +23,8 @@ abstract final class MasterNavigationContract {
   static const switchedToTranslation = 'Mình đã chuyển sang Dịch tiếng Anh.';
   static const continueSubject = 'Mình tiếp tục Chủ đề nhé.';
   static const continueVocabulary = 'Mình tiếp tục Bộ từ vựng nhé.';
-  static const coreControlPrompt = 'Bạn muốn nghe lại, câu trước, hay câu sau?';
+  static const coreControlPrompt = 'Bạn muốn nghe lại, câu trước hay câu sau?';
+  static const nextItemPrompt = 'Mình học câu sau nhé';
   static const challengeControlPrompt = 'Bạn muốn nghe lại hay dừng lại?';
   static const songControlPrompt = 'Bạn muốn nghe lại, dừng lại hay bỏ qua?';
   static const songSkipped = 'Mình bỏ qua bài hát nhé.';
@@ -72,8 +73,8 @@ abstract final class MasterNavigationContract {
     'OTHER_TOPIC': ['TOPIC_DONE'],
     'RELEARN_TOPIC': ['TOPIC_DONE'],
     'LISTEN_AGAIN': ['CORE', 'CHALLENGE', 'REVIEW', 'TODAY', 'PARENT', 'STAR'],
-    'PREVIOUS_ITEM': ['CORE', 'TODAY', 'PARENT', 'STAR'],
-    'NEXT_ITEM': ['CORE', 'TODAY_AFTER_EN_VN', 'PARENT', 'STAR'],
+    'PREVIOUS_ITEM': ['CORE', 'VOCAB_REVIEW', 'TODAY', 'PARENT', 'STAR'],
+    'NEXT_ITEM': ['CORE', 'VOCAB_REVIEW', 'TODAY_AFTER_EN_VN', 'PARENT', 'STAR'],
     'SKIP_ITEM': ['CORE', 'PARENT', 'STAR'],
     'SKIP_SONG': ['SONG_PLAYING'],
     'RESUME_ACTIVITY': ['ACTIVE_RESUME'],
@@ -137,6 +138,8 @@ abstract final class MasterNavigationContract {
       'Phải làm sao',
     ],
     'OPEN_SUBJECT': [
+      'Chuyển sang Chủ đề',
+      'Chuyển sang học Chủ đề',
       'Chủ đề',
       'Học theo Chủ đề',
       'Mình muốn học Chủ đề',
@@ -150,6 +153,8 @@ abstract final class MasterNavigationContract {
       'Chủ đề đi',
     ],
     'OPEN_VOCAB': [
+      'Chuyển sang Bộ từ vựng',
+      'Chuyển sang từ vựng',
       'Học Bộ từ vựng',
       'Mình muốn học từ vựng',
       'Vào Bộ từ vựng',
@@ -165,6 +170,8 @@ abstract final class MasterNavigationContract {
       'Bộ từ vựng đi',
     ],
     'OPEN_TRANSLATE': [
+      'Chuyển sang Dịch',
+      'Chuyển sang Dịch tiếng Anh',
       'Dịch sang tiếng Anh',
       'Mình muốn dịch',
       'Dịch giúp mình',

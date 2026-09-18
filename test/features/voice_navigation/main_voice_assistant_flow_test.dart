@@ -8,6 +8,81 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
+    'global module commands remain available during content selection',
+    () async {
+      final topic = (await _loadContent()).topic(
+        startAge: 6,
+        endAge: 7,
+        topicNumber: 3,
+      );
+      final selections = <void Function(MainVoiceAssistantFlow)>[
+        (flow) => flow.beginLevelTopicSelection(
+          childAge: 6,
+          levelNumber: 1,
+          topicNumbers: [1, 2, 3],
+          completedTopicNumbers: [],
+          announceLevel: false,
+        ),
+        (flow) => flow.beginCourseRelearnLevelSelection(
+          childAge: 6,
+          levelNumbers: [1, 2, 3],
+        ),
+        (flow) => flow.beginLessonSelectionForTopic(
+          childAge: 6,
+          topicNumber: 3,
+          topicContent: topic,
+          completedLessonNumbers: [],
+        ),
+        (flow) => flow.beginLessonSelectionForTopic(
+          childAge: 6,
+          topicNumber: 3,
+          topicContent: topic,
+          completedLessonNumbers: topic.lessons
+              .map((lesson) => lesson.number)
+              .toList(),
+        ),
+      ];
+      for (final beginSelection in selections) {
+        for (final entry in <String, VoiceNavigationDestination>{
+          'OPEN_SUBJECT': VoiceNavigationDestination.topics,
+          'OPEN_VOCAB': VoiceNavigationDestination.vocabulary,
+          'OPEN_TRANSLATE': VoiceNavigationDestination.conversation,
+        }.entries) {
+          for (final phrase in MasterNavigationContract.phrases[entry.key]!) {
+            final flow = MainVoiceAssistantFlow(
+              contentLoader: _loadContent,
+              childAge: 6,
+            );
+            beginSelection(flow);
+            final previousStage = flow.stage;
+            expect(
+              flow.canHandle(phrase),
+              isTrue,
+              reason: '$previousStage: $phrase',
+            );
+            expect(
+              flow.canHandlePartial(phrase),
+              isTrue,
+              reason: '$previousStage: $phrase',
+            );
+            final turn = await flow.handle(phrase);
+            expect(
+              turn.navigationAfterPrompt?.destination,
+              entry.value,
+              reason: '$previousStage: $phrase',
+            );
+            expect(turn.continueListening, isFalse);
+            expect(flow.stage, MainVoiceAssistantStage.idle);
+            if (entry.value == VoiceNavigationDestination.conversation) {
+              expect(turn.navigationAfterPrompt?.enterMainSpeakingMode, isTrue);
+            }
+          }
+        }
+      }
+    },
+  );
+
+  test(
     'fast path accepts unambiguous fallback phrases but defers broad input',
     () async {
       final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
@@ -223,7 +298,7 @@ void main() {
     expect(flow.canHandle('Câu tiếp theo'), isTrue);
 
     final turn = await flow.handle('Câu tiếp theo');
-    expect(turn.promptText, 'Mình học câu tiếp theo nhé');
+    expect(turn.promptText, 'Mình học câu sau nhé');
     expect(turn.activeLearningCommand, ActiveLearningCommand.nextItem);
     expect(turn.continueListening, isFalse);
   });

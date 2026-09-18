@@ -507,24 +507,28 @@ class VoicePromptBridge(
                 false
             }
             if (!retryStarted) {
+                completeReadyCue()
                 result.error("READY_CUE_UNAVAILABLE", "Unable to play the ready cue.", null)
                 return
             }
         }
         readyCueResult = result
-        // Complete after the tone tail; callers arm VAD only after this cue.
+        // Capture must start AFTER the cue, not merely arm VAD afterwards:
+        // otherwise the WAV still contains the beep even if VAD ignores it.
+        // Leave 180 ms after the 120 ms tone for the SCO output/acoustic tail.
+        // This is a bounded guard, not another route teardown/reconnect.
         val completion = Runnable { completeReadyCue() }
         readyCueCompletion = completion
-        mainHandler.postDelayed(completion, 150L)
+        mainHandler.postDelayed(completion, 300L)
     }
 
     private fun readyCueStreamType(): Int {
         val audioManager = appContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         @Suppress("DEPRECATION")
         val bluetoothScoOn = audioManager.isBluetoothScoOn
-        // The cue is played after H20 recording starts. STREAM_MUSIC may then
-        // remain on the phone while the active SCO route carries voice-call
-        // audio, which made the "ting" intermittent on the headset.
+        // Callers prepare H20 before the cue and only open capture afterwards.
+        // Keep the cue on that communication route; STREAM_MUSIC can still be
+        // on the phone even though H20's input/output have been selected.
         return if (
             audioManager.mode == AudioManager.MODE_IN_COMMUNICATION ||
                 bluetoothScoOn
@@ -535,7 +539,7 @@ class VoicePromptBridge(
         }
     }
 
-    private fun completeReadyCue() {
+    private fun completeReadyCue(errorCode: String? = null) {
         readyCueCompletion?.let(mainHandler::removeCallbacks)
         readyCueCompletion = null
         readyCueGenerator?.let { generator ->
@@ -545,7 +549,11 @@ class VoicePromptBridge(
         readyCueGenerator = null
         val completion = readyCueResult
         readyCueResult = null
-        completion?.success(null)
+        if (errorCode == null) {
+            completion?.success(null)
+        } else {
+            completion?.error(errorCode, "Kết nối âm thanh H20 bị gián đoạn. Hãy thử lại.", null)
+        }
     }
 
     fun stopForRouteLoss() {
@@ -557,7 +565,7 @@ class VoicePromptBridge(
         awaitedResult = null
         awaitedUtteranceId = null
         completion?.error("HFP_ROUTE_LOST", "Kết nối âm thanh H20 bị gián đoạn. Hãy thử lại.", null)
-        completeReadyCue()
+        completeReadyCue("HFP_ROUTE_LOST")
         textToSpeech?.stop()
         clearSynthesizedPrompt()
         releasePromptPlayback()

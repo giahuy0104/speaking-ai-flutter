@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service_native.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
@@ -187,6 +189,46 @@ void main() {
     expect(receivedCall?.method, 'playSpeechReadyCue');
     expect(receivedCall?.arguments, isNull);
   });
+
+  test('ready cue does not finish before native output has drained', () async {
+    const channel = MethodChannel('test_ready_cue_completion_gate');
+    final cueFinished = Completer<void>();
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (_) => cueFinished.future);
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+    const service = MethodChannelVoicePromptService(channel: channel);
+    var completed = false;
+    final pending = service.playSpeechReadyCue().then((_) => completed = true);
+    await Future<void>.delayed(Duration.zero);
+    expect(completed, isFalse);
+    cueFinished.complete();
+    await pending;
+    expect(completed, isTrue);
+  });
+
+  for (final code in ['READY_CUE_UNAVAILABLE', 'HFP_ROUTE_LOST']) {
+    test('Android $code fails the ready gate instead of opening mic', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      const channel = MethodChannel('test_ready_cue_failure');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (_) async {
+            throw PlatformException(code: code);
+          });
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null);
+      });
+      const service = MethodChannelVoicePromptService(channel: channel);
+      await expectLater(
+        service.playSpeechReadyCue(),
+        throwsA(isA<PlatformException>().having((e) => e.code, 'code', code)),
+      );
+    });
+  }
 
   test('brackets one MAIN turn through the native coordinator', () async {
     const channel = MethodChannel('test_main_turn_prompt');

@@ -267,7 +267,8 @@ class MainVoiceAssistantFlow {
     if (_isStopChoice(normalized)) {
       return _stage != MainVoiceAssistantStage.idle;
     }
-    return stageCanHandle ||
+    return _selectionModuleDestination(normalized) != null ||
+        stageCanHandle ||
         (_stage != MainVoiceAssistantStage.idle && _isHelpChoice(normalized));
   }
 
@@ -281,6 +282,7 @@ class MainVoiceAssistantFlow {
     if (normalized.isEmpty || _looksLikePromptEcho(normalized)) {
       return false;
     }
+    if (_selectionModuleDestination(normalized) != null) return true;
     if (!_hasStageSpecificIntent(normalized) && !_isStopChoice(normalized)) {
       return false;
     }
@@ -399,6 +401,20 @@ class MainVoiceAssistantFlow {
     if (_isHelpChoice(normalized)) {
       return _helpTurn();
     }
+    final selectionDestination = _selectionModuleDestination(normalized);
+    if (selectionDestination != null) {
+      return _moduleNavigationTurn(
+        recognizedText: recognizedText,
+        destination: selectionDestination,
+        promptText: switch (selectionDestination) {
+          VoiceNavigationDestination.topics =>
+            MasterNavigationContract.switchedToSubject,
+          VoiceNavigationDestination.vocabulary =>
+            MasterNavigationContract.switchedToVocabulary,
+          _ => MasterNavigationContract.switchedToTranslation,
+        },
+      );
+    }
     if (!stageCanHandle &&
         !isPromptEcho &&
         _stage != MainVoiceAssistantStage.idle) {
@@ -477,6 +493,35 @@ class MainVoiceAssistantFlow {
       recognizedText: recognizedText,
       childAge: age,
     );
+  }
+
+  /// Exact global commands remain available while choosing content. Local
+  /// numbers and replay choices still belong to their existing node; idle
+  /// translation text must never be interpreted as a navigation command here.
+  VoiceNavigationDestination? _selectionModuleDestination(String text) {
+    if (!const <MainVoiceAssistantStage>{
+      MainVoiceAssistantStage.askAge,
+      MainVoiceAssistantStage.chooseTopic,
+      MainVoiceAssistantStage.chooseTopicAfterCompletion,
+      MainVoiceAssistantStage.chooseCourseRelearnLevel,
+      MainVoiceAssistantStage.confirmReplayTopic,
+      MainVoiceAssistantStage.chooseLesson,
+      MainVoiceAssistantStage.confirmReplayLesson,
+      MainVoiceAssistantStage.chooseVocabularyCollection,
+    }.contains(_stage)) {
+      return null;
+    }
+    if (MasterNavigationContract.matches('OPEN_SUBJECT', text)) {
+      return VoiceNavigationDestination.topics;
+    }
+    if (MasterNavigationContract.matches('OPEN_VOCAB', text)) {
+      return VoiceNavigationDestination.vocabulary;
+    }
+    if (MasterNavigationContract.matches('OPEN_TRANSLATE', text) ||
+        MasterNavigationContract.matches('TRANSLATE_CONTINUOUS', text)) {
+      return VoiceNavigationDestination.conversation;
+    }
+    return null;
   }
 
   MainVoiceAssistantTurn _openLevelTopicCatalog({
@@ -985,12 +1030,15 @@ class MainVoiceAssistantFlow {
       ActiveLearningCommand.replayCurrent =>
         isVocabulary ? '' : 'Mình nghe lại câu này nhé',
       ActiveLearningCommand.nextItem =>
-        isVocabulary
+        isVocabulary || _activeVoiceNode == ActiveLearningVoiceNode.core
             ? ''
             : _activeVoiceNode == ActiveLearningVoiceNode.song
             ? MasterNavigationContract.songSkipped
-            : 'Mình học câu tiếp theo nhé',
-      ActiveLearningCommand.previousItem => 'Mình nghe lại câu trước nhé',
+            : MasterNavigationContract.nextItemPrompt,
+      ActiveLearningCommand.previousItem =>
+        isVocabulary || _activeVoiceNode == ActiveLearningVoiceNode.core
+            ? ''
+            : 'Mình nghe lại câu trước nhé',
       ActiveLearningCommand.nextLesson => 'Mình chuyển sang bài tiếp theo nhé',
       ActiveLearningCommand.previousLesson => 'Mình quay lại bài trước nhé',
       ActiveLearningCommand.restart => 'Mình học lại bài này từ đầu nhé',

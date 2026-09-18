@@ -5,6 +5,7 @@ import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_audio_service.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_fixed_prompt_audio_service.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_store.dart';
@@ -25,6 +26,8 @@ void main() {
   testWidgets('touch back changes UI immediately and cancels old audio queue', (
     tester,
   ) async {
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
     final audio = _BlockingVocabularyAudioService();
     final store = _MemoryVocabularyStore([
       for (final word in ['Apple', 'Banana'])
@@ -39,21 +42,24 @@ void main() {
         ),
     ]);
     await tester.pumpWidget(
-      MaterialApp(
-        theme: buildAppTheme(),
-        home: DisplayLanguageScope(
-          language: DisplayLanguage.vietnamese,
-          child: VocabularyHomeScreen(
-            isReady: true,
-            store: store,
-            mediaService: _ImmediateLessonMediaService(),
-            voicePromptService: const _FakeVoicePromptService(),
-            vocabularyAudioService: audio,
-            fixedPromptAudioService:
-                const _UnavailableFixedPromptAudioService(),
-            onReturnToConversation: () {},
-            onHistory: () {},
-            onSettings: () {},
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: MaterialApp(
+          theme: buildAppTheme(),
+          home: DisplayLanguageScope(
+            language: DisplayLanguage.vietnamese,
+            child: VocabularyHomeScreen(
+              isReady: true,
+              store: store,
+              mediaService: _ImmediateLessonMediaService(),
+              voicePromptService: const _FakeVoicePromptService(),
+              vocabularyAudioService: audio,
+              fixedPromptAudioService:
+                  const _UnavailableFixedPromptAudioService(),
+              onReturnToConversation: () {},
+              onHistory: () {},
+              onSettings: () {},
+            ),
           ),
         ),
       ),
@@ -67,6 +73,10 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(audio.spoken, ['en-US:Apple']);
+    expect(
+      (registry.controller! as ActiveLearningVoiceContext).mainVoicePrompt,
+      MasterNavigationContract.coreControlPrompt,
+    );
     final back = find.byKey(const Key('vocabulary-home-back-button'));
     await tester.ensureVisible(back);
     await tester.tap(back);

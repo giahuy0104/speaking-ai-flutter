@@ -4,9 +4,79 @@ import 'package:ai_speaking_flutter_app/features/voice_navigation/application/ac
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_voice_assistant_flow.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_intent_resolver.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/controlled_speech_lexicon.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('Core and Challenge use the approved MAIN questions', () {
+    expect(
+      MasterNavigationContract.coreControlPrompt,
+      'Bạn muốn nghe lại, câu trước hay câu sau?',
+    );
+    expect(MasterNavigationContract.nextItemPrompt, 'Mình học câu sau nhé');
+    expect(
+      MasterNavigationContract.challengeControlPrompt,
+      'Bạn muốn nghe lại hay dừng lại?',
+    );
+  });
+
+  test(
+    'sentence owner chooses the lead after validating its boundary',
+    () async {
+      for (final kind in [
+        ActiveLearningModuleKind.listeningLesson,
+        ActiveLearningModuleKind.vocabulary,
+      ]) {
+        for (final phrase in ['Câu trước', 'Câu sau']) {
+          final flow = MainVoiceAssistantFlow();
+          flow.beginActiveLearning(
+            kind: kind,
+            voiceContext: const _VoiceContext(
+              ActiveLearningVoiceNode.core,
+              MasterNavigationContract.coreControlPrompt,
+            ),
+          );
+          final turn = await flow.handle(phrase);
+          expect(turn.promptText, isEmpty);
+          expect(
+            turn.activeLearningCommand,
+            phrase == 'Câu trước'
+                ? ActiveLearningCommand.previousItem
+                : ActiveLearningCommand.nextItem,
+          );
+        }
+      }
+    },
+  );
+
+  test(
+    'Review allows each sentence choice without opening other activities',
+    () {
+      const resolver = ActiveLearningCommandResolver();
+      for (final entry in <String, ActiveLearningCommand>{
+        'LISTEN_AGAIN': ActiveLearningCommand.replayCurrent,
+        'PREVIOUS_ITEM': ActiveLearningCommand.previousItem,
+        'NEXT_ITEM': ActiveLearningCommand.nextItem,
+      }.entries) {
+        for (final phrase in MasterNavigationContract.phrases[entry.key]!) {
+          expect(
+            resolver.resolve(
+              phrase,
+              node: ActiveLearningVoiceNode.review,
+              state: ControlledSpeechState.vocabulary,
+            ),
+            entry.value,
+            reason: phrase,
+          );
+        }
+      }
+      expect(
+        resolver.resolve('Bài tiếp theo', node: ActiveLearningVoiceNode.review),
+        isNull,
+      );
+    },
+  );
+
   test(
     'every literal MAIN sample hands off to the correct existing module',
     () async {
@@ -329,7 +399,6 @@ void main() {
     'numbers are scoped to the current menu and cannot come from free speech',
     () async {
       for (final text in [
-        'Từ vựng',
         'Con 6 tuổi',
         'Bài 2',
         'Level 2',
@@ -347,6 +416,7 @@ void main() {
         expect(flow.canHandle(text), isFalse, reason: text);
         final turn = await flow.handle(text);
         expect(turn.navigationBeforePrompt, isNull, reason: text);
+        expect(turn.navigationAfterPrompt, isNull, reason: text);
         expect(flow.stage, MainVoiceAssistantStage.chooseTopicAfterCompletion);
       }
     },

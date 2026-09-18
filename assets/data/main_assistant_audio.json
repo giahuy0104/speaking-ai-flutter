@@ -4836,6 +4836,9 @@
     {
       "id": "RUNTIME-MAIN-NAVIGATION-001",
       "text": "HOMI đây. Bạn muốn dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?",
+      "lookupTexts": [
+        "HOMI đây. Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?"
+      ],
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "version": 1,
@@ -4858,6 +4861,9 @@
     {
       "id": "RUNTIME-MAIN-NAVIGATION-002",
       "text": "Bạn muốn dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?",
+      "lookupTexts": [
+        "Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?"
+      ],
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "version": 1,

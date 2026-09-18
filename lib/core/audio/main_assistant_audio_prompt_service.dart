@@ -51,6 +51,10 @@ class MainAssistantAudioPromptService
   final bool _ownsHttpClient;
   Future<Map<String, dynamic>>? _manifest;
   final Set<void Function()> _pendingWaits = {};
+  // Reuse only checksum-verified, immutable audio. Repeated MAIN turns should
+  // not download the same short prompt again while holding the headset route.
+  final Map<String, Uint8List> _verifiedAudio = {};
+  static const _maximumCachedAudioBytes = 4 * 1024 * 1024;
   int _generation = 0;
   bool _disposed = false;
 
@@ -195,13 +199,16 @@ class MainAssistantAudioPromptService
                 seconds > maximumAudioSeconds) {
               throw const FormatException('Invalid MAIN audio entry.');
             }
-            final bytes = await _loadAudioBytes(entry, asset);
+            final checksum = entry['sha256'] as String;
+            final bytes =
+                _verifiedAudio[checksum] ?? await _loadAudioBytes(entry, asset);
             if (!_isCurrent(generation)) return;
             if (bytes.isEmpty ||
                 bytes.length > 2 * 1024 * 1024 ||
                 sha256.convert(bytes).toString() != entry['sha256']) {
               throw const FormatException('MAIN audio integrity check failed.');
             }
+            _rememberVerifiedAudio(checksum, bytes);
             startedAudio = true;
             await _bounded(
               (player as AuthoredAudioVoicePromptService)
@@ -228,6 +235,19 @@ class MainAssistantAudioPromptService
       }
     }
     if (_isCurrent(generation)) await fallback();
+  }
+
+  void _rememberVerifiedAudio(String checksum, Uint8List bytes) {
+    // Move the entry to the end so frequently used navigation stays cached.
+    _verifiedAudio.remove(checksum);
+    _verifiedAudio[checksum] = bytes;
+    var total = _verifiedAudio.values.fold<int>(
+      0,
+      (sum, item) => sum + item.length,
+    );
+    while (total > _maximumCachedAudioBytes) {
+      total -= _verifiedAudio.remove(_verifiedAudio.keys.first)!.length;
+    }
   }
 
   Future<Uint8List> _loadAudioBytes(
@@ -355,6 +375,7 @@ class MainAssistantAudioPromptService
     if (_disposed) return;
     _disposed = true;
     await stop();
+    _verifiedAudio.clear();
     if (_ownsHttpClient) _httpClient.close();
     await _delegate.dispose();
   }

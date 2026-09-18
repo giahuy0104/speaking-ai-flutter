@@ -34,6 +34,31 @@ void main() {
     }
   });
 
+  test('whole module requests leave translation for the navigation menu', () {
+    for (final text in [
+      'Bộ từ vựng',
+      'Học Bộ từ vựng',
+      'Mình muốn học từ vựng',
+      'Chủ đề',
+      'Học Chủ đề',
+      'Chuyển sang Chủ đề',
+      'Chuyển sang Bộ từ vựng',
+    ]) {
+      expect(
+        resolver.resolve(text),
+        MainSpeakingCommand.otherLearning,
+        reason: text,
+      );
+    }
+    for (final text in [
+      'Từ',
+      'Hôm nay mình học Bộ từ vựng ở trường',
+      'Tôi muốn dịch câu học Chủ đề này',
+    ]) {
+      expect(resolver.resolve(text), isNull, reason: text);
+    }
+  });
+
   test('keeps unapproved non-translation stop requests out of this flow', () {
     for (final text in <String>[
       'Thoát luyện nói',

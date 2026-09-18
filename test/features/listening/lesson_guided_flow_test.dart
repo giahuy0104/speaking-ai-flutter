@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
+import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_attempt_evaluator.dart';
@@ -20,9 +21,138 @@ import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_stor
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  for (final guided in <bool>[false, true]) {
+    for (final cancel in <bool>[false, true]) {
+      testWidgets(
+        'Android ${guided ? "guided" : "manual"} cue waits before capture${cancel ? " and MAIN cancels it" : ""}',
+        (tester) async {
+          debugDefaultTargetPlatformOverride = TargetPlatform.android;
+          addTearDown(() => debugDefaultTargetPlatformOverride = null);
+          await _usePhoneSurface(tester);
+          final registry = ActiveLearningModuleRegistry();
+          addTearDown(registry.dispose);
+          final media = _GuidedMediaService();
+          final prompts = _GatedReadyCueVoicePromptService();
+          await tester.pumpWidget(
+            ActiveLearningModuleScope(
+              registry: registry,
+              child: _subject(
+                _lesson(v4: guided),
+                media,
+                guideAudioLibrary: _silentGuideAudioLibrary(),
+                voicePromptService: prompts,
+              ),
+            ),
+          );
+          if (guided) {
+            await _pumpGuidedSpeechTurn(tester);
+          } else {
+            await _finishInitialLoad(tester);
+            await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+            await tester.pump();
+            await tester.pump();
+          }
+          expect(prompts.cueStarted, isTrue);
+          expect(media.selectedOutputPreparationCount, greaterThan(0));
+          expect(media.startedSentenceIds, isEmpty);
+          if (cancel) await registry.pauseForMainAssistant();
+          prompts.cue.complete();
+          await tester.pump();
+          await tester.pump();
+          expect(media.startedSentenceIds, hasLength(cancel ? 0 : 1));
+          await tester.pumpWidget(const SizedBox.shrink());
+          await tester.pump();
+          debugDefaultTargetPlatformOverride = null;
+        },
+      );
+    }
+  }
+
+  for (final atLast in <bool>[false, true]) {
+    testWidgets(
+      'MAIN ${atLast ? "next at last" : "previous at first"} replays boundary without intro',
+      (tester) async {
+        await _usePhoneSurface(tester);
+        final registry = ActiveLearningModuleRegistry();
+        addTearDown(registry.dispose);
+        final media = _GuidedMediaService();
+        final prompts = _FakeVoicePromptService();
+        await tester.pumpWidget(
+          ActiveLearningModuleScope(
+            registry: registry,
+            child: _subject(
+              _lesson(v4: true, sentenceCount: 3),
+              media,
+              progressStore: _MemoryProgressStore()
+                ..currentSentence = atLast ? 2 : 0,
+              guideAudioLibrary: _silentGuideAudioLibrary(),
+              voicePromptService: prompts,
+            ),
+          ),
+        );
+        await _pumpGuidedSpeechTurn(tester);
+        await registry.pauseForMainAssistant();
+        final starts = media.startedSentenceIds.length;
+        prompts.spoken.clear();
+        await registry.execute(
+          atLast
+              ? ActiveLearningCommand.nextItem
+              : ActiveLearningCommand.previousItem,
+        );
+        await _pumpGuidedSpeechTurn(tester);
+        final number = atLast ? 3 : 1;
+        expect(prompts.spoken.take(3), <String>[
+          atLast
+              ? 'vi-VN|Đây là câu cuối. Bạn hãy hoàn thành câu này nhé.'
+              : 'vi-VN|Đây là câu đầu tiên. Mình nghe lại nhé.',
+          'en-US|Sentence $number',
+          'vi-VN|Câu $number',
+        ]);
+        expect(
+          prompts.spoken.where(
+            (line) =>
+                line.contains('Guided lesson') ||
+                line.contains('Bài hướng dẫn'),
+          ),
+          isEmpty,
+        );
+        expect(media.startedSentenceIds.length, starts + 1);
+        expect(media.startedSentenceIds.last, 'GUIDED-FLOW_S$number');
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump();
+      },
+    );
+  }
+
+  testWidgets(
+    'HFP failure of authored sample never falls back to TTS or capture',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final media = _HfpFailureSampleMediaService();
+      final prompts = _FakeVoicePromptService();
+      await tester.pumpWidget(
+        _subject(
+          _lesson(
+            v4: true,
+            sentenceAudioUri: Uri.parse('https://example.test/model.mp3'),
+          ),
+          media,
+          voicePromptService: prompts,
+          guideAudioLibrary: _silentGuideAudioLibrary(),
+        ),
+      );
+      await _pumpGuidedSpeechTurn(tester);
+      expect(prompts.spoken, isEmpty);
+      expect(media.startedSentenceIds, isEmpty);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+  );
   testWidgets(
     'route loss clears capture and its release cannot stop a stale mic',
     (tester) async {
@@ -153,12 +283,21 @@ void main() {
           : command == ActiveLearningCommand.previousItem
           ? 1
           : 2;
-      expect(prompts.spoken, ['en-US|Sentence $number']);
+      final lead = command == ActiveLearningCommand.nextItem
+          ? <String>['vi-VN|Mình học câu sau nhé']
+          : command == ActiveLearningCommand.previousItem
+          ? <String>['vi-VN|Mình nghe lại câu trước nhé']
+          : <String>[];
+      expect(prompts.spoken, [...lead, 'en-US|Sentence $number']);
       expect(media.startedSentenceIds.length, previousStarts);
       prompts.englishGate!.complete();
       await tester.pump();
       await tester.pump(LessonGuideFlowV2.englishToVietnamesePause);
-      expect(prompts.spoken, ['en-US|Sentence $number', 'vi-VN|Câu $number']);
+      expect(prompts.spoken, [
+        ...lead,
+        'en-US|Sentence $number',
+        'vi-VN|Câu $number',
+      ]);
       expect(media.startedSentenceIds.length, previousStarts);
       prompts.vietnameseGate!.complete();
       await tester.pump();
@@ -311,7 +450,7 @@ void main() {
       );
       expect(mediaService.recording, isTrue);
       expect(voicePrompts.readyCueCount, 1);
-      expect(mediaService.selectedOutputPreparationCount, 4);
+      expect(mediaService.selectedOutputPreparationCount, 5);
       expect(mediaService.phoneOutputPreparationCount, 0);
 
       await tester.tap(find.byKey(const Key('record-lesson-sentence')));
@@ -320,9 +459,9 @@ void main() {
       expect(find.text('Sentence 2'), findsOneWidget);
       expect(mediaService.recording, isTrue);
       expect(voicePrompts.readyCueCount, 2);
-      // Four selected-route preparations per guided sentence, plus the praise
+      // Four prompts plus one cue preparation per guided sentence, and the praise
       // prompt between sentence one and sentence two.
-      expect(mediaService.selectedOutputPreparationCount, 9);
+      expect(mediaService.selectedOutputPreparationCount, 11);
       expect(mediaService.phoneOutputPreparationCount, 0);
       expect(vocabularyStore.entries, hasLength(1));
       expect(vocabularyStore.entries.single.word, 'Sentence 1');
@@ -2574,6 +2713,29 @@ class _ReadyCueVoicePromptService extends _FakeVoicePromptService
   @override
   Future<void> playSpeechReadyCue() async {
     readyCueCount += 1;
+  }
+}
+
+class _GatedReadyCueVoicePromptService extends _FakeVoicePromptService
+    implements SpeechReadyCuePlayer {
+  final cue = Completer<void>();
+  bool cueStarted = false;
+  @override
+  Future<void> playSpeechReadyCue() async {
+    cueStarted = true;
+    await cue.future;
+  }
+}
+
+class _HfpFailureSampleMediaService extends _GuidedMediaService {
+  @override
+  Future<void> playToCompletion(
+    Uri uri, {
+    Duration timeout = const Duration(seconds: 15),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+  }) async {
+    throw const HfpAudioException('Lượt âm thanh đã dừng.');
   }
 }
 

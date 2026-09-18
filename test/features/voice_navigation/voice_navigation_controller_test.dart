@@ -13,6 +13,180 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('obsolete start timeout cannot cancel the current mic', (
+    tester,
+  ) async {
+    final speech = _FirstStartBlockedSpeechInput();
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: _FakeMainTurnVoicePromptService(),
+      pauseDrainTimeout: const Duration(milliseconds: 1),
+      microphoneStartTimeout: const Duration(milliseconds: 100),
+    );
+    final firstActivation = controller.activateFromMainButton();
+    await tester.pump();
+    final secondActivation = controller.activateFromMainButton();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 2));
+    expect(await secondActivation, isTrue);
+    final cancellations = speech.events
+        .where((event) => event == 'cancel')
+        .length;
+    await tester.pump(const Duration(milliseconds: 110));
+    expect(await firstActivation, isFalse);
+    expect(controller.isListening, isTrue);
+    expect(controller.lastError, isNull);
+    expect(
+      speech.events.where((event) => event == 'cancel'),
+      hasLength(cancellations),
+    );
+    speech.firstStart.complete();
+    await tester.pump();
+    await controller.pause();
+    controller.dispose();
+    await speech.dispose();
+  });
+
+  test('old prompt completion cannot clear a newer MAIN activation', () async {
+    final speech = _FakeNavigationSpeechInput();
+    final prompt = _FirstPromptBlockedService();
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: prompt,
+    );
+    final firstActivation = controller.activateFromMainButton();
+    await _waitUntil(() => prompt.spokenTexts.isNotEmpty);
+    expect(await controller.activateFromMainButton(), isTrue);
+    prompt.firstPrompt.complete();
+    expect(await firstActivation, isFalse);
+    expect(controller.isListening, isTrue);
+    expect(controller.isAwaitingCommand, isTrue);
+    expect(controller.isMainButtonSessionActive, isTrue);
+    expect(controller.continuousRequested, isTrue);
+    expect(prompt.endedTurnIds, ['test-main-1']);
+    await controller.pause();
+    controller.dispose();
+    await speech.dispose();
+  });
+
+  for (final failLate in [false, true]) {
+    test(
+      'obsolete microphone start ($failLate) cannot stop the newer MAIN',
+      () async {
+        final speech = _FirstStartBlockedSpeechInput();
+        final controller = VoiceNavigationController(
+          speechInput: speech,
+          voicePromptService: _FakeMainTurnVoicePromptService(),
+          pauseDrainTimeout: const Duration(milliseconds: 1),
+        );
+        final firstActivation = controller.activateFromMainButton();
+        await _waitUntil(() => speech.events.contains('start'));
+        expect(await controller.activateFromMainButton(), isTrue);
+        final cancellations = speech.events
+            .where((event) => event == 'cancel')
+            .length;
+        if (failLate) {
+          speech.firstStart.completeError(
+            StateError('obsolete microphone failed'),
+          );
+        } else {
+          speech.firstStart.complete();
+        }
+        expect(await firstActivation, isFalse);
+        expect(controller.isListening, isTrue);
+        expect(controller.isAwaitingCommand, isTrue);
+        expect(controller.isMainButtonSessionActive, isTrue);
+        expect(controller.continuousRequested, isTrue);
+        expect(controller.lastError, isNull);
+        expect(
+          speech.events.where((event) => event == 'cancel'),
+          hasLength(cancellations),
+        );
+        await controller.pause();
+        controller.dispose();
+        await speech.dispose();
+      },
+    );
+  }
+
+  test(
+    'failed MAIN prompt closes its turn without opening microphone',
+    () async {
+      final speech = _FakeNavigationSpeechInput();
+      final prompt = _FailingMainTurnPromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+      );
+      expect(await controller.activateFromMainButton(), isFalse);
+      expect(speech.events, isNot(contains('start')));
+      expect(controller.lastError, isA<StateError>());
+      expect(controller.isAwaitingCommand, isFalse);
+      expect(controller.continuousRequested, isFalse);
+      expect(prompt.endedReasons, ['prompt_failed']);
+
+      // A new deliberate press retries normally instead of leaving MAIN stuck.
+      expect(await controller.activateFromMainButton(), isTrue);
+      expect(speech.events.where((event) => event == 'start'), hasLength(1));
+      await controller.pause();
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  test(
+    'failed command acknowledgment does not execute lesson action',
+    () async {
+      final speech = _FakeNavigationSpeechInput();
+      final prompt = _FailingMainTurnPromptService()..failNext = false;
+      final commands = <ActiveLearningCommand>[];
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+        activeLearningCommandHandler: (command) async {
+          commands.add(command);
+          return const ActiveLearningCommandResult.handled();
+        },
+      );
+      expect(
+        await controller.activateFromMainButton(activeLearning: true),
+        isTrue,
+      );
+      prompt.failNext = true;
+      expect(await controller.dispatchRecognizedText('Nghe lại'), isFalse);
+      expect(commands, isEmpty);
+      expect(controller.isAwaitingCommand, isFalse);
+      expect(controller.continuousRequested, isFalse);
+      expect(prompt.endedReasons, ['prompt_failed']);
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  testWidgets('timed-out prompt never becomes a successful question', (
+    tester,
+  ) async {
+    final speech = _FakeNavigationSpeechInput();
+    final prompt = _LongAuthoredVoicePromptService();
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: prompt,
+    );
+    final activation = controller.activateFromMainButton();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 21));
+    expect(await activation, isFalse);
+    expect(prompt.stopCalls, 1);
+    expect(controller.lastError, isA<TimeoutException>());
+    expect(controller.isAwaitingCommand, isFalse);
+    expect(speech.events, isNot(contains('start')));
+    prompt.complete();
+    await tester.pump();
+    expect(speech.events, isNot(contains('start')));
+    controller.dispose();
+    await speech.dispose();
+  });
+
   testWidgets(
     'authored prompt longer than eight seconds finishes before command window opens',
     (tester) async {
@@ -945,7 +1119,7 @@ void main() {
         MainVoiceAssistantFlow.activeLearningPrompt,
       ]);
       expect(await controller.dispatchRecognizedText('Câu tiếp theo'), isTrue);
-      expect(voicePrompt.spokenTexts.last, 'Mình học câu tiếp theo nhé');
+      expect(voicePrompt.spokenTexts.last, 'Mình học câu sau nhé');
       expect(receivedCommand, ActiveLearningCommand.nextItem);
       expect(controller.isMainButtonSessionActive, isFalse);
       expect(voicePrompt.endedReasons.last, 'main_assistant_completed');
@@ -1666,6 +1840,41 @@ class _FakeMainTurnVoicePromptService extends _FakeVoicePromptService
   Future<void> endMainTurn(String reason, {String? turnId}) async {
     endedReasons.add(reason);
     endedTurnIds.add(turnId);
+  }
+}
+
+class _FirstPromptBlockedService extends _FakeMainTurnVoicePromptService {
+  final firstPrompt = Completer<void>();
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    await super.speakAndWait(text, locale: locale);
+    if (spokenTexts.length == 1) await firstPrompt.future;
+  }
+}
+
+class _FirstStartBlockedSpeechInput extends _FakeNavigationSpeechInput {
+  final firstStart = Completer<void>();
+
+  @override
+  Future<void> start() async {
+    await super.start();
+    if (events.where((event) => event == 'start').length == 1) {
+      await firstStart.future;
+    }
+  }
+}
+
+class _FailingMainTurnPromptService extends _FakeMainTurnVoicePromptService {
+  bool failNext = true;
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    if (failNext) {
+      failNext = false;
+      throw StateError('H20 prompt route lost');
+    }
+    await super.speakAndWait(text, locale: locale);
   }
 }
 

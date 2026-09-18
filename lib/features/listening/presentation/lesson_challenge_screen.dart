@@ -104,6 +104,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   bool _busy = false;
   String? _message;
   int _request = 0;
+  int _mainPauseGeneration = 0;
   final LessonRecordingEndpointDetector _recordingEndpointDetector =
       LessonRecordingEndpointDetector();
   Timer? _promptCompletionTimer;
@@ -173,6 +174,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       _activeModuleRegistry?.unregister(registration);
     }
     _request += 1;
+    _mainPauseGeneration += 1;
     _recordingEndpointDetector.cancel();
     _promptCompletionTimer?.cancel();
     _promptCompletionTimer = null;
@@ -214,6 +216,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   Future<void> pauseForMainAssistant() async {
     _pausedForMainAssistant = true;
     _request += 1;
+    _mainPauseGeneration += 1;
     _recordingEndpointDetector.cancel();
     _promptCompletionTimer?.cancel();
     _promptCompletionTimer = null;
@@ -286,7 +289,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     }
   }
 
-  Future<void> _playCurrentPrompt({
+  Future<bool> _playCurrentPrompt({
     bool allowBusy = false,
     bool openMicrophone = true,
     bool announceResume = false,
@@ -295,7 +298,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         !mounted ||
         _recording ||
         (_busy && !allowBusy)) {
-      return;
+      return false;
     }
     final request = ++_request;
     setState(() {
@@ -308,13 +311,13 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       // only owner makes AVAudioSession deactivate at didFinish, so the
       // automatic microphone opening can be lost during route renegotiation.
       await widget.mediaService.prepareSelectedLessonOutput();
-      if (!mounted || request != _request) return;
+      if (!mounted || request != _request) return false;
       if (announceResume) {
         await _speakPromptAndWait('Mình tiếp tục câu thử thách nhé.');
-        if (!mounted || request != _request) return;
+        if (!mounted || request != _request) return false;
       }
       await _speakPromptAndWait(_challenge.prompt);
-      if (!mounted || request != _request) return;
+      if (!mounted || request != _request) return false;
       await _speakPromptAndWait('Bạn trả lời nhé');
     } catch (error) {
       if (mounted && request == _request) {
@@ -323,7 +326,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         );
       }
       // A failed H20/TTS turn must not jump straight into capture.
-      return;
+      return false;
     } finally {
       if (mounted && request == _request) {
         setState(() => _playingPrompt = false);
@@ -334,9 +337,10 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         request != _request ||
         _recording ||
         (_busy && !allowBusy)) {
-      return;
+      return false;
     }
     if (openMicrophone) await _startRecording();
+    return true;
   }
 
   Future<void> _replayCurrent() async {
@@ -375,6 +379,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     }
 
     final waiter = Completer<void>();
+    var timedOut = false;
     _promptCompletionWaiter = waiter;
     unawaited(() async {
       try {
@@ -385,20 +390,42 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         } else {
           await voicePrompt.speakAndWait(text, locale: locale);
         }
-        if (!waiter.isCompleted) waiter.complete();
+        if (!timedOut && !waiter.isCompleted) waiter.complete();
       } catch (error, stackTrace) {
-        if (!waiter.isCompleted) waiter.completeError(error, stackTrace);
+        if (!timedOut && !waiter.isCompleted) {
+          waiter.completeError(error, stackTrace);
+        }
       }
     }());
     _promptCompletionTimer = Timer(budget ?? _promptCompletionTimeout, () {
       unawaited(() async {
+        if (!mounted ||
+            _pausedForMainAssistant ||
+            request != _request ||
+            !identical(_promptCompletionWaiter, waiter)) {
+          return;
+        }
+        // Native stop can resolve the speech future successfully. Claim the
+        // terminal outcome first so that completion cannot turn a timeout into
+        // a successful question and reopen capture during cleanup.
+        timedOut = true;
         try {
           // A small number of iOS AVSpeechSynthesizer route transitions do not
           // deliver didFinish. Stop the stale utterance so the H20 mic can
           // still open instead of leaving the child on a frozen screen.
           await _prompt.stop();
+        } catch (_) {
+          // Still resolve the bounded wait if native cleanup fails.
         } finally {
-          if (!waiter.isCompleted) waiter.complete();
+          if (!waiter.isCompleted) {
+            if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+              waiter.completeError(
+                TimeoutException('Challenge prompt did not finish'),
+              );
+            } else {
+              waiter.complete();
+            }
+          }
         }
       }());
     });
@@ -432,12 +459,22 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     });
     try {
       await _prompt.stop();
+      if (!mounted || _pausedForMainAssistant || request != _request) return;
       final prompt = _voicePromptService;
       final cueBeforeStart =
-          !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+          !kIsWeb &&
+          (defaultTargetPlatform == TargetPlatform.iOS ||
+              defaultTargetPlatform == TargetPlatform.android);
+      if (!kIsWeb &&
+          defaultTargetPlatform == TargetPlatform.android &&
+          prompt is SpeechReadyCuePlayer) {
+        await widget.mediaService.prepareSelectedLessonOutput();
+        if (!mounted || _pausedForMainAssistant || request != _request) return;
+      }
       if (cueBeforeStart && prompt is SpeechReadyCuePlayer) {
         await (prompt as SpeechReadyCuePlayer).playSpeechReadyCue();
       }
+      if (!mounted || _pausedForMainAssistant || request != _request) return;
       var usesIosSpeech = false;
       final iosSpeechInput = _usesIosOnDeviceRecognition
           ? widget.iosSpeechInput
@@ -514,8 +551,8 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         },
       );
     } catch (error) {
+      if (!mounted || _pausedForMainAssistant || request != _request) return;
       _recordingEndpointDetector.cancel();
-      if (!mounted) return;
       setState(() {
         _recordingUsesIosSpeech = false;
         _busy = false;
@@ -532,6 +569,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   Future<void> _stopRecording() async {
     if (!_recording || _busy || !mounted) return;
     final request = _request;
+    final pauseGeneration = _mainPauseGeneration;
     _recordingEndpointDetector.cancel();
     setState(() => _busy = true);
     var shouldOpenMicrophoneAgain = false;
@@ -602,13 +640,16 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         _message = _friendlyError(error);
       });
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted && pauseGeneration == _mainPauseGeneration) {
+        setState(() => _busy = false);
+      }
     }
     // `_advance` has already finished the next coach prompt by this point.
     // Wait until the scoring state is released before claiming the H20 route;
     // otherwise the second challenge silently leaves its microphone closed.
     if (shouldOpenMicrophoneAgain &&
         mounted &&
+        pauseGeneration == _mainPauseGeneration &&
         !_pausedForMainAssistant &&
         !_recording) {
       await _startRecording();
@@ -683,33 +724,36 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   }
 
   Future<bool> _applyOutcome(LessonAttemptOutcome outcome) async {
+    final request = _request;
+    bool isCurrent() =>
+        mounted && !_pausedForMainAssistant && request == _request;
     if (outcome == LessonAttemptOutcome.good) {
       _invalidResponseCount = 0;
       await _speakFeedback(LessonFeedbackKind.correct);
-      if (_pausedForMainAssistant) return false;
+      if (!isCurrent()) return false;
       await _notifyChallengeResolved(correct: true);
+      if (!isCurrent()) return false;
       return _advance();
     }
     if (outcome == LessonAttemptOutcome.unclear) {
       if (!_acceptInvalidResponseOrPause()) return false;
       await _speakFeedback(LessonFeedbackKind.asr);
-      return true;
+      return isCurrent();
     }
     if (outcome == LessonAttemptOutcome.noResponse) {
       if (!_acceptInvalidResponseOrPause()) return false;
       await _speakFeedback(LessonFeedbackKind.noResponse);
-      return true;
+      return isCurrent();
     }
     _invalidResponseCount = 0;
     if (_attemptNumber >= 2) {
       return _giveAnswerAndAdvance(skip: false);
     }
     await _speakFeedback(LessonFeedbackKind.retry);
-    if (!mounted || _pausedForMainAssistant) return false;
+    if (!isCurrent()) return false;
     // Challenge retries repeat the authored question (including its choices),
     // not the correct answer used by the Core imitation flow.
-    await _playCurrentPrompt(allowBusy: true, openMicrophone: false);
-    return mounted && !_pausedForMainAssistant;
+    return _playCurrentPrompt(allowBusy: true, openMicrophone: false);
   }
 
   bool _acceptInvalidResponseOrPause() {
@@ -744,6 +788,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   }
 
   Future<void> _speakFeedback(LessonFeedbackKind kind) async {
+    final request = _request;
     final index = _feedbackVariationIndexes[kind] ?? 0;
     _feedbackVariationIndexes[kind] = index + 1;
     final message = LessonAgeFeedbackLibrary.message(
@@ -754,6 +799,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     if (mounted) setState(() => _message = message);
     try {
       await widget.mediaService.prepareSelectedLessonOutput();
+      if (!mounted || _pausedForMainAssistant || request != _request) return;
       await _speakPromptAndWait(message);
     } catch (_) {
       // The written feedback remains visible; recording still resumes so a
@@ -762,24 +808,28 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   }
 
   Future<bool> _giveAnswerAndAdvance({required bool skip}) async {
+    final request = _request;
+    bool isCurrent() =>
+        mounted && !_pausedForMainAssistant && request == _request;
     if (skip) {
       await _speakFeedback(LessonFeedbackKind.skip);
     } else {
       await _speakFeedback(LessonFeedbackKind.give);
     }
-    if (!mounted || _pausedForMainAssistant) return false;
+    if (!isCurrent()) return false;
     try {
       await widget.mediaService.prepareSelectedLessonOutput();
+      if (!isCurrent()) return false;
       await _speakPromptAndWait(_expectedEnglish, locale: 'en-US');
     } catch (_) {
       // The written answer remains visible in the authored card.
     }
-    if (!mounted || _pausedForMainAssistant) return false;
+    if (!isCurrent()) return false;
     if (!skip) {
       await _saveNeedsPractice();
-      if (!mounted || _pausedForMainAssistant) return false;
+      if (!isCurrent()) return false;
       await _notifyChallengeResolved(correct: false);
-      if (!mounted || _pausedForMainAssistant) return false;
+      if (!isCurrent()) return false;
     }
     return _advance();
   }
@@ -803,8 +853,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         _attemptNumber = 0;
         _message = null;
       });
-      await _playCurrentPrompt(allowBusy: true);
-      return true;
+      return _playCurrentPrompt(allowBusy: true, openMicrophone: false);
     }
     if (mounted) Navigator.of(context).pop(true);
     return false;

@@ -13,6 +13,7 @@ import '../../../core/navigation/active_learning_navigation.dart';
 import '../../../l10n/display_language.dart';
 import '../../listening/application/lesson_media_service.dart';
 import '../../listening/domain/lesson_guide_flow.dart';
+import '../../voice_navigation/domain/master_navigation_contract.dart';
 import '../application/vocabulary_audio_service.dart';
 import '../application/local_vocabulary_suggestion_provider.dart';
 import '../application/vocabulary_fixed_prompt_audio_service.dart';
@@ -386,14 +387,15 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       _selectedJourney == _VocabularyJourney.stars
           ? VocabularyFlowV3.starFinished
           : VocabularyFlowV3.parentFinished,
-    ActiveLearningVoiceNode.parent || ActiveLearningVoiceNode.star =>
-      'Bạn muốn nghe lại, nghe câu trước, câu tiếp theo hay dừng lại?',
+    ActiveLearningVoiceNode.parent ||
+    ActiveLearningVoiceNode.star => MasterNavigationContract.coreControlPrompt,
     _ => _lastVoiceChoicePrompt,
   };
 
   @override
   Future<void> pauseForMainAssistant() async {
     _audioCommandGeneration += 1;
+    _cancelPendingFixedPrompt();
     _pausedForMainAssistant = true;
     _playbackInterrupted = _playingCollection;
     await Future.wait<void>(<Future<void>>[
@@ -1935,8 +1937,15 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   }
 
   Future<void> _moveToPreviousPlaybackItem() async {
+    final generation = _audioCommandGeneration;
     await _waitForPlaybackToSettle();
-    if (_playingCollection || _playbackQueue.isEmpty) return;
+    if (!mounted ||
+        !_isEffectivelyActive ||
+        generation != _audioCommandGeneration ||
+        _playingCollection ||
+        _playbackQueue.isEmpty) {
+      return;
+    }
     final branch = _playbackBranch ?? '';
     final atBlockStart = _playbackIndex <= _playbackBlockStartIndex;
     final target = atBlockStart ? _playbackBlockStartIndex : _playbackIndex - 1;
@@ -1956,9 +1965,20 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         );
       }
     }
-    if (_pausedForMainAssistant) return;
+    if (!mounted ||
+        !_isEffectivelyActive ||
+        _pausedForMainAssistant ||
+        generation != _audioCommandGeneration) {
+      return;
+    }
     if (!branch.startsWith('single:')) {
       await widget.sessionStore.savePlaybackCheckpoint(branch, target);
+    }
+    if (!mounted ||
+        !_isEffectivelyActive ||
+        _pausedForMainAssistant ||
+        generation != _audioCommandGeneration) {
+      return;
     }
     await _playQueue(
       _playbackQueue,
@@ -1973,16 +1993,36 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   }
 
   Future<void> _moveToNextPlaybackItem() async {
+    final generation = _audioCommandGeneration;
     await _waitForPlaybackToSettle();
-    if (_playingCollection || _playbackQueue.isEmpty) return;
+    if (!mounted ||
+        !_isEffectivelyActive ||
+        generation != _audioCommandGeneration ||
+        _playingCollection ||
+        _playbackQueue.isEmpty) {
+      return;
+    }
     final branch = _playbackBranch ?? '';
     final next = (_playbackIndex + 1).clamp(0, _playbackQueue.length);
     _playbackInterrupted = false;
     if (!branch.startsWith('single:')) {
       await widget.sessionStore.savePlaybackCheckpoint(branch, next);
     }
+    if (!mounted ||
+        !_isEffectivelyActive ||
+        _pausedForMainAssistant ||
+        generation != _audioCommandGeneration) {
+      return;
+    }
     if (next >= _playbackBlockEndExclusive) {
       await _completePlaybackBlockFromCommand(next);
+      return;
+    }
+    await _speakOnSelectedOutput(MasterNavigationContract.nextItemPrompt);
+    if (!mounted ||
+        !_isEffectivelyActive ||
+        _pausedForMainAssistant ||
+        generation != _audioCommandGeneration) {
       return;
     }
     await _playQueue(
@@ -2109,10 +2149,21 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _finishPlaybackNavigationCleanup();
     final completer = Completer<void>();
     _playbackNavigationCleanupCompleter = completer;
+    void finishThisCleanup() {
+      if (identical(_playbackNavigationCleanupCompleter, completer)) {
+        _finishPlaybackNavigationCleanup();
+      }
+    }
+
     _playbackNavigationCleanupTimer = Timer(const Duration(seconds: 2), () {
-      _finishPlaybackNavigationCleanup();
+      finishThisCleanup();
     });
-    operation.whenComplete(_finishPlaybackNavigationCleanup);
+    unawaited(
+      operation.then(
+        (_) => finishThisCleanup(),
+        onError: (Object _, StackTrace _) => finishThisCleanup(),
+      ),
+    );
     return completer.future;
   }
 

@@ -43,6 +43,9 @@ class MainSpeakingCommandResolver {
       return MainSpeakingCommand.stopTranslation;
     }
     if (MasterNavigationContract.matches('LEAVE_TRANSLATE', recognizedText) ||
+        MasterNavigationContract.matches('OPEN_SUBJECT', recognizedText) ||
+        (normalized != 'tu' &&
+            MasterNavigationContract.matches('OPEN_VOCAB', recognizedText)) ||
         _matchesIntent(normalized, 'INT-017') ||
         _legacyOtherLearningPhrases.contains(normalized)) {
       return MainSpeakingCommand.otherLearning;

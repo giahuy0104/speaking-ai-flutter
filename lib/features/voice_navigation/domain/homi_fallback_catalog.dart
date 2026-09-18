@@ -659,8 +659,7 @@ class HomiFallbackCatalog {
     'AI-003': 'Khi sẵn sàng, bạn nhấn nút gọi HOMI nhé.',
     'AI-004':
         'Được thôi. Bạn muốn dịch sang tiếng Anh, học theo chủ đề hay học bộ từ vựng?',
-    'AI-005':
-        'Bạn muốn nghe lại, câu trước, hay câu sau?',
+    'AI-005': 'Bạn muốn nghe lại, câu trước hay câu sau?',
     'AI-006': 'Bạn muốn dịch sang tiếng Anh hay học bộ từ vựng?',
     'AI-007': 'Bạn mấy tuổi?',
     'AI-008': 'Bạn mấy tuổi? Ví dụ bạn nói: 6 tuổi.',
@@ -697,7 +696,7 @@ class HomiFallbackCatalog {
     'AI-037': 'Mình đã học xong bộ từ vựng hôm nay rồi.',
     'AI-038': 'Mình học tiếp thôi.',
     'AI-039': 'Mình nghe lại câu này nhé.',
-    'AI-040': 'Mình học câu tiếp theo thôi.',
+    'AI-040': 'Mình học câu sau nhé',
     'AI-041': 'Mình quay lại câu trước nha.',
     'AI-042': 'Mình chuyển sang bài tiếp theo nào.',
     'AI-043': 'Mình quay lại bài trước nhé.',

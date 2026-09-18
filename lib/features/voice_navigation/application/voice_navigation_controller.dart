@@ -299,11 +299,11 @@ class VoiceNavigationController extends ChangeNotifier {
     if (_disposed) {
       return false;
     }
+    final pendingPause = pause(preserveChoice: true);
+    final activationGeneration = _generation;
     _mainButtonActivationInProgress = true;
     notifyListeners();
     try {
-      final pendingPause = pause(preserveChoice: true);
-      final activationGeneration = _generation;
       await pendingPause;
       if (_disposed || activationGeneration != _generation) {
         return false;
@@ -327,7 +327,8 @@ class VoiceNavigationController extends ChangeNotifier {
         promptText: promptText,
         speakPrompt: !promptAlreadySpoken,
       );
-      if (!acknowledged || _disposed || generation != _generation) {
+      if (_disposed || generation != _generation) return false;
+      if (!acknowledged) {
         _buttonCommandSession = false;
         _continuousRequested = false;
         _mainAssistantFlow.reset();
@@ -346,10 +347,10 @@ class VoiceNavigationController extends ChangeNotifier {
         return false;
       }
       await _runStartSession(generation);
-      return _listening;
+      return !_disposed && generation == _generation && _listening;
     } finally {
-      _mainButtonActivationInProgress = false;
-      if (!_disposed) {
+      if (!_disposed && activationGeneration == _generation) {
+        _mainButtonActivationInProgress = false;
         notifyListeners();
       }
     }
@@ -361,6 +362,7 @@ class VoiceNavigationController extends ChangeNotifier {
       return Future<void>.value();
     }
     _continuousRequested = false;
+    _mainButtonActivationInProgress = false;
     _buttonCommandSession = false;
     _mainNoSpeechRetryCount = 0;
     _mainPrematureCompletionRecoveryCount = 0;
@@ -640,14 +642,26 @@ class VoiceNavigationController extends ChangeNotifier {
                 );
           await promptPlayback.timeout(
             budget ?? _voicePromptTimeout,
-            onTimeout: () => promptService.stop(),
+            onTimeout: () async {
+              if (!_disposed && generation == _generation) {
+                await _boundedCleanup(promptService.stop());
+              }
+              throw TimeoutException('MAIN prompt playback did not finish.');
+            },
           );
         }
       }
     } catch (error) {
       if (!_disposed && generation == _generation) {
         _lastError = error;
+        // A failed/cancelled H20 prompt is not a completed question. Opening
+        // recognition here both hides the failure and records the tail of a
+        // prompt whose native completion was lost. Keep the lesson paused and
+        // let the next explicit MAIN press retry with a fresh turn.
+        await _suspendForExternalSpeechHandoff();
+        await _endNativeMainTurn('prompt_failed', generation: generation);
       }
+      return false;
     }
     if (_disposed || generation != _generation) {
       return false;
@@ -861,7 +875,9 @@ class VoiceNavigationController extends ChangeNotifier {
       await startOperation.timeout(
         _microphoneStartTimeout,
         onTimeout: () {
-          unawaited(_boundedCleanup(_speechInput.cancel()));
+          if (!_disposed && generation == _generation) {
+            unawaited(_boundedCleanup(_speechInput.cancel()));
+          }
           throw const StreamingSpeechInputException(
             'Micro mất quá nhiều thời gian để sẵn sàng. HOMI sẽ thử lại.',
             code: 'NAVIGATION_MICROPHONE_START_TIMEOUT',
@@ -869,7 +885,11 @@ class VoiceNavigationController extends ChangeNotifier {
         },
       );
       if (_disposed || !_continuousRequested || generation != _generation) {
-        await _boundedCleanup(_speechInput.cancel());
+        // pause already requested cancellation of this start. A late native
+        // completion must not cancel the recognizer owned by a newer MAIN.
+        if (!_disposed && !_continuousRequested) {
+          await _boundedCleanup(_speechInput.cancel());
+        }
         return;
       }
       if (defaultTargetPlatform == TargetPlatform.android &&
@@ -882,7 +902,7 @@ class VoiceNavigationController extends ChangeNotifier {
         } catch (error) {
           // Capture is already ready. A missing cue completion must not cancel
           // this valid command window or force another microphone start.
-          _lastError = error;
+          if (!_disposed && generation == _generation) _lastError = error;
         }
       }
       if (_disposed || !_continuousRequested || generation != _generation) {
@@ -917,6 +937,7 @@ class VoiceNavigationController extends ChangeNotifier {
       );
       notifyListeners();
     } catch (error) {
+      if (_disposed || generation != _generation) return;
       final diagnostics = _speechInput is NativeSpeechDiagnostics
           ? _speechInput as NativeSpeechDiagnostics
           : null;
