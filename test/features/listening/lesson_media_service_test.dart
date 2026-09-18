@@ -465,6 +465,12 @@ void main() {
     expect(recordConfig.encoder, AudioEncoder.wav);
     expect(recordConfig.sampleRate, 16000);
     expect(recordConfig.numChannels, 1);
+    expect(recordConfig.audioInterruption, AudioInterruptionMode.pause);
+    final session = lessonRecordingAudioSessionConfiguration(
+      useSelectedHfp: true,
+    );
+    expect(session.androidAudioFocusGainType, AndroidAudioFocusGainType.gain);
+    expect(session.androidWillPauseWhenDucked, isTrue);
   });
 
   test('iOS recording input selects exact H20 UID and built-in phone mic', () {

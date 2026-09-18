@@ -1,0 +1,6 @@
+Analyzing ai-speaking-flutter-app...                            
+
+   info - The file name 'recheck-vocabulary-choice_test.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style - output\apk\recheck-vocabulary-choice_test.dart:1:1 - file_names
+warning - The member 'setMockInitialValues' can only be used within 'package:shared_preferences/src/shared_preferences_legacy.dart' or a test - output\apk\recheck-vocabulary-choice_test.dart:15:33 - invalid_use_of_visible_for_testing_member
+
+2 issues found. (ran in 34.2s)

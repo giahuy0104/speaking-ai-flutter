@@ -74,7 +74,7 @@ class AppFlowCoordinator {
       result = await _registry.execute(command);
     } catch (_) {
       result = const ActiveLearningCommandResult.busy(
-        spokenReply: 'Bi cô chưa thực hiện được. Con thử lại nhé.',
+        spokenReply: 'HOMI chưa thực hiện được. Bạn thử lại nhé.',
       );
     }
     if (result.wasHandled) {

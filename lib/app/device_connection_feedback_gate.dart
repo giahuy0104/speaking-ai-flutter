@@ -1,7 +1,7 @@
 import '../core/audio/audio_turn_coordinator.dart';
 import 'device_connection_feedback_overlay.dart';
 
-/// Keeps transient BLE recovery UI out of an active HOMI audio turn.
+/// Keeps transient H20 transport recovery UI out of an active HOMI audio turn.
 ///
 /// Some headset firmware briefly reports BLE reconnecting while HFP/SCO owns
 /// the radio. The BLE layer must continue recovering, but showing that native

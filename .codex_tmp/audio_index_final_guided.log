@@ -1,0 +1,113 @@
+Resolving dependencies...
+Downloading packages...
+  archive 4.0.9 (4.3.0 available)
+  cli_util 0.4.2 (0.6.0 available)
+  clock 1.1.2 (1.1.3 available)
+  code_assets 1.2.1 (2.1.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  image 4.9.1 (4.10.1 available)
+  jni 1.0.0 (1.0.3 available)
+  jni_flutter 1.0.1 (1.0.3 available)
+  local_auth_android 2.0.9 (2.1.0 available)
+  local_auth_darwin 2.0.3 (2.0.4 available)
+  local_auth_windows 2.0.1 (2.0.2 available)
+  matcher 0.12.19 (0.12.20 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.0 (1.19.0 available)
+  objective_c 9.4.1 (9.6.0 available)
+  package_config 2.2.0 (3.0.0 available)
+  platform 3.1.6 (3.2.0 available)
+  posix 6.5.0 (6.5.2 available)
+  pub_semver 2.2.0 (2.2.1 available)
+  record_android 2.1.2 (2.2.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  record_web 2.1.1 (2.1.3 available)
+  record_windows 2.2.2 (2.3.0 available)
+  shared_preferences_android 2.4.27 (2.4.28 available)
+  shared_preferences_foundation 2.5.6 (2.5.7 available)
+  stack_trace 1.12.1 (1.12.2 available)
+  synchronized 3.4.1 (3.4.2 available)
+  test_api 0.7.11 (0.7.14 available)
+  url_launcher_android 6.3.32 (6.3.33 available)
+  url_launcher_ios 6.4.1 (6.4.2 available)
+  url_launcher_linux 3.2.2 (3.2.3 available)
+  url_launcher_macos 3.2.5 (3.2.6 available)
+  url_launcher_windows 3.1.5 (3.1.6 available)
+  vector_math 2.2.0 (2.4.2 available)
+  vm_service 15.2.0 (15.3.0 available)
+  win32 6.3.0 (6.4.0 available)
+  yaml 3.1.3 (3.1.4 available)
+Got dependencies!
+37 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading D:/Documents/ai-speaking-flutter-app/.codex_tmp/audio-index-verify/test/features/listening/lesson_guided_flow_test.dart
+00:00 +0: V4 ActiveLearningCommand.replayCurrent waits for EN and VI to finish before capture
+00:00 +1: V4 ActiveLearningCommand.previousItem waits for EN and VI to finish before capture
+00:01 +2: V4 ActiveLearningCommand.nextItem waits for EN and VI to finish before capture
+00:01 +3: failed model never opens mic and replay can recover
+00:01 +4: virtual lesson buttons interrupt the current recording and change sentence
+00:01 +5: previous sentence starts a fresh guided attempt despite an old recording
+00:02 +6: V2 automatically guides, records, praises, and starts the next sentence
+00:02 +7: V4 core uses the exact English repeat cue without a preface
+00:02 +8: V4 falls back to local TTS when authored EN-VI audio fails
+HOMI English authored audio unavailable; using local TTS: Bad state: Authored audio unavailable.
+HOMI Vietnamese authored audio unavailable; using local TTS: Bad state: Authored audio unavailable.
+00:02 +9: V2 automatically stops a child recording after six seconds
+00:02 +10: MAIN pause then resume accepts a correct fresh lesson attempt
+00:02 +11: V4 MAIN resume replays RESUME_CORE then EN-VI before mic
+00:03 +12: V4 praises before explaining the first earned star
+00:03 +13: scores while replay runs but waits to apply the result
+00:03 +14: V4 also replays the child recording before scoring
+00:03 +15: keeps an injected lesson evaluator caller-owned
+00:03 +16: MAIN invalidates an evaluation that finishes after pause
+00:03 +17: MAIN detaches a pending lesson microphone start before takeover
+00:04 +18: V2 replays the bilingual model once, then sends a second miss to Review
+00:04 +19: V2 asks neutrally and retries when ASR could not hear the sentence
+00:04 +20: V2 still reopens recording when unclear feedback playback fails
+HOMI unclear feedback playback failed: Bad state: Unclear feedback playback failed.
+00:04 +21: V4 pauses directly after the second unclear recording turn
+00:04 +22: V2 promotes a retry sentence from Review to Stars when correct
+00:04 +23: V2 hears restart choice and starts sentence one again
+00:04 +24: V2 hears next lesson choice and opens lesson two
+00:05 +25: V2 asks the child to repeat an unclear completion choice
+00:05 +26: V2 announces topic completion after its last lesson
+00:05 +27: prompts twice, then offers skip without automatically skipping
+00:05 +28: successful recording shows non-blocking fireworks and four actions
+00:05 +29: sample and Vietnamese audio finish before the record guide plays
+00:05 +30: completion opens the learned review without playing the ending guide
+00:06 +31: learned review opens the next lesson in the same topic
+00:06 +32: learned review restarts the current lesson from sentence one
+00:06 +33: last learned lesson returns to the selected listening topic
+00:06 +34: listening action pops the topic detail to the age catalog
+00:06 +35: dialogue and song lessons expose age-appropriate practice cues
+00:06 +36: review uses overview copy and neutral English sentence cards
+00:06 +37: learned review announces the next H20 action
+00:06 +38: review only auto-plays after the toggle is activated
+00:06 +39: learned review highlights recorded and unrecorded sentences
+00:07 +40: V2 lesson intro uses introAudioUrl before opening practice
+00:07 +41: V2 lesson intro keeps selected output when its clip is missing
+00:07 +42: MAIN pauses review audio and its completion countdown
+00:07 +43: MAIN stops intro audio and prevents automatic navigation
+00:07 +44: lesson intro does not auto advance when playback fails
+Lesson intro playback failed for guided-flow (https://example.test/broken-intro.mp3): Bad state: Playback failed.
+#0      _FailingIntroMediaService.playToCompletion (file:///D:/Documents/ai-speaking-flutter-app/.codex_tmp/audio-index-verify/test/features/listening/lesson_guided_flow_test.dart:2655:5)
+#1      _LessonIntroScreenState._beginIntro (package:ai_speaking_flutter_app/features/listening/presentation/lesson_intro_screen.dart:160:35)
+#2      _LessonIntroScreenState.initState.<anonymous closure> (package:ai_speaking_flutter_app/features/listening/presentation/lesson_intro_screen.dart:102:57)
+#3      SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1430:15)
+#4      SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1357:11)
+#5      AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:2260:9)
+#8      TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#9      AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:2249:27)
+#10     WidgetTester.pumpWidget.<anonymous closure> (package:flutter_test/src/widget_tester.dart:598:22)
+#13     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#14     WidgetTester.pumpWidget (package:flutter_test/src/widget_tester.dart:595:27)
+#15     main.<anonymous closure> (file:///D:/Documents/ai-speaking-flutter-app/.codex_tmp/audio-index-verify/test/features/listening/lesson_guided_flow_test.dart:2060:18)
+<asynchronous suspension>
+#16     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#17     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 5 frames from dart:async and package:stack_trace)
+00:07 +45: coach popup stays inside a compact phone viewport
+00:07 +46: All tests passed!

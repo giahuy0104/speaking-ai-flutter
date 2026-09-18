@@ -153,7 +153,7 @@ void main() {
             .having(
               (error) => error.toString(),
               'message',
-              'Chưa kết nối được máy chủ. Con thử lại sau nhé.',
+              'Chưa kết nối được máy chủ. Bạn thử lại sau nhé.',
             )
             .having(
               (error) => error.backendUnavailable,
@@ -304,7 +304,7 @@ void main() {
         isA<LessonAttemptEvaluationException>().having(
           (error) => error.toString(),
           'message',
-          'Máy chủ chưa xử lý được câu nói. Con thử lại sau nhé.',
+          'Máy chủ chưa xử lý được câu nói. Bạn thử lại sau nhé.',
         ),
       ),
     );
@@ -532,7 +532,7 @@ void main() {
           'RECORDED_AUDIO_FILE_INVALID',
         ]) {
           final backendError = const LessonAttemptEvaluationException(
-            'Chưa kết nối được máy chủ. Con thử lại sau nhé.',
+            'Chưa kết nối được máy chủ. Bạn thử lại sau nhé.',
             backendUnavailable: true,
           );
           final evaluator = BackendFirstLessonAttemptEvaluator(

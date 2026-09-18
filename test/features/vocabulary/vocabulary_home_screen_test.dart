@@ -64,7 +64,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(audio.spoken, ['en-US:Apple']);
-    final back = find.byKey(const Key('vocabulary-back-to-journeys'));
+    final back = find.byKey(const Key('vocabulary-home-back-button'));
     await tester.ensureVisible(back);
     await tester.tap(back);
     await tester.pumpAndSettle();
@@ -118,18 +118,60 @@ void main() {
     await tester.tap(find.byKey(const Key('vocabulary-family-card')));
     await tester.pumpAndSettle();
     expect(find.text('Ba mẹ đã thêm'), findsOneWidget);
+    expect(find.byKey(const Key('vocabulary-back-to-journeys')), findsNothing);
+    final familyHeader = tester.widget<Container>(
+      find.byKey(const Key('vocabulary-journey-detail-header')),
+    );
+    expect(
+      (familyHeader.decoration! as BoxDecoration).color,
+      AppColors.primaryNavy,
+    );
+    final waitingQueue = tester.widget<Container>(
+      find.byKey(const Key('vocabulary-waiting-queue')),
+    );
+    final waitingDecoration = waitingQueue.decoration! as BoxDecoration;
+    expect(waitingDecoration.color, AppColors.mintSoft);
+    expect(waitingDecoration.border, isNotNull);
+    expect(
+      find.byKey(const Key('vocabulary-waiting-count-chip')),
+      findsOneWidget,
+    );
+    final familyTitle = tester.widget<Text>(
+      find.byKey(const Key('vocabulary-journey-title')),
+    );
+    expect(familyTitle.textAlign, TextAlign.center);
 
-    await tester.tap(find.byKey(const Key('vocabulary-back-to-journeys')));
+    await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('vocabulary-stars-card')));
     await tester.pumpAndSettle();
     expect(find.text('Ngôi sao của bạn'), findsOneWidget);
+    expect(
+      (tester
+                  .widget<Container>(
+                    find.byKey(const Key('vocabulary-journey-detail-header')),
+                  )
+                  .decoration!
+              as BoxDecoration)
+          .color,
+      AppColors.primaryNavy,
+    );
 
-    await tester.tap(find.byKey(const Key('vocabulary-back-to-journeys')));
+    await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('vocabulary-review-card')));
     await tester.pumpAndSettle();
     expect(find.text('Luyện lại'), findsOneWidget);
+    expect(
+      (tester
+                  .widget<Container>(
+                    find.byKey(const Key('vocabulary-journey-detail-header')),
+                  )
+                  .decoration!
+              as BoxDecoration)
+          .color,
+      AppColors.primaryNavy,
+    );
   });
 
   testWidgets(
@@ -216,7 +258,7 @@ void main() {
       );
       expect(starsTitle.style?.fontSize, lessThanOrEqualTo(24));
 
-      await tester.tap(find.byKey(const Key('vocabulary-back-to-journeys')));
+      await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
       await tester.pumpAndSettle();
       await tester.ensureVisible(
         find.byKey(const Key('vocabulary-review-card')),
@@ -247,7 +289,7 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.tap(find.byKey(const Key('vocabulary-back-to-journeys')));
+      await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('vocabulary-family-card')));
       await tester.pumpAndSettle();
@@ -257,7 +299,8 @@ void main() {
       expect(find.byKey(const Key('vocabulary-search-field')), findsOneWidget);
       expect(find.byKey(const Key('toggle-delete-vocabulary')), findsNothing);
       expect(find.byKey(const Key('add-vocabulary-action')), findsNothing);
-      expect(find.text('Danh sách chờ (0)'), findsOneWidget);
+      expect(find.text('Danh sách chờ'), findsOneWidget);
+      expect(find.text('(0)'), findsOneWidget);
       expect(
         find.byKey(const ValueKey<String>('vocabulary-family-homi')),
         findsOneWidget,
@@ -553,6 +596,18 @@ void main() {
       find.byKey(const Key('confirm-vocabulary-suggestions')),
       findsOneWidget,
     );
+    expect(find.text('Đã chọn'), findsNothing);
+    expect(find.textContaining('Chọn tối đa'), findsNothing);
+    expect(find.textContaining('Nhấn biểu tượng bút'), findsNothing);
+    final selectedSuggestionCard = tester.widget<Container>(
+      find.byKey(const ValueKey<String>('vocabulary-suggestion-0')),
+    );
+    final selectedSuggestionDecoration =
+        selectedSuggestionCard.decoration! as BoxDecoration;
+    final selectedSuggestionBorder =
+        selectedSuggestionDecoration.border! as Border;
+    expect(selectedSuggestionBorder.top.color, AppColors.primaryNavy);
+    expect(selectedSuggestionBorder.top.width, 1.5);
     for (var index = 0; index < 3; index++) {
       expect(
         find.byKey(ValueKey<String>('vocabulary-suggestion-$index')),
@@ -656,7 +711,7 @@ void main() {
       '1',
     );
 
-    await tester.tap(find.byKey(const Key('vocabulary-back-to-journeys')));
+    await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.byKey(const Key('vocabulary-review-card')));
     await tester.tap(find.byKey(const Key('vocabulary-review-card')));
@@ -986,7 +1041,16 @@ void main() {
 
       expect(find.byKey(const Key('vocabulary-today-view')), findsNothing);
       expect(find.byKey(const Key('vocabulary-waiting-queue')), findsOneWidget);
-      expect(find.text('Danh sách chờ (1)'), findsOneWidget);
+      expect(find.text('Danh sách chờ'), findsOneWidget);
+      expect(find.text('(1)'), findsOneWidget);
+      expect(
+        find.byKey(
+          ValueKey<String>(
+            'vocabulary-waiting-order-${store.entries.single.id}',
+          ),
+        ),
+        findsOneWidget,
+      );
       expect(
         tester.getTopLeft(find.byKey(const Key('vocabulary-waiting-queue'))).dy,
         lessThan(

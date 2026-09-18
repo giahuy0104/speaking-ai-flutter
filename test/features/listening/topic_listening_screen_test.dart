@@ -67,7 +67,7 @@ void main() {
     await tester.pumpWidget(buildSubject(themeMode: ThemeMode.dark));
     await tester.pumpAndSettle();
 
-    final journeyTitle = tester.widget<Text>(find.text('Hành trình của con'));
+    final journeyTitle = tester.widget<Text>(find.text('Hành trình của bạn'));
     final groupLabel = tester.widget<Text>(find.text('Nhóm bài học hiện tại'));
     final theme = Theme.of(
       tester.element(find.byKey(const Key('topic-listening-screen'))),
@@ -171,8 +171,12 @@ void main() {
     expect(find.byKey(const Key('topic-lesson-list-screen')), findsOneWidget);
     expect(find.byKey(const Key('topic-header-english-title')), findsOneWidget);
     expect(find.text('ABC Words'), findsOneWidget);
-    expect(find.textContaining('Từ vựng A đến I'), findsOneWidget);
-    expect(find.text('A to I Words'), findsOneWidget);
+    expect(find.text('Lesson 1 · A to I Words'), findsOneWidget);
+    expect(find.text('Bài 1 · Từ vựng A đến I'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Lesson 1 · A to I Words')).dy,
+      lessThan(tester.getTopLeft(find.text('Bài 1 · Từ vựng A đến I')).dy),
+    );
   });
 
   test(
@@ -571,7 +575,7 @@ void main() {
 
     expect(find.byKey(const Key('topic-journey-path')), findsOneWidget);
     expect(find.byKey(const ValueKey('topic-6-7-0')), findsOneWidget);
-    expect(find.text('Hành trình của con'), findsOneWidget);
+    expect(find.text('Hành trình của bạn'), findsOneWidget);
     expect(
       find.byKey(const Key('listening-bottom-navigation')),
       findsOneWidget,

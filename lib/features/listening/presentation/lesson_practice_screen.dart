@@ -16,6 +16,7 @@ import '../../../core/device/active_learning_module.dart';
 import '../../../l10n/display_language.dart';
 import '../../vocabulary/data/vocabulary_store.dart';
 import '../../vocabulary/domain/vocabulary_entry.dart';
+import '../../voice_navigation/domain/master_navigation_contract.dart';
 import '../application/lesson_attempt_evaluator.dart';
 import '../application/lesson_guide_audio_library.dart';
 import '../application/lesson_completion_choice_recognizer.dart';
@@ -104,7 +105,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   String get mainVoicePrompt => _v4CompletionChoiceVisible
       ? _mainCompletionPrompt ??
             'Bạn chọn một trong các lựa chọn trên màn hình nhé.'
-      : 'Bạn muốn nghe lại, học câu tiếp theo, học câu trước hay dừng lại?';
+      : MasterNavigationContract.coreControlPrompt;
 
   @override
   bool get isMainVoiceChoice => _v4CompletionChoiceVisible;
@@ -566,7 +567,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         if (widget.lesson.usesV4Flow &&
             _sentenceIndex == widget.lesson.sentences.length - 1) {
           return const ActiveLearningCommandResult.unavailable(
-            spokenReply: 'Đây là câu cuối. Con hãy hoàn thành câu này nhé.',
+            spokenReply: 'Đây là câu cuối. Bạn hãy hoàn thành câu này nhé.',
           );
         }
         _pausedForMainAssistant = false;
@@ -592,7 +593,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         if (nextLesson == null) {
           return const ActiveLearningCommandResult.unavailable(
             spokenReply:
-                'Con đã học xong chủ đề này rồi. Con chọn tiếp chủ đề mới nhé.',
+                'Bạn đã học xong chủ đề này rồi. Bạn chọn tiếp chủ đề mới nhé.',
           );
         }
         _pausedForMainAssistant = false;
@@ -602,7 +603,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         final previousLesson = _previousLessonInTopic;
         if (previousLesson == null) {
           return const ActiveLearningCommandResult.unavailable(
-            spokenReply: 'Con đang ở bài đầu tiên rồi.',
+            spokenReply: 'Bạn đang ở bài đầu tiên rồi.',
           );
         }
         _pausedForMainAssistant = false;
@@ -2901,7 +2902,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     setState(() {
       _mediaBusy = true;
       _recordingStartPending = true;
-      _message = 'Đang mở micro để nghe lựa chọn của con…';
+      _message = 'Đang mở micro để nghe lựa chọn của bạn…';
     });
     IOSStreamingSpeechInput? completionIosSpeechInput;
     try {
@@ -2988,8 +2989,8 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         _recordingStartPending = false;
         _mediaBusy = false;
         _message = _activeV4CompletionStage == null
-            ? 'Con nói “Luyện lại từ đầu” hoặc “Bài tiếp theo” nhé.'
-            : 'HOMI đang nghe lựa chọn của con…';
+            ? 'Bạn nói “Luyện lại từ đầu” hoặc “Bài tiếp theo” nhé.'
+            : 'HOMI đang nghe lựa chọn của bạn…';
       });
       final nativeInput =
           _completionChoiceAndroidSpeechInput ?? completionIosSpeechInput;
@@ -3036,7 +3037,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       if (_v4CompletionChoiceVisible && _activeV4CompletionStage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Chưa mở được micro. Con chạm một nút để chọn nhé.'),
+            content: Text('Chưa mở được micro. Bạn chạm một nút để chọn nhé.'),
           ),
         );
       } else {
@@ -3058,7 +3059,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     if (mounted) {
       setState(() {
         _mediaBusy = true;
-        _message = 'Đang nghe câu trả lời của con…';
+        _message = 'Đang nghe câu trả lời của bạn…';
       });
     }
     LessonRecording? recording;
@@ -3096,12 +3097,12 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         if (action == null) {
           setState(() {
             _mediaBusy = false;
-            _message = 'Cô chưa nghe rõ lựa chọn. Con chạm một nút nhé.';
+            _message = 'HOMI chưa nghe rõ lựa chọn. Bạn chạm một nút nhé.';
           });
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                'Cô chưa nghe rõ lựa chọn. Con có thể chạm một nút bên dưới.',
+                'HOMI chưa nghe rõ lựa chọn. Bạn có thể chạm một nút bên dưới.',
               ),
             ),
           );
@@ -3116,7 +3117,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       }
       if (choice == null) {
         await _showCompletionChoiceFallback(
-          'Cô nghe được “$transcript” nhưng chưa rõ lựa chọn của con.',
+          'HOMI nghe được “$transcript” nhưng chưa rõ lựa chọn của bạn.',
         );
         return;
       }
@@ -3137,7 +3138,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                'Chưa nhận diện được giọng nói. Con chạm một nút để chọn nhé.',
+                'Chưa nhận diện được giọng nói. Bạn chạm một nút để chọn nhé.',
               ),
             ),
           );
@@ -3239,7 +3240,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         // The lesson and Main assistant use separate Dart service instances
         // backed by the same native Android TTS engine. Release this route's
         // owned service before opening the next prompt so dispose() cannot
-        // stop Bi cô's topic-selection question during the pop transition.
+        // stop HOMI's topic-selection question during the pop transition.
         await _releaseOwnedVoicePromptService();
         widget.onTopicCompleted?.call();
         _returnToListening();
@@ -3265,7 +3266,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
     setState(() {
       _mediaBusy = false;
-      _message = 'Cô chưa nghe rõ. Con chọn một nút bên dưới nhé.';
+      _message = 'HOMI chưa nghe rõ. Bạn chọn một nút bên dưới nhé.';
     });
     final action = await showModalBottomSheet<_CompletionChoiceFallbackAction>(
       context: context,
@@ -3280,7 +3281,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               Text(
-                'Con muốn học thế nào?',
+                'Bạn muốn học thế nào?',
                 textAlign: TextAlign.center,
                 style: Theme.of(sheetContext).textTheme.titleLarge,
               ),
@@ -3869,7 +3870,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     if (normalized.contains('credential') ||
         normalized.contains('installation') ||
         normalized.contains('xác thực')) {
-      return 'HOMI đang làm mới kết nối. Con nhấn ghi âm lại nhé.';
+      return 'HOMI đang làm mới kết nối. Bạn nhấn ghi âm lại nhé.';
     }
     return message;
   }
@@ -4326,7 +4327,7 @@ class _LessonPraiseFireworksState extends State<_LessonPraiseFireworks>
     return Semantics(
       key: const Key('lesson-praise-fireworks'),
       liveRegion: true,
-      label: context.tr('Con làm tuyệt lắm!', '你做得太棒了！'),
+      label: context.tr('Bạn làm tuyệt lắm!', '你做得太棒了！'),
       child: LayoutBuilder(
         builder: (context, constraints) {
           return AnimatedBuilder(
@@ -4485,7 +4486,7 @@ class _LessonCoachPopupState extends State<_LessonCoachPopup>
     final secondReminder = widget.kind == _LessonCoachPopupKind.secondReminder;
     final title = switch (widget.kind) {
       _LessonCoachPopupKind.firstReminder => context.tr(
-        'Đến lượt con rồi!',
+        'Đến lượt bạn rồi!',
         '轮到你啦！',
       ),
       _LessonCoachPopupKind.secondReminder => context.tr(
@@ -4499,7 +4500,7 @@ class _LessonCoachPopupState extends State<_LessonCoachPopup>
         '请长按麦克风按钮，跟着示范句朗读。',
       ),
       _LessonCoachPopupKind.secondReminder => context.tr(
-        'Con có thể nghe mẫu lại, nói chậm hơn hoặc chọn bỏ qua câu này.',
+        'Bạn có thể nghe mẫu lại, nói chậm hơn hoặc chọn bỏ qua câu này.',
         '你可以重听示范、慢慢说，或选择跳过本句。',
       ),
     };
@@ -4904,7 +4905,7 @@ class _RecordingCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            context.tr('Bản ghi của con', '孩子的录音'),
+            context.tr('Bản ghi của bạn', '孩子的录音'),
             style: TextStyle(
               color: isDark ? colorScheme.onSurface : AppColors.ink,
               fontWeight: FontWeight.w700,
@@ -5051,7 +5052,7 @@ class _CompletionSheetState extends State<_CompletionSheet>
             ),
           ),
           Text(
-            context.tr('Con đã hoàn thành!', '学习完成！'),
+            context.tr('Bạn đã hoàn thành!', '学习完成！'),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               color: AppColors.indigoDark,

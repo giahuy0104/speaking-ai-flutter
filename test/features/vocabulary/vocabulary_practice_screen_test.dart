@@ -151,6 +151,10 @@ void main() {
         find.byKey(const Key('vocabulary-practice-main-action')),
       );
       await tester.pumpAndSettle();
+      for (var index = 0; index < 5; index++) {
+        await tester.pump(const Duration(milliseconds: 700));
+        await tester.pumpAndSettle();
+      }
       expect(media.recording, isFalse);
       expect(voice.spoken.take(2), <String>['en-US:Apple', 'vi-VN:Quả táo']);
       expect(
@@ -448,6 +452,8 @@ void main() {
       await tester.tap(
         find.byKey(const Key('vocabulary-practice-main-action')),
       );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 700));
       await tester.pumpAndSettle();
       expect(find.text(VocabularyFlowV3.todayCompletion), findsOneWidget);
 

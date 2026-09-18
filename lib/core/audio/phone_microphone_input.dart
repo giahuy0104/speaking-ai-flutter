@@ -146,7 +146,7 @@ class PhoneMicrophoneInput
     if (!_microphonePermissionGranted) {
       if (!await requestPermission()) {
         throw const AudioInputException(
-          'Ứng dụng cần quyền micro để nghe con nói.',
+          'Ứng dụng cần quyền micro để nghe bạn nói.',
         );
       }
       _microphonePermissionGranted = true;

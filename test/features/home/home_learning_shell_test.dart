@@ -469,6 +469,7 @@ void main() {
           autoStartVoiceNavigation: true,
           voiceNavigationController: voiceNavigationController,
           backgroundLearningSession: backgroundSession,
+          parentMediaSettingsStore: const _FakeParentMediaSettingsStore(true),
         ),
       );
       await tester.pump();
@@ -538,6 +539,53 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     },
   );
+
+  testWidgets('keeps an explicit Android MAIN mic when the display is locked', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    addTearDown(
+      () => tester.binding.handleAppLifecycleStateChanged(
+        AppLifecycleState.resumed,
+      ),
+    );
+    final backgroundSession = _FakeScreenAwareBackgroundLearningSession(
+      screenInteractive: false,
+    );
+    final speechInput = _FakeStreamingSpeechInput();
+    final voiceNavigationController = VoiceNavigationController(
+      speechInput: speechInput,
+    );
+    final controller = _controller();
+    addTearDown(backgroundSession.dispose);
+    addTearDown(voiceNavigationController.dispose);
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      _app(
+        controller,
+        voiceNavigationController: voiceNavigationController,
+        backgroundLearningSession: backgroundSession,
+        parentMediaSettingsStore: const _FakeParentMediaSettingsStore(true),
+      ),
+    );
+    await tester.pump();
+    expect(await voiceNavigationController.activateFromMainButton(), isTrue);
+    expect(voiceNavigationController.isListening, isTrue);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(backgroundSession.screenStateReadCount, 1);
+    expect(voiceNavigationController.isListening, isTrue);
+    expect(speechInput.cancelCount, 0);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    debugDefaultTargetPlatformOverride = null;
+  });
 
   testWidgets(
     'rearms an Android background session without opening a busy microphone',
@@ -1161,6 +1209,21 @@ class _FakeBackgroundLearningSession
   }
 
   Future<void> dispose() => _events.close();
+}
+
+class _FakeScreenAwareBackgroundLearningSession
+    extends _FakeBackgroundLearningSession
+    implements DeviceScreenStateBackgroundSessionControl {
+  _FakeScreenAwareBackgroundLearningSession({required this.screenInteractive});
+
+  final bool screenInteractive;
+  int screenStateReadCount = 0;
+
+  @override
+  Future<bool?> isScreenInteractive() async {
+    screenStateReadCount += 1;
+    return screenInteractive;
+  }
 }
 
 ConversationController _controller({

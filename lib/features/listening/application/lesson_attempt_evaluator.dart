@@ -183,12 +183,12 @@ class BackendFirstLessonAttemptEvaluator
         backendFailure = error;
       } on TimeoutException {
         backendFailure = const LessonAttemptEvaluationException(
-          'Chưa kết nối được máy chủ. Con thử lại sau nhé.',
+          'Chưa kết nối được máy chủ. Bạn thử lại sau nhé.',
           backendUnavailable: true,
         );
       } on http.ClientException {
         backendFailure = const LessonAttemptEvaluationException(
-          'Chưa kết nối được máy chủ. Con thử lại sau nhé.',
+          'Chưa kết nối được máy chủ. Bạn thử lại sau nhé.',
           backendUnavailable: true,
         );
       }
@@ -416,7 +416,7 @@ class BackendLessonAttemptEvaluator
       decoded = jsonDecode(response.body);
     } on FormatException {
       throw const LessonAttemptEvaluationException(
-        'Máy chủ chưa xử lý được câu nói. Con thử lại sau nhé.',
+        'Máy chủ chưa xử lý được câu nói. Bạn thử lại sau nhé.',
       );
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -440,14 +440,14 @@ class BackendLessonAttemptEvaluator
       throw LessonAttemptEvaluationException(
         message is String && message.trim().isNotEmpty
             ? message
-            : 'Chưa kiểm tra được câu nói của con. Con thử lại sau nhé.',
+            : 'Chưa kiểm tra được câu nói của bạn. Bạn thử lại sau nhé.',
       );
     }
 
     final matched = decoded is Map<String, dynamic> ? decoded['matched'] : null;
     if (matched is! bool) {
       throw const LessonAttemptEvaluationException(
-        'Kết quả kiểm tra câu nói không hợp lệ. Con thử lại sau nhé.',
+        'Kết quả kiểm tra câu nói không hợp lệ. Bạn thử lại sau nhé.',
       );
     }
     final transcript = _recognizedEnglishFrom(decoded);
@@ -531,7 +531,7 @@ class BackendLessonAttemptEvaluator
       decoded = jsonDecode(response.body);
     } on FormatException {
       throw const LessonAttemptEvaluationException(
-        'Máy chủ chưa xử lý được câu nói. Con thử lại sau nhé.',
+        'Máy chủ chưa xử lý được câu nói. Bạn thử lại sau nhé.',
       );
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -555,7 +555,7 @@ class BackendLessonAttemptEvaluator
       throw LessonAttemptEvaluationException(
         message is String && message.trim().isNotEmpty
             ? message
-            : 'Chưa kiểm tra được câu nói của con. Con thử lại sau nhé.',
+            : 'Chưa kiểm tra được câu nói của bạn. Bạn thử lại sau nhé.',
       );
     }
 
@@ -590,12 +590,12 @@ class BackendLessonAttemptEvaluator
       return await _client.get(uri).timeout(const Duration(seconds: 15));
     } on TimeoutException {
       throw const LessonAttemptEvaluationException(
-        'Chưa kết nối được máy chủ. Con thử lại sau nhé.',
+        'Chưa kết nối được máy chủ. Bạn thử lại sau nhé.',
         backendUnavailable: true,
       );
     } on http.ClientException {
       throw const LessonAttemptEvaluationException(
-        'Chưa kết nối được máy chủ. Con thử lại sau nhé.',
+        'Chưa kết nối được máy chủ. Bạn thử lại sau nhé.',
         backendUnavailable: true,
       );
     }
@@ -606,12 +606,12 @@ class BackendLessonAttemptEvaluator
       return await _client.send(request).timeout(const Duration(seconds: 15));
     } on TimeoutException {
       throw const LessonAttemptEvaluationException(
-        'Chưa kết nối được máy chủ. Con thử lại sau nhé.',
+        'Chưa kết nối được máy chủ. Bạn thử lại sau nhé.',
         backendUnavailable: true,
       );
     } on http.ClientException {
       throw const LessonAttemptEvaluationException(
-        'Chưa kết nối được máy chủ. Con thử lại sau nhé.',
+        'Chưa kết nối được máy chủ. Bạn thử lại sau nhé.',
         backendUnavailable: true,
       );
     }

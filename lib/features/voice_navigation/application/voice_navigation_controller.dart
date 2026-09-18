@@ -16,6 +16,7 @@ typedef ActiveLearningCommandHandler =
     FutureOr<ActiveLearningCommandResult> Function(
       ActiveLearningCommand command,
     );
+typedef SelectedOutputPreparation = Future<bool> Function();
 
 /// Runs MAIN voice navigation independently from the conversation flow.
 ///
@@ -40,6 +41,7 @@ class VoiceNavigationController extends ChangeNotifier {
     Duration microphoneStartRetryDelay = const Duration(seconds: 2),
     Duration pauseDrainTimeout = const Duration(seconds: 2),
     ActiveLearningCommandHandler? activeLearningCommandHandler,
+    SelectedOutputPreparation? prepareSelectedOutput,
     this.wakeWordEnabled = true,
   }) : _speechInput = speechInput,
        _resolver = resolver,
@@ -54,7 +56,8 @@ class VoiceNavigationController extends ChangeNotifier {
        _microphoneStartTimeout = microphoneStartTimeout,
        _microphoneStartRetryDelay = microphoneStartRetryDelay,
        _pauseDrainTimeout = pauseDrainTimeout,
-       _activeLearningCommandHandler = activeLearningCommandHandler {
+       _activeLearningCommandHandler = activeLearningCommandHandler,
+       _prepareSelectedOutput = prepareSelectedOutput {
     _completedSubscription = _speechInput.completed.listen((_) {
       if (_listening && !_finishing) {
         unawaited(_finishSession(_generation));
@@ -100,6 +103,7 @@ class VoiceNavigationController extends ChangeNotifier {
   final Duration _microphoneStartRetryDelay;
   final Duration _pauseDrainTimeout;
   final ActiveLearningCommandHandler? _activeLearningCommandHandler;
+  final SelectedOutputPreparation? _prepareSelectedOutput;
   final bool wakeWordEnabled;
 
   StreamSubscription<void>? _completedSubscription;
@@ -132,7 +136,6 @@ class VoiceNavigationController extends ChangeNotifier {
   int _mainNoSpeechRetryCount = 0;
   int _mainPrematureCompletionRecoveryCount = 0;
   String? _mainNoSpeechRetryPromptOverride;
-  String? _mainNoSpeechExitPromptOverride;
   Object? _lastError;
   String? _activeInputLabelOverride;
   String? _nativeMainTurnId;
@@ -161,7 +164,7 @@ class VoiceNavigationController extends ChangeNotifier {
     if (error == null) return null;
     if (error is StreamingSpeechInputException) return error.message;
     final message = error.toString().trim();
-    return message.isEmpty ? 'Không mở được micro. Con thử lại nhé.' : message;
+    return message.isEmpty ? 'Không mở được micro. Bạn thử lại nhé.' : message;
   }
 
   void setIntentHandler(VoiceNavigationIntentHandler? handler) {
@@ -313,7 +316,9 @@ class VoiceNavigationController extends ChangeNotifier {
       _mainNoSpeechRetryCount = 0;
       _mainPrematureCompletionRecoveryCount = 0;
       _mainNoSpeechRetryPromptOverride = noSpeechRetryPrompt;
-      _mainNoSpeechExitPromptOverride = noSpeechExitPrompt;
+      // The exit prompt is intentionally global. Keep accepting the legacy
+      // argument while older feature callbacks migrate, but never let one
+      // navigation branch replace the required second-silence pause wording.
       _continuousRequested = true;
       final generation = _generation;
       final promptText = beginFlow();
@@ -603,6 +608,12 @@ class VoiceNavigationController extends ChangeNotifier {
           if (_disposed || generation != _generation) {
             return false;
           }
+          if (!kIsWeb &&
+              promptService is SelectedMediaOutputVoicePromptService &&
+              _prepareSelectedOutput != null &&
+              !await _prepareSelectedOutput()) {
+            throw StateError('Selected H20 audio route is unavailable.');
+          }
           final promptPlayback =
               !kIsWeb && promptService is SelectedMediaOutputVoicePromptService
               ? (promptService as SelectedMediaOutputVoicePromptService)
@@ -747,18 +758,23 @@ class VoiceNavigationController extends ChangeNotifier {
       }
       return;
     }
+    final silenceExitTurn = _mainAssistantFlow.handleSilenceExit();
     await _acknowledgeWakeWord(
       generation,
-      promptText:
-          _mainNoSpeechExitPromptOverride ??
-          _mainAssistantFlow.silenceExitPrompt,
+      promptText: silenceExitTurn.promptText,
       openCommandWindow: false,
     );
     if (_disposed || generation != _generation || !_buttonCommandSession) {
       return;
     }
-    if (_mainAssistantFlow.stage == MainVoiceAssistantStage.activeLearning) {
-      await _activeLearningCommandHandler?.call(ActiveLearningCommand.stop);
+    final silenceExitCommand = silenceExitTurn.activeLearningCommand;
+    if (silenceExitCommand != null) {
+      await _activeLearningCommandHandler?.call(silenceExitCommand);
+      if (_disposed || generation != _generation) return;
+    }
+    final silenceExitNavigation = silenceExitTurn.navigationAfterPrompt;
+    if (silenceExitNavigation != null) {
+      await _dispatchIntent(silenceExitNavigation);
       if (_disposed || generation != _generation) return;
     }
     _buttonCommandSession = false;
@@ -766,7 +782,6 @@ class VoiceNavigationController extends ChangeNotifier {
     _mainNoSpeechRetryCount = 0;
     _mainPrematureCompletionRecoveryCount = 0;
     _mainNoSpeechRetryPromptOverride = null;
-    _mainNoSpeechExitPromptOverride = null;
     _mainAssistantFlow.pauseChoice();
     await _endNativeMainTurn(
       'main_assistant_no_speech_exit',

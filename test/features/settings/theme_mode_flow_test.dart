@@ -188,6 +188,35 @@ void main() {
     expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
   });
 
+  testWidgets('Android defaults background media stopping to off', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      playbackService: const _FakePlaybackService(),
+      repository: const DemoConversationRepository(),
+      childAge: 6,
+    );
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: Scaffold(body: SettingsSheet(controller: controller)),
+      ),
+    );
+
+    final toggle = find.byKey(
+      const Key('settings-stop-media-background-switch'),
+    );
+    await tester.scrollUntilVisible(toggle, 300);
+
+    expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
   testWidgets('turn settings use the shared HOMI visual system', (
     tester,
   ) async {

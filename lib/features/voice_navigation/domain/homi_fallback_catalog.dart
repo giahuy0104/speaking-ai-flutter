@@ -660,7 +660,7 @@ class HomiFallbackCatalog {
     'AI-004':
         'Được thôi. Bạn muốn dịch sang tiếng Anh, học theo chủ đề hay học bộ từ vựng?',
     'AI-005':
-        'Bạn muốn nghe lại, học câu tiếp theo, học câu trước, hay dừng lại?',
+        'Bạn muốn nghe lại, câu trước, hay câu sau?',
     'AI-006': 'Bạn muốn dịch sang tiếng Anh hay học bộ từ vựng?',
     'AI-007': 'Bạn mấy tuổi?',
     'AI-008': 'Bạn mấy tuổi? Ví dụ bạn nói: 6 tuổi.',

@@ -6,7 +6,13 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   const hfpReady = BluetoothAudioStatus(
     phase: BluetoothAudioConnectionPhase.ready,
+    deviceId: 'h20-hfp',
     routeActive: true,
+  );
+  const hfpReadyIdle = BluetoothAudioStatus(
+    phase: BluetoothAudioConnectionPhase.ready,
+    deviceId: 'h20-hfp',
+    deviceName: 'H20',
   );
   const hfpMissing = BluetoothAudioStatus(
     phase: BluetoothAudioConnectionPhase.idle,
@@ -54,6 +60,19 @@ void main() {
 
   test('allows MAIN to activate a selected but currently idle HFP route', () {
     final state = H20ConnectionState.from(
+      hfpStatus: hfpReadyIdle,
+      bleStatus: bleReady,
+    );
+
+    expect(state.phase, H20ConnectionPhase.h20Ready);
+    expect(state.hfpSelected, isTrue);
+    expect(state.hfpReady, isTrue);
+    expect(state.routeActive, isFalse);
+    expect(state.canStartStrictHfpTurn, isTrue);
+  });
+
+  test('does not treat a remembered but disconnected HFP device as ready', () {
+    final state = H20ConnectionState.from(
       hfpStatus: hfpSelectedButIdle,
       bleStatus: bleReady,
     );
@@ -61,7 +80,7 @@ void main() {
     expect(state.phase, H20ConnectionPhase.bleReady);
     expect(state.hfpSelected, isTrue);
     expect(state.hfpReady, isFalse);
-    expect(state.canStartStrictHfpTurn, isTrue);
+    expect(state.canStartStrictHfpTurn, isFalse);
   });
 
   test('does not start strict HFP turn without a selected HFP input', () {
@@ -71,6 +90,18 @@ void main() {
     );
 
     expect(state.hfpSelected, isFalse);
+    expect(state.canStartStrictHfpTurn, isFalse);
+  });
+
+  test('does not report ready until the app selects H20 as its input', () {
+    final state = H20ConnectionState.from(
+      hfpStatus: hfpReadyIdle,
+      bleStatus: bleReady,
+      hfpInputSelected: false,
+    );
+
+    expect(state.hfpSelected, isFalse);
+    expect(state.isH20Ready, isFalse);
     expect(state.canStartStrictHfpTurn, isFalse);
   });
 }

@@ -1,0 +1,9 @@
+00:00 +0: loading D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart
+00:00 +0: V2 automatically guides, records, praises, and starts the next sentence
+00:00 +1: All tests passed!
+00:00 +0: loading D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart
+00:00 +0: reports completed V4 topics again after replaying one
+00:01 +1: All tests passed!
+00:00 +0: loading D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart
+00:00 +0: does not report a V4 topic complete until its authored activities finish
+00:01 +1: All tests passed!

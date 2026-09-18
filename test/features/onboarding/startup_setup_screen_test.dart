@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets(
-    'requires a real BLE connection before a voice setup can finish',
+    'requires both BLE MAIN control and H20 microphone before setup can finish',
     (tester) async {
       await tester.binding.setSurfaceSize(const Size(390, 844));
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -14,6 +14,7 @@ void main() {
       var limitedModeSelected = false;
       var offlineEnglishModelAllowed = false;
       var bleConnected = false;
+      var hfpConfigured = false;
       int? selectedAge;
       var completed = false;
 
@@ -31,7 +32,7 @@ void main() {
               bluetoothRequired: true,
               bluetoothGranted: permissionsGranted,
               h20BleConnected: bleConnected,
-              h20HfpConfigured: false,
+              h20HfpConfigured: hfpConfigured,
               selectedAge: selectedAge,
               aiSubprocessors: 'HOMI backend trên Railway và Cloudflare',
               dataRetentionSummary: 'Audio được xóa sau 24 giờ.',
@@ -54,7 +55,10 @@ void main() {
                 setState(() => permissionsGranted = true);
               },
               onSetupH20: () async {
-                setState(() => bleConnected = true);
+                setState(() {
+                  bleConnected = true;
+                  hfpConfigured = true;
+                });
                 return true;
               },
               onAgeSelected: (age) => setState(() => selectedAge = age),
@@ -129,7 +133,7 @@ void main() {
       expect(tester.widget<FilledButton>(completeButton).onPressed, isNull);
       expect(find.byKey(const Key('startup-use-phone-mic')), findsNothing);
       expect(
-        find.textContaining('Cần kết nối BLE với thiết bị trước'),
+        find.textContaining('Cần kết nối cả nút MAIN và micro H20'),
         findsOneWidget,
       );
 

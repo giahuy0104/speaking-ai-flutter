@@ -445,7 +445,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
             children: <Widget>[
               _VocabularyHeader(
                 isReady: widget.isReady,
-                onBrandPressed: widget.onReturnToConversation,
+                onBrandPressed: _selectedJourney == null
+                    ? widget.onReturnToConversation
+                    : () => unawaited(
+                        _leavePlaybackForOtherContent(announceMenu: false),
+                      ),
+                backTooltip: _selectedJourney == null
+                    ? context.tr('Về trang chủ', '返回主页')
+                    : context.tr('Quay lại danh sách từ vựng', '返回词汇列表'),
                 onAddPressed: _translating ? null : _showAddDialog,
                 adding: _translating,
                 showAddAction:
@@ -694,9 +701,6 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
               _JourneyDetailHeader(
                 title: _journeyTitle(context, journey),
                 countLabel: headerCountLabel,
-                onBack: () => unawaited(
-                  _leavePlaybackForOtherContent(announceMenu: false),
-                ),
               ),
               const SizedBox(height: 18),
               if (!isFamilyJourney) ...<Widget>[
@@ -861,69 +865,229 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   Widget _buildParentWaitingQueue(BuildContext context) {
     final waiting = _entries.where((entry) => entry.isWaitingParent).toList()
       ..sort((a, b) => a.addedAt.compareTo(b.addedAt));
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       key: const Key('vocabulary-waiting-queue'),
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(14, 12, 8, 8),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        color: isDark ? AppColors.darkSurfaceRaised : AppColors.mintSoft,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: isDark
+              ? AppColors.darkMint.withValues(alpha: 0.48)
+              : AppColors.success.withValues(alpha: 0.34),
+          width: 1.5,
+        ),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.18)
+                : AppColors.deepNavy.withValues(alpha: 0.07),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(
-            '${context.tr('Danh sách chờ', '等待列表')} (${waiting.length})',
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+          Row(
+            children: <Widget>[
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkPrimary : AppColors.primaryNavy,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.schedule_rounded,
+                  color: isDark ? AppColors.darkCanvas : Colors.white,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  context.tr('Danh sách chờ', '等待列表'),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: isDark ? AppColors.darkText : AppColors.deepNavy,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              Container(
+                key: const Key('vocabulary-waiting-count-chip'),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppColors.darkPink.withValues(alpha: 0.18)
+                      : AppColors.accentPinkSoft,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: isDark
+                        ? AppColors.darkPink.withValues(alpha: 0.32)
+                        : AppColors.accentPink.withValues(alpha: 0.16),
+                  ),
+                ),
+                child: Text(
+                  '(${waiting.length})',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: isDark ? AppColors.darkPink : AppColors.accentPink,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
           ),
           if (waiting.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Text(context.tr('Chưa có nội dung đang chờ.', '暂无等待内容。')),
+              padding: const EdgeInsets.fromLTRB(48, 8, 8, 4),
+              child: Text(
+                context.tr('Chưa có nội dung đang chờ.', '暂无等待内容。'),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: isDark ? AppColors.darkMuted : AppColors.muted,
+                ),
+              ),
             )
-          else
-            for (final entry in waiting)
-              ListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  entry.word,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleMedium?.copyWith(fontSize: 15),
+          else ...<Widget>[
+            const SizedBox(height: 12),
+            for (var index = 0; index < waiting.length; index++)
+              Container(
+                key: ValueKey<String>(
+                  'vocabulary-waiting-item-${waiting[index].id}',
                 ),
-                subtitle: Text(
-                  entry.meaning,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyMedium,
+                margin: EdgeInsets.only(
+                  bottom: index == waiting.length - 1 ? 0 : 9,
                 ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
+                padding: const EdgeInsets.fromLTRB(10, 10, 6, 10),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppColors.darkSurfaceStrong.withValues(alpha: 0.82)
+                      : Colors.white.withValues(alpha: 0.84),
+                  borderRadius: BorderRadius.circular(17),
+                  border: Border.all(
+                    color: isDark
+                        ? AppColors.darkOutline
+                        : AppColors.mintBorder,
+                  ),
+                  boxShadow: <BoxShadow>[
+                    BoxShadow(
+                      color: isDark
+                          ? Colors.black.withValues(alpha: 0.12)
+                          : AppColors.primaryNavy.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    if (entry.canParentEdit)
-                      IconButton(
-                        key: ValueKey<String>('edit-waiting-${entry.id}'),
-                        onPressed: () => unawaited(_editParentEntry(entry)),
-                        icon: const Icon(Icons.edit_outlined),
+                    Container(
+                      key: ValueKey<String>(
+                        'vocabulary-waiting-order-${waiting[index].id}',
+                      ),
+                      width: 34,
+                      height: 34,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.darkPrimary
+                            : AppColors.primaryNavy,
+                        shape: BoxShape.circle,
+                        boxShadow: <BoxShadow>[
+                          BoxShadow(
+                            color:
+                                (isDark
+                                        ? AppColors.darkPrimary
+                                        : AppColors.primaryNavy)
+                                    .withValues(alpha: 0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        '${index + 1}',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: isDark ? AppColors.darkCanvas : Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            waiting[index].word,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: isDark
+                                  ? AppColors.darkText
+                                  : AppColors.deepNavy,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            waiting[index].meaning,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: isDark
+                                  ? AppColors.darkMuted
+                                  : AppColors.muted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    if (waiting[index].canParentEdit)
+                      IconButton.filledTonal(
+                        key: ValueKey<String>(
+                          'edit-waiting-${waiting[index].id}',
+                        ),
+                        onPressed: () =>
+                            unawaited(_editParentEntry(waiting[index])),
+                        icon: const Icon(Icons.edit_rounded, size: 20),
                         tooltip: context.tr('Sửa', '编辑'),
                       ),
-                    if (entry.canParentDelete)
-                      IconButton(
-                        key: ValueKey<String>('delete-queued-${entry.id}'),
-                        onPressed: () => unawaited(_delete(entry)),
-                        icon: const Icon(Icons.delete_outline_rounded),
+                    if (waiting[index].canParentDelete)
+                      IconButton.filledTonal(
+                        key: ValueKey<String>(
+                          'delete-queued-${waiting[index].id}',
+                        ),
+                        onPressed: () => unawaited(_delete(waiting[index])),
+                        style: IconButton.styleFrom(
+                          foregroundColor: isDark
+                              ? AppColors.darkPink
+                              : AppColors.accentPink,
+                          backgroundColor: isDark
+                              ? AppColors.darkPink.withValues(alpha: 0.14)
+                              : AppColors.accentPinkSoft,
+                        ),
+                        icon: const Icon(
+                          Icons.delete_outline_rounded,
+                          size: 20,
+                        ),
                         tooltip: context.tr('Xóa', '删除'),
                       ),
                   ],
                 ),
               ),
+          ],
         ],
       ),
     );
@@ -2313,15 +2477,10 @@ class _VocabularyTranslationResolution {
 enum _VocabularyJourney { family, stars, review }
 
 class _JourneyDetailHeader extends StatelessWidget {
-  const _JourneyDetailHeader({
-    required this.title,
-    required this.countLabel,
-    required this.onBack,
-  });
+  const _JourneyDetailHeader({required this.title, required this.countLabel});
 
   final String title;
   final String? countLabel;
-  final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
@@ -2330,86 +2489,57 @@ class _JourneyDetailHeader extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final stackCount = countLabel != null && constraints.maxWidth < 430;
         final titleFontSize = constraints.maxWidth <= 330 ? 22.0 : 24.0;
 
         return Container(
           key: const Key('vocabulary-journey-detail-header'),
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
           decoration: BoxDecoration(
-            color: isDark
-                ? theme.colorScheme.surface.withValues(alpha: 0.92)
-                : Colors.white.withValues(alpha: 0.82),
-            borderRadius: BorderRadius.circular(22),
+            color: isDark ? AppColors.darkSurfaceStrong : AppColors.primaryNavy,
+            borderRadius: BorderRadius.circular(26),
             border: Border.all(
-              color: isDark
-                  ? theme.colorScheme.outline.withValues(alpha: 0.55)
-                  : const Color(0x8FFFFFFF),
+              color: isDark ? AppColors.darkOutline : AppColors.primaryNavy,
             ),
             boxShadow: <BoxShadow>[
               BoxShadow(
                 color: isDark
                     ? Colors.black.withValues(alpha: 0.22)
-                    : AppColors.deepNavy.withValues(alpha: 0.09),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
+                    : AppColors.deepNavy.withValues(alpha: 0.16),
+                blurRadius: 18,
+                offset: const Offset(0, 7),
               ),
             ],
           ),
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              IconButton.filledTonal(
-                key: const Key('vocabulary-back-to-journeys'),
-                onPressed: onBack,
-                icon: const Icon(Icons.arrow_back_rounded, size: 24),
-                tooltip: context.tr('Quay lại', '返回'),
-                style: IconButton.styleFrom(
-                  minimumSize: const Size.square(44),
-                  maximumSize: const Size.square(44),
-                  padding: EdgeInsets.zero,
-                  backgroundColor: isDark
-                      ? theme.colorScheme.surfaceContainerHighest
-                      : AppColors.mintWash,
-                  foregroundColor: isDark
-                      ? theme.colorScheme.primary
-                      : AppColors.indigoDark,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        title,
-                        key: const Key('vocabulary-journey-title'),
-                        maxLines: 1,
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          color: isDark
-                              ? theme.colorScheme.primary
-                              : AppColors.indigoDark,
-                          fontSize: titleFontSize,
-                          height: 1.12,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.45,
-                        ),
-                      ),
+              Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.center,
+                  child: Text(
+                    title,
+                    key: const Key('vocabulary-journey-title'),
+                    maxLines: 1,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: isDark ? AppColors.darkText : Colors.white,
+                      fontSize: titleFontSize,
+                      height: 1.12,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.45,
                     ),
-                    if (stackCount) ...<Widget>[
-                      const SizedBox(height: 6),
-                      _buildCountChip(context),
-                    ],
-                  ],
+                  ),
                 ),
               ),
-              if (countLabel != null && !stackCount) ...<Widget>[
-                const SizedBox(width: 8),
-                _buildCountChip(context),
+              if (countLabel != null) ...<Widget>[
+                const SizedBox(height: 7),
+                Align(
+                  alignment: Alignment.center,
+                  child: _buildCountChip(context),
+                ),
               ],
             ],
           ),
@@ -2426,7 +2556,7 @@ class _JourneyDetailHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: isDark
-            ? theme.colorScheme.tertiaryContainer
+            ? AppColors.darkMint.withValues(alpha: 0.16)
             : AppColors.mintSoft,
         borderRadius: BorderRadius.circular(999),
       ),
@@ -2434,9 +2564,7 @@ class _JourneyDetailHeader extends StatelessWidget {
         countLabel!,
         maxLines: 1,
         style: theme.textTheme.bodySmall?.copyWith(
-          color: isDark
-              ? theme.colorScheme.onTertiaryContainer
-              : AppColors.success,
+          color: isDark ? AppColors.darkMint : AppColors.success,
           fontSize: 13,
           height: 1.15,
           fontWeight: FontWeight.w800,
@@ -2450,6 +2578,7 @@ class _VocabularyHeader extends StatelessWidget {
   const _VocabularyHeader({
     required this.isReady,
     required this.onBrandPressed,
+    required this.backTooltip,
     required this.onAddPressed,
     required this.adding,
     required this.showAddAction,
@@ -2457,6 +2586,7 @@ class _VocabularyHeader extends StatelessWidget {
 
   final bool isReady;
   final VoidCallback onBrandPressed;
+  final String backTooltip;
   final VoidCallback? onAddPressed;
   final bool adding;
   final bool showAddAction;
@@ -2480,7 +2610,7 @@ class _VocabularyHeader extends StatelessWidget {
                 child: _VocabularyHeaderButton(
                   key: const Key('vocabulary-home-back-button'),
                   icon: Icons.arrow_back_rounded,
-                  tooltip: context.tr('Về trang chủ', '返回主页'),
+                  tooltip: backTooltip,
                   onPressed: onBrandPressed,
                 ),
               ),
@@ -3058,23 +3188,6 @@ class _VocabularySuggestionDialogState
                           context.tr('Chọn nội dung phù hợp', '选择合适的内容'),
                           style: theme.textTheme.titleLarge,
                         ),
-                        const SizedBox(height: 5),
-                        Text(
-                          _editingIndex == null
-                              ? context.tr(
-                                  'Chọn tối đa $maxSelections nội dung. Nhấn '
-                                      'biểu tượng bút để chỉnh sửa trước khi '
-                                      'thêm.',
-                                  '最多选择 $maxSelections 项。添加前可点铅笔图标修改。',
-                                )
-                              : context.tr(
-                                  'Chỉnh sửa hai ô bên dưới rồi nhấn Lưu.',
-                                  '请修改下方两个输入框，然后点保存。',
-                                ),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -3206,12 +3319,10 @@ class _VocabularySuggestionDialogState
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 14),
       decoration: BoxDecoration(
-        color: selected
-            ? colorScheme.secondaryContainer.withValues(alpha: 0.46)
-            : colorScheme.surfaceContainerLow,
+        color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: selected ? colorScheme.secondary : colorScheme.outlineVariant,
+          color: selected ? colorScheme.primary : colorScheme.outlineVariant,
           width: selected ? 1.5 : 1,
         ),
       ),
@@ -3244,24 +3355,6 @@ class _VocabularySuggestionDialogState
                   ),
                 ),
               ),
-              if (selected)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 9,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.secondary,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    context.tr('Đã chọn', '已选择'),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSecondary,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
               const SizedBox(width: 8),
               if (!isEditing)
                 IconButton.filledTonal(

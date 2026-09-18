@@ -802,6 +802,7 @@ class ConversationController extends ChangeNotifier
   bool get canUseHfp =>
       hfpAudioStatus.isConnected || hfpAudioStatus.deviceId != null;
   bool get hasSelectedHfpInput => hfpAudioStatus.deviceId != null;
+  bool get isH20Ready => h20ConnectionState().isH20Ready;
   @override
   Aiv0BleStatus get aiv0BleStatus =>
       _aiv0BleControl?.status ?? const Aiv0BleStatus.disabled();
@@ -813,6 +814,7 @@ class ConversationController extends ChangeNotifier
       H20ConnectionState.from(
         hfpStatus: hfpAudioStatus,
         bleStatus: aiv0BleStatus,
+        hfpInputSelected: _hfpInputSelected,
         mainTurnActive: mainTurnActive,
       );
   @override
@@ -1577,7 +1579,9 @@ class ConversationController extends ChangeNotifier
         hfpAudioStatus.isBusy) {
       return false;
     }
-    if (_hfpInputSelected && hfpAudioStatus.deviceId != null) {
+    if (_hfpInputSelected &&
+        hfpAudioStatus.deviceId != null &&
+        hfpAudioStatus.isConnected) {
       return true;
     }
     try {
@@ -3277,7 +3281,7 @@ class ConversationController extends ChangeNotifier
         return;
       }
       _lastTurnEndReason = ConversationTurnEndReason.failed;
-      _handleConversationError(error);
+      await _handleConversationError(error);
     } finally {
       await stoppedAdaptiveWebUpload?.finishPreviewForwarding();
       await _batchPreviewSubscription?.cancel();
@@ -3437,11 +3441,11 @@ class ConversationController extends ChangeNotifier
     transientMessage = _noisyRecording
         ? 'Môi trường đang khá ồn. Hãy đưa micro gần hơn, tránh hướng quạt hoặc chuyển sang chỗ yên hơn rồi thử lại.'
         : _unclearSpeechMessage;
+    notifyListeners();
     if (_speakNoSpeechPrompt) {
-      unawaited(_speakUnclearSpeechPrompt());
+      await _speakUnclearSpeechPrompt();
     }
     _stopInProgress = false;
-    notifyListeners();
   }
 
   void _completeRecognizedSpeechCommand() {
@@ -4036,6 +4040,11 @@ class ConversationController extends ChangeNotifier
     notifyListeners();
   }
 
+  void showH20ConnectionMessage(String message) {
+    transientMessage = message;
+    notifyListeners();
+  }
+
   void _setError(String message) {
     _processingStageTimer?.cancel();
     errorMessage = message;
@@ -4047,13 +4056,13 @@ class ConversationController extends ChangeNotifier
   }
 
   static const _unclearSpeechMessage =
-      'Cô chưa nghe thấy bạn nói. Bạn nói lại nhé.';
+      'HOMI chưa nghe thấy bạn nói. Bạn nói lại nhé.';
 
-  void _handleConversationError(Object error) {
+  Future<void> _handleConversationError(Object error) async {
     if (error is CodedConversationException &&
         error.errorCode == 'ASR_LOW_CONFIDENCE') {
       _setError(_unclearSpeechMessage);
-      unawaited(_speakUnclearSpeechPrompt());
+      await _speakUnclearSpeechPrompt();
       return;
     }
     _setError(_friendlyError(error));
@@ -4080,7 +4089,7 @@ class ConversationController extends ChangeNotifier
   }
 
   Future<void> _speakUnclearSpeechPrompt() async {
-    await _voicePromptService?.speak(_unclearSpeechMessage);
+    await _voicePromptService?.speakAndWait(_unclearSpeechMessage);
   }
 
   Future<void> speakAssistantPrompt(String text) async {

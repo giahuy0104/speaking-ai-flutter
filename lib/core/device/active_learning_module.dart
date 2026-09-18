@@ -31,9 +31,11 @@ enum ActiveLearningModuleKind { listeningLesson, vocabulary }
 /// this snapshot; playback, attempts and persistence remain in that owner.
 enum ActiveLearningVoiceNode {
   core,
+  song,
   challenge,
   review,
   today,
+  todayAfterEnVi,
   parent,
   star,
   vocabularyMenu,

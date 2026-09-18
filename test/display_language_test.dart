@@ -34,7 +34,9 @@ void main() {
       controller.setDisplayLanguage(DisplayLanguage.simplifiedChinese);
       await tester.pumpAndSettle();
 
-      expect(find.text('请说越南语'), findsOneWidget);
+      // The redesigned communication screen intentionally removed the two
+      // instructional heading lines above the waveform.
+      expect(find.text('请说越南语'), findsNothing);
       expect(find.text('开始说话'), findsOneWidget);
       expect(find.text('越南语句子'), findsOneWidget);
       expect(find.text('英语句子'), findsOneWidget);

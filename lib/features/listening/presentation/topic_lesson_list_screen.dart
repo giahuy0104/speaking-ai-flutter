@@ -1,10 +1,10 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
 import '../../../app/learning_scenery.dart';
-import '../../../app/mascot_assets.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
 import '../../../l10n/display_language.dart';
@@ -110,6 +110,23 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
       _mediaService.dispose();
     }
     super.dispose();
+  }
+
+  Future<void> _speakOnSelectedLessonOutput(
+    String text, {
+    String locale = 'vi-VN',
+  }) async {
+    if (widget.controller != null) {
+      await _mediaService.prepareSelectedLessonOutput();
+    }
+    if (!mounted) return;
+    final prompt = _voicePromptService;
+    if (!kIsWeb && prompt is SelectedMediaOutputVoicePromptService) {
+      await (prompt as SelectedMediaOutputVoicePromptService)
+          .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
+      return;
+    }
+    await prompt.speakAndWait(text, locale: locale);
   }
 
   Future<_TopicLessonProgressSnapshot> _loadProgress() async {
@@ -316,19 +333,6 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
                   },
                 ),
               ),
-              Positioned(
-                right: 4,
-                bottom: -22,
-                child: IgnorePointer(
-                  child: Image.asset(
-                    MascotAssets.wave,
-                    width: 156,
-                    height: 156,
-                    fit: BoxFit.contain,
-                    filterQuality: FilterQuality.high,
-                  ),
-                ),
-              ),
             ],
           ),
         ),
@@ -383,7 +387,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
         SnackBar(
           content: Text(
             context.tr(
-              'Chủ đề này chưa có Bài $lessonNumber. Con hãy chọn một bài đang hiển thị nhé.',
+              'Chủ đề này chưa có Bài $lessonNumber. Bạn hãy chọn một bài đang hiển thị nhé.',
               '这个主题还没有第 $lessonNumber 课，请选择当前显示的课程。',
             ),
           ),
@@ -424,7 +428,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
             context,
           ).showSnackBar(SnackBar(content: Text(message)));
         }
-        await _voicePromptService.speakAndWait(message);
+        await _speakOnSelectedLessonOutput(message);
         return;
       }
     }
@@ -548,34 +552,35 @@ class _Header extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: isDark ? colorScheme.onSurface : AppColors.indigoDark,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              if (titleEn.trim().isNotEmpty) ...<Widget>[
-                const SizedBox(height: 1),
+              if (titleEn.trim().isNotEmpty)
                 Text(
                   titleEn,
                   key: const Key('topic-header-english-title'),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: isDark
-                        ? colorScheme.primary
-                        : AppColors.indigo.withValues(alpha: 0.78),
-                    fontSize: 13,
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w700,
+                        ? colorScheme.onSurface
+                        : AppColors.indigoDark,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
-              ],
+              if (titleEn.trim().isNotEmpty) const SizedBox(height: 1),
+              Text(
+                title,
+                key: const Key('topic-header-localized-title'),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: isDark
+                      ? colorScheme.onSurfaceVariant
+                      : AppColors.ink.withValues(alpha: 0.72),
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ),
@@ -628,6 +633,9 @@ class _TopicHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = widget.content;
+    final songLessonCount =
+        content.lessons.where((lesson) => lesson.hasV4SongStage).length +
+        content.songs.length;
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
@@ -760,6 +768,49 @@ class _TopicHero extends StatelessWidget {
                   ],
                 ),
               ),
+              if (songLessonCount > 0) ...<Widget>[
+                SizedBox(
+                  height: 22,
+                  child: VerticalDivider(
+                    color: isDark
+                        ? colorScheme.outlineVariant
+                        : AppColors.lavenderBorder,
+                  ),
+                ),
+                Expanded(
+                  child: Row(
+                    key: const Key('topic-song-count'),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Icon(
+                        Icons.music_note_rounded,
+                        color: isDark
+                            ? colorScheme.primary
+                            : AppColors.accentPink,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 5),
+                      Flexible(
+                        child: Text(
+                          context.tr(
+                            '$songLessonCount bài hát',
+                            '$songLessonCount 首歌曲',
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: isDark
+                                ? colorScheme.onSurface
+                                : AppColors.ink,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -795,6 +846,8 @@ class _LessonPathCard extends StatelessWidget {
     final total = lesson.sentences.length;
     final progress = total == 0 ? 0.0 : completedSentences / total;
     final completed = isCompleted;
+    final hasSong =
+        lesson.hasV4SongStage || lesson.type == ListeningLessonType.song;
     return Semantics(
       button: true,
       label: 'Bài ${lesson.number}, ${lesson.titleVi}, ${lesson.titleEn}',
@@ -860,18 +913,66 @@ class _LessonPathCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text(
-                        context.tr(
-                          'Bài ${lesson.number} · ${lesson.titleVi}',
-                          '第 ${lesson.number} 课 · ${lesson.titleVi}',
-                        ),
-                        style: Theme.of(context).textTheme.titleMedium,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Expanded(
+                            child: Text(
+                              lesson.titleEn.trim().isEmpty
+                                  ? context.tr(
+                                      'Bài ${lesson.number} · ${lesson.titleVi}',
+                                      '第 ${lesson.number} 课 · ${lesson.titleVi}',
+                                    )
+                                  : 'Lesson ${lesson.number} · ${lesson.titleEn}',
+                              key: ValueKey(
+                                'lesson-english-title-${lesson.id}',
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                          if (hasSong) ...<Widget>[
+                            const SizedBox(width: 8),
+                            Tooltip(
+                              message: context.tr('Có bài hát', '包含歌曲'),
+                              child: Semantics(
+                                label: context.tr('Có bài hát', '包含歌曲'),
+                                child: Container(
+                                  width: 30,
+                                  height: 30,
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? AppColors.darkPink.withValues(
+                                            alpha: 0.18,
+                                          )
+                                        : AppColors.accentPinkSoft,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.music_note_rounded,
+                                    key: ValueKey(
+                                      'lesson-song-indicator-${lesson.id}',
+                                    ),
+                                    color: isDark
+                                        ? AppColors.darkPink
+                                        : AppColors.accentPink,
+                                    size: 19,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       if (lesson.titleEn.trim().isNotEmpty) ...<Widget>[
                         const SizedBox(height: 3),
                         Text(
-                          lesson.titleEn,
-                          key: ValueKey('lesson-english-title-${lesson.id}'),
+                          context.tr(
+                            'Bài ${lesson.number} · ${lesson.titleVi}',
+                            '第 ${lesson.number} 课 · ${lesson.titleVi}',
+                          ),
+                          key: ValueKey('lesson-localized-title-${lesson.id}'),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.bodyMedium
@@ -881,8 +982,7 @@ class _LessonPathCard extends StatelessWidget {
                                     : AppColors.indigo.withValues(alpha: 0.78),
                                 fontSize: 13.5,
                                 height: 1.2,
-                                fontStyle: FontStyle.italic,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
                               ),
                         ),
                       ],

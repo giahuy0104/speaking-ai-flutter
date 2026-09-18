@@ -91,11 +91,11 @@ class BackendLessonCompletionChoiceRecognizer
       return await _transcribe(recording);
     } on TimeoutException {
       throw const LessonCompletionRecognitionException(
-        'Chưa kết nối được máy chủ. Con thử lại nhé.',
+        'Chưa kết nối được máy chủ. Bạn thử lại nhé.',
       );
     } on http.ClientException {
       throw const LessonCompletionRecognitionException(
-        'Chưa kết nối được máy chủ. Con thử lại nhé.',
+        'Chưa kết nối được máy chủ. Bạn thử lại nhé.',
       );
     }
   }
@@ -143,12 +143,12 @@ class BackendLessonCompletionChoiceRecognizer
       throw LessonCompletionRecognitionException(
         message is String && message.trim().isNotEmpty
             ? message
-            : 'Chưa nhận ra lựa chọn của con.',
+            : 'Chưa nhận ra lựa chọn của bạn.',
       );
     }
     if (decoded == null) {
       throw const LessonCompletionRecognitionException(
-        'Máy chủ chưa xử lý được câu trả lời. Con thử lại nhé.',
+        'Máy chủ chưa xử lý được câu trả lời. Bạn thử lại nhé.',
       );
     }
     // Translation fallback can return both the original Vietnamese and English.
@@ -164,7 +164,7 @@ class BackendLessonCompletionChoiceRecognizer
         : null;
     if (transcript is! String || transcript.trim().isEmpty) {
       throw const LessonCompletionRecognitionException(
-        'Chưa nhận ra lựa chọn của con.',
+        'Chưa nhận ra lựa chọn của bạn.',
       );
     }
     return transcript.trim();

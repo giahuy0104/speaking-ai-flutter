@@ -59,7 +59,7 @@ class MainVoiceAssistantButton extends StatelessWidget {
               }
             : voiceController.isMainButtonSessionActive &&
                   voiceController.isAcknowledgingWakeWord
-            ? 'Bi cô đang nói...'
+            ? 'HOMI đang nói...'
             : voiceController.isMainButtonSessionActive &&
                   voiceController.isListening
             ? 'Đang nghe...'
@@ -105,7 +105,7 @@ class MainVoiceAssistantButton extends StatelessWidget {
           button: true,
           label: canActivate
               ? microphoneError == null
-                    ? 'Main, gọi Bi cô để chọn tính năng'
+                    ? 'Main, gọi HOMI để chọn tính năng'
                     : microphoneStatus
               : isSpeakingMode
               ? '$label, ứng dụng sẽ tự động chuyển sang lượt tiếp theo'

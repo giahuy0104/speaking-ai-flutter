@@ -479,7 +479,7 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
         if (widget.mode == LessonReviewMode.overview) {
           if (_completionUnlockSeconds > 0) {
             return const ActiveLearningCommandResult.unavailable(
-              spokenReply: 'Con xem bài học thêm một chút nhé.',
+              spokenReply: 'Bạn xem bài học thêm một chút nhé.',
             );
           }
           _resumeFromMain();
@@ -508,7 +508,7 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.previousLesson:
         return const ActiveLearningCommandResult.unavailable(
-          spokenReply: 'Con hãy quay lại danh sách để chọn bài trước nhé.',
+          spokenReply: 'Bạn hãy quay lại danh sách để chọn bài trước nhé.',
         );
       case ActiveLearningCommand.restart:
         if (widget.mode == LessonReviewMode.learned) {
@@ -556,8 +556,8 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
       return;
     }
     final prompt = widget.hasNextLesson
-        ? 'Giỏi lắm! Con đã hoàn thành bài học. Bấm nút Main rồi nói “Bài tiếp theo” để học tiếp, hoặc nói “Luyện lại” để học lại từ đầu nhé.'
-        : 'Giỏi lắm! Con đã hoàn thành bài học. Bấm nút Main rồi nói “Luyện nghe” để chọn bài khác, hoặc nói “Luyện lại” để học lại từ đầu nhé.';
+        ? 'Giỏi lắm! Bạn đã hoàn thành bài học. Bấm nút Main rồi nói “Bài tiếp theo” để học tiếp, hoặc nói “Luyện lại” để học lại từ đầu nhé.'
+        : 'Giỏi lắm! Bạn đã hoàn thành bài học. Bấm nút Main rồi nói “Luyện nghe” để chọn bài khác, hoặc nói “Luyện lại” để học lại từ đầu nhé.';
     setState(() => _message = prompt);
     try {
       await widget.mediaService.prepareSelectedLessonOutput();

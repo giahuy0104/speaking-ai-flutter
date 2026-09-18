@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -6,6 +7,13 @@ abstract interface class ParentMediaSettingsStore {
 
   Future<void> writeStopMediaWhenBackgrounded(bool enabled);
 }
+
+/// Android is designed to keep an explicit HOMI/H20 session alive when the
+/// child opens another application. Other platforms retain the conservative
+/// stop-on-background default until their background audio flow is handled
+/// separately.
+bool defaultStopMediaWhenBackgrounded() =>
+    kIsWeb || defaultTargetPlatform != TargetPlatform.android;
 
 class SharedPreferencesParentMediaSettingsStore
     implements ParentMediaSettingsStore {
@@ -18,10 +26,10 @@ class SharedPreferencesParentMediaSettingsStore
   Future<bool> readStopMediaWhenBackgrounded() async {
     try {
       final preferences = await SharedPreferences.getInstance();
-      return preferences.getBool(_stopMediaWhenBackgroundedKey) ?? true;
+      return preferences.getBool(_stopMediaWhenBackgroundedKey) ??
+          defaultStopMediaWhenBackgrounded();
     } catch (_) {
-      // Failing closed keeps HOMI from unexpectedly speaking over another app.
-      return true;
+      return defaultStopMediaWhenBackgrounded();
     }
   }
 

@@ -270,7 +270,7 @@ class WebBatchStreamingSpeechInput
       final transcript = result.vietnameseText.trim();
       if (transcript.isEmpty) {
         throw const StreamingSpeechInputException(
-          'Mình chưa nghe rõ. Con thử nói lại nhé.',
+          'HOMI chưa nghe rõ. Bạn nói lại nhé.',
           code: 'WEB_BATCH_NO_SPEECH',
         );
       }
@@ -383,7 +383,7 @@ class WebBatchStreamingSpeechInput
     final transcript = result.vietnameseText.trim();
     if (transcript.isEmpty) {
       throw const StreamingSpeechInputException(
-        'Mình chưa nghe rõ. Con thử nói lại nhé.',
+        'HOMI chưa nghe rõ. Bạn nói lại nhé.',
         code: 'WEB_BATCH_NO_SPEECH',
       );
     }

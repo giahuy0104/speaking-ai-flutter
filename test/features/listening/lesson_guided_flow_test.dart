@@ -211,10 +211,10 @@ void main() {
       expect(
         voicePrompts.spoken,
         containsAllInOrder(<String>[
-          'vi-VN|Nói theo cô nhé.',
+          'vi-VN|Nói theo mình nhé.',
           'en-US|Sentence 1',
           'vi-VN|Câu 1',
-          'vi-VN|Bây giờ đến lượt con. Con nói lại nhé.',
+          'vi-VN|Bây giờ đến lượt bạn. Bạn nói lại nhé.',
         ]),
       );
       expect(mediaService.recording, isTrue);
@@ -241,11 +241,11 @@ void main() {
       expect(
         voicePrompts.spoken,
         containsAllInOrder(<String>[
-          'vi-VN|Con làm tốt lắm',
-          'vi-VN|Nói theo cô nhé.',
+          'vi-VN|Bạn làm tốt lắm',
+          'vi-VN|Nói theo mình nhé.',
           'en-US|Sentence 2',
           'vi-VN|Câu 2',
-          'vi-VN|Bây giờ đến lượt con. Con nói lại nhé.',
+          'vi-VN|Bây giờ đến lượt bạn. Bạn nói lại nhé.',
         ]),
       );
 
@@ -278,7 +278,7 @@ void main() {
         'vi-VN|Bạn nói lại nhé.',
       ]),
     );
-    expect(voicePrompts.spoken, isNot(contains('vi-VN|Nói theo cô nhé.')));
+    expect(voicePrompts.spoken, isNot(contains('vi-VN|Nói theo mình nhé.')));
   });
 
   testWidgets('V4 falls back to local TTS when authored EN-VI audio fails', (
@@ -396,8 +396,11 @@ void main() {
     await _pumpGuidedSpeechTurn(tester);
 
     expect(find.text('Sentence 2'), findsOneWidget);
-    expect(voicePrompts.spoken, contains('vi-VN|Con làm tốt lắm'));
-    expect(voicePrompts.spoken, isNot(contains('vi-VN|Con tập trung học đi')));
+    expect(voicePrompts.spoken, contains('vi-VN|Bạn làm tốt lắm'));
+    expect(
+      voicePrompts.spoken,
+      isNot(contains('vi-VN|Bạn tập trung học nhé.')),
+    );
     expect(vocabularyStore.entries, hasLength(1));
     expect(
       vocabularyStore.entries.single.collection,
@@ -626,7 +629,7 @@ void main() {
     expect(find.text('Sentence 1'), findsOneWidget);
     expect(mediaService.recording, isFalse);
     expect(vocabularyStore.entries, isEmpty);
-    expect(voicePrompts.spoken, isNot(contains('vi-VN|Con làm tốt lắm')));
+    expect(voicePrompts.spoken, isNot(contains('vi-VN|Bạn làm tốt lắm')));
   });
 
   testWidgets(
@@ -711,17 +714,17 @@ void main() {
       expect(find.text('Sentence 1'), findsOneWidget);
       expect(
         voicePrompts.spoken,
-        contains('vi-VN|Gần được rồi! Con nghe lại câu này nhé.'),
+        contains('vi-VN|Gần được rồi! Bạn nghe lại câu này nhé.'),
       );
       expect(progressStore.needsPractice, isEmpty);
       expect(vocabularyStore.entries, isEmpty);
       expect(
         voicePrompts.spoken,
         containsAllInOrder(<String>[
-          'vi-VN|Gần được rồi! Con nghe lại câu này nhé.',
+          'vi-VN|Gần được rồi! Bạn nghe lại câu này nhé.',
           'en-US|Sentence 1',
           'vi-VN|Câu 1',
-          'vi-VN|Bây giờ đến lượt con. Con nói lại nhé.',
+          'vi-VN|Bây giờ đến lượt bạn. Bạn nói lại nhé.',
         ]),
       );
 
@@ -739,7 +742,7 @@ void main() {
       expect(
         voicePrompts.spoken,
         contains(
-          'vi-VN|Con đã cố gắng rồi! Mình sẽ luyện thêm sau. Cùng học câu tiếp nào.',
+          'vi-VN|Bạn đã cố gắng rồi! Mình sẽ luyện thêm sau. Cùng học câu tiếp nào.',
         ),
       );
 
@@ -779,11 +782,11 @@ void main() {
       expect(find.text('Sentence 1'), findsOneWidget);
       expect(
         voicePrompts.spoken,
-        contains('vi-VN|Cô chưa nghe rõ. Con nói lại nhé.'),
+        contains('vi-VN|HOMI chưa nghe rõ. Bạn nói lại nhé.'),
       );
       expect(
         voicePrompts.spoken,
-        isNot(contains('vi-VN|Con tập trung học đi')),
+        isNot(contains('vi-VN|Bạn tập trung học nhé.')),
       );
       expect(progressStore.needsPractice, isEmpty);
       expect(vocabularyStore.entries, isEmpty);
@@ -820,7 +823,7 @@ void main() {
       expect(mediaService.recording, isTrue);
       expect(
         voicePrompts.spoken,
-        contains('vi-VN|Cô chưa nghe rõ. Con nói lại nhé.'),
+        contains('vi-VN|HOMI chưa nghe rõ. Bạn nói lại nhé.'),
       );
 
       await tester.pumpWidget(const SizedBox.shrink());
@@ -1066,7 +1069,7 @@ void main() {
     await tester.tap(find.byKey(const Key('record-lesson-sentence')));
     await tester.pumpAndSettle();
 
-    expect(voicePrompts.spoken, contains('vi-VN|Nói lại lựa chọn của con nhé'));
+    expect(voicePrompts.spoken, contains('vi-VN|Bạn nói lại lựa chọn nhé.'));
     expect(find.byKey(const Key('retry-voice-choice')), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
@@ -1107,7 +1110,7 @@ void main() {
     expect(
       voicePrompts.spoken,
       contains(
-        'vi-VN|Con đã học xong chủ đề này rồi. Con chọn tiếp chủ đề mới nhé.',
+        'vi-VN|Bạn đã học xong chủ đề này rồi. Bạn chọn tiếp chủ đề mới nhé.',
       ),
     );
     expect(topicCompletedCount, 1);
@@ -1143,7 +1146,7 @@ void main() {
         mediaService.playedUris.last.path,
         '/assets/audio/A-3-5/GUIDE_IDLE1/idle-first.mp3',
       );
-      expect(find.text('Đến lượt con rồi!'), findsOneWidget);
+      expect(find.text('Đến lượt bạn rồi!'), findsOneWidget);
       expect(find.byKey(const Key('skip-lesson-sentence')), findsNothing);
 
       final firstReminder = find.byKey(
@@ -1267,9 +1270,9 @@ void main() {
         '/assets/audio/A-3-5/GUIDE_PRAISE/praise.mp3',
       );
       expect(find.byKey(const Key('lesson-coach-popup-praise')), findsNothing);
-      expect(find.text('Con làm tuyệt lắm!'), findsNothing);
+      expect(find.text('Bạn làm tuyệt lắm!'), findsNothing);
       expect(find.textContaining('Bản ghi đã được lưu'), findsNothing);
-      expect(find.text('Bản ghi của con'), findsOneWidget);
+      expect(find.text('Bản ghi của bạn'), findsOneWidget);
       expect(find.text('Nghe câu mẫu'), findsOneWidget);
       expect(find.text('Nghe bản ghi'), findsOneWidget);
       expect(find.text('Ghi âm lại'), findsOneWidget);
@@ -1732,7 +1735,7 @@ void main() {
     expect(
       voicePrompt.spoken,
       contains(
-        'vi-VN|Giỏi lắm! Con đã hoàn thành bài học. Bấm nút Main rồi nói “Bài tiếp theo” để học tiếp, hoặc nói “Luyện lại” để học lại từ đầu nhé.',
+        'vi-VN|Giỏi lắm! Bạn đã hoàn thành bài học. Bấm nút Main rồi nói “Bài tiếp theo” để học tiếp, hoặc nói “Luyện lại” để học lại từ đầu nhé.',
       ),
     );
     expect(find.textContaining('Bấm nút Main rồi nói'), findsOneWidget);

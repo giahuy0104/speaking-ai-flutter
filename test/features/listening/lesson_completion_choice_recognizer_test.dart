@@ -171,7 +171,7 @@ void main() {
         isA<LessonCompletionRecognitionException>().having(
           (error) => error.toString(),
           'message',
-          'Chưa nhận ra lựa chọn của con.',
+          'Chưa nhận ra lựa chọn của bạn.',
         ),
       ),
     );

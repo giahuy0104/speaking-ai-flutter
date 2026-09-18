@@ -78,6 +78,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   PhoneMicrophoneInput? _phoneMicrophoneInput;
   MethodChannelAiv0BleControl? _aiv0BleControl;
   MethodChannelHfpAudioControl? _nativeHfpAudioControl;
+  HfpAudioControl? _mainAssistantHfpAudioControl;
   AudioTurnCoordinator? _audioTurnCoordinator;
   HfpAudioRouteCoordinator? _hfpAudioRouteCoordinator;
   WebBatchStreamingSpeechInput? _webBatchStreamingSpeechInput;
@@ -149,7 +150,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       DeviceConnectionFeedbackGate();
   bool _aiv0AutoConnectAttemptActive = false;
   bool _lastAiv0AutoConnectSucceeded = false;
-  bool _androidHfpAutoSelectionInProgress = false;
+  Future<bool>? _androidHfpAutoSelectionFuture;
+  Future<bool>? _androidMainHfpRoutePreparation;
+  bool _androidMainHfpRouteHeld = false;
   AndroidOfflineSpeechModelConsent _offlineSpeechModelConsent =
       AndroidOfflineSpeechModelConsent.undecided;
   Timer? _offlineSpeechModelTimer;
@@ -658,31 +661,41 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       }
     }
 
-    final alreadyConnected = controller.canUseAiv0Ble;
-    if (!alreadyConnected) {
+    final wasH20Ready = controller.isH20Ready;
+    final bleAlreadyConnected = controller.canUseAiv0Ble;
+    if (!wasH20Ready) {
       _aiv0AutoConnectAttemptActive = true;
       _showDeviceConnectionFeedback(DeviceConnectionFeedbackStage.connecting);
     }
-    var bleConnected = alreadyConnected;
+    var bleConnected = bleAlreadyConnected;
     try {
       bleConnected =
-          alreadyConnected || await control.autoConnectKnownOrNearby();
+          bleAlreadyConnected || await control.autoConnectKnownOrNearby();
     } catch (error) {
       debugPrint('Automatic H20 BLE connection was skipped: $error');
     } finally {
       _aiv0AutoConnectAttemptActive = false;
     }
-    _lastAiv0AutoConnectSucceeded = bleConnected;
     if (!bleConnected) {
+      _lastAiv0AutoConnectSucceeded = false;
       _hideDeviceConnectionFeedback();
       return;
     }
-    if (!alreadyConnected) {
-      _showDeviceConnectionFeedback(DeviceConnectionFeedbackStage.connected);
-    }
     debugPrint('H20 BLE Control connected automatically.');
     if (defaultTargetPlatform == TargetPlatform.android) {
-      unawaited(_autoSelectConnectedAndroidHfp());
+      await _autoSelectConnectedAndroidHfp();
+    }
+    final h20Ready = controller.isH20Ready;
+    _lastAiv0AutoConnectSucceeded = h20Ready;
+    if (h20Ready) {
+      if (!wasH20Ready) {
+        _showDeviceConnectionFeedback(DeviceConnectionFeedbackStage.connected);
+      }
+      _deviceConnectionFeedbackGate.clear();
+    } else {
+      // BLE alone is not a successful H20 connection. Do not leave a modal
+      // over the app after bounded HFP recovery has finished.
+      _hideDeviceConnectionFeedback();
     }
     if (defaultTargetPlatform == TargetPlatform.iOS &&
         !controller.usesHfpInput) {
@@ -723,21 +736,28 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (mounted) {
       setState(() {});
     }
-    return _lastAiv0AutoConnectSucceeded ||
-        _controller?.canUseAiv0Ble == true ||
-        _aiv0BleControl?.status.isConnected == true;
+    return _lastAiv0AutoConnectSucceeded || _controller?.isH20Ready == true;
   }
 
   void _handleAiv0BleFeedbackStatus(Aiv0BleStatus status) {
     if (status.isConnected) {
-      if (_deviceConnectionFeedbackStage ==
-          DeviceConnectionFeedbackStage.connecting) {
+      final h20Ready = _controller?.isH20Ready == true;
+      if (h20Ready &&
+          _deviceConnectionFeedbackStage ==
+              DeviceConnectionFeedbackStage.connecting) {
         _showDeviceConnectionFeedback(DeviceConnectionFeedbackStage.connected);
       }
       if (defaultTargetPlatform == TargetPlatform.android) {
-        unawaited(_autoSelectConnectedAndroidHfp());
+        if (!h20Ready) {
+          _showDeviceConnectionFeedback(
+            DeviceConnectionFeedbackStage.connecting,
+          );
+          unawaited(_completeAndroidH20Connection());
+        }
       }
-      _deviceConnectionFeedbackGate.clear();
+      if (h20Ready) {
+        _deviceConnectionFeedbackGate.clear();
+      }
       return;
     }
     if (status.phase == Aiv0BlePhase.scanning ||
@@ -812,52 +832,113 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         status?.phase == Aiv0BlePhase.scanning ||
         status?.phase == Aiv0BlePhase.connecting ||
         status?.phase == Aiv0BlePhase.reconnecting;
+    final controller = _controller;
+    final h20Ready = controller?.isH20Ready == true;
+    final hfpRecoveryPending =
+        status?.isConnected == true &&
+        !h20Ready &&
+        (_androidHfpAutoSelectionFuture != null ||
+            (controller?.hfpAudioStatus.isBusy ?? false));
     if (_deviceConnectionFeedbackGate.consumeDeferredConnecting(
       playbackActive: false,
-      bleConnecting: bleConnecting,
+      bleConnecting: bleConnecting || hfpRecoveryPending,
     )) {
       _showDeviceConnectionFeedback(DeviceConnectionFeedbackStage.connecting);
     }
+    if (h20Ready) {
+      if (_deviceConnectionFeedbackStage ==
+          DeviceConnectionFeedbackStage.connecting) {
+        _showDeviceConnectionFeedback(DeviceConnectionFeedbackStage.connected);
+      }
+      _deviceConnectionFeedbackGate.clear();
+    } else if (defaultTargetPlatform == TargetPlatform.android &&
+        status?.isConnected == true &&
+        (controller?.usesHfpInput ?? false) &&
+        !hfpRecoveryPending) {
+      // The user-selected H20 profile dropped while BLE MAIN remained alive.
+      // Recover both transports together; a deliberate Settings disconnect
+      // clears usesHfpInput and therefore is not immediately undone here.
+      _showDeviceConnectionFeedback(DeviceConnectionFeedbackStage.connecting);
+      unawaited(_completeAndroidH20Connection());
+    }
   }
 
-  Future<void> _autoSelectConnectedAndroidHfp() async {
-    if (kIsWeb ||
-        defaultTargetPlatform != TargetPlatform.android ||
-        _androidHfpAutoSelectionInProgress) {
+  Future<void> _completeAndroidH20Connection() async {
+    final selected = await _autoSelectConnectedAndroidHfp();
+    if (!mounted) return;
+    if (selected && _controller?.isH20Ready == true) {
+      _lastAiv0AutoConnectSucceeded = true;
+      _showDeviceConnectionFeedback(DeviceConnectionFeedbackStage.connected);
+      _deviceConnectionFeedbackGate.clear();
       return;
+    }
+    _lastAiv0AutoConnectSucceeded = false;
+    if (!_aiv0AutoConnectAttemptActive) {
+      _hideDeviceConnectionFeedback();
+    }
+  }
+
+  Future<bool> _autoSelectConnectedAndroidHfp() {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return Future<bool>.value(false);
     }
     final controller = _controller;
     final ble = _aiv0BleControl;
-    if (controller == null ||
-        ble == null ||
-        !controller.canUseAiv0Ble ||
-        controller.usesHfpInput) {
-      return;
+    if (controller == null || ble == null || !controller.canUseAiv0Ble) {
+      return Future<bool>.value(false);
     }
-    _androidHfpAutoSelectionInProgress = true;
+    if (controller.isH20Ready) {
+      return Future<bool>.value(true);
+    }
+    final pending = _androidHfpAutoSelectionFuture;
+    if (pending != null) return pending;
+    final operation = _runAndroidHfpAutoSelection(controller, ble);
+    _androidHfpAutoSelectionFuture = operation;
+    return operation.whenComplete(() {
+      if (identical(_androidHfpAutoSelectionFuture, operation)) {
+        _androidHfpAutoSelectionFuture = null;
+      }
+    });
+  }
+
+  Future<bool> _runAndroidHfpAutoSelection(
+    ConversationController controller,
+    MethodChannelAiv0BleControl ble,
+  ) async {
     try {
-      for (var attempt = 0; attempt < 3; attempt += 1) {
+      const retryDelays = <Duration>[
+        Duration.zero,
+        Duration(milliseconds: 350),
+        Duration(milliseconds: 650),
+        Duration(milliseconds: 900),
+        Duration(milliseconds: 1200),
+        Duration(milliseconds: 1600),
+      ];
+      for (var attempt = 0; attempt < retryDelays.length; attempt += 1) {
         if (attempt > 0) {
-          await Future<void>.delayed(const Duration(milliseconds: 450));
+          await Future<void>.delayed(retryDelays[attempt]);
         }
-        if (!controller.canUseAiv0Ble || controller.usesHfpInput) return;
+        if (!controller.canUseAiv0Ble) return false;
+        if (controller.isH20Ready) return true;
         final selected = await controller.autoConnectH20Hfp(
           bleDeviceName:
               ble.status.deviceName ?? controller.aiv0BleStatus.deviceName,
           requireConnected: true,
         );
-        if (selected) {
+        if (selected && controller.isH20Ready) {
           debugPrint(
             'Connected Android H20 HFP microphone selected automatically.',
           );
-          return;
+          return true;
         }
       }
       debugPrint(
-        'Android BLE is ready but its paired HFP profile is not connected yet; phone microphone remains available.',
+        'Android BLE is ready but the paired H20 HFP microphone is not connected; H20 remains unavailable.',
       );
-    } finally {
-      _androidHfpAutoSelectionInProgress = false;
+      return false;
+    } catch (error) {
+      debugPrint('Android H20 HFP recovery failed: $error');
+      return false;
     }
   }
 
@@ -949,6 +1030,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     final nativeSpeechHfpAudioControl = hfpAudioRouteCoordinator.createScope(
       'native-speech',
     );
+    final mainAssistantHfpAudioControl = hfpAudioRouteCoordinator.createScope(
+      'main-assistant',
+    );
     var nextLearningAudioOwner = 0;
     HfpAudioControl createLearningAudioRouteControl() =>
         hfpAudioRouteCoordinator.createScope(
@@ -1010,6 +1094,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
               coordinator: audioTurnCoordinator,
               owner: AudioTurnOwner.mainAssistant,
             ),
+            prepareSelectedOutput: _prepareAndroidMainHfpRoute,
             ownsVoicePromptService: true,
             activeLearningCommandHandler: _handleActiveLearningCommand,
           )
@@ -1094,6 +1179,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       _handleAiv0BleFeedbackStatus,
     );
     _nativeHfpAudioControl = nativeHfpAudioControl;
+    _mainAssistantHfpAudioControl = mainAssistantHfpAudioControl;
     _audioTurnCoordinator = audioTurnCoordinator;
     _audioTurnDiagnosticSubscription = audioTurnCoordinator.diagnostics.listen(
       (_) => _synchronizeDeviceConnectionFeedback(),
@@ -1181,7 +1267,13 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (voiceController == null || conversationController == null) {
       return false;
     }
-    return _mainAssistantSession.activate(
+    if (!await _prepareAndroidMainHfpRoute()) {
+      conversationController.showH20ConnectionMessage(
+        'Chưa kết nối đủ nút MAIN và micro H20. Hãy bật H20 rồi thử lại.',
+      );
+      return false;
+    }
+    final activated = await _mainAssistantSession.activate(
       startupReady: _startupReady,
       voiceAccessEnabled: _voiceAccessEnabled,
       conversationBusy:
@@ -1204,6 +1296,82 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
             noSpeechExitPrompt: noSpeechExitPrompt,
           ),
     );
+    if (!activated) {
+      unawaited(_releaseAndroidMainHfpRouteIfIdle());
+    }
+    return activated;
+  }
+
+  Future<bool> _prepareAndroidMainHfpRoute() {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return Future<bool>.value(true);
+    }
+    if (_androidMainHfpRouteHeld &&
+        _controller?.hfpAudioStatus.routeActive == true) {
+      return Future<bool>.value(true);
+    }
+    final pending = _androidMainHfpRoutePreparation;
+    if (pending != null) return pending;
+    final operation = _runAndroidMainHfpRoutePreparation();
+    _androidMainHfpRoutePreparation = operation;
+    return operation.whenComplete(() {
+      if (identical(_androidMainHfpRoutePreparation, operation)) {
+        _androidMainHfpRoutePreparation = null;
+      }
+    });
+  }
+
+  Future<bool> _runAndroidMainHfpRoutePreparation() async {
+    final controller = _controller;
+    final route = _mainAssistantHfpAudioControl;
+    if (controller == null || route == null) return false;
+
+    if (!controller.canUseAiv0Ble) {
+      _lastAiv0AutoConnectAttempt = null;
+      await _autoConnectH20Ble();
+    } else if (!controller.isH20Ready) {
+      _showDeviceConnectionFeedback(DeviceConnectionFeedbackStage.connecting);
+      await _autoSelectConnectedAndroidHfp();
+    }
+    if (!controller.isH20Ready) {
+      _hideDeviceConnectionFeedback();
+      return false;
+    }
+
+    try {
+      await route.startAudioRoute().timeout(const Duration(seconds: 7));
+      final status = controller.hfpAudioStatus;
+      if (!status.routeActive || !status.isConnected) {
+        throw const HfpAudioException(
+          'Android chưa xác nhận đường loa và micro H20.',
+        );
+      }
+      _androidMainHfpRouteHeld = true;
+      _deviceConnectionFeedbackGate.clear();
+      return true;
+    } catch (error) {
+      _androidMainHfpRouteHeld = false;
+      await route.stopAudioRoute().catchError((Object _) {});
+      debugPrint('MAIN did not start because H20 HFP was unavailable: $error');
+      return false;
+    }
+  }
+
+  Future<void> _releaseAndroidMainHfpRouteIfIdle() async {
+    if (!_androidMainHfpRouteHeld ||
+        _androidMainHfpRoutePreparation != null ||
+        _mainAssistantSession.isActivationPending ||
+        (_voiceNavigationController?.isMainButtonSessionActive ?? false) ||
+        (_voiceNavigationController?.isActive ?? false) ||
+        _mainSpeakingSessionController.isActive) {
+      return;
+    }
+    _androidMainHfpRouteHeld = false;
+    await _mainAssistantHfpAudioControl?.stopAudioRoute().catchError((
+      Object error,
+    ) {
+      debugPrint('Cannot release MAIN H20 route: $error');
+    });
   }
 
   Future<MainButtonActionResult> _handleUnifiedMainShortPress(
@@ -1303,6 +1471,12 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           controller.recordAiv0MainDiagnostic(
             'MAIN_INTERRUPT_ASSISTANT_STARTING',
           );
+          if (!await _prepareAndroidMainHfpRoute()) {
+            controller.showH20ConnectionMessage(
+              'Micro H20 chưa sẵn sàng. Hãy kết nối lại thiết bị rồi nhấn MAIN.',
+            );
+            return false;
+          }
           final activated = await voiceController
               .activateOtherLearningFromSpeaking();
           controller.recordAiv0MainDiagnostic(
@@ -1345,6 +1519,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           !_isActivatingMainAssistant) {
         unawaited(_resumeActiveModuleAfterMain());
       }
+      unawaited(_releaseAndroidMainHfpRouteIfIdle());
     }
   }
 
@@ -1430,6 +1605,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (!_mainSpeakingSessionController.isActive &&
         _restoreHfpAfterPhysicalMain) {
       unawaited(_restoreHfpSelectionAfterPhysicalMain());
+    }
+    if (!_mainSpeakingSessionController.isActive) {
+      unawaited(_releaseAndroidMainHfpRouteIfIdle());
     }
   }
 
@@ -1699,7 +1877,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       await _finishMainSpeakingMode(
         sayGoodbye: true,
         goodbyeText:
-            'Cô chưa mở được micro để dịch liên tục. Con kiểm tra quyền micro rồi thử lại nhé.',
+            'HOMI chưa mở được micro để dịch liên tục. Bạn kiểm tra quyền micro rồi thử lại nhé.',
       );
     }
   }
@@ -1848,6 +2026,12 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       await controller.endContinuousHfpSession();
       switch (turn.action) {
         case MainSpeakingFallbackAction.openOtherLearning:
+          if (!await _prepareAndroidMainHfpRoute()) {
+            controller.showH20ConnectionMessage(
+              'Micro H20 chưa sẵn sàng. Hãy kết nối lại thiết bị rồi thử lại.',
+            );
+            return;
+          }
           await voiceController.activateOtherLearningFromSpeaking();
         case MainSpeakingFallbackAction.stopTranslation:
           return;
@@ -2064,7 +2248,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                   bluetoothRequired: _bluetoothPermissionRequired,
                   bluetoothGranted: _bluetoothPermissionGranted,
                   h20BleConnected: bleStatus.isConnected,
-                  h20HfpConfigured: hfpStatus.isConnected,
+                  h20HfpConfigured:
+                      controller.usesHfpInput &&
+                      hfpStatus.isConnected &&
+                      hfpStatus.deviceId != null,
                   h20DeviceName: hfpStatus.deviceName ?? bleStatus.deviceName,
                   selectedAge: _pendingStartupAge,
                   aiSubprocessors: _config.disclosedAiSubprocessors,

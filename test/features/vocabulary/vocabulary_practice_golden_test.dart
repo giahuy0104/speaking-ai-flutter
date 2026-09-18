@@ -100,6 +100,99 @@ void main() {
       matchesGoldenFile('goldens/vocabulary-stars-homi-390x844.png'),
     );
   });
+
+  testWidgets('review journey uses the navy anchor tile', (tester) async {
+    await _pumpJourney(tester, cardKey: 'vocabulary-review-card');
+
+    await expectLater(
+      find.byType(VocabularyHomeScreen),
+      matchesGoldenFile('goldens/vocabulary-review-homi-390x844.png'),
+    );
+  });
+
+  testWidgets('parent suggestion selection stays visually quiet', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: buildAppTheme(),
+        home: DisplayLanguageScope(
+          language: DisplayLanguage.vietnamese,
+          child: VocabularyHomeScreen(
+            isReady: true,
+            store: _GoldenVocabularyStore(const <VocabularyEntry>[]),
+            voicePromptService: const _GoldenVoicePromptService(),
+            translator: (_) async => const VocabularyTranslation(
+              englishText: 'Salt',
+              vietnameseText: 'Muối.',
+            ),
+            suggestionProvider: (_, _) async => const <VocabularyTranslation>[
+              VocabularyTranslation(
+                englishText: 'Salt',
+                vietnameseText: 'Muối.',
+              ),
+              VocabularyTranslation(
+                englishText: 'This is my salt.',
+                vietnameseText: 'Đây là muối của bạn.',
+              ),
+              VocabularyTranslation(
+                englishText: 'Please pass the salt.',
+                vietnameseText: 'Làm ơn đưa mình muối.',
+              ),
+            ],
+            onReturnToConversation: _noop,
+            onHistory: _noop,
+            onSettings: _noop,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    final context = tester.element(find.byType(VocabularyHomeScreen));
+    await tester.runAsync(() async {
+      await Future.wait<void>(
+        const <AssetImage>[
+          AssetImage(
+            'assets/images/learning-minimal-sky-background-option2.png',
+          ),
+          AssetImage('assets/images/mascot/penguin-avatar.png'),
+          AssetImage('assets/images/topics/my-family.jpg'),
+          AssetImage('assets/images/vocabulary/golden-star.png'),
+          AssetImage('assets/images/vocabulary/review-book.png'),
+        ].map((provider) => precacheImage(provider, context)),
+      );
+    });
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('add-vocabulary-button')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('add-vocabulary-field')),
+      'muối',
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('confirm-add-vocabulary')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.text('Đã chọn'), findsNothing);
+    expect(
+      find.byKey(const ValueKey<String>('vocabulary-suggestion-0')),
+      findsOneWidget,
+    );
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('goldens/vocabulary-suggestions-390x844.png'),
+    );
+  });
 }
 
 Future<void> _pumpJourney(
@@ -113,18 +206,9 @@ Future<void> _pumpJourney(
   final now = DateTime(2026, 9, 16);
   final store = _GoldenVocabularyStore(<VocabularyEntry>[
     VocabularyEntry(
-      id: 'family-one',
-      word: 'Good morning.',
-      meaning: 'Chào buổi sáng.',
-      addedAt: now,
-      collection: VocabularyCollection.saved,
-      source: VocabularySource.parent,
-      parentState: ParentVocabularyState.unlocked,
-    ),
-    VocabularyEntry(
       id: 'star-one',
       word: 'You are amazing!',
-      meaning: 'Con thật tuyệt vời!',
+      meaning: 'Bạn thật tuyệt vời!',
       addedAt: now,
       collection: VocabularyCollection.star,
       source: VocabularySource.topicCore,
@@ -132,10 +216,28 @@ Future<void> _pumpJourney(
       correctAudioPath: '/audio/star-one.m4a',
     ),
     VocabularyEntry(
-      id: 'family-waiting',
-      word: 'Brush your teeth.',
-      meaning: 'Đánh răng.',
+      id: 'family-waiting-one',
+      word: 'Salt',
+      meaning: 'Muối.',
       addedAt: now.add(const Duration(minutes: 1)),
+      collection: VocabularyCollection.saved,
+      source: VocabularySource.parent,
+      parentState: ParentVocabularyState.waiting,
+    ),
+    VocabularyEntry(
+      id: 'family-waiting-two',
+      word: 'Salt',
+      meaning: 'Sự chăm chọc, sự sắc sảo.',
+      addedAt: now.add(const Duration(minutes: 2)),
+      collection: VocabularyCollection.saved,
+      source: VocabularySource.parent,
+      parentState: ParentVocabularyState.waiting,
+    ),
+    VocabularyEntry(
+      id: 'family-waiting-three',
+      word: 'This is my salt.',
+      meaning: 'Đây là muối của bạn.',
+      addedAt: now.add(const Duration(minutes: 3)),
       collection: VocabularyCollection.saved,
       source: VocabularySource.parent,
       parentState: ParentVocabularyState.waiting,
@@ -166,6 +268,7 @@ Future<void> _pumpJourney(
       const <AssetImage>[
         AssetImage('assets/images/learning-minimal-sky-background-option2.png'),
         AssetImage('assets/images/mascot/penguin-avatar.png'),
+        AssetImage('assets/images/mascot/penguin-listen.png'),
         AssetImage('assets/images/mascot/penguin-wave.png'),
         AssetImage('assets/images/mascot/penguin-sing.png'),
         AssetImage('assets/images/topics/my-family.jpg'),

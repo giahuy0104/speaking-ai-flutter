@@ -1,4 +1,5 @@
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_intent_resolver.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -6,6 +7,9 @@ void main() {
 
   group('VoiceNavigationIntentResolver', () {
     test('recognizes approved INT-022 HOMI wake phrases and ASR variants', () {
+      for (final phrase in MasterNavigationContract.phrases['WAKE_WORD']!) {
+        expect(resolver.containsWakeWord(phrase), isTrue, reason: phrase);
+      }
       expect(resolver.containsWakeWord('Hey HOMI'), isTrue);
       expect(resolver.containsWakeWord('Hay HOMIE'), isTrue);
       expect(resolver.containsWakeWord('Hey HAMI'), isTrue);

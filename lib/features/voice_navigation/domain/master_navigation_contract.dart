@@ -1,14 +1,14 @@
 import 'homi_fallback_catalog.dart';
 
-/// Navigation-only contract from HOMI Master FINAL, 2026-09-16.
+/// Navigation-only contract from HOMI Master FINAL, 2026-09-17.
 /// Matching is whole-utterance; lesson media, scoring and progress stay with
 /// the destination module. Never feed free-form translation through this menu.
 abstract final class MasterNavigationContract {
-  static const version = '2026-09-16';
+  static const version = '2026-09-17';
   static const mainPrompt =
-      'HOMI đây. Bạn muốn dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?';
+      'HOMI đây. Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?';
   static const mainRetry =
-      'Bạn muốn dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?';
+      'Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?';
   static const translationIntro =
       'Bạn cứ nói từng câu. Muốn dừng thì nói “Dừng lại”.';
   static const afterTranslationStop =
@@ -16,7 +16,18 @@ abstract final class MasterNavigationContract {
   static const translationStopped = 'Đã dừng.';
   static const translationContinue = 'Mình tiếp tục nhé.';
   static const translationSwitch =
-      'Bạn muốn tiếp tục dịch, học Chủ đề hay Bộ từ vựng?';
+      'Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?';
+  static const keepCurrentContent = 'Mình giữ nội dung hiện tại nhé.';
+  static const switchedToSubject = 'Mình đã chuyển sang Chủ đề.';
+  static const switchedToVocabulary = 'Mình đã chuyển sang Bộ từ vựng.';
+  static const switchedToTranslation = 'Mình đã chuyển sang Dịch tiếng Anh.';
+  static const continueSubject = 'Mình tiếp tục Chủ đề nhé.';
+  static const continueVocabulary = 'Mình tiếp tục Bộ từ vựng nhé.';
+  static const coreControlPrompt =
+      'Bạn muốn nghe lại, câu trước, hay câu sau?';
+  static const challengeControlPrompt = 'Bạn muốn nghe lại hay dừng lại?';
+  static const songControlPrompt = 'Bạn muốn nghe lại, dừng lại hay bỏ qua?';
+  static const songSkipped = 'Mình bỏ qua bài hát nhé.';
   static const pause = 'Mình tạm dừng nhé.';
 
   /// Review/import metadata. Callers still validate dynamic numbers against
@@ -24,23 +35,17 @@ abstract final class MasterNavigationContract {
   static const allowedStates = <String, List<String>>{
     'STOP_GLOBAL': ['ACTIVITY_EXCEPT_TRANSLATE'],
     'HELP': ['CURRENT_NODE'],
-    'OPEN_SUBJECT': [
-      'MAIN',
-      'TRANSLATE_MAIN_AFTER_STOP',
-      'TRANSLATE_SWITCH_CONFIRM',
-    ],
-    'OPEN_VOCAB': [
-      'MAIN',
-      'TRANSLATE_MAIN_AFTER_STOP',
-      'TRANSLATE_SWITCH_CONFIRM',
-    ],
-    'OPEN_TRANSLATE': ['MAIN'],
+    'OPEN_SUBJECT': ['MAIN', 'LEARNING_ANY', 'TRANSLATE_SWITCH_CONFIRM'],
+    'OPEN_VOCAB': ['MAIN', 'LEARNING_ANY', 'TRANSLATE_SWITCH_CONFIRM'],
+    'OPEN_TRANSLATE': ['MAIN', 'LEARNING_ANY'],
+    'TRANSLATE_CONTINUOUS': ['MAIN', 'TRANSLATE_MAIN_AFTER_STOP'],
     'STOP_TRANSLATE': ['TRANSLATE_CONTINUOUS'],
     'CONTINUE_TRANSLATE': [
       'TRANSLATE_MAIN_AFTER_STOP',
       'TRANSLATE_SWITCH_CONFIRM',
     ],
     'LEAVE_TRANSLATE': ['TRANSLATE_CONTINUOUS'],
+    'SWITCH_MODULE_MENU': ['LEARNING_ANY_EXCEPT_OTHER_CONTENT_END'],
     'OPEN_PARENT': ['VOCAB_MENU', 'STAR_EMPTY', 'STAR_OTHER', 'REVIEW_END'],
     'OPEN_STAR': ['VOCAB_MENU', 'PARENT_EMPTY', 'PARENT_OTHER', 'REVIEW_END'],
     'OPEN_REVIEW': [
@@ -70,7 +75,8 @@ abstract final class MasterNavigationContract {
     'LISTEN_AGAIN': ['CORE', 'CHALLENGE', 'REVIEW', 'TODAY', 'PARENT', 'STAR'],
     'PREVIOUS_ITEM': ['CORE', 'TODAY', 'PARENT', 'STAR'],
     'NEXT_ITEM': ['CORE', 'TODAY_AFTER_EN_VN', 'PARENT', 'STAR'],
-    'SKIP_ITEM': ['CORE', 'PARENT', 'STAR', 'SONG'],
+    'SKIP_ITEM': ['CORE', 'PARENT', 'STAR'],
+    'SKIP_SONG': ['SONG_PLAYING'],
     'RESUME_ACTIVITY': ['ACTIVE_RESUME'],
     'NEXT_LESSON': ['LESSON_END'],
     'RELEARN_LESSON': ['LESSON_END'],
@@ -174,12 +180,16 @@ abstract final class MasterNavigationContract {
       'Dịch câu',
       'Học dịch đi',
       'Phiên dịch',
+    ],
+    'TRANSLATE_CONTINUOUS': [
       'Dịch liên tục',
       'Dịch nhiều câu',
       'Mình muốn dịch liên tiếp',
       'Mở dịch liên tục',
       'Dịch từng câu giúp mình',
       'Cho mình nói nhiều câu',
+      'Dịch tiếp nhiều câu',
+      'Dịch từng câu liên tiếp',
     ],
     'CONTINUE_TRANSLATE': [
       'Dịch',
@@ -200,6 +210,17 @@ abstract final class MasterNavigationContract {
       'Học phần khác',
       'Học cái khác',
       'Mình muốn học cái khác',
+      'Cái khác',
+    ],
+    'SWITCH_MODULE_MENU': [
+      'Học phần khác',
+      'Đổi phần khác',
+      'Chuyển sang phần khác',
+      'Mình muốn học cái khác',
+      'Học cái khác',
+      'Cái khác',
+      'Mở phần khác',
+      'Cho mình chọn phần khác',
     ],
     'OPEN_PARENT': [
       'Ba mẹ đã thêm',
@@ -359,6 +380,14 @@ abstract final class MasterNavigationContract {
       'Bỏ câu này nhé',
       'Cho mình qua câu này',
     ],
+    'SKIP_SONG': [
+      'Bỏ qua',
+      'Bỏ qua bài hát',
+      'Qua bài này',
+      'Không nghe bài này',
+      'Mình không muốn nghe bài này',
+      'Chuyển sang phần tiếp theo',
+    ],
     'RESUME_ACTIVITY': [
       'Tiếp tục',
       'Tiếp tục học',
@@ -373,6 +402,16 @@ abstract final class MasterNavigationContract {
       'Tiếp theo',
       'Tiếp nha',
       'Tiếp luôn',
+    ],
+    'STOP_TRANSLATE': ['Dừng lại'],
+    'WAKE_WORD': [
+      'HOMI ơi',
+      'Hey HOMI',
+      'Bạn HOMI ơi',
+      'HOMI có nghe không',
+      'HOMI giúp mình',
+      'HOMI nghe mình nói nhé',
+      'Ê HOMI',
     ],
   };
 
@@ -396,10 +435,12 @@ abstract final class MasterNavigationContract {
   /// Translation control preserves accents: only the approved phrase, with
   /// optional casing, whitespace and punctuation, stops a translation turn.
   static bool isTranslationStop(String text) =>
-      text
-          .toLowerCase()
-          .replaceAll(RegExp(r'[^\p{L}\p{N}\s]', unicode: true), ' ')
-          .replaceAll(RegExp(r'\s+'), ' ')
-          .trim() ==
-      'dừng lại';
+      _normalizeTranslationControl(text) ==
+      _normalizeTranslationControl(phrases['STOP_TRANSLATE']!.single);
+
+  static String _normalizeTranslationControl(String text) => text
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^\p{L}\p{N}\s]', unicode: true), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
 }
