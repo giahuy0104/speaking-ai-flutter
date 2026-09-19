@@ -106,16 +106,16 @@
       "text": "Bạn muốn nghe lại, câu trước, hay câu sau?",
       "locale": "vi-VN",
       "voiceLanguage": "vi",
-      "version": 1,
+      "version": 2,
       "enabled": true,
       "group": "gap19-fixed",
-      "asset": "assets/audio/MAIN/GAP19/GAP19-006.vi.v1.mp3",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-006.vi.v2.mp3",
       "sources": [
         "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
         "lib/features/voice_navigation/domain/master_navigation_contract.dart"
       ],
-      "sha256": "bf4d3cb068e96ebf5be0f8ebefed007d8abec18435e3554864033dbe096e9ad0",
-      "durationSeconds": 3.092585,
+      "sha256": "a79e1ecbb0905db59304a8a2aa6840c92707ae14f8daafb5d0bd5345b6170157",
+      "durationSeconds": 2.828345,
       "voiceId": "5CVDNcIPiOYgRUQuxXd7",
       "speed": 0.9,
       "speedMethod": "ffmpeg-atempo"

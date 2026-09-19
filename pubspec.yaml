@@ -50,6 +50,7 @@ flutter:
     - assets/audio/MAIN/RUNTIME-TRANSLATION-CONTROL-002.vi.v1.mp3
     - assets/data/cloudinary_audio_manifest.json
     - assets/data/curriculum_audio.json
+    - assets/audio/CURRICULUM/USER_PROMPT/
     - assets/data/vietnamese_speech_corrections_v1.json
     - assets/audio/A-3-5/GUIDE_RECORD/A035_GUIDE_RECORD_01.mp3
     - assets/images/lesson-intro-stage.webp

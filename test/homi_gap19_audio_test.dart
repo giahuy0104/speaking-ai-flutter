@@ -59,16 +59,34 @@ void main() {
       );
       expect(matches, hasLength(1), reason: entry['text'] as String);
       final bytes = File(entry['asset'] as String).readAsBytesSync();
+      final isReplacement = entry['id'] == 'GAP19-006';
       final receipt =
           jsonDecode(
                 File(
-                  'deliverables/homi-gap19-2026-09-19/ready/${entry['id']}.json',
+                  isReplacement
+                      ? 'deliverables/homi-prompt-previews/ban-muon-nghe-lai-cau-truoc-hay-cau-sau/receipt.json'
+                      : 'deliverables/homi-gap19-2026-09-19/ready/${entry['id']}.json',
                 ).readAsStringSync(),
               )
               as Map;
       expect(sha256.convert(bytes).toString(), entry['sha256']);
       expect(receipt['finalSha256'], entry['sha256']);
-      expect(receipt['request']['text'], entry['text']);
+      if (isReplacement) {
+        final replacement =
+            jsonDecode(
+                  File(
+                    'deliverables/homi-gap19-2026-09-19/replacements/GAP19-006.vi.v2.json',
+                  ).readAsStringSync(),
+                )
+                as Map;
+        expect(entry['version'], 2);
+        expect(replacement['asset'], entry['asset']);
+        expect(replacement['sha256'], entry['sha256']);
+        expect(replacement['durationSeconds'], entry['durationSeconds']);
+        expect(replacement['spokenText'], receipt['request']['text']);
+      } else {
+        expect(receipt['request']['text'], entry['text']);
+      }
       expect(receipt['request']['model_id'], 'eleven_v3');
       expect(receipt['request']['voice_settings']['speed'], 1.0);
       expect(receipt['voiceId'], '5CVDNcIPiOYgRUQuxXd7');

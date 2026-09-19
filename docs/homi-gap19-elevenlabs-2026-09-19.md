@@ -18,3 +18,7 @@ Kiểm tra đã chạy:
 - Kiểm kê lại tập 2.061 cặp câu/ngôn ngữ hiện hành: 2.061 có audio hợp lệ, 0 còn thiếu ánh xạ; `deliverables/audio-runtime-audit-2026-09-19-after-gap19/homi-speech-audit-summary.json`.
 
 Giới hạn: kiểm kê nhánh bằng kịch bản và đọc mã, không chứng minh mọi câu động hoặc mọi trường hợp trên điện thoại. Chưa nghe duyệt từng file trên thiết bị thật và chưa cài APK mới. Bốn assertion của hai test cũ (`assistant_audio_inventory_test.dart`, `core_audio_main_assistant_audio_prompt_service_test.dart`) đang kỳ vọng manifest/lời nhắc cũ trước thay đổi luồng MAIN; chúng không được sửa trong đợt thêm MP3 này.
+
+## Thay bản thu GAP19-006
+
+Theo yêu cầu sau đó, `GAP19-006` dùng bản MP3 do người dùng cung cấp, lưu thành `GAP19-006.vi.v2.mp3`. File nhận được có SHA-256 `a79e1ecbb0905db59304a8a2aa6840c92707ae14f8daafb5d0bd5345b6170157`, dài 2,828345 giây và trùng byte với bản preview HOMI đã tạo trước đó. Manifest chỉ đổi `version`, `asset`, `sha256`, `durationSeconds` cho entry này; text điều hướng và 18 entry còn lại giữ nguyên. File `v1` vẫn ở đó để quay lại. Bản thu nói “Bạn muốn nghe lại, câu trước hay câu sau?”; text lookup trong code vẫn là “Bạn muốn nghe lại, câu trước, hay câu sau?”. Metadata đối chiếu nằm ở `deliverables/homi-gap19-2026-09-19/replacements/GAP19-006.vi.v2.json`.

@@ -99,7 +99,7 @@ void main() {
     );
   });
 
-  test('the next Level unlocks only after all previous topics complete', () {
+  test('all Levels are available before completing earlier topics', () {
     expect(
       ListeningCurriculumFlow.levelUnlocked(
         group,
@@ -107,7 +107,7 @@ void main() {
         const <String, int>{},
         const <String>{},
       ),
-      isFalse,
+      isTrue,
     );
     final progress = <String, int>{
       for (final topic in topics.take(3))
