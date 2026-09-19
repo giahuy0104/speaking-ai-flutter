@@ -8,7 +8,18 @@ definitions:
         # MLImage currently ships device arm64, but not simulator arm64.
         # Xcode 26's default runtime may be Apple-Silicon-only.
         /usr/bin/arch -x86_64 /usr/bin/true
-        xcodebuild -downloadPlatform iOS -architectureVariant universal
+        # This CI image returned 70 with "No needed downloadables found for universal".
+        # Let the destination check below decide whether an x86_64 simulator exists.
+        if download_output="$(xcodebuild -downloadPlatform iOS -architectureVariant universal 2>&1)"; then
+          printf '%s\n' "$download_output"
+        else
+          download_status=$?
+          printf '%s\n' "$download_output"
+          if [ "$download_status" -ne 70 ] || [[ "$download_output" != *"No needed downloadables found for universal"* ]]; then
+            exit "$download_status"
+          fi
+          echo "No universal runtime to download; checking x86_64 simulator destinations."
+        fi
         flutter build ios \
           --simulator \
           --debug \
