@@ -5,21 +5,6 @@ definitions:
       script: |
         set -euo pipefail
         python3 -B -m unittest discover -s tool -p test_select_ios_test_simulator.py
-        # MLImage currently ships device arm64, but not simulator arm64.
-        # Xcode 26's default runtime may be Apple-Silicon-only.
-        /usr/bin/arch -x86_64 /usr/bin/true
-        # This CI image returned 70 with "No needed downloadables found for universal".
-        # Let the destination check below decide whether an x86_64 simulator exists.
-        if download_output="$(xcodebuild -downloadPlatform iOS -architectureVariant universal 2>&1)"; then
-          printf '%s\n' "$download_output"
-        else
-          download_status=$?
-          printf '%s\n' "$download_output"
-          if [ "$download_status" -ne 70 ] || [[ "$download_output" != *"No needed downloadables found for universal"* ]]; then
-            exit "$download_status"
-          fi
-          echo "No universal runtime to download; checking x86_64 simulator destinations."
-        fi
         flutter build ios \
           --simulator \
           --debug \
@@ -35,18 +20,14 @@ definitions:
         mkdir -p build/ios/test-results
         xcodebuild -showdestinations \
           -workspace ios/Runner.xcworkspace \
-          -scheme Runner \
-          'EXCLUDED_ARCHS[sdk=iphonesimulator*]=arm64' \
-          ARCHS=x86_64 | tee build/ios/test-results/destinations.log
+          -scheme Runner | tee build/ios/test-results/destinations.log
         SIMULATOR_UDID="$(python3 tool/select_ios_test_simulator.py < build/ios/test-results/destinations.log)"
-        echo "Testing ML Kit-compatible x86_64 simulator: $SIMULATOR_UDID"
+        echo "Testing iOS native code on arm64 simulator: $SIMULATOR_UDID"
         xcodebuild test \
           -workspace ios/Runner.xcworkspace \
           -scheme Runner \
-          -destination "platform=iOS Simulator,id=$SIMULATOR_UDID,arch=x86_64" \
+          -destination "platform=iOS Simulator,id=$SIMULATOR_UDID,arch=arm64" \
           -resultBundlePath build/ios/test-results/RunnerTests.xcresult \
-          'EXCLUDED_ARCHS[sdk=iphonesimulator*]=arm64' \
-          ARCHS=x86_64 \
           CODE_SIGNING_ALLOWED=NO
 
 workflows:
@@ -176,11 +157,7 @@ workflows:
       - name: Build signed App Store IPA
         script: |
           set -euo pipefail
-          RELEASE_AI_SUBPROCESSORS="$AI_SUBPROCESSORS"
-          case "$RELEASE_AI_SUBPROCESSORS" in
-            *"Google ML Kit"*) ;;
-            *) RELEASE_AI_SUBPROCESSORS="$RELEASE_AI_SUBPROCESSORS và Google ML Kit (cung cấp model dịch tải xuống và chạy cục bộ; không nhận audio/transcript trong luồng offline)" ;;
-          esac
+          RELEASE_AI_SUBPROCESSORS="${AI_SUBPROCESSORS%% và Google ML Kit*}"
           flutter build ipa \
             --release \
             --build-number="$BUILD_NUMBER" \

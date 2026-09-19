@@ -1,4 +1,2 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"
 #include "Generated.xcconfig"
-// MLImage's arm64 binary targets devices, not Apple Silicon simulators.
-EXCLUDED_ARCHS[sdk=iphonesimulator*] = $(inherited) arm64

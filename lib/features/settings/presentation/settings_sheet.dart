@@ -1201,9 +1201,9 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
     final request = ++_request;
     try {
       final consent = await _consentStore.read();
-      final translationReady = await _translator.modelsReady();
       final AndroidOfflineSpeechModelStatus speechStatus;
       if (_isAndroid) {
+        final translationReady = await _translator.modelsReady();
         final statuses = await Future.wait<AndroidOfflineSpeechModelStatus>([
           _service.status(locale: 'en-US'),
           _service.status(locale: 'vi-VN'),
@@ -1216,13 +1216,11 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
         );
       } else {
         speechStatus = AndroidOfflineSpeechModelStatus(
-          state: translationReady
-              ? AndroidOfflineSpeechModelState.installed
-              : consent == AndroidOfflineSpeechModelConsent.allowed
+          state: consent == AndroidOfflineSpeechModelConsent.allowed
               ? AndroidOfflineSpeechModelState.pending
               : AndroidOfflineSpeechModelState.missing,
           appManaged: true,
-          modelId: 'apple-speech+mlkit-vi-en',
+          modelId: 'apple-speech',
         );
       }
       if (!mounted || request != _request) {
@@ -1327,11 +1325,9 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
         status = await _service.status();
       } else {
         status = AndroidOfflineSpeechModelStatus(
-          state: await _translator.modelsReady()
-              ? AndroidOfflineSpeechModelState.installed
-              : AndroidOfflineSpeechModelState.missing,
+          state: AndroidOfflineSpeechModelState.missing,
           appManaged: true,
-          modelId: 'apple-speech+mlkit-vi-en',
+          modelId: 'apple-speech',
         );
       }
       if (!mounted || request != _request) {
@@ -1374,7 +1370,9 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
           await _appleSpeech.prepareLocale(locale);
         }
       }
-      await _translator.downloadModels(wifiOnly: true);
+      if (_isAndroid) {
+        await _translator.downloadModels(wifiOnly: true);
+      }
     } finally {
       if (mounted) {
         await _refresh();
@@ -1383,7 +1381,8 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
   }
 
   void _updateRefreshTimer() {
-    if (_status?.state == AndroidOfflineSpeechModelState.pending) {
+    if (_isAndroid &&
+        _status?.state == AndroidOfflineSpeechModelState.pending) {
       _refreshTimer ??= Timer.periodic(
         const Duration(seconds: 2),
         (_) => unawaited(_refresh()),
@@ -1402,6 +1401,23 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
   }
 
   void _showResultMessage(AndroidOfflineSpeechModelPreparationResult? result) {
+    if (!_isAndroid &&
+        result ==
+            AndroidOfflineSpeechModelPreparationResult.downloadRequested) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              context.tr(
+                'HOMI sẽ chuẩn bị giọng nói offline bằng Apple Speech.',
+                'HOMI 将使用 Apple Speech 准备离线语音。',
+              ),
+            ),
+          ),
+        );
+      return;
+    }
     final message = switch (result) {
       AndroidOfflineSpeechModelPreparationResult.downloadRequested =>
         context.tr(
@@ -1432,6 +1448,17 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
   String _detail(BuildContext context) {
     if (_busy) {
       return context.tr('Đang kiểm tra các gói offline…', '正在检查离线模型…');
+    }
+    if (!_isAndroid) {
+      return _consent == AndroidOfflineSpeechModelConsent.allowed
+          ? context.tr(
+              'Đã bật chuẩn bị giọng nói offline bằng Apple Speech. Tính năng dịch offline trên iOS sẽ được bổ sung sau.',
+              '已开启 Apple Speech 离线语音准备。iOS 离线翻译将在之后提供。',
+            )
+          : context.tr(
+              'Bật để HOMI chuẩn bị giọng nói offline bằng Apple Speech. Tính năng dịch offline trên iOS sẽ được bổ sung sau.',
+              '开启后 HOMI 会准备 Apple Speech 离线语音。iOS 离线翻译将在之后提供。',
+            );
     }
     switch (_status?.state) {
       case AndroidOfflineSpeechModelState.installed:
@@ -1500,7 +1527,12 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  context.tr('Tự tải giọng nói và dịch offline', '自动下载离线语音和翻译'),
+                  _isAndroid
+                      ? context.tr(
+                          'Tự tải giọng nói và dịch offline',
+                          '自动下载离线语音和翻译',
+                        )
+                      : context.tr('Chuẩn bị giọng nói offline', '准备离线语音'),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),

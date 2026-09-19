@@ -67,18 +67,17 @@ Chưa chạy Swift/XCTest, simulator hoặc iPhone/H20 thật trong lượt này
 Không thêm dependency, đổi API contract/backend, tạo audio mới hoặc xóa dữ liệu
 người dùng trong lượt đồng bộ này.
 
-### Simulator ML Kit trên Mac Apple Silicon
+### Simulator trên Mac Apple Silicon
 
-Build `d2b5eac7` trên Codemagic đã tới linker nhưng lỗi vì `MLImage.framework`
-có arm64 dành cho iPhone thật, không phải arm64-simulator. Bản sửa giới hạn
-`EXCLUDED_ARCHS=arm64` cho SDK `iphonesimulator` ở app và Pods; không loại arm64
-khỏi bản iPhone/App Store và không thay đổi chức năng dịch.
+ML Kit Translate trên iOS làm linker lỗi với arm64 simulator. Codemagic cũng
+không cung cấp iPhone simulator x86_64 cho runtime hiện tại. App chỉ đăng ký
+plugin ML Kit trên Android; iOS tiếp tục dùng Apple Speech để nhận giọng nói và
+chấm điểm. Dịch offline Việt–Anh/Anh–Việt trên iOS tạm thời không có cho đến
+khi tích hợp phương pháp thay thế. Android vẫn dùng ML Kit như trước.
 
-CI kiểm tra Rosetta, tải runtime iOS Universal và chọn iPhone x86_64 từ danh
-sách destination hợp lệ của Xcode. Không chọn thiết bị đầu tiên từ simctl vì
-runtime iOS 26 có thể chỉ hỗ trợ Apple Silicon. Native tests cũng bắt buộc
-x86_64; không bỏ qua test nếu thiếu runtime. Danh sách destination được lưu
-trong artifact `build/ios/test-results/destinations.log`.
+CI build và chạy RunnerTests trên iPhone simulator arm64 từ danh sách
+destination hợp lệ của Xcode; không bỏ qua test khi thiếu simulator. Danh sách
+destination được lưu trong artifact `build/ios/test-results/destinations.log`.
 
 Kiểm tra cục bộ: `python -B -m unittest discover -s tool -p
 test_select_ios_test_simulator.py`. Cần Codemagic/macOS để xác nhận build và

@@ -1,7 +1,5 @@
 import AVFoundation
 import Flutter
-import MLKitCommon
-import MLKitTranslate
 @testable import Runner
 import Speech
 import UIKit
@@ -113,35 +111,6 @@ class RunnerTests: XCTestCase {
     let drained = buffer.drain()
     XCTAssertEqual(drained.compactMap { $0["sequence"] as? Int }, [2, 3])
     XCTAssertEqual(buffer.count, 0)
-  }
-
-  func testOfflineTranslationDownloadNotificationReadsModelFromUserInfo() {
-    let vietnameseModel = TranslateRemoteModel.translateRemoteModel(
-      language: TranslateLanguage(rawValue: "vi")
-    )
-    let englishModel = TranslateRemoteModel.translateRemoteModel(
-      language: TranslateLanguage(rawValue: "en")
-    )
-    let notification = Notification(
-      name: .mlkitModelDownloadDidSucceed,
-      object: nil,
-      userInfo: [
-        ModelDownloadUserInfoKey.remoteModel.rawValue: vietnameseModel
-      ]
-    )
-
-    XCTAssertTrue(
-      IOSOfflineTranslationModelNotificationPolicy.matches(
-        notification,
-        expectedModel: vietnameseModel
-      )
-    )
-    XCTAssertFalse(
-      IOSOfflineTranslationModelNotificationPolicy.matches(
-        notification,
-        expectedModel: englishModel
-      )
-    )
   }
 
   func testAiv0ReconnectPolicyRecoversMainImmediatelyThenUsesBoundedBackoff() {

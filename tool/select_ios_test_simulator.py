@@ -1,8 +1,4 @@
-"""Select an available Intel iPhone destination from xcodebuild output.
-
-Use Xcode's eligible destinations, not the first simctl device: installed
-Apple-Silicon-only runtimes cannot run MLImage's simulator binary.
-"""
+"""Select an available Apple Silicon iPhone destination from xcodebuild output."""
 
 import re
 import sys
@@ -20,15 +16,15 @@ def select_destination(output):
         identifier = fields.get("id", "")
         if (
             fields.get("platform") == "iOS Simulator"
-            and fields.get("arch") == "x86_64"
+            and fields.get("arch") == "arm64"
             and fields.get("name", "").startswith("iPhone")
             and "error" not in fields
             and re.fullmatch(r"[0-9a-fA-F-]{36}", identifier)
         ):
             return identifier
     raise ValueError(
-        "No eligible x86_64 iPhone simulator. Check Rosetta and the Universal "
-        "iOS runtime installation; do not fall back to an arm64 simulator."
+        "No eligible arm64 iPhone simulator. Check the installed iOS simulator "
+        "runtime and Xcode destinations."
     )
 
 

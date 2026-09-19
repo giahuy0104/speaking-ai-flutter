@@ -273,11 +273,14 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         }
       }
 
-      var translationReady = await _offlineTranslator.modelsReady();
-      if (!translationReady) {
-        translationReady = await _offlineTranslator.downloadModels(
-          wifiOnly: true,
-        );
+      var translationReady = true;
+      if (isAndroidRuntime) {
+        translationReady = await _offlineTranslator.modelsReady();
+        if (!translationReady) {
+          translationReady = await _offlineTranslator.downloadModels(
+            wifiOnly: true,
+          );
+        }
       }
       if (speechReady && translationReady) {
         _offlineSpeechModelPreparationFinished = true;
@@ -1141,10 +1144,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       offlineVietnameseSpeechRecognizer: supportsAndroidNativeSpeech
           ? const AndroidVoskVietnameseSpeechRecognizer()
           : null,
-      offlineVietnameseEnglishTranslator: supportsNativeSpeech
+      offlineVietnameseEnglishTranslator: supportsAndroidNativeSpeech
           ? _offlineTranslator
           : null,
-      offlineEnglishVietnameseTranslator: supportsNativeSpeech
+      offlineEnglishVietnameseTranslator: supportsAndroidNativeSpeech
           ? _offlineVocabularyTranslator
           : null,
       vietnameseTranscriptCorrector: supportsNativeSpeech

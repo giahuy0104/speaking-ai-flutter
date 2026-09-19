@@ -102,36 +102,28 @@ void main() {
     },
   );
 
-  test('iOS model manager enforces Wi-Fi-only native download', () async {
-    const channel = MethodChannel('homi_offline_translation_models');
-    final calls = <MethodCall>[];
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (call) async {
-          calls.add(call);
-          return switch (call.method) {
-            'model.status' => true,
-            'model.requestDownload' => true,
-            'translate' => 'Hello',
-            _ => null,
-          };
-        });
+  test('iOS does not request ML Kit translation models', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-    addTearDown(() {
-      debugDefaultTargetPlatformOverride = null;
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, null);
-    });
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
 
-    final adapter = MlKitOfflineTranslationAdapter();
-    expect(await adapter.isModelDownloaded('vi'), isTrue);
-    expect(await adapter.downloadModel('en', wifiOnly: true), isTrue);
-    expect(await adapter.translate('Xin chào'), 'Hello');
-
-    final download = calls.singleWhere(
-      (call) => call.method == 'model.requestDownload',
+    final adapter = _FakeTranslationAdapter();
+    final translator = MlKitOfflineVietnameseEnglishTranslator(
+      adapter: adapter,
     );
-    expect(download.arguments, containsPair('locale', 'en'));
-    expect(download.arguments, containsPair('wifiOnly', true));
+    expect(await translator.modelsReady(), isFalse);
+    expect(await translator.downloadModels(), isFalse);
+    expect(adapter.downloads, isEmpty);
+    await expectLater(
+      translator.translate('Xin chào'),
+      throwsA(
+        isA<PlatformException>().having(
+          (error) => error.code,
+          'code',
+          'OFFLINE_TRANSLATION_MODEL_UNAVAILABLE',
+        ),
+      ),
+    );
+    await translator.close();
   });
 
   test('Apple speech assets are prepared for the requested locale', () async {

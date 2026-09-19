@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -475,8 +476,10 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
                       ? null
                       : _setAndroidOfflineEnglishModelDownload,
                   secondary: const Icon(Icons.download_for_offline_rounded),
-                  title: const Text(
-                    'Cho phép tải dữ liệu giọng nói và dịch offline',
+                  title: Text(
+                    !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+                        ? 'Cho phép chuẩn bị giọng nói offline'
+                        : 'Cho phép tải dữ liệu giọng nói và dịch offline',
                   ),
                 ),
               ),

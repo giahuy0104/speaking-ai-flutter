@@ -109,52 +109,21 @@ class MlKitOfflineTranslationAdapter implements OfflineTranslationAdapter {
         targetLanguage: TranslateLanguage.english,
       );
 
-  static const MethodChannel _iosModelChannel = MethodChannel(
-    'homi_offline_translation_models',
-  );
-
   final OnDeviceTranslatorModelManager _modelManager;
   final OnDeviceTranslator _translator;
 
-  bool get _usesIosWifiOnlyManager =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
-
   @override
   Future<bool> isModelDownloaded(String languageCode) {
-    if (_usesIosWifiOnlyManager) {
-      return _iosModelChannel
-          .invokeMethod<bool>('model.status', <String, dynamic>{
-            'locale': languageCode,
-          })
-          .then((value) => value ?? false);
-    }
     return _modelManager.isModelDownloaded(languageCode);
   }
 
   @override
   Future<bool> downloadModel(String languageCode, {required bool wifiOnly}) {
-    if (_usesIosWifiOnlyManager) {
-      return _iosModelChannel
-          .invokeMethod<bool>('model.requestDownload', <String, dynamic>{
-            'locale': languageCode,
-            'wifiOnly': wifiOnly,
-          })
-          .then((value) => value ?? false);
-    }
     return _modelManager.downloadModel(languageCode, isWifiRequired: wifiOnly);
   }
 
   @override
   Future<String> translate(String text) {
-    if (_usesIosWifiOnlyManager) {
-      return _iosModelChannel
-          .invokeMethod<String>('translate', <String, dynamic>{
-            'locale': 'vi',
-            'targetLocale': 'en',
-            'text': text,
-          })
-          .then((value) => value ?? '');
-    }
     return _translator.translateText(text);
   }
 
@@ -162,7 +131,7 @@ class MlKitOfflineTranslationAdapter implements OfflineTranslationAdapter {
   Future<void> close() => _translator.close();
 }
 
-/// Shared Android/iOS on-device Vietnamese-to-English translation.
+/// Android on-device Vietnamese-to-English translation.
 ///
 /// ML Kit downloads the Vietnamese and English language packs once, stores
 /// them in the platform model store, and performs subsequent translations
@@ -175,9 +144,7 @@ class MlKitOfflineVietnameseEnglishTranslator
   }) : _adapter = adapter ?? MlKitOfflineTranslationAdapter(),
        _enabled =
            enabled ??
-           (!kIsWeb &&
-               (defaultTargetPlatform == TargetPlatform.android ||
-                   defaultTargetPlatform == TargetPlatform.iOS));
+           (!kIsWeb && defaultTargetPlatform == TargetPlatform.android);
 
   static const String _vietnameseCode = 'vi';
   static const String _englishCode = 'en';
@@ -293,46 +260,22 @@ class MlKitOfflineEnglishVietnameseTranslator
   MlKitOfflineEnglishVietnameseTranslator({bool? enabled})
     : _enabled =
           enabled ??
-          (!kIsWeb &&
-              (defaultTargetPlatform == TargetPlatform.android ||
-                  defaultTargetPlatform == TargetPlatform.iOS)),
+          (!kIsWeb && defaultTargetPlatform == TargetPlatform.android),
       _modelManager = OnDeviceTranslatorModelManager(),
       _translator = OnDeviceTranslator(
         sourceLanguage: TranslateLanguage.english,
         targetLanguage: TranslateLanguage.vietnamese,
       );
 
-  static const MethodChannel _iosModelChannel = MethodChannel(
-    'homi_offline_translation_models',
-  );
-
   final bool _enabled;
   final OnDeviceTranslatorModelManager _modelManager;
   final OnDeviceTranslator _translator;
   bool _closed = false;
 
-  bool get _usesIosNativeBridge =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
-
   @override
   Future<bool> modelsReady() async {
     if (!_enabled || _closed) return false;
     try {
-      if (_usesIosNativeBridge) {
-        final states = await Future.wait<bool>(<Future<bool>>[
-          _iosModelChannel
-              .invokeMethod<bool>('model.status', <String, dynamic>{
-                'locale': 'en',
-              })
-              .then((value) => value ?? false),
-          _iosModelChannel
-              .invokeMethod<bool>('model.status', <String, dynamic>{
-                'locale': 'vi',
-              })
-              .then((value) => value ?? false),
-        ]);
-        return states.every((ready) => ready);
-      }
       final states = await Future.wait<bool>(<Future<bool>>[
         _modelManager.isModelDownloaded('en'),
         _modelManager.isModelDownloaded('vi'),
@@ -354,18 +297,6 @@ class MlKitOfflineEnglishVietnameseTranslator
         code: 'OFFLINE_TRANSLATION_MODEL_UNAVAILABLE',
         message: 'English and Vietnamese translation models are not installed.',
       );
-    }
-    if (_usesIosNativeBridge) {
-      return (await _iosModelChannel.invokeMethod<String>(
-                'translate',
-                <String, dynamic>{
-                  'locale': 'en',
-                  'targetLocale': 'vi',
-                  'text': source,
-                },
-              ) ??
-              '')
-          .trim();
     }
     return (await _translator.translateText(source)).trim();
   }
