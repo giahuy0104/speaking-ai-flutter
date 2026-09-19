@@ -1,5 +1,5 @@
 {
-  "BACKEND_BASE_URL": "https://speaking-ai-nextjs-backend-production-e43d.up.railway.app",
+  "BACKEND_BASE_URL": "https://speaking-ai-nextjs-backend-production.up.railway.app",
   "USE_DEMO_BACKEND": false,
   "PRIVACY_POLICY_URL": "https://homi-app-privacy.lixiang22.chatgpt.site/privacy",
   "TERMS_URL": "https://homi-app-privacy.lixiang22.chatgpt.site/terms",

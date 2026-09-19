@@ -1,0 +1,21 @@
+{
+  "id": "GAP19-007",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn muốn nghe lại, dừng lại hay bỏ qua?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "hhNugPk1dddTeobnC0E7",
+  "historyItemId": "AeCiJhDRcNDWBMBrwdbO",
+  "characterCost": "21",
+  "sourceSha256": "d585f87843cf80e475b7a8d3841079dc757cf88a71247af406bb0f1cbe78e8fc",
+  "createdAt": "2026-09-19T08:11:43.145Z"
+}

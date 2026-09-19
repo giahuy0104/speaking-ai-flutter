@@ -1,0 +1,21 @@
+{
+  "id": "GAP19-013",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình bỏ qua bài hát nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "Xfy6Baz9NsJw6ILgqssf",
+  "historyItemId": "ghuva2mMDAhXvi9Qvueb",
+  "characterCost": "13",
+  "sourceSha256": "80d5bcf6c84f5352af4b4c030ac01a2300796898c72d9fa664ef6891af1dd149",
+  "createdAt": "2026-09-19T08:11:55.579Z"
+}

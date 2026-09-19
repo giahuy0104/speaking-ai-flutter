@@ -1,0 +1,364 @@
+{
+  "schemaVersion": 1,
+  "enabled": true,
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "prompts": [
+    {
+      "id": "GAP19-001",
+      "text": "Bạn đã học xong chủ đề này rồi. Bạn chọn tiếp chủ đề mới nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-001.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/lesson_practice_screen.dart"
+      ],
+      "sha256": "dbb696412e6d0f3012f0672ed0a9515d7f55dfe79f82cf44e430aa024430c858",
+      "durationSeconds": 4.339796,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP19-002",
+      "text": "Bạn đang ở phần đầu bài học rồi.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-002.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/lesson_intro_screen.dart"
+      ],
+      "sha256": "f2037f1d600c24beb92ed4a21603857de352323eb83aa9ef082d0494de5292f9",
+      "durationSeconds": 2.290952,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP19-003",
+      "text": "Bạn hãy vào bài học trước nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-003.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/lesson_intro_screen.dart"
+      ],
+      "sha256": "aa8acef08c94e52dc09081e88b04b0d3512fc2786ce7bd50bd89a5e2a4b3aa2c",
+      "durationSeconds": 1.937732,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP19-004",
+      "text": "Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-004.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/voice_navigation/domain/master_navigation_contract.dart"
+      ],
+      "sha256": "0f6eff642c0877ebbb97c956f4d04db1838ed5c2c97734534783e81a6aed7adb",
+      "durationSeconds": 3.727846,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP19-005",
+      "text": "Bạn muốn nghe lại hay dừng lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-005.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/domain/master_navigation_contract.dart"
+      ],
+      "sha256": "4452c29106a7256212799e23b91f1926ab21724ebf79a3de3468cf4eddc9d262",
+      "durationSeconds": 2.293991,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP19-006",
+      "text": "Bạn muốn nghe lại, câu trước, hay câu sau?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-006.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/voice_navigation/domain/master_navigation_contract.dart"
+      ],
+      "sha256": "bf4d3cb068e96ebf5be0f8ebefed007d8abec18435e3554864033dbe096e9ad0",
+      "durationSeconds": 3.092585,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP19-007",
+      "text": "Bạn muốn nghe lại, dừng lại hay bỏ qua?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-007.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/domain/master_navigation_contract.dart"
+      ],
+      "sha256": "666e0ddc723919ceedaa8b10e2d34df20e1cc9e9f9122fcec0cc1a15f8fe04d5",
+      "durationSeconds": 3.100023,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP19-008",
+      "text": "Chủ đề này chưa có bài học. Bạn thử lại sau nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-008.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "cbe4956ce5fdcc0113c73548a863be2447f6a3f3e46bf26cba9a13dbb913b324",
+      "durationSeconds": 3.26873,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP19-009",
+      "text": "Đây là câu cuối. Bạn hãy hoàn thành câu này nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-009.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/lesson_practice_screen.dart"
+      ],
+      "sha256": "ac7abbc986cacb7629f7789bb6e51b3ad4d9f3845bdc40a0a76b13f3d91ee147",
+      "durationSeconds": 3.180363,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP19-010",
+      "text": "HOMI chưa tải được bài học. Bạn thử lại sau nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-010.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "sha256": "a6258ec27b2427db800b51a4451dacbbbbb7bd1e45cc468326a71f746e3b2622",
+      "durationSeconds": 3.541247,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP19-011",
+      "text": "HOMI chưa thực hiện được. Bạn thử lại nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-011.vi.v1.mp3",
+      "sources": [
+        "lib/core/session/app_flow_coordinator.dart"
+      ],
+      "sha256": "77f39e7cc6c90bf3169171c8c65f19d3080bde0a8c29cd4ba259b64b3d8f115f",
+      "durationSeconds": 3.188005,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP19-012",
+      "text": "HOMI đây. Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-012.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/voice_navigation/domain/master_navigation_contract.dart"
+      ],
+      "sha256": "60071690e92d3108e2ef25d29e71a66d15d77ed2ed57fa01384249cec9b11ae9",
+      "durationSeconds": 4.348617,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP19-013",
+      "text": "Mình bỏ qua bài hát nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-013.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/domain/master_navigation_contract.dart"
+      ],
+      "sha256": "7d63d86ce5bdd30a79ae4b5db94e2aa39b63248c43013e5bd7f02beeee6c004f",
+      "durationSeconds": 1.409819,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP19-014",
+      "text": "Mình đã chuyển sang Bộ từ vựng.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-014.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/voice_navigation/domain/master_navigation_contract.dart"
+      ],
+      "sha256": "03a92a0ec9cd3aa124a5c91cfbc8cc01dcb33226d11b7d46ca730aa9534cd807",
+      "durationSeconds": 1.937823,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP19-015",
+      "text": "Mình đã chuyển sang Chủ đề.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-015.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/voice_navigation/domain/master_navigation_contract.dart"
+      ],
+      "sha256": "8b747f20e3df8763d6315bdc64b7fff3c1bd27002e5e1c5cdf018e28c87cc1a5",
+      "durationSeconds": 1.681202,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP19-016",
+      "text": "Mình đã chuyển sang Dịch tiếng Anh.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-016.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/voice_navigation/domain/master_navigation_contract.dart"
+      ],
+      "sha256": "73e12c5f68ecd1d5dbc35aee6508d318f455a53559bef87dfd10a68ce958d58c",
+      "durationSeconds": 1.85576,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP19-017",
+      "text": "Mình giữ nội dung hiện tại nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-017.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/domain/master_navigation_contract.dart"
+      ],
+      "sha256": "04d40960ace9e7eb64af81d5da474e9e7051fc614851ee643b35e53d8599710e",
+      "durationSeconds": 1.767528,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP19-018",
+      "text": "Mình tiếp tục Bộ từ vựng nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-018.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/voice_navigation/domain/master_navigation_contract.dart"
+      ],
+      "sha256": "a7bf045aea8ca9b431d437a21d5f8e913988408ba7a131626033a6e957964838",
+      "durationSeconds": 1.852698,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    },
+    {
+      "id": "GAP19-019",
+      "text": "Mình tiếp tục Chủ đề nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": true,
+      "group": "gap19-fixed",
+      "asset": "assets/audio/MAIN/GAP19/GAP19-019.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/voice_navigation/domain/master_navigation_contract.dart"
+      ],
+      "sha256": "7da5631b3d71acd93799b039d5e8262aeff13c04e297ec9e8c94a790004f3010",
+      "durationSeconds": 1.582585,
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo"
+    }
+  ]
+}

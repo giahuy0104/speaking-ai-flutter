@@ -40,6 +40,8 @@ flutter:
     - assets/data/main_assistant_audio.json
     - assets/data/homi_gap66_audio.json
     - assets/audio/MAIN/GAP66/
+    - assets/data/homi_gap19_audio.json
+    - assets/audio/MAIN/GAP19/
     - assets/audio/MAIN/RUNTIME-CHALLENGE-CUE-001.vi.v1.mp3
     - assets/audio/MAIN/RUNTIME-CONVERSATION-RECOVERY-001.vi.v1.mp3
     - assets/audio/MAIN/RUNTIME-MAIN-NAVIGATION-001.vi.v1.mp3
