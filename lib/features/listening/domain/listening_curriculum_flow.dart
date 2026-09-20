@@ -3,8 +3,8 @@ import 'listening_content.dart';
 enum ListeningTopicLearningState { notStarted, inProgress, completed }
 
 /// Pure curriculum rules shared by the catalog, lesson path, and completion
-/// flow. All levels and topics are available; lessons inside a topic are
-/// sequential.
+/// flow. Levels are sequential; topics inside an unlocked level are peers;
+/// lessons inside a topic are sequential.
 abstract final class ListeningCurriculumFlow {
   static bool lessonCompleted(
     ListeningLessonContent lesson,
@@ -115,5 +115,18 @@ abstract final class ListeningCurriculumFlow {
     ListeningLevelContent level,
     Map<String, int> progress,
     Set<String> completedActivities,
-  ) => true;
+  ) {
+    for (final previous in group.levels) {
+      if (previous.number >= level.number) break;
+      if (!allTopicsInLevelCompleted(
+        group,
+        previous,
+        progress,
+        completedActivities,
+      )) {
+        return false;
+      }
+    }
+    return true;
+  }
 }

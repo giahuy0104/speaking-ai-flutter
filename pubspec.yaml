@@ -48,6 +48,7 @@ flutter:
     - assets/audio/MAIN/RUNTIME-MAIN-NAVIGATION-002.vi.v1.mp3
     - assets/audio/MAIN/RUNTIME-TRANSLATION-CONTROL-001.vi.v1.mp3
     - assets/audio/MAIN/RUNTIME-TRANSLATION-CONTROL-002.vi.v1.mp3
+    - assets/audio/CURRICULUM/STAR/post-star-ting.mp3
     - assets/data/cloudinary_audio_manifest.json
     - assets/data/curriculum_audio.json
     - assets/audio/CURRICULUM/USER_PROMPT/
