@@ -105,6 +105,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   _authoredVocabularySuggestionProvider;
   late final MinhqndDictionaryProvider _vocabularyDictionaryProvider;
   int _page = 0;
+  int _requestedPage = 0;
+  int _pageNavigationGeneration = 0;
   bool _openingTopics = false;
   ActiveListeningSessionCheckpoint? _pausedListeningCheckpoint;
   Completer<void>? _topicRouteClosedCompleter;
@@ -287,6 +289,12 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     }
     _applyBackgroundLearningDirective(directive);
     if (state == AppLifecycleState.resumed) {
+      // A spoken command can change the logical page while Android is not
+      // drawing frames. Reconcile the PageView as soon as it becomes visible
+      // again so the assistant state and the screen cannot remain out of sync.
+      if (_usesAndroidPageSynchronization) {
+        unawaited(_moveToRequestedPage(animate: false));
+      }
       final activeRegistry = ActiveLearningModuleScope.read(context);
       if (_stopMediaWhenBackgrounded &&
           activeRegistry?.hasActiveModule == true) {
@@ -529,6 +537,9 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       ? Duration.zero
       : const Duration(milliseconds: 220);
 
+  bool get _usesAndroidPageSynchronization =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
   void _attachVoiceNavigationHandler() {
     widget.voiceNavigationController?.setIntentHandler(
       widget.config.enableVoiceNavigation ? _handleVoiceNavigationIntent : null,
@@ -699,7 +710,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
     switch (intent.destination) {
       case VoiceNavigationDestination.conversation:
-        _showConversation();
+        await _showConversationAndWait();
         if (intent.enterMainSpeakingMode) {
           await widget.onMainSpeakingModeStarted?.call();
         }
@@ -957,6 +968,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   void _showVocabulary() {
+    unawaited(_showVocabularyAndWait());
+  }
+
+  Future<void> _showVocabularyAndWait() async {
     AudioDiagnostics.event('screen.vocabulary.activate');
     if (AudioDiagnostics.enabled) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -966,45 +981,80 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       });
     }
     _vocabularyActivationController.activate();
-    if (_page != 1 && mounted) {
-      setState(() => _page = 1);
-    }
-    if (!_pageController.hasClients) return;
-    if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
-      _pageController.jumpToPage(1);
-      return;
-    }
-    unawaited(
-      _pageController.animateToPage(
-        1,
-        duration: _motionDuration,
-        curve: Curves.easeOutCubic,
-      ),
-    );
+    await _requestHomePage(1);
   }
 
   void _showConversation() {
+    unawaited(_showConversationAndWait());
+  }
+
+  Future<void> _showConversationAndWait() async {
     _vocabularyActivationController.deactivate();
     if (_page == 1) {
       unawaited(_vocabularyNavigationController.leaveForOtherContent());
       ActiveLearningModuleScope.notifyNavigationExit(context);
       unawaited(widget.voiceNavigationController?.pause());
     }
-    if (_page != 0 && mounted) {
-      setState(() => _page = 0);
+    await _requestHomePage(0);
+  }
+
+  Future<void> _requestHomePage(int page) async {
+    _requestedPage = page;
+    final generation = ++_pageNavigationGeneration;
+    if (_page != page && mounted) {
+      setState(() => _page = page);
     }
-    if (!_pageController.hasClients) return;
-    if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
-      _pageController.jumpToPage(0);
+    await _moveToRequestedPage(
+      animate:
+          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,
+      generation: generation,
+    );
+  }
+
+  Future<void> _moveToRequestedPage({
+    required bool animate,
+    int? generation,
+  }) async {
+    final requestGeneration = generation ?? ++_pageNavigationGeneration;
+    final targetPage = _requestedPage;
+    if (!_pageController.hasClients) {
+      if (!_usesAndroidPageSynchronization) return;
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    if (!mounted ||
+        requestGeneration != _pageNavigationGeneration ||
+        !_pageController.hasClients ||
+        targetPage != _requestedPage) {
       return;
     }
-    unawaited(
-      _pageController.animateToPage(
-        0,
-        duration: _motionDuration,
-        curve: Curves.easeOutCubic,
-      ),
+    final currentPage = _pageController.page;
+    if (currentPage != null && (currentPage - targetPage).abs() < 0.001) {
+      return;
+    }
+    if (!animate ||
+        WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+      _pageController.jumpToPage(targetPage);
+      return;
+    }
+    final transition = _pageController.animateToPage(
+      targetPage,
+      duration: _motionDuration,
+      curve: Curves.easeOutCubic,
     );
+    if (!_usesAndroidPageSynchronization) {
+      unawaited(transition);
+      return;
+    }
+    await transition;
+    if (mounted &&
+        requestGeneration == _pageNavigationGeneration &&
+        targetPage == _requestedPage) {
+      // Scroll completion can run before the last frame is painted. MAIN must
+      // wait for that frame so the visible microphone UI belongs to the new
+      // page before recording begins.
+      WidgetsBinding.instance.scheduleFrame();
+      await WidgetsBinding.instance.endOfFrame;
+    }
   }
 
   Future<void> _handleVocabularyBack() async {

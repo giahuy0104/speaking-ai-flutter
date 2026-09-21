@@ -45,7 +45,11 @@ class HfpAudioBridge(
         private const val AUDIO_ROUTE_SETTLE_MS = 150L
         private const val AUDIO_ROUTE_CONFIRM_INTERVAL_MS = 100L
         private const val AUDIO_ROUTE_REASSERT_DELAY_MS = 250L
-        private const val ACTIVE_ROUTE_RECOVERY_TIMEOUT_MS = 1500L
+        // Xiaomi/MediaTek can block setCommunicationDevice for more than two
+        // seconds while SCO is renegotiated even though the HFP profile remains
+        // connected. Match the initial route budget so that late, valid route
+        // confirmation is not reported to Flutter as HFP_ROUTE_LOST.
+        private const val ACTIVE_ROUTE_RECOVERY_TIMEOUT_MS = 5000L
         private const val AUDIO_ROUTE_LOSS_CLEANUP_DELAY_MS = 100L
         private const val AUDIO_ROUTE_CONFIRM_ATTEMPTS = 25
         private const val TAG = "HfpAudioBridge"

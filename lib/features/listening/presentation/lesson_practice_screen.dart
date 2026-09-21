@@ -260,7 +260,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       _completionChoiceRecording = false;
       _completionChoiceStopping = false;
       _mediaBusy = false;
-      _message = error.toString();
+      _message = _childFriendlyMessage(error.toString());
     });
   }
 
@@ -3999,6 +3999,11 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
 
   String _childFriendlyMessage(String message) {
     final normalized = message.toLowerCase();
+    if (normalized.contains('hfp_route_lost') ||
+        normalized.contains('kết nối âm thanh h20 bị gián đoạn') ||
+        normalized.contains('mic h20 bị ngắt kết nối')) {
+      return 'Mic H20 vừa mất đường âm thanh. HOMI đang kết nối lại; bạn thử ghi âm lại nhé.';
+    }
     if (normalized.contains('credential') ||
         normalized.contains('installation') ||
         normalized.contains('xác thực')) {

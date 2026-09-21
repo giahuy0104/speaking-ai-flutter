@@ -38,4 +38,10 @@ class HfpRouteReadinessTest {
         assertEquals(HfpRouteReadiness.Result.WAITING, route.poll(1400, false))
         assertEquals(HfpRouteReadiness.Result.TIMED_OUT, route.poll(1500, false))
     }
+
+    @Test fun confirmedRouteSurvivesALatePollAfterBinderStall() {
+        val route = HfpRouteReadiness(0, timeoutMs = 1500, settleMs = 150)
+        assertEquals(HfpRouteReadiness.Result.WAITING, route.poll(1400, true))
+        assertEquals(HfpRouteReadiness.Result.READY, route.poll(1650, true))
+    }
 }

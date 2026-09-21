@@ -45,7 +45,7 @@ class ConversationController extends ChangeNotifier
         ConversationSettingsPort,
         LearningAudioDependencies,
         MainAssistantAudioState {
-  static const double translatedSpeechPlaybackRate = 0.85;
+  static const double translatedSpeechPlaybackRate = 0.80;
 
   ConversationController({
     required AudioInput audioInput,
@@ -513,8 +513,9 @@ class ConversationController extends ChangeNotifier
   }
 
   ConversationResult? _localExactFallbackResult(
-    StreamingSpeechCapture capture,
-  ) {
+    StreamingSpeechCapture capture, {
+    bool useDeviceTts = false,
+  }) {
     final exact = _findLocalExactIntent(capture.sourceText, context);
     if (exact == null || exact.englishText.trim().isEmpty) {
       return null;
@@ -527,10 +528,13 @@ class ConversationController extends ChangeNotifier
       context: context,
       vietnameseText: capture.sourceText.trim(),
       englishText: exact.englishText.trim(),
-      audioUri: exact.audioUri,
+      // A transport-level offline decision must not retain the authored
+      // network URL. Backend outages discovered after a healthy transport
+      // check may still reuse an already cached/playing exact-rule clip.
+      audioUri: useDeviceTts ? null : exact.audioUri,
       processingMode: 'offline_fallback',
       textSource: 'device_exact_rule_fallback',
-      audioSource: 'device_exact_rule',
+      audioSource: useDeviceTts ? 'device_tts' : 'device_exact_rule',
       asrMode: capture.asrMode,
       latency: const ConversationLatency(
         asrMs: 0,
@@ -677,6 +681,7 @@ class ConversationController extends ChangeNotifier
     required StreamingSpeechCapture? capture,
     required AudioCapture? audioCapture,
     required Object reason,
+    bool useDeviceTtsForExact = false,
   }) async {
     try {
       final offlineCapture = await _resolveOfflineVietnameseCapture(
@@ -685,7 +690,10 @@ class ConversationController extends ChangeNotifier
       );
       if (offlineCapture == null) return null;
 
-      final exactFallback = _localExactFallbackResult(offlineCapture);
+      final exactFallback = _localExactFallbackResult(
+        offlineCapture,
+        useDeviceTts: useDeviceTtsForExact,
+      );
       if (exactFallback != null) {
         debugPrint('Using on-device exact conversation rule: $reason');
         transientMessage = reason == 'network_transport_unavailable'
@@ -3147,12 +3155,21 @@ class ConversationController extends ChangeNotifier
       amplitude = 0;
       notifyListeners();
 
+      final useAndroidOfflineAudio =
+          !_isWebRuntime && defaultTargetPlatform == TargetPlatform.android;
+      // Android must know the transport state before it is allowed to start a
+      // remote exact-rule clip. Other platforms retain their existing early
+      // playback ordering.
+      final androidNetworkTransport = useAndroidOfflineAudio
+          ? await _hasNetworkTransport()
+          : null;
       Future<PlaybackStartMetrics>? earlyRulePlayback;
       DateTime? earlyRulePlaybackRequestedAt;
       Uri? earlyRulePlaybackUri;
       String? earlyRuleEnglishText;
       _useTranslatedSpeechPlaybackRate();
-      if (streamingCapture != null) {
+      if ((!useAndroidOfflineAudio || androidNetworkTransport == true) &&
+          streamingCapture != null) {
         final matchedLocalRule = _applyLocalExactPreview(
           streamingCapture.sourceText,
           targetContext: context,
@@ -3167,13 +3184,15 @@ class ConversationController extends ChangeNotifier
         }
       }
 
-      final hasNetworkTransport = await _hasNetworkTransport();
+      final hasNetworkTransport =
+          androidNetworkTransport ?? await _hasNetworkTransport();
       final offlineFirstResult = hasNetworkTransport
           ? null
           : await _tryOfflineConversationResult(
               capture: streamingCapture,
               audioCapture: audioCapture,
               reason: 'network_transport_unavailable',
+              useDeviceTtsForExact: useAndroidOfflineAudio,
             );
       final Future<ConversationResult> resultFuture;
       if (offlineFirstResult != null) {
@@ -3294,7 +3313,21 @@ class ConversationController extends ChangeNotifier
         } catch (error) {
           debugPrint('Early exact-rule playback failed: $error');
           await _playbackService.stop().catchError((Object _) {});
-          if (error is PlaybackException) rethrow;
+          if (error is PlaybackException &&
+              useAndroidOfflineAudio &&
+              nextResult.processingMode == 'offline_fallback') {
+            // Connectivity can report Wi-Fi/mobile transport even when DNS or
+            // Internet access is unavailable. Preserve the exact local answer
+            // and speak it on-device instead of turning the whole turn into an
+            // audio source error.
+            await _speakOfflineTranslation(
+              nextResult.englishText,
+              turnGeneration: turnGeneration,
+            );
+            reusedEarlyRulePlayback = true;
+          } else if (error is PlaybackException) {
+            rethrow;
+          }
         }
       }
       if (!reusedEarlyRulePlayback && earlyRulePlayback != null) {
@@ -3307,7 +3340,7 @@ class ConversationController extends ChangeNotifier
           (nextResult.audioUri != null || _preferredPlaybackUri != null)) {
         await playResult(reportLatency: true, propagateFailure: true);
       } else if (!reusedEarlyRulePlayback &&
-          nextResult.processingMode == 'offline_translation') {
+          nextResult.audioSource == 'device_tts') {
         await _speakOfflineTranslation(
           nextResult.englishText,
           turnGeneration: turnGeneration,

@@ -1265,6 +1265,44 @@ void main() {
   );
 
   test(
+    'exact Android rule uses device TTS without remote playback when offline',
+    () async {
+      final repository = _FallbackRepository();
+      final playback = _DirectGesturePlaybackService();
+      final voicePrompt = _RecordingVoicePromptService();
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Phone',
+        ),
+        streamingSpeechInput: _FakeStreamingSpeechInput(),
+        playbackService: playback,
+        repository: repository,
+        voicePromptService: voicePrompt,
+        networkTransportAvailable: () async => false,
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      await controller.startRecording();
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await controller.stopRecording(manual: true);
+
+      expect(controller.phase, ConversationPhase.ready);
+      expect(controller.result?.englishText, 'Can I have some water?');
+      expect(controller.result?.audioUri, isNull);
+      expect(controller.result?.audioSource, 'device_tts');
+      expect(repository.streamingTextRequests, 0);
+      expect(playback.playedUris, isEmpty);
+      expect(voicePrompt.spoken, <String>['en-US|Can I have some water?']);
+      expect(controller.transientMessage, contains('ngoại tuyến'));
+      controller.dispose();
+    },
+  );
+
+  test(
     'unknown Android sentence shows a friendly backend outage message',
     () async {
       final controller = ConversationController(

@@ -1014,6 +1014,68 @@ void main() {
   );
 
   testWidgets(
+    'Android shows conversation before translation MAIN starts from vocabulary',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final speechInput = _FakeStreamingSpeechInput();
+      final voiceNavigationController = VoiceNavigationController(
+        speechInput: speechInput,
+        ownsSpeechInput: true,
+      );
+      final speakingSessionController = MainSpeakingSessionController();
+      final controller = _controller();
+      final mainStartEntered = Completer<void>();
+      final releaseMainStart = Completer<void>();
+
+      await tester.pumpWidget(
+        _app(
+          controller,
+          voiceNavigationController: voiceNavigationController,
+          speakingSessionController: speakingSessionController,
+          onMainSpeakingModeStarted: () async {
+            mainStartEntered.complete();
+            await releaseMainStart.future;
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
+
+      expect(await voiceNavigationController.activateFromMainButton(), isTrue);
+      final dispatch = voiceNavigationController.dispatchRecognizedText(
+        'Dịch sang tiếng Anh',
+      );
+      await tester.pump(const Duration(milliseconds: 700));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(mainStartEntered.isCompleted, isTrue);
+      final pageView = tester.widget<PageView>(
+        find.byKey(const Key('home-learning-page-view')),
+      );
+      expect(pageView.controller?.page, closeTo(0, 0.001));
+      expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
+
+      releaseMainStart.complete();
+      await tester.pump();
+      expect(await dispatch, isTrue);
+
+      controller.dispose();
+      voiceNavigationController.dispose();
+      speakingSessionController.dispose();
+      await speechInput.dispose();
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
     'leaving listening waits for the continuous translation microphone handoff',
     (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});

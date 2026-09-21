@@ -12,12 +12,14 @@ internal class HfpRouteReadiness(
     private var confirmedSinceMs: Long? = null
 
     fun poll(nowMs: Long, confirmed: Boolean): Result {
-        if (nowMs >= deadlineMs) return Result.TIMED_OUT
         if (!confirmed) {
             confirmedSinceMs = null
-            return Result.WAITING
+        } else {
+            val since = confirmedSinceMs ?: nowMs.also { confirmedSinceMs = it }
+            if (nowMs - since >= settleMs) return Result.READY
         }
-        val since = confirmedSinceMs ?: nowMs.also { confirmedSinceMs = it }
-        return if (nowMs - since >= settleMs) Result.READY else Result.WAITING
+        // Accept a route that was already confirmed before the deadline even
+        // when an OEM Binder call delayed this poll until just afterwards.
+        return if (nowMs >= deadlineMs) Result.TIMED_OUT else Result.WAITING
     }
 }

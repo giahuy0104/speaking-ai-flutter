@@ -7,6 +7,12 @@ $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $definesFile = Join-Path $repositoryRoot 'dart_defines.production.json'
 $apkFile = Join-Path $repositoryRoot 'build\app\outputs\flutter-apk\app-release.apk'
+$expectedBackendUrl = 'https://speaking-ai-nextjs-backend-production.up.railway.app'
+
+$productionDefines = Get-Content -Raw -LiteralPath $definesFile | ConvertFrom-Json
+if ($productionDefines.BACKEND_BASE_URL -ne $expectedBackendUrl) {
+  throw "Production APK must use $expectedBackendUrl. Found: $($productionDefines.BACKEND_BASE_URL)"
+}
 
 Push-Location $repositoryRoot
 try {
