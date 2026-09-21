@@ -238,6 +238,81 @@ void main() {
     },
   );
 
+  test(
+    'failed iOS-style navigation acknowledgment still opens vocabulary',
+    () async {
+      final speech = _FakeNavigationSpeechInput();
+      final prompt = _FailingMainTurnPromptService()..failNext = false;
+      final intents = <VoiceNavigationIntent>[];
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+      );
+      controller.setIntentHandler(intents.add);
+
+      expect(
+        await controller.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: ActiveLearningModuleKind.listeningLesson,
+          promptAlreadySpoken: true,
+        ),
+        isTrue,
+      );
+      prompt.failNext = true;
+      expect(
+        await controller.dispatchRecognizedText('Con muốn học từ vựng'),
+        isTrue,
+      );
+
+      expect(intents, hasLength(1));
+      expect(intents.single.destination, VoiceNavigationDestination.vocabulary);
+      expect(controller.isMainButtonSessionActive, isFalse);
+      expect(prompt.endedReasons, ['prompt_failed']);
+
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  test(
+    'failed iOS-style start acknowledgment still opens the selected lesson',
+    () async {
+      final speech = _FakeNavigationSpeechInput();
+      final prompt = _FailingMainTurnPromptService()..failNext = false;
+      final intents = <VoiceNavigationIntent>[];
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+      );
+      controller.setIntentHandler(intents.add);
+      final catalog = await _loadMainAssistantContent();
+      final topic = catalog.groups.single.topics.single;
+
+      expect(
+        await controller.activateLessonSelectionForTopic(
+          childAge: 6,
+          topicNumber: topic.number,
+          topicContent: topic,
+          completedLessonNumbers: const <int>[],
+        ),
+        isTrue,
+      );
+      prompt.failNext = true;
+      expect(await controller.dispatchRecognizedText('Bài 1'), isTrue);
+
+      expect(intents, hasLength(1));
+      expect(intents.single.destination, VoiceNavigationDestination.topics);
+      expect(intents.single.openLesson, isTrue);
+      expect(intents.single.topicNumber, topic.number);
+      expect(intents.single.lessonNumber, 1);
+      expect(controller.isMainButtonSessionActive, isFalse);
+      expect(prompt.endedReasons, ['prompt_failed']);
+
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
   testWidgets('timed-out prompt never becomes a successful question', (
     tester,
   ) async {

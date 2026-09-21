@@ -514,12 +514,36 @@ class VoiceNavigationController extends ChangeNotifier {
             promptSequence: turn.promptSequence,
             openCommandWindow: turn.continueListening,
           );
-    if (!promptCompleted || _disposed || generation != _generation) {
+    if (_disposed || generation != _generation) {
       return false;
     }
 
+    // H20 firmware 1.0.0 can interrupt BLE while iOS changes from A2DP to
+    // two-way HFP for this acknowledgement. AVSpeechSynthesizer may then lose
+    // its completion callback even though the command was recognized and the
+    // prompt started. A terminal screen transfer must still honor that accepted
+    // command after the prompt service has stopped and released its audio turn.
+    // Questions that need another spoken answer remain blocked on prompt
+    // failure so the microphone never opens for a question the child did not
+    // hear.
+    final canCompleteRecognizedNavigation =
+        !promptCompleted &&
+        !turn.continueListening &&
+        turn.navigationAfterPrompt != null &&
+        turn.navigationAfterPrompt!.destination !=
+            VoiceNavigationDestination.conversation;
+    if (!promptCompleted && !canCompleteRecognizedNavigation) {
+      return false;
+    }
+    if (canCompleteRecognizedNavigation) {
+      AudioDiagnostics.event('main.prompt.failed_navigation_continues', {
+        'generation': generation,
+        'destination': turn.navigationAfterPrompt!.destination.name,
+      });
+    }
+
     final onPromptCompleted = turn.onPromptCompleted;
-    if (onPromptCompleted != null) {
+    if (promptCompleted && onPromptCompleted != null) {
       try {
         await onPromptCompleted();
       } catch (error) {
