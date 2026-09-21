@@ -14,6 +14,7 @@ void main() {
     final messenger =
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     messenger.setMockMethodCallHandler(eventMethodChannel, (_) async => null);
+    MethodCall? connectCall;
     messenger.setMockMethodCallHandler(methodChannel, (call) async {
       switch (call.method) {
         case 'initialize':
@@ -21,6 +22,7 @@ void main() {
         case 'requestPermissions':
           return true;
         case 'connect':
+          connectCall = call;
           return <String, dynamic>{
             'phase': 'ready',
             'deviceId': 'h20',
@@ -50,6 +52,10 @@ void main() {
     expect(control.status.isConnected, isTrue);
     expect(control.status.deviceId, 'h20');
     expect(control.status.routeActive, isFalse);
+    expect(connectCall?.arguments, <String, dynamic>{
+      'deviceId': 'h20',
+      'deviceName': 'H20',
+    });
   });
 
   test('retries a transient iOS HFP route-unavailable transition', () async {

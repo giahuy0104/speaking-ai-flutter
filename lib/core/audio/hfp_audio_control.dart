@@ -209,7 +209,14 @@ class MethodChannelHfpAudioControl implements HfpAudioControl {
     }
     final snapshot = await _methodChannel.invokeMapMethod<dynamic, dynamic>(
       'connect',
-      <String, dynamic>{'deviceId': device.id},
+      <String, dynamic>{
+        'deviceId': device.id,
+        // iOS may republish the same physical H20 with a new transient UID
+        // after the discovery-only HFP route is released. The stable name lets
+        // the native bridge recover that input without selecting another
+        // headset.
+        'deviceName': device.name,
+      },
     );
     // Native returns the authoritative selected/profile-connected state.
     // Applying it synchronously avoids reporting BLE-only success while the

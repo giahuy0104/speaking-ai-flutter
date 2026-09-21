@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -32,6 +34,7 @@ class StartupSetupScreen extends StatefulWidget {
     required this.onSetupH20,
     required this.onAgeSelected,
     required this.onCompleteSetup,
+    this.allowPhoneMicFallback = false,
     this.androidOfflineEnglishModelOptionAvailable = false,
     this.androidOfflineEnglishModelDownloadAllowed = false,
     this.onAndroidOfflineEnglishModelDownloadChanged,
@@ -53,6 +56,7 @@ class StartupSetupScreen extends StatefulWidget {
   final bool bluetoothGranted;
   final bool h20BleConnected;
   final bool h20HfpConfigured;
+  final bool allowPhoneMicFallback;
   final int? selectedAge;
   final String aiSubprocessors;
   final String dataRetentionSummary;
@@ -94,7 +98,8 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
       widget.limitedModeSelected ||
       (widget.microphoneGranted &&
           (!widget.bluetoothRequired ||
-              (widget.bluetoothGranted && _h20Ready)));
+              (widget.bluetoothGranted &&
+                  (_h20Ready || widget.allowPhoneMicFallback))));
 
   @override
   void initState() {
@@ -494,6 +499,8 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
               selected: _h20Ready,
               status: _h20Ready
                   ? 'Đã kết nối nút MAIN và micro H20'
+                  : widget.allowPhoneMicFallback && widget.h20BleConnected
+                  ? 'Nút MAIN đã kết nối • đang dùng mic iPhone'
                   : widget.h20BleConnected || widget.h20HfpConfigured
                   ? 'Đang hoàn tất kết nối còn lại…'
                   : _h20SetupRequested
@@ -506,10 +513,11 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
             ),
             if (widget.microphoneGranted && !_h20Ready) ...<Widget>[
               const SizedBox(height: 12),
-              const _InfoBox(
+              _InfoBox(
                 icon: Icons.phone_iphone_rounded,
-                text:
-                    'Cần kết nối cả nút MAIN qua BLE và micro H20 trước khi bắt đầu phiên học.',
+                text: widget.allowPhoneMicFallback
+                    ? 'Bạn có thể bắt đầu bằng mic iPhone. H20 sẽ tiếp tục kết nối nền và có thể thiết lập lại sau trong Cài đặt.'
+                    : 'Cần kết nối cả nút MAIN qua BLE và micro H20 trước khi bắt đầu phiên học.',
               ),
             ],
           ],
@@ -537,7 +545,9 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
         if (!_canComplete) ...<Widget>[
           const SizedBox(height: 10),
           Text(
-            widget.microphoneGranted && widget.bluetoothGranted
+            widget.allowPhoneMicFallback && widget.microphoneGranted
+                ? 'Mic iPhone đã sẵn sàng. Có thể thiết lập H20 sau trong Cài đặt dành cho phụ huynh.'
+                : widget.microphoneGranted && widget.bluetoothGranted
                 ? 'Cần kết nối cả nút MAIN và micro H20 để bắt đầu, hoặc quay lại chọn chế độ không dùng giọng nói.'
                 : 'Cần cấp đủ quyền micro và Bluetooth để tiếp tục, hoặc quay lại chọn chế độ không dùng giọng nói.',
             textAlign: TextAlign.center,
@@ -571,7 +581,10 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
       _deviceConnectionFeedbackStage = DeviceConnectionFeedbackStage.connecting;
     });
     try {
-      final connected = await widget.onSetupH20();
+      final connected = await widget.onSetupH20().timeout(
+        const Duration(seconds: 12),
+        onTimeout: () => false,
+      );
       if (!mounted) return;
       if (connected) {
         setState(() {

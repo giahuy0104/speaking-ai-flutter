@@ -167,7 +167,11 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       findDevices(result)
     case "connect":
       let arguments = call.arguments as? [String: Any]
-      connect(deviceId: arguments?["deviceId"] as? String, result: result)
+      connect(
+        deviceId: arguments?["deviceId"] as? String,
+        deviceName: arguments?["deviceName"] as? String,
+        result: result
+      )
     case "disconnect":
       disconnect(result)
     case "startAudioRoute":
@@ -208,6 +212,9 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       try configureSession(activate: true)
       waitForDiscoverableInputs(attemptsRemaining: 15, result: result)
     } catch {
+      audioSessionCoordinator.releaseAudioSessionIfIdle(
+        caller: "HfpAudioBridge.findDevices.failed"
+      )
       fail(result, code: "HFP_LIST_FAILED", error: error)
     }
   }
@@ -240,13 +247,21 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       }
       emitStatus()
       let currentIds = Set(audioSession.currentRoute.inputs.map(\.uid))
-      result(inputs.map { input in
+      let devices = inputs.map { input in
         [
           "id": input.uid,
           "name": input.portName,
           "isConnected": currentIds.contains(input.uid) && hasActiveHfpOutput(),
         ] as [String: Any]
-      })
+      }
+      // Discovery temporarily activates a record-capable HFP session because
+      // iOS otherwise hides availableInputs. Do not leave that session active
+      // while Flutter waits for the parent to choose a device: H20 firmware
+      // 1.0.0 drops its independent BLE MAIN link while SCO owns the radio.
+      audioSessionCoordinator.releaseAudioSessionIfIdle(
+        caller: "HfpAudioBridge.findDevices.completed"
+      )
+      result(devices)
       return
     }
     DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
@@ -267,7 +282,11 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
     }
   }
 
-  private func connect(deviceId: String?, result: @escaping FlutterResult) {
+  private func connect(
+    deviceId: String?,
+    deviceName: String?,
+    result: @escaping FlutterResult
+  ) {
     guard let deviceId = deviceId?.trimmingCharacters(in: .whitespacesAndNewlines),
       !deviceId.isEmpty
     else {
@@ -276,32 +295,36 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
     }
     routeActivationGeneration += 1
     let activationGeneration = routeActivationGeneration
+    selectedInputId = deviceId
+    let normalizedName = deviceName?.trimmingCharacters(in: .whitespacesAndNewlines)
+    if let normalizedName, !normalizedName.isEmpty {
+      selectedInputName = normalizedName
+    } else {
+      selectedInputName = nil
+    }
     do {
       phase = "connecting"
       message = "Đang chọn mic HFP trên iOS…"
       emitStatus()
       try configureSession(activate: true)
-      guard let input = bluetoothInputs().first(where: { $0.uid == deviceId }) else {
-        throw HfpBridgeError.inputUnavailable
-      }
-      try audioSessionCoordinator.configureHfp(
-        activate: true,
-        preferredInput: input,
-        caller: "HfpAudioBridge.connect"
-      )
-      selectedInputId = input.uid
-      selectedInputName = input.portName
       routeActive = false
       phase = "connecting"
       message = "Đang xác nhận mic và loa H20 trên route bluetoothHFP…"
       emitStatus()
-      waitForActiveBluetoothInput(
+      // Releasing the discovery route lets BLE recover, but iOS can then
+      // republish the same H20 input with a new UID. Wait for the input and
+      // match by its remembered name instead of failing immediately.
+      waitForSelectedInputThenActivate(
         generation: activationGeneration,
-        attemptsRemaining: 15,
+        attemptsRemaining: 30,
         recording: false,
+        releaseLeaseOnFailure: false,
         result: result
       )
     } catch {
+      audioSessionCoordinator.releaseAudioSessionIfIdle(
+        caller: "HfpAudioBridge.connect.failed"
+      )
       fail(result, code: "HFP_CONNECT_FAILED", error: error)
     }
   }
@@ -445,6 +468,10 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
             caller: "HfpAudioBridge.selectedInput.failed",
             generation: generation
           )
+        } else if !recording {
+          audioSessionCoordinator.releaseAudioSessionIfIdle(
+            caller: "HfpAudioBridge.connect.selectedInputFailed"
+          )
         }
         fail(result, code: "HFP_ROUTE_UNAVAILABLE", error: error)
       }
@@ -456,6 +483,10 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
         releaseHfpSessionLease(
           caller: "HfpAudioBridge.selectedInput.timeout",
           generation: generation
+        )
+      } else if !recording {
+        audioSessionCoordinator.releaseAudioSessionIfIdle(
+          caller: "HfpAudioBridge.connect.inputTimeout"
         )
       }
       fail(
@@ -561,6 +592,10 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
         releaseHfpSessionLease(
           caller: "HfpAudioBridge.waitForActiveBluetoothInput.timeout",
           generation: generation
+        )
+      } else if !recording {
+        audioSessionCoordinator.releaseAudioSessionIfIdle(
+          caller: "HfpAudioBridge.connect.routeTimeout"
         )
       }
       fail(result, code: "HFP_ROUTE_UNAVAILABLE", error: HfpBridgeError.routeUnavailable)

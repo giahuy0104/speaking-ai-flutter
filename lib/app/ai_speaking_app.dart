@@ -745,6 +745,15 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   }
 
   void _handleAiv0BleFeedbackStatus(Aiv0BleStatus status) {
+    // On iOS, opening or releasing HFP can briefly interrupt the independent
+    // BLE GATT link on H20 firmware 1.0.0. Recovery must remain in the
+    // background; a root ModalBarrier prevents the parent from completing the
+    // HFP selection that triggered the transition.
+    if (_usesIosHfpLifecycle) {
+      _deviceConnectionFeedbackGate.clear();
+      _hideDeviceConnectionFeedback();
+      return;
+    }
     if (status.isConnected) {
       final h20Ready = _controller?.isH20Ready == true;
       if (h20Ready &&
@@ -778,6 +787,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
 
   void _showDeviceConnectionFeedback(DeviceConnectionFeedbackStage stage) {
     if (!_startupReady || !mounted) return;
+    if (_usesIosHfpLifecycle) return;
     if (!_deviceConnectionFeedbackGate.shouldPresent(
       stage,
       playbackActive: _isAppAudioPlaybackActive,
@@ -816,6 +826,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
 
   void _synchronizeDeviceConnectionFeedback() {
     if (!mounted || !_startupReady) {
+      return;
+    }
+    if (_usesIosHfpLifecycle) {
+      _deviceConnectionFeedbackGate.clear();
+      _hideDeviceConnectionFeedback();
       return;
     }
     final playbackActive = _isAppAudioPlaybackActive;
@@ -2324,6 +2339,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                       controller.usesHfpInput &&
                       hfpStatus.isConnected &&
                       hfpStatus.deviceId != null,
+                  allowPhoneMicFallback: _usesIosHfpLifecycle,
                   h20DeviceName: hfpStatus.deviceName ?? bleStatus.deviceName,
                   selectedAge: _pendingStartupAge,
                   aiSubprocessors: _config.disclosedAiSubprocessors,

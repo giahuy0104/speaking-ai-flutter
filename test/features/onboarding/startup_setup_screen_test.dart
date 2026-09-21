@@ -223,6 +223,61 @@ void main() {
     expect(completed, isTrue);
   });
 
+  testWidgets('iOS phone microphone fallback can finish without H20', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    var completed = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: StartupSetupScreen(
+          profileLoading: false,
+          permissionRequestInProgress: false,
+          privacyConfigurationComplete: true,
+          privacyConsentGranted: true,
+          limitedModeSelected: false,
+          microphoneGranted: true,
+          bluetoothRequired: true,
+          bluetoothGranted: true,
+          h20BleConnected: false,
+          h20HfpConfigured: false,
+          allowPhoneMicFallback: true,
+          selectedAge: 8,
+          aiSubprocessors: 'Railway và Cloudflare',
+          dataRetentionSummary: 'Theo chính sách công khai.',
+          onGrantPrivacyConsent: () async {},
+          onContinueWithoutVoice: () async {},
+          onRetryPermissions: () {},
+          onSetupH20: () async => false,
+          onAgeSelected: (_) {},
+          onCompleteSetup: () async => completed = true,
+        ),
+      ),
+    );
+
+    final nextButton = find.byKey(const Key('startup-next'));
+    await tester.ensureVisible(nextButton);
+    await tester.tap(nextButton);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(nextButton);
+    await tester.tap(nextButton);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('Bạn có thể bắt đầu bằng mic iPhone'),
+      findsOneWidget,
+    );
+    final completeButton = find.byKey(const Key('startup-confirm-age'));
+    await tester.ensureVisible(completeButton);
+    expect(tester.widget<FilledButton>(completeButton).onPressed, isNotNull);
+    await tester.tap(completeButton);
+    await tester.pump();
+    expect(completed, isTrue);
+  });
+
   testWidgets('closing legal review early does not unlock voice consent', (
     tester,
   ) async {
