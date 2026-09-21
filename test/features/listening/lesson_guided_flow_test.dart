@@ -2243,6 +2243,121 @@ void main() {
     await tester.pump();
   });
 
+  testWidgets('V4 fresh entry plays combined hook once between lead and cue', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final events = <String>[];
+    final hookUri = Uri.parse(
+      'asset:///assets/audio/LESSON_HOOKS/test-hook.mp3',
+    );
+    final media = _IntroEventMediaService(events);
+    final prompts = _IntroEventVoicePromptService(events);
+    final lesson = _lesson(v4: true, combinedHookAudioUri: hookUri);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: LessonIntroScreen(
+          language: DisplayLanguage.vietnamese,
+          startAge: 3,
+          endAge: 5,
+          topic: listeningCatalogs.first.topics.first,
+          topicContent: _topicContent(<ListeningLessonContent>[lesson]),
+          lesson: lesson,
+          progressStore: _MemoryProgressStore(),
+          mediaService: media,
+          voicePromptService: prompts,
+          guideAudioLibrary: _silentGuideAudioLibrary(),
+          autoAdvance: false,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    final hookEvent = 'media|$hookUri';
+    expect(events.where((event) => event == hookEvent), hasLength(1));
+    expect(
+      events.any((event) => event.contains('Mình cùng học nhé.')),
+      isFalse,
+    );
+    expect(
+      events.indexOf(hookEvent),
+      lessThan(events.indexOf('vi-VN|Bắt đầu nhé.')),
+    );
+  });
+
+  testWidgets('V4 combined hook failure falls back to hook speech once', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final events = <String>[];
+    final hookUri = Uri.parse('asset:///assets/audio/LESSON_HOOKS/missing.mp3');
+    final lesson = _lesson(v4: true, combinedHookAudioUri: hookUri);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: LessonIntroScreen(
+          language: DisplayLanguage.vietnamese,
+          startAge: 3,
+          endAge: 5,
+          topic: listeningCatalogs.first.topics.first,
+          topicContent: _topicContent(<ListeningLessonContent>[lesson]),
+          lesson: lesson,
+          progressStore: _MemoryProgressStore(),
+          mediaService: _IntroEventMediaService(events, fail: true),
+          voicePromptService: _IntroEventVoicePromptService(events),
+          guideAudioLibrary: _silentGuideAudioLibrary(),
+          autoAdvance: false,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(
+      events.where((event) => event == 'vi-VN|Mình cùng học nhé.'),
+      hasLength(1),
+    );
+    expect(events, contains('vi-VN|Bắt đầu nhé.'));
+  });
+
+  testWidgets('V4 resume does not replay the combined hook', (tester) async {
+    await _usePhoneSurface(tester);
+    final events = <String>[];
+    final lesson = _lesson(
+      v4: true,
+      combinedHookAudioUri: Uri.parse(
+        'asset:///assets/audio/LESSON_HOOKS/test-hook.mp3',
+      ),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: LessonIntroScreen(
+          language: DisplayLanguage.vietnamese,
+          startAge: 3,
+          endAge: 5,
+          topic: listeningCatalogs.first.topics.first,
+          topicContent: _topicContent(<ListeningLessonContent>[lesson]),
+          lesson: lesson,
+          progressStore: _MemoryProgressStore()..coreStarted = true,
+          mediaService: _IntroEventMediaService(events),
+          voicePromptService: _IntroEventVoicePromptService(events),
+          guideAudioLibrary: _silentGuideAudioLibrary(),
+          autoAdvance: false,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(events.where((event) => event.startsWith('media|')), isEmpty);
+    expect(events, contains('vi-VN|Mình học tiếp bài'));
+    expect(events, contains('en-US|Guided lesson'));
+    expect(events, contains('vi-VN|nhé.'));
+  });
+
   testWidgets(
     'V2 lesson intro keeps selected output when its clip is missing',
     (tester) async {
@@ -2523,6 +2638,7 @@ ListeningLessonContent _lesson({
   ListeningLessonType type = ListeningLessonType.standard,
   String voice = '',
   Uri? introAudioUri,
+  Uri? combinedHookAudioUri,
   Uri? sentenceAudioUri,
   Uri? vietnameseAudioUri,
   bool v4 = false,
@@ -2535,6 +2651,7 @@ ListeningLessonContent _lesson({
     titleEn: 'Guided lesson',
     intro: intro,
     introAudioUri: introAudioUri,
+    combinedHookAudioUri: combinedHookAudioUri,
     outro: 'Hoàn thành.',
     estimatedMinutes: 1,
     type: type,
@@ -2670,6 +2787,27 @@ class _FakeVoicePromptService implements VoicePromptService {
   Future<void> dispose() async {}
 }
 
+class _IntroEventVoicePromptService implements VoicePromptService {
+  _IntroEventVoicePromptService(this.events);
+
+  final List<String> events;
+
+  @override
+  Future<void> speak(String text, {String locale = 'vi-VN'}) async {
+    events.add('$locale|$text');
+  }
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) =>
+      speak(text, locale: locale);
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  Future<void> dispose() async {}
+}
+
 class _GatedIntroVoicePromptService extends _FakeVoicePromptService
     implements AuthoredPromptBudgetProvider {
   _GatedIntroVoicePromptService(this.authoredText);
@@ -2770,6 +2908,35 @@ ListeningTopicContent _topicContent(List<ListeningLessonContent> lessons) {
     titleEn: 'Guided topic',
     lessons: lessons,
   );
+}
+
+class _IntroEventMediaService extends LessonMediaService {
+  _IntroEventMediaService(this.events, {this.fail = false});
+
+  final List<String> events;
+  final bool fail;
+
+  @override
+  Future<void> prepareSelectedLessonOutput() async {}
+
+  @override
+  Future<void> playToCompletion(
+    Uri uri, {
+    Duration timeout = const Duration(seconds: 45),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+  }) async {
+    events.add('media|$uri');
+    if (fail) {
+      throw StateError('Combined hook unavailable.');
+    }
+  }
+
+  @override
+  Future<void> stopPlayback() async {}
+
+  @override
+  Future<void> dispose() async {}
 }
 
 class _GuidedMediaService extends LessonMediaService {

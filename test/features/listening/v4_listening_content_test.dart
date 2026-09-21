@@ -118,6 +118,41 @@ void main() {
       }
     });
 
+    test('bundles the 13 approved combined lesson hooks', () async {
+      const expectedLessonIds = <String>{
+        'c35-l1-t02-b03',
+        'c35-l2-t05-b01',
+        'c35-l3-t09-b02',
+        'c35-l3-t10-b02',
+        'c67-l1-t03-b02',
+        'c67-l3-t07-b02',
+        'c67-l3-t09-b02',
+        'c810-l1-t01-b01',
+        'c810-l1-t02-b02',
+        'c810-l2-t05-b01',
+        'c1112-l2-t06-b02',
+        'c1315-l3-t07-b02',
+        'c1315-l3-t08-b02',
+      };
+      final hookedLessons = lessons
+          .where((lesson) => lesson.combinedHookAudioUri != null)
+          .toList(growable: false);
+
+      expect(
+        hookedLessons.map((lesson) => lesson.id).toSet(),
+        expectedLessonIds,
+      );
+      for (final lesson in hookedLessons) {
+        final uri = lesson.combinedHookAudioUri!;
+        expect(uri.scheme, 'asset');
+        final assetPath = uri.path.startsWith('/')
+            ? uri.path.substring(1)
+            : uri.path;
+        final bytes = await rootBundle.load(assetPath);
+        expect(bytes.lengthInBytes, greaterThan(0), reason: lesson.id);
+      }
+    });
+
     test('keeps exactly one authored challenge tied to every Core target', () {
       final targetById = <String, ListeningSentenceContent>{
         for (final target in targets) target.id: target,

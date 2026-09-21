@@ -77,6 +77,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
   VoicePromptService? _voicePromptService;
   bool _ownsVoicePromptService = false;
   String? _guideText;
+  bool _isFreshV4Entry = false;
   ListeningResumeStage _resumeStage = ListeningResumeStage.core;
   ActiveLearningModuleRegistry? _activeModuleRegistry;
   Object? _activeModuleRegistration;
@@ -150,7 +151,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
         await widget.mediaService.prepareSelectedLessonOutput();
         final prompt = _activeVoicePromptService;
         final text = _guideText ?? widget.lesson.intro;
-        await _speakIntroPrompt(prompt, text, request: request);
+        await _playIntroPrompt(prompt, text, request: request);
       } catch (error, stackTrace) {
         debugPrint(
           'Lesson intro fallback failed for ${widget.lesson.id}: $error',
@@ -198,6 +199,53 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
       await _openLesson();
     }
   }
+
+  Future<void> _playIntroPrompt(
+    VoicePromptService prompt,
+    String text, {
+    required int request,
+  }) async {
+    final hookUri = widget.lesson.combinedHookAudioUri;
+    final hookText = widget.lesson.entry?.text.trim() ?? '';
+    final hookIndex = hookText.isEmpty ? -1 : text.indexOf(hookText);
+    if (!_isFreshV4Entry || hookUri == null || hookIndex < 0) {
+      await _speakIntroPrompt(prompt, text, request: request);
+      return;
+    }
+
+    final lead = text.substring(0, hookIndex).trim();
+    final startCue = text.substring(hookIndex + hookText.length).trim();
+    if (lead.isNotEmpty) {
+      await _speakIntroPrompt(prompt, lead, request: request);
+    }
+    if (!_isCurrentIntroRequest(request)) {
+      return;
+    }
+    try {
+      await widget.mediaService.playToCompletion(hookUri);
+    } catch (error, stackTrace) {
+      if (!_isCurrentIntroRequest(request)) {
+        return;
+      }
+      debugPrint(
+        'Combined lesson hook failed for ${widget.lesson.id} ($hookUri): '
+        '$error',
+      );
+      debugPrintStack(stackTrace: stackTrace);
+      // The combined clip owns both the scene-setting sound and hook speech.
+      // If it cannot play, recover with the existing authored/TTS hook text.
+      await _speakIntroPrompt(prompt, hookText, request: request);
+    }
+    if (!_isCurrentIntroRequest(request)) {
+      return;
+    }
+    if (startCue.isNotEmpty) {
+      await _speakIntroPrompt(prompt, startCue, request: request);
+    }
+  }
+
+  bool _isCurrentIntroRequest(int request) =>
+      mounted && !_pausedForMainAssistant && request == _introPlaybackRequest;
 
   Future<void> _speakIntroPrompt(
     VoicePromptService prompt,
@@ -256,6 +304,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
   }
 
   Future<void> _prepareGuideText() async {
+    _isFreshV4Entry = false;
     final completed = await widget.progressStore.readLesson(widget.lesson.id);
     final currentSentence = await widget.progressStore.readCurrentSentence(
       widget.lesson.id,
@@ -314,6 +363,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
                   : 'Bài này bạn còn $remainingStars Ngôi sao chưa chinh phục.'
             : 'Mình học lại bài $_lessonTitleForGuide nhé.';
       } else {
+        _isFreshV4Entry = true;
         final isFirstLessonInTopic = lesson.number == 1;
         final topicLead = isFirstLessonInTopic && topicContent != null
             ? 'Chủ đề ${topicContent.number}. '
@@ -668,7 +718,9 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
       return;
     }
     _movingForward = true;
+    _introPlaybackRequest += 1;
     await widget.mediaService.stopPlayback();
+    await _voicePromptService?.stop().catchError((Object _) {});
     if (!mounted || _pausedForMainAssistant) {
       _movingForward = false;
       return;

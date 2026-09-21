@@ -341,6 +341,7 @@ class ListeningLessonContent {
     this.reviewPause = const Duration(seconds: 2),
     this.autoAdvanceDelay = const Duration(seconds: 2),
     this.introAudioUri,
+    this.combinedHookAudioUri,
     this.outroAudioUri,
     this.dialogueTransitionAudioId,
     this.dialogueTransitionAudioUri,
@@ -381,6 +382,7 @@ class ListeningLessonContent {
               .map(ListeningSentenceContent.fromJson)
               .toList(growable: false),
       introAudioUri: _readUri(json['introAudioUrl']),
+      combinedHookAudioUri: _readUri(json['combinedHookAudioUrl']),
       outroAudioUri: _readUri(json['outroAudioUrl']),
       dialogueTransitionAudioId: json['dialogueTransitionAudioId'] as String?,
       dialogueTransitionAudioUri: _readUri(json['dialogueTransitionAudioUrl']),
@@ -419,6 +421,7 @@ class ListeningLessonContent {
   final List<ListeningSentenceContent> sentences;
   final List<ListeningSentenceContent> karaokeLines;
   final Uri? introAudioUri;
+  final Uri? combinedHookAudioUri;
   final Uri? outroAudioUri;
   final String? dialogueTransitionAudioId;
   final Uri? dialogueTransitionAudioUri;

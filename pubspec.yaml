@@ -44,6 +44,7 @@ flutter:
     # Fixed navigation/vocabulary prompts must be available without the CDN.
     - assets/audio/MAIN/
     - assets/audio/MAIN/GAP66/
+    - assets/audio/LESSON_HOOKS/
     # Compact curriculum system and topic-selection prompts (not full lessons).
     - assets/audio/CURRICULUM/ed3ba010c50d9440f2eb9692.vi.v1.mp3
     - assets/audio/CURRICULUM/ca9aea52e38a6261f087e2f5.vi.v1.mp3
