@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/app_theme.dart';
@@ -1341,8 +1342,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
               entry.isStar &&
                   entry.source == VocabularySource.topicCore &&
                   (entry.correctAudioPath?.trim().isNotEmpty ?? false),
-            _VocabularyJourney.review =>
-              VocabularyStore.isActiveReviewEntry(entry),
+            _VocabularyJourney.review => VocabularyStore.isActiveReviewEntry(
+              entry,
+            ),
           },
         )
         .toList();
@@ -2417,10 +2419,16 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  String _friendlyPlaybackError(Object error) => error
-      .toString()
-      .replaceFirst('Exception: ', '')
-      .replaceFirst('Bad state: ', '');
+  String _friendlyPlaybackError(Object error) {
+    if (error is PlatformException) {
+      final message = error.message?.trim();
+      if (message != null && message.isNotEmpty) return message;
+    }
+    return error
+        .toString()
+        .replaceFirst('Exception: ', '')
+        .replaceFirst('Bad state: ', '');
+  }
 
   Future<void> _speakOnSelectedOutput(
     String text, {

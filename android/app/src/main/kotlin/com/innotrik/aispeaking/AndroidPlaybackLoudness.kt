@@ -23,7 +23,10 @@ import kotlin.math.min
 object AndroidPlaybackLoudness {
     const val TARGET_RMS_DBFS = -21.0
     const val SAMPLE_PEAK_CEILING_DBFS = -1.0
-    const val MAX_GAIN_DB = 12.0
+    // H20 SCO captures can be substantially quieter than authored audio. The
+    // LoudnessEnhancer supplies limiting, while the meter still attenuates loud
+    // sources and respects sample headroom when choosing the actual gain.
+    const val MAX_GAIN_DB = 30.0
     const val FALLBACK_GAIN_DB = 8.0
     private const val MAX_DURATION_MS = 30_000L
     private const val MAX_DECODE_NS = 350_000_000L

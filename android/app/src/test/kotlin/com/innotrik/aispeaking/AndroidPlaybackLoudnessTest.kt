@@ -54,10 +54,10 @@ class AndroidPlaybackLoudnessTest {
     }
 
     @Test
-    fun quietSpeechGainIsBounded() {
+    fun veryQuietSpeechCanUseTheH20RecordingGainRange() {
         val result = sineMeter(-45.0).result()!!
-        assertEquals(12.0, result.gainDb, 0.001)
-        assertTrue(result.measuredDb + result.gainDb < -21.0)
+        assertEquals(24.0, result.gainDb, 0.001)
+        assertEquals(-21.0, result.measuredDb + result.gainDb, 0.001)
     }
 
     @Test

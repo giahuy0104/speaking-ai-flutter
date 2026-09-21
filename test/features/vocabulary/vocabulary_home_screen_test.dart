@@ -17,6 +17,7 @@ import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_fl
 import 'package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -1254,6 +1255,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.byType(SnackBar), findsOneWidget);
+    expect(
+      find.text('Kết nối âm thanh H20 bị gián đoạn. Hãy thử lại.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('PlatformException'), findsNothing);
     prompt.fail = false;
     await registry.execute(ActiveLearningCommand.vocabularyParentAdded);
     await tester.pumpAndSettle();
@@ -1440,7 +1446,12 @@ class _FailingJourneyVoicePromptService extends _RecordingVoicePromptService {
   bool fail = false;
   @override
   Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
-    if (fail) throw StateError('H20 route unavailable');
+    if (fail) {
+      throw PlatformException(
+        code: 'HFP_ROUTE_LOST',
+        message: 'Kết nối âm thanh H20 bị gián đoạn. Hãy thử lại.',
+      );
+    }
     await super.speakAndWait(text, locale: locale);
   }
 }

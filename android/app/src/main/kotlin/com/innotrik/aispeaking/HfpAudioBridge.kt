@@ -45,6 +45,7 @@ class HfpAudioBridge(
         private const val AUDIO_ROUTE_SETTLE_MS = 150L
         private const val AUDIO_ROUTE_CONFIRM_INTERVAL_MS = 100L
         private const val AUDIO_ROUTE_REASSERT_DELAY_MS = 250L
+        private const val ACTIVE_ROUTE_RECOVERY_TIMEOUT_MS = 1500L
         private const val AUDIO_ROUTE_LOSS_CLEANUP_DELAY_MS = 100L
         private const val AUDIO_ROUTE_CONFIRM_ATTEMPTS = 25
         private const val TAG = "HfpAudioBridge"
@@ -92,6 +93,9 @@ class HfpAudioBridge(
     @Volatile private var disposed = false
     @Volatile private var disposalRequested = false
     private var routeReadiness: HfpRouteReadiness? = null
+    private var activeRouteRecovery: HfpRouteReadiness? = null
+    private var activeRouteRecoveryGeneration: Int? = null
+    private var activeRouteRecoveryReason: String? = null
     var onUnexpectedRouteLoss: () -> Unit = {}
     private var communicationDeviceListener: AudioManager.OnCommunicationDeviceChangedListener? = null
 
@@ -161,7 +165,9 @@ class HfpAudioBridge(
                                     // Only a live SCO link makes this a stale
                                     // disconnect from an earlier generation.
                                     if (isSelectedHeadsetAudioConnected()) return
-                                    interruptLostAudioRoute("Selected H20 SCO audio disconnected")
+                                    recoverUnexpectedAudioRoute(
+                                        "Selected H20 SCO audio disconnected",
+                                    )
                                 } else {
                                     refreshSelectedDeviceStatus()
                                 }
@@ -217,6 +223,106 @@ class HfpAudioBridge(
             },
             AUDIO_ROUTE_REASSERT_DELAY_MS,
         )
+    }
+
+    /**
+     * Some Android Bluetooth stacks briefly move an active communication track
+     * back to the handset while SCO renegotiates. The H20 profile remains
+     * connected and accepts setCommunicationDevice again within about a second.
+     * Treat that window as recoverable so a transport wobble does not abort the
+     * lesson or surface HFP_ROUTE_LOST to Flutter.
+     */
+    private fun recoverUnexpectedAudioRoute(reason: String) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            interruptLostAudioRoute(reason)
+            return
+        }
+        if (pendingAudioRouteResult != null) {
+            pendingAudioRouteGeneration?.let(
+                ::reassertPendingCommunicationRouteAfterDisconnect,
+            )
+            return
+        }
+        if (!routeActive || !audioModeOwned) {
+            refreshSelectedDeviceStatus()
+            return
+        }
+        val selected = selectedDevice
+        if (selected == null || !isHeadsetConnected(selected)) {
+            interruptLostAudioRoute(reason)
+            return
+        }
+        if (activeRouteRecovery != null) return
+
+        val generation = audioRouteRequestGeneration
+        activeRouteRecovery = HfpRouteReadiness(
+            startedAtMs = SystemClock.elapsedRealtime(),
+            timeoutMs = ACTIVE_ROUTE_RECOVERY_TIMEOUT_MS,
+            settleMs = AUDIO_ROUTE_SETTLE_MS,
+        )
+        activeRouteRecoveryGeneration = generation
+        activeRouteRecoveryReason = reason
+        Log.w(TAG, "$reason; re-asserting the connected H20 route")
+        pollActiveRouteRecovery(generation)
+    }
+
+    private fun pollActiveRouteRecovery(generation: Int) {
+        val recovery = activeRouteRecovery ?: return
+        if (
+            disposed ||
+            activeRouteRecoveryGeneration != generation ||
+            audioRouteRequestGeneration != generation ||
+            pendingAudioRouteResult != null ||
+            !routeActive ||
+            !audioModeOwned
+        ) {
+            clearActiveRouteRecovery()
+            return
+        }
+
+        val confirmed = isSelectedCommunicationRouteConfirmed()
+        when (recovery.poll(SystemClock.elapsedRealtime(), confirmed)) {
+            HfpRouteReadiness.Result.READY -> {
+                Log.i(TAG, "H20 communication route recovered generation=$generation")
+                clearActiveRouteRecovery()
+                return
+            }
+            HfpRouteReadiness.Result.TIMED_OUT -> {
+                val lostReason = activeRouteRecoveryReason
+                    ?: "Selected H20 communication route was lost"
+                clearActiveRouteRecovery()
+                interruptLostAudioRoute(lostReason)
+                return
+            }
+            HfpRouteReadiness.Result.WAITING -> Unit
+        }
+
+        val selected = selectedDevice
+        if (selected == null || !isHeadsetConnected(selected)) {
+            val lostReason = activeRouteRecoveryReason
+                ?: "Selected H20 profile disconnected during route recovery"
+            clearActiveRouteRecovery()
+            interruptLostAudioRoute(lostReason)
+            return
+        }
+        selectedCommunicationDevice(selected)?.let { communicationDevice ->
+            runCatching {
+                audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+                audioManager.setCommunicationDevice(communicationDevice)
+            }.onFailure { error ->
+                Log.w(TAG, "Unable to re-assert active H20 communication route", error)
+            }
+        }
+        routeHandler.postDelayed(
+            { pollActiveRouteRecovery(generation) },
+            AUDIO_ROUTE_CONFIRM_INTERVAL_MS,
+        )
+    }
+
+    private fun clearActiveRouteRecovery() {
+        activeRouteRecovery = null
+        activeRouteRecoveryGeneration = null
+        activeRouteRecoveryReason = null
     }
 
     private fun isSelectedHeadsetAudioConnected(): Boolean {
@@ -315,7 +421,9 @@ class HfpAudioBridge(
                 if (!disposed && pendingAudioRouteResult == null && routeActive &&
                     !isSelectedCommunicationRouteConfirmed()
                 ) {
-                    interruptLostAudioRoute("Selected H20 communication route was lost")
+                    recoverUnexpectedAudioRoute(
+                        "Selected H20 communication route was lost",
+                    )
                 }
             }
             communicationDeviceListener = listener
@@ -625,6 +733,7 @@ class HfpAudioBridge(
             return
         }
 
+        clearActiveRouteRecovery()
         val generation = ++audioRouteRequestGeneration
         routeReadiness = HfpRouteReadiness(SystemClock.elapsedRealtime())
         Log.i(TAG, "Starting HFP route generation=$generation")
@@ -818,6 +927,7 @@ class HfpAudioBridge(
         AudioDiagnostics.event("hfp.stop.begin", mapOf("generation" to audioRouteRequestGeneration))
         Log.i(TAG, "Stopping HFP route generation=$audioRouteRequestGeneration pending=${pendingAudioRouteResult != null}")
         routeReadiness = null
+        clearActiveRouteRecovery()
         routeActive = false
         if (invalidateRequest) {
             audioRouteRequestGeneration += 1
