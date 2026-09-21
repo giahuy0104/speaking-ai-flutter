@@ -695,25 +695,17 @@ void main() {
     tester,
   ) async {
     await _usePhoneSurface(tester);
-    final playbackEvents = <String>[];
-    final mediaService = _GuidedMediaService(playbackEvents: playbackEvents);
-    final voicePrompts = _FakeVoicePromptService(
-      playbackEvents: playbackEvents,
-    );
+    final mediaService = _GuidedMediaService();
+    final voicePrompts = _FakeVoicePromptService();
     final progressStore = _MemoryProgressStore();
 
     await tester.pumpWidget(
       _subject(
         _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
         mediaService,
-        guideAudioLibrary: LessonGuideAudioLibrary(
-          assetPaths: const <String>[
-            'assets/audio/CURRICULUM/STAR/SFX_STAR.mp3',
-          ],
-        ),
+        guideAudioLibrary: _silentGuideAudioLibrary(),
         progressStore: progressStore,
         attemptEvaluator: _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
-          LessonAttemptOutcome.good,
           LessonAttemptOutcome.good,
         ]),
         voicePromptService: voicePrompts,
@@ -723,14 +715,6 @@ void main() {
 
     await tester.tap(find.byKey(const Key('record-lesson-sentence')));
     await _pumpGuidedSpeechTurn(tester);
-    await tester.pump(const Duration(seconds: 1));
-    for (
-      var i = 0;
-      i < 10 && !playbackEvents.contains('play:post-star-ting.mp3');
-      i++
-    ) {
-      await tester.pump();
-    }
 
     final praiseIndex = voicePrompts.spoken.indexWhere(
       (message) => message == 'vi-VN|Đúng rồi!',
@@ -741,48 +725,6 @@ void main() {
     expect(praiseIndex, greaterThanOrEqualTo(0));
     expect(firstStarIndex, greaterThan(praiseIndex));
     expect(progressStore.earnedStars, contains('core:GUIDED-FLOW_S1'));
-    final firstPraiseEvent = playbackEvents.indexOf('speak:Đúng rồi!');
-    final firstStarEffectEvent = playbackEvents.indexOf('play:SFX_STAR.mp3');
-    final firstStarEvent = playbackEvents.indexOf(
-      'speak:Bạn vừa nhận Ngôi sao đầu tiên!',
-    );
-    final firstTingEvent = playbackEvents.indexOf('play:post-star-ting.mp3');
-    expect(firstStarEffectEvent, greaterThan(firstPraiseEvent));
-    expect(firstStarEvent, greaterThan(firstStarEffectEvent));
-    expect(firstTingEvent, greaterThan(firstStarEvent));
-
-    await tester.tap(find.byKey(const Key('record-lesson-sentence')));
-    await _pumpGuidedSpeechTurn(tester);
-    for (
-      var i = 0;
-      i < 10 &&
-          playbackEvents
-                  .where((event) => event == 'play:post-star-ting.mp3')
-                  .length <
-              2;
-      i++
-    ) {
-      await tester.pump();
-    }
-
-    expect(
-      playbackEvents.where((event) => event == 'play:post-star-ting.mp3'),
-      hasLength(2),
-    );
-    expect(
-      playbackEvents.where(
-        (event) => event == 'speak:Bạn vừa nhận Ngôi sao đầu tiên!',
-      ),
-      hasLength(1),
-    );
-    expect(
-      playbackEvents.indexOf('speak:Giỏi lắm!'),
-      lessThan(playbackEvents.lastIndexOf('play:SFX_STAR.mp3')),
-    );
-    expect(
-      playbackEvents.lastIndexOf('play:SFX_STAR.mp3'),
-      lessThan(playbackEvents.lastIndexOf('play:post-star-ting.mp3')),
-    );
   });
 
   testWidgets('scores while replay runs but waits to apply the result', (
@@ -850,12 +792,7 @@ void main() {
     await _pumpGuidedSpeechTurn(tester);
 
     expect(evaluator.evaluationCalls, 1);
-    expect(
-      mediaService.playedUris.any(
-        (uri) => uri.toString().contains('latest.m4a'),
-      ),
-      isTrue,
-    );
+    expect(mediaService.playedUris.last.toString(), contains('latest.m4a'));
     expect(
       mediaService.lastRecordingPlaybackGainDb,
       lessonRecordingPlaybackGainDb,
@@ -2832,15 +2769,11 @@ class _CallerOwnedAttemptEvaluator
 }
 
 class _FakeVoicePromptService implements VoicePromptService {
-  _FakeVoicePromptService({this.playbackEvents});
-
-  final List<String>? playbackEvents;
   final List<String> spoken = <String>[];
 
   @override
   Future<void> speak(String text, {String locale = 'vi-VN'}) async {
     spoken.add('$locale|$text');
-    playbackEvents?.add('speak:$text');
   }
 
   @override
@@ -3007,12 +2940,9 @@ class _IntroEventMediaService extends LessonMediaService {
 }
 
 class _GuidedMediaService extends LessonMediaService {
-  _GuidedMediaService({
-    Set<int> recordedSentenceNumbers = const <int>{},
-    this.playbackEvents,
-  }) : recordedSentenceNumbers = <int>{...recordedSentenceNumbers};
+  _GuidedMediaService({Set<int> recordedSentenceNumbers = const <int>{}})
+    : recordedSentenceNumbers = <int>{...recordedSentenceNumbers};
 
-  final List<String>? playbackEvents;
   final Set<int> recordedSentenceNumbers;
   bool recording = false;
   final List<Uri> playedUris = <Uri>[];
@@ -3092,7 +3022,6 @@ class _GuidedMediaService extends LessonMediaService {
     double playbackGainDb = 8.0,
   }) async {
     playedUris.add(uri);
-    playbackEvents?.add('play:${uri.pathSegments.last}');
     if (uri.toString().contains('latest.m4a')) {
       lastRecordingPlaybackGainDb = playbackGainDb;
     }

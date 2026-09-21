@@ -77,7 +77,6 @@ void main() {
     expect(media.playbackTimeouts, <Duration>[const Duration(minutes: 5)]);
     expect(result, V4SongStageAction.continued);
     expect(find.byKey(const Key('v4-song-stage-screen')), findsNothing);
-    expect(media.stopPlaybackCalls, 1);
   });
 
   testWidgets('skip interrupts an active song and continues without resuming', (

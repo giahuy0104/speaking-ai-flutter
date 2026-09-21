@@ -1,6 +1,5 @@
 import 'audio_turn_coordinator.dart';
 import 'coordinated_voice_prompt_service.dart';
-import 'homi_gap19_audio_config.dart';
 import 'homi_gap66_audio_config.dart';
 import 'hfp_audio_control.dart';
 import 'main_assistant_audio_prompt_service.dart';
@@ -61,7 +60,6 @@ VoicePromptService createVoicePromptService({
       ))
         'assets/data/curriculum_audio.json',
       if (homiGap66AudioEnabled) homiGap66ManifestAsset,
-      if (homiGap19AudioEnabled) homiGap19ManifestAsset,
     ],
     enabled:
         const bool.fromEnvironment(

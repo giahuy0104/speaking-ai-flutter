@@ -570,9 +570,9 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "enabled": true,
-      "asset": "assets/audio/CURRICULUM/USER_PROMPT/C35-L2-T05-B01-Q01_PROMPT_AUDIO.mp3",
-      "sha256": "d40486528051c812ff2a852eccb30d9bbb89ffd9b0dca13b3eae2dd79beab420",
-      "durationSeconds": 3.891723,
+      "asset": "assets/audio/CURRICULUM/54cbf9de9ced7e471ef0972a.vi.v1.mp3",
+      "sha256": "66c6a1f3ea50c8fb59fc92c231cc55f7cd451127a5d55e2815c038fbb6c88cf7",
+      "durationSeconds": 3.596531,
       "aliases": [
         "C35-L1-T01-B01-Q03_PROMPT",
         "C35-L2-T05-B01-Q01_PROMPT",
@@ -581,7 +581,8 @@
       ],
       "kinds": [
         "challengePrompt"
-      ]
+      ],
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549807/homi/audio/CURRICULUM/54cbf9de9ced7e471ef0972a.vi.v1.mp3"
     },
     {
       "id": "LESSON-F842425DA76FD894F50F8063",
@@ -2442,9 +2443,9 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "enabled": true,
-      "asset": "assets/audio/CURRICULUM/USER_PROMPT/C35-L1-T02-B02-Q03_PROMPT_AUDIO.mp3",
-      "sha256": "d81c7f087b1a2ad9ebeba93b161bf744582a1652fd815cf3441137d346fc82bb",
-      "durationSeconds": 5.52,
+      "asset": "assets/audio/CURRICULUM/a1d04de41f979b91631a012e.vi.v1.mp3",
+      "sha256": "ff303330180b677ca412dad803adb391c1a3eba2768a332aead09215617d3648",
+      "durationSeconds": 5.247982,
       "aliases": [
         "C35-L1-T02-B02-Q03_PROMPT",
         "C35-L1-M06_PROMPT",
@@ -2453,7 +2454,8 @@
       "kinds": [
         "challengePrompt",
         "missionPrompt"
-      ]
+      ],
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550281/homi/audio/CURRICULUM/a1d04de41f979b91631a012e.vi.v1.mp3"
     },
     {
       "id": "LESSON-480C7B10D94A0985F0538A63",
@@ -2479,9 +2481,9 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "enabled": true,
-      "asset": "assets/audio/CURRICULUM/USER_PROMPT/C35-L1-T02-B02-Q05_PROMPT_AUDIO.mp3",
-      "sha256": "56f47c88e6c3525939d78f5f0b49d34f9cec2e8e898e41520ca978f933437dc4",
-      "durationSeconds": 6.833107,
+      "asset": "assets/audio/CURRICULUM/7bbc18824b95905168474c7f.vi.v1.mp3",
+      "sha256": "1f1ba14d00a119b907ed67d07cab4a79cb45426d7ebc61bee75fabe4d1668ab0",
+      "durationSeconds": 4.939637,
       "aliases": [
         "C35-L1-T02-B02-Q05_PROMPT",
         "C35-L1-M08_PROMPT",
@@ -2490,7 +2492,8 @@
       "kinds": [
         "challengePrompt",
         "missionPrompt"
-      ]
+      ],
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549981/homi/audio/CURRICULUM/7bbc18824b95905168474c7f.vi.v1.mp3"
     },
     {
       "id": "LESSON-2AC6411A5F37D512301EC547",
@@ -4095,16 +4098,17 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "enabled": true,
-      "asset": "assets/audio/CURRICULUM/USER_PROMPT/C35-L2-T05-B01-Q02_PROMPT_AUDIO.mp3",
-      "sha256": "2c64813c6f888d38dfe6759f2ed1d0c43c5273952fa0e48f1acf902b0aa3262b",
-      "durationSeconds": 4.002744,
+      "asset": "assets/audio/CURRICULUM/fdb38cff16ae44231126a78c.vi.v1.mp3",
+      "sha256": "3c0e6472eaf0cd43c2434f3cab32565baefa5778bba3549b4a0a10cf071d8e71",
+      "durationSeconds": 3.352494,
       "aliases": [
         "C35-L2-T05-B01-Q02_PROMPT",
         "C35-L2-T05-B01-Q02"
       ],
       "kinds": [
         "challengePrompt"
-      ]
+      ],
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551126/homi/audio/CURRICULUM/fdb38cff16ae44231126a78c.vi.v1.mp3"
     },
     {
       "id": "LESSON-F8666428627F9E72C5E924ED",
@@ -4130,16 +4134,17 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "enabled": true,
-      "asset": "assets/audio/CURRICULUM/USER_PROMPT/C35-L2-T05-B01-Q04_PROMPT_AUDIO.mp3",
-      "sha256": "1d66d363f94279b022f26dd0678c7a60c12be73ede12fa9712c553693dc46a7e",
-      "durationSeconds": 3.940726,
+      "asset": "assets/audio/CURRICULUM/ccc63b4da589ad03cdbb761f.vi.v1.mp3",
+      "sha256": "a2283f5f54d169d88632dc9eeb4bdd189b92874c1f0406fa440b5aa530cde686",
+      "durationSeconds": 3.247302,
       "aliases": [
         "C35-L2-T05-B01-Q04_PROMPT",
         "C35-L2-T05-B01-Q04"
       ],
       "kinds": [
         "challengePrompt"
-      ]
+      ],
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550667/homi/audio/CURRICULUM/ccc63b4da589ad03cdbb761f.vi.v1.mp3"
     },
     {
       "id": "LESSON-CEA65BCD0F70017C5DC61589",
@@ -4425,16 +4430,17 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "enabled": true,
-      "asset": "assets/audio/CURRICULUM/USER_PROMPT/C35-L2-T05-B02-Q01_PROMPT_AUDIO.mp3",
-      "sha256": "26d4980061571a4d1556a679c08e886aaf9fd5dd313efddee6bc2ab46faa916b",
-      "durationSeconds": 5.136213,
+      "asset": "assets/audio/CURRICULUM/9f9873f6cd8959d99a66120d.vi.v1.mp3",
+      "sha256": "fe4e88795f71c28c0f84dfffe34ee2754f385235b3b155cf3a6640c312965d65",
+      "durationSeconds": 5.57093,
       "aliases": [
         "C35-L2-T05-B02-Q01_PROMPT",
         "C35-L2-T05-B02-Q01"
       ],
       "kinds": [
         "challengePrompt"
-      ]
+      ],
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550253/homi/audio/CURRICULUM/9f9873f6cd8959d99a66120d.vi.v1.mp3"
     },
     {
       "id": "LESSON-65D3F2B4C454F06058B424EC",
@@ -4442,16 +4448,17 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "enabled": true,
-      "asset": "assets/audio/CURRICULUM/USER_PROMPT/C35-L2-T05-B02-Q02_PROMPT_AUDIO.mp3",
-      "sha256": "e40f8f580ffd92d05406a83e231652635d21d78714e2ada3ae84a19d15cd0d6b",
-      "durationSeconds": 5.113878,
+      "asset": "assets/audio/CURRICULUM/65d3f2b4c454f06058b424ec.vi.v1.mp3",
+      "sha256": "dd7e95d275b3148f45d0948fcd7479b1e8bd7746528e7ecacbe323e4cd167610",
+      "durationSeconds": 5.09619,
       "aliases": [
         "C35-L2-T05-B02-Q02_PROMPT",
         "C35-L2-T05-B02-Q02"
       ],
       "kinds": [
         "challengePrompt"
-      ]
+      ],
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549877/homi/audio/CURRICULUM/65d3f2b4c454f06058b424ec.vi.v1.mp3"
     },
     {
       "id": "LESSON-FC164FC281A88D04D1D6458B",
@@ -4477,16 +4484,17 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "enabled": true,
-      "asset": "assets/audio/CURRICULUM/USER_PROMPT/C35-L2-T05-B02-Q04_PROMPT_AUDIO.mp3",
-      "sha256": "0bb28723d8b61a27687bbca0e9ba6f6b84fa4455c7d2db1981e3a5bace70a52e",
-      "durationSeconds": 5.143492,
+      "asset": "assets/audio/CURRICULUM/0d78ea4e336fe74385af8cd0.vi.v1.mp3",
+      "sha256": "b2e6a94c0b28ef92c9bc5f7ef5d795fff719f2fbd0d63255b9911aeeede1cb22",
+      "durationSeconds": 5.187347,
       "aliases": [
         "C35-L2-T05-B02-Q04_PROMPT",
         "C35-L2-T05-B02-Q04"
       ],
       "kinds": [
         "challengePrompt"
-      ]
+      ],
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549539/homi/audio/CURRICULUM/0d78ea4e336fe74385af8cd0.vi.v1.mp3"
     },
     {
       "id": "LESSON-C37AFB30F6D98D9DA09A0A1E",
@@ -5190,9 +5198,9 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "enabled": true,
-      "asset": "assets/audio/CURRICULUM/USER_PROMPT/C67-L2-T06-B01-Q05_PROMPT_AUDIO.mp3",
-      "sha256": "21f7f4f43ed2ed61968c5f4ba7640ae11fd8fb75dc493b17b756bef1c9c0e4db",
-      "durationSeconds": 9.323787,
+      "asset": "assets/audio/CURRICULUM/644fad86ba9fe234be0696d2.vi.v1.mp3",
+      "sha256": "7db274c90700d92a8c5d45f876cbe7ffa318cbe9ef4a6a79c23d66389c60143f",
+      "durationSeconds": 5.992517,
       "aliases": [
         "C35-L2-T06-B02-Q05_PROMPT",
         "C67-L2-T06-B01-Q05_PROMPT",
@@ -5203,7 +5211,8 @@
       "kinds": [
         "challengePrompt",
         "missionPrompt"
-      ]
+      ],
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549870/homi/audio/CURRICULUM/644fad86ba9fe234be0696d2.vi.v1.mp3"
     },
     {
       "id": "LESSON-97AF4D99C49CC4C71EDAADB0",
@@ -6760,16 +6769,17 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "enabled": true,
-      "asset": "assets/audio/CURRICULUM/USER_PROMPT/C35-L3-T09-B01-Q02_PROMPT_AUDIO.mp3",
-      "sha256": "47c189396edd7eaee9e02e8ee35fd09d3b80313b1480200617e65bfc08fce874",
-      "durationSeconds": 4.521202,
+      "asset": "assets/audio/CURRICULUM/6e39d6567990625c9e3e9243.vi.v1.mp3",
+      "sha256": "58c891a1ea493d6e61f8966668ed34753444a925d38babd314592f0609c882e7",
+      "durationSeconds": 3.512268,
       "aliases": [
         "C35-L3-T09-B01-Q02_PROMPT",
         "C35-L3-T09-B01-Q02"
       ],
       "kinds": [
         "challengePrompt"
-      ]
+      ],
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549921/homi/audio/CURRICULUM/6e39d6567990625c9e3e9243.vi.v1.mp3"
     },
     {
       "id": "LESSON-115028AD061AF01407A22A95",
@@ -10276,16 +10286,17 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "enabled": true,
-      "asset": "assets/audio/CURRICULUM/USER_PROMPT/C67-L1-T03-B01-Q01_PROMPT_AUDIO.mp3",
-      "sha256": "6f1deb2ad84b3f86a82daded1c0e9769ebfaa6cc0931ddec6553987799d9a807",
-      "durationSeconds": 5.506644,
+      "asset": "assets/audio/CURRICULUM/68baa3c562303fcda3df4101.vi.v1.mp3",
+      "sha256": "e4300ff20c938d49b58cec7a296b91edeedf60228363485c8d422e35636213b4",
+      "durationSeconds": 4.013625,
       "aliases": [
         "C67-L1-T03-B01-Q01_PROMPT",
         "C67-L1-T03-B01-Q01"
       ],
       "kinds": [
         "challengePrompt"
-      ]
+      ],
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549893/homi/audio/CURRICULUM/68baa3c562303fcda3df4101.vi.v1.mp3"
     },
     {
       "id": "LESSON-546ED7E2AD9BCE792EF2C34E",
@@ -10311,16 +10322,17 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "enabled": true,
-      "asset": "assets/audio/CURRICULUM/USER_PROMPT/C67-L1-T03-B01-Q03_PROMPT_AUDIO.mp3",
-      "sha256": "09dbfcbcc9d637e921e6da7767f6d46db98b7ed5826834be7f0eb3270b89ff4e",
-      "durationSeconds": 4.248188,
+      "asset": "assets/audio/CURRICULUM/cbf286a192858630bad417e2.vi.v1.mp3",
+      "sha256": "5e7956ea7abedb03576085eebfcef242f76e1aa60ae0ef4fc46a3102851a73e5",
+      "durationSeconds": 3.622688,
       "aliases": [
         "C67-L1-T03-B01-Q03_PROMPT",
         "C67-L1-T03-B01-Q03"
       ],
       "kinds": [
         "challengePrompt"
-      ]
+      ],
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550659/homi/audio/CURRICULUM/cbf286a192858630bad417e2.vi.v1.mp3"
     },
     {
       "id": "LESSON-FCBE400296CD496E1361EB67",
@@ -18407,16 +18419,17 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "enabled": true,
-      "asset": "assets/audio/CURRICULUM/USER_PROMPT/C810-L2-T05-B01-Q06_PROMPT_AUDIO.mp3",
-      "sha256": "9442c128e484c52129331b2fa133fa2c11337899657d4c28cb8b28ca89ce1218",
-      "durationSeconds": 5.31,
+      "asset": "assets/audio/CURRICULUM/7e633307af987b318a7c3412.vi.v1.mp3",
+      "sha256": "adbade25b4a6913fd27fdc6fe35c7fabd38337b1a9d61ba1a54c851767bdfb7e",
+      "durationSeconds": 3.898912,
       "aliases": [
         "C810-L2-T05-B01-Q06_PROMPT",
         "C810-L2-T05-B01-Q06"
       ],
       "kinds": [
         "challengePrompt"
-      ]
+      ],
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549997/homi/audio/CURRICULUM/7e633307af987b318a7c3412.vi.v1.mp3"
     },
     {
       "id": "LESSON-E54075280D55C172967D5C3E",

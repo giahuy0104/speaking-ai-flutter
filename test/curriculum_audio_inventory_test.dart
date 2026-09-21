@@ -177,18 +177,8 @@ void main() {
         final bytes = await File(prompt['asset'] as String).readAsBytes();
         final digest = sha256.convert(bytes).toString();
         expect(digest, prompt['sha256'], reason: prompt['id'] as String);
-        expect(prompt['durationSeconds'], inExclusiveRange(0, 45));
-        if (prompt['url'] == null) {
-          expect(
-            (prompt['asset'] as String).startsWith(
-              'assets/audio/CURRICULUM/USER_PROMPT/',
-            ),
-            true,
-            reason: prompt['id'] as String,
-          );
-          continue;
-        }
         expect(Uri.parse(prompt['url'] as String).host, 'res.cloudinary.com');
+        expect(prompt['durationSeconds'], inExclusiveRange(0, 45));
         final receipt =
             jsonDecode(
                   await File(
@@ -233,23 +223,4 @@ void main() {
       await service.dispose();
     },
   );
-  test('factory plays a replacement lesson prompt from bundled audio', () async {
-    const channel = MethodChannel('ailingo_voice_prompt');
-    final calls = <MethodCall>[];
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (call) async {
-          calls.add(call);
-          return null;
-        });
-    addTearDown(
-      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, null),
-    );
-    final service = createVoicePromptService(
-      owner: AudioTurnOwner.listeningLesson,
-    );
-    await service.speakAndWait('Ba tiếng vỗ tay: Three claps hay Four claps?');
-    expect(calls.single.method, 'playAuthoredAudioAndWait');
-    await service.dispose();
-  });
 }

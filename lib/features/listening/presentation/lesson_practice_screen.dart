@@ -1997,23 +1997,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     if (!widget.isRelearn && lessonStarsBefore.isEmpty && mounted) {
       await _speakLessonPrompt('Bạn vừa nhận Ngôi sao đầu tiên!');
     }
-    await _playPostStarSoundEffect();
     return true;
-  }
-
-  Future<void> _playPostStarSoundEffect() async {
-    if (!mounted || _exiting || _pausedForMainAssistant) return;
-    try {
-      await widget.mediaService.playToCompletion(
-        Uri(
-          scheme: 'asset',
-          path: '/assets/audio/CURRICULUM/STAR/post-star-ting.mp3',
-        ),
-        timeout: const Duration(seconds: 5),
-      );
-    } catch (error) {
-      debugPrint('HOMI post-star sound unavailable: $error');
-    }
   }
 
   Future<void> _playFirstStarSoundEffect() async {
@@ -2029,7 +2013,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       unawaited(
         SystemSound.play(SystemSoundType.click).catchError((Object _) {}),
       );
-      await Future<void>.delayed(const Duration(milliseconds: 250));
     } catch (_) {
       // A missing optional SFX must not interrupt Star persistence or narration.
     }
