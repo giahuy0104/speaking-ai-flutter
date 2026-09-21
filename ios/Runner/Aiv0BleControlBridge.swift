@@ -160,6 +160,11 @@ struct H20BleControlObservation {
     bytes.count == 12 && bytes[0] == 0x01 && bytes[1] == 0x01 && bytes[3] == 0x01
   }
 
+  static func batteryPercent(_ bytes: [UInt8]) -> Int? {
+    guard isObservedMainShort(bytes) else { return nil }
+    return min(max(Int(bytes[6]) | (Int(bytes[7]) << 8), 0), 100)
+  }
+
   static func fields(for bytes: [UInt8]) -> [String: Any] {
     let observedMain = isObservedMainShort(bytes)
     var fields: [String: Any] = [
@@ -357,6 +362,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   private var connectedPeripheral: CBPeripheral?
   private var buttonCharacteristic: CBCharacteristic?
   private var stateCharacteristic: CBCharacteristic?
+  private var batteryCharacteristic: CBCharacteristic?
   private var pendingPermissionResults: [FlutterResult] = []
   private var pendingScanResult: FlutterResult?
   private var pendingConnectResult: FlutterResult?
@@ -476,6 +482,8 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       connect(deviceId: arguments?["deviceId"] as? String, result: result)
     case "disconnect":
       disconnect(result)
+    case "refreshBattery":
+      refreshBattery(result)
     case "sendAppState":
       let arguments = call.arguments as? [String: Any]
       sendAppState(arguments?["bytes"], result: result)
@@ -730,6 +738,19 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       values: ["peripheralState": String(describing: peripheral.state)]
     )
     central?.cancelPeripheralConnection(peripheral)
+  }
+
+  private func refreshBattery(_ result: @escaping FlutterResult) {
+    guard phase == "connected",
+      let peripheral = connectedPeripheral,
+      peripheral.state == .connected,
+      let characteristic = batteryCharacteristic
+    else {
+      result(false)
+      return
+    }
+    peripheral.readValue(for: characteristic)
+    result(true)
   }
 
   private func sendAppState(_ rawBytes: Any?, result: @escaping FlutterResult) {
@@ -1194,6 +1215,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     notificationValidationPending = false
     buttonCharacteristic = nil
     stateCharacteristic = nil
+    batteryCharacteristic = nil
     writeMode = nil
     batteryPercent = nil
     firmwareRevision = nil
@@ -1803,6 +1825,7 @@ extension Aiv0BleControlBridge: CBPeripheralDelegate {
       case ProtocolUUID.appState:
         stateCharacteristic = characteristic
       case ProtocolUUID.batteryLevel:
+        batteryCharacteristic = characteristic
         peripheral.readValue(for: characteristic)
       case ProtocolUUID.firmwareRevision:
         peripheral.readValue(for: characteristic)
@@ -1907,6 +1930,9 @@ extension Aiv0BleControlBridge: CBPeripheralDelegate {
       )
       lastRawHex = rawHex
       lastMainTransportSource = "ble"
+      if let observedBattery = H20BleControlObservation.batteryPercent(bytes) {
+        batteryPercent = observedBattery
+      }
       if !duplicate, H20BleControlObservation.isObservedMainShort(bytes) {
         audioSessionCoordinator.notePhysicalMain(rawHex: rawHex, source: "ble")
         let packetSequence = Int(bytes[2])

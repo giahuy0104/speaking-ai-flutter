@@ -4,6 +4,11 @@ definitions:
       name: Build simulator and run iOS native unit tests
       script: |
         set -euo pipefail
+        EXPECTED_BACKEND_BASE_URL="https://speaking-ai-nextjs-backend-production.up.railway.app"
+        if [ "$BACKEND_BASE_URL" != "$EXPECTED_BACKEND_BASE_URL" ]; then
+          echo "Production builds must use $EXPECTED_BACKEND_BASE_URL"
+          exit 1
+        fi
         python3 -B -m unittest discover -s tool -p test_select_ios_test_simulator.py
         flutter build ios \
           --simulator \
@@ -81,10 +86,11 @@ workflows:
             fi
           done
 
-          case "$BACKEND_BASE_URL" in
-            https://*) ;;
-            *) echo "BACKEND_BASE_URL must be an HTTPS URL"; exit 1 ;;
-          esac
+          EXPECTED_BACKEND_BASE_URL="https://speaking-ai-nextjs-backend-production.up.railway.app"
+          if [ "$BACKEND_BASE_URL" != "$EXPECTED_BACKEND_BASE_URL" ]; then
+            echo "Production builds must use $EXPECTED_BACKEND_BASE_URL"
+            exit 1
+          fi
 
           if curl --fail --silent --show-error \
               --retry 3 --retry-all-errors --retry-delay 2 \

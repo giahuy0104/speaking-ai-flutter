@@ -8,6 +8,12 @@ internal object H20ControlObservation {
             (bytes[1].toInt() and 0xff) == 1 &&
             (bytes[3].toInt() and 0xff) == 1
 
+    fun batteryPercent(bytes: ByteArray): Int? {
+        if (!isObservedMainPacket(bytes)) return null
+        val raw = (bytes[6].toInt() and 0xff) or ((bytes[7].toInt() and 0xff) shl 8)
+        return raw.coerceIn(0, 100)
+    }
+
     fun bleMetadata(bytes: ByteArray): Map<String, Any> {
         val observed = isObservedMainPacket(bytes)
         return mapOf(

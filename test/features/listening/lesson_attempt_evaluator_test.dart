@@ -221,6 +221,7 @@ void main() {
       final requestedPaths = <String>[];
       final evaluator = BackendLessonAttemptEvaluator(
         config: _config,
+        retryDelay: _skipRetryDelay,
         client: MockClient((request) async {
           if (request.method == 'GET') {
             return http.Response.bytes(<int>[1, 2, 3], 200);
@@ -250,6 +251,7 @@ void main() {
     () async {
       final evaluator = BackendLessonAttemptEvaluator(
         config: _config,
+        retryDelay: _skipRetryDelay,
         client: MockClient((request) async {
           if (request.method == 'GET') {
             return http.Response.bytes(<int>[1, 2, 3], 200);
@@ -319,6 +321,7 @@ void main() {
     () async {
       final evaluator = BackendLessonAttemptEvaluator(
         config: _config,
+        retryDelay: _skipRetryDelay,
         client: MockClient((request) async {
           if (request.method == 'GET') {
             return http.Response.bytes(<int>[1, 2, 3], 200);
@@ -349,6 +352,7 @@ void main() {
         () async {
           final evaluator = BackendLessonAttemptEvaluator(
             config: _config,
+            retryDelay: _skipRetryDelay,
             client: _scoringErrorClient(
               statusCode: statusCode,
               code: 'ASR_FAILED',
@@ -370,6 +374,7 @@ void main() {
       () async {
         final evaluator = BackendLessonAttemptEvaluator(
           config: _config,
+          retryDelay: _skipRetryDelay,
           client: _scoringErrorClient(
             statusCode: 422,
             code: 'ASR_LOW_CONFIDENCE',
@@ -385,6 +390,7 @@ void main() {
     test('$route does not treat upstream timeout as child silence', () async {
       final evaluator = BackendLessonAttemptEvaluator(
         config: _config,
+        retryDelay: _skipRetryDelay,
         client: _scoringErrorClient(
           statusCode: 503,
           code: 'SPEECH_TIMEOUT',
@@ -404,6 +410,7 @@ void main() {
     final evaluator = BackendFirstLessonAttemptEvaluator(
       backendEvaluator: BackendLessonAttemptEvaluator(
         config: _config,
+        retryDelay: _skipRetryDelay,
         client: _scoringErrorClient(statusCode: 429, code: 'ASR_FAILED'),
       ),
       recognizer: recognizer,
@@ -414,9 +421,78 @@ void main() {
     expect(recognizer.calls, 0);
   });
 
+  test(
+    'retries a temporary scorer failure and preserves the verdict',
+    () async {
+      var scoringCalls = 0;
+      final delays = <Duration>[];
+      final evaluator = BackendLessonAttemptEvaluator(
+        config: _config,
+        retryDelay: (delay) async => delays.add(delay),
+        client: MockClient((request) async {
+          if (request.method == 'GET') {
+            return http.Response.bytes(<int>[1, 2, 3], 200);
+          }
+          scoringCalls += 1;
+          if (scoringCalls == 1) {
+            return _jsonResponse(<String, Object?>{
+              'error': <String, Object?>{'code': 'ASR_FAILED'},
+            }, 503);
+          }
+          return _jsonResponse(<String, Object?>{
+            'matched': true,
+            'transcript': "I'm An",
+          }, 200);
+        }),
+      );
+      addTearDown(evaluator.dispose);
+
+      expect(await _evaluate(evaluator), LessonAttemptOutcome.good);
+      expect(scoringCalls, 2);
+      expect(delays, const <Duration>[Duration(milliseconds: 250)]);
+    },
+  );
+
+  test('honors a bounded Retry-After before retrying 429', () async {
+    var scoringCalls = 0;
+    final delays = <Duration>[];
+    final evaluator = BackendLessonAttemptEvaluator(
+      config: _config,
+      retryDelay: (delay) async => delays.add(delay),
+      client: MockClient((request) async {
+        if (request.method == 'GET') {
+          return http.Response.bytes(<int>[1, 2, 3], 200);
+        }
+        scoringCalls += 1;
+        if (scoringCalls == 1) {
+          return http.Response(
+            jsonEncode(<String, Object?>{
+              'error': <String, Object?>{'code': 'ASR_FAILED'},
+            }),
+            429,
+            headers: const <String, String>{
+              'content-type': 'application/json',
+              'retry-after': '9',
+            },
+          );
+        }
+        return _jsonResponse(<String, Object?>{
+          'matched': true,
+          'transcript': "I'm An",
+        }, 200);
+      }),
+    );
+    addTearDown(evaluator.dispose);
+
+    expect(await _evaluate(evaluator), LessonAttemptOutcome.good);
+    expect(scoringCalls, 2);
+    expect(delays, const <Duration>[Duration(seconds: 2)]);
+  });
+
   test('handles a non-JSON server error without FormatException', () async {
     final evaluator = BackendLessonAttemptEvaluator(
       config: _config,
+      retryDelay: _skipRetryDelay,
       client: MockClient((request) async {
         if (request.method == 'GET') {
           return http.Response.bytes(<int>[1, 2, 3], 200);
@@ -825,6 +901,8 @@ final AppConfig _config = AppConfig(
   useDemoBackend: false,
   childAge: 4,
 );
+
+Future<void> _skipRetryDelay(Duration _) async {}
 
 _FakeAttemptEvaluator _offlineBackend() => _FakeAttemptEvaluator.error(
   const LessonAttemptEvaluationException('offline', backendUnavailable: true),

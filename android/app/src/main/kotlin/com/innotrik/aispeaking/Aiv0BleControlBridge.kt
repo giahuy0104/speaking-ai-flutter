@@ -103,6 +103,7 @@ class Aiv0BleControlBridge(
             "scan" -> scan(call, result)
             "connect" -> connect(call, result)
             "disconnect" -> disconnect(result)
+            "refreshBattery" -> refreshBattery(result)
             "sendAppState" -> sendAppState(call, result)
             "status" -> result.success(snapshot())
             "setControlContext" -> {
@@ -374,6 +375,9 @@ class Aiv0BleControlBridge(
                     BluetoothProfile.STATE_CONNECTED -> {
                         bluetoothGatt = gatt
                         reconnectAttempts = 0
+                        // Do not publish a stale value from the previous GATT
+                        // session before this peripheral has been read.
+                        batteryPercent = null
                         phase = "connecting"
                         message = "Đang đọc dịch vụ BLE Control…"
                         emitStatus()
@@ -537,6 +541,13 @@ class Aiv0BleControlBridge(
     }
 
     private fun handleCharacteristicChanged(uuid: java.util.UUID, value: ByteArray) {
+        if (uuid == Aiv0BleProtocol.batteryLevelUuid) {
+            mainHandler.post {
+                batteryPercent = value.firstOrNull()?.toInt()?.and(0xFF)?.coerceIn(0, 100)
+                emitStatus()
+            }
+            return
+        }
         if (uuid != Aiv0BleProtocol.buttonEventUuid) return
         mainHandler.post {
             packetCount += 1
@@ -548,6 +559,7 @@ class Aiv0BleControlBridge(
             if (value.size != 12) invalidPacketCount += 1
             lastRawHex = hex
             lastPacketAt = now
+            H20ControlObservation.batteryPercent(value)?.let { batteryPercent = it }
             Log.i(
                 TAG,
                 "Button Event device=$deviceId len=${value.size} duplicate=$duplicate raw=$hex",
@@ -573,6 +585,18 @@ class Aiv0BleControlBridge(
         if (battery != null && gatt.readCharacteristic(battery)) return
         val firmware = firmwareCharacteristic
         if (firmware != null) gatt.readCharacteristic(firmware)
+    }
+
+    private fun refreshBattery(result: MethodChannel.Result) {
+        val gatt = bluetoothGatt
+        val battery = batteryCharacteristic
+        // APP State drives MAIN feedback and always wins over telemetry. If a
+        // write is active, skip this minute's optional read and try next time.
+        if (phase != "connected" || gatt == null || battery == null || pendingWriteResult != null) {
+            result.success(false)
+            return
+        }
+        result.success(runCatching { gatt.readCharacteristic(battery) }.getOrDefault(false))
     }
 
     private fun handleCharacteristicRead(

@@ -456,6 +456,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     required bool draftProtocolConfirmed,
     MethodChannel? methodChannel,
     EventChannel? eventChannel,
+    Duration batteryRefreshInterval = const Duration(minutes: 1),
   }) : _enabled =
            enabled &&
            !kIsWeb &&
@@ -467,6 +468,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
        _eventChannel =
            eventChannel ??
            const EventChannel('ailingo_aiv0_ble_control/events'),
+       _batteryRefreshInterval = batteryRefreshInterval,
        _status =
            enabled &&
                !kIsWeb &&
@@ -482,6 +484,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   final Aiv0DraftProtocolCodec _codec;
   final MethodChannel _methodChannel;
   final EventChannel _eventChannel;
+  final Duration _batteryRefreshInterval;
   final _statusController = StreamController<Aiv0BleStatus>.broadcast();
   final _buttonController = StreamController<Aiv0ButtonEvent>.broadcast();
   static const _lastDeviceIdPreference = 'aiv0_ble_last_device_id';
@@ -491,6 +494,8 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   Future<void> _writeQueue = Future<void>.value();
   Future<void> _diagnosticWriteQueue = Future<void>.value();
   Future<bool>? _autoConnectFuture;
+  Timer? _batteryRefreshTimer;
+  bool _batteryRefreshInFlight = false;
   bool _manualDisconnectRequested = false;
 
   @override
@@ -836,10 +841,40 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   void _setStatus(Aiv0BleStatus value) {
     _status = value;
     _statusController.add(value);
+    _synchronizeBatteryRefresh(value);
+  }
+
+  void _synchronizeBatteryRefresh(Aiv0BleStatus value) {
+    if (!_enabled || !value.isConnected) {
+      _batteryRefreshTimer?.cancel();
+      _batteryRefreshTimer = null;
+      return;
+    }
+    if (_batteryRefreshTimer != null) return;
+    _batteryRefreshTimer = Timer.periodic(
+      _batteryRefreshInterval,
+      (_) => unawaited(_refreshBattery()),
+    );
+  }
+
+  Future<void> _refreshBattery() async {
+    if (_batteryRefreshInFlight || !_status.isConnected) return;
+    _batteryRefreshInFlight = true;
+    try {
+      await _methodChannel.invokeMethod<bool>('refreshBattery');
+    } on MissingPluginException {
+      // Older app binaries keep their one-time battery reading.
+    } on PlatformException catch (error) {
+      debugPrint('H20 battery refresh skipped: ${error.code}');
+    } finally {
+      _batteryRefreshInFlight = false;
+    }
   }
 
   @override
   Future<void> dispose() async {
+    _batteryRefreshTimer?.cancel();
+    _batteryRefreshTimer = null;
     await _eventSubscription?.cancel();
     _eventSubscription = null;
     if (_enabled) {

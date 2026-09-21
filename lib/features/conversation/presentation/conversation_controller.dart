@@ -3164,6 +3164,7 @@ class ConversationController extends ChangeNotifier
           ? await _hasNetworkTransport()
           : null;
       Future<PlaybackStartMetrics>? earlyRulePlayback;
+      Future<void>? earlyRulePlaybackCompletion;
       DateTime? earlyRulePlaybackRequestedAt;
       Uri? earlyRulePlaybackUri;
       String? earlyRuleEnglishText;
@@ -3180,6 +3181,10 @@ class ConversationController extends ChangeNotifier
           earlyRulePlaybackUri = localAudioUri;
           earlyRuleEnglishText = localPreview.englishText.trim();
           earlyRulePlaybackRequestedAt = DateTime.now();
+          // Arm completion before play(): a cached clip may end before play()
+          // reports that it started. The turn must not become ready while the
+          // assistant is still speaking, regardless of phone/A2DP/HFP output.
+          earlyRulePlaybackCompletion = _waitForActivePlaybackToComplete();
           earlyRulePlayback = _playbackService.play(localAudioUri);
         }
       }
@@ -3309,6 +3314,7 @@ class ConversationController extends ChangeNotifier
             startedAt: startedAt,
             metrics: metrics,
           );
+          await earlyRulePlaybackCompletion;
           reusedEarlyRulePlayback = true;
         } catch (error) {
           debugPrint('Early exact-rule playback failed: $error');
@@ -3759,11 +3765,11 @@ class ConversationController extends ChangeNotifier
         _setPlaybackCommunicationRoute(true);
       }
       // Arm completion before starting playback. A short cached sentence can
-      // otherwise finish between play() resolving and the later subscription,
-      // leaving the continuous flow waiting on an event that already happened.
-      final playbackCompletion = _usingHfpRoute || useContinuousHfpSession
-          ? _waitForActivePlaybackToComplete()
-          : null;
+      // otherwise finish between play() resolving and the later subscription.
+      // This wait is required for every route: returning after playback merely
+      // starts lets a following prompt/content clip interrupt the assistant on
+      // the phone speaker or A2DP.
+      final playbackCompletion = _waitForActivePlaybackToComplete();
       final playbackRequestedAt = DateTime.now();
       PlaybackStartMetrics? gestureMetrics;
       final gesturePlayback = _playbackService;
@@ -3794,7 +3800,7 @@ class ConversationController extends ChangeNotifier
           metrics: metrics,
         );
       }
-      if (playbackCompletion != null) await playbackCompletion;
+      await playbackCompletion;
     } catch (error) {
       await _playbackService.stop().catchError((Object _) {});
       if (playbackTurnGeneration != _conversationTurnGeneration) return;

@@ -14,6 +14,12 @@ class H20ControlObservationTest {
         assertEquals("01 01 7F 01 00 00 00 00 00 00 00 FF", event["rawPayload"])
     }
 
+    @Test fun observedMainPacketCarriesBatteryPercentage() {
+        val bytes = byteArrayOf(1, 1, 0x19, 1, 1, 0, 0x14, 0, 0, 0, 0, 0)
+        assertEquals(20, H20ControlObservation.batteryPercent(bytes))
+        assertNull(H20ControlObservation.batteryPercent(byteArrayOf(1, 1, 0x19, 2)))
+    }
+
     @Test fun unknownAndDraftPacketsStayUnknownWithoutDiscardingRaw() {
         listOf(
             byteArrayOf(),

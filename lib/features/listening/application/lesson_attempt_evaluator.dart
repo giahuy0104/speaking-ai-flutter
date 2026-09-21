@@ -264,6 +264,7 @@ class BackendLessonAttemptEvaluator
     http.Client? client,
     Future<String> Function()? clientIdProvider,
     Future<void> Function()? clientIdResetter,
+    Future<void> Function(Duration duration)? retryDelay,
   }) {
     final resolvedConfig = config ?? AppConfig.fromEnvironment();
     // Keep the provider and resetter on the same identity instance. A stale
@@ -288,6 +289,7 @@ class BackendLessonAttemptEvaluator
             clientIdProvider: resolvedClientIdProvider,
             clientIdResetter: resolvedClientIdResetter,
           ),
+      retryDelay: retryDelay ?? Future<void>.delayed,
     );
   }
 
@@ -295,13 +297,16 @@ class BackendLessonAttemptEvaluator
     required AppConfig config,
     required Future<String> Function() clientIdProvider,
     required http.Client client,
+    required Future<void> Function(Duration duration) retryDelay,
   }) : _config = config,
        _clientIdProvider = clientIdProvider,
-       _client = client;
+       _client = client,
+       _retryDelay = retryDelay;
 
   final AppConfig _config;
   final Future<String> Function() _clientIdProvider;
   final http.Client _client;
+  final Future<void> Function(Duration duration) _retryDelay;
 
   @override
   Future<LessonAttemptOutcome> evaluate({
@@ -376,34 +381,37 @@ class BackendLessonAttemptEvaluator
     required bool requireAllExpectedTokens,
     required String clientId,
     required Uint8List? webBytes,
-  }) async {
-    final extension = lessonAudioExtensionForPath(recordingPath);
-    final request =
-        http.MultipartRequest(
-            'POST',
-            _config.resolve('/api/listening/evaluate-attempt'),
-          )
-          ..fields['expectedEnglish'] = expectedEnglish
-          ..fields['acceptedVariants'] = jsonEncode(acceptedVariants.toList())
-          ..fields['requireAllExpectedTokens'] = requireAllExpectedTokens
-              .toString()
-          ..fields['lessonCode'] = lessonCode
-          ..fields['sentenceId'] = sentenceId
-          ..fields['attemptNumber'] = '$attemptNumber'
-          ..fields['childAge'] = '$childAge'
-          ..fields['clientId'] = clientId
-          ..fields['recordingDurationMs'] =
-              '${recordingDuration.inMilliseconds}';
-    request.files.add(
-      await createAudioMultipartFile(
-        field: 'audio',
-        path: recordingPath,
-        filename: 'lesson-attempt.$extension',
-        bytes: webBytes,
-      ),
-    );
-    return http.Response.fromStream(await _send(request));
-  }
+  }) => _sendScoringRequest(
+    endpoint: '/api/listening/evaluate-attempt',
+    requestFactory: () async {
+      final extension = lessonAudioExtensionForPath(recordingPath);
+      final request =
+          http.MultipartRequest(
+              'POST',
+              _config.resolve('/api/listening/evaluate-attempt'),
+            )
+            ..fields['expectedEnglish'] = expectedEnglish
+            ..fields['acceptedVariants'] = jsonEncode(acceptedVariants.toList())
+            ..fields['requireAllExpectedTokens'] = requireAllExpectedTokens
+                .toString()
+            ..fields['lessonCode'] = lessonCode
+            ..fields['sentenceId'] = sentenceId
+            ..fields['attemptNumber'] = '$attemptNumber'
+            ..fields['childAge'] = '$childAge'
+            ..fields['clientId'] = clientId
+            ..fields['recordingDurationMs'] =
+                '${recordingDuration.inMilliseconds}';
+      request.files.add(
+        await createAudioMultipartFile(
+          field: 'audio',
+          path: recordingPath,
+          filename: 'lesson-attempt.$extension',
+          bytes: webBytes,
+        ),
+      );
+      return http.Response.fromStream(await _send(request));
+    },
+  );
 
   LessonAttemptOutcome _parseLessonAttemptResponse(
     http.Response response, {
@@ -512,21 +520,28 @@ class BackendLessonAttemptEvaluator
     required String clientId,
     required Uint8List? webBytes,
   }) async {
-    final extension = lessonAudioExtensionForPath(recordingPath);
-    final request =
-        http.MultipartRequest('POST', _config.resolve('/api/audio/translate'))
-          ..fields['sourceLanguage'] = 'en'
-          ..fields['clientId'] = clientId;
-    request.files.add(
-      await createAudioMultipartFile(
-        field: 'audio',
-        path: recordingPath,
-        filename: 'lesson-attempt.$extension',
-        bytes: webBytes,
-      ),
+    final response = await _sendScoringRequest(
+      endpoint: '/api/audio/translate',
+      requestFactory: () async {
+        final extension = lessonAudioExtensionForPath(recordingPath);
+        final request =
+            http.MultipartRequest(
+                'POST',
+                _config.resolve('/api/audio/translate'),
+              )
+              ..fields['sourceLanguage'] = 'en'
+              ..fields['clientId'] = clientId;
+        request.files.add(
+          await createAudioMultipartFile(
+            field: 'audio',
+            path: recordingPath,
+            filename: 'lesson-attempt.$extension',
+            bytes: webBytes,
+          ),
+        );
+        return http.Response.fromStream(await _send(request));
+      },
     );
-
-    final response = await http.Response.fromStream(await _send(request));
     Object? decoded;
     try {
       decoded = jsonDecode(response.body);
@@ -589,6 +604,84 @@ class BackendLessonAttemptEvaluator
         'Dịch vụ chấm điểm đang bận. Bạn thử lại sau nhé.',
       );
     }
+  }
+
+  Future<http.Response> _sendScoringRequest({
+    required String endpoint,
+    required Future<http.Response> Function() requestFactory,
+  }) async {
+    var retryIndex = 0;
+    while (true) {
+      final response = await requestFactory();
+      final maximumRetries = _maximumScoringRetries(response.statusCode);
+      final requestId = _responseHeader(response, const <String>[
+        'x-request-id',
+        'cf-ray',
+        'x-railway-request-id',
+      ]);
+      debugPrint(
+        jsonEncode(<String, Object?>{
+          'event': 'lesson_scoring_response',
+          'endpoint': endpoint,
+          'status': response.statusCode,
+          'retryIndex': retryIndex,
+          'requestId': requestId,
+        }),
+      );
+      if (retryIndex >= maximumRetries) return response;
+      final delay = _scoringRetryDelay(response, retryIndex);
+      debugPrint(
+        jsonEncode(<String, Object?>{
+          'event': 'lesson_scoring_retry',
+          'endpoint': endpoint,
+          'status': response.statusCode,
+          'nextRetryIndex': retryIndex + 1,
+          'delayMs': delay.inMilliseconds,
+          'requestId': requestId,
+        }),
+      );
+      retryIndex += 1;
+      await _retryDelay(delay);
+    }
+  }
+
+  int _maximumScoringRetries(int statusCode) => switch (statusCode) {
+    429 || 502 || 503 || 504 => 2,
+    500 => 1,
+    _ => 0,
+  };
+
+  Duration _scoringRetryDelay(http.Response response, int retryIndex) {
+    final rawRetryAfter = _responseHeader(response, const <String>[
+      'retry-after',
+    ]);
+    if (rawRetryAfter != null) {
+      final seconds = int.tryParse(rawRetryAfter.trim());
+      if (seconds != null && seconds >= 0) {
+        return Duration(seconds: math.min(seconds, 2));
+      }
+      final retryAt = DateTime.tryParse(rawRetryAfter)?.toUtc();
+      if (retryAt != null) {
+        final remaining = retryAt.difference(DateTime.now().toUtc());
+        if (remaining > Duration.zero) {
+          return Duration(
+            milliseconds: math.min(remaining.inMilliseconds, 2000),
+          );
+        }
+      }
+    }
+    return retryIndex == 0
+        ? const Duration(milliseconds: 250)
+        : const Duration(milliseconds: 750);
+  }
+
+  String? _responseHeader(http.Response response, List<String> candidates) {
+    for (final candidate in candidates) {
+      for (final entry in response.headers.entries) {
+        if (entry.key.toLowerCase() == candidate) return entry.value;
+      }
+    }
+    return null;
   }
 
   Future<void> _ensureInstallationAuthenticated() async {

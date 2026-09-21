@@ -264,6 +264,7 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(event["gesture"] as? String, "shortPress")
     XCTAssertEqual(event["protocol"] as? String, "observedV1")
     XCTAssertEqual(event["sequence"] as? Int, 0x19)
+    XCTAssertEqual(H20BleControlObservation.batteryPercent(blePacket), 55)
     XCTAssertEqual(event["rawPayload"] as? String, "01 01 19 01 01 00 37 00 10 04 00 00")
   }
 

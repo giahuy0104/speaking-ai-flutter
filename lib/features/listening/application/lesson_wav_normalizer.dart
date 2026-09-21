@@ -74,17 +74,29 @@ Uint8List normalizeAndroidLessonWav(Uint8List source) {
   if (channels == 1) return source;
 
   final frameCount = pcmLength ~/ blockAlign;
-  final header = buildPcm16WavHeader(pcmByteLength: frameCount * 2);
-  final mono = Uint8List(header.length + frameCount * 2)..setAll(0, header);
-  final output = ByteData.sublistView(mono);
+  var leftEnergy = 0.0;
+  var rightEnergy = 0.0;
   for (var frame = 0; frame < frameCount; frame += 1) {
     final sampleOffset = pcmOffset + frame * 4;
     final left = data.getInt16(sampleOffset, Endian.little);
     final right = data.getInt16(sampleOffset + 2, Endian.little);
-    // Dart integers preserve the full sum before averaging signed samples.
+    leftEnergy += left * left;
+    rightEnergy += right * right;
+  }
+  // H20/OEM drivers can expose a stereo container even though only one
+  // microphone channel carries speech. Averaging the two channels halves a
+  // single live channel (~6 dB) and can cancel phase-inverted captures. Keep
+  // the stronger complete channel instead; the backend still receives the
+  // mono PCM16 format it expects, without altering duration or sample rate.
+  final selectedChannelOffset = rightEnergy > leftEnergy ? 2 : 0;
+  final header = buildPcm16WavHeader(pcmByteLength: frameCount * 2);
+  final mono = Uint8List(header.length + frameCount * 2)..setAll(0, header);
+  final output = ByteData.sublistView(mono);
+  for (var frame = 0; frame < frameCount; frame += 1) {
+    final sampleOffset = pcmOffset + frame * 4 + selectedChannelOffset;
     output.setInt16(
       header.length + frame * 2,
-      (left + right) ~/ 2,
+      data.getInt16(sampleOffset, Endian.little),
       Endian.little,
     );
   }

@@ -258,6 +258,39 @@ void main() {
     },
   );
 
+  test(
+    'phone playback does not finish the assistant turn before audio ends',
+    () async {
+      final playback = _CompletionControlledPlaybackService();
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Phone',
+        ),
+        playbackService: playback,
+        repository: _FallbackRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.batchChunks,
+      );
+      controller.result = _result(
+        'conversation',
+        audioUri: Uri.parse('https://api.example.com/result.mp3'),
+      );
+
+      var finished = false;
+      final pending = controller.playResult().then((_) => finished = true);
+      await playback.started.future;
+      await Future<void>.delayed(Duration.zero);
+      expect(finished, isFalse);
+
+      playback.complete();
+      await pending;
+      expect(finished, isTrue);
+      controller.dispose();
+    },
+  );
+
   test('first manual Play recovers after Safari blocks autoplay', () async {
     final playback = _DirectGesturePlaybackService(rejectRegularPlay: true);
     final controller = ConversationController(
@@ -3613,6 +3646,56 @@ class _DirectGesturePlaybackService
 
   @override
   Future<void> dispose() async {}
+}
+
+class _CompletionControlledPlaybackService
+    implements AudioPlaybackService, CompletionAwareAudioPlaybackService {
+  final StreamController<bool> _playing = StreamController<bool>.broadcast(
+    sync: true,
+  );
+  final StreamController<void> _completion = StreamController<void>.broadcast(
+    sync: true,
+  );
+  final Completer<void> started = Completer<void>();
+
+  @override
+  Stream<bool> get playingStream => _playing.stream;
+
+  @override
+  Stream<void> get completionStream => _completion.stream;
+
+  @override
+  Future<void> prepare() async {}
+
+  @override
+  Future<void> preload(Uri uri) async {}
+
+  @override
+  Future<PlaybackStartMetrics> play(Uri uri) async {
+    if (!started.isCompleted) started.complete();
+    _playing.add(true);
+    return const PlaybackStartMetrics(
+      audioLoadDuration: Duration.zero,
+      startedAfterRequest: Duration.zero,
+      fromDeviceCache: false,
+    );
+  }
+
+  void complete() {
+    _completion.add(null);
+    _playing.add(false);
+  }
+
+  @override
+  Future<void> stop() async {
+    _playing.add(false);
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _playing.close();
+    await _completion.close();
+  }
 }
 
 ConversationResult _result(

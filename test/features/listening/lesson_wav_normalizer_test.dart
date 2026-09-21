@@ -12,12 +12,12 @@ void main() {
     expect(normalizeAndroidLessonWav(mono), same(mono));
   });
 
-  test('stereo becomes valid mono without changing duration or source', () {
+  test('stereo keeps the stronger channel without changing duration', () {
     final stereo = _wav([1000, 3000, 32767, 32767, -32768, -32768, -1, -2]);
     final originalCopy = Uint8List.fromList(stereo);
     final mono = normalizeAndroidLessonWav(stereo);
     final header = ByteData.sublistView(mono);
-    expect(_samples(mono), [2000, 32767, -32768, -1]);
+    expect(_samples(mono), [3000, 32767, -32768, -2]);
     expect(header.getUint16(22, Endian.little), 1);
     expect(header.getUint32(24, Endian.little), 16000);
     expect(header.getUint32(28, Endian.little), 32000);
@@ -30,7 +30,25 @@ void main() {
 
   test('parses odd-sized metadata chunks before PCM', () {
     final stereo = _withMetadata(_wav([500, 1500, -500, -1500]));
-    expect(_samples(normalizeAndroidLessonWav(stereo)), [1000, -1000]);
+    expect(_samples(normalizeAndroidLessonWav(stereo)), [1500, -1500]);
+  });
+
+  test('does not halve a capture with only one live channel', () {
+    final leftOnly = _wav([12000, 0, -8000, 0, 4000, 0]);
+    final rightOnly = _wav([0, 12000, 0, -8000, 0, 4000]);
+
+    expect(_samples(normalizeAndroidLessonWav(leftOnly)), [12000, -8000, 4000]);
+    expect(_samples(normalizeAndroidLessonWav(rightOnly)), [
+      12000,
+      -8000,
+      4000,
+    ]);
+  });
+
+  test('does not cancel phase-inverted stereo speech', () {
+    final stereo = _wav([12000, -12000, -8000, 8000, 4000, -4000]);
+
+    expect(_samples(normalizeAndroidLessonWav(stereo)), [12000, -8000, 4000]);
   });
 
   test('does not reinterpret unsupported rates or encodings', () {
@@ -91,7 +109,7 @@ void main() {
         await resolveLessonRecording(recording.path, recording.path),
         recording.path,
       );
-      expect(_samples(await recording.readAsBytes()), [200, -200]);
+      expect(_samples(await recording.readAsBytes()), [300, -300]);
       expect(await temporary.list().length, 1);
     });
 

@@ -8,9 +8,9 @@ const double androidAssistantSpeechBoostDb = androidSpeechBoostDb;
 /// H20 microphone captures can sit more than 20 dB below authored speech.
 /// Source metering still chooses the actual gain and attenuates loud clips, but
 /// it needs the full LoudnessEnhancer range to bring quiet captures to target.
-const double androidMaxPlaybackGainDb = 30.0;
+const double androidMaxPlaybackGainDb = 28.0;
 
 /// Fallback for a child recording when Android cannot finish source metering.
 /// Measurable recordings still use the common gated level target, so attempts
 /// captured at different microphone levels play back consistently.
-const double lessonRecordingPlaybackGainDb = 28.5860754566205;
+const double lessonRecordingPlaybackGainDb = 28.0;

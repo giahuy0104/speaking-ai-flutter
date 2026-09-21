@@ -821,7 +821,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
                                   20,
                                   12,
                                   20,
-                                  24,
+                                  112,
                                 ),
                                 child: Column(
                                   children: <Widget>[

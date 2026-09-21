@@ -59,6 +59,7 @@ import 'app_theme.dart';
 import 'app_theme_mode.dart';
 import 'device_connection_feedback_gate.dart';
 import 'device_connection_feedback_overlay.dart';
+import 'h20_battery_alert_policy.dart';
 import 'mascot_assets.dart';
 
 enum _H20AutoConnectReason { background, parentSetup }
@@ -104,6 +105,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   final AppleOfflineSpeechAssetService _appleOfflineSpeechAssetService =
       const AppleOfflineSpeechAssetService();
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
+  final H20BatteryAlertPolicy _h20BatteryAlertPolicy = H20BatteryAlertPolicy();
   late final _MainOverlayNavigatorObserver _mainOverlayNavigatorObserver;
   final ActiveLearningModuleRegistry _activeLearningModules =
       ActiveLearningModuleRegistry();
@@ -144,6 +148,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   bool _isRestoringHfpAfterPhysicalMain = false;
   bool _offlineSpeechModelPreparationRunning = false;
   bool _offlineSpeechModelPreparationFinished = false;
+  bool _disconnectingDepletedH20 = false;
   StreamSubscription<Aiv0BleStatus>? _aiv0BleFeedbackSubscription;
   StreamSubscription<AudioTurnDiagnostic>? _audioTurnDiagnosticSubscription;
   Timer? _deviceConnectionFeedbackTimer;
@@ -745,6 +750,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   }
 
   void _handleAiv0BleFeedbackStatus(Aiv0BleStatus status) {
+    _handleH20BatteryStatus(status);
     // On iOS, opening or releasing HFP can briefly interrupt the independent
     // BLE GATT link on H20 firmware 1.0.0. Recovery must remain in the
     // background; a root ModalBarrier prevents the parent from completing the
@@ -782,6 +788,63 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
     if (!_aiv0AutoConnectAttemptActive) {
       _hideDeviceConnectionFeedback();
+    }
+  }
+
+  void _handleH20BatteryStatus(Aiv0BleStatus status) {
+    final actions = _h20BatteryAlertPolicy.observe(
+      connected: status.isConnected,
+      deviceId: status.deviceId,
+      batteryPercent: status.batteryPercent,
+    );
+    for (final action in actions) {
+      switch (action) {
+        case H20BatteryAction.chargeSoon:
+          _showH20BatteryNotice(
+            'Pin HOMI còn ${status.batteryPercent}%. Hãy sạc pin cho HOMI nhé.',
+          );
+        case H20BatteryAction.chargeCritical:
+          _showH20BatteryNotice(
+            'Pin HOMI chỉ còn ${status.batteryPercent}%. Hãy sạc pin cho HOMI ngay nhé.',
+            critical: true,
+          );
+        case H20BatteryAction.disconnectDepleted:
+          _showH20BatteryNotice(
+            'Pin HOMI đã hết. Ứng dụng đang ngắt kết nối với HOMI.',
+            critical: true,
+          );
+          unawaited(_disconnectDepletedH20());
+      }
+    }
+  }
+
+  void _showH20BatteryNotice(String message, {bool critical = false}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final messenger = _scaffoldMessengerKey.currentState;
+      if (messenger == null) return;
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(message),
+            duration: Duration(seconds: critical ? 10 : 7),
+          ),
+        );
+    });
+  }
+
+  Future<void> _disconnectDepletedH20() async {
+    if (_disconnectingDepletedH20) return;
+    final control = _aiv0BleControl;
+    if (control == null || !control.status.isConnected) return;
+    _disconnectingDepletedH20 = true;
+    try {
+      await control.disconnect();
+    } catch (error) {
+      debugPrint('Could not disconnect depleted H20 BLE: $error');
+    } finally {
+      _disconnectingDepletedH20 = false;
     }
   }
 
@@ -2234,6 +2297,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
 
     return MaterialApp(
       navigatorKey: _navigatorKey,
+      scaffoldMessengerKey: _scaffoldMessengerKey,
       navigatorObservers: <NavigatorObserver>[_mainOverlayNavigatorObserver],
       title: 'HOMI App',
       debugShowCheckedModeBanner: false,

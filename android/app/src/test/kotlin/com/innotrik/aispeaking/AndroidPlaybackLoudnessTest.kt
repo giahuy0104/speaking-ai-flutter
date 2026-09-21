@@ -61,6 +61,12 @@ class AndroidPlaybackLoudnessTest {
     }
 
     @Test
+    fun h20RecordingGainNeverExceedsTwentyEightDb() {
+        val result = sineMeter(-55.0).result()!!
+        assertEquals(28.0, result.gainDb, 0.001)
+    }
+
+    @Test
     fun oppositeStereoChannelsAreMeasuredWithoutPhaseCancellation() {
         val mono = sineMeter(-25.0).result()!!
         val stereo = PcmPlaybackLevelMeter(16000, 2)
