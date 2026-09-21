@@ -105,13 +105,15 @@ class _V4SongStageScreenState extends State<V4SongStageScreen>
       _activeModuleRegistry?.unregister(registration);
     }
     _request += 1;
-    unawaited(widget.mediaService.stopPlayback());
-    final prompt = _voicePromptService;
-    if (prompt != null) {
-      if (_ownsVoicePromptService) {
-        unawaited(prompt.dispose());
-      } else {
-        unawaited(prompt.stop());
+    if (!_leaving) {
+      unawaited(widget.mediaService.stopPlayback());
+      final prompt = _voicePromptService;
+      if (prompt != null) {
+        if (_ownsVoicePromptService) {
+          unawaited(prompt.dispose());
+        } else {
+          unawaited(prompt.stop());
+        }
       }
     }
     super.dispose();
@@ -197,8 +199,11 @@ class _V4SongStageScreenState extends State<V4SongStageScreen>
     _leaving = true;
     _pausedForMainAssistant = false;
     _request += 1;
-    unawaited(_prompt.stop());
+    await _prompt.stop().catchError((Object _) {});
     await widget.mediaService.stopPlayback().catchError((Object _) {});
+    if (_ownsVoicePromptService) {
+      await _prompt.dispose().catchError((Object _) {});
+    }
     if (mounted) Navigator.of(context).pop(action);
   }
 

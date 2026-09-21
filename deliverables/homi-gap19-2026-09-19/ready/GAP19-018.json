@@ -1,0 +1,28 @@
+{
+  "id": "GAP19-018",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình tiếp tục Bộ từ vựng nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "Xtb7kOiRj8kDxdXFr0RO",
+  "historyItemId": "A1Mnkze9fm7bnS1F5wU4",
+  "characterCost": "16",
+  "sourceSha256": "e2339932414e0be8ad25b0fb0ca5b5201ddd08f24a619d18f5bed7556129ffec",
+  "createdAt": "2026-09-19T08:12:03.735Z",
+  "asset": "assets/audio/MAIN/GAP19/GAP19-018.vi.v1.mp3",
+  "finalSha256": "a7bf045aea8ca9b431d437a21d5f8e913988408ba7a131626033a6e957964838",
+  "sourceDurationSeconds": 1.68,
+  "durationSeconds": 1.852698,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 30555
+}

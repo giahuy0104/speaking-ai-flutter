@@ -1,0 +1,598 @@
+{
+  "date": "2026-09-19",
+  "scope": "local working tree; code/catalog audit, not device/acoustic verification",
+  "groups": 5,
+  "topics": 50,
+  "lessons": 109,
+  "coreOccurrences": 1202,
+  "challengeOccurrences": 601,
+  "recognitionVariantsNotCountedAsOutput": 727,
+  "domainScenarios": 313,
+  "domainTransitions": 39758,
+  "reachedStages": {
+    "current": [
+      "activeLearning",
+      "chooseAfterTranslationStop",
+      "chooseCourseRelearnLevel",
+      "chooseFeature",
+      "chooseModuleSwitch",
+      "chooseOtherLearning",
+      "chooseTopicAfterCompletion",
+      "confirmReplayTopic",
+      "idle"
+    ],
+    "compatibility": [
+      "chooseLesson",
+      "confirmReplayLesson",
+      "confirmReplayTopic",
+      "idle"
+    ]
+  },
+  "audioFiles": 2932,
+  "audioIntegrityFailures": [],
+  "directLinks": 1311,
+  "directLinkFailures": [],
+  "currentUniqueTextLocale": 2061,
+  "currentReady": 2042,
+  "currentMissing": [
+    {
+      "text": "Bạn đã học xong chủ đề này rồi. Bạn chọn tiếp chủ đề mới nhé.",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "module_reply",
+          "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+          "route": "asset_first_then_device_tts",
+          "line": 629,
+          "evidence": "source_traced"
+        }
+      ]
+    },
+    {
+      "text": "Bạn đang ở phần đầu bài học rồi.",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "module_reply",
+          "source": "lib/features/listening/presentation/lesson_intro_screen.dart",
+          "route": "asset_first_then_device_tts",
+          "line": 606,
+          "evidence": "source_traced"
+        }
+      ]
+    },
+    {
+      "text": "Bạn hãy vào bài học trước nhé.",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "module_reply",
+          "source": "lib/features/listening/presentation/lesson_intro_screen.dart",
+          "route": "asset_first_then_device_tts",
+          "line": 616,
+          "evidence": "source_traced"
+        }
+      ]
+    },
+    {
+      "text": "Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "other learning: begin",
+          "evidence": "executed_domain_function"
+        },
+        {
+          "scope": "current",
+          "family": "main_silence",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": null,
+          "evidence": "executed_domain_function"
+        },
+        {
+          "scope": "current",
+          "family": "master_navigation_contract",
+          "source": "lib/features/voice_navigation/domain/master_navigation_contract.dart",
+          "route": "asset_first_then_device_tts",
+          "line": 9,
+          "evidence": "source_traced"
+        }
+      ]
+    },
+    {
+      "text": "Bạn muốn nghe lại hay dừng lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "master_navigation_contract",
+          "source": "lib/features/voice_navigation/domain/master_navigation_contract.dart",
+          "route": "asset_first_then_device_tts",
+          "line": 27,
+          "evidence": "source_traced"
+        }
+      ]
+    },
+    {
+      "text": "Bạn muốn nghe lại, câu trước, hay câu sau?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "active listeningLesson: begin",
+          "evidence": "executed_domain_function"
+        },
+        {
+          "scope": "current",
+          "family": "master_navigation_contract",
+          "source": "lib/features/voice_navigation/domain/master_navigation_contract.dart",
+          "route": "asset_first_then_device_tts",
+          "line": 26,
+          "evidence": "source_traced"
+        }
+      ]
+    },
+    {
+      "text": "Bạn muốn nghe lại, dừng lại hay bỏ qua?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "master_navigation_contract",
+          "source": "lib/features/voice_navigation/domain/master_navigation_contract.dart",
+          "route": "asset_first_then_device_tts",
+          "line": 28,
+          "evidence": "source_traced"
+        }
+      ]
+    },
+    {
+      "text": "Chủ đề này chưa có bài học. Bạn thử lại sau nhé.",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "catalog failure=false",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Đây là câu cuối. Bạn hãy hoàn thành câu này nhé.",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "module_reply",
+          "source": "lib/features/listening/presentation/lesson_practice_screen.dart",
+          "route": "asset_first_then_device_tts",
+          "line": 604,
+          "evidence": "source_traced"
+        }
+      ]
+    },
+    {
+      "text": "HOMI chưa tải được bài học. Bạn thử lại sau nhé.",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "catalog failure=true",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "HOMI chưa thực hiện được. Bạn thử lại nhé.",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "module_reply",
+          "source": "lib/core/session/app_flow_coordinator.dart",
+          "route": "asset_first_then_device_tts",
+          "line": 77,
+          "evidence": "source_traced"
+        }
+      ]
+    },
+    {
+      "text": "HOMI đây. Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "main age=null: begin",
+          "evidence": "executed_domain_function"
+        },
+        {
+          "scope": "current",
+          "family": "master_navigation_contract",
+          "source": "lib/features/voice_navigation/domain/master_navigation_contract.dart",
+          "route": "asset_first_then_device_tts",
+          "line": 9,
+          "evidence": "source_traced"
+        }
+      ]
+    },
+    {
+      "text": "Mình bỏ qua bài hát nhé.",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "master_navigation_contract",
+          "source": "lib/features/voice_navigation/domain/master_navigation_contract.dart",
+          "route": "asset_first_then_device_tts",
+          "line": 29,
+          "evidence": "source_traced"
+        }
+      ]
+    },
+    {
+      "text": "Mình đã chuyển sang Bộ từ vựng.",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "other learning: học từ vựng [chooseOtherLearning]",
+          "evidence": "executed_domain_function"
+        },
+        {
+          "scope": "current",
+          "family": "master_navigation_contract",
+          "source": "lib/features/voice_navigation/domain/master_navigation_contract.dart",
+          "route": "asset_first_then_device_tts",
+          "line": 22,
+          "evidence": "source_traced"
+        }
+      ]
+    },
+    {
+      "text": "Mình đã chuyển sang Chủ đề.",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "other learning: học chủ đề [chooseOtherLearning]",
+          "evidence": "executed_domain_function"
+        },
+        {
+          "scope": "current",
+          "family": "master_navigation_contract",
+          "source": "lib/features/voice_navigation/domain/master_navigation_contract.dart",
+          "route": "asset_first_then_device_tts",
+          "line": 21,
+          "evidence": "source_traced"
+        }
+      ]
+    },
+    {
+      "text": "Mình đã chuyển sang Dịch tiếng Anh.",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "active listeningLesson: dịch sang tiếng Anh [activeLearning]",
+          "evidence": "executed_domain_function"
+        },
+        {
+          "scope": "current",
+          "family": "master_navigation_contract",
+          "source": "lib/features/voice_navigation/domain/master_navigation_contract.dart",
+          "route": "asset_first_then_device_tts",
+          "line": 23,
+          "evidence": "source_traced"
+        }
+      ]
+    },
+    {
+      "text": "Mình giữ nội dung hiện tại nhé.",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "master_navigation_contract",
+          "source": "lib/features/voice_navigation/domain/master_navigation_contract.dart",
+          "route": "asset_first_then_device_tts",
+          "line": 20,
+          "evidence": "source_traced"
+        }
+      ]
+    },
+    {
+      "text": "Mình tiếp tục Bộ từ vựng nhé.",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "active vocabulary: học từ vựng [activeLearning]",
+          "evidence": "executed_domain_function"
+        },
+        {
+          "scope": "current",
+          "family": "master_navigation_contract",
+          "source": "lib/features/voice_navigation/domain/master_navigation_contract.dart",
+          "route": "asset_first_then_device_tts",
+          "line": 25,
+          "evidence": "source_traced"
+        }
+      ]
+    },
+    {
+      "text": "Mình tiếp tục Chủ đề nhé.",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "active listeningLesson: học chủ đề [activeLearning]",
+          "evidence": "executed_domain_function"
+        },
+        {
+          "scope": "current",
+          "family": "master_navigation_contract",
+          "source": "lib/features/voice_navigation/domain/master_navigation_contract.dart",
+          "route": "asset_first_then_device_tts",
+          "line": 24,
+          "evidence": "source_traced"
+        }
+      ]
+    }
+  ],
+  "byScope": {
+    "current": {
+      "unique": 2061,
+      "missing": 19
+    },
+    "catalog_only": {
+      "unique": 607,
+      "missing": 1
+    },
+    "audio_catalog_only": {
+      "unique": 602,
+      "missing": 0
+    },
+    "conditional": {
+      "unique": 221,
+      "missing": 0
+    },
+    "compatibility": {
+      "unique": 450,
+      "missing": 432
+    },
+    "not_spoken_handled_reply": {
+      "unique": 2,
+      "missing": 0
+    }
+  },
+  "byCurrentFamily": {
+    "age_feedback": {
+      "unique": 25,
+      "missing": 0
+    },
+    "challenge_answer_en": {
+      "unique": 532,
+      "missing": 0
+    },
+    "challenge_question": {
+      "unique": 589,
+      "missing": 0
+    },
+    "completion": {
+      "unique": 16,
+      "missing": 0
+    },
+    "core_en": {
+      "unique": 548,
+      "missing": 0
+    },
+    "core_speak_cue": {
+      "unique": 5,
+      "missing": 0
+    },
+    "core_vi": {
+      "unique": 528,
+      "missing": 0
+    },
+    "invalid_curriculum": {
+      "unique": 1,
+      "missing": 0
+    },
+    "lesson_intro_clip": {
+      "unique": 69,
+      "missing": 0
+    },
+    "lesson_locked": {
+      "unique": 2,
+      "missing": 0
+    },
+    "lesson_milestone": {
+      "unique": 3,
+      "missing": 0
+    },
+    "lesson_relearn": {
+      "unique": 106,
+      "missing": 0
+    },
+    "level_locked": {
+      "unique": 2,
+      "missing": 0
+    },
+    "level_milestone": {
+      "unique": 2,
+      "missing": 0
+    },
+    "literal_speech_call": {
+      "unique": 8,
+      "missing": 0
+    },
+    "local_guide": {
+      "unique": 2,
+      "missing": 0
+    },
+    "main_flow": {
+      "unique": 40,
+      "missing": 10
+    },
+    "main_silence": {
+      "unique": 2,
+      "missing": 1
+    },
+    "master_navigation_contract": {
+      "unique": 17,
+      "missing": 12
+    },
+    "module_reply": {
+      "unique": 8,
+      "missing": 5
+    },
+    "remaining_stars": {
+      "unique": 16,
+      "missing": 0
+    },
+    "song_start": {
+      "unique": 5,
+      "missing": 0
+    },
+    "topic_milestone": {
+      "unique": 10,
+      "missing": 0
+    },
+    "topic_replay": {
+      "unique": 10,
+      "missing": 0
+    },
+    "topic_resume": {
+      "unique": 10,
+      "missing": 0
+    },
+    "translation_control": {
+      "unique": 2,
+      "missing": 0
+    },
+    "translation_silence": {
+      "unique": 2,
+      "missing": 0
+    },
+    "vocabulary_guidance": {
+      "unique": 22,
+      "missing": 0
+    },
+    "wake_word": {
+      "unique": 1,
+      "missing": 0
+    }
+  },
+  "legacyAudioFiles": 217,
+  "legacyCodeOverrides": [],
+  "songLinks": [
+    {
+      "lesson": "c35-l1-t02-b02",
+      "title": "Count with Me",
+      "uri": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549515/homi/audio/A-6-7/SONGS/A067_T05_SONG01_FULL_EN.mp3",
+      "scope": "current_music_not_tts",
+      "exists": false,
+      "bundled": false,
+      "transcriptVerified": false
+    },
+    {
+      "lesson": "c35-l3-t09-b02",
+      "title": "What Should I Wear?",
+      "uri": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549515/homi/audio/A-6-7/SONGS/A067_T08_SONG01_FULL_EN.mp3",
+      "scope": "current_music_not_tts",
+      "exists": false,
+      "bundled": false,
+      "transcriptVerified": false
+    },
+    {
+      "lesson": "c35-l3-t10-b02",
+      "title": "My Happy Day",
+      "uri": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549515/homi/audio/A-6-7/SONGS/A067_T07_SONG01_FULL_EN.mp3",
+      "scope": "current_music_not_tts",
+      "exists": false,
+      "bundled": false,
+      "transcriptVerified": false
+    },
+    {
+      "lesson": "c67-l3-t08-b01",
+      "title": "Let's Play Together",
+      "uri": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549521/homi/audio/A-8-10/SONGS/A0810_T04_SONG01_FULL_EN.mp3",
+      "scope": "current_music_not_tts",
+      "exists": false,
+      "bundled": false,
+      "transcriptVerified": false
+    },
+    {
+      "lesson": "c810-l1-t01-b02",
+      "title": "My Busy Day",
+      "uri": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549521/homi/audio/A-8-10/SONGS/A0810_T03_SONG01_FULL_EN.mp3",
+      "scope": "current_music_not_tts",
+      "exists": false,
+      "bundled": false,
+      "transcriptVerified": false
+    }
+  ],
+  "limitations": [
+    "Branch audit uses concrete domain execution plus manually traced UI templates, not formal exhaustive reachability.",
+    "Current text counts deduplicate exact text + requested locale; families/scopes overlap and must not be summed.",
+    "No microphone, physical MAIN, BLE, real phone playback or listening/transcription of MP3 contents was performed.",
+    "Metadata/checksum verifies file identity, not whether acoustic speech is correct.",
+    "User vocabulary, translations and server audio are unbounded; no device store or production backend was read.",
+    "Recognition variants and child command corpus are input data, not automatically outgoing speech.",
+    "Legacy raw MP3 cue transcripts are not available in the current data; these are listed separately, not invented."
+  ]
+}

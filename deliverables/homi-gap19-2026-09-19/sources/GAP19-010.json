@@ -1,0 +1,21 @@
+{
+  "id": "GAP19-010",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "HOMI chưa tải được bài học. Bạn thử lại sau nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "wzWXlQSUe9tE9RioSQYL",
+  "historyItemId": "fN2OjwgNt9s2mtGPoalH",
+  "characterCost": "26",
+  "sourceSha256": "450b0bf1a3f420907ce0d8608ed98a6e84131a50e688085b8efd3b9f911e59e6",
+  "createdAt": "2026-09-19T08:11:49.367Z"
+}

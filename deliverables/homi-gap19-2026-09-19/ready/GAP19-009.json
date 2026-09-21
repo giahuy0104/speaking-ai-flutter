@@ -1,0 +1,28 @@
+{
+  "id": "GAP19-009",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Đây là câu cuối. Bạn hãy hoàn thành câu này nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "hpXBukCnP8fsyeFo2qzA",
+  "historyItemId": "z1MwzIMsp30UpR1vUj9t",
+  "characterCost": "26",
+  "sourceSha256": "bb286ccf79741a1ad17e3c3f7c3617646af8ac5f6695a1fe87b5a16324ce68e9",
+  "createdAt": "2026-09-19T08:11:47.174Z",
+  "asset": "assets/audio/MAIN/GAP19/GAP19-009.vi.v1.mp3",
+  "finalSha256": "ac7abbc986cacb7629f7789bb6e51b3ad4d9f3845bdc40a0a76b13f3d91ee147",
+  "sourceDurationSeconds": 2.88,
+  "durationSeconds": 3.180363,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 51871
+}
