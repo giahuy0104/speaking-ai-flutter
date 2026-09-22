@@ -450,6 +450,26 @@ abstract interface class Aiv0BleControl {
   Future<void> dispose();
 }
 
+enum Aiv0BluetoothAdapterState {
+  poweredOn,
+  poweredOff,
+  unauthorized,
+  unsupported,
+  resetting,
+  unknown;
+
+  factory Aiv0BluetoothAdapterState.fromNative(Object? value) {
+    return switch (value?.toString()) {
+      'poweredOn' => Aiv0BluetoothAdapterState.poweredOn,
+      'poweredOff' => Aiv0BluetoothAdapterState.poweredOff,
+      'unauthorized' => Aiv0BluetoothAdapterState.unauthorized,
+      'unsupported' => Aiv0BluetoothAdapterState.unsupported,
+      'resetting' => Aiv0BluetoothAdapterState.resetting,
+      _ => Aiv0BluetoothAdapterState.unknown,
+    };
+  }
+}
+
 class MethodChannelAiv0BleControl implements Aiv0BleControl {
   MethodChannelAiv0BleControl({
     required bool enabled,
@@ -550,6 +570,47 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     await initialize();
     return await _methodChannel.invokeMethod<bool>('requestPermissions') ??
         false;
+  }
+
+  /// Returns the radio state separately from the Bluetooth permission state.
+  /// A granted permission does not mean the user has turned Bluetooth on.
+  Future<Aiv0BluetoothAdapterState> readBluetoothAdapterState() async {
+    if (!_enabled) return Aiv0BluetoothAdapterState.unsupported;
+    await initialize();
+    try {
+      final value = await _methodChannel.invokeMethod<Object?>(
+        'bluetoothAdapterState',
+      );
+      return Aiv0BluetoothAdapterState.fromNative(value);
+    } on MissingPluginException {
+      return Aiv0BluetoothAdapterState.unknown;
+    }
+  }
+
+  /// Android displays the system-owned enable-Bluetooth confirmation. iOS
+  /// cannot turn the radio on programmatically and therefore returns false.
+  Future<bool> requestEnableBluetooth() async {
+    if (!_enabled) return false;
+    try {
+      return await _methodChannel.invokeMethod<bool>(
+            'requestEnableBluetooth',
+          ) ??
+          false;
+    } on MissingPluginException {
+      return false;
+    }
+  }
+
+  /// Opens the supported system settings destination for the current OS.
+  /// Android opens Bluetooth settings; iOS opens HOMI's Settings page.
+  Future<bool> openBluetoothSettings() async {
+    if (!_enabled) return false;
+    try {
+      return await _methodChannel.invokeMethod<bool>('openBluetoothSettings') ??
+          false;
+    } on MissingPluginException {
+      return false;
+    }
   }
 
   @override

@@ -64,6 +64,15 @@ import 'mascot_assets.dart';
 
 enum _H20AutoConnectReason { background, parentSetup }
 
+enum _ParentH20GuidanceAction { cancel, primary }
+
+enum _ParentHfpSelectionResult {
+  selected,
+  unavailable,
+  dismissed,
+  guidanceShown,
+}
+
 class AiSpeakingApp extends StatefulWidget {
   const AiSpeakingApp({super.key});
 
@@ -131,6 +140,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   bool _isGlobalModalOpen = false;
   bool _showFloatingMainButton = false;
   bool _backgroundWorkStarted = false;
+  bool _retryParentH20SetupOnResume = false;
+  bool _parentH20ResumeRetryInProgress = false;
   bool _startupProfileLoading = true;
   bool _startupPermissionRequestInProgress = false;
   bool _startupPermissionsRequestedByParent = false;
@@ -156,7 +167,6 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   final DeviceConnectionFeedbackGate _deviceConnectionFeedbackGate =
       DeviceConnectionFeedbackGate();
   bool _aiv0AutoConnectAttemptActive = false;
-  bool _lastAiv0AutoConnectSucceeded = false;
   Future<bool>? _androidHfpAutoSelectionFuture;
   Future<bool>? _androidMainHfpRoutePreparation;
   bool _androidMainHfpRouteHeld = false;
@@ -235,6 +245,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       return;
     }
     unawaited(_prepareOfflineLanguageModels());
+    if (_retryParentH20SetupOnResume && _privacyConsentGranted) {
+      _retryParentH20SetupOnResume = false;
+      unawaited(_retryParentH20SetupAfterSettings());
+      return;
+    }
     // Flutter state is recreated after a cold launch/TestFlight update, while
     // iOS keeps the system permission grants. Refresh them whenever the app
     // returns to the foreground so MAIN does not stay hidden after the user
@@ -687,7 +702,6 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       _aiv0AutoConnectAttemptActive = false;
     }
     if (!bleConnected) {
-      _lastAiv0AutoConnectSucceeded = false;
       _hideDeviceConnectionFeedback();
       return;
     }
@@ -696,7 +710,6 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       await _autoSelectConnectedAndroidHfp();
     }
     final h20Ready = controller.isH20Ready;
-    _lastAiv0AutoConnectSucceeded = h20Ready;
     if (h20Ready) {
       if (!wasH20Ready) {
         _showDeviceConnectionFeedback(DeviceConnectionFeedbackStage.connected);
@@ -716,6 +729,27 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   }
 
   Future<bool> _configureH20ForParentSetup() async {
+    return _runParentH20Setup(interactive: true);
+  }
+
+  Future<bool> _chooseH20MicrophoneForParentSetup() async {
+    return _runParentH20Setup(interactive: true, forceMicrophonePicker: true);
+  }
+
+  Future<void> _retryParentH20SetupAfterSettings() async {
+    if (_parentH20ResumeRetryInProgress) return;
+    _parentH20ResumeRetryInProgress = true;
+    try {
+      await _runParentH20Setup(interactive: false);
+    } finally {
+      _parentH20ResumeRetryInProgress = false;
+    }
+  }
+
+  Future<bool> _runParentH20Setup({
+    required bool interactive,
+    bool forceMicrophonePicker = false,
+  }) async {
     if (!_privacyConsentGranted) {
       return false;
     }
@@ -727,9 +761,61 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         (_bluetoothPermissionRequired && !_bluetoothPermissionGranted)) {
       return false;
     }
+    if (!await _ensureParentSetupBluetoothReady(interactive: interactive)) {
+      return false;
+    }
+    final controller = _controller;
+    if (controller == null) return false;
+
+    if (forceMicrophonePicker) {
+      final selected = await _selectParentSetupHfpMicrophone(
+        controller,
+        interactive: interactive,
+      );
+      if (selected != _ParentHfpSelectionResult.selected) return false;
+    }
     _lastAiv0AutoConnectAttempt = null;
-    _lastAiv0AutoConnectSucceeded = false;
     await _autoConnectH20Ble(reason: _H20AutoConnectReason.parentSetup);
+    if (controller.isH20Ready) {
+      return await _finishParentH20SetupSuccess();
+    }
+
+    if (interactive && !controller.usesHfpInput) {
+      final selected = await _selectParentSetupHfpMicrophone(
+        controller,
+        interactive: true,
+      );
+      if (selected == _ParentHfpSelectionResult.selected) {
+        _lastAiv0AutoConnectAttempt = null;
+        await _autoConnectH20Ble(reason: _H20AutoConnectReason.parentSetup);
+      } else if (selected == _ParentHfpSelectionResult.dismissed ||
+          selected == _ParentHfpSelectionResult.guidanceShown) {
+        return false;
+      }
+    }
+
+    if (controller.isH20Ready) {
+      return await _finishParentH20SetupSuccess();
+    }
+
+    if (interactive) {
+      await _showIncompleteParentH20Guidance(controller);
+    } else if (mounted) {
+      setState(() {
+        _startupPermissionError = controller.canUseAiv0Ble
+            ? 'Nút MAIN đã kết nối nhưng micro H20 chưa sẵn sàng. Bấm Kết nối thiết bị để chọn micro.'
+            : controller.usesHfpInput
+            ? 'Micro H20 đã sẵn sàng nhưng chưa kết nối được nút MAIN qua BLE.'
+            : 'Chưa kết nối được H20. Hãy kiểm tra Bluetooth và thiết bị rồi thử lại.';
+      });
+    }
+    if (controller.isH20Ready) {
+      return _finishParentH20SetupSuccess();
+    }
+    return false;
+  }
+
+  Future<bool> _finishParentH20SetupSuccess() async {
     if (defaultTargetPlatform == TargetPlatform.android) {
       final deviceId = _aiv0BleControl?.status.deviceId?.trim();
       if (deviceId != null && deviceId.isNotEmpty) {
@@ -740,13 +826,294 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
             _startupPermissionError =
                 'Phụ huynh cần xác nhận H20 trong cửa sổ thiết bị đồng hành của Android để duy trì phiên học nền.';
           });
+          return true;
         }
       }
     }
     if (mounted) {
-      setState(() {});
+      setState(() => _startupPermissionError = null);
     }
-    return _lastAiv0AutoConnectSucceeded || _controller?.isH20Ready == true;
+    return true;
+  }
+
+  Future<bool> _ensureParentSetupBluetoothReady({
+    required bool interactive,
+  }) async {
+    final control = _aiv0BleControl;
+    if (control == null) return false;
+    var state = await control.readBluetoothAdapterState();
+    if (state == Aiv0BluetoothAdapterState.resetting ||
+        state == Aiv0BluetoothAdapterState.unknown) {
+      await Future<void>.delayed(const Duration(milliseconds: 350));
+      state = await control.readBluetoothAdapterState();
+    }
+    if (state == Aiv0BluetoothAdapterState.poweredOn) return true;
+
+    final message = switch (state) {
+      Aiv0BluetoothAdapterState.poweredOff =>
+        'Bluetooth đang tắt. Hãy bật Bluetooth để kết nối với HOMI H20.',
+      Aiv0BluetoothAdapterState.unauthorized =>
+        'HOMI chưa được phép sử dụng Bluetooth. Hãy cho phép Bluetooth trong Cài đặt.',
+      Aiv0BluetoothAdapterState.unsupported =>
+        'Điện thoại này không hỗ trợ Bluetooth Low Energy cần thiết cho HOMI H20.',
+      Aiv0BluetoothAdapterState.resetting =>
+        'Bluetooth đang khởi động lại. Hãy đợi một chút rồi thử lại.',
+      _ => 'Bluetooth chưa sẵn sàng. Hãy kiểm tra Bluetooth rồi thử lại.',
+    };
+    if (mounted) setState(() => _startupPermissionError = message);
+    if (!interactive || state == Aiv0BluetoothAdapterState.unsupported) {
+      return false;
+    }
+
+    if (defaultTargetPlatform == TargetPlatform.android &&
+        state == Aiv0BluetoothAdapterState.poweredOff) {
+      final accepted = await _showParentH20GuidanceDialog(
+        title: 'Bật Bluetooth',
+        message: message,
+        primaryLabel: 'Bật Bluetooth',
+      );
+      if (!accepted) return false;
+      final enabled = await control.requestEnableBluetooth();
+      if (enabled && mounted) {
+        setState(() => _startupPermissionError = null);
+      }
+      return enabled;
+    }
+
+    final openSettings = await _showParentH20GuidanceDialog(
+      title: state == Aiv0BluetoothAdapterState.unauthorized
+          ? 'Cho phép Bluetooth'
+          : 'Bluetooth chưa sẵn sàng',
+      message: defaultTargetPlatform == TargetPlatform.iOS
+          ? '$message\n\nSau khi bật hoặc cho phép Bluetooth, hãy quay lại HOMI. Ứng dụng sẽ tự kiểm tra lại.'
+          : message,
+      primaryLabel: 'Mở Cài đặt',
+    );
+    if (openSettings) {
+      _retryParentH20SetupOnResume = true;
+      await control.openBluetoothSettings();
+    }
+    return false;
+  }
+
+  Future<_ParentHfpSelectionResult> _selectParentSetupHfpMicrophone(
+    ConversationController controller, {
+    required bool interactive,
+  }) async {
+    List<HfpAudioDevice> devices;
+    try {
+      devices = await controller.findHfpDevices();
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _startupPermissionError = 'Chưa thể kiểm tra micro Bluetooth: $error';
+        });
+      }
+      return _ParentHfpSelectionResult.unavailable;
+    }
+    if (devices.isEmpty) {
+      const message =
+          'Chưa tìm thấy micro HOMI H20. Hãy bật H20, kết nối thiết bị trong Cài đặt Bluetooth rồi quay lại HOMI.';
+      if (mounted) setState(() => _startupPermissionError = message);
+      if (interactive) {
+        final openSettings = await _showParentH20GuidanceDialog(
+          title: 'Chưa tìm thấy micro H20',
+          message: message,
+          primaryLabel: 'Mở Cài đặt',
+        );
+        if (openSettings) {
+          _retryParentH20SetupOnResume = true;
+          await _aiv0BleControl?.openBluetoothSettings();
+        }
+      }
+      return interactive
+          ? _ParentHfpSelectionResult.guidanceShown
+          : _ParentHfpSelectionResult.unavailable;
+    }
+    if (!interactive) {
+      final automatic = selectLikelyH20HfpDevice(
+        devices,
+        bleDeviceName:
+            _aiv0BleControl?.status.deviceName ??
+            controller.aiv0BleStatus.deviceName,
+      );
+      if (automatic == null ||
+          (defaultTargetPlatform == TargetPlatform.android &&
+              !automatic.isConnected)) {
+        return _ParentHfpSelectionResult.unavailable;
+      }
+      try {
+        await controller.connectHfpDevice(automatic);
+        return controller.usesHfpInput
+            ? _ParentHfpSelectionResult.selected
+            : _ParentHfpSelectionResult.unavailable;
+      } catch (_) {
+        return _ParentHfpSelectionResult.unavailable;
+      }
+    }
+
+    if (!mounted) return _ParentHfpSelectionResult.dismissed;
+
+    final selected = await showModalBottomSheet<HfpAudioDevice>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                'Chọn micro HOMI H20',
+                style: Theme.of(sheetContext).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                defaultTargetPlatform == TargetPlatform.iOS
+                    ? 'iPhone chỉ hiển thị các micro Bluetooth đang khả dụng. Hãy chọn đúng HOMI H20.'
+                    : 'Hãy chọn HOMI H20 đã ghép đôi. Thiết bị đang kết nối được ưu tiên.',
+                style: Theme.of(sheetContext).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(sheetContext).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 360),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: devices.length,
+                  separatorBuilder: (_, _) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final device = devices[index];
+                    return ListTile(
+                      leading: Icon(
+                        Icons.headset_mic_rounded,
+                        color: device.isConnected
+                            ? AppColors.success
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      title: Text(device.displayName),
+                      subtitle: Text(
+                        device.isConnected
+                            ? 'Đang kết nối'
+                            : defaultTargetPlatform == TargetPlatform.iOS
+                            ? 'Micro Bluetooth khả dụng'
+                            : 'Đã ghép đôi • cần kết nối trong Cài đặt',
+                      ),
+                      trailing: device.isConnected
+                          ? const Icon(
+                              Icons.check_circle_rounded,
+                              color: AppColors.success,
+                            )
+                          : const Icon(Icons.chevron_right_rounded),
+                      onTap: () => Navigator.of(context).pop(device),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (selected == null || !mounted) {
+      return _ParentHfpSelectionResult.dismissed;
+    }
+
+    if (defaultTargetPlatform == TargetPlatform.android &&
+        !selected.isConnected) {
+      final openSettings = await _showParentH20GuidanceDialog(
+        title: 'Kết nối HOMI H20',
+        message:
+            'HOMI H20 đã được ghép đôi nhưng chưa kết nối âm thanh. Hãy kết nối thiết bị trong Cài đặt Bluetooth rồi quay lại.',
+        primaryLabel: 'Mở Cài đặt Bluetooth',
+      );
+      if (openSettings) {
+        _retryParentH20SetupOnResume = true;
+        await _aiv0BleControl?.openBluetoothSettings();
+      }
+      return _ParentHfpSelectionResult.guidanceShown;
+    }
+
+    try {
+      await controller.connectHfpDevice(selected);
+      if (mounted) setState(() => _startupPermissionError = null);
+      return controller.usesHfpInput
+          ? _ParentHfpSelectionResult.selected
+          : _ParentHfpSelectionResult.unavailable;
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _startupPermissionError = 'Chưa thể chọn micro H20: $error';
+        });
+      }
+      return _ParentHfpSelectionResult.unavailable;
+    }
+  }
+
+  Future<void> _showIncompleteParentH20Guidance(
+    ConversationController controller,
+  ) async {
+    final h20State = controller.h20ConnectionState();
+    final bleReady = h20State.bleReady;
+    final hfpReady = h20State.hfpReady;
+    final message = bleReady && !hfpReady
+        ? 'Nút MAIN đã kết nối nhưng micro H20 chưa sẵn sàng. Hãy kết nối H20 trong Cài đặt Bluetooth rồi quay lại.'
+        : hfpReady && !bleReady
+        ? 'Micro H20 đã sẵn sàng nhưng chưa kết nối được nút MAIN. Hãy bật H20, đặt thiết bị gần điện thoại rồi thử lại.'
+        : 'Chưa kết nối được HOMI H20. Hãy bật H20, bật Bluetooth và kết nối thiết bị trong Cài đặt Bluetooth.';
+    if (mounted) setState(() => _startupPermissionError = message);
+    final shouldOpenSettings = !hfpReady;
+    final accepted = await _showParentH20GuidanceDialog(
+      title: bleReady || hfpReady
+          ? 'Kết nối H20 chưa hoàn tất'
+          : 'Chưa kết nối HOMI H20',
+      message: message,
+      primaryLabel: shouldOpenSettings
+          ? defaultTargetPlatform == TargetPlatform.android
+                ? 'Mở Cài đặt Bluetooth'
+                : 'Mở Cài đặt'
+          : 'Thử lại',
+    );
+    if (!accepted) return;
+    if (shouldOpenSettings) {
+      _retryParentH20SetupOnResume = true;
+      await _aiv0BleControl?.openBluetoothSettings();
+      return;
+    }
+    _lastAiv0AutoConnectAttempt = null;
+    await _autoConnectH20Ble(reason: _H20AutoConnectReason.parentSetup);
+  }
+
+  Future<bool> _showParentH20GuidanceDialog({
+    required String title,
+    required String message,
+    required String primaryLabel,
+  }) async {
+    if (!mounted) return false;
+    final action = await showDialog<_ParentH20GuidanceAction>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(
+              dialogContext,
+            ).pop(_ParentH20GuidanceAction.cancel),
+            child: const Text('Để sau'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(
+              dialogContext,
+            ).pop(_ParentH20GuidanceAction.primary),
+            child: Text(primaryLabel),
+          ),
+        ],
+      ),
+    );
+    return action == _ParentH20GuidanceAction.primary;
   }
 
   void _handleAiv0BleFeedbackStatus(Aiv0BleStatus status) {
@@ -950,12 +1317,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     final selected = await _autoSelectConnectedAndroidHfp();
     if (!mounted) return;
     if (selected && _controller?.isH20Ready == true) {
-      _lastAiv0AutoConnectSucceeded = true;
       _showDeviceConnectionFeedback(DeviceConnectionFeedbackStage.connected);
       _deviceConnectionFeedbackGate.clear();
       return;
     }
-    _lastAiv0AutoConnectSucceeded = false;
     if (!_aiv0AutoConnectAttemptActive) {
       _hideDeviceConnectionFeedback();
     }
@@ -2430,6 +2795,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                     ),
                   ),
                   onSetupH20: _configureH20ForParentSetup,
+                  onChooseH20Microphone: _usesIosHfpLifecycle
+                      ? _chooseH20MicrophoneForParentSetup
+                      : null,
                   onAgeSelected: (age) =>
                       setState(() => _pendingStartupAge = age),
                   onCompleteSetup: _completeParentSetup,

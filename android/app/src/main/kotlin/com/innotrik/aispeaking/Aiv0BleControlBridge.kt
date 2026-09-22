@@ -1,6 +1,7 @@
 package com.innotrik.aispeaking
 
 import android.Manifest
+import android.app.Activity
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
@@ -13,10 +14,12 @@ import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
 import io.flutter.plugin.common.BinaryMessenger
@@ -35,6 +38,7 @@ class Aiv0BleControlBridge(
         private const val CONTROL_CHANNEL = "ailingo_aiv0_ble_control"
         private const val EVENT_CHANNEL = "ailingo_aiv0_ble_control/events"
         private const val PERMISSION_REQUEST_CODE = 7395
+        private const val ENABLE_BLUETOOTH_REQUEST_CODE = 7396
         private const val MAX_RECONNECT_ATTEMPTS = 5
         private const val DUPLICATE_WINDOW_MS = 750L
         private const val TAG = "Aiv0BleControl"
@@ -58,6 +62,7 @@ class Aiv0BleControlBridge(
     private val mediaKeyObserver = H20MediaKeyObserver(appContext, ::emitButtonEvent)
 
     private var eventSink: EventChannel.EventSink? = null
+    private var enableBluetoothResult: MethodChannel.Result? = null
     private var phase = "idle"
     private var message: String? = null
     private var deviceId: String? = null
@@ -100,6 +105,9 @@ class Aiv0BleControlBridge(
         when (call.method) {
             "initialize" -> initialize(result)
             "requestPermissions" -> requestPermissions(result)
+            "bluetoothAdapterState" -> result.success(bluetoothAdapterState())
+            "requestEnableBluetooth" -> requestEnableBluetooth(result)
+            "openBluetoothSettings" -> openBluetoothSettings(result)
             "scan" -> scan(call, result)
             "connect" -> connect(call, result)
             "disconnect" -> disconnect(result)
@@ -210,6 +218,79 @@ class Aiv0BleControlBridge(
         message = if (granted) null else "Quyền Bluetooth đã bị từ chối."
         emitStatus()
         return true
+    }
+
+    fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+        if (requestCode != ENABLE_BLUETOOTH_REQUEST_CODE) return false
+        val pending = enableBluetoothResult
+        enableBluetoothResult = null
+        val enabled = resultCode == Activity.RESULT_OK && adapter?.isEnabled == true
+        phase = if (enabled) "idle" else "error"
+        message = if (enabled) null else "Bluetooth vẫn đang tắt."
+        emitStatus()
+        pending?.success(enabled)
+        return true
+    }
+
+    private fun bluetoothAdapterState(): String = when {
+        adapter == null ||
+            !appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) ->
+            "unsupported"
+        !hasPermissions() -> "unauthorized"
+        adapter?.isEnabled == true -> "poweredOn"
+        else -> "poweredOff"
+    }
+
+    private fun requestEnableBluetooth(result: MethodChannel.Result) {
+        if (adapter == null ||
+            !appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
+        ) {
+            result.error("BLE_UNSUPPORTED", "Điện thoại không hỗ trợ BLE.", null)
+            return
+        }
+        if (!hasPermissions()) {
+            result.error("PERMISSION_REQUIRED", "Cần cấp quyền Bluetooth trước.", null)
+            return
+        }
+        if (adapter?.isEnabled == true) {
+            result.success(true)
+            return
+        }
+        if (enableBluetoothResult != null) {
+            result.error(
+                "ENABLE_BLUETOOTH_IN_PROGRESS",
+                "Đang chờ phụ huynh bật Bluetooth.",
+                null,
+            )
+            return
+        }
+        val activity = host.currentActivity
+        if (activity == null) {
+            result.error(
+                "VISIBLE_ACTIVITY_REQUIRED",
+                "Hãy mở HOMI để bật Bluetooth trước khi tiếp tục.",
+                null,
+            )
+            return
+        }
+        enableBluetoothResult = result
+        activity.startActivityForResult(
+            Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE),
+            ENABLE_BLUETOOTH_REQUEST_CODE,
+        )
+    }
+
+    private fun openBluetoothSettings(result: MethodChannel.Result) {
+        val opened = host.startVisibleActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+        if (opened) {
+            result.success(true)
+        } else {
+            result.error(
+                "VISIBLE_ACTIVITY_REQUIRED",
+                "Hãy mở HOMI để đi tới Cài đặt Bluetooth.",
+                null,
+            )
+        }
     }
 
     private fun ensureBluetoothReady(result: MethodChannel.Result): Boolean {
@@ -836,6 +917,8 @@ class Aiv0BleControlBridge(
         pendingWriteResult = null
         permissionResult?.error("DISPOSED", "BLE Control đã đóng.", null)
         permissionResult = null
+        enableBluetoothResult?.error("DISPOSED", "BLE Control đã đóng.", null)
+        enableBluetoothResult = null
         closeGatt()
         methodChannel.setMethodCallHandler(null)
         eventChannel.setStreamHandler(null)

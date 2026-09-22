@@ -4,6 +4,27 @@ import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('AIV0 Bluetooth adapter state', () {
+    test('keeps radio power separate from permission state', () {
+      expect(
+        Aiv0BluetoothAdapterState.fromNative('poweredOn'),
+        Aiv0BluetoothAdapterState.poweredOn,
+      );
+      expect(
+        Aiv0BluetoothAdapterState.fromNative('poweredOff'),
+        Aiv0BluetoothAdapterState.poweredOff,
+      );
+      expect(
+        Aiv0BluetoothAdapterState.fromNative('unauthorized'),
+        Aiv0BluetoothAdapterState.unauthorized,
+      );
+      expect(
+        Aiv0BluetoothAdapterState.fromNative('unexpected'),
+        Aiv0BluetoothAdapterState.unknown,
+      );
+    });
+  });
+
   group('AIV0 native diagnostics', () {
     test('decodes the merged BLE-HFP timeline in chronological order', () {
       final status = Aiv0BleStatus.fromMap(<Object?, Object?>{

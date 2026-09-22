@@ -38,6 +38,7 @@ class StartupSetupScreen extends StatefulWidget {
     this.androidOfflineEnglishModelOptionAvailable = false,
     this.androidOfflineEnglishModelDownloadAllowed = false,
     this.onAndroidOfflineEnglishModelDownloadChanged,
+    this.onChooseH20Microphone,
     this.h20DeviceName,
     this.privacyPolicyUri,
     this.termsUri,
@@ -68,6 +69,7 @@ class StartupSetupScreen extends StatefulWidget {
   final Future<void> Function() onContinueWithoutVoice;
   final VoidCallback onRetryPermissions;
   final Future<bool> Function() onSetupH20;
+  final Future<bool> Function()? onChooseH20Microphone;
   final ValueChanged<int> onAgeSelected;
   final Future<void> Function() onCompleteSetup;
   final bool androidOfflineEnglishModelOptionAvailable;
@@ -511,6 +513,17 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
               busy: _choiceInProgress,
               onPressed: _choiceInProgress || _h20Ready ? null : _setupH20,
             ),
+            if (widget.allowPhoneMicFallback &&
+                !widget.h20HfpConfigured &&
+                widget.onChooseH20Microphone != null) ...<Widget>[
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                key: const Key('startup-choose-h20-microphone'),
+                onPressed: _choiceInProgress ? null : _chooseH20Microphone,
+                icon: const Icon(Icons.headset_mic_rounded),
+                label: const Text('Chọn micro H20'),
+              ),
+            ],
             if (widget.microphoneGranted && !_h20Ready) ...<Widget>[
               const SizedBox(height: 12),
               _InfoBox(
@@ -600,6 +613,23 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
           _deviceConnectionFeedbackStage = null;
         });
       }
+    }
+  }
+
+  Future<void> _chooseH20Microphone() async {
+    final choose = widget.onChooseH20Microphone;
+    if (choose == null) return;
+    setState(() {
+      _choiceInProgress = true;
+      _h20SetupRequested = true;
+    });
+    try {
+      await choose().timeout(
+        const Duration(seconds: 20),
+        onTimeout: () => false,
+      );
+    } finally {
+      if (mounted) setState(() => _choiceInProgress = false);
     }
   }
 

@@ -110,7 +110,8 @@ object HomiAndroidRuntime {
                 hfpAudioBridge.onRequestPermissionsResult(requestCode, grantResults)
 
         fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean =
-            backgroundLearningBridge.onActivityResult(requestCode, resultCode, data)
+            aiv0BleControlBridge.onActivityResult(requestCode, resultCode, data) ||
+                backgroundLearningBridge.onActivityResult(requestCode, resultCode, data)
 
         fun observeMediaKey(key: KeyEvent) = aiv0BleControlBridge.observeMediaKey(key)
 

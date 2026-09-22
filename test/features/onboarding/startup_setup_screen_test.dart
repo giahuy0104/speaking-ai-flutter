@@ -133,6 +133,10 @@ void main() {
       expect(tester.widget<FilledButton>(completeButton).onPressed, isNull);
       expect(find.byKey(const Key('startup-use-phone-mic')), findsNothing);
       expect(
+        find.byKey(const Key('startup-choose-h20-microphone')),
+        findsNothing,
+      );
+      expect(
         find.textContaining('Cần kết nối cả nút MAIN và micro H20'),
         findsOneWidget,
       );
@@ -229,6 +233,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     var completed = false;
+    var microphonePickerOpened = false;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -252,6 +257,10 @@ void main() {
           onContinueWithoutVoice: () async {},
           onRetryPermissions: () {},
           onSetupH20: () async => false,
+          onChooseH20Microphone: () async {
+            microphonePickerOpened = true;
+            return false;
+          },
           onAgeSelected: (_) {},
           onCompleteSetup: () async => completed = true,
         ),
@@ -270,6 +279,14 @@ void main() {
       find.textContaining('Bạn có thể bắt đầu bằng mic iPhone'),
       findsOneWidget,
     );
+    final microphonePicker = find.byKey(
+      const Key('startup-choose-h20-microphone'),
+    );
+    await tester.ensureVisible(microphonePicker);
+    expect(microphonePicker, findsOneWidget);
+    await tester.tap(microphonePicker);
+    await tester.pumpAndSettle();
+    expect(microphonePickerOpened, isTrue);
     final completeButton = find.byKey(const Key('startup-confirm-age'));
     await tester.ensureVisible(completeButton);
     expect(tester.widget<FilledButton>(completeButton).onPressed, isNotNull);

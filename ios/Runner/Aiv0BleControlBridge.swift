@@ -473,6 +473,14 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       emitStatus()
     case "requestPermissions":
       requestPermissions(result)
+    case "bluetoothAdapterState":
+      result(bluetoothAdapterState())
+    case "requestEnableBluetooth":
+      // iOS owns the Bluetooth radio and does not expose a public API that lets
+      // an app turn it on. Flutter presents guidance and may open Settings.
+      result(false)
+    case "openBluetoothSettings":
+      openBluetoothSettings(result)
     case "scan":
       let arguments = call.arguments as? [String: Any]
       let requested = (arguments?["timeoutMs"] as? NSNumber)?.intValue ?? 8_000
@@ -554,6 +562,44 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     )
     central = manager
     return manager
+  }
+
+  private func bluetoothAdapterState() -> String {
+    switch CBManager.authorization {
+    case .denied, .restricted:
+      return "unauthorized"
+    case .notDetermined:
+      return "unknown"
+    case .allowedAlways:
+      switch ensureCentral().state {
+      case .poweredOn:
+        return "poweredOn"
+      case .poweredOff:
+        return "poweredOff"
+      case .unauthorized:
+        return "unauthorized"
+      case .unsupported:
+        return "unsupported"
+      case .resetting:
+        return "resetting"
+      case .unknown:
+        return "unknown"
+      @unknown default:
+        return "unknown"
+      }
+    @unknown default:
+      return "unknown"
+    }
+  }
+
+  private func openBluetoothSettings(_ result: @escaping FlutterResult) {
+    guard let url = URL(string: UIApplication.openSettingsURLString) else {
+      result(false)
+      return
+    }
+    UIApplication.shared.open(url, options: [:]) { opened in
+      result(opened)
+    }
   }
 
   private func requestPermissions(_ result: @escaping FlutterResult) {
