@@ -670,6 +670,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
 
   Future<void> _advance() async {
     if (_index == _entries.length - 1) {
+      final completionGeneration = _generation;
       var reviewHasMore = false;
       if (!_isToday) {
         await widget.store.commitPracticeResults(
@@ -701,6 +702,12 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
             : VocabularyFlowV3.reviewCycleFinished;
       });
       await _speakAndWait(_message);
+      if (!mounted ||
+          _exiting ||
+          _paused ||
+          completionGeneration != _generation) {
+        return;
+      }
       await widget.onRequestVoiceChoice?.call(
         noSpeechRetryPrompt: _message,
         noSpeechExitPrompt: VocabularyFlowV3.pauseAfterNoResponse,

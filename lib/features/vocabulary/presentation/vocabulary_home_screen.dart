@@ -2188,6 +2188,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     await _speakOnSelectedOutput(prompt);
     if (!mounted ||
         !_isEffectivelyActive ||
+        _pausedForMainAssistant ||
         generation != _playbackGeneration) {
       return;
     }
@@ -2204,6 +2205,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   }) async {
     if (!mounted ||
         !_isEffectivelyActive ||
+        _pausedForMainAssistant ||
         widget.onRequestVoiceChoice == null) {
       return;
     }

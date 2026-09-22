@@ -2325,6 +2325,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         language: widget.language,
         lesson: widget.lesson,
         mediaService: widget.mediaService,
+        voicePromptService: _voicePromptService,
         unrecordedSentenceIndexes: unrecordedSentenceIndexes,
         mode: LessonReviewMode.learned,
         hasNextLesson: nextLesson != null,

@@ -261,6 +261,69 @@ void main() {
   );
 
   testWidgets(
+    'MAIN interruption at Today completion does not open a choice microphone',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      const store = VocabularyStore();
+      const sessionStore = VocabularySessionStore();
+      await store.addParentEntries(const <VocabularyTranslation>[
+        VocabularyTranslation(englishText: 'Apple', vietnameseText: 'Quả táo'),
+      ], now: DateTime(2026, 9, 10, 8));
+      final session = await sessionStore.prepareToday(
+        store,
+        now: DateTime(2026, 9, 10, 9),
+      );
+      final registry = ActiveLearningModuleRegistry();
+      final media = _FakeLessonMediaService();
+      final voice = _CompletionBlockingVoice();
+      var choiceRequests = 0;
+      addTearDown(registry.dispose);
+      addTearDown(media.close);
+      addTearDown(voice.complete);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: MaterialApp(
+            theme: buildAppTheme(),
+            home: VocabularyPracticeScreen(
+              language: DisplayLanguage.vietnamese,
+              childAge: 6,
+              session: session!,
+              store: store,
+              sessionStore: sessionStore,
+              mediaService: media,
+              attemptEvaluator: const RecordedAttemptEvaluator(),
+              voicePromptService: voice,
+              samplePause: Duration.zero,
+              autoStart: false,
+              onRequestVoiceChoice:
+                  ({
+                    String? noSpeechRetryPrompt,
+                    String? noSpeechExitPrompt,
+                  }) async {
+                    choiceRequests++;
+                  },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pump(const Duration(milliseconds: 700));
+      await tester.pump();
+      expect(voice.completionStarted, isTrue);
+
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      await tester.pumpAndSettle();
+
+      expect(choiceRequests, 0);
+    },
+  );
+
+  testWidgets(
     'Review shows one combined listen-and-repeat action without a card speaker',
     (tester) async {
       tester.view.physicalSize = const Size(390, 844);
@@ -1045,6 +1108,27 @@ class _FakeVoicePromptService implements VoicePromptService {
 
   @override
   Future<void> stop() async {}
+}
+
+class _CompletionBlockingVoice extends _FakeVoicePromptService {
+  final Completer<void> _completion = Completer<void>();
+  bool completionStarted = false;
+
+  void complete() {
+    if (!_completion.isCompleted) _completion.complete();
+  }
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    spoken.add('$locale:$text');
+    if (text == VocabularyFlowV3.todayCompletion) {
+      completionStarted = true;
+      await _completion.future;
+    }
+  }
+
+  @override
+  Future<void> stop() async => complete();
 }
 
 class _GatedCueVoice extends _FakeVoicePromptService

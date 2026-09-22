@@ -568,6 +568,24 @@ class RunnerTests: XCTestCase {
     )
   }
 
+  func testIOSPromptDoesNotReuseAStaleHfpRouteAfterSessionDeactivation() {
+    XCTAssertFalse(
+      IOSHfpRouteReusePolicy.canReuse(
+        hasTwoWayHfpRoute: true,
+        audioSessionActive: false
+      )
+    )
+  }
+
+  func testIOSCaptureDoesNotReuseAStaleHfpRouteAfterInterruption() {
+    XCTAssertFalse(
+      IOSHfpRouteReusePolicy.canReuse(
+        hasTwoWayHfpRoute: true,
+        audioSessionActive: false
+      )
+    )
+  }
+
   func testIOSHfpInputSelectionRecoversTheSameH20AfterUIDChanges() {
     let selected = IOSHfpInputSelectionPolicy.select(
       from: [

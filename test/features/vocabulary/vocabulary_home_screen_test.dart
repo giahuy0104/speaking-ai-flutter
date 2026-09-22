@@ -1220,6 +1220,62 @@ void main() {
     expect(find.text('Ngôi sao của bạn'), findsOneWidget);
   });
 
+  testWidgets(
+    'MAIN interruption does not open a vocabulary choice microphone',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final prompt = _InterruptibleVoicePromptService();
+      var choiceRequests = 0;
+      addTearDown(registry.dispose);
+      addTearDown(prompt.complete);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: ActiveLearningModuleScope(
+            registry: registry,
+            child: DisplayLanguageScope(
+              language: DisplayLanguage.vietnamese,
+              child: VocabularyHomeScreen(
+                isReady: true,
+                isActive: true,
+                store: _MemoryVocabularyStore(),
+                mediaService: _ImmediateLessonMediaService(),
+                voicePromptService: prompt,
+                fixedPromptAudioService:
+                    const _UnavailableFixedPromptAudioService(),
+                onRequestVoiceChoice:
+                    ({
+                      String? noSpeechRetryPrompt,
+                      String? noSpeechExitPrompt,
+                    }) async {
+                      choiceRequests++;
+                    },
+                onReturnToConversation: () {},
+                onHistory: () {},
+                onSettings: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        (await registry.execute(
+          ActiveLearningCommand.vocabularyStars,
+        )).wasHandled,
+        isTrue,
+      );
+      await tester.pump();
+      expect(prompt.started, isTrue);
+
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      await tester.pumpAndSettle();
+
+      expect(choiceRequests, 0);
+    },
+  );
+
   testWidgets('MAIN vocabulary prompt failure is handled and can retry', (
     tester,
   ) async {
@@ -1340,6 +1396,31 @@ class _FakeVoicePromptService implements VoicePromptService {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _InterruptibleVoicePromptService implements VoicePromptService {
+  final Completer<void> _speech = Completer<void>();
+  bool started = false;
+
+  void complete() {
+    if (!_speech.isCompleted) _speech.complete();
+  }
+
+  @override
+  Future<void> speak(String text, {String locale = 'vi-VN'}) =>
+      speakAndWait(text, locale: locale);
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    started = true;
+    await _speech.future;
+  }
+
+  @override
+  Future<void> stop() async => complete();
+
+  @override
+  Future<void> dispose() async => complete();
 }
 
 class _FakeVocabularyDictionaryProvider

@@ -450,7 +450,10 @@ final class IOSAudioSessionCoordinator: NSObject {
       let currentRouteUsesPreferredHfp = preferredHfpInput.map { preferredInput in
         session.currentRoute.inputs.contains { $0.uid == preferredInput.uid }
       } ?? true
-      if hasTwoWayHfpRoute(), currentRouteUsesPreferredHfp {
+      if IOSHfpRouteReusePolicy.canReuse(
+        hasTwoWayHfpRoute: hasTwoWayHfpRoute(),
+        audioSessionActive: isAudioSessionActive
+      ), currentRouteUsesPreferredHfp {
         trace(stage: "prompt_audio_route_reused", caller: caller)
         return true
       }
@@ -692,7 +695,10 @@ final class IOSAudioSessionCoordinator: NSObject {
     do {
       switch target {
       case .hfp:
-        if hasTwoWayHfpRoute() {
+        if IOSHfpRouteReusePolicy.canReuse(
+          hasTwoWayHfpRoute: hasTwoWayHfpRoute(),
+          audioSessionActive: isAudioSessionActive
+        ) {
           trace(stage: "audio_session_active", caller: caller, values: ["audioSource": target.rawValue])
           trace(stage: "route_confirmed", caller: caller, values: ["audioSource": target.rawValue])
           if !captureWasAlreadyPrepared {

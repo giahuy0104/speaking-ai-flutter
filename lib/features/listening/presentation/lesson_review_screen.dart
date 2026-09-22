@@ -436,7 +436,11 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
         _message = context.tr('Bài học đang tạm dừng.', '课程已暂停。');
       });
     }
-    await widget.mediaService.stopPlayback().catchError((Object _) {});
+    await Future.wait<void>(<Future<void>>[
+      widget.mediaService.stopPlayback().catchError((Object _) {}),
+      if (_voicePromptService != null)
+        _voicePromptService!.stop().catchError((Object _) {}),
+    ]);
   }
 
   void _resumeFromMain({bool replay = false}) {

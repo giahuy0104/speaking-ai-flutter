@@ -2076,6 +2076,45 @@ void main() {
     await tester.pump();
   });
 
+  testWidgets('MAIN stops the learned review announcement', (tester) async {
+    await _usePhoneSurface(tester);
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final mediaService = _GuidedMediaService();
+    final voicePrompt = _BlockingVoicePromptService();
+
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: MaterialApp(
+          theme: buildAppTheme(),
+          home: LessonReviewScreen(
+            language: DisplayLanguage.vietnamese,
+            lesson: _lesson(sentenceCount: 2),
+            mediaService: mediaService,
+            mode: LessonReviewMode.learned,
+            voicePromptService: voicePrompt,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(voicePrompt.spoken, hasLength(1));
+    expect(voicePrompt.isSpeaking, isTrue);
+    expect(await registry.pauseForMainAssistant(), isTrue);
+    await tester.pump();
+
+    expect(voicePrompt.stopCalls, 1);
+    expect(voicePrompt.isSpeaking, isFalse);
+    expect(registry.isActiveModulePaused, isTrue);
+    expect(find.text('Bài học đang tạm dừng.'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
   testWidgets('review only auto-plays after the toggle is activated', (
     tester,
   ) async {
@@ -2837,6 +2876,7 @@ class _CallerOwnedAttemptEvaluator
 
 class _FakeVoicePromptService implements VoicePromptService {
   final List<String> spoken = <String>[];
+  int stopCalls = 0;
 
   @override
   Future<void> speak(String text, {String locale = 'vi-VN'}) async {
@@ -2848,10 +2888,34 @@ class _FakeVoicePromptService implements VoicePromptService {
       speak(text, locale: locale);
 
   @override
-  Future<void> stop() async {}
+  Future<void> stop() async {
+    stopCalls += 1;
+  }
 
   @override
   Future<void> dispose() async {}
+}
+
+class _BlockingVoicePromptService extends _FakeVoicePromptService {
+  Completer<void>? _activePrompt;
+
+  bool get isSpeaking => _activePrompt != null;
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) {
+    spoken.add('$locale|$text');
+    return (_activePrompt = Completer<void>()).future;
+  }
+
+  @override
+  Future<void> stop() async {
+    await super.stop();
+    final activePrompt = _activePrompt;
+    _activePrompt = null;
+    if (activePrompt != null && !activePrompt.isCompleted) {
+      activePrompt.complete();
+    }
+  }
 }
 
 class _IntroEventVoicePromptService implements VoicePromptService {
