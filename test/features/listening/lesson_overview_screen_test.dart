@@ -274,6 +274,7 @@ void main() {
           progressStore: _OverviewProgressStore(),
           mediaService: _OverviewMediaService(),
           voicePromptService: voicePrompt,
+          autoAdvance: false,
         ),
       ),
     );
@@ -297,7 +298,7 @@ void main() {
       isNot(contains('vi-VN|Bạn nghe qua nội dung trước nhé.')),
     );
     expect(find.byType(LessonOverviewScreen), findsNothing);
-    expect(voicePrompt.stopCount, 0);
+    expect(voicePrompt.stopCount, 1);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();

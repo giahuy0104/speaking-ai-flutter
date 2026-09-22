@@ -14,6 +14,14 @@ void main() {
 
   Map<String, dynamic> read(String path) =>
       jsonDecode(File(path).readAsStringSync()) as Map<String, dynamic>;
+  Map<String, dynamic> withoutCombinedHookAudio(Map<String, dynamic> topic) {
+    final normalized = jsonDecode(jsonEncode(topic)) as Map<String, dynamic>;
+    for (final lesson in normalized['lessons'] as List) {
+      (lesson as Map<String, dynamic>).remove('combinedHookAudioUrl');
+    }
+    return normalized;
+  }
+
   final raw = read('assets/data/listening_lessons.json');
   final patch = read('assets/data/listening_topic_patch_v42.json');
   final oldGroups = (patch['oldTopics'] as List).cast<Map<String, dynamic>>();
@@ -106,11 +114,21 @@ void main() {
     for (final group in raw['groups'] as List) {
       for (final topic in group['topics'] as List) {
         if (newTopics.containsKey(topic['id'])) {
-          expect(topic, newTopics[topic['id']]);
+          // Combined lesson hooks were added after the v4.2 content patch and
+          // are verified independently. Keep this regression guard focused on
+          // every other topic and lesson field from that patch.
+          expect(
+            withoutCombinedHookAudio(topic as Map<String, dynamic>),
+            withoutCombinedHookAudio(newTopics[topic['id']]!),
+          );
         } else {
           untouched.add(topic as Map<String, dynamic>);
           expect(
-            sha256.convert(utf8.encode(jsonEncode(topic))).toString(),
+            sha256
+                .convert(
+                  utf8.encode(jsonEncode(withoutCombinedHookAudio(topic))),
+                )
+                .toString(),
             hashes[topic['id']],
             reason: 'Unrelated topic ${topic['id']} was changed',
           );
