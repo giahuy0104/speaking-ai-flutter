@@ -123,6 +123,47 @@ No actionable P0, P1 or P2 findings remain. Minor platform-specific text rasteri
 
 final result: passed
 
+## Home edge rail refinement — slim body and stacked labels
+
+### Visual truth and captures
+
+- Source visual truth: `C:\Users\Windows\AppData\Local\Temp\codex-clipboard-ba57f985-b3cb-4153-8c4a-d84276140564.png` (854 × 1820 px).
+- Prior implementation reference: `C:\Users\Windows\AppData\Local\Temp\codex-clipboard-f2d06545-1ba9-4d16-8a19-b8ca4452d1b9.png` (870 × 1870 px).
+- Rendered implementation: `D:\Documents\ai-speaking-flutter-app\test\features\home\goldens\home-communication-390x844.png` (390 × 844 px at DPR 1).
+- Dark-mode regression capture: `D:\Documents\ai-speaking-flutter-app\test\features\home\goldens\dark-home-communication-390x844.png`.
+- Full-view comparison: `D:\CodexData\.codex\visualizations\2026\09\21\01a0c37d-08ef-7ab1-8fb5-df65460505e6\homi-home-rail-full-comparison.png`.
+- Focused rail comparison: `D:\CodexData\.codex\visualizations\2026\09\21\01a0c37d-08ef-7ab1-8fb5-df65460505e6\homi-home-rail-focused-comparison.png`.
+- Viewport/state: 390 × 844 logical pixels, ready/light; dark mode checked separately. The source was normalized from 854 × 1820 to 390 × 844 for visual comparison.
+
+### Required fidelity surfaces
+
+- Fonts and typography: each non-space Vietnamese or Chinese character is rendered on its own line at 14 px, weight 900 and 1.1 line height. The complete label remains intact in accessibility semantics. This intentionally differs from the rotated whole-word treatment in the image because the user's written direction explicitly overrides it.
+- Spacing and layout rhythm: each control has a 48 × 184 cross-platform touch target, while the visible white face is only 38 px wide. Elliptical inner corners, lighter shadows and narrower navy/mint layers preserve the soft mock-up silhouette without making the control visually heavy.
+- Colors and visual tokens: the existing navy, mint, warm-white and pink tokens are unchanged.
+- Image quality and assets: no raster assets or icons were changed; the existing mascot and scenery retain their approved crop and quality.
+- Copy and content: `Từ vựng` and `Chủ đề` are unchanged semantically; only their visual line arrangement changed.
+- Accessibility and responsiveness: visual text scaling is capped at 1.15 inside the fixed-width rail, while screen readers receive the full label and both controls retain a 48 px touch target. The 200% text-scale small-screen test passes.
+
+### Comparison history
+
+| Severity | Earlier finding | Fix | Post-fix evidence |
+| --- | --- | --- | --- |
+| P2 | The original 50 × 176 rails looked heavier than requested. | Separated touch size from painted size: the final 48 × 184 control paints a 38 px face with lighter layers and shadows. | Full-view and focused comparisons show a slimmer silhouette while retaining a safe hit target. |
+| P2 | Each label was a horizontal phrase rotated 90 degrees rather than individual vertical characters. | Removed `RotatedBox` and stacked each non-space Unicode character on a separate line. | Focused comparison shows `T / ừ / v / ự / n / g` and `C / h / ủ / đ / ề`. |
+| P2 | The first stacked-label pass at 44 × 170 made the type too small and cramped, and left only a 44 px hit target. | Increased rail height, raised the label to 14 px/900 weight, softened the curved layers and restored a 48 px hit target without widening the visible face. | The final focused comparison shows readable vertical labels and balanced icon-to-type proportions. |
+| P2 | The Topic rail sat 18 px lower than the Vocabulary rail even though both controls had equal dimensions. | Positioned both rails with the same responsive `railTop` value. | The final light/dark captures and geometry test show matching top and bottom edges. |
+
+### Verification
+
+- Home behavior suite and Android/iOS variants: 28/28 tests passed.
+- Small-screen, 200% text scaling, semantics and reduced motion: passed.
+- Complete Home golden suite: 6/6 tests passed in light and dark states.
+- Static analysis: passed with no issues.
+
+No actionable P0, P1 or P2 findings remain in the requested edge-rail scope.
+
+final result: passed
+
 ## Vocabulary detail polish — centered titles, numbered queue, quiet selection
 
 ### Visual truth and captures

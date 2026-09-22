@@ -24,9 +24,11 @@ class HomeModeRail extends StatelessWidget {
   final String? badge;
   final bool expanded;
 
-  static const double _collapsedWidth = 50;
-  static const double _collapsedHeight = 176;
-  static const double _collapsedHeightWithBadge = 190;
+  // Keep a full cross-platform touch target while the painted rail remains
+  // deliberately slimmer than the tappable area.
+  static const double _collapsedWidth = 48;
+  static const double _collapsedHeight = 184;
+  static const double _collapsedHeightWithBadge = 198;
   static const double _expandedWidth = 138;
   static const double _expandedHeight = 184;
 
@@ -135,10 +137,10 @@ class _CollapsedRailContent extends StatelessWidget {
         ? theme.colorScheme.primary
         : AppColors.primaryNavy;
     final faceRadius = BorderRadius.only(
-      topLeft: Radius.circular(isLeft ? 0 : 22),
-      bottomLeft: Radius.circular(isLeft ? 0 : 22),
-      topRight: Radius.circular(isLeft ? 22 : 0),
-      bottomRight: Radius.circular(isLeft ? 22 : 0),
+      topLeft: isLeft ? Radius.zero : const Radius.elliptical(20, 30),
+      bottomLeft: isLeft ? Radius.zero : const Radius.elliptical(20, 30),
+      topRight: isLeft ? const Radius.elliptical(20, 30) : Radius.zero,
+      bottomRight: isLeft ? const Radius.elliptical(20, 30) : Radius.zero,
     );
 
     return SizedBox(
@@ -151,8 +153,8 @@ class _CollapsedRailContent extends StatelessWidget {
           Positioned(
             top: 0,
             bottom: 0,
-            left: isLeft ? 0 : 12,
-            right: isLeft ? 12 : 0,
+            left: isLeft ? 0 : 15,
+            right: isLeft ? 15 : 0,
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: isDark
@@ -161,19 +163,19 @@ class _CollapsedRailContent extends StatelessWidget {
                 borderRadius: faceRadius,
                 boxShadow: const <BoxShadow>[
                   BoxShadow(
-                    color: Color(0x32142451),
-                    blurRadius: 16,
-                    offset: Offset(0, 8),
+                    color: Color(0x24142451),
+                    blurRadius: 10,
+                    offset: Offset(0, 5),
                   ),
                 ],
               ),
             ),
           ),
           Positioned(
-            top: 14,
-            bottom: 14,
-            left: isLeft ? 0 : 3,
-            right: isLeft ? 3 : 0,
+            top: 12,
+            bottom: 12,
+            left: isLeft ? 0 : 7,
+            right: isLeft ? 7 : 0,
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: isDark ? theme.colorScheme.tertiary : AppColors.mint,
@@ -182,12 +184,12 @@ class _CollapsedRailContent extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: (railHeight - 34) / 2,
-            left: isLeft ? 40 : null,
-            right: isLeft ? null : 40,
+            top: (railHeight - 30) / 2,
+            left: isLeft ? 38 : null,
+            right: isLeft ? null : 38,
             child: Container(
-              width: 12,
-              height: 34,
+              width: 10,
+              height: 30,
               decoration: BoxDecoration(
                 color: isDark
                     ? theme.colorScheme.secondary
@@ -207,10 +209,10 @@ class _CollapsedRailContent extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 18,
-            bottom: 18,
-            left: isLeft ? 0 : 4,
-            right: isLeft ? 4 : 0,
+            top: 17,
+            bottom: 17,
+            left: isLeft ? 0 : 10,
+            right: isLeft ? 10 : 0,
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: faceColor,
@@ -223,30 +225,32 @@ class _CollapsedRailContent extends StatelessWidget {
                 ),
                 boxShadow: const <BoxShadow>[
                   BoxShadow(
-                    color: Color(0x24142451),
-                    blurRadius: 12,
-                    offset: Offset(0, 5),
+                    color: Color(0x1A142451),
+                    blurRadius: 8,
+                    offset: Offset(0, 3),
                   ),
                 ],
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 13),
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Column(
                   children: <Widget>[
-                    Icon(icon, color: contentColor, size: 23),
-                    const SizedBox(height: 11),
+                    Icon(icon, color: contentColor, size: 22),
+                    const SizedBox(height: 8),
                     Expanded(
                       child: Center(
-                        child: RotatedBox(
-                          quarterTurns: 1,
+                        child: MediaQuery.withClampedTextScaling(
+                          maxScaleFactor: 1.15,
                           child: Text(
-                            label,
-                            maxLines: 1,
+                            _stackedLabel(label),
+                            key: const Key('home-mode-rail-stacked-label'),
+                            textAlign: TextAlign.center,
+                            softWrap: false,
                             style: TextStyle(
                               color: contentColor,
                               fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.1,
+                              fontWeight: FontWeight.w900,
+                              height: 1.1,
                             ),
                           ),
                         ),
@@ -291,4 +295,11 @@ class _CollapsedRailContent extends StatelessWidget {
       ),
     );
   }
+
+  String _stackedLabel(String value) => value
+      .trim()
+      .replaceAll(RegExp(r'\s+'), '')
+      .runes
+      .map(String.fromCharCode)
+      .join('\n');
 }

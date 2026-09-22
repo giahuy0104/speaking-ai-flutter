@@ -58,11 +58,32 @@ void main() {
       final topicTabRect = tester.getRect(
         find.byKey(const Key('topic-listening-edge-tab')),
       );
-      expect(vocabularyTabRect.width, closeTo(50, 0.01));
-      expect(vocabularyTabRect.height, closeTo(176, 0.01));
-      expect(topicTabRect.width, closeTo(50, 0.01));
-      expect(topicTabRect.height, closeTo(176, 0.01));
-      expect(topicTabRect.top - vocabularyTabRect.top, closeTo(18, 0.01));
+      expect(vocabularyTabRect.width, closeTo(48, 0.01));
+      expect(vocabularyTabRect.height, closeTo(184, 0.01));
+      expect(topicTabRect.width, closeTo(48, 0.01));
+      expect(topicTabRect.height, closeTo(184, 0.01));
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('vocabulary-edge-tab')),
+          matching: find.text('T\nừ\nv\nự\nn\ng'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('topic-listening-edge-tab')),
+          matching: find.text('C\nh\nủ\nđ\nề'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('vocabulary-edge-tab')),
+          matching: find.byType(RotatedBox),
+        ),
+        findsNothing,
+      );
+      expect(topicTabRect.top, closeTo(vocabularyTabRect.top, 0.01));
       expect(vocabularyTabRect.top, closeTo(844 * 0.27, 0.01));
       expect(find.byKey(const Key('conversation-bottom-tab')), findsNothing);
       expect(

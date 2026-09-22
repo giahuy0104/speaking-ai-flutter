@@ -411,9 +411,6 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         final railTop = (screenSize.height * (compact ? 0.27 : 0.25))
             .clamp(safeTop + 148, screenSize.height - 238)
             .toDouble();
-        final topicRailTop = (railTop + 18)
-            .clamp(safeTop + 166, screenSize.height - 220)
-            .toDouble();
         return DisplayLanguageScope(
           language: widget.controller.displayLanguage,
           child: PopScope<void>(
@@ -498,7 +495,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                     ),
                   ),
                   PositionedDirectional(
-                    top: topicRailTop,
+                    top: railTop,
                     end: 0,
                     child: KeyedSubtree(
                       key: _topicTabKey,
