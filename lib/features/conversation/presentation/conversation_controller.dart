@@ -2836,6 +2836,8 @@ class ConversationController extends ChangeNotifier
       return;
     }
     final turnGeneration = _conversationTurnGeneration;
+    final resultBeforeTurn = result;
+    var publishedResultForTurn = false;
     _stopInProgress = true;
     _adaptiveWebUpload?.markStopRequested(manual: manual);
     _partialPreviewTimer?.cancel();
@@ -3288,6 +3290,7 @@ class ConversationController extends ChangeNotifier
         }
       }
       result = nextResult;
+      publishedResultForTurn = true;
       _processingStageTimer?.cancel();
       processingStage = ConversationProcessingStage.preparingAudio;
       errorMessage = null;
@@ -3366,6 +3369,9 @@ class ConversationController extends ChangeNotifier
     } catch (error) {
       if (turnGeneration != _conversationTurnGeneration) {
         return;
+      }
+      if (!publishedResultForTurn && identical(result, resultBeforeTurn)) {
+        _clearPresentationResultState();
       }
       _lastTurnEndReason = ConversationTurnEndReason.failed;
       await _handleConversationError(error);
@@ -4132,7 +4138,12 @@ class ConversationController extends ChangeNotifier
   /// Listening lessons own a separate speech flow. Returning from one should
   /// not present an older conversation turn as if it came from that lesson.
   void clearPresentationResult() {
-    if (result == null) return;
+    if (!_clearPresentationResultState()) return;
+    notifyListeners();
+  }
+
+  bool _clearPresentationResultState() {
+    if (result == null) return false;
     result = null;
     qualityApproved = null;
     _previewGeneration += 1;
@@ -4142,7 +4153,7 @@ class ConversationController extends ChangeNotifier
     if (phase == ConversationPhase.ready) {
       phase = ConversationPhase.idle;
     }
-    notifyListeners();
+    return true;
   }
 
   void showH20ConnectionMessage(String message) {

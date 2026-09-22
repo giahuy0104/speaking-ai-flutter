@@ -343,50 +343,75 @@ class NextConversationRepository
       bluetoothAudioInput: capture.isBluetoothInput,
       initialNoiseRms: capture.initialNoiseRms,
     );
-    final response = await _client
-        .post(
-          _config.resolve('/api/conversation'),
-          headers: const <String, String>{'content-type': 'application/json'},
-          body: jsonEncode(<String, dynamic>{
-            'clientId': clientId,
-            'context': context.apiValue,
-            'childAge': childAge,
-            'sourceText': capture.sourceText,
-            'asrMode': capture.asrMode,
-            'benchmark': <String, dynamic>{
-              ...benchmark.toJson(),
-              if (capture.confidence != null)
-                'asrConfidence': capture.confidence,
-              if (capture.firstResultMs != null)
-                'asrFirstDeltaMs': capture.firstResultMs,
-              'asrFinalAfterStopMs': capture.finalAfterStopMs,
-              if (capture.realtimeSessionCreateMs != null)
-                'realtimeSessionCreateMs': capture.realtimeSessionCreateMs,
-              if (capture.realtimeWebSocketConnectMs != null)
-                'realtimeWebSocketConnectMs':
-                    capture.realtimeWebSocketConnectMs,
-              if (capture.realtimeWebSocketOpenAfterRecordingMs != null)
-                'realtimeWebSocketOpenAfterRecordingMs':
-                    capture.realtimeWebSocketOpenAfterRecordingMs,
-              if (capture.realtimeChunkDurationMs != null)
-                'realtimeChunkDurationMs': capture.realtimeChunkDurationMs,
-              if (capture.workerAsrPilotRttMs != null)
-                'workerAsrPilotRttMs': capture.workerAsrPilotRttMs,
-              if (capture.workerAsrPilotAsrMs != null)
-                'workerAsrPilotAsrMs': capture.workerAsrPilotAsrMs,
-              if (capture.workerAsrPilotAudioBytes != null)
-                'workerAsrPilotAudioBytes': capture.workerAsrPilotAudioBytes,
-              if (capture.extraBenchmark != null) ...capture.extraBenchmark!,
-            },
-          }),
-        )
-        .timeout(const Duration(seconds: 20));
-    final json = _decodeResponse(response);
+    final uri = _config.resolve('/api/conversation');
+    final body = jsonEncode(<String, dynamic>{
+      'clientId': clientId,
+      'context': context.apiValue,
+      'childAge': childAge,
+      'sourceText': capture.sourceText,
+      'asrMode': capture.asrMode,
+      'benchmark': <String, dynamic>{
+        ...benchmark.toJson(),
+        if (capture.confidence != null) 'asrConfidence': capture.confidence,
+        if (capture.firstResultMs != null)
+          'asrFirstDeltaMs': capture.firstResultMs,
+        'asrFinalAfterStopMs': capture.finalAfterStopMs,
+        if (capture.realtimeSessionCreateMs != null)
+          'realtimeSessionCreateMs': capture.realtimeSessionCreateMs,
+        if (capture.realtimeWebSocketConnectMs != null)
+          'realtimeWebSocketConnectMs': capture.realtimeWebSocketConnectMs,
+        if (capture.realtimeWebSocketOpenAfterRecordingMs != null)
+          'realtimeWebSocketOpenAfterRecordingMs':
+              capture.realtimeWebSocketOpenAfterRecordingMs,
+        if (capture.realtimeChunkDurationMs != null)
+          'realtimeChunkDurationMs': capture.realtimeChunkDurationMs,
+        if (capture.workerAsrPilotRttMs != null)
+          'workerAsrPilotRttMs': capture.workerAsrPilotRttMs,
+        if (capture.workerAsrPilotAsrMs != null)
+          'workerAsrPilotAsrMs': capture.workerAsrPilotAsrMs,
+        if (capture.workerAsrPilotAudioBytes != null)
+          'workerAsrPilotAudioBytes': capture.workerAsrPilotAudioBytes,
+        if (capture.extraBenchmark != null) ...capture.extraBenchmark!,
+      },
+    });
+    Object? lastError;
 
-    return ConversationResult.fromJson(
-      json,
-      backendBaseUri: _config.backendBaseUri,
-    );
+    // This endpoint does not yet expose an idempotency contract. Retry only
+    // responses which explicitly say the request was deferred/rate-limited;
+    // transport failures, timeouts and generic 5xx responses may have committed
+    // a conversation already and must not create duplicate history entries.
+    for (var attempt = 1; attempt <= 3; attempt += 1) {
+      try {
+        final response = await _client
+            .post(
+              uri,
+              headers: const <String, String>{
+                'content-type': 'application/json',
+              },
+              body: body,
+            )
+            .timeout(const Duration(seconds: 20));
+        return ConversationResult.fromJson(
+          _decodeResponse(response),
+          backendBaseUri: _config.backendBaseUri,
+        );
+      } catch (error) {
+        lastError = error;
+        if (!_isSafeStreamingTextRetry(error) || attempt == 3) {
+          rethrow;
+        }
+      }
+
+      await Future<void>.delayed(
+        _conversationRetryDelay(
+          error: lastError,
+          attempt: attempt,
+          baseMs: 250,
+        ),
+      );
+    }
+
+    throw StateError('Unreachable streaming-text retry state.');
   }
 
   @override
@@ -3022,6 +3047,13 @@ bool _isRetryableConversationRequest(Object error) {
     return true;
   }
   return error is RetryableConversationException && error.isRetryable;
+}
+
+bool _isSafeStreamingTextRetry(Object error) {
+  if (error is! ConversationApiException) return false;
+  return error.statusCode == 425 ||
+      error.statusCode == 429 ||
+      (error.statusCode == 409 && error.errorCode == 'RATE_LIMITED');
 }
 
 final math.Random _conversationRetryRandom = math.Random();

@@ -224,6 +224,185 @@ void main() {
     },
   );
 
+  for (final retryCase in <({int status, String code})>[
+    (status: 425, code: 'TOO_EARLY'),
+    (status: 429, code: 'RATE_LIMITED'),
+    (status: 409, code: 'RATE_LIMITED'),
+  ]) {
+    test(
+      'retries streaming text after ${retryCase.status} ${retryCase.code} with the same payload',
+      () async {
+        var requestCount = 0;
+        final requestBodies = <String>[];
+        final repository = NextConversationRepository(
+          config: config,
+          clientIdProvider: clientIdProvider,
+          client: MockClient((request) async {
+            requestCount += 1;
+            requestBodies.add(request.body);
+            if (requestCount == 1) {
+              return http.Response(
+                jsonEncode(<String, dynamic>{
+                  'error': <String, dynamic>{
+                    'code': retryCase.code,
+                    'message': 'Backend đang bận.',
+                  },
+                }),
+                retryCase.status,
+                headers: const <String, String>{
+                  'content-type': 'application/json; charset=utf-8',
+                  'retry-after': '0',
+                },
+              );
+            }
+            return http.Response(
+              jsonEncode(<String, dynamic>{
+                'conversationId': 'conv_retry',
+                'sessionId': 'sess_retry',
+                'context': 'home',
+                'vietnameseText': 'Hôm nay trời đẹp quá',
+                'englishText': 'The weather is beautiful today.',
+                'audioUrl': '/generated-audio/retry.mp3',
+                'processingMode': 'llm',
+                'textSource': 'llm',
+                'audioSource': 'cache',
+                'asrMode': 'android_streaming',
+                'latency': <String, dynamic>{},
+              }),
+              200,
+              headers: const <String, String>{
+                'content-type': 'application/json',
+              },
+            );
+          }),
+        );
+
+        final result = await repository.processStreamingText(
+          capture: const StreamingSpeechCapture(
+            sourceText: 'Hôm nay trời đẹp quá',
+            duration: Duration(seconds: 2),
+            inputLabel: 'Apple Speech',
+            confidence: 0.9,
+            firstResultMs: 200,
+            finalAfterStopMs: 50,
+          ),
+          context: PracticeContext.home,
+          childAge: 6,
+          vadSilenceMs: 700,
+        );
+
+        expect(result.conversationId, 'conv_retry');
+        expect(requestCount, 2);
+        expect(requestBodies, hasLength(2));
+        expect(requestBodies[1], requestBodies[0]);
+        await repository.dispose();
+      },
+    );
+  }
+
+  test('does not retry an unrelated 409 response', () async {
+    var requestCount = 0;
+    final repository = NextConversationRepository(
+      config: config,
+      clientIdProvider: clientIdProvider,
+      client: MockClient((request) async {
+        requestCount += 1;
+        return http.Response(
+          jsonEncode(<String, dynamic>{
+            'error': <String, dynamic>{
+              'code': 'AUDIO_CHUNK_CONFLICT',
+              'message': 'Conflict.',
+            },
+          }),
+          409,
+        );
+      }),
+    );
+
+    await expectLater(
+      repository.processStreamingText(
+        capture: const StreamingSpeechCapture(
+          sourceText: 'Xin chào',
+          duration: Duration(seconds: 1),
+          inputLabel: 'Apple Speech',
+          confidence: 0.9,
+          firstResultMs: 100,
+          finalAfterStopMs: 20,
+        ),
+        context: PracticeContext.home,
+        childAge: 6,
+        vadSilenceMs: 700,
+      ),
+      throwsA(isA<ConversationApiException>()),
+    );
+    expect(requestCount, 1);
+    await repository.dispose();
+  });
+
+  for (final status in <int>[500, 503]) {
+    test('does not retry streaming text after HTTP $status', () async {
+      var requestCount = 0;
+      final repository = NextConversationRepository(
+        config: config,
+        clientIdProvider: clientIdProvider,
+        client: MockClient((request) async {
+          requestCount += 1;
+          return http.Response('{}', status);
+        }),
+      );
+
+      await expectLater(
+        repository.processStreamingText(
+          capture: const StreamingSpeechCapture(
+            sourceText: 'Xin chào',
+            duration: Duration(seconds: 1),
+            inputLabel: 'Apple Speech',
+            confidence: 0.9,
+            firstResultMs: 100,
+            finalAfterStopMs: 20,
+          ),
+          context: PracticeContext.home,
+          childAge: 6,
+          vadSilenceMs: 700,
+        ),
+        throwsA(isA<ConversationApiException>()),
+      );
+      expect(requestCount, 1);
+      await repository.dispose();
+    });
+  }
+
+  test('does not retry streaming text after a transport failure', () async {
+    var requestCount = 0;
+    final repository = NextConversationRepository(
+      config: config,
+      clientIdProvider: clientIdProvider,
+      client: MockClient((request) async {
+        requestCount += 1;
+        throw http.ClientException('Connection reset.', request.url);
+      }),
+    );
+
+    await expectLater(
+      repository.processStreamingText(
+        capture: const StreamingSpeechCapture(
+          sourceText: 'Xin chào',
+          duration: Duration(seconds: 1),
+          inputLabel: 'Apple Speech',
+          confidence: 0.9,
+          firstResultMs: 100,
+          finalAfterStopMs: 20,
+        ),
+        context: PracticeContext.home,
+        childAge: 6,
+        vadSilenceMs: 700,
+      ),
+      throwsA(isA<http.ClientException>()),
+    );
+    expect(requestCount, 1);
+    await repository.dispose();
+  });
+
   test('uploads a short recorded utterance directly in one request', () async {
     var requestCount = 0;
     final repository = NextConversationRepository(

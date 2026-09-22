@@ -544,6 +544,30 @@ class RunnerTests: XCTestCase {
     XCTAssertTrue(lease.releaseIfHeld(generation: 2))
   }
 
+  func testIOSHfpRouteReuseRequiresAnActiveAudioSession() {
+    XCTAssertTrue(
+      IOSHfpRouteReusePolicy.canReuse(
+        hasTwoWayHfpRoute: true,
+        audioSessionActive: true
+      )
+    )
+    XCTAssertFalse(
+      IOSHfpRouteReusePolicy.canReuse(
+        hasTwoWayHfpRoute: true,
+        audioSessionActive: false
+      )
+    )
+  }
+
+  func testIOSHfpRouteReuseRejectsAnActiveSessionWithoutTwoWayHfp() {
+    XCTAssertFalse(
+      IOSHfpRouteReusePolicy.canReuse(
+        hasTwoWayHfpRoute: false,
+        audioSessionActive: true
+      )
+    )
+  }
+
   func testIOSHfpInputSelectionRecoversTheSameH20AfterUIDChanges() {
     let selected = IOSHfpInputSelectionPolicy.select(
       from: [

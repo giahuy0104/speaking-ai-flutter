@@ -1369,6 +1369,44 @@ void main() {
     },
   );
 
+  test('a failed new turn clears only the stale presentation result', () async {
+    final repository = _FallbackRepository(
+      streamingOutcomes: <Object>[
+        _result('first-turn', vietnameseText: 'Hôm nay trời đẹp quá'),
+        http.ClientException('No network'),
+      ],
+    );
+    final controller = ConversationController(
+      audioInput: _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Phone',
+      ),
+      streamingSpeechInput: _FakeStreamingSpeechInput(
+        sourceText: 'Hôm nay trời đẹp quá',
+      ),
+      playbackService: const _FakePlaybackService(),
+      repository: repository,
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+    );
+
+    await controller.startRecording();
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await controller.stopRecording(manual: true);
+    expect(controller.result?.conversationId, 'first-turn');
+    expect(controller.phase, ConversationPhase.ready);
+
+    await controller.startRecording();
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await controller.stopRecording(manual: true);
+
+    expect(controller.phase, ConversationPhase.error);
+    expect(controller.result, isNull);
+    expect(repository.clearHistoryCalls, 0);
+    controller.dispose();
+  });
+
   test(
     'unknown sentence uses on-device translation only after backend outage',
     () async {
@@ -2002,6 +2040,7 @@ void main() {
 
     expect(controller.phase, ConversationPhase.error);
     expect(controller.errorMessage, contains('chuẩn bị âm thanh'));
+    expect(controller.result?.conversationId, 'stream-result');
     expect(playback.stopCount, greaterThan(0));
     controller.dispose();
   });
@@ -3209,6 +3248,7 @@ class _FallbackRepository
     this.audioResultCompleter,
     this.streamingResultCompleter,
     this.streamingError,
+    this.streamingOutcomes,
     this.failRealtimeConnection = false,
   });
 
@@ -3217,12 +3257,14 @@ class _FallbackRepository
   final Completer<ConversationResult>? audioResultCompleter;
   final Completer<ConversationResult>? streamingResultCompleter;
   final Object? streamingError;
+  final List<Object>? streamingOutcomes;
   final bool failRealtimeConnection;
   final _RecordingBatchSession batchSession = _RecordingBatchSession();
   int realtimeStarted = 0;
   int batchStarted = 0;
   int fullFileUploads = 0;
   int streamingTextRequests = 0;
+  int clearHistoryCalls = 0;
   String? batchFallbackReason;
   StreamingSpeechCapture? streamingCapture;
   AudioCapture? audioCapture;
@@ -3303,6 +3345,12 @@ class _FallbackRepository
   }) async {
     streamingTextRequests += 1;
     streamingCapture = capture;
+    final outcomes = streamingOutcomes;
+    if (outcomes != null && outcomes.isNotEmpty) {
+      final outcome = outcomes.removeAt(0);
+      if (outcome is ConversationResult) return outcome;
+      throw outcome;
+    }
     final error = streamingError;
     if (error != null) {
       throw error;
@@ -3357,7 +3405,9 @@ class _FallbackRepository
   Future<void> deleteHistoryItem(String conversationId) async {}
 
   @override
-  Future<void> clearHistory() async {}
+  Future<void> clearHistory() async {
+    clearHistoryCalls += 1;
+  }
 
   @override
   Future<void> dispose() async {}

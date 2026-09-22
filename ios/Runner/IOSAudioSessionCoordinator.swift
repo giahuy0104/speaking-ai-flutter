@@ -100,6 +100,11 @@ final class IOSAudioSessionCoordinator: NSObject {
   private var ownership = IOSAudioSessionOwnershipState()
   private var preferredHfpInputUID: String?
   private var preferredHfpInputName: String?
+  /// `currentRoute` can keep reporting bluetoothHFP briefly after
+  /// `setActive(false)` has completed. Keep the activation state written by
+  /// this coordinator separate from that lagging route snapshot so a new HFP
+  /// owner never mistakes a stale route for a usable audio session.
+  private(set) var isAudioSessionActive = false
   private(set) var isMainTurnActive = false
   private(set) var isBackgroundLearningEnabled = false
   private(set) var isBackgroundCaptureEngineRunning = false
@@ -1014,7 +1019,15 @@ final class IOSAudioSessionCoordinator: NSObject {
       active,
       options: notifyOthers ? [.notifyOthersOnDeactivation] : []
     )
+    isAudioSessionActive = active
     trace(stage: active ? "setActive_true_completed" : "setActive_false_completed", caller: caller)
+  }
+
+  func noteMediaServicesWereReset(caller: String) {
+    // A media-services reset invalidates the process audio session even when
+    // AVAudioSession still exposes the previous route for a short interval.
+    isAudioSessionActive = false
+    trace(stage: "media_services_reset", caller: caller)
   }
 
   private func ensurePreferredInput(_ input: AVAudioSessionPortDescription?, caller: String) throws {
@@ -1059,6 +1072,9 @@ final class IOSAudioSessionCoordinator: NSObject {
       caller: "AVAudioSession",
       message: "reason=\(rawReason)"
     )
+    if type == .began {
+      isAudioSessionActive = false
+    }
     guard isBackgroundLearningEnabled, let type else { return }
 
     switch type {

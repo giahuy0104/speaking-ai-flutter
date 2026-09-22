@@ -22,6 +22,18 @@ struct IOSHfpRoutePolicy {
   }
 }
 
+/// A route snapshot alone is not sufficient evidence that HFP can be reused.
+/// iOS may keep publishing the previous bluetoothHFP route after the owning
+/// AVAudioSession has already been deactivated.
+struct IOSHfpRouteReusePolicy {
+  static func canReuse(
+    hasTwoWayHfpRoute: Bool,
+    audioSessionActive: Bool
+  ) -> Bool {
+    hasTwoWayHfpRoute && audioSessionActive
+  }
+}
+
 /// Owns the live HFP/SCO lease for one utterance.
 ///
 /// The selected H20 input UID survives between utterances, but the live voice
@@ -375,7 +387,11 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
     // input here makes iOS renegotiate the Classic Bluetooth profile. On the
     // combined H20 firmware that renegotiation also interrupts the BLE control
     // link, so the physical MAIN packet is followed by an unnecessary reconnect.
-    if let activeInput = selectedOrUnclaimedActiveTwoWayHfpInput() {
+    let reusableInput = selectedOrUnclaimedActiveTwoWayHfpInput()
+    if IOSHfpRouteReusePolicy.canReuse(
+      hasTwoWayHfpRoute: reusableInput != nil,
+      audioSessionActive: audioSessionCoordinator.isAudioSessionActive
+    ), let activeInput = reusableInput {
       selectedInputId = activeInput.uid
       selectedInputName = activeInput.portName
       routeActive = true
@@ -822,6 +838,9 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
         queue: .main
       ) { [weak self] _ in
         guard let self else { return }
+        self.audioSessionCoordinator.noteMediaServicesWereReset(
+          caller: "HfpAudioBridge.mediaServicesWereReset"
+        )
         do {
           try self.configureSession(activate: self.routeActive)
           self.refreshStatus()
