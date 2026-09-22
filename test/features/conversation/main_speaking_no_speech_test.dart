@@ -28,7 +28,7 @@ void main() {
         Duration(milliseconds: item.$2),
       );
     }
-    expect(ConversationController.translatedSpeechPlaybackRate, 0.85);
+    expect(ConversationController.translatedSpeechPlaybackRate, 0.8);
   });
 
   test(
