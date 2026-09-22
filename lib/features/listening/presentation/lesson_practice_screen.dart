@@ -96,6 +96,11 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         ActiveLearningModuleController,
         ActiveLearningVoiceContext,
         ActiveLearningVoiceSelectionContext {
+  static final Uri _newStarTingAudioUri = Uri(
+    scheme: 'asset',
+    path: '/assets/audio/MAIN/SFX_STAR_TING.mp3',
+  );
+
   String? _mainCompletionPrompt;
   int? _mainCompletionNextLevel;
 
@@ -1994,6 +1999,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     );
     if (!isNew) return false;
     await _playFirstStarSoundEffect();
+    await _playNewStarTingSoundEffect();
     if (!widget.isRelearn && lessonStarsBefore.isEmpty && mounted) {
       await _speakLessonPrompt('Bạn vừa nhận Ngôi sao đầu tiên!');
     }
@@ -2010,8 +2016,18 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         );
         return;
       }
-      unawaited(
-        SystemSound.play(SystemSoundType.click).catchError((Object _) {}),
+      await SystemSound.play(SystemSoundType.click).catchError((Object _) {});
+    } catch (_) {
+      // A missing optional SFX must not interrupt Star persistence or narration.
+    }
+  }
+
+  Future<void> _playNewStarTingSoundEffect() async {
+    if (!mounted || _pausedForMainAssistant) return;
+    try {
+      await widget.mediaService.playToCompletion(
+        _newStarTingAudioUri,
+        timeout: const Duration(seconds: 5),
       );
     } catch (_) {
       // A missing optional SFX must not interrupt Star persistence or narration.

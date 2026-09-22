@@ -703,7 +703,7 @@ void main() {
       _subject(
         _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
         mediaService,
-        guideAudioLibrary: _silentGuideAudioLibrary(),
+        guideAudioLibrary: _starEffectsGuideAudioLibrary(),
         progressStore: progressStore,
         attemptEvaluator: _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
           LessonAttemptOutcome.good,
@@ -725,7 +725,68 @@ void main() {
     expect(praiseIndex, greaterThanOrEqualTo(0));
     expect(firstStarIndex, greaterThan(praiseIndex));
     expect(progressStore.earnedStars, contains('core:GUIDED-FLOW_S1'));
+    expect(
+      mediaService.playedUris
+          .where((uri) => uri.path.contains('SFX_STAR'))
+          .map((uri) => uri.path),
+      containsAllInOrder(<String>[
+        '/assets/audio/MAIN/SFX_STAR.mp3',
+        '/assets/audio/MAIN/SFX_STAR_TING.mp3',
+      ]),
+    );
   });
+
+  testWidgets(
+    'V4 plays the star Ting for later new stars without repeating the first-star message',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final mediaService = _GuidedMediaService();
+      final voicePrompts = _FakeVoicePromptService();
+      final progressStore = _MemoryProgressStore();
+
+      await tester.pumpWidget(
+        _subject(
+          _lesson(code: 'C35-L1-T01-B01', sentenceCount: 3, v4: true),
+          mediaService,
+          guideAudioLibrary: _starEffectsGuideAudioLibrary(),
+          progressStore: progressStore,
+          attemptEvaluator: _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
+            LessonAttemptOutcome.good,
+            LessonAttemptOutcome.good,
+          ]),
+          voicePromptService: voicePrompts,
+        ),
+      );
+      await _pumpGuidedSpeechTurn(tester);
+
+      await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+      await _pumpGuidedSpeechTurn(tester);
+      voicePrompts.spoken.clear();
+      mediaService.playedUris.clear();
+
+      await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+      await _pumpGuidedSpeechTurn(tester);
+
+      expect(voicePrompts.spoken, contains('vi-VN|Giỏi lắm!'));
+      expect(
+        voicePrompts.spoken,
+        isNot(contains('vi-VN|Bạn vừa nhận Ngôi sao đầu tiên!')),
+      );
+      expect(
+        mediaService.playedUris
+            .where((uri) => uri.path.contains('SFX_STAR'))
+            .map((uri) => uri.path),
+        <String>[
+          '/assets/audio/MAIN/SFX_STAR.mp3',
+          '/assets/audio/MAIN/SFX_STAR_TING.mp3',
+        ],
+      );
+      expect(progressStore.earnedStars, <String>{
+        'core:GUIDED-FLOW_S1',
+        'core:GUIDED-FLOW_S2',
+      });
+    },
+  );
 
   testWidgets('scores while replay runs but waits to apply the result', (
     tester,
@@ -2627,6 +2688,12 @@ LessonGuideAudioLibrary _guideAudioLibrary() {
 
 LessonGuideAudioLibrary _silentGuideAudioLibrary() {
   return LessonGuideAudioLibrary(assetPaths: const <String>[]);
+}
+
+LessonGuideAudioLibrary _starEffectsGuideAudioLibrary() {
+  return LessonGuideAudioLibrary(
+    assetPaths: const <String>['assets/audio/MAIN/SFX_STAR.mp3'],
+  );
 }
 
 ListeningLessonContent _lesson({
