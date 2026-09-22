@@ -1548,7 +1548,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
             voicePromptService: createVoicePromptService(
               coordinator: audioTurnCoordinator,
               owner: AudioTurnOwner.mainAssistant,
-              selectedOutputRoute: supportsAndroidNativeSpeech
+              selectedOutputRoute: supportsNativeBluetooth
                   ? hfpAudioRouteCoordinator.createScope('main-prompt-output')
                   : null,
             ),
@@ -1576,7 +1576,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       voicePromptService: createVoicePromptService(
         coordinator: audioTurnCoordinator,
         owner: AudioTurnOwner.continuousTranslation,
-        selectedOutputRoute: supportsAndroidNativeSpeech
+        selectedOutputRoute: supportsNativeBluetooth
             ? hfpAudioRouteCoordinator.createScope('translation-prompt-output')
             : null,
       ),

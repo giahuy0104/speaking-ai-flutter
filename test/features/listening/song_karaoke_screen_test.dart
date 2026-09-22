@@ -498,6 +498,7 @@ class _KaraokeMediaService extends LessonMediaService {
     Uri uri, {
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async {
     playCalls += 1;
     lastPlayPosition = position;
@@ -513,6 +514,7 @@ class _KaraokeMediaService extends LessonMediaService {
     Duration timeout = const Duration(seconds: 45),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async {
     playToCompletionCalls += 1;
   }

@@ -653,6 +653,7 @@ class _GoldenMediaService extends LessonMediaService {
     Uri uri, {
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async {}
 
   @override
@@ -661,6 +662,7 @@ class _GoldenMediaService extends LessonMediaService {
     Duration timeout = const Duration(seconds: 45),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async {
     await playbackCompletion;
   }

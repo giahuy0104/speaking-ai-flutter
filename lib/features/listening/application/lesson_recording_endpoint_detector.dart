@@ -28,8 +28,8 @@ class LessonRecordingEndpointDetector {
              // Quiet H20 recordings can peak below the shared VAD's -46 dBFS
              // floor. Keep ambient-relative margins without forcing those
              // utterances to wait for the entire six-second recording cap.
-             minimumStartThresholdDbfs: _usesAndroidCapture ? -60 : -46,
-             minimumStopThresholdDbfs: _usesAndroidCapture ? -64 : -50,
+             minimumStartThresholdDbfs: _usesSensitiveMobileCapture ? -60 : -46,
+             minimumStopThresholdDbfs: _usesSensitiveMobileCapture ? -64 : -50,
            ),
        _now = now ?? DateTime.now;
 
@@ -37,10 +37,12 @@ class LessonRecordingEndpointDetector {
   final Duration maximumDuration;
   final AdaptiveVoiceActivityDetector _voiceActivityDetector;
   final DateTime Function() _now;
-  final bool _recoverQuietCapture = _usesAndroidCapture;
+  final bool _recoverQuietCapture = _usesSensitiveMobileCapture;
 
-  static bool get _usesAndroidCapture =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+  static bool get _usesSensitiveMobileCapture =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
 
   StreamSubscription<double>? _amplitudeSubscription;
   Timer? _silenceTimer;

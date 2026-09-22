@@ -36,6 +36,7 @@ class _RecordingMediaService extends LessonMediaService {
     Uri uri, {
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = androidSpeechBoostDb,
+    bool fixedPlaybackGain = false,
   }) async {
     lastUri = uri;
     lastGainDb = playbackGainDb;

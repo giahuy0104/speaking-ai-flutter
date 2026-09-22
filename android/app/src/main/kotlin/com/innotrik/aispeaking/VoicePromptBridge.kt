@@ -304,7 +304,7 @@ class VoicePromptBridge(
                 audioManager.communicationDevice?.type ==
                 android.media.AudioDeviceInfo.TYPE_BLUETOOTH_SCO) || bluetoothScoOn
         val usage =
-            if (activeScoRoute || (!forcePhoneSpeaker && !forceMediaPlayback)) {
+            if (!forcePhoneSpeaker && (activeScoRoute || !forceMediaPlayback)) {
                 AudioAttributes.USAGE_VOICE_COMMUNICATION
             } else {
                 AudioAttributes.USAGE_MEDIA
@@ -409,6 +409,14 @@ class VoicePromptBridge(
                     forceMediaPlayback = synthesizedPromptForceMediaPlayback,
                 ),
             )
+            if (
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                !synthesizedPromptForcePhoneSpeaker
+            ) {
+                audioManager.communicationDevice
+                    ?.takeIf { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
+                    ?.let { player.setPreferredDevice(it) }
+            }
             player.setDataSource(audioFile.absolutePath)
             player.setVolume(1.0f, 1.0f)
             player.setOnPreparedListener { preparedPlayer ->

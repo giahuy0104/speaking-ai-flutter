@@ -137,10 +137,17 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       return
     }
     stop()
-    let audioToken = configurePromptAudioSession(
+    guard let audioToken = configurePromptAudioSession(
       forcePhoneSpeaker: forcePhoneSpeaker,
       forceMediaPlayback: forceMediaPlayback
-    )
+    ) else {
+      result(FlutterError(
+        code: "PROMPT_AUDIO_ROUTE_FAILED",
+        message: "Unable to prepare prompt route.",
+        details: nil
+      ))
+      return
+    }
     audioSessionCoordinator.trace(stage: "prompt_started", caller: "VoicePromptBridge.speak")
     let utterance = AVSpeechUtterance(string: text)
     utterance.voice = AVSpeechSynthesisVoice(language: locale)

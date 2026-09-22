@@ -151,13 +151,14 @@ class LessonMediaService {
     Uri uri, {
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = androidSpeechBoostDb,
+    bool fixedPlaybackGain = false,
   }) async {
     final generation = ++_playbackRequestGeneration;
     await _preparePlaybackRoute(route);
     _requireCurrentPlayback(generation);
     // Route/session preparation can rebuild Android's playback chain. Apply
     // gain afterwards so every clip starts with the requested level.
-    await _setPlaybackGain(playbackGainDb);
+    await _setPlaybackGain(playbackGainDb, fixed: fixedPlaybackGain);
     _requireCurrentPlayback(generation);
     await _activePlayback.play(uri);
   }
@@ -168,8 +169,13 @@ class LessonMediaService {
     }
   }
 
-  Future<void> _setPlaybackGain(double gainDb) async {
+  Future<void> _setPlaybackGain(double gainDb, {required bool fixed}) async {
     final playback = _activePlayback;
+    if (fixed && playback is FixedPlaybackGainAwareAudioPlaybackService) {
+      await (playback as FixedPlaybackGainAwareAudioPlaybackService)
+          .setFixedPlaybackGainDb(gainDb);
+      return;
+    }
     if (playback is PlaybackGainAwareAudioPlaybackService) {
       await (playback as PlaybackGainAwareAudioPlaybackService)
           .setPlaybackGainDb(gainDb);
@@ -231,6 +237,7 @@ class LessonMediaService {
     Duration timeout = const Duration(seconds: 45),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = androidSpeechBoostDb,
+    bool fixedPlaybackGain = false,
   }) async {
     final generation = ++_playbackRequestGeneration;
     final playback = _activePlayback;
@@ -238,7 +245,7 @@ class LessonMediaService {
     _requireCurrentPlayback(generation);
     // Keep authored clips, prompts, and child replays deterministic even after
     // Android switches between media and HFP communication attributes.
-    await _setPlaybackGain(playbackGainDb);
+    await _setPlaybackGain(playbackGainDb, fixed: fixedPlaybackGain);
     _requireCurrentPlayback(generation);
     final completed = Completer<void>();
     // A native route-loss event can arrive while play() is still starting.

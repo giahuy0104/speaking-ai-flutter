@@ -90,6 +90,7 @@ class _RecordingMediaService extends LessonMediaService {
     Duration timeout = const Duration(seconds: 30),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async {
     played.add(uri);
   }

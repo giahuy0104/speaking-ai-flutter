@@ -278,7 +278,7 @@ void main() {
   });
 
   testWidgets(
-    'non-Android capture keeps the existing sensitivity',
+    'quiet iOS H20 speech ends after its quiet tail instead of six seconds',
     (tester) async {
       final amplitudes = StreamController<double>.broadcast(sync: true);
       addTearDown(amplitudes.close);
@@ -290,10 +290,12 @@ void main() {
         amplitudes.add(level);
         now = now.add(const Duration(milliseconds: 90));
       }
-      expect(detector.speechDetected, isFalse);
-      await tester.pump(const Duration(seconds: 6));
+      expect(detector.speechDetected, isTrue);
+      await tester.pump(const Duration(milliseconds: 699));
+      expect(reasons, isEmpty);
+      await tester.pump(const Duration(milliseconds: 1));
       expect(reasons, <LessonRecordingEndpointReason>[
-        LessonRecordingEndpointReason.maximumDuration,
+        LessonRecordingEndpointReason.silence,
       ]);
     },
     variant: TargetPlatformVariant.only(TargetPlatform.iOS),

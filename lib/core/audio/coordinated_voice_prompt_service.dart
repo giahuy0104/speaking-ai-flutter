@@ -3,6 +3,7 @@ import 'dart:async';
 import 'audio_turn_coordinator.dart';
 import 'audio_diagnostics.dart';
 import 'hfp_audio_control.dart';
+import 'hfp_audio_route_coordinator.dart';
 import 'voice_prompt_service_base.dart';
 
 /// Adds process-wide prompt ownership without changing the platform prompt
@@ -29,7 +30,7 @@ class CoordinatedVoicePromptService
   final VoicePromptService _delegate;
   final AudioTurnCoordinator _coordinator;
   final AudioTurnOwner _owner;
-  // A dedicated coordinator scope, supplied only for Android native prompts.
+  // A dedicated coordinator scope, supplied for native Android/iOS prompts.
   // A connected HFP-only headset is not a media output until SCO is confirmed.
   final HfpAudioControl? _selectedOutputRoute;
   AudioTurnCancellation _pendingCancellation = AudioTurnCancellation();
@@ -124,6 +125,14 @@ class CoordinatedVoicePromptService
   }) async {
     if (_disposed) {
       return;
+    }
+    if (!useSelectedRoute &&
+        _selectedOutputRoute is HfpImmediateRouteReleaseControl) {
+      // Explicit handset prompts must not inherit Android's short idle HFP
+      // handoff window. This only flushes an idle lease; another live owner is
+      // deliberately left untouched by the route coordinator.
+      await (_selectedOutputRoute as HfpImmediateRouteReleaseControl)
+          .stopAudioRouteImmediately();
     }
     final cancellation = _pendingCancellation;
     final diagnosticId = AudioDiagnostics.nextId();

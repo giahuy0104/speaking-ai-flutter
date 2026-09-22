@@ -260,6 +260,7 @@ class _FakeLessonMediaService extends LessonMediaService {
     Duration timeout = const Duration(seconds: 45),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async {
     playedToCompletion.add(uri);
     playbackTimeouts.add(timeout);

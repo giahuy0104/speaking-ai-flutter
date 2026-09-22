@@ -1468,6 +1468,7 @@ class _ImmediateLessonMediaService extends LessonMediaService {
     Duration timeout = const Duration(seconds: 15),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async {
     played.add((uri: uri, gainDb: playbackGainDb));
   }

@@ -1251,6 +1251,7 @@ class _SilentMediaService extends LessonMediaService {
     Uri uri, {
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async => playedUris.add(uri);
 
   @override
@@ -1259,6 +1260,7 @@ class _SilentMediaService extends LessonMediaService {
     Duration timeout = const Duration(seconds: 15),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async => playedUris.add(uri);
 
   @override

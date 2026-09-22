@@ -2939,6 +2939,7 @@ class _HfpFailureSampleMediaService extends _GuidedMediaService {
     Duration timeout = const Duration(seconds: 15),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async {
     throw const HfpAudioException('Lượt âm thanh đã dừng.');
   }
@@ -2992,6 +2993,7 @@ class _IntroEventMediaService extends LessonMediaService {
     Duration timeout = const Duration(seconds: 45),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async {
     events.add('media|$uri');
     if (fail) {
@@ -3077,6 +3079,7 @@ class _GuidedMediaService extends LessonMediaService {
     Uri uri, {
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async {
     playedUris.add(uri);
   }
@@ -3087,6 +3090,7 @@ class _GuidedMediaService extends LessonMediaService {
     Duration timeout = const Duration(seconds: 15),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async {
     playedUris.add(uri);
     if (uri.toString().contains('latest.m4a')) {
@@ -3132,6 +3136,7 @@ class _FailingAuthoredAudioMediaService extends _GuidedMediaService {
     Duration timeout = const Duration(seconds: 15),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async {
     playedUris.add(uri);
     if (uri.scheme == 'https') {
@@ -3150,6 +3155,7 @@ class _ControlledLessonAudioMediaService extends _GuidedMediaService {
     Duration timeout = const Duration(seconds: 15),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async {
     playedUris.add(uri);
     if (uri.scheme == 'asset') {
@@ -3193,6 +3199,7 @@ class _BlockingAttemptPlaybackMediaService extends _GuidedMediaService {
     Duration timeout = const Duration(seconds: 15),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async {
     playedUris.add(uri);
     if (!uri.toString().contains('latest.m4a')) {
@@ -3256,6 +3263,7 @@ class _ControlledIntroMediaService extends LessonMediaService {
     Duration timeout = const Duration(seconds: 45),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) {
     playedUri = uri;
     playbackRoute = route;
@@ -3281,6 +3289,7 @@ class _FailingIntroMediaService extends LessonMediaService {
     Duration timeout = const Duration(seconds: 45),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async {
     throw StateError('Playback failed.');
   }
@@ -3305,6 +3314,7 @@ class _ControlledNextIntroMediaService extends _GuidedMediaService {
     Duration timeout = const Duration(seconds: 45),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async {
     playedUris.add(uri);
     if (uri != nextIntroUri) {

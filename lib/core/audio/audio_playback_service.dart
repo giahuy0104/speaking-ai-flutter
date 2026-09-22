@@ -97,6 +97,13 @@ abstract interface class PlaybackGainAwareAudioPlaybackService {
   Future<void> setPlaybackGainDb(double gainDb);
 }
 
+/// Optional capability for a clip whose requested gain is intentional and
+/// must not be replaced by per-file loudness metering. This is reserved for
+/// the child's own lesson recordings; authored audio keeps adaptive metering.
+abstract interface class FixedPlaybackGainAwareAudioPlaybackService {
+  Future<void> setFixedPlaybackGainDb(double gainDb);
+}
+
 class _DefaultAudioPlayer {
   const _DefaultAudioPlayer({
     required this.player,
@@ -117,7 +124,8 @@ class JustAudioPlaybackService
         DirectUserGestureAudioPlaybackService,
         CommunicationRouteAwareAudioPlaybackService,
         PlaybackRateAwareAudioPlaybackService,
-        PlaybackGainAwareAudioPlaybackService {
+        PlaybackGainAwareAudioPlaybackService,
+        FixedPlaybackGainAwareAudioPlaybackService {
   static Future<void>? _assetCacheRefresh;
   static const MethodChannel _backgroundLearningChannel = MethodChannel(
     'ailingo_background_learning',
@@ -217,11 +225,13 @@ class JustAudioPlaybackService
   bool _communicationRouteActive = false;
   double _playbackRate = 1.0;
   double _fallbackGainDb = androidPlaybackGainDb;
+  double? _fixedGainDb;
   _PlaybackRequest? _playbackRequest;
   bool _disposed = false;
 
   @override
   Future<void> setPlaybackGainDb(double gainDb) async {
+    _fixedGainDb = null;
     _fallbackGainDb = gainDb.clamp(0.0, androidMaxPlaybackGainDb).toDouble();
     AudioDiagnostics.event('media.gain.request', {
       'owner': _audioTurnOwner.name,
@@ -232,6 +242,21 @@ class JustAudioPlaybackService
     await enhancer.setTargetGain(
       gainDb.clamp(0.0, androidMaxPlaybackGainDb).toDouble(),
     );
+    await enhancer.setEnabled(true);
+  }
+
+  @override
+  Future<void> setFixedPlaybackGainDb(double gainDb) async {
+    final fixedGain = gainDb.clamp(0.0, androidMaxPlaybackGainDb).toDouble();
+    _fixedGainDb = fixedGain;
+    _fallbackGainDb = fixedGain;
+    AudioDiagnostics.event('media.gain.fixed_request', {
+      'owner': _audioTurnOwner.name,
+      'gainDb': fixedGain,
+    });
+    final enhancer = _androidLoudnessEnhancer;
+    if (enhancer == null) return;
+    await enhancer.setTargetGain(fixedGain);
     await enhancer.setEnabled(true);
   }
 
@@ -266,9 +291,12 @@ class JustAudioPlaybackService
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
     // Metering does not mutate the player. Cancelling this wait lets the next
     // queued source start immediately; a late meter response cannot apply gain.
-    final measuredGain = await request.wait(_measurePlaybackGain(uri));
+    final fixedGain = _fixedGainDb;
+    final measuredGain = fixedGain == null
+        ? await request.wait(_measurePlaybackGain(uri))
+        : null;
     _requireCurrentPlayback(request);
-    final gain = measuredGain ?? _fallbackGainDb;
+    final gain = fixedGain ?? measuredGain ?? _fallbackGainDb;
     // Reset attenuation even if this source cannot be measured, including
     // injected players without an Android effect pipeline.
     await _player.setVolume(
@@ -281,6 +309,7 @@ class JustAudioPlaybackService
       'owner': _audioTurnOwner.name,
       'gainDb': gain,
       'measured': measuredGain != null,
+      'fixed': fixedGain != null,
     });
   }
 

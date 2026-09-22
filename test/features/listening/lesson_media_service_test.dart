@@ -517,43 +517,78 @@ void main() {
     await mediaService.dispose();
   });
 
-  test('per-play gain is applied after H20 preparation and then reset', () async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.android;
-    addTearDown(() => debugDefaultTargetPlatformOverride = null);
-    final events = <String>[];
-    final playback = _GainAwareControlledPlaybackService(events);
-    final hfp = _FakeHfpAudioControl(
-      events,
-      status: const BluetoothAudioStatus(
-        phase: BluetoothAudioConnectionPhase.ready,
-        deviceId: 'h20-uid',
-        deviceName: 'H20',
-        sampleRate: 16000,
-      ),
-    );
-    final mediaService = LessonMediaService(
-      playbackService: playback,
-      hfpAudioControl: hfp,
-    );
+  test(
+    'per-play gain is applied after H20 preparation and then reset',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final events = <String>[];
+      final playback = _GainAwareControlledPlaybackService(events);
+      final hfp = _FakeHfpAudioControl(
+        events,
+        status: const BluetoothAudioStatus(
+          phase: BluetoothAudioConnectionPhase.ready,
+          deviceId: 'h20-uid',
+          deviceName: 'H20',
+          sampleRate: 16000,
+        ),
+      );
+      final mediaService = LessonMediaService(
+        playbackService: playback,
+        hfpAudioControl: hfp,
+      );
 
-    await mediaService.play(
-      Uri.file('child-recording.wav'),
-      playbackGainDb: 11.0,
-    );
+      await mediaService.play(
+        Uri.file('child-recording.wav'),
+        playbackGainDb: 11.0,
+      );
 
-    expect(events, <String>[
-      'communication:true',
-      'prepare',
-      'hfp:start',
-      'gain:11.0',
-      'play',
-    ]);
-    events.clear();
-    await mediaService.play(Uri.parse('asset:///lesson-english.mp3'));
-    expect(events, contains('gain:$androidSpeechBoostDb'));
-    expect(events, isNot(contains('gain:11.0')));
-    await mediaService.dispose();
-  });
+      expect(events, <String>[
+        'communication:true',
+        'prepare',
+        'hfp:start',
+        'gain:11.0',
+        'play',
+      ]);
+      events.clear();
+      await mediaService.play(Uri.parse('asset:///lesson-english.mp3'));
+      expect(events, contains('gain:$androidSpeechBoostDb'));
+      expect(events, isNot(contains('gain:11.0')));
+      await mediaService.dispose();
+    },
+  );
+
+  test(
+    'child recording can request a fixed gain without source metering',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final events = <String>[];
+      final playback = _GainAwareControlledPlaybackService(events);
+      final mediaService = LessonMediaService(
+        playbackService: playback,
+        hfpAudioControl: _FakeHfpAudioControl(
+          events,
+          status: const BluetoothAudioStatus(
+            phase: BluetoothAudioConnectionPhase.ready,
+            deviceId: 'h20-uid',
+            deviceName: 'H20',
+            sampleRate: 16000,
+          ),
+        ),
+      );
+
+      await mediaService.play(
+        Uri.file('child-recording.wav'),
+        playbackGainDb: lessonRecordingPlaybackGainDb,
+        fixedPlaybackGain: true,
+      );
+
+      expect(events, contains('fixed-gain:$lessonRecordingPlaybackGainDb'));
+      expect(events, isNot(contains('gain:$lessonRecordingPlaybackGainDb')));
+      await mediaService.dispose();
+    },
+  );
 
   test('iOS lesson recording configuration is input-capable', () {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
@@ -903,12 +938,19 @@ class _RouteAwareControlledPlaybackService extends _ControlledPlaybackService
 
 class _GainAwareControlledPlaybackService
     extends _RouteAwareControlledPlaybackService
-    implements PlaybackGainAwareAudioPlaybackService {
+    implements
+        PlaybackGainAwareAudioPlaybackService,
+        FixedPlaybackGainAwareAudioPlaybackService {
   _GainAwareControlledPlaybackService(super.events);
 
   @override
   Future<void> setPlaybackGainDb(double gainDb) async {
     events.add('gain:$gainDb');
+  }
+
+  @override
+  Future<void> setFixedPlaybackGainDb(double gainDb) async {
+    events.add('fixed-gain:$gainDb');
   }
 }
 

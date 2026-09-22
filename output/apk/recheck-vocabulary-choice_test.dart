@@ -130,6 +130,7 @@ class _Media extends LessonMediaService {
     Duration timeout = const Duration(seconds: 15),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async {}
   @override
   Future<void> stopPlayback() async {}
