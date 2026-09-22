@@ -4127,6 +4127,24 @@ class ConversationController extends ChangeNotifier
     notifyListeners();
   }
 
+  /// Hides the last conversation result without deleting its persisted history.
+  ///
+  /// Listening lessons own a separate speech flow. Returning from one should
+  /// not present an older conversation turn as if it came from that lesson.
+  void clearPresentationResult() {
+    if (result == null) return;
+    result = null;
+    qualityApproved = null;
+    _previewGeneration += 1;
+    _preview = null;
+    _preferredPlaybackUri = null;
+    _speculativePreloadUri = null;
+    if (phase == ConversationPhase.ready) {
+      phase = ConversationPhase.idle;
+    }
+    notifyListeners();
+  }
+
   void showH20ConnectionMessage(String message) {
     transientMessage = message;
     notifyListeners();

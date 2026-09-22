@@ -347,7 +347,13 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       }
       await _speakPromptAndWait(_challenge.prompt);
       if (!mounted || request != _request) return false;
-      await _speakPromptAndWait('Bạn trả lời nhé');
+      await _speakPromptAndWait(
+        'Bạn trả lời nhé',
+        // The authored question above has already completed. On iOS a small
+        // number of AVSpeechSynthesizer turns play this short hand-off cue but
+        // omit didFinish; that must not strand an otherwise audible question.
+        allowIosCompletionCallbackTimeout: true,
+      );
     } catch (error) {
       if (mounted && request == _request) {
         setState(
@@ -406,6 +412,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   Future<void> _speakPromptAndWait(
     String text, {
     String locale = 'vi-VN',
+    bool allowIosCompletionCallbackTimeout = false,
   }) async {
     final request = _request;
     final prompt = _prompt;
@@ -461,12 +468,19 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
           // Still resolve the bounded wait if native cleanup fails.
         } finally {
           if (!waiter.isCompleted) {
-            if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+            final tolerateMissingIosCompletion =
+                allowIosCompletionCallbackTimeout &&
+                !kIsWeb &&
+                defaultTargetPlatform == TargetPlatform.iOS;
+            if (tolerateMissingIosCompletion) {
+              waiter.complete();
+            } else {
+              // A timeout while playing the authored question is not proof
+              // that the child heard it. Treat it as a playback failure so
+              // capture never opens after a silent prompt.
               waiter.completeError(
                 TimeoutException('Challenge prompt did not finish'),
               );
-            } else {
-              waiter.complete();
             }
           }
         }

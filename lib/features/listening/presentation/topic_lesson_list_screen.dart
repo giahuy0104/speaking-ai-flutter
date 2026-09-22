@@ -41,6 +41,7 @@ class TopicLessonListScreen extends StatefulWidget {
     this.relearnInitialLesson = false,
     this.relearnTopicSequence = false,
     this.onTopicCompleted,
+    this.onCommunicationRequested,
     super.key,
   });
 
@@ -63,6 +64,7 @@ class TopicLessonListScreen extends StatefulWidget {
   final bool relearnInitialLesson;
   final bool relearnTopicSequence;
   final VoidCallback? onTopicCompleted;
+  final VoidCallback? onCommunicationRequested;
 
   bool get showsSongs => startAge >= 6 && content.songs.isNotEmpty;
 
@@ -475,6 +477,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
           relearnFromBeginning: startFromBeginning,
           relearnTopicSequence: widget.relearnTopicSequence || pendingRelearn,
           onTopicCompleted: widget.onTopicCompleted,
+          onCommunicationRequested: widget.onCommunicationRequested,
         ),
       );
     } finally {

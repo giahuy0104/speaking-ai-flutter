@@ -63,6 +63,7 @@ class LessonPracticeScreen extends StatefulWidget {
     this.isRelearn = false,
     this.relearnTopicSequence = false,
     this.onTopicCompleted,
+    this.onCommunicationRequested,
     super.key,
   });
 
@@ -86,6 +87,7 @@ class LessonPracticeScreen extends StatefulWidget {
   final bool isRelearn;
   final bool relearnTopicSequence;
   final VoidCallback? onTopicCompleted;
+  final VoidCallback? onCommunicationRequested;
 
   @override
   State<LessonPracticeScreen> createState() => _LessonPracticeScreenState();
@@ -1015,13 +1017,17 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             ),
           ),
           bottomNavigationBar: ListeningNavigationBar(
-            onCommunication: () =>
-                Navigator.of(context).popUntil((route) => route.isFirst),
+            onCommunication: _returnToCommunication,
             onHistory: _showHistory,
           ),
         ),
       ),
     );
+  }
+
+  void _returnToCommunication() {
+    widget.onCommunicationRequested?.call();
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   Future<void> _playSample() async {
@@ -2757,6 +2763,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         relearnFromBeginning: relearn,
         relearnTopicSequence: relearn,
         onTopicCompleted: widget.onTopicCompleted,
+        onCommunicationRequested: widget.onCommunicationRequested,
       ),
     );
   }
@@ -2931,6 +2938,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         relearnFromBeginning: continueRelearn,
         relearnTopicSequence: continueRelearn,
         onTopicCompleted: widget.onTopicCompleted,
+        onCommunicationRequested: widget.onCommunicationRequested,
       ),
     );
   }
@@ -2999,6 +3007,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         relearnFromBeginning: true,
         relearnTopicSequence: widget.relearnTopicSequence,
         onTopicCompleted: widget.onTopicCompleted,
+        onCommunicationRequested: widget.onCommunicationRequested,
       ),
     );
   }
@@ -3091,7 +3100,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       }
       setState(() {
         _completionChoiceRecording = true;
-        _recording = true;
         _recordingStartPending = false;
         _mediaBusy = false;
         _message = _activeV4CompletionStage == null

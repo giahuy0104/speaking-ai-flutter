@@ -62,6 +62,7 @@ class TopicListeningScreen extends StatefulWidget {
     this.onCourseRelearnLevelSelectionRequested,
     this.onChildAgeChanged,
     this.onRequestParentAccess,
+    this.onCommunicationRequested,
     this.contentFuture,
     this.progressStore = const ListeningProgressStore(),
     this.mediaService,
@@ -84,6 +85,7 @@ class TopicListeningScreen extends StatefulWidget {
   onCourseRelearnLevelSelectionRequested;
   final ValueChanged<int>? onChildAgeChanged;
   final Future<bool> Function()? onRequestParentAccess;
+  final VoidCallback? onCommunicationRequested;
   final Future<ListeningContentCatalog>? contentFuture;
   final ListeningProgressStore progressStore;
   final LessonMediaService? mediaService;
@@ -886,6 +888,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           relearnInitialLesson: forceRelearnLesson || relearnTopicSequence,
           relearnTopicSequence: relearnTopicSequence,
           onTopicCompleted: () => topicCompletedDuringVisit = true,
+          onCommunicationRequested: widget.onCommunicationRequested,
         ),
         settings: const RouteSettings(name: ListeningRouteNames.topicLessons),
       );

@@ -1107,6 +1107,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           onTopicSelected: (index) => _activeVoiceTopicIndex = index,
           onChildAgeChanged: widget.onChildAgeChanged,
           onRequestParentAccess: _requestTopicAgeAccess,
+          onCommunicationRequested: widget.controller.clearPresentationResult,
           onLessonSelectionRequested:
               ({
                 required childAge,

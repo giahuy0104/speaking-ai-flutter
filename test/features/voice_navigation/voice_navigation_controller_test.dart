@@ -23,6 +23,7 @@ void main() {
         mainAssistantFlow: MainVoiceAssistantFlow(
           contentLoader: _loadMainAssistantContent,
         ),
+        partialIntentDebounce: const Duration(milliseconds: 1),
       );
       final intents = <VoiceNavigationIntent>[];
       controller.setIntentHandler(intents.add);
@@ -33,6 +34,15 @@ void main() {
         completedTopicNumbers: [],
         announceLevel: false,
       );
+
+      // "Chủ đề" is a stable ASR prefix of "Chủ đề số 2". It must not be
+      // committed as the global OPEN_SUBJECT command while this flow owns the
+      // microphone.
+      speech.emitPartial('Chủ đề');
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(speech.stopCalls, 0);
+      expect(intents, isEmpty);
+      expect(controller.isListening, isTrue);
 
       speech.emitPartial('Chủ đề số');
       speech.emitCommandEndpoint('Chủ đề số');

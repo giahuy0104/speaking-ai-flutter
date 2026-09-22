@@ -28,6 +28,43 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  testWidgets('clears only the visible conversation result', (tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final controller = _controller()
+      ..result = ConversationResult(
+        conversationId: 'visible-result',
+        sessionId: 'visible-session',
+        context: PracticeContext.home,
+        vietnameseText: 'Nhưng dừng lại',
+        englishText: 'But stop',
+        audioUri: Uri.parse('https://example.com/visible-result.mp3'),
+        processingMode: 'rule',
+        textSource: 'phrase_rule',
+        audioSource: 'cache',
+        asrMode: 'android_streaming',
+        latency: const ConversationLatency(
+          asrMs: 1,
+          llmMs: 0,
+          ttsMs: 0,
+          timeToFirstAudioMs: 1,
+        ),
+      )
+      ..phase = ConversationPhase.ready;
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(_app(controller));
+    await tester.pumpAndSettle();
+    expect(find.text('Nhưng dừng lại'), findsOneWidget);
+
+    controller.clearPresentationResult();
+    await tester.pumpAndSettle();
+
+    expect(controller.result, isNull);
+    expect(controller.phase, ConversationPhase.idle);
+    expect(find.text('Nhưng dừng lại'), findsNothing);
+    expect(find.text('Câu bạn nói sẽ hiện ở đây'), findsOneWidget);
+  });
+
   testWidgets(
     'opens vocabulary, returns to communication, and opens topics',
     (tester) async {

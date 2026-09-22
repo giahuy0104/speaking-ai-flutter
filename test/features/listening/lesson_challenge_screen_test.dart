@@ -316,6 +316,30 @@ void main() {
     },
   );
 
+  testWidgets('iOS silent question timeout stops without opening mic', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    await _usePhoneSurface(tester);
+    final media = _FakeLessonMediaService();
+    final prompt = _MissingFirstFinishVoicePromptService();
+    await tester.pumpWidget(
+      _subject(startAge: 7, mediaService: media, voicePromptService: prompt),
+    );
+    await _pumpChallengeTransition(tester);
+    await tester.pump(const Duration(seconds: 10));
+    await _pumpChallengeTransition(tester);
+
+    expect(prompt.stopCalls, 1);
+    expect(media.recordingStarts, 0);
+    expect(
+      find.text('Chưa phát được câu hỏi. Bạn bấm nghe lại nhé.'),
+      findsOneWidget,
+    );
+    debugDefaultTargetPlatformOverride = null;
+  });
+
   testWidgets('Android prompt timeout stops speech without opening mic', (
     tester,
   ) async {
@@ -1204,6 +1228,25 @@ class _MissingSecondFinishVoicePromptService implements VoicePromptService {
     }
     return Completer<void>().future;
   }
+
+  @override
+  Future<void> stop() async {
+    stopCalls += 1;
+  }
+}
+
+class _MissingFirstFinishVoicePromptService implements VoicePromptService {
+  int stopCalls = 0;
+
+  @override
+  Future<void> dispose() async {}
+
+  @override
+  Future<void> speak(String text, {String locale = 'vi-VN'}) async {}
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) =>
+      Completer<void>().future;
 
   @override
   Future<void> stop() async {

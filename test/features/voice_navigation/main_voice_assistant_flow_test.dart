@@ -62,7 +62,11 @@ void main() {
             );
             expect(
               flow.canHandlePartial(phrase),
-              isTrue,
+              previousStage ==
+                          MainVoiceAssistantStage.chooseTopicAfterCompletion &&
+                      phrase == 'Chủ đề'
+                  ? isFalse
+                  : isTrue,
               reason: '$previousStage: $phrase',
             );
             final turn = await flow.handle(phrase);
@@ -567,6 +571,31 @@ void main() {
     },
   );
 
+  test(
+    'waits for the topic number instead of committing the Chủ đề partial',
+    () async {
+      final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
+
+      flow.beginLevelTopicSelection(
+        childAge: 6,
+        levelNumber: 1,
+        topicNumbers: const <int>[1, 2, 3],
+        completedTopicNumbers: const <int>[],
+        announceLevel: false,
+      );
+
+      expect(flow.canHandlePartial('Chủ đề'), isFalse);
+      expect(flow.stage, MainVoiceAssistantStage.chooseTopicAfterCompletion);
+
+      final selected = await flow.handle('Chủ đề số 2');
+      expect(
+        selected.navigationBeforePrompt?.destination,
+        VoiceNavigationDestination.topics,
+      );
+      expect(selected.navigationBeforePrompt?.topicNumber, 2);
+    },
+  );
+
   test('does not treat its own spoken prompts as child selections', () async {
     final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
 
@@ -976,6 +1005,13 @@ Future<ListeningContentCatalog> _loadContent() async {
         startAge: 6,
         endAge: 7,
         topics: <ListeningTopicContent>[
+          ListeningTopicContent(
+            id: 'a067_t02',
+            number: 2,
+            titleVi: 'Gia đình',
+            titleEn: 'Family',
+            lessons: <ListeningLessonContent>[_lesson(1, 'Người thân')],
+          ),
           ListeningTopicContent(
             id: 'a067_t03',
             number: 3,

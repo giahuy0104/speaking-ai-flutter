@@ -282,7 +282,21 @@ class MainVoiceAssistantFlow {
     if (normalized.isEmpty || _looksLikePromptEcho(normalized)) {
       return false;
     }
-    if (_selectionModuleDestination(normalized) != null) return true;
+    final selectionDestination = _selectionModuleDestination(normalized);
+    if (selectionDestination != null) {
+      // While the child is choosing a topic, the stable partial "Chủ đề" is
+      // also the prefix of "Chủ đề số 2". Committing OPEN_SUBJECT here resets
+      // the topic-selection flow before the recognizer can publish the number.
+      // Wait for the final transcript in these two stages; an exact final
+      // "Chủ đề" still remains a valid global navigation command in handle().
+      if (normalized == 'chu de' &&
+          selectionDestination == VoiceNavigationDestination.topics &&
+          (_stage == MainVoiceAssistantStage.chooseTopic ||
+              _stage == MainVoiceAssistantStage.chooseTopicAfterCompletion)) {
+        return false;
+      }
+      return true;
+    }
     if (!_hasStageSpecificIntent(normalized) && !_isStopChoice(normalized)) {
       return false;
     }

@@ -193,6 +193,10 @@ workflows:
     publishing:
       app_store_connect:
         auth: integration
+        submit_to_testflight: true
+        expire_build_submitted_for_review: true
+        beta_groups:
+          - HOMI Test
 
   ios-bootstrap:
     name: iOS Bootstrap and Simulator Validation

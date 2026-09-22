@@ -215,6 +215,8 @@ void main() {
         expect(prompts.readyCues, 1);
         expect(speech.commands.commandStarts, 1);
         expect(media.startRecordingCount, 0);
+        expect(find.text('Thả để lưu bản ghi'), findsNothing);
+        expect(find.text('Nhấn và giữ để ghi âm'), findsOneWidget);
         speech.commands.partial.add(choice.$1);
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 701));
@@ -470,6 +472,29 @@ void main() {
       ]);
     },
   );
+
+  testWidgets('communication tab reports the lesson exit before navigation', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    await _usePhoneSurface(tester);
+    var communicationRequests = 0;
+
+    await tester.pumpWidget(
+      _subject(
+        _lessonWithSentences(1),
+        _MemoryProgressStore(),
+        const Key('communication-exit'),
+        onCommunicationRequested: () => communicationRequests += 1,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Giao tiếp'));
+    await tester.pump();
+
+    expect(communicationRequests, 1);
+  });
 
   testWidgets('previous sentence is persisted and restored after re-entry', (
     tester,
@@ -899,6 +924,7 @@ Widget _subject(
   ListeningTopicContent? topicContent,
   LessonCompletionChoiceRecognizer? completionChoiceRecognizer,
   ListeningResumeStage initialResumeStage = ListeningResumeStage.core,
+  VoidCallback? onCommunicationRequested,
 }) {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -924,6 +950,7 @@ Widget _subject(
       topicContent: topicContent,
       completionChoiceRecognizer: completionChoiceRecognizer,
       initialResumeStage: initialResumeStage,
+      onCommunicationRequested: onCommunicationRequested,
       guideAudioLibrary:
           guideAudioLibrary ??
           LessonGuideAudioLibrary(assetPaths: const <String>[]),
