@@ -196,9 +196,14 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
   }
 
   private func bluetoothInputs() -> [AVAudioSessionPortDescription] {
-    (audioSession.availableInputs ?? []).filter {
+    let current = audioSession.currentRoute.inputs.filter {
       IOSHfpRoutePolicy.isHfpInput($0.portType)
     }
+    let available = (audioSession.availableInputs ?? []).filter {
+      IOSHfpRoutePolicy.isHfpInput($0.portType)
+    }
+    var seen = Set<String>()
+    return (current + available).filter { seen.insert($0.uid).inserted }
   }
 
   private func findDevices(_ result: @escaping FlutterResult) {

@@ -600,9 +600,13 @@ final class IOSAudioSessionCoordinator: NSObject {
     )
     if activate {
       try ensureActive(caller: caller)
-    }
-    if let preferredInput {
+      // A previous phone-speaker turn can leave both the built-in microphone
+      // and speaker override selected. Merely switching to playAndRecord does
+      // not make iOS publish bluetoothHFP in that state, so Settings reports
+      // no HFP even though the following lesson can renegotiate it. Clear both
+      // stale choices for discovery, or select the exact requested H20 input.
       try ensurePreferredInput(preferredInput, caller: caller)
+      try ensureOutputOverride(.none, caller: caller)
     }
   }
 
