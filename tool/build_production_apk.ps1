@@ -14,6 +14,27 @@ if ($productionDefines.BACKEND_BASE_URL -ne $expectedBackendUrl) {
   throw "Production APK must use $expectedBackendUrl. Found: $($productionDefines.BACKEND_BASE_URL)"
 }
 
+$requiredLegalUrls = @(
+  'PRIVACY_POLICY_URL',
+  'TERMS_URL',
+  'SUPPORT_URL'
+)
+foreach ($key in $requiredLegalUrls) {
+  $rawValue = [string]$productionDefines.$key
+  $parsedUri = $null
+  if ([string]::IsNullOrWhiteSpace($rawValue) -or
+      -not [Uri]::TryCreate($rawValue, [UriKind]::Absolute, [ref]$parsedUri) -or
+      $parsedUri.Scheme -ne 'https' -or
+      [string]::IsNullOrWhiteSpace($parsedUri.Host)) {
+    throw "Production APK requires a valid HTTPS $key. Found: $rawValue"
+  }
+}
+
+if ([string]::IsNullOrWhiteSpace([string]$productionDefines.AI_SUBPROCESSORS) -or
+    [string]::IsNullOrWhiteSpace([string]$productionDefines.DATA_RETENTION_SUMMARY)) {
+  throw 'Production APK requires AI_SUBPROCESSORS and DATA_RETENTION_SUMMARY disclosures.'
+}
+
 Push-Location $repositoryRoot
 try {
   & flutter build apk --release --dart-define-from-file=$definesFile
