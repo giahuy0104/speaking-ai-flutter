@@ -1,12 +1,15 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:ai_speaking_flutter_app/core/audio/wav_audio.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_recording_storage_native.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_wav_normalizer.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   test('existing mono PCM and metadata stay byte-identical', () {
     final mono = _withMetadata(_wav([0, 32767, -32768], channels: 1));
     expect(normalizeAndroidLessonWav(mono), same(mono));
@@ -62,6 +65,23 @@ void main() {
     );
   });
 
+  test('lifts quiet mono speech while preserving peak headroom', () {
+    final quiet = _wav([100, 500, -1000, 800, -400], channels: 1);
+    final normalized = normalizeLessonWavLoudness(quiet);
+    final samples = _samples(normalized);
+    expect(
+      samples.map((sample) => sample.abs()).reduce(max),
+      greaterThan(1000),
+    );
+    expect(samples.map((sample) => sample.abs()).reduce(max), lessThan(32767));
+    expect(samples[2], isNegative);
+  });
+
+  test('does not amplify an already loud mono recording', () {
+    final loud = _wav([0, 26000, -26000, 18000], channels: 1);
+    expect(normalizeLessonWavLoudness(loud), same(loud));
+  });
+
   test('rejects truncated containers and partial stereo frames', () {
     final complete = _wav([1, 2, 3, 4]);
     expect(
@@ -99,6 +119,11 @@ void main() {
     });
 
     tearDown(() async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('ailingo_voice_prompt'),
+            null,
+          );
       debugDefaultTargetPlatformOverride = null;
       await temporary.delete(recursive: true);
     });
@@ -109,7 +134,10 @@ void main() {
         await resolveLessonRecording(recording.path, recording.path),
         recording.path,
       );
-      expect(_samples(await recording.readAsBytes()), [300, -300]);
+      final samples = _samples(await recording.readAsBytes());
+      expect(samples.first, isPositive);
+      expect(samples.last, isNegative);
+      expect(samples.first.abs(), greaterThan(300));
       expect(await temporary.list().length, 1);
     });
 
@@ -134,6 +162,27 @@ void main() {
         expect(await recording.readAsBytes(), original);
       },
     );
+
+    test('iOS uses the native leveled recording when available', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      final normalized = File('${temporary.path}/attempt.normalized.wav');
+      await recording.writeAsBytes(_wav([100, 300]));
+      await normalized.writeAsBytes(_wav([3000, 9000], channels: 1));
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('ailingo_voice_prompt'),
+            (call) async {
+              expect(call.method, 'normalizeLessonRecording');
+              expect((call.arguments as Map)['path'], recording.path);
+              return normalized.path;
+            },
+          );
+
+      expect(
+        await resolveLessonRecording(recording.path, recording.path),
+        normalized.path,
+      );
+    });
   });
 }
 

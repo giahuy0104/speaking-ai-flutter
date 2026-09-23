@@ -662,7 +662,7 @@ class LessonMediaService {
 
   /// Adds audio captured by a native speech recognizer to the same local
   /// lesson history used by recordings produced through the record plugin.
-  Future<void> registerExternalRecording({
+  Future<LessonRecording> registerExternalRecording({
     required LessonRecording recording,
     required String lessonId,
     required String lessonTitle,
@@ -671,7 +671,10 @@ class LessonMediaService {
     required String english,
     required String vietnamese,
   }) async {
-    final resolvedPath = await findLessonRecording(recording.filePath);
+    final resolvedPath = await resolveLessonRecording(
+      recording.filePath,
+      recording.filePath,
+    );
     if (resolvedPath == null) {
       throw const LessonMediaException('Không tìm thấy bản ghi vừa tạo.');
     }
@@ -693,6 +696,10 @@ class LessonMediaService {
     for (final path in evictedPaths) {
       await deleteLessonRecording(path);
     }
+    return LessonRecording(
+      filePath: resolvedPath,
+      duration: recording.duration,
+    );
   }
 
   Future<void> cancelRecording() => _serializeRecordingOperation(() async {

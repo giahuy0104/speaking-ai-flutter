@@ -116,12 +116,128 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       )
     case "playSpeechReadyCue":
       playSpeechReadyCue(result)
+    case "normalizeLessonRecording":
+      let arguments = call.arguments as? [String: Any]
+      guard let path = arguments?["path"] as? String, !path.isEmpty else {
+        result(FlutterError(code: "INVALID_RECORDING_PATH", message: "Missing recording path.", details: nil))
+        return
+      }
+      normalizeLessonRecording(path: path, result: result)
     case "stop":
       stop()
       result(nil)
     default:
       result(FlutterMethodNotImplemented)
     }
+  }
+
+  /// Decodes the child's short lesson capture, lifts only quiet recordings,
+  /// and writes a PCM WAV sibling. Authored prompts never pass through this
+  /// path, so their established loudness is untouched. Peak headroom prevents
+  /// clipping while the gated RMS ignores pauses around the spoken sentence.
+  private func normalizeLessonRecording(path: String, result: @escaping FlutterResult) {
+    DispatchQueue.global(qos: .userInitiated).async {
+      do {
+        let sourceURL = URL(fileURLWithPath: path)
+        let input = try AVAudioFile(forReading: sourceURL)
+        let format = input.processingFormat
+        guard input.length > 0,
+              input.length <= AVAudioFramePosition(format.sampleRate * 12)
+        else {
+          throw LessonRecordingNormalizationError.invalidRecording
+        }
+        let frameLength = AVAudioFrameCount(input.length)
+        guard
+              let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameLength)
+        else {
+          throw LessonRecordingNormalizationError.invalidRecording
+        }
+        try input.read(into: buffer, frameCount: frameLength)
+        guard let channels = buffer.floatChannelData else {
+          throw LessonRecordingNormalizationError.unsupportedPcm
+        }
+        let gainDb = Self.lessonRecordingGainDb(
+          channels: channels,
+          channelCount: Int(format.channelCount),
+          frameLength: Int(buffer.frameLength),
+          sampleRate: format.sampleRate
+        )
+        guard gainDb > 0.05 else {
+          DispatchQueue.main.async { result(path) }
+          return
+        }
+        let multiplier = pow(10.0, gainDb / 20.0)
+        for channel in 0..<Int(format.channelCount) {
+          for frame in 0..<Int(buffer.frameLength) {
+            channels[channel][frame] *= Float(multiplier)
+          }
+        }
+        let outputURL = sourceURL.deletingPathExtension()
+          .appendingPathExtension("normalized.wav")
+        try? FileManager.default.removeItem(at: outputURL)
+        let settings: [String: Any] = [
+          AVFormatIDKey: kAudioFormatLinearPCM,
+          AVSampleRateKey: format.sampleRate,
+          AVNumberOfChannelsKey: Int(format.channelCount),
+          AVLinearPCMBitDepthKey: 16,
+          AVLinearPCMIsFloatKey: false,
+          AVLinearPCMIsBigEndianKey: false,
+        ]
+        let output = try AVAudioFile(
+          forWriting: outputURL,
+          settings: settings,
+          commonFormat: .pcmFormatFloat32,
+          interleaved: false
+        )
+        try output.write(from: buffer)
+        try? FileManager.default.removeItem(at: sourceURL)
+        DispatchQueue.main.async { result(outputURL.path) }
+      } catch {
+        DispatchQueue.main.async {
+          result(FlutterError(
+            code: "LESSON_RECORDING_NORMALIZATION_FAILED",
+            message: "Unable to normalize lesson recording.",
+            details: error.localizedDescription
+          ))
+        }
+      }
+    }
+  }
+
+  private static func lessonRecordingGainDb(
+    channels: UnsafePointer<UnsafeMutablePointer<Float>>,
+    channelCount: Int,
+    frameLength: Int,
+    sampleRate: Double
+  ) -> Double {
+    let windowFrames = max(1, Int(sampleRate / 50.0))
+    var windowEnergies: [Double] = []
+    var peak = 0.0
+    var start = 0
+    while start < frameLength {
+      let end = min(frameLength, start + windowFrames)
+      var energy = 0.0
+      for frame in start..<end {
+        for channel in 0..<channelCount {
+          let sample = Double(channels[channel][frame])
+          peak = max(peak, abs(sample))
+          energy += sample * sample
+        }
+      }
+      let count = max(1, (end - start) * channelCount)
+      windowEnergies.append(energy / Double(count))
+      start = end
+    }
+    guard let strongest = windowEnergies.max(), strongest > 0, peak > 0 else { return 0 }
+    let gate = max(pow(10.0, -50.0 / 10.0), strongest / 1000.0)
+    let active = windowEnergies.filter { $0 >= gate }
+    guard !active.isEmpty else { return 0 }
+    let rmsPower = active.reduce(0, +) / Double(active.count)
+    let measuredDb = 10.0 * log10(rmsPower)
+    let peakDb = 20.0 * log10(peak)
+    let desired = -21.0 - measuredDb
+    let headroom = -1.0 - peakDb
+    return max(0.0, min(28.0, min(desired, headroom)))
   }
 
   private func speak(
@@ -493,6 +609,11 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
 
 private enum ReadyCueError: Error {
   case playbackFailed
+}
+
+private enum LessonRecordingNormalizationError: Error {
+  case invalidRecording
+  case unsupportedPcm
 }
 
 private extension Data {

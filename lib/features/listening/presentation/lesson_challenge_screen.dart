@@ -738,7 +738,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         uri,
         timeout: timeout,
         playbackGainDb: lessonRecordingPlaybackGainDb,
-        fixedPlaybackGain: true,
       );
     } catch (error) {
       // A playback problem must not discard the answer or prevent scoring.

@@ -419,6 +419,9 @@ class BackendLessonAttemptEvaluator
     required Iterable<String> acceptedVariants,
     required bool requireAllExpectedTokens,
   }) {
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      _throwIfScoringServiceFailed(response.statusCode);
+    }
     Object? decoded;
     try {
       decoded = jsonDecode(response.body);
@@ -428,7 +431,6 @@ class BackendLessonAttemptEvaluator
       );
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      _throwIfScoringServiceFailed(response.statusCode);
       final errorPayload = decoded is Map<String, dynamic>
           ? decoded['error']
           : null;
@@ -542,6 +544,9 @@ class BackendLessonAttemptEvaluator
         return http.Response.fromStream(await _send(request));
       },
     );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      _throwIfScoringServiceFailed(response.statusCode);
+    }
     Object? decoded;
     try {
       decoded = jsonDecode(response.body);
@@ -551,7 +556,6 @@ class BackendLessonAttemptEvaluator
       );
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      _throwIfScoringServiceFailed(response.statusCode);
       final errorPayload = decoded is Map<String, dynamic>
           ? decoded['error']
           : null;
@@ -646,7 +650,7 @@ class BackendLessonAttemptEvaluator
   }
 
   int _maximumScoringRetries(int statusCode) => switch (statusCode) {
-    429 || 502 || 503 || 504 => 2,
+    429 || 502 || 503 || 504 => 3,
     500 => 1,
     _ => 0,
   };
@@ -658,21 +662,23 @@ class BackendLessonAttemptEvaluator
     if (rawRetryAfter != null) {
       final seconds = int.tryParse(rawRetryAfter.trim());
       if (seconds != null && seconds >= 0) {
-        return Duration(seconds: math.min(seconds, 2));
+        return Duration(seconds: math.min(seconds, 5));
       }
       final retryAt = DateTime.tryParse(rawRetryAfter)?.toUtc();
       if (retryAt != null) {
         final remaining = retryAt.difference(DateTime.now().toUtc());
         if (remaining > Duration.zero) {
           return Duration(
-            milliseconds: math.min(remaining.inMilliseconds, 2000),
+            milliseconds: math.min(remaining.inMilliseconds, 5000),
           );
         }
       }
     }
-    return retryIndex == 0
-        ? const Duration(milliseconds: 250)
-        : const Duration(milliseconds: 750);
+    return switch (retryIndex) {
+      0 => const Duration(milliseconds: 400),
+      1 => const Duration(milliseconds: 1200),
+      _ => const Duration(milliseconds: 2500),
+    };
   }
 
   String? _responseHeader(http.Response response, List<String> candidates) {

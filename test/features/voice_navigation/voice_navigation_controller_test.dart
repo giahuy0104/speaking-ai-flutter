@@ -285,6 +285,42 @@ void main() {
   );
 
   test(
+    'failed iOS-style translation acknowledgment still opens the microphone flow',
+    () async {
+      final speech = _FakeNavigationSpeechInput();
+      final prompt = _FailingMainTurnPromptService()..failNext = false;
+      final intents = <VoiceNavigationIntent>[];
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+      );
+      controller.setIntentHandler(intents.add);
+
+      expect(
+        await controller.activateFromMainButton(promptAlreadySpoken: true),
+        isTrue,
+      );
+      prompt.failNext = true;
+      expect(
+        await controller.dispatchRecognizedText('Con ghi muốn luyện nói'),
+        isTrue,
+      );
+
+      expect(intents, hasLength(1));
+      expect(
+        intents.single.destination,
+        VoiceNavigationDestination.conversation,
+      );
+      expect(intents.single.enterMainSpeakingMode, isTrue);
+      expect(controller.isMainButtonSessionActive, isFalse);
+      expect(prompt.endedReasons, ['prompt_failed']);
+
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  test(
     'failed iOS-style start acknowledgment still opens the selected lesson',
     () async {
       final speech = _FakeNavigationSpeechInput();
@@ -649,7 +685,7 @@ void main() {
 
   for (final failIntro in [false, true]) {
     test(
-      'cancelled/failed translation intro ($failIntro) never starts mic',
+      'cancelled/failed translation intro ($failIntro) has safe terminal handoff',
       () async {
         final speech = _FakeNavigationSpeechInput();
         final prompt = _TranslationTransferPromptService();
@@ -675,8 +711,17 @@ void main() {
           prompt.intro.complete();
         }
 
-        expect(await transfer, isFalse);
-        expect(intents, isEmpty);
+        expect(await transfer, failIntro);
+        if (failIntro) {
+          expect(intents, hasLength(1));
+          expect(
+            intents.single.destination,
+            VoiceNavigationDestination.conversation,
+          );
+          expect(intents.single.enterMainSpeakingMode, isTrue);
+        } else {
+          expect(intents, isEmpty);
+        }
         expect(controller.continuousRequested, isFalse);
         expect(controller.isListening, isFalse);
         controller.dispose();
@@ -1388,6 +1433,39 @@ void main() {
         isTrue,
       );
       expect(voicePrompt.beginCount, 2);
+
+      controller.dispose();
+      await speechInput.dispose();
+    },
+  );
+
+  test(
+    'iOS lesson MAIN does not stay blocked by a late native turn arm',
+    () async {
+      final speechInput = _FakeNavigationSpeechInput();
+      final voicePrompt = _LateBeginMainTurnVoicePromptService();
+      ActiveLearningCommand? receivedCommand;
+      final controller = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: voicePrompt,
+        pauseDrainTimeout: const Duration(milliseconds: 1),
+        activeLearningCommandHandler: (command) async {
+          receivedCommand = command;
+          return const ActiveLearningCommandResult.handled();
+        },
+      );
+
+      expect(
+        await controller.activateFromMainButton(activeLearning: true),
+        isTrue,
+      );
+      expect(controller.isMainButtonSessionActive, isTrue);
+
+      voicePrompt.pendingBegin.complete('late-ios-main-turn');
+      await Future<void>.delayed(Duration.zero);
+      expect(await controller.dispatchRecognizedText('Câu tiếp theo'), isTrue);
+      expect(receivedCommand, ActiveLearningCommand.nextItem);
+      expect(voicePrompt.endedTurnIds.last, 'late-ios-main-turn');
 
       controller.dispose();
       await speechInput.dispose();
@@ -2108,6 +2186,17 @@ class _FakeMainTurnVoicePromptService extends _FakeVoicePromptService
   Future<void> endMainTurn(String reason, {String? turnId}) async {
     endedReasons.add(reason);
     endedTurnIds.add(turnId);
+  }
+}
+
+class _LateBeginMainTurnVoicePromptService
+    extends _FakeMainTurnVoicePromptService {
+  final Completer<String?> pendingBegin = Completer<String?>();
+
+  @override
+  Future<String?> beginMainTurn() {
+    beginCount += 1;
+    return pendingBegin.future;
   }
 }
 

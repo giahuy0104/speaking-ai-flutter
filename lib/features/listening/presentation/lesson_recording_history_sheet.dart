@@ -126,7 +126,6 @@ class _LessonRecordingHistorySheetState
       await widget.mediaService.play(
         uri,
         playbackGainDb: lessonRecordingPlaybackGainDb,
-        fixedPlaybackGain: true,
       );
     } catch (_) {
       if (mounted) {

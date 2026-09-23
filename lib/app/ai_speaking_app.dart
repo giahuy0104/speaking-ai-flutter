@@ -2249,6 +2249,15 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (!_voiceAccessEnabled) {
       return;
     }
+    // A stable partial and the final native transcript can both resolve the
+    // same accepted command before navigation fully settles. The first transfer
+    // enters synchronously, so a duplicate must reuse that session instead of
+    // opening a second iOS HFP lease. Otherwise the stale preparation can close
+    // the newer lease and leave the conversation screen visible without a mic.
+    if (_mainSpeakingSessionController.isActive) {
+      _synchronizeMainSpeakingSession();
+      return;
+    }
     // A navigation choice that leaves listening is a transfer, not a temporary
     // MAIN interruption. Do not let the paused lesson resume after the
     // conversation screen has already taken ownership of audio.
@@ -2281,8 +2290,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (controller == null) return;
     try {
       await controller.beginContinuousHfpSession();
-      if (generation != _mainSpeakingHfpSessionGeneration ||
-          !_mainSpeakingSessionController.isActive) {
+      // A superseded preparation must not close a shared lease while a newer
+      // continuous-translation activation still owns it.
+      if (!_mainSpeakingSessionController.isActive) {
         await controller.endContinuousHfpSession();
       }
     } finally {

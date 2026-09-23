@@ -449,7 +449,7 @@ void main() {
 
       expect(await _evaluate(evaluator), LessonAttemptOutcome.good);
       expect(scoringCalls, 2);
-      expect(delays, const <Duration>[Duration(milliseconds: 250)]);
+      expect(delays, const <Duration>[Duration(milliseconds: 400)]);
     },
   );
 
@@ -486,7 +486,7 @@ void main() {
 
     expect(await _evaluate(evaluator), LessonAttemptOutcome.good);
     expect(scoringCalls, 2);
-    expect(delays, const <Duration>[Duration(seconds: 2)]);
+    expect(delays, const <Duration>[Duration(seconds: 5)]);
   });
 
   test('handles a non-JSON server error without FormatException', () async {
@@ -507,7 +507,7 @@ void main() {
         isA<LessonAttemptEvaluationException>().having(
           (error) => error.toString(),
           'message',
-          'Máy chủ chưa xử lý được câu nói. Bạn thử lại sau nhé.',
+          'Dịch vụ chấm điểm đang bận. Bạn thử lại sau nhé.',
         ),
       ),
     );

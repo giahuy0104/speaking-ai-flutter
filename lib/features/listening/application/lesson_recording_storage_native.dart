@@ -1,9 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'lesson_wav_normalizer.dart';
+
+const MethodChannel _iosLessonRecordingChannel = MethodChannel(
+  'ailingo_voice_prompt',
+);
 
 String lessonRecordingFileExtension({TargetPlatform? platform}) =>
     (platform ?? defaultTargetPlatform) == TargetPlatform.android
@@ -48,7 +53,9 @@ Future<String?> resolveLessonRecording(
   if (defaultTargetPlatform == TargetPlatform.android &&
       path.toLowerCase().endsWith('.wav')) {
     final original = await recording.readAsBytes();
-    final normalized = normalizeAndroidLessonWav(original);
+    final normalized = normalizeLessonWavLoudness(
+      normalizeAndroidLessonWav(original),
+    );
     if (!identical(original, normalized)) {
       // Write and flush a sibling first. A same-directory rename replaces the
       // completed recording atomically; failures leave the original intact.
@@ -65,6 +72,24 @@ Future<String?> resolveLessonRecording(
         'Lesson WAV normalized: sampleRate=16000 channels=2->1 '
         'sourceBytes=${original.length} outputBytes=${normalized.length}',
       );
+    }
+  }
+  if (defaultTargetPlatform == TargetPlatform.iOS) {
+    try {
+      final normalizedPath = await _iosLessonRecordingChannel
+          .invokeMethod<String>('normalizeLessonRecording', <String, Object?>{
+            'path': path,
+          });
+      if (normalizedPath != null &&
+          normalizedPath.trim().isNotEmpty &&
+          await File(normalizedPath).exists()) {
+        return normalizedPath;
+      }
+    } on MissingPluginException {
+      // Unit tests and older native shells do not expose the normalizer. Keep
+      // the valid original recording instead of making capture unusable.
+    } on PlatformException catch (error) {
+      debugPrint('iOS lesson recording normalization skipped: $error');
     }
   }
   return path;

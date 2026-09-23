@@ -1118,7 +1118,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       () => widget.mediaService.play(
         uri,
         playbackGainDb: lessonRecordingPlaybackGainDb,
-        fixedPlaybackGain: true,
       ),
     );
   }
@@ -1139,7 +1138,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         uri,
         timeout: timeout,
         playbackGainDb: lessonRecordingPlaybackGainDb,
-        fixedPlaybackGain: true,
       );
     } catch (error) {
       // Playback must not discard a valid attempt. Scoring can still continue
@@ -1507,16 +1505,25 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     });
     final completedRecording = recording;
     if (completedRecording != null) {
+      var finalizedRecording = completedRecording;
       try {
-        await widget.mediaService.registerExternalRecording(
-          recording: completedRecording,
-          lessonId: widget.lesson.id,
-          lessonTitle: widget.lesson.titleVi,
-          sentenceId: evaluatedSentence.id,
-          sentenceNumber: evaluatedSentence.number,
-          english: evaluatedSentence.english,
-          vietnamese: evaluatedSentence.vietnamese,
-        );
+        finalizedRecording = await widget.mediaService
+            .registerExternalRecording(
+              recording: completedRecording,
+              lessonId: widget.lesson.id,
+              lessonTitle: widget.lesson.titleVi,
+              sentenceId: evaluatedSentence.id,
+              sentenceNumber: evaluatedSentence.number,
+              english: evaluatedSentence.english,
+              vietnamese: evaluatedSentence.vietnamese,
+            );
+        if (_isCurrentEvaluation(
+          evaluationRequest,
+          evaluatedSentenceIndex,
+          evaluatedSentence.id,
+        )) {
+          setState(() => _recordingPath = finalizedRecording.filePath);
+        }
       } catch (error) {
         debugPrint(
           'HOMI could not archive the Apple Speech lesson WAV: $error',
@@ -1529,7 +1536,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       )) {
         return;
       }
-      await _playAttemptRecordingToCompletion(completedRecording);
+      await _playAttemptRecordingToCompletion(finalizedRecording);
       if (!_isCurrentEvaluation(
         evaluationRequest,
         evaluatedSentenceIndex,

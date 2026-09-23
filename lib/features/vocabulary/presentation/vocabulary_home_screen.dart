@@ -24,6 +24,7 @@ import '../data/vocabulary_store.dart';
 import '../domain/vocabulary_dictionary.dart';
 import '../domain/vocabulary_entry.dart';
 import '../domain/vocabulary_flow_v3.dart';
+import '../domain/vocabulary_journey_index.dart';
 import 'vocabulary_practice_screen.dart';
 
 const _familyAsset = 'assets/images/topics/my-family.jpg';
@@ -148,6 +149,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   VocabularyContentAudioService? _vocabularyAudioService;
   late final bool _ownsVocabularyAudioService;
   List<VocabularyEntry> _entries = const <VocabularyEntry>[];
+  VocabularyJourneyIndex _journeyIndex = VocabularyJourneyIndex.empty();
   _VocabularyJourney? _selectedJourney;
   bool _loading = true;
   bool _translating = false;
@@ -1334,53 +1336,22 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   }
 
   List<VocabularyEntry> _entriesForJourney(_VocabularyJourney journey) {
-    final entries = _entries
-        .where(
-          (entry) => switch (journey) {
-            _VocabularyJourney.family => entry.isUnlockedParent,
-            _VocabularyJourney.stars =>
-              entry.isStar &&
-                  entry.source == VocabularySource.topicCore &&
-                  (entry.correctAudioPath?.trim().isNotEmpty ?? false),
-            _VocabularyJourney.review => VocabularyStore.isActiveReviewEntry(
-              entry,
-            ),
-          },
-        )
-        .toList();
-    if (journey == _VocabularyJourney.review) {
-      final byTarget = <String, VocabularyEntry>{};
-      for (final entry in entries) {
-        final target = _normalizedVocabularyText(entry.word);
-        final previous = byTarget[target];
-        if (previous == null ||
-            (entry.isParentAdded && !previous.isParentAdded)) {
-          byTarget[target] = entry;
-        }
-      }
-      entries
-        ..clear()
-        ..addAll(byTarget.values);
-    }
-    entries.sort((a, b) {
-      if (journey == _VocabularyJourney.review) {
-        return a.addedAt.compareTo(b.addedAt);
-      }
-      if (journey == _VocabularyJourney.stars) {
-        return (a.earnedAt ?? a.addedAt).compareTo(b.earnedAt ?? b.addedAt);
-      }
-      return a.addedAt.compareTo(b.addedAt);
-    });
-    return entries;
+    return switch (journey) {
+      _VocabularyJourney.family => _journeyIndex.family,
+      _VocabularyJourney.stars => _journeyIndex.stars,
+      _VocabularyJourney.review => _journeyIndex.review,
+    };
   }
 
   Future<void> _load() async {
     final entries = await widget.store.read();
+    final journeyIndex = VocabularyJourneyIndex.fromEntries(entries);
     if (!mounted) {
       return;
     }
     setState(() {
       _entries = entries;
+      _journeyIndex = journeyIndex;
       _loading = false;
     });
     if (_isEffectivelyActive && widget.autoStartToday && !_todayOffered) {
@@ -1466,12 +1437,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         selections,
         childAge: widget.childAge,
       );
+      final journeyIndex = VocabularyJourneyIndex.fromEntries(entries);
       _prefetchParentAudio(selections);
       if (!mounted) {
         return;
       }
       setState(() {
         _entries = entries;
+        _journeyIndex = journeyIndex;
         _selectedJourney = _VocabularyJourney.family;
         _searchController.clear();
       });
@@ -1886,7 +1859,6 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       await _mediaService.playToCompletion(
         uri,
         playbackGainDb: lessonRecordingPlaybackGainDb,
-        fixedPlaybackGain: true,
       );
     } catch (error) {
       if (journey == _VocabularyJourney.stars) {

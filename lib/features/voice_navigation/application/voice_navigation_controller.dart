@@ -521,17 +521,15 @@ class VoiceNavigationController extends ChangeNotifier {
     // H20 firmware 1.0.0 can interrupt BLE while iOS changes from A2DP to
     // two-way HFP for this acknowledgement. AVSpeechSynthesizer may then lose
     // its completion callback even though the command was recognized and the
-    // prompt started. A terminal screen transfer must still honor that accepted
-    // command after the prompt service has stopped and released its audio turn.
-    // Questions that need another spoken answer remain blocked on prompt
-    // failure so the microphone never opens for a question the child did not
-    // hear.
+    // prompt started. A terminal feature transfer (including continuous
+    // translation) must still honor that accepted command after the prompt
+    // service has stopped and released its audio turn. Questions that need
+    // another spoken answer remain blocked on prompt failure so the microphone
+    // never opens for a question the child did not hear.
     final canCompleteRecognizedNavigation =
         !promptCompleted &&
         !turn.continueListening &&
-        turn.navigationAfterPrompt != null &&
-        turn.navigationAfterPrompt!.destination !=
-            VoiceNavigationDestination.conversation;
+        turn.navigationAfterPrompt != null;
     if (!promptCompleted && !canCompleteRecognizedNavigation) {
       return false;
     }
@@ -1068,16 +1066,56 @@ class VoiceNavigationController extends ChangeNotifier {
     if (service is! MainTurnVoicePromptService) {
       return;
     }
+    final mainTurnService = service as MainTurnVoicePromptService;
+    final beginOperation = mainTurnService.beginMainTurn();
     try {
-      final turnId = await (service as MainTurnVoicePromptService)
-          .beginMainTurn();
+      final turnId = await beginOperation.timeout(_pauseDrainTimeout);
       if (_disposed || generation != _generation) {
         return;
       }
       _nativeMainTurnId = turnId;
       _nativeMainTurnGeneration = generation;
+    } on TimeoutException {
+      // iOS arms a background-capable Apple Speech engine before replying to
+      // beginMainTurn. That native preparation can occasionally finish late
+      // while a lesson is releasing its capture. Do not leave MAIN activation
+      // blocked (and every later physical press rejected) behind that reply.
+      // Adopt the exact turn if it is still current, otherwise close it by ID.
+      unawaited(
+        beginOperation.then(
+          (turnId) => _adoptOrCloseLateNativeMainTurn(
+            mainTurnService,
+            generation: generation,
+            turnId: turnId,
+          ),
+          onError: (_) {},
+        ),
+      );
     } catch (_) {
       // The visible prompt remains usable on platforms without this bridge.
+    }
+  }
+
+  Future<void> _adoptOrCloseLateNativeMainTurn(
+    MainTurnVoicePromptService service, {
+    required int generation,
+    required String? turnId,
+  }) async {
+    if (!_disposed &&
+        generation == _generation &&
+        (_mainButtonActivationInProgress ||
+            _buttonCommandSession ||
+            _continuousRequested)) {
+      _nativeMainTurnId = turnId;
+      _nativeMainTurnGeneration = generation;
+      return;
+    }
+    try {
+      await service
+          .endMainTurn('late_begin_completed', turnId: turnId)
+          .timeout(_pauseDrainTimeout);
+    } catch (_) {
+      // A late obsolete native turn is best-effort cleanup only.
     }
   }
 
