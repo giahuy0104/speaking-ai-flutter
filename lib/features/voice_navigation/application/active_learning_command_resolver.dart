@@ -116,6 +116,29 @@ class ActiveLearningCommandResolver {
         MasterNavigationContract.legacy('INT-001', text)) {
       return ActiveLearningCommand.stop;
     }
+    // The 22/09 patch makes the three vocabulary destinations and Continue
+    // global while a Subject/Vocabulary activity is active. Resolve them
+    // before the node-local grammar so the question currently being spoken
+    // never narrows the global command surface.
+    if (matches('OPEN_PARENT')) {
+      return ActiveLearningCommand.vocabularyParentAdded;
+    }
+    if (matches('OPEN_STAR')) {
+      return ActiveLearningCommand.vocabularyStars;
+    }
+    if (matches('OPEN_REVIEW')) {
+      return ActiveLearningCommand.vocabularyPracticeAgain;
+    }
+    if (matches('CONTINUE_GLOBAL') &&
+        node != ActiveLearningVoiceNode.vocabularyMenu &&
+        node != ActiveLearningVoiceNode.parentAlternatives &&
+        node != ActiveLearningVoiceNode.starAlternatives &&
+        node != ActiveLearningVoiceNode.reviewAlternatives &&
+        node != ActiveLearningVoiceNode.todayEnd &&
+        node != ActiveLearningVoiceNode.blockEnd &&
+        node != ActiveLearningVoiceNode.listEnd) {
+      return ActiveLearningCommand.resume;
+    }
     final choices = switch (node) {
       ActiveLearningVoiceNode.vocabularyMenu => <String, ActiveLearningCommand>{
         'OPEN_PARENT': ActiveLearningCommand.vocabularyParentAdded,
@@ -139,7 +162,7 @@ class ActiveLearningCommandResolver {
         },
       ActiveLearningVoiceNode.song => <String, ActiveLearningCommand>{
         'SKIP_SONG': ActiveLearningCommand.nextItem,
-        'LISTEN_AGAIN': ActiveLearningCommand.replayCurrent,
+        'REPLAY_SONG': ActiveLearningCommand.replayCurrent,
       },
       ActiveLearningVoiceNode.todayEnd => <String, ActiveLearningCommand>{
         'OTHER_CONTENT': ActiveLearningCommand.exitToHome,

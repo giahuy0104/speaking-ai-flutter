@@ -1,5 +1,7 @@
 import '../../listening/application/lesson_guide_audio_library.dart';
 import '../../listening/application/lesson_media_service.dart';
+import '../../../core/audio/voice_prompt_service_base.dart';
+import '../domain/vocabulary_audio_keys.dart';
 import '../domain/vocabulary_flow_v3.dart';
 
 abstract interface class VocabularyFixedPromptAudioService {
@@ -19,11 +21,14 @@ class AssetFirstVocabularyFixedPromptAudioService
   AssetFirstVocabularyFixedPromptAudioService({
     required LessonMediaService mediaService,
     LessonGuideAudioLibrary? audioLibrary,
+    VoicePromptService? registryService,
   }) : _mediaService = mediaService,
-       _audioLibrary = audioLibrary ?? LessonGuideAudioLibrary();
+       _audioLibrary = audioLibrary ?? LessonGuideAudioLibrary(),
+       _registryService = registryService;
 
   final LessonMediaService _mediaService;
   final LessonGuideAudioLibrary _audioLibrary;
+  final VoicePromptService? _registryService;
   int _generation = 0;
 
   @override
@@ -34,6 +39,15 @@ class AssetFirstVocabularyFixedPromptAudioService
     final generation = _generation;
     final prompt = VocabularyFlowV3.fixedPromptForText(text);
     if (prompt == null) return false;
+    final registry = _registryService;
+    final audioKey = VocabularyAudioKeys.fixedPrompt(prompt);
+    if (audioKey != null && registry is KeyedVoicePromptService) {
+      await (registry as KeyedVoicePromptService).speakAndWaitWithAudioKey(
+        audioKey,
+        text,
+      );
+      return true;
+    }
     for (final audioCode in prompt.lookupCodes) {
       if (await playAudioCodeIfAvailable(audioCode)) return true;
       if (generation != _generation) return true;

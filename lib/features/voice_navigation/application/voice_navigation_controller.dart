@@ -333,6 +333,7 @@ class VoiceNavigationController extends ChangeNotifier {
       final acknowledged = await _acknowledgeWakeWord(
         generation,
         promptText: promptText,
+        promptAudioKey: _mainAssistantFlow.currentPromptAudioKey,
         speakPrompt: !promptAlreadySpoken,
       );
       if (_disposed || generation != _generation) return false;
@@ -449,6 +450,7 @@ class VoiceNavigationController extends ChangeNotifier {
       return _acknowledgeWakeWord(
         generation,
         promptText: _mainAssistantFlow.begin(),
+        promptAudioKey: _mainAssistantFlow.currentPromptAudioKey,
       );
     }
 
@@ -511,6 +513,7 @@ class VoiceNavigationController extends ChangeNotifier {
         : await _acknowledgeWakeWord(
             generation,
             promptText: turn.promptText,
+            promptAudioKey: turn.promptAudioKey,
             promptSequence: turn.promptSequence,
             openCommandWindow: turn.continueListening,
           );
@@ -633,6 +636,7 @@ class VoiceNavigationController extends ChangeNotifier {
   Future<bool> _acknowledgeWakeWord(
     int generation, {
     String? promptText,
+    String? promptAudioKey,
     List<MainVoiceAssistantUtterance> promptSequence =
         const <MainVoiceAssistantUtterance>[],
     bool openCommandWindow = true,
@@ -653,7 +657,10 @@ class VoiceNavigationController extends ChangeNotifier {
             promptText ?? HomiFallbackCatalog.assistantPromptById['AI-069']!;
         final utterances = promptSequence.isEmpty
             ? <MainVoiceAssistantUtterance>[
-                MainVoiceAssistantUtterance(resolvedPromptText),
+                MainVoiceAssistantUtterance(
+                  resolvedPromptText,
+                  audioKey: promptAudioKey,
+                ),
               ]
             : promptSequence;
         for (final utterance in utterances) {
@@ -664,17 +671,28 @@ class VoiceNavigationController extends ChangeNotifier {
           if (_disposed || generation != _generation) {
             return false;
           }
-          final budget = promptService is AuthoredPromptBudgetProvider
-              ? await (promptService as AuthoredPromptBudgetProvider)
+          final Future<Duration?>? budgetLookup =
+              utterance.audioKey != null &&
+                  promptService is KeyedAuthoredPromptBudgetProvider
+              ? (promptService as KeyedAuthoredPromptBudgetProvider)
+                    .authoredPromptBudgetForKey(
+                      utterance.audioKey!,
+                      text: utterance.text,
+                      locale: utterance.locale,
+                    )
+              : promptService is AuthoredPromptBudgetProvider
+              ? (promptService as AuthoredPromptBudgetProvider)
                     .authoredPromptBudget(
                       utterance.text,
                       locale: utterance.locale,
                     )
-                    .timeout(
-                      const Duration(milliseconds: 700),
-                      onTimeout: () => null,
-                    )
               : null;
+          final budget = budgetLookup == null
+              ? null
+              : await budgetLookup.timeout(
+                  const Duration(milliseconds: 700),
+                  onTimeout: () => null,
+                );
           if (_disposed || generation != _generation) return false;
           AudioDiagnostics.event('main.prompt.budget_ready', {
             'generation': generation,
@@ -687,8 +705,26 @@ class VoiceNavigationController extends ChangeNotifier {
             throw StateError('Selected H20 audio route is unavailable.');
           }
           if (_disposed || generation != _generation) return false;
+          final audioKey = utterance.audioKey;
           final promptPlayback =
-              !kIsWeb && promptService is SelectedMediaOutputVoicePromptService
+              !kIsWeb &&
+                  audioKey != null &&
+                  promptService is KeyedSelectedMediaOutputVoicePromptService
+              ? (promptService as KeyedSelectedMediaOutputVoicePromptService)
+                    .speakAndWaitOnSelectedMediaOutputWithAudioKey(
+                      audioKey,
+                      utterance.text,
+                      locale: utterance.locale,
+                    )
+              : audioKey != null && promptService is KeyedVoicePromptService
+              ? (promptService as KeyedVoicePromptService)
+                    .speakAndWaitWithAudioKey(
+                      audioKey,
+                      utterance.text,
+                      locale: utterance.locale,
+                    )
+              : !kIsWeb &&
+                    promptService is SelectedMediaOutputVoicePromptService
               ? (promptService as SelectedMediaOutputVoicePromptService)
                     .speakAndWaitOnSelectedMediaOutput(
                       utterance.text,
@@ -849,6 +885,9 @@ class VoiceNavigationController extends ChangeNotifier {
         promptText:
             _mainNoSpeechRetryPromptOverride ??
             _mainAssistantFlow.silenceRetryPrompt,
+        promptAudioKey: _mainNoSpeechRetryPromptOverride == null
+            ? _mainAssistantFlow.silenceRetryAudioKey
+            : null,
       );
       if (prompted && !_disposed && generation == _generation) {
         await _runStartSession(generation);
@@ -859,6 +898,7 @@ class VoiceNavigationController extends ChangeNotifier {
     await _acknowledgeWakeWord(
       generation,
       promptText: silenceExitTurn.promptText,
+      promptAudioKey: silenceExitTurn.promptAudioKey,
       openCommandWindow: false,
     );
     if (_disposed || generation != _generation || !_buttonCommandSession) {

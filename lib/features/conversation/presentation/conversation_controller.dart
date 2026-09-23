@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import '../../../core/audio/adaptive_voice_activity_detector.dart';
 import '../../../core/audio/audio_input.dart';
 import '../../../core/audio/audio_playback_service.dart';
+import '../../../core/audio/catalog/media_audio_keys.dart';
 import '../../../core/audio/hfp_audio_control.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
 import '../../../core/audio/main_assistant_audio_state.dart';
@@ -26,6 +27,7 @@ import '../application/continuous_translation_session.dart';
 import '../application/offline_language_service.dart';
 import '../application/vietnamese_transcript_corrector.dart';
 import '../domain/conversation_models.dart';
+import '../domain/conversation_audio_keys.dart';
 import '../domain/conversation_repository.dart';
 import '../domain/speech_gated_batch_upload_session.dart';
 
@@ -1861,11 +1863,7 @@ class ConversationController extends ChangeNotifier
       h20HardwareTestPhase = H20HardwareTestPhase.playing;
       h20HardwareTestMessage = 'Đang phát file có sẵn trong APK qua H20…';
       notifyListeners();
-      await _playH20TestUri(
-        Uri.parse(
-          'asset:assets/audio/A-3-5/GUIDE_RECORD/A035_GUIDE_RECORD_01.mp3',
-        ),
-      );
+      await _playH20TestUri(MediaAudioKeys.h20SpeakerTestUri);
       final route = hfp.status;
       h20HardwareTestResult = H20HardwareTestResult(
         completedAt: DateTime.now(),
@@ -3733,9 +3731,10 @@ class ConversationController extends ChangeNotifier
       return;
     }
     if (audioUri == null) {
-      transientMessage =
-          'Bản demo không tải âm thanh. Phiên bản đầy đủ sẽ phát câu tiếng Anh tại đây.';
-      notifyListeners();
+      await _speakOfflineTranslation(
+        currentResult.englishText,
+        turnGeneration: playbackTurnGeneration,
+      );
       return;
     }
 
@@ -3780,6 +3779,7 @@ class ConversationController extends ChangeNotifier
       PlaybackStartMetrics? gestureMetrics;
       final gesturePlayback = _playbackService;
       if (!reportLatency &&
+          currentResult.audioSha256 == null &&
           gesturePlayback is DirectUserGestureAudioPlaybackService) {
         final directStart =
             (gesturePlayback as DirectUserGestureAudioPlaybackService)
@@ -3792,9 +3792,18 @@ class ConversationController extends ChangeNotifier
         );
         gestureMetrics = directMetrics;
       }
+      final playback = _playbackService;
+      final checksum = currentResult.audioSha256;
       final metrics =
           gestureMetrics ??
-          await _awaitPlaybackStartWithTimeout(_playbackService.play(audioUri));
+          await _awaitPlaybackStartWithTimeout(
+            checksum != null && playback is IntegrityAwareAudioPlaybackService
+                ? (playback as IntegrityAwareAudioPlaybackService).playVerified(
+                    audioUri,
+                    sha256: checksum,
+                  )
+                : playback.play(audioUri),
+          );
       if (playbackTurnGeneration != _conversationTurnGeneration) {
         await _playbackService.stop().catchError((Object _) {});
         return;
@@ -3810,6 +3819,16 @@ class ConversationController extends ChangeNotifier
     } catch (error) {
       await _playbackService.stop().catchError((Object _) {});
       if (playbackTurnGeneration != _conversationTurnGeneration) return;
+      if (!propagateFailure &&
+          !_isHfpRouteLoss(error) &&
+          !(usesHfpInput && canUseHfp) &&
+          _voicePromptService != null) {
+        await _speakOfflineTranslation(
+          currentResult.englishText,
+          turnGeneration: playbackTurnGeneration,
+        );
+        return;
+      }
       transientMessage = _friendlyError(error);
       notifyListeners();
       if (propagateFailure) rethrow;
@@ -4205,11 +4224,28 @@ class ConversationController extends ChangeNotifier
   }
 
   Future<void> _speakUnclearSpeechPrompt() async {
-    await _voicePromptService?.speakAndWait(_unclearSpeechMessage);
+    await speakAssistantPrompt(
+      _unclearSpeechMessage,
+      audioKey: ConversationAudioKeys.notHeard,
+    );
   }
 
-  Future<void> speakAssistantPrompt(String text) async {
-    await _voicePromptService?.speakAndWait(text);
+  bool _isHfpRouteLoss(Object error) =>
+      error is HfpAudioException ||
+      (error is PlatformException && error.code.startsWith('HFP_ROUTE_'));
+
+  Future<void> speakAssistantPrompt(String text, {String? audioKey}) async {
+    final service = _voicePromptService;
+    final resolvedAudioKey =
+        audioKey ?? ConversationAudioKeys.fixedKeyForText(text);
+    if (resolvedAudioKey != null && service is KeyedVoicePromptService) {
+      await (service as KeyedVoicePromptService).speakAndWaitWithAudioKey(
+        resolvedAudioKey,
+        text,
+      );
+      return;
+    }
+    await service?.speakAndWait(text);
   }
 
   String _friendlyError(Object error) {

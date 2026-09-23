@@ -15,6 +15,7 @@ import '../../../core/navigation/active_learning_navigation.dart';
 import '../../../l10n/display_language.dart';
 import '../../listening/application/lesson_media_service.dart';
 import '../../listening/domain/lesson_guide_flow.dart';
+import '../../voice_navigation/application/voice_navigation_intent_resolver.dart';
 import '../../voice_navigation/domain/master_navigation_contract.dart';
 import '../application/vocabulary_audio_service.dart';
 import '../application/local_vocabulary_suggestion_provider.dart';
@@ -22,6 +23,7 @@ import '../application/vocabulary_fixed_prompt_audio_service.dart';
 import '../data/vocabulary_session_store.dart';
 import '../data/vocabulary_store.dart';
 import '../domain/vocabulary_dictionary.dart';
+import '../domain/vocabulary_audio_keys.dart';
 import '../domain/vocabulary_entry.dart';
 import '../domain/vocabulary_flow_v3.dart';
 import '../domain/vocabulary_journey_index.dart';
@@ -55,6 +57,7 @@ class VocabularyHomeNavigationController {
   Object? _owner;
   Future<bool> Function()? _handleBack;
   Future<void> Function()? _leaveForOtherContent;
+  Future<void> Function(VoiceVocabularyTarget target)? _openVoiceTarget;
 
   Future<bool> handleBack() async => await _handleBack?.call() ?? false;
 
@@ -62,14 +65,21 @@ class VocabularyHomeNavigationController {
     await _leaveForOtherContent?.call();
   }
 
+  Future<void> openVoiceTarget(VoiceVocabularyTarget target) async {
+    await _openVoiceTarget?.call(target);
+  }
+
   void _attach(
     Object owner, {
     required Future<bool> Function() handleBack,
     required Future<void> Function() leaveForOtherContent,
+    required Future<void> Function(VoiceVocabularyTarget target)
+    openVoiceTarget,
   }) {
     _owner = owner;
     _handleBack = handleBack;
     _leaveForOtherContent = leaveForOtherContent;
+    _openVoiceTarget = openVoiceTarget;
   }
 
   void _detach(Object owner) {
@@ -77,6 +87,7 @@ class VocabularyHomeNavigationController {
     _owner = null;
     _handleBack = null;
     _leaveForOtherContent = null;
+    _openVoiceTarget = null;
   }
 }
 
@@ -203,6 +214,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         widget.fixedPromptAudioService ??
         AssetFirstVocabularyFixedPromptAudioService(
           mediaService: _mediaService,
+          registryService: _voicePromptService,
         );
     _ownsVocabularyAudioService =
         widget.vocabularyAudioService == null &&
@@ -326,7 +338,25 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         announceMenu: false,
         notifyNavigationExit: false,
       ),
+      openVoiceTarget: _openVoiceTarget,
     );
+  }
+
+  Future<void> _openVoiceTarget(VoiceVocabularyTarget target) async {
+    _pausedForMainAssistant = false;
+    switch (target) {
+      case VoiceVocabularyTarget.parent:
+        _openJourney(_VocabularyJourney.family);
+        await _playJourney(_VocabularyJourney.family);
+        return;
+      case VoiceVocabularyTarget.star:
+        _openJourney(_VocabularyJourney.stars);
+        await _playJourney(_VocabularyJourney.stars);
+        return;
+      case VoiceVocabularyTarget.review:
+        await _startReview();
+        return;
+    }
   }
 
   Future<bool> _handleNavigationBack() async {
@@ -1364,6 +1394,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   Future<void> _delete(VocabularyEntry entry) async {
     try {
       await widget.store.deleteParentEntry(entry.id);
+      await _releaseParentAudio(entry);
       await _load();
     } on VocabularyValidationException catch (error) {
       if (mounted) {
@@ -1383,6 +1414,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     setState(() => _translating = true);
     try {
       await widget.store.updateParentEntry(entryId: entry.id, value: input);
+      await _releaseParentAudio(entry);
       await _load();
     } on VocabularyValidationException catch (error) {
       _showMessage(error.message);
@@ -2455,7 +2487,44 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       await audio.speakAndWait(text, locale: locale);
       return;
     }
+    final audioKey = VocabularyAudioKeys.builtInEntry(entry, locale);
+    final prompt = _voicePromptService;
+    if (audioKey != null &&
+        prompt is KeyedSelectedMediaOutputVoicePromptService) {
+      await (prompt as KeyedSelectedMediaOutputVoicePromptService)
+          .speakAndWaitOnSelectedMediaOutputWithAudioKey(
+            audioKey,
+            text,
+            locale: locale,
+          );
+      return;
+    }
+    if (audioKey != null && prompt is KeyedVoicePromptService) {
+      await (prompt as KeyedVoicePromptService).speakAndWaitWithAudioKey(
+        audioKey,
+        text,
+        locale: locale,
+      );
+      return;
+    }
     await _speakOnSelectedOutput(text, locale: locale, allowFixedPrompt: false);
+  }
+
+  Future<void> _releaseParentAudio(VocabularyEntry entry) async {
+    final audio = _vocabularyAudioService;
+    if (audio is! VocabularyAudioCacheMaintenance) return;
+    await Future.wait<void>(
+      <Future<void>>[
+        (audio as VocabularyAudioCacheMaintenance).release(
+          entry.word,
+          locale: 'en-US',
+        ),
+        (audio as VocabularyAudioCacheMaintenance).release(
+          entry.meaning,
+          locale: 'vi-VN',
+        ),
+      ].map((operation) => operation.catchError((Object _) {})),
+    );
   }
 
   Future<_VocabularyTranslationResolution> _translateVocabulary(

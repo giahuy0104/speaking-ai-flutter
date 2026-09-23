@@ -1,3 +1,5 @@
+import 'listening_audio_keys.dart';
+
 enum LessonEntryGuideKind { first, newLesson, resume }
 
 enum LessonAttemptOutcome { good, unclear, noResponse, retry, needsPractice }
@@ -151,10 +153,15 @@ String v4SongStartCue(String songTitle) =>
     v4SongStartCueTemplate.replaceAll('[SONG_TITLE]', songTitle.trim());
 
 class LessonGuidePrompt {
-  const LessonGuidePrompt({required this.audioCode, required this.text});
+  const LessonGuidePrompt({
+    required this.audioCode,
+    required this.text,
+    this.audioKey,
+  });
 
   final String audioCode;
   final String text;
+  final String? audioKey;
 }
 
 abstract interface class LessonAttemptEvaluator {
@@ -210,19 +217,29 @@ class LessonGuideFlowV2 {
   static const LessonGuidePrompt beforeSentence = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_BEFORE_SENTENCE',
     text: 'Nói theo mình nhé.',
+    audioKey: ListeningAudioKeys.guideStart,
   );
 
   static const LessonGuidePrompt afterSample = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_AFTER_SAMPLE',
     text: 'Bây giờ đến lượt bạn. Bạn nói lại nhé.',
+    audioKey: ListeningAudioKeys.guideYourTurn,
   );
 
   /// The approved V4 Core speak-cue library. Callers rotate by target index;
   /// adjacent targets therefore never repeat the same cue.
   static const List<LessonGuidePrompt> coreSpeakCues = <LessonGuidePrompt>[
-    LessonGuidePrompt(audioCode: 'CORE_SPEAK_01', text: 'Bạn nói lại nhé.'),
+    LessonGuidePrompt(
+      audioCode: 'CORE_SPEAK_01',
+      text: 'Bạn nói lại nhé.',
+      audioKey: ListeningAudioKeys.guideRepeat,
+    ),
     LessonGuidePrompt(audioCode: 'CORE_SPEAK_02', text: 'Đến lượt bạn.'),
-    LessonGuidePrompt(audioCode: 'CORE_SPEAK_03', text: 'Bạn thử nói nhé.'),
+    LessonGuidePrompt(
+      audioCode: 'CORE_SPEAK_03',
+      text: 'Bạn thử nói nhé.',
+      audioKey: ListeningAudioKeys.guideTryAgain,
+    ),
     LessonGuidePrompt(audioCode: 'CORE_SPEAK_04', text: 'Nói lại câu này.'),
     LessonGuidePrompt(
       audioCode: 'CORE_SPEAK_05',
@@ -246,6 +263,7 @@ class LessonGuideFlowV2 {
   static const LessonGuidePrompt topicCompleted = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_TOPIC_COMPLETED',
     text: 'Bạn đã học xong chủ đề này rồi. Bạn chọn tiếp chủ đề mới nhé.',
+    audioKey: ListeningAudioKeys.guideCompleted,
   );
 
   static const LessonGuidePrompt good = LessonGuidePrompt(
@@ -266,6 +284,7 @@ class LessonGuideFlowV2 {
   static const LessonGuidePrompt moveToNext = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_MOVE_TO_NEXT',
     text: 'Mình cùng học câu khác nhé!',
+    audioKey: ListeningAudioKeys.guideContinue,
   );
 
   static const LessonGuidePrompt retryFirst = LessonGuidePrompt(

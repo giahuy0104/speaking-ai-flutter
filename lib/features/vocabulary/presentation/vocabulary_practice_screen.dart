@@ -20,6 +20,7 @@ import '../application/vocabulary_audio_service.dart';
 import '../application/vocabulary_fixed_prompt_audio_service.dart';
 import '../data/vocabulary_session_store.dart';
 import '../data/vocabulary_store.dart';
+import '../domain/vocabulary_audio_keys.dart';
 import '../domain/vocabulary_entry.dart';
 import '../domain/vocabulary_flow_v3.dart';
 
@@ -1443,6 +1444,26 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     final audio = widget.vocabularyAudioService;
     if (entry.isParentAdded && audio != null) {
       await audio.speakAndWait(text, locale: locale);
+      return;
+    }
+    final audioKey = VocabularyAudioKeys.builtInEntry(entry, locale);
+    final prompt = _voicePromptService;
+    if (audioKey != null &&
+        prompt is KeyedSelectedMediaOutputVoicePromptService) {
+      await (prompt as KeyedSelectedMediaOutputVoicePromptService)
+          .speakAndWaitOnSelectedMediaOutputWithAudioKey(
+            audioKey,
+            text,
+            locale: locale,
+          );
+      return;
+    }
+    if (audioKey != null && prompt is KeyedVoicePromptService) {
+      await (prompt as KeyedVoicePromptService).speakAndWaitWithAudioKey(
+        audioKey,
+        text,
+        locale: locale,
+      );
       return;
     }
     await _speakAndWait(text, locale: locale, allowFixedPrompt: false);

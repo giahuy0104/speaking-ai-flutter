@@ -9,6 +9,7 @@ import '../../../app/homi_ui.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
 import '../../../core/audio/streaming_speech_input.dart';
+import '../../../core/audio/catalog/media_audio_keys.dart';
 import '../../../core/audio/audio_gain.dart';
 import '../../../core/audio/hfp_audio_control.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
@@ -27,6 +28,7 @@ import '../application/listening_lesson_session.dart';
 import '../data/active_listening_session_store.dart';
 import '../data/listening_progress_store.dart';
 import '../domain/listening_catalog.dart';
+import '../domain/listening_audio_keys.dart';
 import '../domain/listening_content.dart';
 import '../domain/listening_curriculum_flow.dart';
 import '../domain/authored_question_selector.dart';
@@ -98,11 +100,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         ActiveLearningModuleController,
         ActiveLearningVoiceContext,
         ActiveLearningVoiceSelectionContext {
-  static final Uri _newStarTingAudioUri = Uri(
-    scheme: 'asset',
-    path: '/assets/audio/MAIN/SFX_STAR_TING.mp3',
-  );
-
   String? _mainCompletionPrompt;
   int? _mainCompletionNextLevel;
 
@@ -2041,7 +2038,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     if (!mounted || _pausedForMainAssistant) return;
     try {
       await widget.mediaService.playToCompletion(
-        _newStarTingAudioUri,
+        MediaAudioKeys.rewardStarTingUri,
         timeout: const Duration(seconds: 5),
       );
     } catch (_) {
@@ -2787,7 +2784,9 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         language: widget.language,
         songTitle: songTitle,
         songAudioId: widget.lesson.songAudioId,
-        songAudioUri: widget.lesson.songAudioUri,
+        songAudioUri:
+            MediaAudioKeys.bundledSongUri(widget.lesson.songAudioId) ??
+            widget.lesson.songAudioUri,
         mediaService: widget.mediaService,
         voicePromptService: _voicePromptService,
       ),
@@ -3658,6 +3657,40 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
     final pauseGeneration = _lessonSession.mainPauseTicket;
     setState(() => _message = prompt.text);
+    final audioKey = prompt.audioKey;
+    final promptService = _voicePromptService;
+    if (audioKey != null && promptService is KeyedVoicePromptService) {
+      try {
+        await widget.mediaService.prepareSelectedLessonOutput();
+        if (!mounted ||
+            _pausedForMainAssistant ||
+            !_lessonSession.isCurrentMainPause(pauseGeneration)) {
+          return;
+        }
+        if (!kIsWeb &&
+            promptService is KeyedSelectedMediaOutputVoicePromptService) {
+          await (promptService as KeyedSelectedMediaOutputVoicePromptService)
+              .speakAndWaitOnSelectedMediaOutputWithAudioKey(
+                audioKey,
+                prompt.text,
+              );
+        } else {
+          await (promptService as KeyedVoicePromptService)
+              .speakAndWaitWithAudioKey(audioKey, prompt.text);
+        }
+        return;
+      } catch (error) {
+        if (error is HfpAudioException) rethrow;
+        if (!mounted ||
+            _pausedForMainAssistant ||
+            !_lessonSession.isCurrentMainPause(pauseGeneration)) {
+          return;
+        }
+        debugPrint(
+          'HOMI keyed guide audio unavailable; trying legacy/TTS: $error',
+        );
+      }
+    }
     final uri = await _guideAudioLibrary.uriForAudioCode(prompt.audioCode);
     if (!mounted ||
         _pausedForMainAssistant ||
@@ -3724,6 +3757,16 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     if (!mounted ||
         _pausedForMainAssistant ||
         !_lessonSession.isCurrentMainPause(ticket)) {
+      return;
+    }
+    final sentenceId = _sentence.id.trim();
+    if (sentenceId.isNotEmpty &&
+        await _playKeyedSentencePrompt(
+          audioKey: ListeningAudioKeys.sentenceVietnamese(sentenceId),
+          text: _sentence.vietnamese,
+          locale: 'vi-VN',
+          ticket: ticket,
+        )) {
       return;
     }
     final vietnameseUri = await _resolveAuthoredAudio(
@@ -3889,6 +3932,16 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
 
   Future<void> _playEnglishSentenceSample() async {
     final ticket = _lessonSession.mainPauseTicket;
+    final sentenceId = _sentence.id.trim();
+    if (sentenceId.isNotEmpty &&
+        await _playKeyedSentencePrompt(
+          audioKey: ListeningAudioKeys.sentenceEnglish(sentenceId),
+          text: _sentence.english,
+          locale: 'en-US',
+          ticket: ticket,
+        )) {
+      return;
+    }
     final englishUri = await _resolveAuthoredAudio(
       _sentence.audioUri,
       _sentence.englishAudioId,
@@ -3919,6 +3972,48 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
     if (!_lessonSession.isCurrentMainPause(ticket)) return;
     await _speakLessonPrompt(_sentence.english, locale: 'en-US');
+  }
+
+  Future<bool> _playKeyedSentencePrompt({
+    required String audioKey,
+    required String text,
+    required String locale,
+    required int ticket,
+  }) async {
+    final promptService = _voicePromptService;
+    if (promptService is! KeyedVoicePromptService) return false;
+    try {
+      await widget.mediaService.prepareSelectedLessonOutput();
+      if (!mounted ||
+          _pausedForMainAssistant ||
+          !_lessonSession.isCurrentMainPause(ticket)) {
+        return true;
+      }
+      if (!kIsWeb &&
+          promptService is KeyedSelectedMediaOutputVoicePromptService) {
+        await (promptService as KeyedSelectedMediaOutputVoicePromptService)
+            .speakAndWaitOnSelectedMediaOutputWithAudioKey(
+              audioKey,
+              text,
+              locale: locale,
+            );
+      } else {
+        await (promptService as KeyedVoicePromptService)
+            .speakAndWaitWithAudioKey(audioKey, text, locale: locale);
+      }
+      return true;
+    } catch (error) {
+      if (error is HfpAudioException) rethrow;
+      if (!mounted ||
+          _pausedForMainAssistant ||
+          !_lessonSession.isCurrentMainPause(ticket)) {
+        return true;
+      }
+      debugPrint(
+        'HOMI keyed sentence audio unavailable; trying legacy/TTS: $error',
+      );
+      return false;
+    }
   }
 
   Future<Uri?> _resolveAuthoredAudio(Uri? uri, String? audioId) async {
@@ -4037,6 +4132,9 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         normalized.contains('kết nối âm thanh h20 bị gián đoạn') ||
         normalized.contains('mic h20 bị ngắt kết nối')) {
       return 'Mic H20 vừa mất đường âm thanh. HOMI đang kết nối lại; bạn thử ghi âm lại nhé.';
+    }
+    if (normalized.contains('ready_cue_')) {
+      return 'HOMI chưa phát được tín hiệu bắt đầu. Bạn nhấn ghi âm lại nhé.';
     }
     if (normalized.contains('credential') ||
         normalized.contains('installation') ||

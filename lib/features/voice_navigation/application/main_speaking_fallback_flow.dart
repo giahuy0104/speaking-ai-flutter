@@ -1,4 +1,5 @@
 import '../domain/master_navigation_contract.dart';
+import '../domain/main_assistant_audio_keys.dart';
 import 'main_speaking_command_resolver.dart';
 
 /// What the app should do after a recognized command in continuous
@@ -11,10 +12,15 @@ enum MainSpeakingFallbackAction {
 }
 
 class MainSpeakingFallbackTurn {
-  const MainSpeakingFallbackTurn({required this.action, this.promptText});
+  const MainSpeakingFallbackTurn({
+    required this.action,
+    this.promptText,
+    this.audioKey,
+  });
 
   final MainSpeakingFallbackAction action;
   final String? promptText;
+  final String? audioKey;
 }
 
 /// FINAL control-only handoff. Menu answers belong to navigation ASR.
@@ -36,6 +42,7 @@ class MainSpeakingFallbackFlow {
         MainSpeakingCommand.stopTranslation => const MainSpeakingFallbackTurn(
           action: MainSpeakingFallbackAction.stopTranslation,
           promptText: MasterNavigationContract.translationStopped,
+          audioKey: MainAssistantAudioKeys.translationStopped,
         ),
         MainSpeakingCommand.otherLearning => const MainSpeakingFallbackTurn(
           action: MainSpeakingFallbackAction.openOtherLearning,
@@ -43,6 +50,7 @@ class MainSpeakingFallbackFlow {
         MainSpeakingCommand.help => const MainSpeakingFallbackTurn(
           action: MainSpeakingFallbackAction.resumeTranslation,
           promptText: MasterNavigationContract.translationIntro,
+          audioKey: MainAssistantAudioKeys.translationStarted,
         ),
         null => null,
       };

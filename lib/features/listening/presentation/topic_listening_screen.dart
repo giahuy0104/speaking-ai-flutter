@@ -17,6 +17,7 @@ import '../application/listening_voice_navigation_target.dart';
 import '../data/listening_progress_store.dart';
 import '../domain/listening_catalog.dart';
 import '../domain/listening_content.dart';
+import '../domain/listening_audio_keys.dart';
 import '../domain/listening_curriculum_flow.dart';
 import '../domain/v4_completion_flow.dart';
 import 'lesson_recording_history_sheet.dart';
@@ -167,13 +168,32 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
   Future<void> _speakOnSelectedLessonOutput(
     String text, {
     String locale = 'vi-VN',
+    String? audioKey,
   }) async {
     final prompt = _voicePromptService;
     if (!kIsWeb && prompt is SelectedMediaOutputVoicePromptService) {
       await _historyMediaService.prepareSelectedLessonOutput();
       if (!mounted) return;
+      if (audioKey != null &&
+          prompt is KeyedSelectedMediaOutputVoicePromptService) {
+        await (prompt as KeyedSelectedMediaOutputVoicePromptService)
+            .speakAndWaitOnSelectedMediaOutputWithAudioKey(
+              audioKey,
+              text,
+              locale: locale,
+            );
+        return;
+      }
       await (prompt as SelectedMediaOutputVoicePromptService)
           .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
+      return;
+    }
+    if (audioKey != null && prompt is KeyedVoicePromptService) {
+      await (prompt as KeyedVoicePromptService).speakAndWaitWithAudioKey(
+        audioKey,
+        text,
+        locale: locale,
+      );
       return;
     }
     await prompt.speakAndWait(text, locale: locale);
@@ -625,7 +645,10 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     }
 
     final prompt = v4CompletionPrompt(V4CompletionStage.courseRelearnLevel);
-    await _speakOnSelectedLessonOutput(prompt);
+    await _speakOnSelectedLessonOutput(
+      prompt,
+      audioKey: ListeningAudioKeys.chooseLevel,
+    );
     if (!mounted) return;
     final selected = await showModalBottomSheet<int>(
       context: context,

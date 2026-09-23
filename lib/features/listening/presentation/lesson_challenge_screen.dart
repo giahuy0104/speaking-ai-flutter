@@ -17,6 +17,7 @@ import '../application/lesson_attempt_evaluator.dart';
 import '../application/lesson_media_service.dart';
 import '../application/lesson_recording_endpoint_detector.dart';
 import '../domain/lesson_guide_flow.dart';
+import '../domain/listening_audio_keys.dart';
 import '../domain/listening_content.dart';
 
 /// Runs the single authored Challenge selected for the current Core.
@@ -113,8 +114,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   bool _pausedForMainAssistant = false;
   bool _pausedAfterNoResponse = false;
   int _invalidResponseCount = 0;
-  final Map<LessonFeedbackKind, int> _feedbackVariationIndexes =
-      <LessonFeedbackKind, int>{};
   String? _activeAttemptAudioPath;
   StreamSubscription<LessonMediaException>? _recordingErrorSubscription;
   ActiveLearningModuleRegistry? _activeModuleRegistry;
@@ -139,7 +138,9 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     final current = _voicePromptService;
     if (current != null) return current;
     _ownsVoicePromptService = true;
-    return _voicePromptService = createVoicePromptService();
+    return _voicePromptService = createVoicePromptService(
+      owner: AudioTurnOwner.listeningLesson,
+    );
   }
 
   @override
@@ -345,7 +346,10 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         await _speakPromptAndWait('Mình tiếp tục câu thử thách nhé.');
         if (!mounted || request != _request) return false;
       }
-      await _speakPromptAndWait(_challenge.prompt);
+      await _speakPromptAndWait(
+        _challenge.prompt,
+        audioKey: ListeningAudioKeys.challengePrompt(_challenge.id),
+      );
       if (!mounted || request != _request) return false;
       await _speakPromptAndWait(
         'Bạn trả lời nhé',
@@ -412,11 +416,17 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   Future<void> _speakPromptAndWait(
     String text, {
     String locale = 'vi-VN',
+    String? audioKey,
     bool allowIosCompletionCallbackTimeout = false,
   }) async {
     final request = _request;
     final prompt = _prompt;
-    final budget = prompt is AuthoredPromptBudgetProvider
+    final budget =
+        audioKey != null && prompt is KeyedAuthoredPromptBudgetProvider
+        ? await (prompt as KeyedAuthoredPromptBudgetProvider)
+              .authoredPromptBudgetForKey(audioKey, text: text, locale: locale)
+              .timeout(const Duration(milliseconds: 700), onTimeout: () => null)
+        : prompt is AuthoredPromptBudgetProvider
         ? await (prompt as AuthoredPromptBudgetProvider)
               .authoredPromptBudget(text, locale: locale)
               .timeout(const Duration(milliseconds: 700), onTimeout: () => null)
@@ -434,7 +444,18 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     unawaited(() async {
       try {
         final voicePrompt = _prompt;
-        if (voicePrompt is SelectedMediaOutputVoicePromptService) {
+        if (audioKey != null &&
+            voicePrompt is KeyedSelectedMediaOutputVoicePromptService) {
+          await (voicePrompt as KeyedSelectedMediaOutputVoicePromptService)
+              .speakAndWaitOnSelectedMediaOutputWithAudioKey(
+                audioKey,
+                text,
+                locale: locale,
+              );
+        } else if (audioKey != null && voicePrompt is KeyedVoicePromptService) {
+          await (voicePrompt as KeyedVoicePromptService)
+              .speakAndWaitWithAudioKey(audioKey, text, locale: locale);
+        } else if (voicePrompt is SelectedMediaOutputVoicePromptService) {
           await (voicePrompt as SelectedMediaOutputVoicePromptService)
               .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
         } else {
@@ -858,18 +879,12 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
 
   Future<void> _speakFeedback(LessonFeedbackKind kind) async {
     final request = _request;
-    final index = _feedbackVariationIndexes[kind] ?? 0;
-    _feedbackVariationIndexes[kind] = index + 1;
-    final message = LessonAgeFeedbackLibrary.message(
-      age: widget.startAge,
-      kind: kind,
-      variationIndex: index,
-    );
+    final (:message, :audioKey) = _challengeFeedback(kind);
     if (mounted) setState(() => _message = message);
     try {
       await widget.mediaService.prepareSelectedLessonOutput();
       if (!mounted || _pausedForMainAssistant || request != _request) return;
-      await _speakPromptAndWait(message);
+      await _speakPromptAndWait(message, audioKey: audioKey);
     } catch (_) {
       // The written feedback remains visible; recording still resumes so a
       // temporary TTS outage never forces the child to use the phone.
@@ -889,7 +904,11 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     try {
       await widget.mediaService.prepareSelectedLessonOutput();
       if (!isCurrent()) return false;
-      await _speakPromptAndWait(_expectedEnglish, locale: 'en-US');
+      await _speakPromptAndWait(
+        _expectedEnglish,
+        locale: 'en-US',
+        audioKey: ListeningAudioKeys.challengeAnswer(_challenge.id),
+      );
     } catch (_) {
       // The written answer remains visible in the authored card.
     }
@@ -924,9 +943,37 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       });
       return _playCurrentPrompt(allowBusy: true, openMicrophone: false);
     }
+    await _speakPromptAndWait(
+      'Bạn đã hoàn thành phần thử thách rồi.',
+      audioKey: ListeningAudioKeys.feedbackCompleted,
+    );
+    if (!mounted || _pausedForMainAssistant) return false;
     if (mounted) Navigator.of(context).pop(true);
     return false;
   }
+
+  ({String message, String? audioKey}) _challengeFeedback(
+    LessonFeedbackKind kind,
+  ) => switch (kind) {
+    LessonFeedbackKind.correct => (
+      message: 'Đúng rồi!',
+      audioKey: ListeningAudioKeys.feedbackCorrect,
+    ),
+    LessonFeedbackKind.retry ||
+    LessonFeedbackKind.noResponse ||
+    LessonFeedbackKind.asr => (
+      message: 'Bạn thử lại nhé.',
+      audioKey: ListeningAudioKeys.feedbackTryAgain,
+    ),
+    LessonFeedbackKind.give => (
+      message: 'Chưa đúng. Mình nghe câu đúng nhé.',
+      audioKey: ListeningAudioKeys.feedbackIncorrect,
+    ),
+    LessonFeedbackKind.skip => (
+      message: 'Được. Nghe câu đúng nhé.',
+      audioKey: null,
+    ),
+  };
 
   String get _expectedEnglish => _challenge.correctAnswer;
 

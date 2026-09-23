@@ -572,6 +572,29 @@ class VoicePromptBridge(
                     completeReadyCue("READY_CUE_UNAVAILABLE")
                     return@setOnPreparedListener
                 }
+                // Some Android 12 Bluetooth SCO implementations play this
+                // 120 ms WAV but never deliver MediaPlayer.onCompletion. Once
+                // start succeeds, use the known cue length plus a generous
+                // route/drain/tail allowance as a successful completion gate.
+                // The hard prepare timeout below still fails closed when the
+                // player never starts at all.
+                readyCueCompletion?.let(mainHandler::removeCallbacks)
+                val drainGuard = Runnable {
+                    if (readyCuePlayer === player) {
+                        AudioDiagnostics.event(
+                            "cue.native.drain_guard",
+                            mapOf(
+                                "cueId" to cueId,
+                                "isPlaying" to runCatching { player.isPlaying }.getOrNull(),
+                                "deviceType" to runCatching { player.routedDevice?.type }.getOrNull(),
+                                "deviceId" to runCatching { player.routedDevice?.id }.getOrNull(),
+                            ),
+                        )
+                        completeReadyCue()
+                    }
+                }
+                readyCueCompletion = drainGuard
+                mainHandler.postDelayed(drainGuard, 700L)
                 mainHandler.postDelayed({
                     if (readyCuePlayer === player) {
                         runCatching {
@@ -597,7 +620,7 @@ class VoicePromptBridge(
             }
             val timeout = Runnable { if (readyCuePlayer === player) completeReadyCue("READY_CUE_TIMEOUT") }
             readyCueCompletion = timeout
-            mainHandler.postDelayed(timeout, 1500L)
+            mainHandler.postDelayed(timeout, 3000L)
             player.prepareAsync()
         } catch (_: Exception) {
             completeReadyCue("READY_CUE_UNAVAILABLE")

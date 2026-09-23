@@ -1,10 +1,10 @@
 import 'homi_fallback_catalog.dart';
 
-/// Navigation-only contract from HOMI Master FINAL, 2026-09-17.
+/// Navigation-only contract from HOMI Master FINAL plus the 2026-09-22 patch.
 /// Matching is whole-utterance; lesson media, scoring and progress stay with
 /// the destination module. Never feed free-form translation through this menu.
 abstract final class MasterNavigationContract {
-  static const version = '2026-09-17';
+  static const version = '2026-09-22';
   static const mainPrompt =
       'HOMI đây. Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?';
   static const mainRetry =
@@ -23,10 +23,11 @@ abstract final class MasterNavigationContract {
   static const switchedToTranslation = 'Mình đã chuyển sang Dịch tiếng Anh.';
   static const continueSubject = 'Mình tiếp tục Chủ đề nhé.';
   static const continueVocabulary = 'Mình tiếp tục Bộ từ vựng nhé.';
-  static const coreControlPrompt = 'Bạn muốn nghe lại, câu trước hay câu sau?';
-  static const nextItemPrompt = 'Mình học câu sau nhé';
+  static const coreControlPrompt = 'Bạn muốn nghe lại, câu trước, hay câu sau?';
+  static const nextItemPrompt = 'Mình chuyển sang câu sau nhé.';
   static const challengeControlPrompt = 'Bạn muốn nghe lại hay dừng lại?';
   static const songControlPrompt = 'Bạn muốn nghe lại, dừng lại hay bỏ qua?';
+  static const songReplay = 'Mình phát lại bài hát nhé.';
   static const songSkipped = 'Mình bỏ qua bài hát nhé.';
   static const pause = 'Mình tạm dừng nhé.';
 
@@ -46,15 +47,11 @@ abstract final class MasterNavigationContract {
     ],
     'LEAVE_TRANSLATE': ['TRANSLATE_CONTINUOUS'],
     'SWITCH_MODULE_MENU': ['LEARNING_ANY_EXCEPT_OTHER_CONTENT_END'],
-    'OPEN_PARENT': ['VOCAB_MENU', 'STAR_EMPTY', 'STAR_OTHER', 'REVIEW_END'],
-    'OPEN_STAR': ['VOCAB_MENU', 'PARENT_EMPTY', 'PARENT_OTHER', 'REVIEW_END'],
-    'OPEN_REVIEW': [
-      'VOCAB_MENU',
-      'PARENT_EMPTY',
-      'PARENT_OTHER',
-      'STAR_EMPTY',
-      'STAR_OTHER',
-    ],
+    'OPEN_PARENT': ['LEARNING_ANY', 'TRANSLATE_SWITCH_CONFIRM'],
+    'OPEN_STAR': ['LEARNING_ANY', 'TRANSLATE_SWITCH_CONFIRM'],
+    'OPEN_REVIEW': ['LEARNING_ANY', 'TRANSLATE_SWITCH_CONFIRM'],
+    'CONTINUE_GLOBAL': ['LEARNING_ANY'],
+    'GO_TO_TOPIC_SELECTION': ['SUBJECT_ANY'],
     'OTHER_CONTENT': [
       'TODAY_END',
       'PARENT_BLOCK_END',
@@ -74,9 +71,16 @@ abstract final class MasterNavigationContract {
     'RELEARN_TOPIC': ['TOPIC_DONE'],
     'LISTEN_AGAIN': ['CORE', 'CHALLENGE', 'REVIEW', 'TODAY', 'PARENT', 'STAR'],
     'PREVIOUS_ITEM': ['CORE', 'VOCAB_REVIEW', 'TODAY', 'PARENT', 'STAR'],
-    'NEXT_ITEM': ['CORE', 'VOCAB_REVIEW', 'TODAY_AFTER_EN_VN', 'PARENT', 'STAR'],
+    'NEXT_ITEM': [
+      'CORE',
+      'VOCAB_REVIEW',
+      'TODAY_AFTER_EN_VN',
+      'PARENT',
+      'STAR',
+    ],
     'SKIP_ITEM': ['CORE', 'PARENT', 'STAR'],
     'SKIP_SONG': ['SONG_PLAYING'],
+    'REPLAY_SONG': ['SONG_PLAYING'],
     'RESUME_ACTIVITY': ['ACTIVE_RESUME'],
     'NEXT_LESSON': ['LESSON_END'],
     'RELEARN_LESSON': ['LESSON_END'],
@@ -219,6 +223,9 @@ abstract final class MasterNavigationContract {
       'Cái khác',
     ],
     'SWITCH_MODULE_MENU': [
+      'Học nội dung khác',
+      'Mình muốn học nội dung khác',
+      'Học phần khác',
       'Học phần khác',
       'Đổi phần khác',
       'Chuyển sang phần khác',
@@ -261,7 +268,6 @@ abstract final class MasterNavigationContract {
       'Mình muốn luyện lại',
       'Cho mình ôn lại',
       'Luyện các câu chưa đạt',
-      'Học lại',
       'Vào học Luyện lại',
       'Học luyện lại',
     ],
@@ -378,6 +384,12 @@ abstract final class MasterNavigationContract {
       'Câu tiếp',
       'Câu mới',
     ],
+    'REPLAY_SONG': [
+      'Nghe lại',
+      'Cho mình nghe lại',
+      'Phát lại bài hát',
+      'Nghe lại bài hát',
+    ],
     'SKIP_ITEM': [
       'Bỏ qua',
       'Qua phần này',
@@ -408,6 +420,31 @@ abstract final class MasterNavigationContract {
       'Tiếp theo',
       'Tiếp nha',
       'Tiếp luôn',
+    ],
+    'CONTINUE_GLOBAL': [
+      'Tiếp tục',
+      'Học tiếp',
+      'Tiếp tục học',
+      'Mình muốn học tiếp',
+      'Cho mình tiếp tục',
+      'Tiếp tục nhé',
+      'Làm tiếp',
+      'Nghe tiếp',
+    ],
+    'GO_TO_TOPIC_SELECTION': [
+      'Chủ đề khác',
+      'Đổi Chủ đề',
+      'Chọn Chủ đề khác',
+      'Qua Chủ đề khác',
+      'Bài khác',
+      'Đổi bài',
+      'Học bài khác',
+      'Chọn bài khác',
+      'Level khác',
+      'Đổi Level',
+      'Học Level khác',
+      'Bài số 2',
+      'Học Bài 2',
     ],
     'STOP_TRANSLATE': ['Dừng lại'],
     'WAKE_WORD': [

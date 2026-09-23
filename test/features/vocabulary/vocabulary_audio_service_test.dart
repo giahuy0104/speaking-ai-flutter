@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/core/audio/device_audio_cache.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_audio_service.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_dictionary.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -46,6 +47,14 @@ void main() {
     expect(cache.requested.single.queryParameters, <String, String>{
       'word': 'Mad',
       'lang': 'en-US',
+      'audioKey': VocabularyAudioKeys.dynamic(
+        text: 'Mad',
+        locale: 'en-US',
+        voiceProfile: 'Nhs7eitvQWFTQBsf0yiT@eleven_v3@0.75',
+      ),
+      'voiceId': 'Nhs7eitvQWFTQBsf0yiT',
+      'modelId': 'eleven_v3',
+      'speed': '0.75',
     });
     expect(played, isEmpty);
     expect(native, isEmpty);
@@ -87,6 +96,30 @@ void main() {
     expect(source, VocabularyAudioSource.nativeTts);
     expect(native, <String>['vi-VN:Con thích táo đỏ.']);
   });
+
+  test(
+    'dynamic key is normalized and deleted entries can evict cache',
+    () async {
+      final cache = _FakeAudioCache(Uri.file('/cache/apple.mp3'));
+      final service = VocabularyAudioService(
+        dictionaryProvider: _FakeDictionaryProvider(),
+        cache: cache,
+        playToCompletion: (_) async {},
+        nativeSpeakAndWait: (_, _) async {},
+        stopPlayback: () async {},
+      );
+
+      await service.prefetch('  Apple   pie ', locale: 'en-US');
+      await service.prefetch('apple pie', locale: 'en-US');
+      expect(
+        cache.requested[0].queryParameters['audioKey'],
+        cache.requested[1].queryParameters['audioKey'],
+      );
+
+      await service.release('Apple pie', locale: 'en-US');
+      expect(cache.evicted.single.queryParameters['audioKey'], isNotEmpty);
+    },
+  );
 }
 
 class _FakeDictionaryProvider implements VocabularyDictionaryProvider {
@@ -109,9 +142,13 @@ class _FakeAudioCache implements DeviceAudioCache {
 
   final Uri? result;
   final List<Uri> requested = <Uri>[];
+  final List<Uri> evicted = <Uri>[];
 
   @override
   int get maxFiles => 256;
+
+  @override
+  int get maxBytes => 64 * 1024 * 1024;
 
   @override
   Future<Uri?> cache(Uri remoteUri) async {
@@ -120,10 +157,23 @@ class _FakeAudioCache implements DeviceAudioCache {
   }
 
   @override
+  Future<Uri?> cacheVerified(
+    Uri remoteUri, {
+    required String sha256Checksum,
+    int maximumFileBytes = 2 * 1024 * 1024,
+  }) => cache(remoteUri);
+
+  @override
   void dispose() {}
 
   @override
   Future<Uri> resolve(Uri remoteUri) async => result ?? remoteUri;
+
+  @override
+  Future<Uri> resolveVerified(
+    Uri remoteUri, {
+    required String sha256Checksum,
+  }) => resolve(remoteUri);
 
   @override
   Future<Uri> resolveAfterPreload(
@@ -132,7 +182,17 @@ class _FakeAudioCache implements DeviceAudioCache {
   }) async => result ?? remoteUri;
 
   @override
+  Future<Uri> resolveAfterPreloadVerified(
+    Uri remoteUri, {
+    required String sha256Checksum,
+    Duration maxWait = const Duration(milliseconds: 500),
+  }) => resolveAfterPreload(remoteUri, maxWait: maxWait);
+
+  @override
   Future<void> warm(Iterable<Uri> remoteUris, {int limit = 40}) async {}
+
+  @override
+  Future<void> evict(Uri remoteUri) async => evicted.add(remoteUri);
 }
 
 class _DelayedAudioCache extends _FakeAudioCache {

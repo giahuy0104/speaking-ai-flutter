@@ -1,8 +1,8 @@
 """Generate the checked-in V4 listening catalog from the authored V4 spec.
 
 The source document is intentionally kept outside the app bundle.  This tool
-turns its line-oriented IT/TTS export into deterministic runtime data, an audio
-manifest, and an ASR/assistant lexicon.  It never invents questions: every
+turns its line-oriented IT/TTS export into deterministic runtime data and an
+ASR/assistant lexicon.  It never invents questions: every
 Challenge and Mission comes from the authored bank in the source file.
 
 Usage (from the repository root):
@@ -23,7 +23,6 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 CATALOG_PATH = ROOT / "assets" / "data" / "listening_lessons.json"
-AUDIO_MANIFEST_PATH = ROOT / "assets" / "data" / "listening_audio_manifest_v4.json"
 LEXICON_PATH = ROOT / "assets" / "data" / "listening_ai_lexicon_v4.json"
 
 EXPECTED_COUNTS = {
@@ -51,24 +50,14 @@ LEVEL_TITLES = {
 }
 
 # The five V4 placements reuse the approved song recordings that were already
-# bundled by the legacy catalog.  Their old age/topic codes are filenames, not
-# runtime placement rules, so keep an explicit title-to-asset join here.
+# hosted by the existing song catalog. Their old age/topic codes are filenames,
+# not runtime placement rules, so keep an explicit title-to-URL join here.
 SONG_AUDIO_ASSETS = {
-    "Count with Me": (
-        "asset:///assets/audio/A-6-7/SONGS/A067_T05_SONG01_FULL_EN.mp3"
-    ),
-    "My Happy Day": (
-        "asset:///assets/audio/A-6-7/SONGS/A067_T07_SONG01_FULL_EN.mp3"
-    ),
-    "What Should I Wear?": (
-        "asset:///assets/audio/A-6-7/SONGS/A067_T08_SONG01_FULL_EN.mp3"
-    ),
-    "My Busy Day": (
-        "asset:///assets/audio/A-8-10/SONGS/A0810_T03_SONG01_FULL_EN.mp3"
-    ),
-    "Let's Play Together": (
-        "asset:///assets/audio/A-8-10/SONGS/A0810_T04_SONG01_FULL_EN.mp3"
-    ),
+    "Count with Me": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549515/homi/audio/A-6-7/SONGS/A067_T05_SONG01_FULL_EN.mp3",
+    "My Happy Day": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549515/homi/audio/A-6-7/SONGS/A067_T07_SONG01_FULL_EN.mp3",
+    "What Should I Wear?": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549515/homi/audio/A-6-7/SONGS/A067_T08_SONG01_FULL_EN.mp3",
+    "My Busy Day": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549521/homi/audio/A-8-10/SONGS/A0810_T03_SONG01_FULL_EN.mp3",
+    "Let's Play Together": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549521/homi/audio/A-8-10/SONGS/A0810_T04_SONG01_FULL_EN.mp3",
 }
 
 SYSTEM_AUDIO = (
@@ -328,12 +317,6 @@ def make_lesson(
         "estimatedMinutes": 4,
         "reviewPauseMs": 2000,
         "autoAdvanceMs": 2000,
-        "introAudioUrl": None,
-        "outroAudioUrl": None,
-        "fullAudioId": None,
-        "fullAudioUrl": None,
-        "overviewAudioId": f"{code}_OVERVIEW_EN" if age_range[0] >= 11 else None,
-        "overviewAudioUrl": None,
         "entry": None,
         "overviewMode": "englishOnly" if age_range[0] >= 11 else "bilingual",
         "challengeBank": [],
@@ -511,10 +494,6 @@ def parse_spec(source: Path) -> dict[str, Any]:
                     "voice": "",
                     "english": english,
                     "vietnamese": vietnamese,
-                    "englishAudioId": f"{target_id}_EN",
-                    "vietnameseAudioId": f"{target_id}_VI",
-                    "audioUrl": None,
-                    "vietnameseAudioUrl": None,
                     "recognitionVariants": recognition_variants(english),
                     "requiresAllExpectedTokens": is_alphabet,
                 }
@@ -560,7 +539,7 @@ def parse_spec(source: Path) -> dict[str, Any]:
         "schemaVersion": 4,
         "contentVersion": "4.0",
         "source": source.name,
-        "audioProvider": "v4-tts-manifest-pending",
+        "audioProvider": "platform-tts",
         "groups": groups,
     }
     validate_catalog(catalog)
@@ -810,13 +789,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("source", type=Path, help="V4 Vietnamese IT/TTS text export")
     parser.add_argument("--catalog-out", type=Path, default=CATALOG_PATH)
-    parser.add_argument("--audio-manifest-out", type=Path, default=AUDIO_MANIFEST_PATH)
     parser.add_argument("--lexicon-out", type=Path, default=LEXICON_PATH)
     arguments = parser.parse_args()
 
     catalog = parse_spec(arguments.source)
     write_json(arguments.catalog_out, catalog)
-    write_json(arguments.audio_manifest_out, build_audio_manifest(catalog))
     write_json(arguments.lexicon_out, build_lexicon(catalog))
     print(json.dumps(EXPECTED_COUNTS, ensure_ascii=False, sort_keys=True))
 

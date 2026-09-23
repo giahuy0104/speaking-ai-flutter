@@ -134,12 +134,18 @@ class ConversationPreview {
     required this.englishText,
     required this.textSource,
     required this.audioUri,
+    this.audioSha256,
+    this.audioDurationSeconds,
+    this.dynamicAudioKey,
   });
 
   final String sourceText;
   final String englishText;
   final String textSource;
   final Uri? audioUri;
+  final String? audioSha256;
+  final double? audioDurationSeconds;
+  final String? dynamicAudioKey;
 }
 
 class ConversationResult {
@@ -156,6 +162,9 @@ class ConversationResult {
     required this.asrMode,
     required this.latency,
     this.learning,
+    this.audioSha256,
+    this.audioDurationSeconds,
+    this.dynamicAudioKey,
   });
 
   factory ConversationResult.fromJson(
@@ -175,6 +184,9 @@ class ConversationResult {
       audioUri: rawAudioUrl == null
           ? null
           : backendBaseUri.resolve(rawAudioUrl),
+      audioSha256: _readAudioChecksum(json),
+      audioDurationSeconds: _readAudioDuration(json),
+      dynamicAudioKey: _readAudioKey(json),
       processingMode: json['processingMode'] as String? ?? 'fallback',
       textSource: json['textSource'] as String? ?? 'fallback',
       audioSource: json['audioSource'] as String? ?? 'cloudflare_tts',
@@ -194,12 +206,35 @@ class ConversationResult {
   final String vietnameseText;
   final String englishText;
   final Uri? audioUri;
+  final String? audioSha256;
+  final double? audioDurationSeconds;
+  final String? dynamicAudioKey;
   final String processingMode;
   final String textSource;
   final String audioSource;
   final String asrMode;
   final ConversationLatency latency;
   final ConversationLearningOutcome? learning;
+
+  static String? _readAudioChecksum(Map<String, dynamic> json) {
+    final value = json['audioSha256'] ?? json['sha256'];
+    return value is String && RegExp(r'^[a-fA-F0-9]{64}$').hasMatch(value)
+        ? value.toLowerCase()
+        : null;
+  }
+
+  static double? _readAudioDuration(Map<String, dynamic> json) {
+    final value = json['audioDurationSeconds'] ?? json['durationSeconds'];
+    final duration = value is num ? value.toDouble() : null;
+    return duration != null && duration > 0 && duration <= 45 ? duration : null;
+  }
+
+  static String? _readAudioKey(Map<String, dynamic> json) {
+    final value = json['dynamicAudioKey'] ?? json['audioKey'];
+    return value is String && RegExp(r'^[a-fA-F0-9]{64}$').hasMatch(value)
+        ? value.toLowerCase()
+        : null;
+  }
 }
 
 class ConversationHistoryItem {

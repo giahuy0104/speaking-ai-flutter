@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,8 +11,6 @@ void main() {
   late List<ListeningTopicContent> topics;
   late List<ListeningLessonContent> lessons;
   late List<ListeningSentenceContent> targets;
-  late List<Map<String, Object?>> audioManifestEntries;
-  late Set<String> cloudinaryUrls;
 
   setUpAll(() async {
     catalog = await AssetListeningContentRepository().load();
@@ -25,26 +21,6 @@ void main() {
     targets = lessons
         .expand((lesson) => lesson.sentences)
         .toList(growable: false);
-    final manifest =
-        jsonDecode(
-              await rootBundle.loadString(
-                'assets/data/listening_audio_manifest_v4.json',
-              ),
-            )
-            as Map<String, dynamic>;
-    audioManifestEntries = (manifest['entries'] as List<dynamic>)
-        .map((entry) => Map<String, Object?>.from(entry as Map))
-        .toList(growable: false);
-    final cloudinaryManifest =
-        jsonDecode(
-              await rootBundle.loadString(
-                'assets/data/cloudinary_audio_manifest.json',
-              ),
-            )
-            as Map<String, dynamic>;
-    cloudinaryUrls = (cloudinaryManifest['assets'] as Map).values
-        .map((value) => (value as Map)['secureUrl'] as String)
-        .toSet();
   });
 
   group('V4 listening curriculum', () {
@@ -101,7 +77,6 @@ void main() {
 
       for (final assetPath in const <String>[
         'assets/data/listening_lessons.json',
-        'assets/data/listening_audio_manifest_v4.json',
       ]) {
         final source = await rootBundle.loadString(assetPath);
         final leakedCues = productionCue
@@ -118,39 +93,12 @@ void main() {
       }
     });
 
-    test('bundles the 13 approved combined lesson hooks', () async {
-      const expectedLessonIds = <String>{
-        'c35-l1-t02-b03',
-        'c35-l2-t05-b01',
-        'c35-l3-t09-b02',
-        'c35-l3-t10-b02',
-        'c67-l1-t03-b02',
-        'c67-l3-t07-b02',
-        'c67-l3-t09-b02',
-        'c810-l1-t01-b01',
-        'c810-l1-t02-b02',
-        'c810-l2-t05-b01',
-        'c1112-l2-t06-b02',
-        'c1315-l3-t07-b02',
-        'c1315-l3-t08-b02',
-      };
-      final hookedLessons = lessons
-          .where((lesson) => lesson.combinedHookAudioUri != null)
-          .toList(growable: false);
-
+    test('uses lesson text instead of prerecorded combined hooks', () {
       expect(
-        hookedLessons.map((lesson) => lesson.id).toSet(),
-        expectedLessonIds,
+        lessons.where((lesson) => lesson.combinedHookAudioUri != null),
+        isEmpty,
       );
-      for (final lesson in hookedLessons) {
-        final uri = lesson.combinedHookAudioUri!;
-        expect(uri.scheme, 'asset');
-        final assetPath = uri.path.startsWith('/')
-            ? uri.path.substring(1)
-            : uri.path;
-        final bytes = await rootBundle.load(assetPath);
-        expect(bytes.lengthInBytes, greaterThan(0), reason: lesson.id);
-      }
+      expect(lessons.every((lesson) => lesson.intro.isNotEmpty), isTrue);
     });
 
     test('keeps exactly one authored challenge tied to every Core target', () {
@@ -187,25 +135,6 @@ void main() {
       }
 
       expect(levels.expand((level) => level.missionBank), isEmpty);
-    });
-
-    test('removes the listen-first pass and adds the approved Core cues', () {
-      expect(
-        audioManifestEntries.any(
-          (entry) =>
-              entry['audioId'] == 'OVERVIEW_CUE' ||
-              (entry['audioId'] as String? ?? '').endsWith('_OVERVIEW_EN'),
-        ),
-        isFalse,
-      );
-      for (var index = 1; index <= 5; index += 1) {
-        expect(
-          audioManifestEntries.any(
-            (entry) => entry['audioId'] == 'CORE_SPEAK_0$index',
-          ),
-          isTrue,
-        );
-      }
     });
 
     test('removes role-play and preserves the five song placements', () async {
@@ -258,50 +187,7 @@ void main() {
           endsWith(expectedSongPaths[lesson.id]!),
           reason: lesson.id,
         );
-        expect(cloudinaryUrls, contains(uri.toString()), reason: lesson.id);
       }
-    });
-
-    test('exports only approved V4 song cues and source-audio handoffs', () {
-      Map<String, Object?> entryFor(String audioId) => audioManifestEntries
-          .singleWhere((entry) => entry['audioId'] == audioId);
-
-      expect(
-        entryFor('SONG_PREALERT')['sourceText'],
-        'Tiếp theo là một câu thử thách. Xong rồi mình nghe bài hát [SONG_TITLE] nhé.',
-      );
-      expect(
-        entryFor('SONG_START_CUE')['sourceText'],
-        'Bây giờ cùng nghe [SONG_TITLE] nhé.',
-      );
-
-      final songReferences = audioManifestEntries
-          .where((entry) => entry['kind'] == 'songReference')
-          .toList(growable: false);
-      expect(songReferences, hasLength(5));
-      expect(
-        <String, String>{
-          for (final entry in songReferences)
-            entry['audioId']! as String: entry['sourceText']! as String,
-        },
-        equals(const <String, String>{
-          'C35-L1-T02-B02_SONG': 'Count with Me',
-          'C35-L3-T09-B02_SONG': 'What Should I Wear?',
-          'C35-L3-T10-B02_SONG': 'My Happy Day',
-          'C67-L3-T08-B01_SONG': "Let's Play Together",
-          'C810-L1-T01-B02_SONG': 'My Busy Day',
-        }),
-      );
-      expect(
-        songReferences.every((entry) {
-          final sourceAudioUrl = entry['sourceAudioUrl'] as String?;
-          return entry['qaStatus'] == 'READY_SOURCE_AUDIO' &&
-              sourceAudioUrl != null &&
-              sourceAudioUrl.startsWith('https://res.cloudinary.com/');
-        }),
-        isTrue,
-        reason: 'Every V4 song must resolve to its approved Cloudinary audio.',
-      );
     });
   });
 }

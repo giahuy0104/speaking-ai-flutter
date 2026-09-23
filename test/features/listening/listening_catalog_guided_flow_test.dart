@@ -5,7 +5,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test(
-    'V4 catalog connects every target to guided practice and authored checks',
+    'V4 catalog connects every target to guided practice and content checks',
     () async {
       final catalog = await AssetListeningContentRepository().load();
       final topics = catalog.groups
@@ -70,14 +70,12 @@ void main() {
           (target) =>
               target.id.isNotEmpty &&
               target.english.trim().isNotEmpty &&
-              target.vietnamese.trim().isNotEmpty &&
-              target.englishAudioId?.isNotEmpty == true &&
-              target.vietnameseAudioId?.isNotEmpty == true,
+              target.vietnamese.trim().isNotEmpty,
         ),
         isTrue,
         reason:
-            'Audio IDs are a content contract; a pending generated clip is not a '
-            'reason to drop a target from recognition.',
+            'Stable target IDs and bilingual text are the recognition contract; '
+            'prerecorded audio IDs are intentionally absent in the TTS-only catalog.',
       );
 
       for (final lesson in lessons) {

@@ -8,8 +8,6 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'support/local_cloudinary_audio_client.dart';
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   final manifest =
@@ -37,7 +35,6 @@ void main() {
       final all = [
         for (final path in [
           MainAssistantAudioPromptService.manifestAsset,
-          'assets/data/curriculum_audio.json',
           homiGap66ManifestAsset,
         ])
           ...(jsonDecode(File(path).readAsStringSync())['prompts'] as List),
@@ -103,11 +100,11 @@ void main() {
         () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(channel, null),
       );
-      final client = createLocalCloudinaryAudioClient();
-      final service = createVoicePromptService(httpClient: client);
+      final service = createVoicePromptService(
+        owner: AudioTurnOwner.mainAssistant,
+      );
       addTearDown(() async {
         await service.dispose();
-        client.close();
       });
       const global =
           bool.fromEnvironment(
@@ -159,6 +156,7 @@ void main() {
         final delegate = _Delegate();
         final service = MainAssistantAudioPromptService(
           delegate: delegate,
+          enabled: true,
           additionalManifestAssets: const [homiGap66ManifestAsset],
           groupEnabled: {group: false},
         );
@@ -186,6 +184,7 @@ void main() {
         final delegate = _Delegate()..failPlayback = failure == 'playback';
         final service = MainAssistantAudioPromptService(
           delegate: delegate,
+          enabled: true,
           bundle: _FailureBundle(failure),
           additionalManifestAssets: const [homiGap66ManifestAsset],
         );

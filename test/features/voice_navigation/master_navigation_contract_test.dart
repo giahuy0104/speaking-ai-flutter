@@ -4,6 +4,7 @@ import 'package:ai_speaking_flutter_app/features/voice_navigation/application/ac
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_voice_assistant_flow.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_intent_resolver.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/main_assistant_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/controlled_speech_lexicon.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -11,9 +12,12 @@ void main() {
   test('Core and Challenge use the approved MAIN questions', () {
     expect(
       MasterNavigationContract.coreControlPrompt,
-      'Bạn muốn nghe lại, câu trước hay câu sau?',
+      'Bạn muốn nghe lại, câu trước, hay câu sau?',
     );
-    expect(MasterNavigationContract.nextItemPrompt, 'Mình học câu sau nhé');
+    expect(
+      MasterNavigationContract.nextItemPrompt,
+      'Mình chuyển sang câu sau nhé.',
+    );
     expect(
       MasterNavigationContract.challengeControlPrompt,
       'Bạn muốn nghe lại hay dừng lại?',
@@ -153,6 +157,11 @@ void main() {
     final skipped = await flow.handle('Bỏ qua bài hát');
     expect(skipped.promptText, MasterNavigationContract.songSkipped);
     expect(skipped.activeLearningCommand, ActiveLearningCommand.nextItem);
+
+    final replayed = await flow.handle('Nghe lại');
+    expect(replayed.promptText, MasterNavigationContract.songReplay);
+    expect(replayed.promptAudioKey, MainAssistantAudioKeys.songReplay);
+    expect(replayed.activeLearningCommand, ActiveLearningCommand.replayCurrent);
   });
 
   test(
@@ -486,7 +495,10 @@ void main() {
       isNull,
     );
     expect(
-      resolver.resolve('Học lại', node: ActiveLearningVoiceNode.vocabularyMenu),
+      resolver.resolve(
+        'Luyện lại',
+        node: ActiveLearningVoiceNode.vocabularyMenu,
+      ),
       ActiveLearningCommand.vocabularyPracticeAgain,
     );
     expect(
@@ -512,14 +524,14 @@ void main() {
         'Ngôi sao',
         node: ActiveLearningVoiceNode.starAlternatives,
       ),
-      isNull,
+      ActiveLearningCommand.vocabularyStars,
     );
     expect(
       resolver.resolve(
         'Ba mẹ',
         node: ActiveLearningVoiceNode.parentAlternatives,
       ),
-      isNull,
+      ActiveLearningCommand.vocabularyParentAdded,
     );
     expect(
       resolver.resolve('Tiếp theo', node: ActiveLearningVoiceNode.blockEnd),
@@ -541,7 +553,6 @@ void main() {
         'Học nội dung khác',
         'Bài trước',
         'Bài tiếp theo',
-        'Ngôi sao',
       ]) {
         expect(
           resolver.resolve(text, node: node),
@@ -595,7 +606,7 @@ void main() {
     );
   });
 
-  test('Challenge exposes only replay or stop controls', () async {
+  test('Challenge also accepts the global Continue command', () async {
     final flow = MainVoiceAssistantFlow();
     const context = _VoiceContext(
       ActiveLearningVoiceNode.challenge,
@@ -610,9 +621,75 @@ void main() {
       MasterNavigationContract.challengeControlPrompt,
     );
     final turn = await flow.handle('Tiếp tục');
-    expect(turn.activeLearningCommand, isNull);
-    expect(turn.promptText, MasterNavigationContract.challengeControlPrompt);
-    expect(turn.continueListening, isTrue);
+    expect(turn.activeLearningCommand, ActiveLearningCommand.resume);
+    expect(turn.promptText, isEmpty);
+    expect(turn.continueListening, isFalse);
+  });
+
+  test('vocabulary destinations are global at every learning node', () {
+    const resolver = ActiveLearningCommandResolver();
+    for (final node in ActiveLearningVoiceNode.values) {
+      expect(
+        resolver.resolve('Ba mẹ đã thêm', node: node),
+        ActiveLearningCommand.vocabularyParentAdded,
+        reason: '$node parent',
+      );
+      expect(
+        resolver.resolve('Ngôi sao', node: node),
+        ActiveLearningCommand.vocabularyStars,
+        reason: '$node star',
+      );
+      expect(
+        resolver.resolve('Luyện lại', node: node),
+        ActiveLearningCommand.vocabularyPracticeAgain,
+        reason: '$node review',
+      );
+    }
+  });
+
+  test('Subject can jump directly to a vocabulary destination', () async {
+    final flow = MainVoiceAssistantFlow()
+      ..beginActiveLearning(
+        kind: ActiveLearningModuleKind.listeningLesson,
+        voiceContext: const _VoiceContext(
+          ActiveLearningVoiceNode.core,
+          MasterNavigationContract.coreControlPrompt,
+        ),
+      );
+
+    final turn = await flow.handle('Ngôi sao');
+
+    expect(turn.promptText, isEmpty);
+    expect(
+      turn.navigationAfterPrompt?.destination,
+      VoiceNavigationDestination.vocabulary,
+    );
+    expect(
+      turn.navigationAfterPrompt?.vocabularyTarget,
+      VoiceVocabularyTarget.star,
+    );
+  });
+
+  test('lesson and level change phrases reopen Topic selection', () async {
+    for (final phrase in ['Bài khác', 'Level khác', 'Chủ đề khác']) {
+      final flow = MainVoiceAssistantFlow(childAge: 6)
+        ..beginActiveLearning(
+          kind: ActiveLearningModuleKind.listeningLesson,
+          voiceContext: const _VoiceContext(
+            ActiveLearningVoiceNode.core,
+            MasterNavigationContract.coreControlPrompt,
+          ),
+        );
+
+      final turn = await flow.handle(phrase);
+
+      expect(
+        turn.navigationBeforePrompt?.destination,
+        VoiceNavigationDestination.topics,
+        reason: phrase,
+      );
+      expect(turn.navigationBeforePrompt?.topicNumber, isNull, reason: phrase);
+    }
   });
 
   test(

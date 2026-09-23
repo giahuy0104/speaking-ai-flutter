@@ -9,6 +9,32 @@ abstract interface class AuthoredPromptBudgetProvider {
   });
 }
 
+/// Resolves prerecorded assistant prompts by stable semantic key. [text] and
+/// [locale] are retained solely for the TTS fallback.
+abstract interface class KeyedAuthoredPromptBudgetProvider {
+  Future<Duration?> authoredPromptBudgetForKey(
+    String audioKey, {
+    required String text,
+    String locale = 'vi-VN',
+  });
+}
+
+abstract interface class KeyedVoicePromptService {
+  Future<void> speakAndWaitWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  });
+}
+
+abstract interface class KeyedSelectedMediaOutputVoicePromptService {
+  Future<void> speakAndWaitOnSelectedMediaOutputWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  });
+}
+
 /// Optional native playback on the same route/lifecycle as TTS. Bytes have
 /// already been verified by the caller; speed is baked into the file.
 abstract interface class AuthoredAudioVoicePromptService {

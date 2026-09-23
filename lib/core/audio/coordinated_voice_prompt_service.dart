@@ -12,6 +12,9 @@ class CoordinatedVoicePromptService
     implements
         VoicePromptService,
         AuthoredPromptBudgetProvider,
+        KeyedAuthoredPromptBudgetProvider,
+        KeyedVoicePromptService,
+        KeyedSelectedMediaOutputVoicePromptService,
         SpeechReadyCuePlayer,
         PhoneSpeakerVoicePromptService,
         SelectedMediaOutputVoicePromptService,
@@ -53,6 +56,19 @@ class CoordinatedVoicePromptService
   }
 
   @override
+  Future<Duration?> authoredPromptBudgetForKey(
+    String audioKey, {
+    required String text,
+    String locale = 'vi-VN',
+  }) async {
+    final delegate = _delegate;
+    return !_disposed && delegate is KeyedAuthoredPromptBudgetProvider
+        ? (delegate as KeyedAuthoredPromptBudgetProvider)
+              .authoredPromptBudgetForKey(audioKey, text: text, locale: locale)
+        : null;
+  }
+
+  @override
   Future<void> speak(String text, {String locale = 'vi-VN'}) => _runPrompt(
     () => _selectedOutputRoute == null
         ? _delegate.speak(text, locale: locale)
@@ -62,6 +78,22 @@ class CoordinatedVoicePromptService
   @override
   Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) =>
       _runPrompt(() => _delegate.speakAndWait(text, locale: locale));
+
+  @override
+  Future<void> speakAndWaitWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) => _runPrompt(() {
+    final delegate = _delegate;
+    return delegate is KeyedVoicePromptService
+        ? (delegate as KeyedVoicePromptService).speakAndWaitWithAudioKey(
+            audioKey,
+            text,
+            locale: locale,
+          )
+        : delegate.speakAndWait(text, locale: locale);
+  });
 
   @override
   Future<void> speakAndWaitOnPhoneSpeaker(
@@ -85,6 +117,31 @@ class CoordinatedVoicePromptService
         ? (delegate as SelectedMediaOutputVoicePromptService)
               .speakAndWaitOnSelectedMediaOutput(text, locale: locale)
         : delegate.speakAndWait(text, locale: locale);
+  });
+
+  @override
+  Future<void> speakAndWaitOnSelectedMediaOutputWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) => _runPrompt(() {
+    final delegate = _delegate;
+    if (delegate is KeyedSelectedMediaOutputVoicePromptService) {
+      return (delegate as KeyedSelectedMediaOutputVoicePromptService)
+          .speakAndWaitOnSelectedMediaOutputWithAudioKey(
+            audioKey,
+            text,
+            locale: locale,
+          );
+    }
+    if (delegate is KeyedVoicePromptService) {
+      return (delegate as KeyedVoicePromptService).speakAndWaitWithAudioKey(
+        audioKey,
+        text,
+        locale: locale,
+      );
+    }
+    return delegate.speakAndWait(text, locale: locale);
   });
 
   @override

@@ -712,7 +712,13 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           await widget.onMainSpeakingModeStarted?.call();
         }
       case VoiceNavigationDestination.vocabulary:
-        _showVocabulary();
+        await _showVocabularyAndWait();
+        final vocabularyTarget = intent.vocabularyTarget;
+        if (vocabularyTarget != null) {
+          await _vocabularyNavigationController.openVoiceTarget(
+            vocabularyTarget,
+          );
+        }
       case VoiceNavigationDestination.topics:
         final pausedCheckpoint =
             intent.topicNumber == null &&

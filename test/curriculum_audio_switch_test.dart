@@ -3,28 +3,15 @@ import 'package:ai_speaking_flutter_app/features/listening/domain/listening_cont
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'support/local_cloudinary_audio_client.dart';
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  const enabled = bool.fromEnvironment(
-    'HOMI_CURRICULUM_AUTHORED_AUDIO',
-    defaultValue: true,
-  );
 
-  test('curriculum switch controls catalog URIs and prompt lookup', () async {
+  test('curriculum uses platform TTS without authored audio flags', () async {
     final catalog = await AssetListeningContentRepository().load();
     final sentence =
         catalog.groups.first.topics.first.lessons.first.sentences.first;
-    if (enabled) {
-      expect(
-        sentence.audioUri.toString(),
-        startsWith('https://res.cloudinary.com/'),
-      );
-    } else {
-      expect(sentence.audioUri, isNull);
-      expect(sentence.vietnameseAudioUri, isNull);
-    }
+    expect(sentence.audioUri, isNull);
+    expect(sentence.vietnameseAudioUri, isNull);
 
     const channel = MethodChannel('ailingo_voice_prompt');
     final calls = <MethodCall>[];
@@ -39,13 +26,9 @@ void main() {
     );
     final service = createVoicePromptService(
       owner: AudioTurnOwner.listeningLesson,
-      httpClient: createLocalCloudinaryAudioClient(),
     );
     await service.speakAndWait('Quả táo: Apple hay Ball?');
-    expect(
-      calls.single.method,
-      enabled ? 'playAuthoredAudioAndWait' : 'speakAndWait',
-    );
+    expect(calls.single.method, 'speakAndWait');
     await service.dispose();
   });
 }

@@ -8,6 +8,7 @@ import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
+import '../../../core/audio/hfp_audio_control.dart';
 import '../../../core/device/active_learning_module.dart';
 import '../../../l10n/display_language.dart';
 import '../application/lesson_guide_audio_library.dart';
@@ -17,6 +18,7 @@ import '../domain/listening_catalog.dart';
 import '../domain/listening_content.dart';
 import '../domain/lesson_star_flow.dart';
 import '../domain/lesson_guide_flow.dart';
+import '../domain/listening_audio_keys.dart';
 import '../../../core/navigation/active_learning_navigation.dart';
 import 'lesson_practice_screen.dart';
 import 'song_karaoke_screen.dart';
@@ -207,42 +209,25 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
     String text, {
     required int request,
   }) async {
-    final hookUri = widget.lesson.combinedHookAudioUri;
-    final hookText = widget.lesson.entry?.text.trim() ?? '';
-    final hookIndex = hookText.isEmpty ? -1 : text.indexOf(hookText);
-    if (!_isFreshV4Entry || hookUri == null || hookIndex < 0) {
-      await _speakIntroPrompt(prompt, text, request: request);
-      return;
-    }
-
-    final lead = text.substring(0, hookIndex).trim();
-    final startCue = text.substring(hookIndex + hookText.length).trim();
-    if (lead.isNotEmpty) {
-      await _speakIntroPrompt(prompt, lead, request: request);
-    }
-    if (!_isCurrentIntroRequest(request)) {
-      return;
-    }
     try {
-      await widget.mediaService.playToCompletion(hookUri);
+      await _speakIntroPrompt(
+        prompt,
+        text,
+        request: request,
+        audioKey: _isFreshV4Entry
+            ? ListeningAudioKeys.lessonIntro(widget.lesson.id)
+            : null,
+      );
     } catch (error, stackTrace) {
       if (!_isCurrentIntroRequest(request)) {
         return;
       }
+      if (error is HfpAudioException) rethrow;
       debugPrint(
-        'Combined lesson hook failed for ${widget.lesson.id} ($hookUri): '
-        '$error',
+        'Keyed lesson intro failed for ${widget.lesson.id}; using TTS: $error',
       );
       debugPrintStack(stackTrace: stackTrace);
-      // The combined clip owns both the scene-setting sound and hook speech.
-      // If it cannot play, recover with the existing authored/TTS hook text.
-      await _speakIntroPrompt(prompt, hookText, request: request);
-    }
-    if (!_isCurrentIntroRequest(request)) {
-      return;
-    }
-    if (startCue.isNotEmpty) {
-      await _speakIntroPrompt(prompt, startCue, request: request);
+      await _speakIntroPrompt(prompt, text, request: request);
     }
   }
 
@@ -253,8 +238,29 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
     VoicePromptService prompt,
     String text, {
     required int request,
+    String? audioKey,
   }) async {
-    if (widget.lesson.usesV4Flow && prompt is AuthoredPromptBudgetProvider) {
+    if (audioKey != null && prompt is KeyedAuthoredPromptBudgetProvider) {
+      final budget = await (prompt as KeyedAuthoredPromptBudgetProvider)
+          .authoredPromptBudgetForKey(audioKey, text: text, locale: 'vi-VN');
+      if (!mounted ||
+          _pausedForMainAssistant ||
+          request != _introPlaybackRequest) {
+        return;
+      }
+      if (budget != null) {
+        await _speakOnLessonOutput(
+          prompt,
+          text,
+          locale: 'vi-VN',
+          audioKey: audioKey,
+        );
+        return;
+      }
+    } else if (widget.lesson.usesV4Flow &&
+        prompt is AuthoredPromptBudgetProvider) {
+      // Compatibility for injected prompt services that have not adopted
+      // semantic keys yet. Production pack lookup never uses this text path.
       final budget = await (prompt as AuthoredPromptBudgetProvider)
           .authoredPromptBudget(text, locale: 'vi-VN');
       if (!mounted ||
@@ -263,8 +269,6 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
         return;
       }
       if (budget != null) {
-        // Keep a matching complete recording intact. Without an authored
-        // match, the English title still needs its own English TTS voice.
         await _speakOnLessonOutput(prompt, text, locale: 'vi-VN');
         return;
       }
@@ -297,7 +301,25 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
     VoicePromptService prompt,
     String text, {
     required String locale,
+    String? audioKey,
   }) {
+    if (!kIsWeb &&
+        audioKey != null &&
+        prompt is KeyedSelectedMediaOutputVoicePromptService) {
+      return (prompt as KeyedSelectedMediaOutputVoicePromptService)
+          .speakAndWaitOnSelectedMediaOutputWithAudioKey(
+            audioKey,
+            text,
+            locale: locale,
+          );
+    }
+    if (audioKey != null && prompt is KeyedVoicePromptService) {
+      return (prompt as KeyedVoicePromptService).speakAndWaitWithAudioKey(
+        audioKey,
+        text,
+        locale: locale,
+      );
+    }
     if (!kIsWeb && prompt is SelectedMediaOutputVoicePromptService) {
       return (prompt as SelectedMediaOutputVoicePromptService)
           .speakAndWaitOnSelectedMediaOutput(text, locale: locale);

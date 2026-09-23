@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "pack": "songs",
+  "version": "v1",
+  "enabled": true,
+  "mediaType": "song",
+  "allowTtsFallback": false,
+  "prompts": [
+    {
+      "key": "song.A067_T05.full.en",
+      "enabled": true,
+      "locale": "en-US",
+      "asset": "assets/audio/A-6-7/SONGS/A067_T05_SONG01_FULL_EN.mp3",
+      "durationSeconds": 19.52,
+      "sha256": "05f975c68398793985313dc31458c3efc43fd6b4f84736732e8d14d31f8d8aee",
+      "sizeBytes": 449304
+    },
+    {
+      "key": "song.A067_T07.full.en",
+      "enabled": true,
+      "locale": "en-US",
+      "asset": "assets/audio/A-6-7/SONGS/A067_T07_SONG01_FULL_EN.mp3",
+      "durationSeconds": 47.8,
+      "sha256": "bfcb827f3c3770921f688cf5538318e791e9e7a155c753e28a4c6d5aa622342d",
+      "sizeBytes": 1071672
+    },
+    {
+      "key": "song.A067_T08.full.en",
+      "enabled": true,
+      "locale": "en-US",
+      "asset": "assets/audio/A-6-7/SONGS/A067_T08_SONG01_FULL_EN.mp3",
+      "durationSeconds": 24.56,
+      "sha256": "80bcac9fa38183f20328a362d20808aa58c5c5678b58248b8c6f5c7edda124bb",
+      "sizeBytes": 536280
+    },
+    {
+      "key": "song.A0810_T03.full.en",
+      "enabled": true,
+      "locale": "en-US",
+      "asset": "assets/audio/A-8-10/SONGS/A0810_T03_SONG01_FULL_EN.mp3",
+      "durationSeconds": 29.521,
+      "sha256": "056e5e4b1bd2413e04d4fad6396fb724f9b52a29a75f71e6f400b83b130e076c",
+      "sizeBytes": 690600
+    },
+    {
+      "key": "song.A0810_T04.full.en",
+      "enabled": true,
+      "locale": "en-US",
+      "asset": "assets/audio/A-8-10/SONGS/A0810_T04_SONG01_FULL_EN.mp3",
+      "durationSeconds": 47.96,
+      "sha256": "e92c103e7bf072af2da4413c48d4d0ef832ab6185f966301a0162462b35b7220",
+      "sizeBytes": 1075272
+    }
+  ],
+  "minimumAppVersion": "1.0.8"
+}

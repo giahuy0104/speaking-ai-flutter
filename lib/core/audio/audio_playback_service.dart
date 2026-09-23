@@ -91,6 +91,22 @@ abstract interface class PlaybackRateAwareAudioPlaybackService {
   void setPlaybackRate(double rate);
 }
 
+/// Verifies backend-generated clips before native playback. Web keeps using
+/// the browser's media cache, while native platforms enforce SHA-256 locally.
+abstract interface class IntegrityAwareAudioPlaybackService {
+  Future<void> preloadVerified(
+    Uri uri, {
+    required String sha256,
+    int maximumBytes = 2 * 1024 * 1024,
+  });
+
+  Future<PlaybackStartMetrics> playVerified(
+    Uri uri, {
+    required String sha256,
+    int maximumBytes = 2 * 1024 * 1024,
+  });
+}
+
 /// Optional Android capability for temporarily lifting quiet child recordings
 /// without changing the volume of authored clips or synthesized prompts.
 abstract interface class PlaybackGainAwareAudioPlaybackService {
@@ -122,6 +138,7 @@ class JustAudioPlaybackService
         SeekableAudioPlaybackService,
         UserGestureAudioPlaybackService,
         DirectUserGestureAudioPlaybackService,
+        IntegrityAwareAudioPlaybackService,
         CommunicationRouteAwareAudioPlaybackService,
         PlaybackRateAwareAudioPlaybackService,
         PlaybackGainAwareAudioPlaybackService,
@@ -227,6 +244,7 @@ class JustAudioPlaybackService
   double _fallbackGainDb = androidPlaybackGainDb;
   double? _fixedGainDb;
   _PlaybackRequest? _playbackRequest;
+  final Map<Uri, ({String sha256, int maximumBytes})> _integrity = {};
   bool _disposed = false;
 
   @override
@@ -673,7 +691,14 @@ class JustAudioPlaybackService
     }
 
     final revision = ++_preloadRevision;
-    final cachedUri = await _cache.cache(uri);
+    final integrity = _integrity[uri];
+    final cachedUri = integrity == null
+        ? await _cache.cache(uri)
+        : await _cache.cacheVerified(
+            uri,
+            sha256Checksum: integrity.sha256,
+            maximumFileBytes: integrity.maximumBytes,
+          );
     if (_disposed || cachedUri == null || revision != _preloadRevision) {
       return;
     }
@@ -693,6 +718,16 @@ class JustAudioPlaybackService
       _loadedOriginalUri = uri;
       _loadedResolvedUri = cachedUri;
     });
+  }
+
+  @override
+  Future<void> preloadVerified(
+    Uri uri, {
+    required String sha256,
+    int maximumBytes = 2 * 1024 * 1024,
+  }) {
+    _rememberIntegrity(uri, sha256, maximumBytes);
+    return preload(uri);
   }
 
   @override
@@ -722,6 +757,29 @@ class JustAudioPlaybackService
         await _releaseAudioTurn();
       }
       rethrow;
+    }
+  }
+
+  @override
+  Future<PlaybackStartMetrics> playVerified(
+    Uri uri, {
+    required String sha256,
+    int maximumBytes = 2 * 1024 * 1024,
+  }) {
+    _rememberIntegrity(uri, sha256, maximumBytes);
+    return play(uri);
+  }
+
+  void _rememberIntegrity(Uri uri, String checksum, int maximumBytes) {
+    if (!RegExp(r'^[a-fA-F0-9]{64}$').hasMatch(checksum)) {
+      throw const FormatException('Invalid backend audio checksum.');
+    }
+    _integrity[uri] = (
+      sha256: checksum.toLowerCase(),
+      maximumBytes: maximumBytes,
+    );
+    while (_integrity.length > 128) {
+      _integrity.remove(_integrity.keys.first);
     }
   }
 
@@ -789,7 +847,15 @@ class JustAudioPlaybackService
     ++_preloadRevision;
     await request.wait(_consumePlaybackPreparation());
     _requireCurrentPlayback(request);
-    final resolvedUri = await request.wait(_cache.resolveAfterPreload(uri));
+    final integrity = _integrity[uri];
+    final resolvedUri = await request.wait(
+      integrity == null
+          ? _cache.resolveAfterPreload(uri)
+          : _cache.resolveAfterPreloadVerified(
+              uri,
+              sha256Checksum: integrity.sha256,
+            ),
+    );
     _requireCurrentPlayback(request);
     final loadStartedAt = DateTime.now();
     await request.wait(

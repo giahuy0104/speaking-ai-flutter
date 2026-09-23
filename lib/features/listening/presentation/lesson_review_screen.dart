@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
+import '../../../core/audio/hfp_audio_control.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/active_learning_module.dart';
 import '../../../l10n/display_language.dart';
 import '../application/lesson_media_service.dart';
+import '../domain/listening_audio_keys.dart';
 import '../domain/listening_content.dart';
 import '../../../core/navigation/active_learning_navigation.dart';
 
@@ -79,7 +81,9 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
     final current = _voicePromptService;
     if (current != null) return current;
     _ownsVoicePromptService = true;
-    return _voicePromptService = createVoicePromptService();
+    return _voicePromptService = createVoicePromptService(
+      owner: AudioTurnOwner.listeningLesson,
+    );
   }
 
   @override
@@ -542,7 +546,7 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
     if (_pausedForMainAssistant) {
       return;
     }
-    await _stopAutoReview();
+    await _stopAutoReview(waitForPrompt: false);
     if (!mounted) {
       return;
     }
@@ -583,7 +587,7 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
     if (_pausedForMainAssistant) {
       return;
     }
-    await _stopAutoReview();
+    await _stopAutoReview(waitForPrompt: false);
     if (!mounted) {
       return;
     }
@@ -633,7 +637,10 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
     }
     final request = ++_playbackRequest;
     _cancelReviewGap();
-    await widget.mediaService.stopPlayback();
+    await Future.wait<void>(<Future<void>>[
+      widget.mediaService.stopPlayback(),
+      if (_voicePromptService != null) _voicePromptService!.stop(),
+    ]);
     if (!mounted || _pausedForMainAssistant || request != _playbackRequest) {
       return;
     }
@@ -668,13 +675,17 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
         return;
       }
       setState(() => _playingIndex = index);
-      final uri = widget.lesson.sentences[index].audioUri;
-      if (uri != null) {
-        try {
-          await widget.mediaService.playToCompletion(uri);
-        } catch (_) {}
+      try {
+        await _playSentenceAudioOrTts(index, request: request);
+      } catch (error) {
+        if (mounted && request == _playbackRequest) {
+          _setMessage(error.toString());
+        }
       }
-      if (!mounted || request != _playbackRequest) {
+      if (!mounted ||
+          _pausedForMainAssistant ||
+          _exiting ||
+          request != _playbackRequest) {
         return;
       }
       if (!await _waitReviewGap()) {
@@ -685,14 +696,6 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
       setState(() {
         _autoPlayActive = false;
         _playingIndex = null;
-        if (widget.lesson.sentences.every(
-          (sentence) => sentence.audioUri == null,
-        )) {
-          _message = context.tr(
-            'Danh sách đã sẵn sàng; audio Cloudinary sẽ được gắn sau.',
-            '列表已准备好；Cloudinary 音频稍后接入。',
-          );
-        }
       });
     }
   }
@@ -706,18 +709,18 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
       return;
     }
     final request = ++_playbackRequest;
-    final sentence = widget.lesson.sentences[index];
-    if (sentence.audioUri == null) {
-      _setMessage(context.tr('Audio câu này sẽ được gắn sau.', '本句音频稍后接入。'));
-      return;
-    }
     if (mounted) {
-      setState(() => _playingIndex = index);
+      setState(() {
+        _message = null;
+        _playingIndex = index;
+      });
     }
     try {
-      await widget.mediaService.playToCompletion(sentence.audioUri!);
+      await _playSentenceAudioOrTts(index, request: request);
     } catch (error) {
-      _setMessage(error.toString());
+      if (mounted && request == _playbackRequest) {
+        _setMessage(error.toString());
+      }
     } finally {
       if (mounted && request == _playbackRequest) {
         setState(() => _playingIndex = null);
@@ -725,10 +728,76 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
     }
   }
 
-  Future<void> _stopAutoReview() async {
+  Future<void> _playSentenceAudioOrTts(
+    int index, {
+    required int request,
+  }) async {
+    final sentence = widget.lesson.sentences[index];
+    final sentenceId = sentence.id.trim();
+    final prompt = _prompt;
+    if (sentenceId.isNotEmpty && prompt is KeyedVoicePromptService) {
+      try {
+        await widget.mediaService.prepareSelectedLessonOutput();
+        if (!_isCurrentPlaybackRequest(request)) return;
+        final audioKey = ListeningAudioKeys.sentenceEnglish(sentenceId);
+        if (prompt is KeyedSelectedMediaOutputVoicePromptService) {
+          await (prompt as KeyedSelectedMediaOutputVoicePromptService)
+              .speakAndWaitOnSelectedMediaOutputWithAudioKey(
+                audioKey,
+                sentence.english,
+                locale: 'en-US',
+              );
+        } else {
+          await (prompt as KeyedVoicePromptService).speakAndWaitWithAudioKey(
+            audioKey,
+            sentence.english,
+            locale: 'en-US',
+          );
+        }
+        return;
+      } catch (error) {
+        if (error is HfpAudioException) rethrow;
+        if (!_isCurrentPlaybackRequest(request)) return;
+      }
+    }
+    final uri = sentence.audioUri;
+    if (uri != null) {
+      try {
+        await widget.mediaService.playToCompletion(uri);
+        return;
+      } catch (error) {
+        if (error is HfpAudioException) rethrow;
+        if (!_isCurrentPlaybackRequest(request)) return;
+      }
+    }
+    if (!_isCurrentPlaybackRequest(request)) return;
+    await widget.mediaService.prepareSelectedLessonOutput();
+    if (!_isCurrentPlaybackRequest(request)) return;
+    if (prompt is SelectedMediaOutputVoicePromptService) {
+      await (prompt as SelectedMediaOutputVoicePromptService)
+          .speakAndWaitOnSelectedMediaOutput(sentence.english, locale: 'en-US');
+    } else {
+      await prompt.speakAndWait(sentence.english, locale: 'en-US');
+    }
+  }
+
+  bool _isCurrentPlaybackRequest(int request) =>
+      mounted &&
+      !_pausedForMainAssistant &&
+      !_exiting &&
+      request == _playbackRequest;
+
+  Future<void> _stopAutoReview({bool waitForPrompt = true}) async {
     _playbackRequest += 1;
     _cancelReviewGap();
-    await widget.mediaService.stopPlayback();
+    final promptStop = _voicePromptService?.stop();
+    if (!waitForPrompt && promptStop != null) {
+      unawaited(promptStop.catchError((Object _) {}));
+    }
+    await Future.wait<void>(<Future<void>>[
+      widget.mediaService.stopPlayback(),
+      if (waitForPrompt && promptStop != null) promptStop,
+    ]);
     if (mounted) {
       setState(() {
         _autoPlayActive = false;

@@ -1,937 +1,191 @@
-import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
-import 'package:ai_speaking_flutter_app/core/audio/audio_turn_coordinator.dart';
-import 'package:ai_speaking_flutter_app/core/audio/coordinated_voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/main_assistant_audio_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
-import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
-import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_voice_assistant_flow.dart';
-import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_flow_v3.dart';
 import 'package:crypto/crypto.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
-
-import 'support/local_cloudinary_audio_client.dart';
-
-const _text = MainVoiceAssistantFlow.openingPrompt;
-const _asset = 'assets/audio/MAIN/AI-001.vi.v1.mp3';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('factory shortens only Android authored downloads', () async {
+  test('factory uses platform TTS and preserves text and locale', () async {
     const channel = MethodChannel('ailingo_voice_prompt');
+    final calls = <MethodCall>[];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (_) async => null);
-    addTearDown(() {
-      debugDefaultTargetPlatformOverride = null;
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, null);
-    });
-    for (final target in [
-      TargetPlatform.android,
-      TargetPlatform.iOS,
-      TargetPlatform.windows,
-    ]) {
-      debugDefaultTargetPlatformOverride = target;
-      final service =
-          createVoicePromptService() as MainAssistantAudioPromptService;
-      final android = target == TargetPlatform.android;
-      expect(
-        service.remoteAudioLoadTimeout,
-        android
-            ? const Duration(milliseconds: 350)
-            : const Duration(seconds: 8),
-      );
-      expect(service.cacheLateRemoteAudio, android);
-      expect(service.preferBundledAudio, android);
-      await service.dispose();
-    }
-    final defaultService = MainAssistantAudioPromptService(
-      delegate: _Delegate(),
+        .setMockMethodCallHandler(channel, (call) async {
+          calls.add(call);
+          return null;
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null),
     );
-    expect(defaultService.remoteAudioLoadTimeout, const Duration(seconds: 8));
-    expect(defaultService.cacheLateRemoteAudio, isFalse);
-    await defaultService.dispose();
+
+    final service = createVoicePromptService();
+    addTearDown(service.dispose);
+    await service.speakAndWait('  Hello HOMI  ', locale: 'en-US');
+
+    expect(calls, hasLength(1));
+    expect(calls.single.method, 'speakAndWait');
+    expect(calls.single.arguments, containsPair('text', 'Hello HOMI'));
+    expect(calls.single.arguments, containsPair('locale', 'en-US'));
   });
 
-  test('bundled verified prompt bypasses its remote URL', () async {
-    var downloads = 0;
-    final client = MockClient((_) async {
-      downloads++;
-      throw StateError('Offline');
-    });
-    final delegate = _Delegate();
-    final service = MainAssistantAudioPromptService(
-      delegate: delegate,
-      bundle: _Bundle(mode: 'remote'),
-      httpClient: client,
-      preferBundledAudio: true,
+  test('factory never requests authored playback', () async {
+    const channel = MethodChannel('ailingo_voice_prompt');
+    final calls = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          calls.add(call);
+          return null;
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null),
     );
-    addTearDown(service.dispose);
-    addTearDown(client.close);
-    await service.speakAndWaitOnSelectedMediaOutput(_text);
-    expect(downloads, 0);
-    expect(delegate.events, ['audio:selected']);
-  });
 
-  test('corrupt bundled prompt recovers from verified remote bytes', () async {
-    final bundle = _Bundle(mode: 'remote')..corruptAsset = true;
-    var downloads = 0;
-    final client = MockClient((_) async {
-      downloads++;
-      return http.Response.bytes(bundle.bytes, 200);
-    });
-    final delegate = _Delegate();
-    final service = MainAssistantAudioPromptService(
-      delegate: delegate,
-      bundle: bundle,
-      httpClient: client,
-      preferBundledAudio: true,
-    );
+    final service = createVoicePromptService();
     addTearDown(service.dispose);
-    addTearDown(client.close);
-    await service.speakAndWait(_text);
-    expect(downloads, 1);
-    expect(delegate.events, ['audio:normal']);
-  });
+    await service.speak('Xin chào');
+    await service.speakAndWait('Bạn muốn học gì?');
 
-  test('stop during bundled lookup cannot start a remote retry', () async {
-    final bundle = _Bundle(mode: 'remote')..blockAsset = true;
-    var downloads = 0;
-    final client = MockClient((_) async {
-      downloads++;
-      return http.Response.bytes(bundle.bytes, 200);
-    });
-    final delegate = _Delegate();
-    final service = MainAssistantAudioPromptService(
-      delegate: delegate,
-      bundle: bundle,
-      httpClient: client,
-      preferBundledAudio: true,
+    expect(calls.map((call) => call.method), ['speak', 'speakAndWait']);
+    expect(
+      calls,
+      isNot(
+        contains(
+          predicate<MethodCall>(
+            (call) => call.method == 'playAuthoredAudioAndWait',
+          ),
+        ),
+      ),
     );
-    addTearDown(service.dispose);
-    addTearDown(client.close);
-    final play = service.speakAndWait(_text);
-    await bundle.assetStarted.future;
-    await service.stop();
-    await play;
-    bundle.assetCompletion.complete();
-    expect(downloads, 0);
-    expect(delegate.events, ['stop']);
   });
 
   test(
-    'Android topic and vocabulary menus are playable fully offline',
+    'legacy authored wrapper is disabled by default without manifest load',
     () async {
-      const channel = MethodChannel('ailingo_voice_prompt');
-      final calls = <MethodCall>[];
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (call) async {
-            calls.add(call);
-            return null;
-          });
-      debugDefaultTargetPlatformOverride = TargetPlatform.android;
-      addTearDown(() {
-        debugDefaultTargetPlatformOverride = null;
-        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(channel, null);
-      });
-      var downloads = 0;
-      final client = MockClient((_) async {
-        downloads++;
-        throw StateError('Offline');
-      });
-      final service = createVoicePromptService(httpClient: client);
+      final bundle = _TrackingBundle();
+      final delegate = _Delegate();
+      final service = MainAssistantAudioPromptService(
+        delegate: delegate,
+        bundle: bundle,
+      );
       addTearDown(service.dispose);
-      addTearDown(client.close);
-      final prompts = <String>{
-        _text,
-        ...VocabularyFlowV3.fixedPrompts.map((prompt) => prompt.text),
-        'Bạn chọn học Chủ đề số mấy?',
-        'Bắt đầu Level 1. Có 3 Chủ đề. Bạn muốn học Chủ đề số mấy?',
-        'Bắt đầu Level 2. Có 3 Chủ đề. Bạn muốn học Chủ đề số mấy?',
-        'Bắt đầu Level 3. Có 4 Chủ đề. Bạn muốn học Chủ đề số mấy?',
-        'Mình học tiếp Chủ đề 1 nhé.',
-      };
-      for (final prompt in prompts) {
-        await service.speakAndWait(prompt);
-        expect(calls.last.method, 'playAuthoredAudioAndWait', reason: prompt);
-      }
-      expect(downloads, 0);
-    },
-  );
 
-  testWidgets(
-    'unbundled Android prompt falls back at 350ms and warms only a later turn',
-    (tester) async {
-      final response = Completer<http.Response>();
-      final bundle = _Bundle(mode: 'remote');
-      var downloads = 0;
-      final client = MockClient((_) {
-        downloads++;
-        return response.future;
-      });
-      final delegate = _Delegate();
-      final service = MainAssistantAudioPromptService(
-        delegate: delegate,
-        bundle: bundle,
-        httpClient: client,
-        remoteAudioLoadTimeout: const Duration(milliseconds: 350),
-        cacheLateRemoteAudio: true,
-      );
-      final play = service.speakAndWait(_text);
-      await tester.pump();
-      expect(downloads, 1);
-      await tester.pump(const Duration(milliseconds: 349));
-      expect(delegate.events, isEmpty);
-      await tester.pump(const Duration(milliseconds: 1));
-      await play;
-      expect(delegate.events, ['tts:vi-VN:$_text']);
+      expect(await service.authoredPromptBudget('Xin chào'), isNull);
+      await service.speak('Một');
+      await service.speakAndWait('Hai', locale: 'en-US');
+      await service.speakAndWaitOnSelectedMediaOutput('Ba');
+      await service.speakAndWaitOnPhoneSpeaker('Bốn');
 
-      response.complete(http.Response.bytes(bundle.bytes, 200));
-      await tester.pump();
-      expect(delegate.events, ['tts:vi-VN:$_text']);
-      await service.stop();
-      final retry = service.speakAndWait(_text);
-      await tester.pump();
-      await retry;
-      expect(downloads, 1);
-      expect(delegate.events, ['tts:vi-VN:$_text', 'stop', 'audio:normal']);
-      await service.dispose();
-      client.close();
-    },
-  );
-
-  testWidgets(
-    'a retry joins a pending Android download instead of duplicating it',
-    (tester) async {
-      final response = Completer<http.Response>();
-      final bundle = _Bundle(mode: 'remote');
-      var downloads = 0;
-      final client = MockClient((_) {
-        downloads++;
-        return response.future;
-      });
-      final delegate = _Delegate();
-      final service = MainAssistantAudioPromptService(
-        delegate: delegate,
-        bundle: bundle,
-        httpClient: client,
-        remoteAudioLoadTimeout: const Duration(seconds: 2),
-        cacheLateRemoteAudio: true,
-      );
-      final first = service.speakAndWait(_text);
-      await tester.pump();
-      await tester.pump(const Duration(seconds: 2));
-      await first;
-      final retry = service.speakAndWait(_text);
-      await tester.pump();
-      expect(downloads, 1);
-      response.complete(http.Response.bytes(bundle.bytes, 200));
-      await tester.pump();
-      await retry;
-      expect(delegate.events, ['tts:vi-VN:$_text', 'audio:normal']);
-      await service.dispose();
-      client.close();
-    },
-  );
-
-  testWidgets('late corrupt Android response is not played or cached', (
-    tester,
-  ) async {
-    final response = Completer<http.Response>();
-    final bundle = _Bundle(mode: 'remote');
-    var downloads = 0;
-    final client = MockClient((_) {
-      downloads++;
-      return downloads == 1
-          ? response.future
-          : Future.value(http.Response.bytes(bundle.bytes, 200));
-    });
-    final delegate = _Delegate();
-    final service = MainAssistantAudioPromptService(
-      delegate: delegate,
-      bundle: bundle,
-      httpClient: client,
-      remoteAudioLoadTimeout: const Duration(seconds: 2),
-      cacheLateRemoteAudio: true,
-    );
-    final play = service.speakAndWait(_text);
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 2));
-    await play;
-    response.complete(http.Response.bytes([9], 200));
-    await tester.pump();
-    expect(delegate.events, ['tts:vi-VN:$_text']);
-    final retry = service.speakAndWait(_text);
-    await tester.pump();
-    await retry;
-    expect(downloads, 2);
-    expect(delegate.events, ['tts:vi-VN:$_text', 'audio:normal']);
-    await service.dispose();
-    client.close();
-  });
-
-  for (final shouldDispose in [false, true]) {
-    testWidgets(
-      '${shouldDispose ? 'dispose' : 'stop'} prevents late Android HTTP from speaking',
-      (tester) async {
-        final response = Completer<http.Response>();
-        final bundle = _Bundle(mode: 'remote');
-        final client = MockClient((_) => response.future);
-        final delegate = _Delegate();
-        final service = MainAssistantAudioPromptService(
-          delegate: delegate,
-          bundle: bundle,
-          httpClient: client,
-          remoteAudioLoadTimeout: const Duration(seconds: 2),
-          cacheLateRemoteAudio: true,
-        );
-        final play = service.speakAndWait(_text);
-        await tester.pump();
-        if (shouldDispose) {
-          await service.dispose();
-        } else {
-          await service.stop();
-        }
-        await play;
-        response.complete(http.Response.bytes(bundle.bytes, 200));
-        await tester.pump();
-        await tester.pump(const Duration(seconds: 3));
-        expect(delegate.events, ['stop', if (shouldDispose) 'dispose']);
-        if (shouldDispose) {
-          await service.speakAndWait(_text);
-          expect(delegate.events, ['stop', 'dispose']);
-        } else {
-          await service.dispose();
-        }
-        client.close();
-      },
-    );
-  }
-
-  test('repeated MAIN reuses verified remote audio after stop', () async {
-    final bundle = _Bundle(mode: 'remote');
-    var downloads = 0;
-    final client = MockClient((_) async {
-      downloads++;
-      return http.Response.bytes(bundle.bytes, 200);
-    });
-    final delegate = _Delegate();
-    final service = MainAssistantAudioPromptService(
-      delegate: delegate,
-      bundle: bundle,
-      httpClient: client,
-    );
-    await service.speakAndWait(_text);
-    await service.stop();
-    await service.speakAndWait(_text);
-    expect(downloads, 1);
-    expect(delegate.events, ['audio:normal', 'stop', 'audio:normal']);
-    await service.dispose();
-    client.close();
-  });
-
-  test(
-    'corrupt remote audio is never cached and a later retry recovers',
-    () async {
-      final bundle = _Bundle(mode: 'remote');
-      var downloads = 0;
-      final client = MockClient((_) async {
-        downloads++;
-        return http.Response.bytes(downloads == 1 ? [9] : bundle.bytes, 200);
-      });
-      final delegate = _Delegate();
-      final service = MainAssistantAudioPromptService(
-        delegate: delegate,
-        bundle: bundle,
-        httpClient: client,
-      );
-      await service.speakAndWait(_text);
-      await service.speakAndWait(_text);
-      expect(downloads, 2);
-      expect(delegate.events, ['tts:vi-VN:$_text', 'audio:normal']);
-      await service.dispose();
-      client.close();
-    },
-  );
-
-  test(
-    'optional curriculum pack plays locally with its duration budget',
-    () async {
-      final delegate = _Delegate();
-      final service = MainAssistantAudioPromptService(
-        delegate: delegate,
-        bundle: _CurriculumBundle(),
-        additionalManifestAssets: const ['curriculum.json'],
-      );
-      expect(
-        await service.authoredPromptBudget('Câu bài học.'),
-        const Duration(seconds: 24),
-      );
-      await service.speakAndWait('Câu bài học.');
-      await service.speakAndWait(_text);
-      expect(delegate.events, ['audio:normal', 'audio:normal']);
-      await service.dispose();
-    },
-  );
-
-  for (final mode in ['missing', 'invalid', 'disabled']) {
-    test(
-      'an $mode optional curriculum pack preserves MAIN and fallback',
-      () async {
-        final delegate = _Delegate();
-        final service = MainAssistantAudioPromptService(
-          delegate: delegate,
-          bundle: _CurriculumBundle(extraMode: mode),
-          additionalManifestAssets: const ['curriculum.json'],
-        );
-        await service.speakAndWait(_text);
-        await service.speakAndWait('Câu bài học.');
-        expect(delegate.events, ['audio:normal', 'tts:vi-VN:Câu bài học.']);
-        await service.dispose();
-      },
-    );
-  }
-
-  for (final stage in ['manifest', 'asset', 'playback']) {
-    testWidgets('dispose cancels pending $stage timer immediately', (
-      tester,
-    ) async {
-      final delegate = _Delegate()..blockPlayback = stage == 'playback';
-      final bundle = _Bundle()
-        ..blockManifest = stage == 'manifest'
-        ..blockAsset = stage == 'asset';
-      final service = MainAssistantAudioPromptService(
-        delegate: delegate,
-        bundle: bundle,
-      );
-      final play = service.speakAndWait(_text);
-      await tester.pump();
-      await service.dispose();
-      await play;
-      expect(
-        delegate.events.where((event) => event.startsWith('tts:')),
-        isEmpty,
-      );
-      // Do not complete the underlying operation. The test binding checks that
-      // no timer survives disposal, even if asset/native I/O never replies.
-    });
-  }
-
-  test(
-    'authored timeout budget is duration aware; unknown text keeps default',
-    () async {
-      final service = MainAssistantAudioPromptService(
-        delegate: _Delegate(),
-        bundle: _Bundle(mode: 'long'),
-      );
-      expect(
-        await service.authoredPromptBudget(_text),
-        const Duration(seconds: 19),
-      );
-      expect(await service.authoredPromptBudget('Dynamic text'), isNull);
-      final coordinator = AudioTurnCoordinator();
-      addTearDown(coordinator.dispose);
-      final coordinated = CoordinatedVoicePromptService(
-        delegate: service,
-        coordinator: coordinator,
-        owner: AudioTurnOwner.mainAssistant,
-      );
-      expect(
-        await coordinated.authoredPromptBudget(_text),
-        const Duration(seconds: 19),
-      );
-      expect(coordinator.hasActiveTurn, false);
-    },
-  );
-
-  test(
-    'English feedback can match the explicit legacy Vietnamese lookup locale',
-    () async {
-      final delegate = _Delegate();
-      final service = MainAssistantAudioPromptService(
-        delegate: delegate,
-        bundle: _Bundle(mode: 'english'),
-      );
-      await service.speakAndWait('Great!', locale: 'vi-VN');
-      expect(delegate.events, ['audio:normal']);
-      await service.speakAndWait('Great!', locale: 'fr-FR');
-      expect(delegate.events.last, 'tts:fr-FR:Great!');
-    },
-  );
-
-  test(
-    'real pilot matches runtime text, voices, speeds, checksum and watchdog',
-    () async {
-      final manifest =
-          jsonDecode(
-                await File(
-                  MainAssistantAudioPromptService.manifestAsset,
-                ).readAsString(),
-              )
-              as Map<String, dynamic>;
-      expect(manifest['modelId'], 'eleven_v3');
-      expect(manifest['profiles'], {
-        'en': {'voiceId': 'Nhs7eitvQWFTQBsf0yiT', 'speed': 0.75},
-        'vi': {'voiceId': '5CVDNcIPiOYgRUQuxXd7', 'speed': 0.9},
-      });
-      final entry = (manifest['prompts'] as List).cast<Map>().singleWhere(
-        (entry) =>
-            entry['text'] == _text ||
-            (entry['lookupTexts'] as List? ?? []).contains(_text),
-      );
-      expect((entry['text'] as String).toLowerCase(), _text.toLowerCase());
-      expect(
-        entry['durationSeconds'],
-        lessThanOrEqualTo(MainAssistantAudioPromptService.maximumAudioSeconds),
-      );
-      final bytes = await File(entry['asset'] as String).readAsBytes();
-      expect(sha256.convert(bytes).toString(), entry['sha256']);
-      expect(
-        entry['group'],
-        MainAssistantAudioPromptService.mainNavigationGroup,
-      );
-      final receipt =
-          jsonDecode(await File('${entry['asset']}.json').readAsString())
-              as Map;
-      expect(receipt['request']['model_id'], 'eleven_v3');
-      expect(receipt['speed'], 0.9);
-      expect(receipt['speedMethod'], 'ffmpeg-atempo');
-      expect(receipt['request']['voice_settings']['speed'], 1.0);
-      expect(receipt['finalSha256'], entry['sha256']);
-    },
-  );
-
-  test(
-    'plays only exact text and locale, waiting for audio completion',
-    () async {
-      final delegate = _Delegate()..blockPlayback = true;
-      final service = MainAssistantAudioPromptService(
-        delegate: delegate,
-        bundle: _Bundle(),
-      );
-      var completed = false;
-      final play = service
-          .speakAndWaitOnSelectedMediaOutput(_text)
-          .then((_) => completed = true);
-      await delegate.started.future;
-      expect(completed, false);
-      expect(delegate.events, ['audio:selected']);
-      delegate.playback.complete();
-      await play;
-      expect(completed, true);
-      await service.speakAndWait('A different prompt');
-      await service.speakAndWait(_text, locale: 'en-US');
-      expect(delegate.events.skip(1), [
-        'tts:vi-VN:A different prompt',
-        'tts:en-US:$_text',
+      expect(bundle.loadCount, 0);
+      expect(delegate.events, [
+        'speak:Một:vi-VN',
+        'wait:Hai:en-US',
+        'selected:Ba:vi-VN',
+        'phone:Bốn:vi-VN',
       ]);
     },
   );
 
   test(
-    'missing, disabled, corrupted and mismatched entries keep existing TTS',
-    () async {
-      for (final mode in [
-        'disabled',
-        'missing',
-        'hash',
-        'text',
-        'too-long',
-        'duplicate',
-        'manifest',
-        'duration',
-      ]) {
-        final delegate = _Delegate();
-        final bundle = _Bundle(mode: mode);
-        await MainAssistantAudioPromptService(
-          delegate: delegate,
-          bundle: bundle,
-        ).speakAndWait(_text);
-        expect(delegate.events, ['tts:vi-VN:$_text'], reason: mode);
-      }
-    },
-  );
-
-  test('feature switch avoids even reading the manifest', () async {
-    final delegate = _Delegate();
-    final bundle = _Bundle();
-    await MainAssistantAudioPromptService(
-      delegate: delegate,
-      bundle: bundle,
-      enabled: false,
-    ).speakAndWait(_text);
-    expect(bundle.manifestLoads, 0);
-    expect(delegate.events, ['tts:vi-VN:$_text']);
-  });
-
-  test(
-    'a disabled audio group falls back without disabling other groups',
-    () async {
-      final disabledDelegate = _Delegate();
-      await MainAssistantAudioPromptService(
-        delegate: disabledDelegate,
-        bundle: _Bundle(mode: 'grouped'),
-        groupEnabled: const {
-          MainAssistantAudioPromptService.challengeCueGroup: false,
-        },
-      ).speakAndWait(_text);
-      expect(disabledDelegate.events, ['tts:vi-VN:$_text']);
-
-      final enabledDelegate = _Delegate();
-      await MainAssistantAudioPromptService(
-        delegate: enabledDelegate,
-        bundle: _Bundle(mode: 'grouped'),
-        groupEnabled: const {
-          MainAssistantAudioPromptService.challengeCueGroup: true,
-        },
-      ).speakAndWait(_text);
-      expect(enabledDelegate.events, ['audio:normal']);
-    },
-  );
-
-  test(
-    'native playback failure stops failed audio before one TTS fallback',
-    () async {
-      final delegate = _Delegate()..failPlayback = true;
-      await MainAssistantAudioPromptService(
-        delegate: delegate,
-        bundle: _Bundle(),
-      ).speakAndWait(_text);
-      expect(delegate.events, ['audio:normal', 'stop', 'tts:vi-VN:$_text']);
-    },
-  );
-
-  for (final code in [
-    'HFP_ROUTE_LOST',
-    'HFP_ROUTE_FAILED',
-    'HFP_ROUTE_TIMEOUT',
-    'HFP_ROUTE_CANCELLED',
-  ]) {
-    test('$code propagates without replaying TTS on phone output', () async {
-      final failure = PlatformException(code: code);
-      final delegate = _Delegate()..playbackError = failure;
-      final service = MainAssistantAudioPromptService(
-        delegate: delegate,
-        bundle: _Bundle(),
-      );
-      addTearDown(service.dispose);
-
-      await expectLater(
-        service.speakAndWaitOnSelectedMediaOutput(_text),
-        throwsA(same(failure)),
-      );
-      expect(delegate.events, ['audio:selected', 'stop']);
-    });
-  }
-
-  test(
-    'stop during asset loading cannot start audio or fallback TTS',
+    'disabled wrapper preserves stop, dispose, cue, style and MAIN lifecycle',
     () async {
       final delegate = _Delegate();
-      final bundle = _Bundle()..blockAsset = true;
-      final service = MainAssistantAudioPromptService(
-        delegate: delegate,
-        bundle: bundle,
-      );
-      final play = service.speakAndWait(_text);
-      await bundle.assetStarted.future;
-      await service.stop();
-      bundle.assetCompletion.complete();
-      await play;
-      expect(delegate.events, ['stop']);
-      await service.speakAndWait('New turn');
-      expect(delegate.events.last, 'tts:vi-VN:New turn');
-    },
-  );
+      final service = MainAssistantAudioPromptService(delegate: delegate);
 
-  test(
-    'stop during failing playback cannot resurrect the canceled prompt',
-    () async {
-      final delegate = _Delegate()..blockPlayback = true;
-      final service = MainAssistantAudioPromptService(
-        delegate: delegate,
-        bundle: _Bundle(),
-      );
-      final play = service.speakAndWait(_text);
-      await delegate.started.future;
-      await service.stop();
-      delegate.playback.completeError(StateError('Canceled decoder'));
-      await play;
-      expect(delegate.events, ['audio:normal', 'stop']);
-    },
-  );
-
-  test('load timeout is bounded and late asset result cannot play', () async {
-    final delegate = _Delegate();
-    final bundle = _Bundle()..blockAsset = true;
-    final service = MainAssistantAudioPromptService(
-      delegate: delegate,
-      bundle: bundle,
-      assetLoadTimeout: const Duration(milliseconds: 10),
-    );
-    await service.speakAndWait(_text);
-    bundle.assetCompletion.complete();
-    await Future<void>.delayed(Duration.zero);
-    expect(delegate.events, ['tts:vi-VN:$_text']);
-  });
-
-  test('disposal during loading prevents late playback', () async {
-    final delegate = _Delegate();
-    final bundle = _Bundle()..blockAsset = true;
-    final service = MainAssistantAudioPromptService(
-      delegate: delegate,
-      bundle: bundle,
-    );
-    final play = service.speakAndWait(_text);
-    await bundle.assetStarted.future;
-    await service.dispose();
-    bundle.assetCompletion.complete();
-    await play;
-    await service.speakAndWait(_text);
-    expect(delegate.events, ['stop', 'dispose']);
-  });
-
-  test(
-    'phone route, ready cue, native MAIN lease and style are forwarded',
-    () async {
-      final delegate = _Delegate();
-      final service = MainAssistantAudioPromptService(
-        delegate: delegate,
-        bundle: _Bundle(),
-      );
-      expect(await service.beginMainTurn(), 'main-1');
-      await service.speakAndWaitOnPhoneSpeaker(_text);
       await service.playSpeechReadyCue();
       await service.speakAndWaitStyled(
-        _text,
-        locale: 'vi-VN',
+        'Great!',
+        locale: 'en-US',
         speechRate: 0.8,
         pitch: 1.1,
       );
-      await service.endMainTurn('done', turnId: 'main-1');
+      expect(await service.beginMainTurn(), 'turn-1');
+      await service.endMainTurn('done', turnId: 'turn-1');
+      await service.stop();
+      await service.dispose();
+
       expect(delegate.events, [
-        'begin',
-        'audio:phone',
         'cue',
-        'style:0.8:1.1',
-        'end:done:main-1',
+        'styled:Great!:en-US:0.8:1.1',
+        'begin',
+        'end:done:turn-1',
+        'stop',
+        'stop',
+        'dispose',
       ]);
     },
   );
 
-  test(
-    'authored playback retains one lease until done, then allows recording',
-    () async {
-      final coordinator = AudioTurnCoordinator();
-      addTearDown(coordinator.dispose);
-      final delegate = _Delegate()..blockPlayback = true;
-      final service = CoordinatedVoicePromptService(
-        delegate: MainAssistantAudioPromptService(
-          delegate: delegate,
-          bundle: _Bundle(),
-        ),
-        coordinator: coordinator,
-        owner: AudioTurnOwner.mainAssistant,
-      );
-      final play = service.speakAndWait(_text);
-      await delegate.started.future;
-      expect(coordinator.currentToken?.owner, AudioTurnOwner.mainAssistant);
-      var recordingAcquired = false;
-      final recording = coordinator
-          .acquire(
-            owner: AudioTurnOwner.listeningLesson,
-            mode: AudioTurnMode.recordedCapture,
-          )
-          .then((lease) {
-            recordingAcquired = true;
-            return lease;
-          });
-      await Future<void>.delayed(Duration.zero);
-      expect(recordingAcquired, false);
-      delegate.playback.complete();
-      await play;
-      final lease = await recording;
-      expect(recordingAcquired, true);
-      await lease.release();
-    },
-  );
+  test('authored assistant audio resolves only by stable audio key', () async {
+    final bytes = Uint8List.fromList(<int>[1, 2, 3, 4]);
+    final bundle = _KeyedBundle(bytes);
+    final delegate = _Delegate();
+    final service = MainAssistantAudioPromptService(
+      delegate: delegate,
+      bundle: bundle,
+      enabled: true,
+      preferBundledAudio: true,
+    );
+    addTearDown(service.dispose);
 
-  test(
-    'MAIN keeps its recording but new Core wording never plays the old script',
-    () async {
-      const channel = MethodChannel('ailingo_voice_prompt');
-      final calls = <MethodCall>[];
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (call) async {
-            calls.add(call);
-            return null;
-          });
-      addTearDown(
-        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(channel, null),
-      );
-      final service = createVoicePromptService(
-        owner: AudioTurnOwner.mainAssistant,
-        httpClient: createLocalCloudinaryAudioClient(),
-      );
-      addTearDown(service.dispose);
-      final flow = MainVoiceAssistantFlow();
+    await service.speakAndWaitWithAudioKey(
+      'assistant.main.open_menu.vi',
+      'Fallback text may change without changing the asset identity.',
+    );
+    await service.speakAndWaitWithAudioKey(
+      'assistant.main.missing.vi',
+      'Dùng TTS',
+    );
 
-      await service.speakAndWait(flow.begin());
-      final corePrompt = flow.beginActiveLearning(
-        kind: ActiveLearningModuleKind.listeningLesson,
-      );
-      await service.speakAndWait(corePrompt);
-      final echo = await flow.handle(corePrompt);
-      await service.speakAndWait(echo.promptText);
-
-      expect(calls.map((call) => call.method), [
-        'playAuthoredAudioAndWait',
-        'speakAndWait',
-        'speakAndWait',
-      ]);
-      final playedBytes = (calls.first.arguments as Map)['bytes'] as Uint8List;
-      final expectedBytes = await File(
-        'assets/audio/MAIN/RUNTIME-MAIN-NAVIGATION-001.vi.v1.mp3',
-      ).readAsBytes();
-      expect(sha256.convert(playedBytes), sha256.convert(expectedBytes));
-      for (final call in calls.skip(1)) {
-        expect((call.arguments as Map)['text'], corePrompt);
-      }
-    },
-  );
-
-  test(
-    'factory serves only allowlisted assistant text across feature owners',
-    () async {
-      const channel = MethodChannel('ailingo_voice_prompt');
-      final calls = <MethodCall>[];
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (call) async {
-            calls.add(call);
-            return null;
-          });
-      addTearDown(
-        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(channel, null),
-      );
-      for (final owner in [
-        AudioTurnOwner.mainAssistant,
-        AudioTurnOwner.continuousTranslation,
-        AudioTurnOwner.listeningLesson,
-      ]) {
-        final service = createVoicePromptService(
-          owner: owner,
-          httpClient: createLocalCloudinaryAudioClient(),
-        );
-        await service.speakAndWait(_text);
-        await service.speakAndWait('Unlisted dynamic content', locale: 'en-US');
-      }
-      expect(calls.map((call) => call.method), [
-        'playAuthoredAudioAndWait',
-        'speakAndWait',
-        'playAuthoredAudioAndWait',
-        'speakAndWait',
-        'playAuthoredAudioAndWait',
-        'speakAndWait',
-      ]);
-      final audioArgs = calls.first.arguments as Map;
-      expect(audioArgs['bytes'], isA<Uint8List>());
-      expect(audioArgs.containsKey('speed'), false);
-      expect(audioArgs['gainDb'], androidAssistantSpeechBoostDb);
-    },
-  );
+    expect(delegate.events, ['authored', 'wait:Dùng TTS:vi-VN']);
+  });
 }
 
-class _Bundle extends CachingAssetBundle {
-  _Bundle({this.mode = ''});
-  final String mode;
-  final bytes = Uint8List.fromList([1, 2, 3, 4]);
-  final assetStarted = Completer<void>();
-  final assetCompletion = Completer<void>();
-  bool blockAsset = false;
-  bool corruptAsset = false;
-  bool blockManifest = false;
-  final manifestCompletion = Completer<void>();
-  int manifestLoads = 0;
+class _KeyedBundle extends CachingAssetBundle {
+  _KeyedBundle(this.bytes);
+
+  final Uint8List bytes;
+
+  @override
+  Future<ByteData> load(String key) async => ByteData.sublistView(bytes);
 
   @override
   Future<String> loadString(String key, {bool cache = true}) async {
-    manifestLoads++;
-    if (blockManifest) await manifestCompletion.future;
-    if (mode == 'manifest') throw StateError('No manifest');
-    final entry = {
-      'id': 'AI-001',
-      'text': mode == 'text'
-          ? 'Different script'
-          : mode == 'english'
-          ? 'Great!'
-          : _text,
-      'locale': mode == 'english' ? 'en-US' : 'vi-VN',
-      if (mode == 'english') 'lookupLocales': ['en-US', 'vi-VN'],
+    return jsonEncode({
+      'schemaVersion': 1,
       'enabled': true,
-      if (mode == 'grouped')
-        'group': MainAssistantAudioPromptService.challengeCueGroup,
-      'asset': _asset,
-      if (mode == 'remote') 'url': 'https://res.cloudinary.com/test/main.mp3',
-      'sha256': mode == 'hash' ? 'wrong' : sha256.convert(bytes).toString(),
-      'durationSeconds': mode == 'too-long'
-          ? 46
-          : mode == 'duration'
-          ? 0
-          : mode == 'long'
-          ? 9
-          : 5.58,
-    };
-    return jsonEncode({
-      'schemaVersion': 1,
-      'enabled': mode != 'disabled',
-      'prompts': [entry, if (mode == 'duplicate') entry],
-    });
-  }
-
-  @override
-  Future<ByteData> load(String key) async {
-    if (!assetStarted.isCompleted) assetStarted.complete();
-    if (blockAsset) await assetCompletion.future;
-    if (mode == 'missing') throw StateError('No audio');
-    return ByteData.sublistView(corruptAsset ? Uint8List.fromList([9]) : bytes);
-  }
-}
-
-class _CurriculumBundle extends _Bundle {
-  _CurriculumBundle({this.extraMode = ''});
-  final String extraMode;
-
-  @override
-  Future<String> loadString(String key, {bool cache = true}) async {
-    if (key != 'curriculum.json') return super.loadString(key, cache: cache);
-    if (extraMode == 'missing') throw StateError('Missing optional pack');
-    if (extraMode == 'invalid') return '{';
-    return jsonEncode({
-      'schemaVersion': 1,
-      'enabled': extraMode != 'disabled',
       'prompts': [
         {
-          'id': 'LESSON-TEST',
-          'text': 'Câu bài học.',
-          'locale': 'vi-VN',
+          'key': 'assistant.main.open_menu.vi',
           'enabled': true,
-          'asset': 'assets/audio/CURRICULUM/test.vi.v1.mp3',
+          'locale': 'vi-VN',
+          'asset':
+              'assets/audio/assistant-core/assistant.main.open_menu.vi.mp3',
+          'durationSeconds': 1.0,
           'sha256': sha256.convert(bytes).toString(),
-          'durationSeconds': 14,
         },
       ],
     });
+  }
+}
+
+class _TrackingBundle extends CachingAssetBundle {
+  int loadCount = 0;
+
+  @override
+  Future<ByteData> load(String key) async {
+    loadCount++;
+    throw StateError('No authored asset should be loaded: $key');
+  }
+
+  @override
+  Future<String> loadString(String key, {bool cache = true}) async {
+    loadCount++;
+    throw StateError('No authored manifest should be loaded: $key');
   }
 }
 
@@ -939,56 +193,39 @@ class _Delegate
     implements
         VoicePromptService,
         AuthoredAudioVoicePromptService,
-        SelectedMediaOutputVoicePromptService,
-        PhoneSpeakerVoicePromptService,
         SpeechReadyCuePlayer,
-        MainTurnVoicePromptService,
-        StyledMediaOutputVoicePromptService {
+        PhoneSpeakerVoicePromptService,
+        SelectedMediaOutputVoicePromptService,
+        StyledMediaOutputVoicePromptService,
+        MainTurnVoicePromptService {
   final events = <String>[];
-  final started = Completer<void>();
-  final playback = Completer<void>();
-  bool blockPlayback = false;
-  bool failPlayback = false;
-  Object? playbackError;
 
   @override
-  Future<void> playAuthoredAudioAndWait(
-    Uint8List bytes, {
-    bool forcePhoneSpeaker = false,
-    bool forceMediaPlayback = false,
-  }) async {
-    events.add(
-      'audio:${forcePhoneSpeaker
-          ? 'phone'
-          : forceMediaPlayback
-          ? 'selected'
-          : 'normal'}',
-    );
-    if (!started.isCompleted) started.complete();
-    final error = playbackError;
-    if (error != null) throw error;
-    if (failPlayback) throw StateError('Decoder failure');
-    if (blockPlayback) await playback.future;
+  Future<void> speak(String text, {String locale = 'vi-VN'}) async {
+    events.add('speak:$text:$locale');
   }
 
   @override
-  Future<void> speak(String text, {String locale = 'vi-VN'}) =>
-      speakAndWait(text, locale: locale);
-  @override
   Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
-    events.add('tts:$locale:$text');
+    events.add('wait:$text:$locale');
   }
 
   @override
   Future<void> speakAndWaitOnSelectedMediaOutput(
     String text, {
     String locale = 'vi-VN',
-  }) => speakAndWait(text, locale: locale);
+  }) async {
+    events.add('selected:$text:$locale');
+  }
+
   @override
   Future<void> speakAndWaitOnPhoneSpeaker(
     String text, {
     String locale = 'vi-VN',
-  }) => speakAndWait(text, locale: locale);
+  }) async {
+    events.add('phone:$text:$locale');
+  }
+
   @override
   Future<void> speakAndWaitStyled(
     String text, {
@@ -996,17 +233,16 @@ class _Delegate
     required double speechRate,
     required double pitch,
   }) async {
-    events.add('style:$speechRate:$pitch');
+    events.add('styled:$text:$locale:$speechRate:$pitch');
   }
 
   @override
-  Future<void> stop() async {
-    events.add('stop');
-  }
-
-  @override
-  Future<void> dispose() async {
-    events.add('dispose');
+  Future<void> playAuthoredAudioAndWait(
+    Uint8List bytes, {
+    bool forcePhoneSpeaker = false,
+    bool forceMediaPlayback = false,
+  }) async {
+    events.add('authored');
   }
 
   @override
@@ -1017,11 +253,21 @@ class _Delegate
   @override
   Future<String?> beginMainTurn() async {
     events.add('begin');
-    return 'main-1';
+    return 'turn-1';
   }
 
   @override
   Future<void> endMainTurn(String reason, {String? turnId}) async {
     events.add('end:$reason:$turnId');
+  }
+
+  @override
+  Future<void> stop() async {
+    events.add('stop');
+  }
+
+  @override
+  Future<void> dispose() async {
+    events.add('dispose');
   }
 }

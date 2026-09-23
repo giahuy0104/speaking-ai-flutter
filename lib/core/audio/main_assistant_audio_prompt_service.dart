@@ -15,6 +15,10 @@ class MainAssistantAudioPromptService
     implements
         VoicePromptService,
         AuthoredPromptBudgetProvider,
+        KeyedAuthoredPromptBudgetProvider,
+        KeyedVoicePromptService,
+        KeyedSelectedMediaOutputVoicePromptService,
+        AuthoredAudioVoicePromptService,
         SpeechReadyCuePlayer,
         PhoneSpeakerVoicePromptService,
         SelectedMediaOutputVoicePromptService,
@@ -23,7 +27,7 @@ class MainAssistantAudioPromptService
   MainAssistantAudioPromptService({
     required VoicePromptService delegate,
     AssetBundle? bundle,
-    this.enabled = true,
+    this.enabled = false,
     this.assetLoadTimeout = const Duration(milliseconds: 500),
     this.remoteAudioLoadTimeout = const Duration(seconds: 8),
     this.cacheLateRemoteAudio = false,
@@ -36,7 +40,7 @@ class MainAssistantAudioPromptService
        _httpClient = httpClient ?? http.Client(),
        _ownsHttpClient = httpClient == null;
 
-  static const manifestAsset = 'assets/data/main_assistant_audio.json';
+  static const manifestAsset = 'assets/data/assistant_core_audio.json';
   static const maximumAudioSeconds = 45.0;
   static const mainNavigationGroup = 'main-navigation';
   static const translationControlsGroup = 'translation-controls';
@@ -67,7 +71,20 @@ class MainAssistantAudioPromptService
 
   bool _isCurrent(int generation) => !_disposed && generation == _generation;
 
-  bool _matches(Map<String, dynamic> entry, String text, String locale) {
+  bool _matchesKey(Map<String, dynamic> entry, String audioKey, String locale) {
+    final group = entry['group'];
+    if (group is String && group.isNotEmpty && groupEnabled[group] == false) {
+      return false;
+    }
+    return entry['enabled'] == true &&
+        entry['key'] == audioKey &&
+        (entry['locale'] == locale ||
+            (entry['lookupLocales'] as List<dynamic>? ?? const []).contains(
+              locale,
+            ));
+  }
+
+  bool _matchesText(Map<String, dynamic> entry, String text, String locale) {
     final group = entry['group'];
     if (group is String && group.isNotEmpty && groupEnabled[group] == false) {
       return false;
@@ -87,7 +104,21 @@ class MainAssistantAudioPromptService
   Future<Duration?> authoredPromptBudget(
     String text, {
     String locale = 'vi-VN',
-  }) async {
+  }) =>
+      _authoredPromptBudgetWhere((entry) => _matchesText(entry, text, locale));
+
+  @override
+  Future<Duration?> authoredPromptBudgetForKey(
+    String audioKey, {
+    required String text,
+    String locale = 'vi-VN',
+  }) => _authoredPromptBudgetWhere(
+    (entry) => _matchesKey(entry, audioKey, locale),
+  );
+
+  Future<Duration?> _authoredPromptBudgetWhere(
+    bool Function(Map<String, dynamic> entry) matchesEntry,
+  ) async {
     if (_disposed ||
         !enabled ||
         _delegate is! AuthoredAudioVoicePromptService) {
@@ -98,7 +129,7 @@ class MainAssistantAudioPromptService
       if (manifest['enabled'] != true || _disposed) return null;
       final matches = (manifest['prompts'] as List<dynamic>)
           .cast<Map<String, dynamic>>()
-          .where((entry) => _matches(entry, text, locale))
+          .where(matchesEntry)
           .toList();
       if (matches.length != 1) return null;
       final seconds = (matches.single['durationSeconds'] as num).toDouble();
@@ -172,9 +203,41 @@ class MainAssistantAudioPromptService
     return manifest;
   }();
 
-  Future<void> _play(
+  Future<void> _playKeyed(
+    String audioKey,
     String text,
     String locale,
+    Future<void> Function() fallback, {
+    bool forcePhoneSpeaker = false,
+    bool forceMediaPlayback = false,
+  }) => _playMatching(
+    text,
+    locale,
+    (entry) => _matchesKey(entry, audioKey, locale),
+    fallback,
+    forcePhoneSpeaker: forcePhoneSpeaker,
+    forceMediaPlayback: forceMediaPlayback,
+  );
+
+  Future<void> _playText(
+    String text,
+    String locale,
+    Future<void> Function() fallback, {
+    bool forcePhoneSpeaker = false,
+    bool forceMediaPlayback = false,
+  }) => _playMatching(
+    text,
+    locale,
+    (entry) => _matchesText(entry, text, locale),
+    fallback,
+    forcePhoneSpeaker: forcePhoneSpeaker,
+    forceMediaPlayback: forceMediaPlayback,
+  );
+
+  Future<void> _playMatching(
+    String text,
+    String locale,
+    bool Function(Map<String, dynamic> entry) matchesEntry,
     Future<void> Function() fallback, {
     bool forcePhoneSpeaker = false,
     bool forceMediaPlayback = false,
@@ -192,15 +255,26 @@ class MainAssistantAudioPromptService
         if (manifest['enabled'] == true) {
           final matches = (manifest['prompts'] as List<dynamic>)
               .cast<Map<String, dynamic>>()
-              .where((entry) => _matches(entry, text, locale))
+              .where(matchesEntry)
               .toList();
           // Ambiguous mappings fall back instead of choosing an arbitrary file.
           if (matches.length == 1) {
             final entry = matches.single;
             final asset = entry['asset'] as String;
             final seconds = (entry['durationSeconds'] as num).toDouble();
-            if (!(asset.startsWith('assets/audio/MAIN/') ||
-                    asset.startsWith('assets/audio/CURRICULUM/')) ||
+            if (!(asset.startsWith('assets/audio/MAIN/GAP66/') ||
+                    asset.startsWith('assets/audio/assistant-core/') ||
+                    asset.startsWith('assets/audio/listening-common/') ||
+                    asset.startsWith('assets/audio/listening-3-5/') ||
+                    asset.startsWith('assets/audio/listening-6-7/') ||
+                    asset.startsWith('assets/audio/listening-8-10/') ||
+                    asset.startsWith('assets/audio/listening-11-12/') ||
+                    asset.startsWith('assets/audio/listening-13-15/') ||
+                    asset.startsWith('assets/audio/challenge-3-5/') ||
+                    asset.startsWith('assets/audio/challenge-6-7/') ||
+                    asset.startsWith('assets/audio/challenge-8-10/') ||
+                    asset.startsWith('assets/audio/challenge-11-12/') ||
+                    asset.startsWith('assets/audio/challenge-13-15/')) ||
                 asset.contains('..') ||
                 !asset.endsWith('.mp3') ||
                 !seconds.isFinite ||
@@ -373,17 +447,46 @@ class MainAssistantAudioPromptService
 
   @override
   Future<void> speak(String text, {String locale = 'vi-VN'}) =>
-      _play(text, locale, () => _delegate.speak(text, locale: locale));
+      _playText(text, locale, () => _delegate.speak(text, locale: locale));
 
   @override
   Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) =>
-      _play(text, locale, () => _delegate.speakAndWait(text, locale: locale));
+      _playText(
+        text,
+        locale,
+        () => _delegate.speakAndWait(text, locale: locale),
+      );
+
+  @override
+  Future<void> speakAndWaitWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) => _playKeyed(
+    audioKey,
+    text,
+    locale,
+    () => _delegate.speakAndWait(text, locale: locale),
+  );
 
   @override
   Future<void> speakAndWaitOnSelectedMediaOutput(
     String text, {
     String locale = 'vi-VN',
-  }) => _play(text, locale, () {
+  }) => _playText(text, locale, () {
+    final delegate = _delegate;
+    return delegate is SelectedMediaOutputVoicePromptService
+        ? (delegate as SelectedMediaOutputVoicePromptService)
+              .speakAndWaitOnSelectedMediaOutput(text, locale: locale)
+        : delegate.speakAndWait(text, locale: locale);
+  }, forceMediaPlayback: true);
+
+  @override
+  Future<void> speakAndWaitOnSelectedMediaOutputWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) => _playKeyed(audioKey, text, locale, () {
     final delegate = _delegate;
     return delegate is SelectedMediaOutputVoicePromptService
         ? (delegate as SelectedMediaOutputVoicePromptService)
@@ -395,13 +498,33 @@ class MainAssistantAudioPromptService
   Future<void> speakAndWaitOnPhoneSpeaker(
     String text, {
     String locale = 'vi-VN',
-  }) => _play(text, locale, () {
+  }) => _playText(text, locale, () {
     final delegate = _delegate;
     return delegate is PhoneSpeakerVoicePromptService
         ? (delegate as PhoneSpeakerVoicePromptService)
               .speakAndWaitOnPhoneSpeaker(text, locale: locale)
         : delegate.speakAndWait(text, locale: locale);
   }, forcePhoneSpeaker: true);
+
+  @override
+  Future<void> playAuthoredAudioAndWait(
+    Uint8List audioBytes, {
+    bool forcePhoneSpeaker = false,
+    bool forceMediaPlayback = false,
+  }) {
+    final delegate = _delegate;
+    if (delegate is! AuthoredAudioVoicePromptService) {
+      throw const FormatException(
+        'Native authored-audio playback unavailable.',
+      );
+    }
+    return (delegate as AuthoredAudioVoicePromptService)
+        .playAuthoredAudioAndWait(
+          audioBytes,
+          forcePhoneSpeaker: forcePhoneSpeaker,
+          forceMediaPlayback: forceMediaPlayback,
+        );
+  }
 
   // Style requests must not silently play an asset authored with another style.
   @override

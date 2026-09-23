@@ -117,13 +117,32 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
   Future<void> _speakOnSelectedLessonOutput(
     String text, {
     String locale = 'vi-VN',
+    String? audioKey,
   }) async {
     final prompt = _voicePromptService;
     if (!kIsWeb && prompt is SelectedMediaOutputVoicePromptService) {
       await _mediaService.prepareSelectedLessonOutput();
       if (!mounted) return;
+      if (audioKey != null &&
+          prompt is KeyedSelectedMediaOutputVoicePromptService) {
+        await (prompt as KeyedSelectedMediaOutputVoicePromptService)
+            .speakAndWaitOnSelectedMediaOutputWithAudioKey(
+              audioKey,
+              text,
+              locale: locale,
+            );
+        return;
+      }
       await (prompt as SelectedMediaOutputVoicePromptService)
           .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
+      return;
+    }
+    if (audioKey != null && prompt is KeyedVoicePromptService) {
+      await (prompt as KeyedVoicePromptService).speakAndWaitWithAudioKey(
+        audioKey,
+        text,
+        locale: locale,
+      );
       return;
     }
     await prompt.speakAndWait(text, locale: locale);

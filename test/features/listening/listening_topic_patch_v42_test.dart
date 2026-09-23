@@ -282,16 +282,13 @@ void main() {
             lesson['id'] == 'c67-l1-t02-b03') {
           continue;
         }
-        expect(lesson['fullAudioUrl'], isNull, reason: lesson['id'] as String);
-        expect(lesson['fullAudioId'], isNull);
+        expect(lesson.containsKey('fullAudioUrl'), isFalse);
+        expect(lesson.containsKey('fullAudioId'), isFalse);
         expect(lesson['songTitle'], isNull);
         expect(lesson['entry']['kind'], 'microObjective');
         expect(lesson['intro'], lesson['entry']['text']);
         if ((lesson['code'] as String).startsWith('C67-L1-T01-')) {
-          expect(
-            lesson['introAudioUrl'],
-            oldLessons['c67-l1-t01-b01']!['introAudioUrl'],
-          );
+          expect(lesson.containsKey('introAudioUrl'), isFalse);
           expect(
             lesson['intro'],
             'Mình cùng học chữ cái qua những từ quen thuộc nhé.',
@@ -301,75 +298,40 @@ void main() {
     },
   );
 
-  test(
-    'exported lookup ownership follows the new lesson without deleting source audio',
-    () {
-      final audio = read('assets/data/listening_audio_manifest_v4.json');
-      final lexicon = read('assets/data/listening_ai_lexicon_v4.json');
-      final audioEntries = (audio['entries'] as List).cast<Map>();
-      final lexiconEntries = (lexicon['entries'] as List).cast<Map>();
-      expect(audio['contentVersion'], '4.2');
-      expect(lexicon['contentVersion'], '4.2');
-      bool belongsToPatch(Map entry) =>
-          ['3-5', '6-7'].contains(entry['course']) &&
-          [1, 2].contains(entry['topic'] ?? entry['topicNumber']);
-      for (final pair in [
-        (audioEntries, 'unchangedAudioEntriesSha256'),
-        (lexiconEntries, 'unchangedLexiconEntriesSha256'),
-      ]) {
-        final unchanged = pair.$1
-            .where((entry) => !belongsToPatch(entry))
-            .toList();
-        expect(
-          sha256.convert(utf8.encode(jsonEncode(unchanged))).toString(),
-          patch[pair.$2],
-          reason:
-              'Unrelated export content and relative order must stay intact',
-        );
-      }
-      for (final placement in patch['placements'] as List) {
-        final destination = placement['destination'] as Map;
-        final target = lexiconEntries.singleWhere(
-          (entry) => entry['id'] == destination['targetId'],
-        );
-        expect(target['lessonCode'], destination['lessonCode']);
-        expect(
-          target['course'],
-          '${destination['startAge']}-${destination['endAge']}',
-        );
-        final sourceClips = audioEntries.where(
-          (entry) =>
-              entry['targetId'] == destination['targetId'] &&
-              ['coreEnglish', 'coreVietnamese'].contains(entry['kind']),
-        );
-        expect(sourceClips, hasLength(2));
-        expect(
-          sourceClips.every(
-            (clip) => clip['lessonCode'] == destination['lessonCode'],
-          ),
-          isTrue,
-        );
-      }
-      for (final removed in patch['removedTargetIds'] as List) {
-        expect(
-          lexiconEntries.where((entry) => entry['id'] == removed),
-          isEmpty,
-        );
-        expect(
-          audioEntries.where((entry) => entry['targetId'] == removed),
-          isEmpty,
-        );
-      }
-      final sourceSong = audioEntries.singleWhere(
-        (entry) => entry['audioId'] == 'C35-L1-T02-B02_SONG',
+  test('exported lexicon ownership follows the new lesson', () {
+    final lexicon = read('assets/data/listening_ai_lexicon_v4.json');
+    final lexiconEntries = (lexicon['entries'] as List).cast<Map>();
+    expect(lexicon['contentVersion'], '4.2');
+    bool belongsToPatch(Map entry) =>
+        ['3-5', '6-7'].contains(entry['course']) &&
+        [1, 2].contains(entry['topic'] ?? entry['topicNumber']);
+    final unchanged = lexiconEntries
+        .where((entry) => !belongsToPatch(entry))
+        .toList();
+    expect(
+      sha256.convert(utf8.encode(jsonEncode(unchanged))).toString(),
+      patch['unchangedLexiconEntriesSha256'],
+      reason: 'Unrelated export content and relative order must stay intact',
+    );
+    for (final placement in patch['placements'] as List) {
+      final destination = placement['destination'] as Map;
+      final target = lexiconEntries.singleWhere(
+        (entry) => entry['id'] == destination['targetId'],
       );
-      expect(sourceSong['lessonCode'], 'C35-L1-T02-B03');
+      expect(target['lessonCode'], destination['lessonCode']);
       expect(
-        sourceSong['sourceAudioUrl'],
-        newLessons['c35-l1-t02-b03']!['songAudioUrl'],
+        target['course'],
+        '${destination['startAge']}-${destination['endAge']}',
       );
-    },
-  );
+    }
+    for (final removed in patch['removedTargetIds'] as List) {
+      expect(lexiconEntries.where((entry) => entry['id'] == removed), isEmpty);
+    }
+    expect(
+      newLessons['c35-l1-t02-b03']!['songAudioUrl'],
+      startsWith('https://res.cloudinary.com/'),
+    );
+  });
 
   test('6–7 course unlocks independently of 3–5 Alphabet completion', () {
     final group = catalog.groups.singleWhere((item) => item.startAge == 6);

@@ -2442,6 +2442,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   Future<void> _finishMainSpeakingMode({
     required bool sayGoodbye,
     String? goodbyeText,
+    String? goodbyeAudioKey,
   }) async {
     final controller = _controller;
     if (!_mainSpeakingSessionController.isActive ||
@@ -2460,6 +2461,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         controller.clearMessage();
         await controller.speakAssistantPrompt(
           goodbyeText ?? HomiFallbackCatalog.silencePromptById['SIL-004']!,
+          audioKey: goodbyeAudioKey,
         );
       }
     } finally {
@@ -2501,6 +2503,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         await _finishMainSpeakingMode(
           sayGoodbye: true,
           goodbyeText: turn.promptText,
+          goodbyeAudioKey: turn.audioKey,
         );
       } finally {
         _isHandlingMainSpeakingCommand = false;
@@ -2515,7 +2518,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         final promptText = turn.promptText;
         if (promptText != null) {
           controller.clearMessage();
-          await controller.speakAssistantPrompt(promptText);
+          await controller.speakAssistantPrompt(
+            promptText,
+            audioKey: turn.audioKey,
+          );
         }
       } finally {
         _isHandlingMainSpeakingCommand = false;

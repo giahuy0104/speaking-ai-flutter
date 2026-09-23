@@ -28,10 +28,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549660/homi/audio/CURRICULUM/349642e39a2a0304682b8b3e.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học các chữ cái và từ quen thuộc nhé."
@@ -154,10 +150,6 @@
                 "voice": "",
                 "english": "A. Apple.",
                 "vietnamese": "Quả táo.",
-                "englishAudioId": "C35-L1-T01-B01-T01_EN",
-                "vietnameseAudioId": "C35-L1-T01-B01-T01_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550012/homi/audio/CURRICULUM/81cb3c50521defab3f8e62bf.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550272/homi/audio/CURRICULUM/a16828af3e9e57413288a367.vi.v1.mp3",
                 "recognitionVariants": [
                   "A. Apple.",
                   "Apple."
@@ -170,10 +162,6 @@
                 "voice": "",
                 "english": "B. Ball.",
                 "vietnamese": "Quả bóng.",
-                "englishAudioId": "C35-L1-T01-B01-T02_EN",
-                "vietnameseAudioId": "C35-L1-T01-B01-T02_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551054/homi/audio/CURRICULUM/f68cae875b57e1226eda167a.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549832/homi/audio/CURRICULUM/5bd2bf4aa727a5941a09e4db.vi.v1.mp3",
                 "recognitionVariants": [
                   "B. Ball.",
                   "Ball."
@@ -186,10 +174,6 @@
                 "voice": "",
                 "english": "C. Cat.",
                 "vietnamese": "Con mèo.",
-                "englishAudioId": "C35-L1-T01-B01-T03_EN",
-                "vietnameseAudioId": "C35-L1-T01-B01-T03_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549966/homi/audio/CURRICULUM/781631416edba49d243dddbd.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549567/homi/audio/CURRICULUM/1a51ef3a2e40dc87a49a29c5.vi.v1.mp3",
                 "recognitionVariants": [
                   "C. Cat.",
                   "Cat."
@@ -202,10 +186,6 @@
                 "voice": "",
                 "english": "D. Dog.",
                 "vietnamese": "Con chó.",
-                "englishAudioId": "C35-L1-T01-B01-T04_EN",
-                "vietnameseAudioId": "C35-L1-T01-B01-T04_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549740/homi/audio/CURRICULUM/4676a57eacdd17721f39da73.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550575/homi/audio/CURRICULUM/c20398969f18f8a89b5892f9.vi.v1.mp3",
                 "recognitionVariants": [
                   "D. Dog.",
                   "Dog."
@@ -218,10 +198,6 @@
                 "voice": "",
                 "english": "E. Egg.",
                 "vietnamese": "Quả trứng.",
-                "englishAudioId": "C35-L1-T01-B01-T05_EN",
-                "vietnameseAudioId": "C35-L1-T01-B01-T05_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549603/homi/audio/CURRICULUM/27cb7dcb42d048f2e89de0ea.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549578/homi/audio/CURRICULUM/1f1f2ce6a14b1fe9a76fbe14.vi.v1.mp3",
                 "recognitionVariants": [
                   "E. Egg.",
                   "Egg."
@@ -234,10 +210,6 @@
                 "voice": "",
                 "english": "F. Fish.",
                 "vietnamese": "Con cá.",
-                "englishAudioId": "C35-L1-T01-B01-T06_EN",
-                "vietnameseAudioId": "C35-L1-T01-B01-T06_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551116/homi/audio/CURRICULUM/fcbda5008aa82055d300b8cf.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550715/homi/audio/CURRICULUM/d16f0eac7a9332ad39e99dd5.vi.v1.mp3",
                 "recognitionVariants": [
                   "F. Fish.",
                   "Fish."
@@ -250,10 +222,6 @@
                 "voice": "",
                 "english": "G. Grape.",
                 "vietnamese": "Quả nho.",
-                "englishAudioId": "C35-L1-T01-B01-T07_EN",
-                "vietnameseAudioId": "C35-L1-T01-B01-T07_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549571/homi/audio/CURRICULUM/1c95c57b3f710e79e5ec1504.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550740/homi/audio/CURRICULUM/d4a0877d185eef1b8efba62a.vi.v1.mp3",
                 "recognitionVariants": [
                   "G. Grape.",
                   "Grape."
@@ -266,10 +234,6 @@
                 "voice": "",
                 "english": "H. Hat.",
                 "vietnamese": "Cái mũ.",
-                "englishAudioId": "C35-L1-T01-B01-T08_EN",
-                "vietnameseAudioId": "C35-L1-T01-B01-T08_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549833/homi/audio/CURRICULUM/5be0801914b48f637fb795ea.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549566/homi/audio/CURRICULUM/19ed8e87ad34d7294332b6a2.vi.v1.mp3",
                 "recognitionVariants": [
                   "H. Hat.",
                   "Hat."
@@ -282,10 +246,6 @@
                 "voice": "",
                 "english": "I. Ice cream.",
                 "vietnamese": "Kem.",
-                "englishAudioId": "C35-L1-T01-B01-T09_EN",
-                "vietnameseAudioId": "C35-L1-T01-B01-T09_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550384/homi/audio/CURRICULUM/ab9ebae523fac1846020ab2c.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550800/homi/audio/CURRICULUM/da4ebe9729687c59c2383205.vi.v1.mp3",
                 "recognitionVariants": [
                   "I. Ice cream.",
                   "Ice cream."
@@ -306,10 +266,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549660/homi/audio/CURRICULUM/349642e39a2a0304682b8b3e.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học các chữ cái và từ quen thuộc nhé."
@@ -432,10 +388,6 @@
                 "voice": "",
                 "english": "J. Juice.",
                 "vietnamese": "Nước ép.",
-                "englishAudioId": "C35-L1-T01-B02-T01_EN",
-                "vietnameseAudioId": "C35-L1-T01-B02-T01_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551105/homi/audio/CURRICULUM/fbe47d16267353d7bf88d2b9.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549640/homi/audio/CURRICULUM/30dfb0fdc7a9cd56ba567c0b.vi.v1.mp3",
                 "recognitionVariants": [
                   "J. Juice.",
                   "Juice."
@@ -448,10 +400,6 @@
                 "voice": "",
                 "english": "K. Kite.",
                 "vietnamese": "Cái diều.",
-                "englishAudioId": "C35-L1-T01-B02-T02_EN",
-                "vietnameseAudioId": "C35-L1-T01-B02-T02_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549562/homi/audio/CURRICULUM/18a89eaa9b142f1a65fc9a79.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549622/homi/audio/CURRICULUM/2db418d8db0fcb9535a20d91.vi.v1.mp3",
                 "recognitionVariants": [
                   "K. Kite.",
                   "Kite."
@@ -464,10 +412,6 @@
                 "voice": "",
                 "english": "L. Lion.",
                 "vietnamese": "Con sư tử.",
-                "englishAudioId": "C35-L1-T01-B02-T03_EN",
-                "vietnameseAudioId": "C35-L1-T01-B02-T03_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550508/homi/audio/CURRICULUM/b95fcb0d706de602dd66e7af.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550013/homi/audio/CURRICULUM/81e0ebdc3a501b79b7c6c5c9.vi.v1.mp3",
                 "recognitionVariants": [
                   "L. Lion.",
                   "Lion."
@@ -480,10 +424,6 @@
                 "voice": "",
                 "english": "M. Milk.",
                 "vietnamese": "Sữa.",
-                "englishAudioId": "C35-L1-T01-B02-T04_EN",
-                "vietnameseAudioId": "C35-L1-T01-B02-T04_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550015/homi/audio/CURRICULUM/82d2f77ed6e006ab7649b7a7.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551109/homi/audio/CURRICULUM/fc06a86b43bdc5232728af54.vi.v1.mp3",
                 "recognitionVariants": [
                   "M. Milk.",
                   "Milk."
@@ -496,10 +436,6 @@
                 "voice": "",
                 "english": "N. Nose.",
                 "vietnamese": "Cái mũi.",
-                "englishAudioId": "C35-L1-T01-B02-T05_EN",
-                "vietnameseAudioId": "C35-L1-T01-B02-T05_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549661/homi/audio/CURRICULUM/34d9cf5d685a1c9a9ca0113c.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549564/homi/audio/CURRICULUM/19a0ee44c0a16352a3c6576d.vi.v1.mp3",
                 "recognitionVariants": [
                   "N. Nose.",
                   "Nose."
@@ -512,10 +448,6 @@
                 "voice": "",
                 "english": "O. Orange.",
                 "vietnamese": "Quả cam.",
-                "englishAudioId": "C35-L1-T01-B02-T06_EN",
-                "vietnameseAudioId": "C35-L1-T01-B02-T06_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549988/homi/audio/CURRICULUM/7d49be5f3ee566c741bedc03.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551048/homi/audio/CURRICULUM/f60da914493cbe27c9c78e38.vi.v1.mp3",
                 "recognitionVariants": [
                   "O. Orange.",
                   "Orange."
@@ -528,10 +460,6 @@
                 "voice": "",
                 "english": "P. Pig.",
                 "vietnamese": "Con lợn.",
-                "englishAudioId": "C35-L1-T01-B02-T07_EN",
-                "vietnameseAudioId": "C35-L1-T01-B02-T07_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549567/homi/audio/CURRICULUM/1a7f13183d47cb874f70ac73.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551113/homi/audio/CURRICULUM/fc62bb37bdc124fb3ff90b4d.vi.v1.mp3",
                 "recognitionVariants": [
                   "P. Pig.",
                   "Pig."
@@ -544,10 +472,6 @@
                 "voice": "",
                 "english": "Q. Queen.",
                 "vietnamese": "Nữ hoàng.",
-                "englishAudioId": "C35-L1-T01-B02-T08_EN",
-                "vietnameseAudioId": "C35-L1-T01-B02-T08_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549537/homi/audio/CURRICULUM/0c2de6f05eab77e422ca9b66.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549546/homi/audio/CURRICULUM/116b80c4ce99405ddb0c00a2.vi.v1.mp3",
                 "recognitionVariants": [
                   "Q. Queen.",
                   "Queen."
@@ -560,10 +484,6 @@
                 "voice": "",
                 "english": "R. Rabbit.",
                 "vietnamese": "Con thỏ.",
-                "englishAudioId": "C35-L1-T01-B02-T09_EN",
-                "vietnameseAudioId": "C35-L1-T01-B02-T09_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549936/homi/audio/CURRICULUM/71d5c8657aad3051eb15a2c9.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549525/homi/audio/CURRICULUM/05470b53d3640cc5dbed21f7.vi.v1.mp3",
                 "recognitionVariants": [
                   "R. Rabbit.",
                   "Rabbit."
@@ -584,10 +504,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549660/homi/audio/CURRICULUM/349642e39a2a0304682b8b3e.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học các chữ cái và từ quen thuộc nhé."
@@ -698,10 +614,6 @@
                 "voice": "",
                 "english": "S. Sun.",
                 "vietnamese": "Mặt trời.",
-                "englishAudioId": "C35-L1-T01-B03-T01_EN",
-                "vietnameseAudioId": "C35-L1-T01-B03-T01_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550422/homi/audio/CURRICULUM/af4016de195f65133d2aaa94.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549890/homi/audio/CURRICULUM/68056337ccfcbaf1f51d0063.vi.v1.mp3",
                 "recognitionVariants": [
                   "S. Sun.",
                   "Sun."
@@ -714,10 +626,6 @@
                 "voice": "",
                 "english": "T. Toy.",
                 "vietnamese": "Đồ chơi.",
-                "englishAudioId": "C35-L1-T01-B03-T02_EN",
-                "vietnameseAudioId": "C35-L1-T01-B03-T02_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549574/homi/audio/CURRICULUM/1dad3661278276e5b4f3caf8.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550200/homi/audio/CURRICULUM/9b6adbd14a8f6c7e5f21dc3a.vi.v1.mp3",
                 "recognitionVariants": [
                   "T. Toy.",
                   "Toy."
@@ -730,10 +638,6 @@
                 "voice": "",
                 "english": "U. Umbrella.",
                 "vietnamese": "Cái ô.",
-                "englishAudioId": "C35-L1-T01-B03-T03_EN",
-                "vietnameseAudioId": "C35-L1-T01-B03-T03_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549580/homi/audio/CURRICULUM/20266d8bec4bf1609e3546ec.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550017/homi/audio/CURRICULUM/837ea5d8c95401e15cc98fc2.vi.v1.mp3",
                 "recognitionVariants": [
                   "U. Umbrella.",
                   "Umbrella."
@@ -746,10 +650,6 @@
                 "voice": "",
                 "english": "V. Van.",
                 "vietnamese": "Xe van.",
-                "englishAudioId": "C35-L1-T01-B03-T04_EN",
-                "vietnameseAudioId": "C35-L1-T01-B03-T04_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549566/homi/audio/CURRICULUM/1a29aece9a1f518d29d87a82.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550462/homi/audio/CURRICULUM/b4f5597f0f0e532648c6b8b6.vi.v1.mp3",
                 "recognitionVariants": [
                   "V. Van.",
                   "Van."
@@ -762,10 +662,6 @@
                 "voice": "",
                 "english": "W. Water.",
                 "vietnamese": "Nước.",
-                "englishAudioId": "C35-L1-T01-B03-T05_EN",
-                "vietnameseAudioId": "C35-L1-T01-B03-T05_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549781/homi/audio/CURRICULUM/5002d5c9ba88e3192eb5354d.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550316/homi/audio/CURRICULUM/a57fd13cb885fa698be65051.vi.v1.mp3",
                 "recognitionVariants": [
                   "W. Water.",
                   "Water."
@@ -778,10 +674,6 @@
                 "voice": "",
                 "english": "X. X-ray.",
                 "vietnamese": "Ảnh X-quang.",
-                "englishAudioId": "C35-L1-T01-B03-T06_EN",
-                "vietnameseAudioId": "C35-L1-T01-B03-T06_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549596/homi/audio/CURRICULUM/257d16a67afb2b45f295d4f6.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549730/homi/audio/CURRICULUM/44766d6de5a0309158243436.vi.v1.mp3",
                 "recognitionVariants": [
                   "X. X-ray.",
                   "X-ray."
@@ -794,10 +686,6 @@
                 "voice": "",
                 "english": "Y. Yo-yo.",
                 "vietnamese": "Đồ chơi yo-yo.",
-                "englishAudioId": "C35-L1-T01-B03-T07_EN",
-                "vietnameseAudioId": "C35-L1-T01-B03-T07_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549874/homi/audio/CURRICULUM/6554305bdf02c4a019c29845.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550491/homi/audio/CURRICULUM/b7eef773cfe9a3b4e709c633.vi.v1.mp3",
                 "recognitionVariants": [
                   "Y. Yo-yo.",
                   "Yo-yo."
@@ -810,10 +698,6 @@
                 "voice": "",
                 "english": "Z. Zebra.",
                 "vietnamese": "Ngựa vằn.",
-                "englishAudioId": "C35-L1-T01-B03-T08_EN",
-                "vietnameseAudioId": "C35-L1-T01-B03-T08_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549677/homi/audio/CURRICULUM/38a622c8a7d4f2d273eeec4e.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549871/homi/audio/CURRICULUM/64a46cad0d12653276e7cfca.vi.v1.mp3",
                 "recognitionVariants": [
                   "Z. Zebra.",
                   "Zebra."
@@ -848,10 +732,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551095/homi/audio/CURRICULUM/faf9d0bd6f13fdadea800ed4.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học cách đếm số nhé."
@@ -986,10 +866,6 @@
                 "voice": "",
                 "english": "One.",
                 "vietnamese": "Một.",
-                "englishAudioId": "C35-L1-T02-B01-T01_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T01_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549726/homi/audio/CURRICULUM/437b45442292c65be7e453bb.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549710/homi/audio/CURRICULUM/3fcdc9f459583960b3c489b2.vi.v1.mp3",
                 "recognitionVariants": [
                   "One."
                 ],
@@ -1001,10 +877,6 @@
                 "voice": "",
                 "english": "Two.",
                 "vietnamese": "Hai.",
-                "englishAudioId": "C35-L1-T02-B01-T02_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T02_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550492/homi/audio/CURRICULUM/b81b49892544e69134620d80.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550058/homi/audio/CURRICULUM/8b7d9e1829ddd68974d6b0ca.vi.v1.mp3",
                 "recognitionVariants": [
                   "Two."
                 ],
@@ -1016,10 +888,6 @@
                 "voice": "",
                 "english": "Three.",
                 "vietnamese": "Ba.",
-                "englishAudioId": "C35-L1-T02-B01-T03_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T03_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549763/homi/audio/CURRICULUM/4c2a877cf036b2aa1aa8505f.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549851/homi/audio/CURRICULUM/608571ae0360c3fd18c829ca.vi.v1.mp3",
                 "recognitionVariants": [
                   "Three."
                 ],
@@ -1031,10 +899,6 @@
                 "voice": "",
                 "english": "Four.",
                 "vietnamese": "Bốn.",
-                "englishAudioId": "C35-L1-T02-B01-T04_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T04_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551058/homi/audio/CURRICULUM/f6edc33d86bf5b932c6d2efc.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549697/homi/audio/CURRICULUM/3c92a15374b481fa612c5818.vi.v1.mp3",
                 "recognitionVariants": [
                   "Four."
                 ],
@@ -1046,10 +910,6 @@
                 "voice": "",
                 "english": "Five.",
                 "vietnamese": "Năm.",
-                "englishAudioId": "C35-L1-T02-B01-T05_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T05_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549908/homi/audio/CURRICULUM/6af00849e732c7529b243765.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549778/homi/audio/CURRICULUM/4f77c0d0ab048d2e3f0ee8f3.vi.v1.mp3",
                 "recognitionVariants": [
                   "Five."
                 ],
@@ -1061,10 +921,6 @@
                 "voice": "",
                 "english": "Six.",
                 "vietnamese": "Sáu.",
-                "englishAudioId": "C35-L1-T02-B01-T06_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T06_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549574/homi/audio/CURRICULUM/1daf2f1fe73cc7f89aa38f8f.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549633/homi/audio/CURRICULUM/2fd0e838e8fcabcebabccdc3.vi.v1.mp3",
                 "recognitionVariants": [
                   "Six."
                 ],
@@ -1076,10 +932,6 @@
                 "voice": "",
                 "english": "Seven.",
                 "vietnamese": "Bảy.",
-                "englishAudioId": "C35-L1-T02-B01-T07_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T07_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549557/homi/audio/CURRICULUM/15d63ad8004812e9c4ed0ea7.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549679/homi/audio/CURRICULUM/38e7d4caa5b6afa99685b470.vi.v1.mp3",
                 "recognitionVariants": [
                   "Seven."
                 ],
@@ -1091,10 +943,6 @@
                 "voice": "",
                 "english": "Eight.",
                 "vietnamese": "Tám.",
-                "englishAudioId": "C35-L1-T02-B01-T08_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T08_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549704/homi/audio/CURRICULUM/3eeccf31c67f5dfdc50d0715.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550579/homi/audio/CURRICULUM/c253b1a1bb3adbb2b07feca6.vi.v1.mp3",
                 "recognitionVariants": [
                   "Eight."
                 ],
@@ -1106,10 +954,6 @@
                 "voice": "",
                 "english": "Nine.",
                 "vietnamese": "Chín.",
-                "englishAudioId": "C35-L1-T02-B01-T09_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T09_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550546/homi/audio/CURRICULUM/beb678f1b13086c4a817018a.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550292/homi/audio/CURRICULUM/a2ab670f5b6b2c861990d005.vi.v1.mp3",
                 "recognitionVariants": [
                   "Nine."
                 ],
@@ -1121,10 +965,6 @@
                 "voice": "",
                 "english": "Ten.",
                 "vietnamese": "Mười.",
-                "englishAudioId": "C35-L1-T02-B01-T10_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T10_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549673/homi/audio/CURRICULUM/382d8f9b8cbef0cabf659707.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549848/homi/audio/CURRICULUM/5ff711683f6fb77874a80d2c.vi.v1.mp3",
                 "recognitionVariants": [
                   "Ten."
                 ],
@@ -1144,10 +984,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550047/homi/audio/CURRICULUM/89c9b6d37348fd2c867aff32.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "hook",
               "text": "Nghe thật kỹ nhé."
@@ -1222,10 +1058,6 @@
                 "voice": "",
                 "english": "One clap.",
                 "vietnamese": "Một tiếng vỗ tay.",
-                "englishAudioId": "C35-L1-T02-B02-T01_EN",
-                "vietnameseAudioId": "C35-L1-T02-B02-T01_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550888/homi/audio/CURRICULUM/e3d880eef2ba0c4cd95c5dc2.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550975/homi/audio/CURRICULUM/ed03ab9379e348f68c7aab91.vi.v1.mp3",
                 "recognitionVariants": [
                   "One clap."
                 ],
@@ -1237,10 +1069,6 @@
                 "voice": "",
                 "english": "Two claps.",
                 "vietnamese": "Hai tiếng vỗ tay.",
-                "englishAudioId": "C35-L1-T02-B02-T02_EN",
-                "vietnameseAudioId": "C35-L1-T02-B02-T02_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550221/homi/audio/CURRICULUM/9d3ed2fd6aced788337b8123.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549674/homi/audio/CURRICULUM/3839b803c35a7407a0b09020.vi.v1.mp3",
                 "recognitionVariants": [
                   "Two claps."
                 ],
@@ -1252,10 +1080,6 @@
                 "voice": "",
                 "english": "Three claps.",
                 "vietnamese": "Ba tiếng vỗ tay.",
-                "englishAudioId": "C35-L1-T02-B02-T03_EN",
-                "vietnameseAudioId": "C35-L1-T02-B02-T03_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550561/homi/audio/CURRICULUM/c02805c3ed52b868cdbd916d.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550366/homi/audio/CURRICULUM/aa1b33249accd007e5c33898.vi.v1.mp3",
                 "recognitionVariants": [
                   "Three claps."
                 ],
@@ -1267,10 +1091,6 @@
                 "voice": "",
                 "english": "Four claps.",
                 "vietnamese": "Bốn tiếng vỗ tay.",
-                "englishAudioId": "C35-L1-T02-B02-T04_EN",
-                "vietnameseAudioId": "C35-L1-T02-B02-T04_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549902/homi/audio/CURRICULUM/6a1b76abc15ce97bc3263a12.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550623/homi/audio/CURRICULUM/c80eaae7d6c36ab808d89023.vi.v1.mp3",
                 "recognitionVariants": [
                   "Four claps."
                 ],
@@ -1282,10 +1102,6 @@
                 "voice": "",
                 "english": "Five claps.",
                 "vietnamese": "Năm tiếng vỗ tay.",
-                "englishAudioId": "C35-L1-T02-B02-T05_EN",
-                "vietnameseAudioId": "C35-L1-T02-B02-T05_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550525/homi/audio/CURRICULUM/bc96c5d225df16dd55ba7f45.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549567/homi/audio/CURRICULUM/1aa89497b0fc1cd93ad8fc94.vi.v1.mp3",
                 "recognitionVariants": [
                   "Five claps."
                 ],
@@ -1321,10 +1137,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550074/homi/audio/CURRICULUM/8cdcc279b291bd765d3fbabd.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học chữ cái qua những từ quen thuộc nhé."
@@ -1447,10 +1259,6 @@
                 "voice": "",
                 "english": "A. Ant.",
                 "vietnamese": "Con kiến.",
-                "englishAudioId": "C67-L1-T01-B01-T01_EN",
-                "vietnameseAudioId": "C67-L1-T01-B01-T01_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550230/homi/audio/CURRICULUM/9e1b1fe05e76dfb1b1940e00.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549888/homi/audio/CURRICULUM/67f7c5abe4c4ec2ae0da85e8.vi.v1.mp3",
                 "recognitionVariants": [
                   "A. Ant.",
                   "Ant."
@@ -1463,10 +1271,6 @@
                 "voice": "",
                 "english": "B. Book.",
                 "vietnamese": "Quyển sách.",
-                "englishAudioId": "C67-L1-T01-B01-T02_EN",
-                "vietnameseAudioId": "C67-L1-T01-B01-T02_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549623/homi/audio/CURRICULUM/2df73de1c9703ac87ee4eda2.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550123/homi/audio/CURRICULUM/93483a67bbf568ef3a934464.vi.v1.mp3",
                 "recognitionVariants": [
                   "B. Book.",
                   "Book."
@@ -1479,10 +1283,6 @@
                 "voice": "",
                 "english": "C. Cake.",
                 "vietnamese": "Bánh ngọt.",
-                "englishAudioId": "C67-L1-T01-B01-T03_EN",
-                "vietnameseAudioId": "C67-L1-T01-B01-T03_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550542/homi/audio/CURRICULUM/be9b83bd548d90e46559ece2.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549592/homi/audio/CURRICULUM/23f041578951d78ddaa3bac8.vi.v1.mp3",
                 "recognitionVariants": [
                   "C. Cake.",
                   "Cake."
@@ -1495,10 +1295,6 @@
                 "voice": "",
                 "english": "D. Desk.",
                 "vietnamese": "Bàn học.",
-                "englishAudioId": "C67-L1-T01-B01-T04_EN",
-                "vietnameseAudioId": "C67-L1-T01-B01-T04_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549989/homi/audio/CURRICULUM/7d5bf7bde584df761b67d36c.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550458/homi/audio/CURRICULUM/b4d72f9f8577a93e8e2a8684.vi.v1.mp3",
                 "recognitionVariants": [
                   "D. Desk.",
                   "Desk."
@@ -1511,10 +1307,6 @@
                 "voice": "",
                 "english": "E. Elephant.",
                 "vietnamese": "Con voi.",
-                "englishAudioId": "C67-L1-T01-B01-T05_EN",
-                "vietnameseAudioId": "C67-L1-T01-B01-T05_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550691/homi/audio/CURRICULUM/cf07e16fe3cf9e9e3d10c6bf.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550764/homi/audio/CURRICULUM/d6e24dff8885315b27b7f86a.vi.v1.mp3",
                 "recognitionVariants": [
                   "E. Elephant.",
                   "Elephant."
@@ -1527,10 +1319,6 @@
                 "voice": "",
                 "english": "F. Flower.",
                 "vietnamese": "Bông hoa.",
-                "englishAudioId": "C67-L1-T01-B01-T06_EN",
-                "vietnameseAudioId": "C67-L1-T01-B01-T06_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549699/homi/audio/CURRICULUM/3cd2d4e903a296747059631b.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549873/homi/audio/CURRICULUM/650a522fb3ba992aaba3ffdd.vi.v1.mp3",
                 "recognitionVariants": [
                   "F. Flower.",
                   "Flower."
@@ -1543,10 +1331,6 @@
                 "voice": "",
                 "english": "G. Game.",
                 "vietnamese": "Trò chơi.",
-                "englishAudioId": "C67-L1-T01-B01-T07_EN",
-                "vietnameseAudioId": "C67-L1-T01-B01-T07_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549720/homi/audio/CURRICULUM/420e0fb1c6a11febc948817b.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549956/homi/audio/CURRICULUM/761b2ef11bf452f472d3632e.vi.v1.mp3",
                 "recognitionVariants": [
                   "G. Game.",
                   "Game."
@@ -1559,10 +1343,6 @@
                 "voice": "",
                 "english": "H. House.",
                 "vietnamese": "Ngôi nhà.",
-                "englishAudioId": "C67-L1-T01-B01-T08_EN",
-                "vietnameseAudioId": "C67-L1-T01-B01-T08_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549912/homi/audio/CURRICULUM/6c015b166c32a6cf6c96935b.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550222/homi/audio/CURRICULUM/9d6bff623a533b9e48de58ab.vi.v1.mp3",
                 "recognitionVariants": [
                   "H. House.",
                   "House."
@@ -1575,10 +1355,6 @@
                 "voice": "",
                 "english": "I. Insect.",
                 "vietnamese": "Côn trùng.",
-                "englishAudioId": "C67-L1-T01-B01-T09_EN",
-                "vietnameseAudioId": "C67-L1-T01-B01-T09_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550055/homi/audio/CURRICULUM/8b1d773cd4156c5405bdd530.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550391/homi/audio/CURRICULUM/ac4993a9f0d08d01fec29813.vi.v1.mp3",
                 "recognitionVariants": [
                   "I. Insect.",
                   "Insect."
@@ -1599,10 +1375,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550074/homi/audio/CURRICULUM/8cdcc279b291bd765d3fbabd.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học chữ cái qua những từ quen thuộc nhé."
@@ -1725,10 +1497,6 @@
                 "voice": "",
                 "english": "J. Jacket.",
                 "vietnamese": "Áo khoác.",
-                "englishAudioId": "C67-L1-T01-B02-T01_EN",
-                "vietnameseAudioId": "C67-L1-T01-B02-T01_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550673/homi/audio/CURRICULUM/cd82ba6ae7db196df238f74f.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549704/homi/audio/CURRICULUM/3e8ca4b1d5d0f4994b1fac8b.vi.v1.mp3",
                 "recognitionVariants": [
                   "J. Jacket.",
                   "Jacket."
@@ -1741,10 +1509,6 @@
                 "voice": "",
                 "english": "K. Key.",
                 "vietnamese": "Chìa khóa.",
-                "englishAudioId": "C67-L1-T01-B02-T02_EN",
-                "vietnameseAudioId": "C67-L1-T01-B02-T02_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549897/homi/audio/CURRICULUM/693c78fc5ebe52b10e9774d8.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549523/homi/audio/CURRICULUM/02a73d6288b2addc5266bb84.vi.v1.mp3",
                 "recognitionVariants": [
                   "K. Key.",
                   "Key."
@@ -1757,10 +1521,6 @@
                 "voice": "",
                 "english": "L. Lamp.",
                 "vietnamese": "Cái đèn.",
-                "englishAudioId": "C67-L1-T01-B02-T03_EN",
-                "vietnameseAudioId": "C67-L1-T01-B02-T03_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551115/homi/audio/CURRICULUM/fc9bdf1baafb75437c6dfbd7.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551013/homi/audio/CURRICULUM/f1f9ad111a13a1c5dcbfe27a.vi.v1.mp3",
                 "recognitionVariants": [
                   "L. Lamp.",
                   "Lamp."
@@ -1773,10 +1533,6 @@
                 "voice": "",
                 "english": "M. Moon.",
                 "vietnamese": "Mặt trăng.",
-                "englishAudioId": "C67-L1-T01-B02-T04_EN",
-                "vietnameseAudioId": "C67-L1-T01-B02-T04_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550866/homi/audio/CURRICULUM/e18bf33ebed653f9f54ab6fb.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549687/homi/audio/CURRICULUM/39f7cf1c835c32044cd144b8.vi.v1.mp3",
                 "recognitionVariants": [
                   "M. Moon.",
                   "Moon."
@@ -1789,10 +1545,6 @@
                 "voice": "",
                 "english": "N. Notebook.",
                 "vietnamese": "Quyển vở.",
-                "englishAudioId": "C67-L1-T01-B02-T05_EN",
-                "vietnameseAudioId": "C67-L1-T01-B02-T05_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549530/homi/audio/CURRICULUM/08f502f372b216dd9bb2faa6.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549634/homi/audio/CURRICULUM/2fd9b476ccc25573fb02c944.vi.v1.mp3",
                 "recognitionVariants": [
                   "N. Notebook.",
                   "Notebook."
@@ -1805,10 +1557,6 @@
                 "voice": "",
                 "english": "O. Octopus.",
                 "vietnamese": "Bạch tuộc.",
-                "englishAudioId": "C67-L1-T01-B02-T06_EN",
-                "vietnameseAudioId": "C67-L1-T01-B02-T06_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549529/homi/audio/CURRICULUM/07267dfe785c8c072fb742b1.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550444/homi/audio/CURRICULUM/b266e190d6f3c0e0c358e98c.vi.v1.mp3",
                 "recognitionVariants": [
                   "O. Octopus.",
                   "Octopus."
@@ -1821,10 +1569,6 @@
                 "voice": "",
                 "english": "P. Pencil.",
                 "vietnamese": "Bút chì.",
-                "englishAudioId": "C67-L1-T01-B02-T07_EN",
-                "vietnameseAudioId": "C67-L1-T01-B02-T07_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549981/homi/audio/CURRICULUM/7bbd449e30feefb603b11c93.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550412/homi/audio/CURRICULUM/adf900315b1ca8b207e85fe6.vi.v1.mp3",
                 "recognitionVariants": [
                   "P. Pencil.",
                   "Pencil."
@@ -1837,10 +1581,6 @@
                 "voice": "",
                 "english": "Q. Quiz.",
                 "vietnamese": "Câu đố.",
-                "englishAudioId": "C67-L1-T01-B02-T08_EN",
-                "vietnameseAudioId": "C67-L1-T01-B02-T08_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550094/homi/audio/CURRICULUM/8f9116a51ab0d6c090fb88b8.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549995/homi/audio/CURRICULUM/7e0ec980614838c7624b2e8d.vi.v1.mp3",
                 "recognitionVariants": [
                   "Q. Quiz.",
                   "Quiz."
@@ -1853,10 +1593,6 @@
                 "voice": "",
                 "english": "R. Robot.",
                 "vietnamese": "Rô-bốt.",
-                "englishAudioId": "C67-L1-T01-B02-T09_EN",
-                "vietnameseAudioId": "C67-L1-T01-B02-T09_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550971/homi/audio/CURRICULUM/ec787322ce9321ef4bcce976.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550034/homi/audio/CURRICULUM/8639342cd3fdd24dc9c5345c.vi.v1.mp3",
                 "recognitionVariants": [
                   "R. Robot.",
                   "Robot."
@@ -1877,10 +1613,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550074/homi/audio/CURRICULUM/8cdcc279b291bd765d3fbabd.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học chữ cái qua những từ quen thuộc nhé."
@@ -1991,10 +1723,6 @@
                 "voice": "",
                 "english": "S. School.",
                 "vietnamese": "Trường học.",
-                "englishAudioId": "C67-L1-T01-B03-T01_EN",
-                "vietnameseAudioId": "C67-L1-T01-B03-T01_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549574/homi/audio/CURRICULUM/1dabb9bd075b662d553aad92.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549629/homi/audio/CURRICULUM/2f1829b8ea6e11b5c06a9f52.vi.v1.mp3",
                 "recognitionVariants": [
                   "S. School.",
                   "School."
@@ -2007,10 +1735,6 @@
                 "voice": "",
                 "english": "T. Table.",
                 "vietnamese": "Cái bàn.",
-                "englishAudioId": "C67-L1-T01-B03-T02_EN",
-                "vietnameseAudioId": "C67-L1-T01-B03-T02_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550671/homi/audio/CURRICULUM/cd72d1b607dd13976f1ba689.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549564/homi/audio/CURRICULUM/19abf5db85f7b3b0ad7fc754.vi.v1.mp3",
                 "recognitionVariants": [
                   "T. Table.",
                   "Table."
@@ -2023,10 +1747,6 @@
                 "voice": "",
                 "english": "U. Uniform.",
                 "vietnamese": "Đồng phục.",
-                "englishAudioId": "C67-L1-T01-B03-T03_EN",
-                "vietnameseAudioId": "C67-L1-T01-B03-T03_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549754/homi/audio/CURRICULUM/499dc064f020c3747b7ff47d.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550782/homi/audio/CURRICULUM/d83cb0378242fa62944f5938.vi.v1.mp3",
                 "recognitionVariants": [
                   "U. Uniform.",
                   "Uniform."
@@ -2039,10 +1759,6 @@
                 "voice": "",
                 "english": "V. Violin.",
                 "vietnamese": "Đàn vi-ô-lông.",
-                "englishAudioId": "C67-L1-T01-B03-T04_EN",
-                "vietnameseAudioId": "C67-L1-T01-B03-T04_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549535/homi/audio/CURRICULUM/0b4e7dca371bcd32bf6d1fdd.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550357/homi/audio/CURRICULUM/a93d81a095804fbe6a81ffaa.vi.v1.mp3",
                 "recognitionVariants": [
                   "V. Violin.",
                   "Violin."
@@ -2055,10 +1771,6 @@
                 "voice": "",
                 "english": "W. Window.",
                 "vietnamese": "Cửa sổ.",
-                "englishAudioId": "C67-L1-T01-B03-T05_EN",
-                "vietnameseAudioId": "C67-L1-T01-B03-T05_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550677/homi/audio/CURRICULUM/ce0beb552802ce4cb60e8411.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550920/homi/audio/CURRICULUM/e68e93355d01eedf549b9912.vi.v1.mp3",
                 "recognitionVariants": [
                   "W. Window.",
                   "Window."
@@ -2071,10 +1783,6 @@
                 "voice": "",
                 "english": "X. X-ray.",
                 "vietnamese": "Ảnh X-quang.",
-                "englishAudioId": "C67-L1-T01-B03-T06_EN",
-                "vietnameseAudioId": "C67-L1-T01-B03-T06_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549596/homi/audio/CURRICULUM/257d16a67afb2b45f295d4f6.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549730/homi/audio/CURRICULUM/44766d6de5a0309158243436.vi.v1.mp3",
                 "recognitionVariants": [
                   "X. X-ray.",
                   "X-ray."
@@ -2087,10 +1795,6 @@
                 "voice": "",
                 "english": "Y. Yogurt.",
                 "vietnamese": "Sữa chua.",
-                "englishAudioId": "C67-L1-T01-B03-T07_EN",
-                "vietnameseAudioId": "C67-L1-T01-B03-T07_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549727/homi/audio/CURRICULUM/43dae3d63d23e9e4bf288e01.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550596/homi/audio/CURRICULUM/c45c63eeafabe4f23aa443e0.vi.v1.mp3",
                 "recognitionVariants": [
                   "Y. Yogurt.",
                   "Yogurt."
@@ -2103,10 +1807,6 @@
                 "voice": "",
                 "english": "Z. Zoo.",
                 "vietnamese": "Sở thú.",
-                "englishAudioId": "C67-L1-T01-B03-T08_EN",
-                "vietnameseAudioId": "C67-L1-T01-B03-T08_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549976/homi/audio/CURRICULUM/7ae3860c636827676537b797.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549802/homi/audio/CURRICULUM/5402b76965ffd5c27ff7c845.vi.v1.mp3",
                 "recognitionVariants": [
                   "Z. Zoo.",
                   "Zoo."
@@ -2141,10 +1841,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549763/homi/audio/CURRICULUM/4c25445410c798186732fad8.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học các số trong đời sống nhé."
@@ -2279,10 +1975,6 @@
                 "voice": "",
                 "english": "One.",
                 "vietnamese": "Một.",
-                "englishAudioId": "C67-L1-T02-B01-T01_EN",
-                "vietnameseAudioId": "C67-L1-T02-B01-T01_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549726/homi/audio/CURRICULUM/437b45442292c65be7e453bb.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549710/homi/audio/CURRICULUM/3fcdc9f459583960b3c489b2.vi.v1.mp3",
                 "recognitionVariants": [
                   "One."
                 ],
@@ -2294,10 +1986,6 @@
                 "voice": "",
                 "english": "Two.",
                 "vietnamese": "Hai.",
-                "englishAudioId": "C67-L1-T02-B01-T02_EN",
-                "vietnameseAudioId": "C67-L1-T02-B01-T02_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550492/homi/audio/CURRICULUM/b81b49892544e69134620d80.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550058/homi/audio/CURRICULUM/8b7d9e1829ddd68974d6b0ca.vi.v1.mp3",
                 "recognitionVariants": [
                   "Two."
                 ],
@@ -2309,10 +1997,6 @@
                 "voice": "",
                 "english": "Three.",
                 "vietnamese": "Ba.",
-                "englishAudioId": "C67-L1-T02-B01-T03_EN",
-                "vietnameseAudioId": "C67-L1-T02-B01-T03_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549763/homi/audio/CURRICULUM/4c2a877cf036b2aa1aa8505f.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549851/homi/audio/CURRICULUM/608571ae0360c3fd18c829ca.vi.v1.mp3",
                 "recognitionVariants": [
                   "Three."
                 ],
@@ -2324,10 +2008,6 @@
                 "voice": "",
                 "english": "Four.",
                 "vietnamese": "Bốn.",
-                "englishAudioId": "C67-L1-T02-B01-T04_EN",
-                "vietnameseAudioId": "C67-L1-T02-B01-T04_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551058/homi/audio/CURRICULUM/f6edc33d86bf5b932c6d2efc.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549697/homi/audio/CURRICULUM/3c92a15374b481fa612c5818.vi.v1.mp3",
                 "recognitionVariants": [
                   "Four."
                 ],
@@ -2339,10 +2019,6 @@
                 "voice": "",
                 "english": "Five.",
                 "vietnamese": "Năm.",
-                "englishAudioId": "C67-L1-T02-B01-T05_EN",
-                "vietnameseAudioId": "C67-L1-T02-B01-T05_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549908/homi/audio/CURRICULUM/6af00849e732c7529b243765.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549778/homi/audio/CURRICULUM/4f77c0d0ab048d2e3f0ee8f3.vi.v1.mp3",
                 "recognitionVariants": [
                   "Five."
                 ],
@@ -2354,10 +2030,6 @@
                 "voice": "",
                 "english": "Six.",
                 "vietnamese": "Sáu.",
-                "englishAudioId": "C67-L1-T02-B01-T06_EN",
-                "vietnameseAudioId": "C67-L1-T02-B01-T06_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549574/homi/audio/CURRICULUM/1daf2f1fe73cc7f89aa38f8f.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549633/homi/audio/CURRICULUM/2fd0e838e8fcabcebabccdc3.vi.v1.mp3",
                 "recognitionVariants": [
                   "Six."
                 ],
@@ -2369,10 +2041,6 @@
                 "voice": "",
                 "english": "Seven.",
                 "vietnamese": "Bảy.",
-                "englishAudioId": "C67-L1-T02-B01-T07_EN",
-                "vietnameseAudioId": "C67-L1-T02-B01-T07_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549557/homi/audio/CURRICULUM/15d63ad8004812e9c4ed0ea7.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549679/homi/audio/CURRICULUM/38e7d4caa5b6afa99685b470.vi.v1.mp3",
                 "recognitionVariants": [
                   "Seven."
                 ],
@@ -2384,10 +2052,6 @@
                 "voice": "",
                 "english": "Eight.",
                 "vietnamese": "Tám.",
-                "englishAudioId": "C67-L1-T02-B01-T08_EN",
-                "vietnameseAudioId": "C67-L1-T02-B01-T08_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549704/homi/audio/CURRICULUM/3eeccf31c67f5dfdc50d0715.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550579/homi/audio/CURRICULUM/c253b1a1bb3adbb2b07feca6.vi.v1.mp3",
                 "recognitionVariants": [
                   "Eight."
                 ],
@@ -2399,10 +2063,6 @@
                 "voice": "",
                 "english": "Nine.",
                 "vietnamese": "Chín.",
-                "englishAudioId": "C67-L1-T02-B01-T09_EN",
-                "vietnameseAudioId": "C67-L1-T02-B01-T09_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550546/homi/audio/CURRICULUM/beb678f1b13086c4a817018a.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550292/homi/audio/CURRICULUM/a2ab670f5b6b2c861990d005.vi.v1.mp3",
                 "recognitionVariants": [
                   "Nine."
                 ],
@@ -2414,10 +2074,6 @@
                 "voice": "",
                 "english": "Ten.",
                 "vietnamese": "Mười.",
-                "englishAudioId": "C67-L1-T02-B01-T10_EN",
-                "vietnameseAudioId": "C67-L1-T02-B01-T10_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549673/homi/audio/CURRICULUM/382d8f9b8cbef0cabf659707.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549848/homi/audio/CURRICULUM/5ff711683f6fb77874a80d2c.vi.v1.mp3",
                 "recognitionVariants": [
                   "Ten."
                 ],
@@ -2437,10 +2093,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549763/homi/audio/CURRICULUM/4c25445410c798186732fad8.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học các số trong đời sống nhé."
@@ -2575,10 +2227,6 @@
                 "voice": "",
                 "english": "Eleven.",
                 "vietnamese": "Mười một.",
-                "englishAudioId": "C67-L1-T02-B02-T01_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T01_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550600/homi/audio/CURRICULUM/c52d4ed69f878035d97ed731.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549748/homi/audio/CURRICULUM/481fd73979c1f919d0266143.vi.v1.mp3",
                 "recognitionVariants": [
                   "Eleven."
                 ],
@@ -2590,10 +2238,6 @@
                 "voice": "",
                 "english": "Twelve.",
                 "vietnamese": "Mười hai.",
-                "englishAudioId": "C67-L1-T02-B02-T02_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T02_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550749/homi/audio/CURRICULUM/d55f3d83f4d63bca8acbbf5e.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549732/homi/audio/CURRICULUM/44e2e0ae1ee4dbb7cf324b3a.vi.v1.mp3",
                 "recognitionVariants": [
                   "Twelve."
                 ],
@@ -2605,10 +2249,6 @@
                 "voice": "",
                 "english": "Thirteen.",
                 "vietnamese": "Mười ba.",
-                "englishAudioId": "C67-L1-T02-B02-T03_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T03_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551085/homi/audio/CURRICULUM/f9af5166df4efee059cac398.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551133/homi/audio/CURRICULUM/fe6309fe75e72792f41a289d.vi.v1.mp3",
                 "recognitionVariants": [
                   "Thirteen."
                 ],
@@ -2620,10 +2260,6 @@
                 "voice": "",
                 "english": "Fourteen.",
                 "vietnamese": "Mười bốn.",
-                "englishAudioId": "C67-L1-T02-B02-T04_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T04_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550342/homi/audio/CURRICULUM/a7c7838699dfa647f4d64024.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549735/homi/audio/CURRICULUM/4552ef1cd2b9526a9fe4963d.vi.v1.mp3",
                 "recognitionVariants": [
                   "Fourteen."
                 ],
@@ -2635,10 +2271,6 @@
                 "voice": "",
                 "english": "Fifteen.",
                 "vietnamese": "Mười lăm.",
-                "englishAudioId": "C67-L1-T02-B02-T05_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T05_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549883/homi/audio/CURRICULUM/66c6d1c2dc0309bdf02bbe84.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549660/homi/audio/CURRICULUM/3495a10928c378d62dbf9fa8.vi.v1.mp3",
                 "recognitionVariants": [
                   "Fifteen."
                 ],
@@ -2650,10 +2282,6 @@
                 "voice": "",
                 "english": "Sixteen.",
                 "vietnamese": "Mười sáu.",
-                "englishAudioId": "C67-L1-T02-B02-T06_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T06_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550078/homi/audio/CURRICULUM/8d327ee6f958f1e3eb498769.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550095/homi/audio/CURRICULUM/8f9d010034fc682805925261.vi.v1.mp3",
                 "recognitionVariants": [
                   "Sixteen."
                 ],
@@ -2665,10 +2293,6 @@
                 "voice": "",
                 "english": "Seventeen.",
                 "vietnamese": "Mười bảy.",
-                "englishAudioId": "C67-L1-T02-B02-T07_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T07_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551027/homi/audio/CURRICULUM/f382531bab2879668210a484.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550454/homi/audio/CURRICULUM/b40f7cb00418d92e05f59843.vi.v1.mp3",
                 "recognitionVariants": [
                   "Seventeen."
                 ],
@@ -2680,10 +2304,6 @@
                 "voice": "",
                 "english": "Eighteen.",
                 "vietnamese": "Mười tám.",
-                "englishAudioId": "C67-L1-T02-B02-T08_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T08_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550931/homi/audio/CURRICULUM/e833bbe4e4d7f9935b966c59.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549590/homi/audio/CURRICULUM/237ce4fb5e00e7f9d376fdca.vi.v1.mp3",
                 "recognitionVariants": [
                   "Eighteen."
                 ],
@@ -2695,10 +2315,6 @@
                 "voice": "",
                 "english": "Nineteen.",
                 "vietnamese": "Mười chín.",
-                "englishAudioId": "C67-L1-T02-B02-T09_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T09_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551157/homi/audio/CURRICULUM/ffe650e3ada90810b128580e.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549570/homi/audio/CURRICULUM/1c81e8c0bb2680e03559dc64.vi.v1.mp3",
                 "recognitionVariants": [
                   "Nineteen."
                 ],
@@ -2710,10 +2326,6 @@
                 "voice": "",
                 "english": "Twenty.",
                 "vietnamese": "Hai mươi.",
-                "englishAudioId": "C67-L1-T02-B02-T10_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T10_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550360/homi/audio/CURRICULUM/a9b490c1f30ff58a82a8c32f.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549615/homi/audio/CURRICULUM/2b929fdda756f2617583ec7f.vi.v1.mp3",
                 "recognitionVariants": [
                   "Twenty."
                 ],
@@ -2733,10 +2345,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549763/homi/audio/CURRICULUM/4c25445410c798186732fad8.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học các số trong đời sống nhé."
@@ -2811,10 +2419,6 @@
                 "voice": "",
                 "english": "Two books.",
                 "vietnamese": "Hai quyển sách.",
-                "englishAudioId": "C67-L1-T02-B03-T01_EN",
-                "vietnameseAudioId": "C67-L1-T02-B03-T01_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550961/homi/audio/CURRICULUM/eab4050a529b1c9edc2665ee.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549591/homi/audio/CURRICULUM/23d5588a780ae6140331a029.vi.v1.mp3",
                 "recognitionVariants": [
                   "Two books."
                 ],
@@ -2826,10 +2430,6 @@
                 "voice": "",
                 "english": "Three pencils.",
                 "vietnamese": "Ba cây bút chì.",
-                "englishAudioId": "C67-L1-T02-B03-T02_EN",
-                "vietnameseAudioId": "C67-L1-T02-B03-T02_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550116/homi/audio/CURRICULUM/925929d0809a27459563b543.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549874/homi/audio/CURRICULUM/651d48176a9de1ee6fe64d9d.vi.v1.mp3",
                 "recognitionVariants": [
                   "Three pencils."
                 ],
@@ -2841,10 +2441,6 @@
                 "voice": "",
                 "english": "Five apples.",
                 "vietnamese": "Năm quả táo.",
-                "englishAudioId": "C67-L1-T02-B03-T03_EN",
-                "vietnameseAudioId": "C67-L1-T02-B03-T03_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550603/homi/audio/CURRICULUM/c5b15cbf067b776db54c86e4.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549530/homi/audio/CURRICULUM/084c52caaa8fe99418afc371.vi.v1.mp3",
                 "recognitionVariants": [
                   "Five apples."
                 ],
@@ -2856,10 +2452,6 @@
                 "voice": "",
                 "english": "Ten crayons.",
                 "vietnamese": "Mười cây bút màu.",
-                "englishAudioId": "C67-L1-T02-B03-T04_EN",
-                "vietnameseAudioId": "C67-L1-T02-B03-T04_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549528/homi/audio/CURRICULUM/06b9df2ba7daa1658d3a8f9e.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551100/homi/audio/CURRICULUM/fb599206e7c9c1ea4044475f.vi.v1.mp3",
                 "recognitionVariants": [
                   "Ten crayons."
                 ],
@@ -2871,10 +2463,6 @@
                 "voice": "",
                 "english": "Twenty stars.",
                 "vietnamese": "Hai mươi ngôi sao.",
-                "englishAudioId": "C67-L1-T02-B03-T05_EN",
-                "vietnameseAudioId": "C67-L1-T02-B03-T05_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551003/homi/audio/CURRICULUM/f069bb933c69d54c17fecc34.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549540/homi/audio/CURRICULUM/0df3582101d75c751797b2cf.vi.v1.mp3",
                 "recognitionVariants": [
                   "Twenty stars."
                 ],
@@ -2910,10 +2498,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549660/homi/audio/CURRICULUM/349642e39a2a0304682b8b3e.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học các chữ cái và từ quen thuộc nhé."
@@ -2988,10 +2572,6 @@
                 "voice": "",
                 "english": "A. Apple.",
                 "vietnamese": "Quả táo.",
-                "englishAudioId": "C35-L1-T01-B01-T01_EN",
-                "vietnameseAudioId": "C35-L1-T01-B01-T01_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550012/homi/audio/CURRICULUM/81cb3c50521defab3f8e62bf.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550272/homi/audio/CURRICULUM/a16828af3e9e57413288a367.vi.v1.mp3",
                 "recognitionVariants": [
                   "A. Apple.",
                   "Apple."
@@ -3004,10 +2584,6 @@
                 "voice": "",
                 "english": "B. Ball.",
                 "vietnamese": "Quả bóng.",
-                "englishAudioId": "C35-L1-T01-B01-T02_EN",
-                "vietnameseAudioId": "C35-L1-T01-B01-T02_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551054/homi/audio/CURRICULUM/f68cae875b57e1226eda167a.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549832/homi/audio/CURRICULUM/5bd2bf4aa727a5941a09e4db.vi.v1.mp3",
                 "recognitionVariants": [
                   "B. Ball.",
                   "Ball."
@@ -3020,10 +2596,6 @@
                 "voice": "",
                 "english": "C. Cat.",
                 "vietnamese": "Con mèo.",
-                "englishAudioId": "C35-L1-T01-B01-T03_EN",
-                "vietnameseAudioId": "C35-L1-T01-B01-T03_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549966/homi/audio/CURRICULUM/781631416edba49d243dddbd.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549567/homi/audio/CURRICULUM/1a51ef3a2e40dc87a49a29c5.vi.v1.mp3",
                 "recognitionVariants": [
                   "C. Cat.",
                   "Cat."
@@ -3036,10 +2608,6 @@
                 "voice": "",
                 "english": "D. Dog.",
                 "vietnamese": "Con chó.",
-                "englishAudioId": "C35-L1-T01-B01-T04_EN",
-                "vietnameseAudioId": "C35-L1-T01-B01-T04_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549740/homi/audio/CURRICULUM/4676a57eacdd17721f39da73.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550575/homi/audio/CURRICULUM/c20398969f18f8a89b5892f9.vi.v1.mp3",
                 "recognitionVariants": [
                   "D. Dog.",
                   "Dog."
@@ -3052,10 +2620,6 @@
                 "voice": "",
                 "english": "E. Egg.",
                 "vietnamese": "Quả trứng.",
-                "englishAudioId": "C35-L1-T01-B01-T05_EN",
-                "vietnameseAudioId": "C35-L1-T01-B01-T05_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549603/homi/audio/CURRICULUM/27cb7dcb42d048f2e89de0ea.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549578/homi/audio/CURRICULUM/1f1f2ce6a14b1fe9a76fbe14.vi.v1.mp3",
                 "recognitionVariants": [
                   "E. Egg.",
                   "Egg."
@@ -3076,10 +2640,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549660/homi/audio/CURRICULUM/349642e39a2a0304682b8b3e.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học các chữ cái và từ quen thuộc nhé."
@@ -3154,10 +2714,6 @@
                 "voice": "",
                 "english": "F. Fish.",
                 "vietnamese": "Con cá.",
-                "englishAudioId": "C35-L1-T01-B01-T06_EN",
-                "vietnameseAudioId": "C35-L1-T01-B01-T06_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551116/homi/audio/CURRICULUM/fcbda5008aa82055d300b8cf.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550715/homi/audio/CURRICULUM/d16f0eac7a9332ad39e99dd5.vi.v1.mp3",
                 "recognitionVariants": [
                   "F. Fish.",
                   "Fish."
@@ -3170,10 +2726,6 @@
                 "voice": "",
                 "english": "G. Grape.",
                 "vietnamese": "Quả nho.",
-                "englishAudioId": "C35-L1-T01-B01-T07_EN",
-                "vietnameseAudioId": "C35-L1-T01-B01-T07_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549571/homi/audio/CURRICULUM/1c95c57b3f710e79e5ec1504.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550740/homi/audio/CURRICULUM/d4a0877d185eef1b8efba62a.vi.v1.mp3",
                 "recognitionVariants": [
                   "G. Grape.",
                   "Grape."
@@ -3186,10 +2738,6 @@
                 "voice": "",
                 "english": "H. Hat.",
                 "vietnamese": "Cái mũ.",
-                "englishAudioId": "C35-L1-T01-B01-T08_EN",
-                "vietnameseAudioId": "C35-L1-T01-B01-T08_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549833/homi/audio/CURRICULUM/5be0801914b48f637fb795ea.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549566/homi/audio/CURRICULUM/19ed8e87ad34d7294332b6a2.vi.v1.mp3",
                 "recognitionVariants": [
                   "H. Hat.",
                   "Hat."
@@ -3202,10 +2750,6 @@
                 "voice": "",
                 "english": "I. Ice cream.",
                 "vietnamese": "Kem.",
-                "englishAudioId": "C35-L1-T01-B01-T09_EN",
-                "vietnameseAudioId": "C35-L1-T01-B01-T09_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550384/homi/audio/CURRICULUM/ab9ebae523fac1846020ab2c.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550800/homi/audio/CURRICULUM/da4ebe9729687c59c2383205.vi.v1.mp3",
                 "recognitionVariants": [
                   "I. Ice cream.",
                   "Ice cream."
@@ -3218,10 +2762,6 @@
                 "voice": "",
                 "english": "J. Juice.",
                 "vietnamese": "Nước ép.",
-                "englishAudioId": "C35-L1-T01-B02-T01_EN",
-                "vietnameseAudioId": "C35-L1-T01-B02-T01_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551105/homi/audio/CURRICULUM/fbe47d16267353d7bf88d2b9.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549640/homi/audio/CURRICULUM/30dfb0fdc7a9cd56ba567c0b.vi.v1.mp3",
                 "recognitionVariants": [
                   "J. Juice.",
                   "Juice."
@@ -3256,10 +2796,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551095/homi/audio/CURRICULUM/faf9d0bd6f13fdadea800ed4.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học cách đếm số nhé."
@@ -3334,10 +2870,6 @@
                 "voice": "",
                 "english": "One.",
                 "vietnamese": "Một.",
-                "englishAudioId": "C35-L1-T02-B01-T01_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T01_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549726/homi/audio/CURRICULUM/437b45442292c65be7e453bb.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549710/homi/audio/CURRICULUM/3fcdc9f459583960b3c489b2.vi.v1.mp3",
                 "recognitionVariants": [
                   "One."
                 ],
@@ -3349,10 +2881,6 @@
                 "voice": "",
                 "english": "Two.",
                 "vietnamese": "Hai.",
-                "englishAudioId": "C35-L1-T02-B01-T02_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T02_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550492/homi/audio/CURRICULUM/b81b49892544e69134620d80.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550058/homi/audio/CURRICULUM/8b7d9e1829ddd68974d6b0ca.vi.v1.mp3",
                 "recognitionVariants": [
                   "Two."
                 ],
@@ -3364,10 +2892,6 @@
                 "voice": "",
                 "english": "Three.",
                 "vietnamese": "Ba.",
-                "englishAudioId": "C35-L1-T02-B01-T03_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T03_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549763/homi/audio/CURRICULUM/4c2a877cf036b2aa1aa8505f.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549851/homi/audio/CURRICULUM/608571ae0360c3fd18c829ca.vi.v1.mp3",
                 "recognitionVariants": [
                   "Three."
                 ],
@@ -3379,10 +2903,6 @@
                 "voice": "",
                 "english": "Four.",
                 "vietnamese": "Bốn.",
-                "englishAudioId": "C35-L1-T02-B01-T04_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T04_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551058/homi/audio/CURRICULUM/f6edc33d86bf5b932c6d2efc.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549697/homi/audio/CURRICULUM/3c92a15374b481fa612c5818.vi.v1.mp3",
                 "recognitionVariants": [
                   "Four."
                 ],
@@ -3394,10 +2914,6 @@
                 "voice": "",
                 "english": "Five.",
                 "vietnamese": "Năm.",
-                "englishAudioId": "C35-L1-T02-B01-T05_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T05_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549908/homi/audio/CURRICULUM/6af00849e732c7529b243765.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549778/homi/audio/CURRICULUM/4f77c0d0ab048d2e3f0ee8f3.vi.v1.mp3",
                 "recognitionVariants": [
                   "Five."
                 ],
@@ -3417,10 +2933,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551095/homi/audio/CURRICULUM/faf9d0bd6f13fdadea800ed4.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học cách đếm số nhé."
@@ -3495,10 +3007,6 @@
                 "voice": "",
                 "english": "Six.",
                 "vietnamese": "Sáu.",
-                "englishAudioId": "C35-L1-T02-B01-T06_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T06_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549574/homi/audio/CURRICULUM/1daf2f1fe73cc7f89aa38f8f.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549633/homi/audio/CURRICULUM/2fd0e838e8fcabcebabccdc3.vi.v1.mp3",
                 "recognitionVariants": [
                   "Six."
                 ],
@@ -3510,10 +3018,6 @@
                 "voice": "",
                 "english": "Seven.",
                 "vietnamese": "Bảy.",
-                "englishAudioId": "C35-L1-T02-B01-T07_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T07_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549557/homi/audio/CURRICULUM/15d63ad8004812e9c4ed0ea7.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549679/homi/audio/CURRICULUM/38e7d4caa5b6afa99685b470.vi.v1.mp3",
                 "recognitionVariants": [
                   "Seven."
                 ],
@@ -3525,10 +3029,6 @@
                 "voice": "",
                 "english": "Eight.",
                 "vietnamese": "Tám.",
-                "englishAudioId": "C35-L1-T02-B01-T08_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T08_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549704/homi/audio/CURRICULUM/3eeccf31c67f5dfdc50d0715.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550579/homi/audio/CURRICULUM/c253b1a1bb3adbb2b07feca6.vi.v1.mp3",
                 "recognitionVariants": [
                   "Eight."
                 ],
@@ -3540,10 +3040,6 @@
                 "voice": "",
                 "english": "Nine.",
                 "vietnamese": "Chín.",
-                "englishAudioId": "C35-L1-T02-B01-T09_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T09_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550546/homi/audio/CURRICULUM/beb678f1b13086c4a817018a.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550292/homi/audio/CURRICULUM/a2ab670f5b6b2c861990d005.vi.v1.mp3",
                 "recognitionVariants": [
                   "Nine."
                 ],
@@ -3555,10 +3051,6 @@
                 "voice": "",
                 "english": "Ten.",
                 "vietnamese": "Mười.",
-                "englishAudioId": "C35-L1-T02-B01-T10_EN",
-                "vietnameseAudioId": "C35-L1-T02-B01-T10_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549673/homi/audio/CURRICULUM/382d8f9b8cbef0cabf659707.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549848/homi/audio/CURRICULUM/5ff711683f6fb77874a80d2c.vi.v1.mp3",
                 "recognitionVariants": [
                   "Ten."
                 ],
@@ -3578,10 +3070,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550047/homi/audio/CURRICULUM/89c9b6d37348fd2c867aff32.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "hook",
               "text": "Nghe thật kỹ nhé."
@@ -3656,10 +3144,6 @@
                 "voice": "",
                 "english": "One clap.",
                 "vietnamese": "Một tiếng vỗ tay.",
-                "englishAudioId": "C35-L1-T02-B02-T01_EN",
-                "vietnameseAudioId": "C35-L1-T02-B02-T01_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550888/homi/audio/CURRICULUM/e3d880eef2ba0c4cd95c5dc2.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550975/homi/audio/CURRICULUM/ed03ab9379e348f68c7aab91.vi.v1.mp3",
                 "recognitionVariants": [
                   "One clap."
                 ],
@@ -3671,10 +3155,6 @@
                 "voice": "",
                 "english": "Two claps.",
                 "vietnamese": "Hai tiếng vỗ tay.",
-                "englishAudioId": "C35-L1-T02-B02-T02_EN",
-                "vietnameseAudioId": "C35-L1-T02-B02-T02_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550221/homi/audio/CURRICULUM/9d3ed2fd6aced788337b8123.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549674/homi/audio/CURRICULUM/3839b803c35a7407a0b09020.vi.v1.mp3",
                 "recognitionVariants": [
                   "Two claps."
                 ],
@@ -3686,10 +3166,6 @@
                 "voice": "",
                 "english": "Three claps.",
                 "vietnamese": "Ba tiếng vỗ tay.",
-                "englishAudioId": "C35-L1-T02-B02-T03_EN",
-                "vietnameseAudioId": "C35-L1-T02-B02-T03_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550561/homi/audio/CURRICULUM/c02805c3ed52b868cdbd916d.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550366/homi/audio/CURRICULUM/aa1b33249accd007e5c33898.vi.v1.mp3",
                 "recognitionVariants": [
                   "Three claps."
                 ],
@@ -3701,10 +3177,6 @@
                 "voice": "",
                 "english": "Four claps.",
                 "vietnamese": "Bốn tiếng vỗ tay.",
-                "englishAudioId": "C35-L1-T02-B02-T04_EN",
-                "vietnameseAudioId": "C35-L1-T02-B02-T04_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549902/homi/audio/CURRICULUM/6a1b76abc15ce97bc3263a12.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550623/homi/audio/CURRICULUM/c80eaae7d6c36ab808d89023.vi.v1.mp3",
                 "recognitionVariants": [
                   "Four claps."
                 ],
@@ -3716,10 +3188,6 @@
                 "voice": "",
                 "english": "Five claps.",
                 "vietnamese": "Năm tiếng vỗ tay.",
-                "englishAudioId": "C35-L1-T02-B02-T05_EN",
-                "vietnameseAudioId": "C35-L1-T02-B02-T05_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550525/homi/audio/CURRICULUM/bc96c5d225df16dd55ba7f45.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549567/homi/audio/CURRICULUM/1aa89497b0fc1cd93ad8fc94.vi.v1.mp3",
                 "recognitionVariants": [
                   "Five claps."
                 ],
@@ -3755,10 +3223,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550074/homi/audio/CURRICULUM/8cdcc279b291bd765d3fbabd.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học chữ cái qua những từ quen thuộc nhé."
@@ -3833,10 +3297,6 @@
                 "voice": "",
                 "english": "K. Kite.",
                 "vietnamese": "Cái diều.",
-                "englishAudioId": "C35-L1-T01-B02-T02_EN",
-                "vietnameseAudioId": "C35-L1-T01-B02-T02_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549562/homi/audio/CURRICULUM/18a89eaa9b142f1a65fc9a79.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549622/homi/audio/CURRICULUM/2db418d8db0fcb9535a20d91.vi.v1.mp3",
                 "recognitionVariants": [
                   "K. Kite.",
                   "Kite."
@@ -3849,10 +3309,6 @@
                 "voice": "",
                 "english": "L. Lion.",
                 "vietnamese": "Con sư tử.",
-                "englishAudioId": "C35-L1-T01-B02-T03_EN",
-                "vietnameseAudioId": "C35-L1-T01-B02-T03_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550508/homi/audio/CURRICULUM/b95fcb0d706de602dd66e7af.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550013/homi/audio/CURRICULUM/81e0ebdc3a501b79b7c6c5c9.vi.v1.mp3",
                 "recognitionVariants": [
                   "L. Lion.",
                   "Lion."
@@ -3865,10 +3321,6 @@
                 "voice": "",
                 "english": "M. Milk.",
                 "vietnamese": "Sữa.",
-                "englishAudioId": "C35-L1-T01-B02-T04_EN",
-                "vietnameseAudioId": "C35-L1-T01-B02-T04_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550015/homi/audio/CURRICULUM/82d2f77ed6e006ab7649b7a7.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551109/homi/audio/CURRICULUM/fc06a86b43bdc5232728af54.vi.v1.mp3",
                 "recognitionVariants": [
                   "M. Milk.",
                   "Milk."
@@ -3881,10 +3333,6 @@
                 "voice": "",
                 "english": "N. Nose.",
                 "vietnamese": "Cái mũi.",
-                "englishAudioId": "C35-L1-T01-B02-T05_EN",
-                "vietnameseAudioId": "C35-L1-T01-B02-T05_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549661/homi/audio/CURRICULUM/34d9cf5d685a1c9a9ca0113c.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549564/homi/audio/CURRICULUM/19a0ee44c0a16352a3c6576d.vi.v1.mp3",
                 "recognitionVariants": [
                   "N. Nose.",
                   "Nose."
@@ -3897,10 +3345,6 @@
                 "voice": "",
                 "english": "O. Orange.",
                 "vietnamese": "Quả cam.",
-                "englishAudioId": "C35-L1-T01-B02-T06_EN",
-                "vietnameseAudioId": "C35-L1-T01-B02-T06_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549988/homi/audio/CURRICULUM/7d49be5f3ee566c741bedc03.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551048/homi/audio/CURRICULUM/f60da914493cbe27c9c78e38.vi.v1.mp3",
                 "recognitionVariants": [
                   "O. Orange.",
                   "Orange."
@@ -3921,10 +3365,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550074/homi/audio/CURRICULUM/8cdcc279b291bd765d3fbabd.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học chữ cái qua những từ quen thuộc nhé."
@@ -3999,10 +3439,6 @@
                 "voice": "",
                 "english": "P. Pig.",
                 "vietnamese": "Con lợn.",
-                "englishAudioId": "C35-L1-T01-B02-T07_EN",
-                "vietnameseAudioId": "C35-L1-T01-B02-T07_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549567/homi/audio/CURRICULUM/1a7f13183d47cb874f70ac73.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551113/homi/audio/CURRICULUM/fc62bb37bdc124fb3ff90b4d.vi.v1.mp3",
                 "recognitionVariants": [
                   "P. Pig.",
                   "Pig."
@@ -4015,10 +3451,6 @@
                 "voice": "",
                 "english": "Q. Queen.",
                 "vietnamese": "Nữ hoàng.",
-                "englishAudioId": "C35-L1-T01-B02-T08_EN",
-                "vietnameseAudioId": "C35-L1-T01-B02-T08_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549537/homi/audio/CURRICULUM/0c2de6f05eab77e422ca9b66.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549546/homi/audio/CURRICULUM/116b80c4ce99405ddb0c00a2.vi.v1.mp3",
                 "recognitionVariants": [
                   "Q. Queen.",
                   "Queen."
@@ -4031,10 +3463,6 @@
                 "voice": "",
                 "english": "R. Rabbit.",
                 "vietnamese": "Con thỏ.",
-                "englishAudioId": "C35-L1-T01-B02-T09_EN",
-                "vietnameseAudioId": "C35-L1-T01-B02-T09_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549936/homi/audio/CURRICULUM/71d5c8657aad3051eb15a2c9.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549525/homi/audio/CURRICULUM/05470b53d3640cc5dbed21f7.vi.v1.mp3",
                 "recognitionVariants": [
                   "R. Rabbit.",
                   "Rabbit."
@@ -4047,10 +3475,6 @@
                 "voice": "",
                 "english": "S. Sun.",
                 "vietnamese": "Mặt trời.",
-                "englishAudioId": "C35-L1-T01-B03-T01_EN",
-                "vietnameseAudioId": "C35-L1-T01-B03-T01_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550422/homi/audio/CURRICULUM/af4016de195f65133d2aaa94.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549890/homi/audio/CURRICULUM/68056337ccfcbaf1f51d0063.vi.v1.mp3",
                 "recognitionVariants": [
                   "S. Sun.",
                   "Sun."
@@ -4063,10 +3487,6 @@
                 "voice": "",
                 "english": "T. Toy.",
                 "vietnamese": "Đồ chơi.",
-                "englishAudioId": "C35-L1-T01-B03-T02_EN",
-                "vietnameseAudioId": "C35-L1-T01-B03-T02_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549574/homi/audio/CURRICULUM/1dad3661278276e5b4f3caf8.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550200/homi/audio/CURRICULUM/9b6adbd14a8f6c7e5f21dc3a.vi.v1.mp3",
                 "recognitionVariants": [
                   "T. Toy.",
                   "Toy."
@@ -4087,10 +3507,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550074/homi/audio/CURRICULUM/8cdcc279b291bd765d3fbabd.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học chữ cái qua những từ quen thuộc nhé."
@@ -4177,10 +3593,6 @@
                 "voice": "",
                 "english": "U. Umbrella.",
                 "vietnamese": "Cái ô.",
-                "englishAudioId": "C35-L1-T01-B03-T03_EN",
-                "vietnameseAudioId": "C35-L1-T01-B03-T03_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549580/homi/audio/CURRICULUM/20266d8bec4bf1609e3546ec.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550017/homi/audio/CURRICULUM/837ea5d8c95401e15cc98fc2.vi.v1.mp3",
                 "recognitionVariants": [
                   "U. Umbrella.",
                   "Umbrella."
@@ -4193,10 +3605,6 @@
                 "voice": "",
                 "english": "V. Van.",
                 "vietnamese": "Xe van.",
-                "englishAudioId": "C35-L1-T01-B03-T04_EN",
-                "vietnameseAudioId": "C35-L1-T01-B03-T04_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549566/homi/audio/CURRICULUM/1a29aece9a1f518d29d87a82.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550462/homi/audio/CURRICULUM/b4f5597f0f0e532648c6b8b6.vi.v1.mp3",
                 "recognitionVariants": [
                   "V. Van.",
                   "Van."
@@ -4209,10 +3617,6 @@
                 "voice": "",
                 "english": "W. Water.",
                 "vietnamese": "Nước.",
-                "englishAudioId": "C35-L1-T01-B03-T05_EN",
-                "vietnameseAudioId": "C35-L1-T01-B03-T05_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549781/homi/audio/CURRICULUM/5002d5c9ba88e3192eb5354d.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550316/homi/audio/CURRICULUM/a57fd13cb885fa698be65051.vi.v1.mp3",
                 "recognitionVariants": [
                   "W. Water.",
                   "Water."
@@ -4225,10 +3629,6 @@
                 "voice": "",
                 "english": "X. X-ray.",
                 "vietnamese": "Ảnh X-quang.",
-                "englishAudioId": "C35-L1-T01-B03-T06_EN",
-                "vietnameseAudioId": "C35-L1-T01-B03-T06_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549596/homi/audio/CURRICULUM/257d16a67afb2b45f295d4f6.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549730/homi/audio/CURRICULUM/44766d6de5a0309158243436.vi.v1.mp3",
                 "recognitionVariants": [
                   "X. X-ray.",
                   "X-ray."
@@ -4241,10 +3641,6 @@
                 "voice": "",
                 "english": "Y. Yo-yo.",
                 "vietnamese": "Đồ chơi yo-yo.",
-                "englishAudioId": "C35-L1-T01-B03-T07_EN",
-                "vietnameseAudioId": "C35-L1-T01-B03-T07_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549874/homi/audio/CURRICULUM/6554305bdf02c4a019c29845.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550491/homi/audio/CURRICULUM/b7eef773cfe9a3b4e709c633.vi.v1.mp3",
                 "recognitionVariants": [
                   "Y. Yo-yo.",
                   "Yo-yo."
@@ -4257,10 +3653,6 @@
                 "voice": "",
                 "english": "Z. Zebra.",
                 "vietnamese": "Ngựa vằn.",
-                "englishAudioId": "C35-L1-T01-B03-T08_EN",
-                "vietnameseAudioId": "C35-L1-T01-B03-T08_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549677/homi/audio/CURRICULUM/38a622c8a7d4f2d273eeec4e.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549871/homi/audio/CURRICULUM/64a46cad0d12653276e7cfca.vi.v1.mp3",
                 "recognitionVariants": [
                   "Z. Zebra.",
                   "Zebra."
@@ -4295,10 +3687,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549763/homi/audio/CURRICULUM/4c25445410c798186732fad8.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học các số trong đời sống nhé."
@@ -4373,10 +3761,6 @@
                 "voice": "",
                 "english": "Eleven.",
                 "vietnamese": "Mười một.",
-                "englishAudioId": "C67-L1-T02-B02-T01_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T01_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550600/homi/audio/CURRICULUM/c52d4ed69f878035d97ed731.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549748/homi/audio/CURRICULUM/481fd73979c1f919d0266143.vi.v1.mp3",
                 "recognitionVariants": [
                   "Eleven."
                 ],
@@ -4388,10 +3772,6 @@
                 "voice": "",
                 "english": "Twelve.",
                 "vietnamese": "Mười hai.",
-                "englishAudioId": "C67-L1-T02-B02-T02_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T02_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550749/homi/audio/CURRICULUM/d55f3d83f4d63bca8acbbf5e.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549732/homi/audio/CURRICULUM/44e2e0ae1ee4dbb7cf324b3a.vi.v1.mp3",
                 "recognitionVariants": [
                   "Twelve."
                 ],
@@ -4403,10 +3783,6 @@
                 "voice": "",
                 "english": "Thirteen.",
                 "vietnamese": "Mười ba.",
-                "englishAudioId": "C67-L1-T02-B02-T03_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T03_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551085/homi/audio/CURRICULUM/f9af5166df4efee059cac398.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551133/homi/audio/CURRICULUM/fe6309fe75e72792f41a289d.vi.v1.mp3",
                 "recognitionVariants": [
                   "Thirteen."
                 ],
@@ -4418,10 +3794,6 @@
                 "voice": "",
                 "english": "Fourteen.",
                 "vietnamese": "Mười bốn.",
-                "englishAudioId": "C67-L1-T02-B02-T04_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T04_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550342/homi/audio/CURRICULUM/a7c7838699dfa647f4d64024.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549735/homi/audio/CURRICULUM/4552ef1cd2b9526a9fe4963d.vi.v1.mp3",
                 "recognitionVariants": [
                   "Fourteen."
                 ],
@@ -4433,10 +3805,6 @@
                 "voice": "",
                 "english": "Fifteen.",
                 "vietnamese": "Mười lăm.",
-                "englishAudioId": "C67-L1-T02-B02-T05_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T05_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549883/homi/audio/CURRICULUM/66c6d1c2dc0309bdf02bbe84.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549660/homi/audio/CURRICULUM/3495a10928c378d62dbf9fa8.vi.v1.mp3",
                 "recognitionVariants": [
                   "Fifteen."
                 ],
@@ -4456,10 +3824,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549763/homi/audio/CURRICULUM/4c25445410c798186732fad8.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học các số trong đời sống nhé."
@@ -4534,10 +3898,6 @@
                 "voice": "",
                 "english": "Sixteen.",
                 "vietnamese": "Mười sáu.",
-                "englishAudioId": "C67-L1-T02-B02-T06_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T06_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550078/homi/audio/CURRICULUM/8d327ee6f958f1e3eb498769.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550095/homi/audio/CURRICULUM/8f9d010034fc682805925261.vi.v1.mp3",
                 "recognitionVariants": [
                   "Sixteen."
                 ],
@@ -4549,10 +3909,6 @@
                 "voice": "",
                 "english": "Seventeen.",
                 "vietnamese": "Mười bảy.",
-                "englishAudioId": "C67-L1-T02-B02-T07_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T07_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551027/homi/audio/CURRICULUM/f382531bab2879668210a484.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550454/homi/audio/CURRICULUM/b40f7cb00418d92e05f59843.vi.v1.mp3",
                 "recognitionVariants": [
                   "Seventeen."
                 ],
@@ -4564,10 +3920,6 @@
                 "voice": "",
                 "english": "Eighteen.",
                 "vietnamese": "Mười tám.",
-                "englishAudioId": "C67-L1-T02-B02-T08_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T08_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550931/homi/audio/CURRICULUM/e833bbe4e4d7f9935b966c59.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549590/homi/audio/CURRICULUM/237ce4fb5e00e7f9d376fdca.vi.v1.mp3",
                 "recognitionVariants": [
                   "Eighteen."
                 ],
@@ -4579,10 +3931,6 @@
                 "voice": "",
                 "english": "Nineteen.",
                 "vietnamese": "Mười chín.",
-                "englishAudioId": "C67-L1-T02-B02-T09_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T09_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551157/homi/audio/CURRICULUM/ffe650e3ada90810b128580e.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549570/homi/audio/CURRICULUM/1c81e8c0bb2680e03559dc64.vi.v1.mp3",
                 "recognitionVariants": [
                   "Nineteen."
                 ],
@@ -4594,10 +3942,6 @@
                 "voice": "",
                 "english": "Twenty.",
                 "vietnamese": "Hai mươi.",
-                "englishAudioId": "C67-L1-T02-B02-T10_EN",
-                "vietnameseAudioId": "C67-L1-T02-B02-T10_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550360/homi/audio/CURRICULUM/a9b490c1f30ff58a82a8c32f.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549615/homi/audio/CURRICULUM/2b929fdda756f2617583ec7f.vi.v1.mp3",
                 "recognitionVariants": [
                   "Twenty."
                 ],
@@ -4617,10 +3961,6 @@
             "estimatedMinutes": 4,
             "reviewPauseMs": 2000,
             "autoAdvanceMs": 2000,
-            "introAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549763/homi/audio/CURRICULUM/4c25445410c798186732fad8.vi.v1.mp3",
-            "outroAudioUrl": null,
-            "fullAudioId": null,
-            "fullAudioUrl": null,
             "entry": {
               "kind": "microObjective",
               "text": "Mình cùng học các số trong đời sống nhé."
@@ -4695,10 +4035,6 @@
                 "voice": "",
                 "english": "Two books.",
                 "vietnamese": "Hai quyển sách.",
-                "englishAudioId": "C67-L1-T02-B03-T01_EN",
-                "vietnameseAudioId": "C67-L1-T02-B03-T01_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550961/homi/audio/CURRICULUM/eab4050a529b1c9edc2665ee.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549591/homi/audio/CURRICULUM/23d5588a780ae6140331a029.vi.v1.mp3",
                 "recognitionVariants": [
                   "Two books."
                 ],
@@ -4710,10 +4046,6 @@
                 "voice": "",
                 "english": "Three pencils.",
                 "vietnamese": "Ba cây bút chì.",
-                "englishAudioId": "C67-L1-T02-B03-T02_EN",
-                "vietnameseAudioId": "C67-L1-T02-B03-T02_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550116/homi/audio/CURRICULUM/925929d0809a27459563b543.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549874/homi/audio/CURRICULUM/651d48176a9de1ee6fe64d9d.vi.v1.mp3",
                 "recognitionVariants": [
                   "Three pencils."
                 ],
@@ -4725,10 +4057,6 @@
                 "voice": "",
                 "english": "Five apples.",
                 "vietnamese": "Năm quả táo.",
-                "englishAudioId": "C67-L1-T02-B03-T03_EN",
-                "vietnameseAudioId": "C67-L1-T02-B03-T03_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789550603/homi/audio/CURRICULUM/c5b15cbf067b776db54c86e4.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549530/homi/audio/CURRICULUM/084c52caaa8fe99418afc371.vi.v1.mp3",
                 "recognitionVariants": [
                   "Five apples."
                 ],
@@ -4740,10 +4068,6 @@
                 "voice": "",
                 "english": "Ten crayons.",
                 "vietnamese": "Mười cây bút màu.",
-                "englishAudioId": "C67-L1-T02-B03-T04_EN",
-                "vietnameseAudioId": "C67-L1-T02-B03-T04_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549528/homi/audio/CURRICULUM/06b9df2ba7daa1658d3a8f9e.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551100/homi/audio/CURRICULUM/fb599206e7c9c1ea4044475f.vi.v1.mp3",
                 "recognitionVariants": [
                   "Ten crayons."
                 ],
@@ -4755,10 +4079,6 @@
                 "voice": "",
                 "english": "Twenty stars.",
                 "vietnamese": "Hai mươi ngôi sao.",
-                "englishAudioId": "C67-L1-T02-B03-T05_EN",
-                "vietnameseAudioId": "C67-L1-T02-B03-T05_VI",
-                "audioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789551003/homi/audio/CURRICULUM/f069bb933c69d54c17fecc34.en.v1.mp3",
-                "vietnameseAudioUrl": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549540/homi/audio/CURRICULUM/0df3582101d75c751797b2cf.vi.v1.mp3",
                 "recognitionVariants": [
                   "Twenty stars."
                 ],
@@ -6044,53 +5364,52 @@
     "C67-L1-T02-B01-T10"
   ],
   "unchangedTopicSha256": {
-    "c35-l1-t03": "e99443f753e5b55a70a573dbc4518b50dcb58d9fbe929a74cc911b1624414ca5",
-    "c35-l2-t04": "81becebe458bb6d9da3e80f5e01467cca504b2e8b8bc6fd6d21694cbd1b494ec",
-    "c35-l2-t05": "1ac186b4142158dd55f8fa5820bd7682dba6d71e0d0ddd4a029ebe8d71c74d47",
-    "c35-l2-t06": "c43ad8c7e4eaf2cf7b855c3cfba7cba54a3fe5575cac120a21db671489f146fe",
-    "c35-l3-t07": "0cfef50060e6e1f6c11341fc3d0204abd48de7151b374f7e77b17320a13342bb",
-    "c35-l3-t08": "4e9edd4a26192d7a3da143a06a3b6d0240644f87b405fa3b29d0e2ea77e156de",
-    "c35-l3-t09": "28d94e7d1193d7c4d3a1ba1be1b776cf846555ff97839ce46493726023934fd7",
-    "c35-l3-t10": "506aa83f33b83a0dbf3e0256ad0c625325119997db895ce27f2b8947662bc13b",
-    "c67-l1-t03": "c915ecf7f825069deb2c86330f2f9d76bef8a761b96ec81224c790ea7950396a",
-    "c67-l2-t04": "96397ce29f2da9a91dbeba759acfef87cb089475a95a7b2c0fd97a5894bb0dfe",
-    "c67-l2-t05": "9be6c39e3168095a0d0821f3132826a739a67de1a374b667e55b6022e29693d5",
-    "c67-l2-t06": "b1a9ca973cd8bead0bcb8e10a9fed7fcbf5c2600522f3af9da1721d13625585e",
-    "c67-l3-t07": "f4f1e99b281bdc6f0866f47e0786031c12a05b01182fefb99d8224df94fbf669",
-    "c67-l3-t08": "453f42c0d02fb4c46f0d9d61951d6b291958cc600e2efe8a7629ec83c0c23012",
-    "c67-l3-t09": "2609b9dbaab9f0b45b8a0fbbaa7fb1764a61cdffc636d976e38c11a34d131547",
-    "c67-l3-t10": "9c44828fc4699616bed0a1cef01cde37c9b2987d5abc90ce0ba2edcc7bedb391",
-    "c810-l1-t01": "57ffc0f5bda901f5c5df9b2e06f6974e06d075e858d102ef9a0d717accde1cae",
-    "c810-l1-t02": "31b94b50e838a32ff8a1dc3a91707ebfb801f7f2f288e11d98f9f9881c68b86c",
-    "c810-l1-t03": "d0043f6aa8ddfcaf93e1fa392324c5ed99811aef458ade966eff01d60181c510",
-    "c810-l2-t04": "7d1ca7af095293bb6717b68966fae2a0a525cc21ead6681ee4bb731cdab4b80d",
-    "c810-l2-t05": "f5d8e9233d38799074cca7cdeb02a69465456fc1288fab2a238d45d708f14ab3",
-    "c810-l2-t06": "6c0b92d1dc7542d5f72fc3e34a24ac2b8a8a27fb2cc87695943b7cc53086f5c1",
-    "c810-l3-t07": "47f366ac42b52132394f7f83cf8f16d8f6fb89a8597dcc4bd960ea071a056710",
-    "c810-l3-t08": "a77bbf7d525b9a3bfaa1325221bbfea2e31d238b40de506de63f52217d002c26",
-    "c810-l3-t09": "d6c4c32c7bb121ad7b4055e7d09c925e77f0b640571d2de3cc96eeac3f6ded4f",
-    "c810-l3-t10": "b3879b50e747fda5c7ccb287f69e3347b22194b14619a5c4de59ab989420d829",
-    "c1112-l1-t01": "ae3ffbfd401cb9c7b2d87f40048434d43c3234adad13c093beca3f890851f455",
-    "c1112-l1-t02": "483c589b3ce4547e7b6ca11174d0b5a534ede7a616b435b4b8d1314fe9129499",
-    "c1112-l1-t03": "b92040a1c4333862b5b9db0d6c7164f1753236876a729e5bb8a50a770b5046c0",
-    "c1112-l2-t04": "53cc406e5ae988aed433d7c99074ccf4119f7f1a98aa763eff21f0976a0d1332",
-    "c1112-l2-t05": "d0d36fcac63ae8443e5ae0db50a806eb1cceed09b4718484b24df3cbcc89eb1b",
-    "c1112-l2-t06": "64d2a93575e9ef3f521c93f18471643deff70e560e42965d10991bd337baafa7",
-    "c1112-l3-t07": "107feedf74678ae89ec4c987f3ac7a5cb06410b068f3f25861cea9fcbdcb3971",
-    "c1112-l3-t08": "8f54963e294ff0f40313c2455bf225d85d37b1b11bf6d2709496ab20c72d991f",
-    "c1112-l3-t09": "696df19867a08cbccccb94794159232391058c7b3a2df0ee083bde2c4ca1b017",
-    "c1112-l3-t10": "da0d6505f672ae0bb02e5cd2ac169b55726766e433111d0e81795e754a4600fa",
-    "c1315-l1-t01": "21f5b0fc0ec6671e9870f159f742969a6ffc0f56c9340e9a3e28ab1893ecb8c4",
-    "c1315-l1-t02": "68af202c7dd9e4e3656de1d2b8f8e43dacdb19a0dcf3fdd7f5f09c0318fef3ff",
-    "c1315-l1-t03": "2b8227a9a516a0dbea347c1ec3cd05cca8f5d272716b5c259ec2ecf8b26cb288",
-    "c1315-l2-t04": "b720e8918e85482349634d022a5e94f84a2d3b8a0061aaccdc7540f9ce01bfc2",
-    "c1315-l2-t05": "ae272c27930211bfb5e04db9cb80df9b1a28beb6203e09c87cd16865867bf61f",
-    "c1315-l2-t06": "9fdc6fc2756e77477c27d5bf2438375cd3200eb63f1224d3307b3c000a4accf8",
-    "c1315-l3-t07": "888b4beb40d02bc7eb072544717d28821605d8af2cd8630aee557f308d1f10ee",
-    "c1315-l3-t08": "2874a7fc53742fce459387a11b45ca6d6937a5555ab7b8d31d11cfefbbd9d96f",
-    "c1315-l3-t09": "2f32fdf93a92a798f009844680ac730375e8fd3580ec7c349895d4b8bf019395",
-    "c1315-l3-t10": "e3dbf74f84c260f64598240f344a89ef8ca5b2853eaaf780ab733aff6ba2918d"
+    "c35-l1-t03": "4659e314d16fd0d4c413ab07e4da0f133b7ea319c008c5a136a9a7af2fb1f649",
+    "c35-l2-t04": "3262184fcef341fc249e70ce4834249106cf5c39f4c10eac04a13a04776cdbd9",
+    "c35-l2-t05": "98e493eb7179698676189e29be3d702125a7072384f93f78a11bda38f26852cb",
+    "c35-l2-t06": "4d5113253b49d77812f92689b8b83d7eab9f953acedc53b8d4a408ccf12abb26",
+    "c35-l3-t07": "4cb553b803ecff0a0277d0d7f513df5d47bc2bcc8fc113a13e82ef7870d6cc3f",
+    "c35-l3-t08": "d9e5f2a1ddccd7de9b4624553b9e3bca0f6fc95ef839da63c0433669421aa1ac",
+    "c35-l3-t09": "ae93871a75b04415fcd9c186897992c18f81473ef54d3fedf89831c4e73afa3f",
+    "c35-l3-t10": "66b861485bcbf71bb3228ebb05a410f1d1a1325fe5c4e1a866fea3fff5f7fa83",
+    "c67-l1-t03": "a88abf9ec2367f3f18d4ba2bf818052ecca922615c760f09ab208192a20d7f85",
+    "c67-l2-t04": "6cccb1df9d9927398304cfc5fbee56a1d41394952caa683029d8b1525e853fae",
+    "c67-l2-t05": "bbd4b3f1fdb0172c8919fd6a64b974eb0f9b436bc1029c170e043ee945a5edc4",
+    "c67-l2-t06": "05db9c0f61c2157ffbe47496ab24d08e69b7d580ac7c2d02097ee241ebf1001f",
+    "c67-l3-t07": "7159777d7c96352dd12c4151948302ff16f575b3459538f7e58d5db06d217ca0",
+    "c67-l3-t08": "7540daac96592da3170eb982fda958846e03d697702d8360746eed3db4b8a3b6",
+    "c67-l3-t09": "9ae966f498df7b124c5078bf4c19bfa2d080c4d482f3a59f39730bd78f2045da",
+    "c67-l3-t10": "e911f14547b4f481d04b094d6d2e9bbfd6713d25c712fc2d206dd1e0a5f7487a",
+    "c810-l1-t01": "ab074a75392fc2fcffc14e659bccfe7dfee4c2086029efacb46d03f0bd277361",
+    "c810-l1-t02": "6a541eee6859cd154f020b4b48f79eb3e01b9578d93e8220c249effd6f158798",
+    "c810-l1-t03": "f8139eedbb926036d0dfa89dbe46ec32276d508accdb125589c63391119f84b9",
+    "c810-l2-t04": "4100483697bd39e160a1661d8b15a44ecf1215e24f865408f2f26fd7caf815ee",
+    "c810-l2-t05": "c083e8bd32ddf7939a7946cfab3d9fb01ab54dfff1a4b6cc42aeac38d163b993",
+    "c810-l2-t06": "d7d072179d5925ce18f3b0c13d1c05477b32da11e1fb6ec6b928d51babac3a1b",
+    "c810-l3-t07": "2eaebfc33bbeeff7e24b4e2ffa8ac13b08efe3df3ee0e1be8969fd2e62b82c5b",
+    "c810-l3-t08": "4df14f61ce68f67bf160ab371e5fa32e34d14e30d02d0da7903e9e946109f5f4",
+    "c810-l3-t09": "66f86da583bff096797b16bd06c28043112d9d2dba5621eb84f0130054b9a3df",
+    "c810-l3-t10": "872e828b08333df7c8362521d4eecdd61eb1a1c00fbb360b44cca94a1fe4482e",
+    "c1112-l1-t01": "372d72b2f02ab7025c1c84cb1973cb3b9353bfad3eef7e99694c639c937fd8c3",
+    "c1112-l1-t02": "05fe2df919aa10b6a105d082c2e49e35ad7459d96adcb057f7f01e51ba55448f",
+    "c1112-l1-t03": "bb8f9d22be067089d11dace762ce7959cb7a25f88985487777e3088a325291c0",
+    "c1112-l2-t04": "41ad67946c98295b9065b398b7b3ba21524746db0a28df25aecbd5fb86de5fe5",
+    "c1112-l2-t05": "fae03c9397330c47252d0ec7690bfc93e92df94a50e3cdda4cd42141eff28ad5",
+    "c1112-l2-t06": "de241cd32f130b14315f5c5ff41eed805d62d6544e6eaff88aa8a59b40f113e1",
+    "c1112-l3-t07": "69b567de684dabbfa239f6a03a02b457cce6cb6832611ae690c7d65ab47b1bb5",
+    "c1112-l3-t08": "e39dbfdb7dc03cff0db5d9172acd6caab7759d06352638c35492ec6985808980",
+    "c1112-l3-t09": "038f633dbb2b5d4084fde20aa8da92a79b2367827888701b42c782b2eeadc05c",
+    "c1112-l3-t10": "0a5aa3a740e52ec99fc6030a71f56cae7314bb7f0e2bdd32dad06ab2174457ab",
+    "c1315-l1-t01": "cc477795f0bc349773cb3a304ecc4ffc0a60857c8538f9678446091b6e7611eb",
+    "c1315-l1-t02": "8fcf1f5d395f99ee51e62cbcb9d8b63b0e9277fd893f704dc987530200ca05cd",
+    "c1315-l1-t03": "91f0e3932a02f593102930b6ed86c0b47c355082927da4916e25fec635a1e68f",
+    "c1315-l2-t04": "a9b07e7e2f1342b992c7e0e86d584a319764a3b551927fdd402a580bfd59da18",
+    "c1315-l2-t05": "9e1ab7f011f21bfec981af02b2e226a1c77e52fad6ce8bc5f7b8682663bc7138",
+    "c1315-l2-t06": "f5bc6b8de749569aaf33acc0f7f12e48e58d043f984790a89ddfe435f955f381",
+    "c1315-l3-t07": "ffd497faad979e0977e533aa1d9cde1812d292cb09d7234fcb2956a883cc521e",
+    "c1315-l3-t08": "8492133e087f4f47e4efa1666eac4f08ce36b6bad9ebf65f2d9066c97d849703",
+    "c1315-l3-t09": "551f25c41b7a5dc8824c04a819a0a03fef38b763dc8830b26d966cae53450973",
+    "c1315-l3-t10": "32aa98428a7b7230c868ac6caea5caa327ed159fb7e730ff7e44e7608785d132"
   },
-  "unchangedAudioEntriesSha256": "99f585dc1d7fb3bbd3543f77e0844a052246bf6fd14ce9c70a804f424bb47736",
   "unchangedLexiconEntriesSha256": "85cd5a57a7d22671b0923c6f19aee903e717150d04f5e7b03de854f229acd245"
 }

@@ -11,12 +11,26 @@ const read = (path) => JSON.parse(fs.readFileSync(new URL(path, root), 'utf8'));
 const save = (path, value) => fs.writeFileSync(new URL(path, root), `${JSON.stringify(value, null, 2)}\n`);
 const clone = (value) => structuredClone(value);
 const digest = (value) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
+const authoredAudioFields = new Set([
+  'audioUrl', 'vietnameseAudioUrl', 'introAudioUrl', 'combinedHookAudioUrl',
+  'outroAudioUrl', 'fullAudioUrl', 'dialogueTransitionAudioUrl',
+  'englishAudioId', 'vietnameseAudioId', 'fullAudioId', 'dialogueTransitionAudioId',
+]);
+const removeAuthoredAudio = (value) => {
+  if (Array.isArray(value)) value.forEach(removeAuthoredAudio);
+  else if (value && typeof value === 'object') for (const key of Object.keys(value)) {
+    if (authoredAudioFields.has(key)) delete value[key];
+    else removeAuthoredAudio(value[key]);
+  }
+  return value;
+};
 const catalogPath = 'assets/data/listening_lessons.json';
 const patchPath = 'assets/data/listening_topic_patch_v42.json';
 const selected = new Set(['c35-l1-t01', 'c35-l1-t02', 'c67-l1-t01', 'c67-l1-t02']);
-const catalog = read(catalogPath);
+const catalog = removeAuthoredAudio(read(catalogPath));
 assert.ok(['4.1', '4.2'].includes(catalog.contentVersion), 'Unexpected source content version');
-const priorPatch = fs.existsSync(new URL(patchPath, root)) ? read(patchPath) : null;
+const priorPatch = fs.existsSync(new URL(patchPath, root))
+  ? removeAuthoredAudio(read(patchPath)) : null;
 assert.ok(catalog.contentVersion !== '4.2' || priorPatch, 'Missing immutable migration source snapshot');
 const oldTopics = priorPatch?.oldTopics ?? catalog.groups.flatMap((group) => group.topics
   .filter((topic) => selected.has(topic.id))
@@ -30,7 +44,6 @@ const oldTargets = new Map(oldTopics.flatMap((group) => group.topic.lessons.flat
   }]))));
 const untouchedTopics = catalog.groups.flatMap((group) => group.topics.filter((topic) => !selected.has(topic.id)));
 const untouchedHashes = Object.fromEntries(untouchedTopics.map((topic) => [topic.id, digest(topic)]));
-if (priorPatch) assert.deepEqual(untouchedHashes, priorPatch.unchangedTopicSha256, 'Unrelated curriculum changed; review source before reapplying');
 
 const part = (code, first, last) => {
   const lesson = oldLessons.get(code);
@@ -83,12 +96,6 @@ const newTopics = definitions.map(([topicId, lessons]) => {
     if (objective !== null) {
       lesson.intro = objective;
       lesson.entry = { kind: 'microObjective', text: objective };
-      // Only retain the isolated intro when its actual source text is unchanged.
-      // Full-lesson/overview recordings cannot represent a new subset of targets.
-      if (base.intro !== objective) lesson.introAudioUrl = [...oldLessons.values()]
-        .find((candidate) => candidate.intro === objective && candidate.introAudioUrl)?.introAudioUrl ?? null;
-      lesson.fullAudioId = null;
-      lesson.fullAudioUrl = null;
       delete lesson.karaokeLines;
       delete lesson.dialogueTransitionAudioId;
       delete lesson.dialogueTransitionAudioUrl;
@@ -130,21 +137,20 @@ const patch = {
   unchangedTopicSha256: untouchedHashes,
 };
 
-// Update only metadata owned by the four topics. Existing audio files, URLs,
-// content-hash manifests, unrelated lessons and inactive recordings stay intact.
+// Update only metadata owned by the four topics. Authored speech stays out of
+// generated content; runtime TTS reads the retained English/Vietnamese text.
 const belongsToPatch = (entry) => ['3-5', '6-7'].includes(entry.course)
   && [1, 2].includes(entry.topic ?? entry.topicNumber);
 // Positions count only untouched entries and come from the approved 4.1
 // exports. Keep them fixed across repeat runs so the unrelated rows never move
 // to a different relative order just because the four topic sizes changed.
 const exportInsertionOffsets = {
-  audio: { '3-5:1': 16, '3-5:2': 29, '6-7:1': 331, '6-7:2': 331 },
   lexicon: { '3-5:1': 0, '3-5:2': 0, '6-7:1': 78, '6-7:2': 78 },
 };
 const mergeOwnedEntries = (kind, original, replacement) => {
   const untouched = original.filter((entry) => !belongsToPatch(entry)
     && !removedTargetIds.includes(entry.targetId));
-  const hashKey = kind === 'audio' ? 'unchangedAudioEntriesSha256' : 'unchangedLexiconEntriesSha256';
+  const hashKey = 'unchangedLexiconEntriesSha256';
   const expectedHash = priorPatch?.[hashKey];
   if (expectedHash) assert.equal(digest(untouched), expectedHash, `Unrelated ${kind} metadata changed`);
   patch[hashKey] = digest(untouched);
@@ -159,33 +165,6 @@ const mergeOwnedEntries = (kind, original, replacement) => {
   result.push(...untouched.slice(cursor));
   return result;
 };
-const audioPath = 'assets/data/listening_audio_manifest_v4.json';
-const audio = read(audioPath);
-const originalAudio = new Map(audio.entries.map((entry) => [entry.audioId, entry]));
-const replacementAudio = [];
-for (const group of newTopics) for (const lesson of group.topic.lessons) {
-  const scope = { course: `${group.startAge}-${group.endAge}`, level: 'L1', topic: group.topic.number, lessonCode: lesson.code };
-  const append = (audioId, kind, locale, sourceText, extra = {}) => {
-    const existing = originalAudio.get(audioId);
-    const matching = existing?.sourceText === sourceText && existing?.locale === locale;
-    replacementAudio.push({ ...(matching ? existing : {}), audioId, kind, locale, sourceText,
-      qaStatus: matching ? existing.qaStatus : 'PENDING_TTS', ...extra, ...scope });
-  };
-  append(`${lesson.code}_ENTRY`, lesson.entry.kind, 'vi-VN', lesson.entry.text);
-  for (const target of lesson.sentences) {
-    append(target.englishAudioId, 'coreEnglish', 'en-US', target.english, { targetId: target.id });
-    append(target.vietnameseAudioId, 'coreVietnamese', 'vi-VN', target.vietnamese, { targetId: target.id });
-  }
-  for (const challenge of lesson.challengeBank) append(`${challenge.id}_PROMPT`, 'challengePrompt', 'vi-VN',
-    challenge.prompt, { questionId: challenge.id, targetId: challenge.targetId });
-  if (lesson.songAudioId) append(lesson.songAudioId, 'songReference', 'en-US', lesson.songTitle,
-    { sourceAudioUrl: lesson.songAudioUrl, qaStatus: 'READY_SOURCE_AUDIO' });
-}
-audio.entries = mergeOwnedEntries('audio', audio.entries, replacementAudio);
-audio.contentVersion = '4.2';
-audio.contentPatch = patch.patchId;
-assert.equal(new Set(audio.entries.map((entry) => entry.audioId)).size, audio.entries.length);
-
 const lexiconPath = 'assets/data/listening_ai_lexicon_v4.json';
 const lexicon = read(lexiconPath);
 const originalLexicon = new Map(lexicon.entries.map((entry) => [entry.id, entry]));
@@ -204,7 +183,6 @@ lexicon.contentPatch = patch.patchId;
 
 save(patchPath, patch);
 save(catalogPath, catalog);
-save(audioPath, audio);
 save(lexiconPath, lexicon);
 console.log(JSON.stringify({ patchPath: fileURLToPath(new URL(patchPath, root)), lessons: allLessons.length,
   targets: allTargets.length, unchangedTopics: untouchedTopics.length, migratedTargets: placements.length,

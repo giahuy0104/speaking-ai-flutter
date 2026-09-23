@@ -7,6 +7,7 @@ import '../../vocabulary/domain/vocabulary_entry.dart';
 import '../domain/controlled_speech_lexicon.dart';
 import '../domain/homi_fallback_catalog.dart';
 import '../domain/master_navigation_contract.dart';
+import '../domain/main_assistant_audio_keys.dart';
 import 'active_learning_command_resolver.dart';
 import 'voice_navigation_intent_resolver.dart';
 
@@ -29,16 +30,22 @@ enum MainVoiceAssistantStage {
 }
 
 class MainVoiceAssistantUtterance {
-  const MainVoiceAssistantUtterance(this.text, {this.locale = 'vi-VN'});
+  const MainVoiceAssistantUtterance(
+    this.text, {
+    this.locale = 'vi-VN',
+    this.audioKey,
+  });
 
   final String text;
   final String locale;
+  final String? audioKey;
 }
 
 class MainVoiceAssistantTurn {
   const MainVoiceAssistantTurn({
     required this.promptText,
     required this.continueListening,
+    this.promptAudioKey,
     this.promptSequence = const <MainVoiceAssistantUtterance>[],
     this.onPromptCompleted,
     this.navigationBeforePrompt,
@@ -48,6 +55,7 @@ class MainVoiceAssistantTurn {
 
   final String promptText;
   final bool continueListening;
+  final String? promptAudioKey;
   final List<MainVoiceAssistantUtterance> promptSequence;
   final Future<void> Function()? onPromptCompleted;
   final VoiceNavigationIntent? navigationBeforePrompt;
@@ -118,6 +126,22 @@ class MainVoiceAssistantFlow {
       <MainVoiceAssistantStage, int>{};
 
   MainVoiceAssistantStage get stage => _stage;
+
+  String? get currentPromptAudioKey => switch (_stage) {
+    MainVoiceAssistantStage.chooseFeature => MainAssistantAudioKeys.openMenu,
+    MainVoiceAssistantStage.chooseOtherLearning ||
+    MainVoiceAssistantStage.chooseModuleSwitch ||
+    MainVoiceAssistantStage.chooseAfterTranslationStop ||
+    MainVoiceAssistantStage.chooseAlternativeAfterLearning =>
+      MainAssistantAudioKeys.chooseTranslation,
+    MainVoiceAssistantStage.chooseVocabularyCollection =>
+      MainAssistantAudioKeys.chooseVocabulary,
+    MainVoiceAssistantStage.activeLearning when _activeVoicePrompt == null =>
+      MainAssistantAudioKeys.activeLearningControls,
+    _ => null,
+  };
+
+  String get silenceRetryAudioKey => MainAssistantAudioKeys.noSpeech;
 
   void setChildAge(int age) {
     if (_configuredChildAge == age) {
@@ -319,6 +343,12 @@ class MainVoiceAssistantFlow {
             _isStarVocabularyChoice(normalized),
       MainVoiceAssistantStage.activeLearning =>
         _resolveActiveCommand(normalized) != null ||
+            MasterNavigationContract.matches('CONTINUE_GLOBAL', normalized) ||
+            (_activeLearningKind == ActiveLearningModuleKind.listeningLesson &&
+                MasterNavigationContract.matches(
+                  'GO_TO_TOPIC_SELECTION',
+                  normalized,
+                )) ||
             _isTopicChoice(normalized) ||
             _isVocabularyChoice(normalized) ||
             _isTranslationChoice(normalized) ||
@@ -368,6 +398,12 @@ class MainVoiceAssistantFlow {
           _isStarVocabularyChoice(normalized),
     MainVoiceAssistantStage.activeLearning =>
       _resolveActiveCommand(normalized) != null ||
+          MasterNavigationContract.matches('CONTINUE_GLOBAL', normalized) ||
+          (_activeLearningKind == ActiveLearningModuleKind.listeningLesson &&
+              MasterNavigationContract.matches(
+                'GO_TO_TOPIC_SELECTION',
+                normalized,
+              )) ||
           _isTopicChoice(normalized) ||
           _isVocabularyChoice(normalized) ||
           _isTranslationChoice(normalized) ||
@@ -406,6 +442,7 @@ class MainVoiceAssistantFlow {
     if (_isStopChoice(normalized)) {
       return MainVoiceAssistantTurn(
         promptText: stopPrompt,
+        promptAudioKey: MainAssistantAudioKeys.cancelled,
         continueListening: false,
         activeLearningCommand: _stage == MainVoiceAssistantStage.activeLearning
             ? ActiveLearningCommand.stop
@@ -481,6 +518,7 @@ class MainVoiceAssistantFlow {
         _handleReplayLessonConfirmation(recognizedText, normalized),
       MainVoiceAssistantStage.idle => const MainVoiceAssistantTurn(
         promptText: openingPrompt,
+        promptAudioKey: MainAssistantAudioKeys.openMenu,
         continueListening: true,
       ),
     };
@@ -575,6 +613,7 @@ class MainVoiceAssistantFlow {
     if (_looksLikePromptEcho(normalized)) {
       return const MainVoiceAssistantTurn(
         promptText: openingPrompt,
+        promptAudioKey: MainAssistantAudioKeys.openMenu,
         continueListening: true,
       );
     }
@@ -595,6 +634,7 @@ class MainVoiceAssistantFlow {
     }
     return const MainVoiceAssistantTurn(
       promptText: openingPrompt,
+      promptAudioKey: MainAssistantAudioKeys.openMenu,
       continueListening: true,
     );
   }
@@ -606,6 +646,7 @@ class MainVoiceAssistantFlow {
     if (_looksLikePromptEcho(normalized)) {
       return const MainVoiceAssistantTurn(
         promptText: otherLearningPrompt,
+        promptAudioKey: MainAssistantAudioKeys.chooseTranslation,
         continueListening: true,
       );
     }
@@ -631,6 +672,7 @@ class MainVoiceAssistantFlow {
     }
     return const MainVoiceAssistantTurn(
       promptText: otherLearningPrompt,
+      promptAudioKey: MainAssistantAudioKeys.chooseTranslation,
       continueListening: true,
     );
   }
@@ -642,6 +684,7 @@ class MainVoiceAssistantFlow {
     if (_looksLikePromptEcho(normalized)) {
       return const MainVoiceAssistantTurn(
         promptText: afterTranslationStopPrompt,
+        promptAudioKey: MainAssistantAudioKeys.chooseTranslation,
         continueListening: true,
       );
     }
@@ -664,6 +707,7 @@ class MainVoiceAssistantFlow {
     }
     return const MainVoiceAssistantTurn(
       promptText: afterTranslationStopPrompt,
+      promptAudioKey: MainAssistantAudioKeys.chooseTranslation,
       continueListening: true,
     );
   }
@@ -677,6 +721,7 @@ class MainVoiceAssistantFlow {
       promptText: resuming
           ? MasterNavigationContract.translationContinue
           : continuousTranslationPrompt,
+      promptAudioKey: MainAssistantAudioKeys.translationStarted,
       continueListening: false,
       navigationAfterPrompt: VoiceNavigationIntent(
         destination: VoiceNavigationDestination.conversation,
@@ -691,17 +736,34 @@ class MainVoiceAssistantFlow {
     required String recognizedText,
     required VoiceNavigationDestination destination,
     required String promptText,
+    VoiceVocabularyTarget? vocabularyTarget,
   }) {
+    final transitionAudioKey = vocabularyTarget != null
+        ? null
+        : switch (destination) {
+            VoiceNavigationDestination.topics =>
+              MainAssistantAudioKeys.switchedToListening,
+            VoiceNavigationDestination.vocabulary =>
+              MainAssistantAudioKeys.switchedToVocabulary,
+            _ => MainAssistantAudioKeys.switchedToTranslation,
+          };
     final turn = MainVoiceAssistantTurn(
       promptText: promptText,
+      promptAudioKey: transitionAudioKey,
       // A module transfer starts a new translation session. Keep its authored
       // introduction in the same awaited prompt sequence as the transition so
       // the destination cannot open its microphone between the two utterances.
       // Direct MAIN entry and explicit resume already own their own prompts.
       promptSequence: destination == VoiceNavigationDestination.conversation
           ? <MainVoiceAssistantUtterance>[
-              MainVoiceAssistantUtterance(promptText),
-              const MainVoiceAssistantUtterance(continuousTranslationPrompt),
+              MainVoiceAssistantUtterance(
+                promptText,
+                audioKey: transitionAudioKey,
+              ),
+              const MainVoiceAssistantUtterance(
+                continuousTranslationPrompt,
+                audioKey: MainAssistantAudioKeys.translationStarted,
+              ),
             ]
           : const <MainVoiceAssistantUtterance>[],
       continueListening: false,
@@ -720,6 +782,7 @@ class MainVoiceAssistantFlow {
             : null,
         enterMainSpeakingMode:
             destination == VoiceNavigationDestination.conversation,
+        vocabularyTarget: vocabularyTarget,
       ),
     );
     reset();
@@ -781,6 +844,7 @@ class MainVoiceAssistantFlow {
     if (_looksLikePromptEcho(normalized)) {
       return const MainVoiceAssistantTurn(
         promptText: 'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?',
+        promptAudioKey: MainAssistantAudioKeys.chooseVocabulary,
         continueListening: true,
       );
     }
@@ -795,6 +859,7 @@ class MainVoiceAssistantFlow {
     if (collection == null) {
       return const MainVoiceAssistantTurn(
         promptText: 'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?',
+        promptAudioKey: MainAssistantAudioKeys.chooseVocabulary,
         continueListening: true,
       );
     }
@@ -939,6 +1004,29 @@ class MainVoiceAssistantFlow {
         destination: VoiceNavigationDestination.conversation,
       );
     }
+    final vocabularyTarget = _vocabularyTarget(normalized);
+    if (vocabularyTarget != null &&
+        _activeLearningKind != ActiveLearningModuleKind.vocabulary) {
+      return _moduleNavigationTurn(
+        recognizedText: recognizedText,
+        destination: VoiceNavigationDestination.vocabulary,
+        promptText: '',
+        vocabularyTarget: vocabularyTarget,
+      );
+    }
+    final activeCommand = _resolveActiveCommand(normalized);
+    if (_activeLearningKind == ActiveLearningModuleKind.listeningLesson &&
+        MasterNavigationContract.matches('GO_TO_TOPIC_SELECTION', normalized) &&
+        activeCommand != ActiveLearningCommand.nextLesson) {
+      return _beginConfiguredTopicSelection(recognizedText);
+    }
+    if (MasterNavigationContract.matches('CONTINUE_GLOBAL', normalized) &&
+        _isWaitingChoiceNode(_activeVoiceNode)) {
+      return MainVoiceAssistantTurn(
+        promptText: _activeVoicePrompt ?? activeLearningPrompt,
+        continueListening: true,
+      );
+    }
     if (_isSwitchModuleMenuChoice(normalized) ||
         (_activeVoiceNode == null &&
             _isLeaveActiveLearningChoice(normalized))) {
@@ -949,9 +1037,8 @@ class MainVoiceAssistantFlow {
         continueListening: true,
       );
     }
-    final command = _resolveActiveCommand(normalized);
-    if (command != null) {
-      return _activeLearningTurn(command);
+    if (activeCommand != null) {
+      return _activeLearningTurn(activeCommand);
     }
     return MainVoiceAssistantTurn(
       promptText: _activeVoicePrompt ?? activeLearningPrompt,
@@ -1052,7 +1139,11 @@ class MainVoiceAssistantFlow {
             ? ''
             : 'Cùng học tiếp nhé',
       ActiveLearningCommand.replayCurrent =>
-        isVocabulary ? '' : 'Mình nghe lại câu này nhé',
+        isVocabulary
+            ? ''
+            : _activeVoiceNode == ActiveLearningVoiceNode.song
+            ? MasterNavigationContract.songReplay
+            : 'Mình nghe lại câu này nhé',
       ActiveLearningCommand.nextItem =>
         isVocabulary || _activeVoiceNode == ActiveLearningVoiceNode.core
             ? ''
@@ -1079,6 +1170,12 @@ class MainVoiceAssistantFlow {
       promptText: (_activeVoiceSelection?.isMainVoiceChoice ?? false)
           ? ''
           : promptText,
+      promptAudioKey:
+          command == ActiveLearningCommand.replayCurrent &&
+              _activeVoiceNode == ActiveLearningVoiceNode.song &&
+              !isVocabulary
+          ? MainAssistantAudioKeys.songReplay
+          : null,
       continueListening: false,
       activeLearningCommand: command,
     );
@@ -1160,6 +1257,7 @@ class MainVoiceAssistantFlow {
         reset();
         return const MainVoiceAssistantTurn(
           promptText: 'Chủ đề này chưa có bài học. Bạn thử lại sau nhé.',
+          promptAudioKey: MainAssistantAudioKeys.lessonNotFound,
           continueListening: false,
         );
       }
@@ -1363,6 +1461,7 @@ class MainVoiceAssistantFlow {
       reset();
       return const MainVoiceAssistantTurn(
         promptText: 'HOMI chưa chọn được Chủ đề. Bạn thử lại nhé.',
+        promptAudioKey: MainAssistantAudioKeys.topicNotFound,
         continueListening: false,
       );
     }
@@ -1490,6 +1589,7 @@ class MainVoiceAssistantFlow {
 
     return MainVoiceAssistantTurn(
       promptText: 'Bắt đầu nhé.',
+      promptAudioKey: MainAssistantAudioKeys.startNow,
       continueListening: false,
       navigationAfterPrompt: VoiceNavigationIntent(
         destination: VoiceNavigationDestination.topics,
@@ -1616,6 +1716,29 @@ class MainVoiceAssistantFlow {
       _matchesFallbackIntent(normalized, 'INT-015') ||
       _containsPhrase(normalized, 'yeu thich');
 
+  static VoiceVocabularyTarget? _vocabularyTarget(String normalized) {
+    if (MasterNavigationContract.matches('OPEN_PARENT', normalized)) {
+      return VoiceVocabularyTarget.parent;
+    }
+    if (MasterNavigationContract.matches('OPEN_STAR', normalized)) {
+      return VoiceVocabularyTarget.star;
+    }
+    if (MasterNavigationContract.matches('OPEN_REVIEW', normalized)) {
+      return VoiceVocabularyTarget.review;
+    }
+    return null;
+  }
+
+  static bool _isWaitingChoiceNode(ActiveLearningVoiceNode? node) => const {
+    ActiveLearningVoiceNode.vocabularyMenu,
+    ActiveLearningVoiceNode.parentAlternatives,
+    ActiveLearningVoiceNode.starAlternatives,
+    ActiveLearningVoiceNode.reviewAlternatives,
+    ActiveLearningVoiceNode.todayEnd,
+    ActiveLearningVoiceNode.blockEnd,
+    ActiveLearningVoiceNode.listEnd,
+  }.contains(node);
+
   static bool _isTranslationChoice(String normalized) =>
       MasterNavigationContract.matches('OPEN_TRANSLATE', normalized) ||
       MasterNavigationContract.matches('TRANSLATE_CONTINUOUS', normalized) ||
@@ -1725,6 +1848,7 @@ class MainVoiceAssistantFlow {
     };
     return MainVoiceAssistantTurn(
       promptText: promptText,
+      promptAudioKey: currentPromptAudioKey,
       continueListening: true,
     );
   }
@@ -1735,6 +1859,7 @@ class MainVoiceAssistantFlow {
     if (attempts == 1) {
       return MainVoiceAssistantTurn(
         promptText: currentPrompt,
+        promptAudioKey: currentPromptAudioKey,
         continueListening: true,
       );
     }
@@ -1750,12 +1875,14 @@ class MainVoiceAssistantFlow {
         _stage == MainVoiceAssistantStage.activeLearning) {
       return const MainVoiceAssistantTurn(
         promptText: MasterNavigationContract.keepCurrentContent,
+        promptAudioKey: MainAssistantAudioKeys.keepCurrentContent,
         continueListening: false,
         activeLearningCommand: ActiveLearningCommand.resume,
       );
     }
     return MainVoiceAssistantTurn(
       promptText: MasterNavigationContract.pause,
+      promptAudioKey: MainAssistantAudioKeys.cancelled,
       continueListening: false,
       activeLearningCommand: _stage == MainVoiceAssistantStage.activeLearning
           ? ActiveLearningCommand.stop
@@ -1780,6 +1907,7 @@ class MainVoiceAssistantFlow {
   MainVoiceAssistantTurn handleSilenceExit() {
     return MainVoiceAssistantTurn(
       promptText: silenceExitPrompt,
+      promptAudioKey: MainAssistantAudioKeys.cancelled,
       continueListening: false,
       activeLearningCommand: _stage == MainVoiceAssistantStage.activeLearning
           ? ActiveLearningCommand.stop

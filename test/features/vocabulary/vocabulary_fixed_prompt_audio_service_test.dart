@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_guide_audio_library.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
+import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service_base.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_fixed_prompt_audio_service.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_flow_v3.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -71,6 +72,49 @@ void main() {
     );
     expect(media.played, isEmpty);
   });
+
+  test('fixed guide prompt resolves by Registry audio key', () async {
+    final media = _RecordingMediaService();
+    final registry = _RecordingRegistryVoiceService();
+    final service = AssetFirstVocabularyFixedPromptAudioService(
+      mediaService: media,
+      registryService: registry,
+      audioLibrary: LessonGuideAudioLibrary(assetPaths: const <String>[]),
+    );
+
+    expect(
+      await service.playPromptIfAvailable(VocabularyFlowV3.parentSmallIntro),
+      isTrue,
+    );
+    expect(registry.keys, <String>['vocabulary.flow.parent_listen.vi']);
+    expect(media.played, isEmpty);
+  });
+}
+
+class _RecordingRegistryVoiceService
+    implements VoicePromptService, KeyedVoicePromptService {
+  final List<String> keys = <String>[];
+
+  @override
+  Future<void> speakAndWaitWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) async {
+    keys.add(audioKey);
+  }
+
+  @override
+  Future<void> speak(String text, {String locale = 'vi-VN'}) async {}
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {}
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  Future<void> dispose() async {}
 }
 
 class _RecordingMediaService extends LessonMediaService {

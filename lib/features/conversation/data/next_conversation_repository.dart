@@ -523,6 +523,9 @@ class NextConversationRepository
       audioUri: rawAudioUrl == null
           ? null
           : _config.backendBaseUri.resolve(rawAudioUrl),
+      audioSha256: _readBackendAudioSha256(json),
+      audioDurationSeconds: _readBackendAudioDuration(json),
+      dynamicAudioKey: _readBackendDynamicAudioKey(json),
     );
   }
 
@@ -585,6 +588,9 @@ class NextConversationRepository
         audioUri: rawAudioUrl is String && rawAudioUrl.isNotEmpty
             ? _config.backendBaseUri.resolve(rawAudioUrl)
             : null,
+        audioSha256: _readBackendAudioSha256(json),
+        audioDurationSeconds: _readBackendAudioDuration(json),
+        dynamicAudioKey: _readBackendDynamicAudioKey(json),
       ),
     );
   }
@@ -3054,6 +3060,26 @@ bool _isSafeStreamingTextRetry(Object error) {
   return error.statusCode == 425 ||
       error.statusCode == 429 ||
       (error.statusCode == 409 && error.errorCode == 'RATE_LIMITED');
+}
+
+String? _readBackendAudioSha256(Map<String, dynamic> json) {
+  final value = json['audioSha256'] ?? json['sha256'];
+  return value is String && RegExp(r'^[a-fA-F0-9]{64}$').hasMatch(value)
+      ? value.toLowerCase()
+      : null;
+}
+
+double? _readBackendAudioDuration(Map<String, dynamic> json) {
+  final value = json['audioDurationSeconds'] ?? json['durationSeconds'];
+  final duration = value is num ? value.toDouble() : null;
+  return duration != null && duration > 0 && duration <= 45 ? duration : null;
+}
+
+String? _readBackendDynamicAudioKey(Map<String, dynamic> json) {
+  final value = json['dynamicAudioKey'] ?? json['audioKey'];
+  return value is String && RegExp(r'^[a-fA-F0-9]{64}$').hasMatch(value)
+      ? value.toLowerCase()
+      : null;
 }
 
 final math.Random _conversationRetryRandom = math.Random();

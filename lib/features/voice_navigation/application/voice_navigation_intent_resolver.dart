@@ -9,6 +9,9 @@ enum VoiceNavigationDestination {
   settings,
 }
 
+/// Optional direct entry inside the Vocabulary module.
+enum VoiceVocabularyTarget { parent, star, review }
+
 class VoiceNavigationIntent {
   const VoiceNavigationIntent({
     required this.destination,
@@ -23,6 +26,7 @@ class VoiceNavigationIntent {
     this.relearnLesson = false,
     this.relearnLevel = false,
     this.enterMainSpeakingMode = false,
+    this.vocabularyTarget,
   });
 
   final VoiceNavigationDestination destination;
@@ -37,6 +41,7 @@ class VoiceNavigationIntent {
   final bool relearnLesson;
   final bool relearnLevel;
   final bool enterMainSpeakingMode;
+  final VoiceVocabularyTarget? vocabularyTarget;
 }
 
 class VoiceNavigationIntentResolver {

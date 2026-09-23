@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-23T14:08:45.523044Z",
+  "minimumAppVersion": "1.0.8",
+  "packs": [
+    {
+      "pack": "assistant-core",
+      "version": "v2",
+      "minimumAppVersion": "1.0.8",
+      "manifest": "assets/data/assistant_core_audio.json",
+      "manifestSha256": "bfa1d167207042dc3b3e883b00171df3dffa0077054a7474f2fb9e536449d77c",
+      "audioCount": 25,
+      "sizeBytes": 859719,
+      "preloadGroup": "shared"
+    },
+    {
+      "pack": "listening-common",
+      "version": "v1",
+      "minimumAppVersion": "1.0.8",
+      "manifest": "assets/data/listening_common_audio.json",
+      "manifestSha256": "1d8a775e746e73f97b951f7da4692779608bb80cb7e43e87f3d064dda749b220",
+      "audioCount": 126,
+      "sizeBytes": 11027901,
+      "preloadGroup": "shared"
+    },
+    {
+      "pack": "listening-3-5",
+      "version": "v1",
+      "minimumAppVersion": "1.0.8",
+      "manifest": "assets/data/listening_3_5_audio.json",
+      "manifestSha256": "3703dd440a9f02a471ebb235120d9672c27444ad2c370daa70db8a2db9628695",
+      "audioCount": 206,
+      "sizeBytes": 3527759,
+      "preloadGroup": "3-5"
+    },
+    {
+      "pack": "listening-6-7",
+      "version": "v1",
+      "minimumAppVersion": "1.0.8",
+      "manifest": "assets/data/listening_6_7_audio.json",
+      "manifestSha256": "8d063dc8321701bb1f5247bd1c2dd31fe07917e4d9f523562aa01623c44161ad",
+      "audioCount": 224,
+      "sizeBytes": 4219431,
+      "preloadGroup": "6-7"
+    },
+    {
+      "pack": "listening-8-10",
+      "version": "v1",
+      "minimumAppVersion": "1.0.8",
+      "manifest": "assets/data/listening_8_10_audio.json",
+      "manifestSha256": "6bf062f7901e0e75e4ac072e6473addd29e7bb35fe2327e5bb1b8ceffc3dbfc7",
+      "audioCount": 220,
+      "sizeBytes": 4058340,
+      "preloadGroup": "8-10"
+    },
+    {
+      "pack": "listening-11-12",
+      "version": "v1",
+      "minimumAppVersion": "1.0.8",
+      "manifest": "assets/data/listening_11_12_audio.json",
+      "manifestSha256": "4cb015610459d07e0971fe2b3511b73262a1699eac286b4f4a921adff5f7cae3",
+      "audioCount": 240,
+      "sizeBytes": 5096174,
+      "preloadGroup": "11-12"
+    },
+    {
+      "pack": "listening-13-15",
+      "version": "v1",
+      "minimumAppVersion": "1.0.8",
+      "manifest": "assets/data/listening_13_15_audio.json",
+      "manifestSha256": "ed658538d429f2061cffdb00d3c5090189c7074897fdf0608fb1f5d7b3fa65bb",
+      "audioCount": 240,
+      "sizeBytes": 5036405,
+      "preloadGroup": "13-15"
+    },
+    {
+      "pack": "challenge-3-5",
+      "version": "v1",
+      "minimumAppVersion": "1.0.8",
+      "manifest": "assets/data/challenge_3_5_audio.json",
+      "manifestSha256": "cb01b47172bc4e59e8e279f2228c7c3f110738da1152fead2304dd90abe59978",
+      "audioCount": 206,
+      "sizeBytes": 6652421,
+      "preloadGroup": "3-5"
+    },
+    {
+      "pack": "challenge-6-7",
+      "version": "v1",
+      "minimumAppVersion": "1.0.8",
+      "manifest": "assets/data/challenge_6_7_audio.json",
+      "manifestSha256": "63932fd571dcf446a39ad630e0d4e2199078510b75d11ef9f6782dc852089211",
+      "audioCount": 224,
+      "sizeBytes": 8147836,
+      "preloadGroup": "6-7"
+    },
+    {
+      "pack": "challenge-8-10",
+      "version": "v1",
+      "minimumAppVersion": "1.0.8",
+      "manifest": "assets/data/challenge_8_10_audio.json",
+      "manifestSha256": "cd535450189d79f98abc1f6024da8b71af1559aeadd7d0d17aeb97406d19acd5",
+      "audioCount": 220,
+      "sizeBytes": 10204017,
+      "preloadGroup": "8-10"
+    },
+    {
+      "pack": "challenge-11-12",
+      "version": "v1",
+      "minimumAppVersion": "1.0.8",
+      "manifest": "assets/data/challenge_11_12_audio.json",
+      "manifestSha256": "e0f7fdff105dc6a047321e0960f5cca52e430031c98f42367a5ae9bd575f335c",
+      "audioCount": 240,
+      "sizeBytes": 12725607,
+      "preloadGroup": "11-12"
+    },
+    {
+      "pack": "challenge-13-15",
+      "version": "v1",
+      "minimumAppVersion": "1.0.8",
+      "manifest": "assets/data/challenge_13_15_audio.json",
+      "manifestSha256": "cc727bd8e9d517bc17ab336b1afebb878a4fa20b5863aaba1f69de5e396336cd",
+      "audioCount": 240,
+      "sizeBytes": 12854752,
+      "preloadGroup": "13-15"
+    },
+    {
+      "pack": "vocabulary-common",
+      "version": "v1",
+      "minimumAppVersion": "1.0.8",
+      "manifest": "assets/data/vocabulary_common_audio.json",
+      "manifestSha256": "f4a12192e7f62a7e4b9ce192d53453fdc738134fd0fcec4b30d4cbcad545b666",
+      "audioCount": 30,
+      "sizeBytes": 1042268,
+      "preloadGroup": "shared"
+    },
+    {
+      "pack": "vocabulary-built-in",
+      "version": "v1",
+      "minimumAppVersion": "1.0.8",
+      "manifest": "assets/data/vocabulary_built_in_audio.json",
+      "manifestSha256": "1b14a3fc8bfe2d253651a6fe59b0b5a8827a5f2f8372a3d115814ed1112ff824",
+      "audioCount": 1130,
+      "sizeBytes": 21938109,
+      "preloadGroup": "shared"
+    },
+    {
+      "pack": "songs",
+      "version": "v1",
+      "minimumAppVersion": "1.0.8",
+      "manifest": "assets/data/songs_audio.json",
+      "manifestSha256": "2bf933e1ea8fa87387d82d1e0954460354fd7b664fe12093d0e37ef33d2618f3",
+      "audioCount": 5,
+      "sizeBytes": 3823128,
+      "preloadGroup": "shared"
+    },
+    {
+      "pack": "system-sfx",
+      "version": "v1",
+      "minimumAppVersion": "1.0.8",
+      "manifest": "assets/data/system_sfx_audio.json",
+      "manifestSha256": "77c0e07170bbc709623875e22be10e007841dda73bf807ddb9669086f8ef85da",
+      "audioCount": 2,
+      "sizeBytes": 53135,
+      "preloadGroup": "shared"
+    }
+  ]
+}

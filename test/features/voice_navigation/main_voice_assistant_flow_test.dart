@@ -323,7 +323,7 @@ void main() {
     expect(flow.canHandle('Câu tiếp theo'), isTrue);
 
     final turn = await flow.handle('Câu tiếp theo');
-    expect(turn.promptText, 'Mình học câu sau nhé');
+    expect(turn.promptText, 'Mình chuyển sang câu sau nhé.');
     expect(turn.activeLearningCommand, ActiveLearningCommand.nextItem);
     expect(turn.continueListening, isFalse);
   });

@@ -135,6 +135,54 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('keyed challenge uses manifest budget before opening mic', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final media = _FakeLessonMediaService();
+    final prompts = _KeyedChallengeVoicePromptService(gateQuestion: true);
+    await tester.pumpWidget(
+      _subject(startAge: 7, mediaService: media, voicePromptService: prompts),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(prompts.audioKeys, <String>[
+      'listening.challenge.challenge-1.prompt.vi',
+    ]);
+    expect(prompts.budgetKeys, prompts.audioKeys);
+    expect(media.recordingStarts, 0);
+
+    await tester.pump(const Duration(seconds: 11));
+    expect(media.recordingStarts, 0);
+    prompts.questionGate.complete();
+    await _pumpChallengeTransition(tester);
+    expect(media.recordingStarts, 1);
+  });
+
+  testWidgets('correct challenge uses shared keyed feedback and completion', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final media = _FakeLessonMediaService();
+    final prompts = _KeyedChallengeVoicePromptService();
+    await tester.pumpWidget(
+      _subject(startAge: 7, mediaService: media, voicePromptService: prompts),
+    );
+    await _pumpChallengeTransition(tester);
+    await tester.tap(find.byKey(const Key('lesson-challenge-record-button')));
+    await _pumpChallengeTransition(tester);
+
+    expect(
+      prompts.audioKeys,
+      containsAllInOrder(<String>[
+        'listening.challenge.challenge-1.prompt.vi',
+        'listening.feedback.correct.vi',
+        'listening.feedback.completed.vi',
+      ]),
+    );
+  });
   testWidgets('Challenge resume uses only RESUME_CHALLENGE before replay', (
     tester,
   ) async {
@@ -510,7 +558,7 @@ void main() {
         'vi-VN|Bạn thử lại nhé.',
         'vi-VN|Where is the library?',
         'vi-VN|Bạn trả lời nhé',
-        'vi-VN|HOMI nói mẫu nhé.',
+        'vi-VN|Chưa đúng. Mình nghe câu đúng nhé.',
         'en-US|Go straight.',
       ]),
     );
@@ -1142,6 +1190,48 @@ class _RecordingVoicePromptService implements VoicePromptService {
 
   @override
   Future<void> stop() async {}
+}
+
+class _KeyedChallengeVoicePromptService extends _RecordingVoicePromptService
+    implements
+        KeyedVoicePromptService,
+        KeyedSelectedMediaOutputVoicePromptService,
+        KeyedAuthoredPromptBudgetProvider {
+  _KeyedChallengeVoicePromptService({this.gateQuestion = false});
+
+  final bool gateQuestion;
+  final questionGate = Completer<void>();
+  final List<String> audioKeys = <String>[];
+  final List<String> budgetKeys = <String>[];
+
+  @override
+  Future<Duration?> authoredPromptBudgetForKey(
+    String audioKey, {
+    required String text,
+    String locale = 'vi-VN',
+  }) async {
+    budgetKeys.add(audioKey);
+    return const Duration(seconds: 25);
+  }
+
+  @override
+  Future<void> speakAndWaitWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) async {
+    audioKeys.add(audioKey);
+    if (gateQuestion && audioKey.endsWith('.prompt.vi')) {
+      await questionGate.future;
+    }
+  }
+
+  @override
+  Future<void> speakAndWaitOnSelectedMediaOutputWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) => speakAndWaitWithAudioKey(audioKey, text, locale: locale);
 }
 
 class _FailingVoicePromptService extends _RecordingVoicePromptService {

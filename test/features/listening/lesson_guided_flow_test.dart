@@ -153,6 +153,67 @@ void main() {
       await tester.pump();
     },
   );
+
+  testWidgets('guided practice uses EN and VI sentence keys before capture', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final media = _GuidedMediaService();
+    final prompts = _KeyedVoicePromptService();
+    await tester.pumpWidget(
+      _subject(
+        _lesson(v4: true),
+        media,
+        voicePromptService: prompts,
+        guideAudioLibrary: _silentGuideAudioLibrary(),
+      ),
+    );
+
+    await _pumpGuidedSpeechTurn(tester);
+
+    final english = prompts.audioKeys.indexOf(
+      'listening.sentence.GUIDED-FLOW_S1.en',
+    );
+    final vietnamese = prompts.audioKeys.indexOf(
+      'listening.sentence.GUIDED-FLOW_S1.vi',
+    );
+    expect(english, greaterThanOrEqualTo(0));
+    expect(vietnamese, greaterThan(english));
+    expect(media.startedSentenceIds, <String>['GUIDED-FLOW_S1']);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('review button reuses the English practice sentence key', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final media = _GuidedMediaService();
+    final prompts = _KeyedVoicePromptService();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: LessonReviewScreen(
+          language: DisplayLanguage.vietnamese,
+          lesson: _lesson(),
+          mediaService: media,
+          mode: LessonReviewMode.overview,
+          voicePromptService: prompts,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('review-sentence-play-1')));
+    await tester.pump();
+
+    expect(prompts.audioKeys, <String>['listening.sentence.GUIDED-FLOW_S1.en']);
+    expect(prompts.spoken, isEmpty);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
   testWidgets(
     'route loss clears capture and its release cannot stop a stale mic',
     (tester) async {
@@ -284,7 +345,7 @@ void main() {
           ? 1
           : 2;
       final lead = command == ActiveLearningCommand.nextItem
-          ? <String>['vi-VN|Mình học câu sau nhé']
+          ? <String>['vi-VN|Mình chuyển sang câu sau nhé.']
           : command == ActiveLearningCommand.previousItem
           ? <String>['vi-VN|Mình nghe lại câu trước nhé']
           : <String>[];
@@ -787,6 +848,34 @@ void main() {
       });
     },
   );
+
+  testWidgets('V4 keeps an earned star when optional SFX playback fails', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final mediaService = _FailingStarSfxMediaService();
+    final progressStore = _MemoryProgressStore();
+
+    await tester.pumpWidget(
+      _subject(
+        _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+        mediaService,
+        guideAudioLibrary: _starEffectsGuideAudioLibrary(),
+        progressStore: progressStore,
+        attemptEvaluator: _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
+          LessonAttemptOutcome.good,
+        ]),
+        voicePromptService: _FakeVoicePromptService(),
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+
+    await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+    await _pumpGuidedSpeechTurn(tester);
+
+    expect(progressStore.earnedStars, contains('core:GUIDED-FLOW_S1'));
+    expect(mediaService.failedSfxAttempts, 2);
+  });
 
   testWidgets('scores while replay runs but waits to apply the result', (
     tester,
@@ -2129,6 +2218,7 @@ void main() {
           lesson: _lesson(sentenceCount: 2, sentenceAudioUri: audioUri),
           mediaService: mediaService,
           mode: LessonReviewMode.overview,
+          voicePromptService: _FakeVoicePromptService(),
         ),
       ),
     );
@@ -2185,6 +2275,173 @@ void main() {
       ),
       findsOneWidget,
     );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets(
+    'review auto-play uses English TTS when sentence audio is absent',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final mediaService = _GuidedMediaService();
+      final voicePrompt = _FakeVoicePromptService();
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: LessonReviewScreen(
+            language: DisplayLanguage.vietnamese,
+            lesson: _lesson(sentenceCount: 1),
+            mediaService: mediaService,
+            mode: LessonReviewMode.overview,
+            voicePromptService: voicePrompt,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byKey(const Key('auto-play-lesson-review')));
+      await tester.pump();
+
+      expect(voicePrompt.spoken, contains('en-US|Sentence 1'));
+      expect(mediaService.selectedOutputPreparationCount, 1);
+      expect(find.textContaining('Audio câu này'), findsNothing);
+      expect(find.textContaining('Cloudinary'), findsNothing);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+  );
+
+  testWidgets('review sentence button uses English TTS when audio is absent', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final mediaService = _GuidedMediaService();
+    final voicePrompt = _FakeVoicePromptService();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: LessonReviewScreen(
+          language: DisplayLanguage.vietnamese,
+          lesson: _lesson(),
+          mediaService: mediaService,
+          mode: LessonReviewMode.overview,
+          voicePromptService: voicePrompt,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('review-sentence-play-1')));
+    await tester.pump();
+
+    expect(voicePrompt.spoken, <String>['en-US|Sentence 1']);
+    expect(mediaService.selectedOutputPreparationCount, 1);
+    expect(find.textContaining('Audio câu này'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('review keeps successful authored playback without TTS', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final audioUri = Uri.parse('https://example.test/review.mp3');
+    final mediaService = _GuidedMediaService();
+    final voicePrompt = _FakeVoicePromptService();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: LessonReviewScreen(
+          language: DisplayLanguage.vietnamese,
+          lesson: _lesson(sentenceAudioUri: audioUri),
+          mediaService: mediaService,
+          mode: LessonReviewMode.overview,
+          voicePromptService: voicePrompt,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('review-sentence-play-1')));
+    await tester.pump();
+
+    expect(mediaService.playedUris, <Uri>[audioUri]);
+    expect(voicePrompt.spoken, isEmpty);
+    expect(mediaService.selectedOutputPreparationCount, 0);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('review route loss does not fall back from H20 to TTS', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final mediaService = _HfpFailingReviewMediaService();
+    final voicePrompt = _FakeVoicePromptService();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: LessonReviewScreen(
+          language: DisplayLanguage.vietnamese,
+          lesson: _lesson(
+            sentenceAudioUri: Uri.parse('https://example.test/review.mp3'),
+          ),
+          mediaService: mediaService,
+          mode: LessonReviewMode.overview,
+          voicePromptService: voicePrompt,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('review-sentence-play-1')));
+    await tester.pump();
+
+    expect(voicePrompt.spoken, isEmpty);
+    expect(mediaService.selectedOutputPreparationCount, 0);
+    expect(find.textContaining('H20 route unavailable'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('MAIN cancels the current TTS review request', (tester) async {
+    await _usePhoneSurface(tester);
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final mediaService = _GuidedMediaService();
+    final voicePrompt = _BlockingVoicePromptService();
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: MaterialApp(
+          theme: buildAppTheme(),
+          home: LessonReviewScreen(
+            language: DisplayLanguage.vietnamese,
+            lesson: _lesson(sentenceCount: 2),
+            mediaService: mediaService,
+            mode: LessonReviewMode.overview,
+            voicePromptService: voicePrompt,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('auto-play-lesson-review')));
+    await tester.pump();
+    expect(voicePrompt.spoken, <String>['en-US|Sentence 1']);
+
+    expect(await registry.pauseForMainAssistant(), isTrue);
+    await tester.pump(const Duration(seconds: 2));
+
+    expect(voicePrompt.stopCalls, greaterThanOrEqualTo(2));
+    expect(voicePrompt.spoken, <String>['en-US|Sentence 1']);
+    expect(find.text('Bài học đang tạm dừng.'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
@@ -2343,7 +2600,7 @@ void main() {
     await tester.pump();
   });
 
-  testWidgets('V4 fresh entry plays combined hook once between lead and cue', (
+  testWidgets('V4 fresh entry ignores combined hook and speaks full intro', (
     tester,
   ) async {
     await _usePhoneSurface(tester);
@@ -2375,19 +2632,15 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    final hookEvent = 'media|$hookUri';
-    expect(events.where((event) => event == hookEvent), hasLength(1));
-    expect(
-      events.any((event) => event.contains('Mình cùng học nhé.')),
-      isFalse,
-    );
-    expect(
-      events.indexOf(hookEvent),
-      lessThan(events.indexOf('vi-VN|Bắt đầu nhé.')),
-    );
+    expect(events.where((event) => event.startsWith('media|')), isEmpty);
+    expect(events, <String>[
+      'vi-VN|Chủ đề 1. Bài đầu tiên là',
+      'en-US|Guided lesson',
+      'vi-VN|. Mình cùng học nhé. Bắt đầu nhé.',
+    ]);
   });
 
-  testWidgets('V4 combined hook failure falls back to hook speech once', (
+  testWidgets('V4 unavailable combined hook does not block the full intro', (
     tester,
   ) async {
     await _usePhoneSurface(tester);
@@ -2415,11 +2668,12 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(
-      events.where((event) => event == 'vi-VN|Mình cùng học nhé.'),
-      hasLength(1),
-    );
-    expect(events, contains('vi-VN|Bắt đầu nhé.'));
+    expect(events.where((event) => event.startsWith('media|')), isEmpty);
+    expect(events, <String>[
+      'vi-VN|Chủ đề 1. Bài đầu tiên là',
+      'en-US|Guided lesson',
+      'vi-VN|. Mình cùng học nhé. Bắt đầu nhé.',
+    ]);
   });
 
   testWidgets('V4 resume does not replay the combined hook', (tester) async {
@@ -2514,6 +2768,7 @@ void main() {
             lesson: _lesson(sentenceCount: 2, sentenceAudioUri: audioUri),
             mediaService: mediaService,
             mode: LessonReviewMode.overview,
+            voicePromptService: _FakeVoicePromptService(),
           ),
         ),
       ),
@@ -2896,6 +3151,29 @@ class _FakeVoicePromptService implements VoicePromptService {
   Future<void> dispose() async {}
 }
 
+class _KeyedVoicePromptService extends _FakeVoicePromptService
+    implements
+        KeyedVoicePromptService,
+        KeyedSelectedMediaOutputVoicePromptService {
+  final List<String> audioKeys = <String>[];
+
+  @override
+  Future<void> speakAndWaitWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) async {
+    audioKeys.add(audioKey);
+  }
+
+  @override
+  Future<void> speakAndWaitOnSelectedMediaOutputWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) => speakAndWaitWithAudioKey(audioKey, text, locale: locale);
+}
+
 class _BlockingVoicePromptService extends _FakeVoicePromptService {
   Completer<void>? _activePrompt;
 
@@ -3206,6 +3484,39 @@ class _FailingAuthoredAudioMediaService extends _GuidedMediaService {
     if (uri.scheme == 'https') {
       throw StateError('Authored audio unavailable.');
     }
+  }
+}
+
+class _FailingStarSfxMediaService extends _GuidedMediaService {
+  int failedSfxAttempts = 0;
+
+  @override
+  Future<void> playToCompletion(
+    Uri uri, {
+    Duration timeout = const Duration(seconds: 15),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
+  }) async {
+    playedUris.add(uri);
+    if (uri.path.contains('SFX_STAR')) {
+      failedSfxAttempts += 1;
+      throw StateError('Optional SFX unavailable.');
+    }
+  }
+}
+
+class _HfpFailingReviewMediaService extends _GuidedMediaService {
+  @override
+  Future<void> playToCompletion(
+    Uri uri, {
+    Duration timeout = const Duration(seconds: 15),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
+  }) async {
+    playedUris.add(uri);
+    throw const HfpAudioException('H20 route unavailable');
   }
 }
 

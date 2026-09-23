@@ -1420,7 +1420,10 @@ void main() {
         MainVoiceAssistantFlow.activeLearningPrompt,
       ]);
       expect(await controller.dispatchRecognizedText('Câu tiếp theo'), isTrue);
-      expect(voicePrompt.spokenTexts.last, 'Mình học câu sau nhé');
+      expect(
+        voicePrompt.spokenTexts.last,
+        MasterNavigationContract.nextItemPrompt,
+      );
       expect(receivedCommand, ActiveLearningCommand.nextItem);
       expect(controller.isMainButtonSessionActive, isFalse);
       expect(voicePrompt.endedReasons.last, 'main_assistant_completed');
