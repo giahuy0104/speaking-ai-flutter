@@ -169,6 +169,13 @@ abstract interface class CommandSpeechEndpointInput {
   Stream<String> get commandSpeechEnded;
 }
 
+/// Native end-of-speech for an ordinary (non-command) turn, with the latest
+/// transcript. Live translation stops on it instead of waiting for the
+/// recognizer's network final result; it is not itself a final transcript.
+abstract interface class SpeechEndpointInput {
+  Stream<String> get speechEnded;
+}
+
 enum NativeSpeechAudioSource {
   builtInMic('builtInMic'),
   hfp('hfp');
@@ -291,6 +298,7 @@ class AndroidStreamingSpeechInput
         RecordedAudioStreamingSpeechInput,
         CommandStreamingSpeechInput,
         CommandSpeechEndpointInput,
+        SpeechEndpointInput,
         AlternativeTranscriptStreamingSpeechInput,
         NativeSpeechFallbackAudioProvider,
         NativeSpeechAudioSourceControl,
@@ -343,6 +351,8 @@ class AndroidStreamingSpeechInput
   final StreamController<String> _partialTextController =
       StreamController<String>.broadcast();
   final StreamController<String> _commandSpeechEndedController =
+      StreamController<String>.broadcast();
+  final StreamController<String> _speechEndedController =
       StreamController<String>.broadcast();
   final StreamController<List<String>> _transcriptAlternativesController =
       StreamController<List<String>>.broadcast();
@@ -399,6 +409,9 @@ class AndroidStreamingSpeechInput
 
   @override
   Stream<String> get commandSpeechEnded => _commandSpeechEndedController.stream;
+
+  @override
+  Stream<String> get speechEnded => _speechEndedController.stream;
 
   @override
   Stream<List<String>> get transcriptAlternatives =>
@@ -1042,6 +1055,9 @@ class AndroidStreamingSpeechInput
         _commandSpeechEnded = true;
         final candidate = _latestText.trim();
         if (candidate.isNotEmpty) _commandSpeechEndedController.add(candidate);
+      } else if (_platformName == 'Android' && _active && !_commandMode) {
+        final candidate = _latestText.trim();
+        if (candidate.isNotEmpty) _speechEndedController.add(candidate);
       }
       return;
     }
@@ -1279,6 +1295,7 @@ class AndroidStreamingSpeechInput
     await _completedController.close();
     await _partialTextController.close();
     await _commandSpeechEndedController.close();
+    await _speechEndedController.close();
     await _transcriptAlternativesController.close();
     await _nativeDiagnosticsController.close();
   }

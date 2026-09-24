@@ -270,6 +270,48 @@ void main() {
     expect(speechInput.stopCount, 1);
     expect(controller.isRecording, isFalse);
   });
+
+  test(
+    'Android native end-of-speech ends translation while RMS noise stays high',
+    () async {
+      final speechInput = _EndpointStreamingSpeechInput();
+      final controller = ConversationController(
+        audioInput: _SilentAudioInput(),
+        streamingSpeechInput: speechInput,
+        playbackService: const _FakePlaybackService(),
+        repository: const DemoConversationRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+        webRuntimeOverride: false,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(speechInput.dispose);
+      controller.setVadSilence(400);
+
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(seconds: 5),
+      );
+      // Quiet calibration, then steady background noise that the RMS VAD
+      // keeps classifying as voice after the partial confirms speech.
+      for (var i = 0; i < 4; i += 1) {
+        speechInput.emitAmplitude(-60);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      speechInput.emitPartial('Con muốn đi công viên');
+      for (var i = 0; i < 10; i += 1) {
+        speechInput.emitAmplitude(-20);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      expect(speechInput.stopCount, 0, reason: 'RMS noise defers endpoint');
+
+      speechInput.emitSpeechEnded('Con muốn đi công viên');
+      speechInput.emitAmplitude(-20);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(speechInput.stopCount, 1);
+      expect(controller.isRecording, isFalse);
+    },
+  );
 }
 
 class _SilentAudioInput implements ChunkedAudioInput {
@@ -495,6 +537,69 @@ class _PartialOnlyStreamingSpeechInput implements StreamingSpeechInput {
 
   @override
   Future<void> dispose() => _partials.close();
+}
+
+class _EndpointStreamingSpeechInput
+    implements StreamingSpeechInput, SpeechEndpointInput {
+  final StreamController<double> _amplitude =
+      StreamController<double>.broadcast(sync: true);
+  final StreamController<String> _partials = StreamController<String>.broadcast(
+    sync: true,
+  );
+  final StreamController<String> _speechEnded =
+      StreamController<String>.broadcast(sync: true);
+  int stopCount = 0;
+
+  void emitAmplitude(double dbfs) => _amplitude.add(dbfs);
+
+  void emitPartial(String text) => _partials.add(text);
+
+  void emitSpeechEnded(String text) => _speechEnded.add(text);
+
+  @override
+  String get label => 'ASR Android endpoint';
+
+  @override
+  Stream<double> get amplitudeDbfs => _amplitude.stream;
+
+  @override
+  Stream<void> get completed => const Stream<void>.empty();
+
+  @override
+  Stream<String> get partialText => _partials.stream;
+
+  @override
+  Stream<String> get speechEnded => _speechEnded.stream;
+
+  @override
+  Future<bool> checkAvailability() async => true;
+
+  @override
+  Future<void> start() async {}
+
+  @override
+  Future<StreamingSpeechCapture> stop() async {
+    stopCount += 1;
+    return const StreamingSpeechCapture(
+      sourceText: 'Con muốn đi công viên',
+      duration: Duration(seconds: 1),
+      inputLabel: 'ASR Android endpoint',
+      confidence: 0.9,
+      firstResultMs: 100,
+      finalAfterStopMs: 20,
+    );
+  }
+
+  @override
+  Future<void> cancel() async {}
+
+  @override
+  Future<void> dispose() async {
+    if (_amplitude.isClosed) return;
+    await _amplitude.close();
+    await _partials.close();
+    await _speechEnded.close();
+  }
 }
 
 class _NoSpeechStreamingSpeechInput implements StreamingSpeechInput {

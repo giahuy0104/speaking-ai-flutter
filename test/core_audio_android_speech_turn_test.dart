@@ -83,6 +83,42 @@ void main() {
   );
 
   test(
+    'ordinary Android turn reports native end-of-speech with its transcript',
+    () async {
+      final candidates = <String>[];
+      final subscription = input.speechEnded.listen(candidates.add);
+      addTearDown(subscription.cancel);
+
+      await input.start();
+      final turn = turns.last;
+      events.add({'type': 'speech.end', 'turnId': turn});
+      await Future<void>.delayed(Duration.zero);
+      expect(candidates, isEmpty, reason: 'no transcript yet');
+
+      events.add({
+        'type': 'speech.partial',
+        'turnId': turn,
+        'text': 'Con muốn uống nước',
+      });
+      events.add({'type': 'speech.end', 'turnId': turn});
+      await Future<void>.delayed(Duration.zero);
+      expect(candidates, ['Con muốn uống nước']);
+
+      await input.cancel();
+      await input.startCommandRecognition();
+      final commandTurn = turns.last;
+      events.add({
+        'type': 'speech.partial',
+        'turnId': commandTurn,
+        'text': 'Chủ đề 3',
+      });
+      events.add({'type': 'speech.end', 'turnId': commandTurn});
+      await Future<void>.delayed(Duration.zero);
+      expect(candidates, ['Con muốn uống nước'], reason: 'command turn');
+    },
+  );
+
+  test(
     'command endpoint can finalize a stable one-word number promptly',
     () async {
       await input.startCommandRecognition();

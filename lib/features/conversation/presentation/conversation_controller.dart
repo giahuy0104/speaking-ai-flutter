@@ -140,6 +140,19 @@ class ConversationController extends ChangeNotifier
     _partialTextSubscription = streamingSpeechInput?.partialText.listen(
       _onPartialText,
     );
+    // The recognizer's own endpointer is more reliable than the RMS VAD, which
+    // background noise can keep "active" after the child has finished.
+    final speechEndpointInput = streamingSpeechInput is SpeechEndpointInput
+        ? streamingSpeechInput as SpeechEndpointInput
+        : null;
+    _speechEndedSubscription = speechEndpointInput?.speechEnded.listen((_) {
+      if (phase == ConversationPhase.recording &&
+          _usingStreamingSpeech &&
+          _stopOnSilence &&
+          !_stopInProgress) {
+        unawaited(stopRecording(manual: false));
+      }
+    });
     final nativeDiagnostics = streamingSpeechInput is NativeSpeechDiagnostics
         ? streamingSpeechInput as NativeSpeechDiagnostics
         : null;
@@ -286,6 +299,7 @@ class ConversationController extends ChangeNotifier
   StreamSubscription<bool>? _playbackPlayingSubscription;
   StreamSubscription<void>? _streamingCompletionSubscription;
   StreamSubscription<String>? _partialTextSubscription;
+  StreamSubscription<String>? _speechEndedSubscription;
   StreamSubscription<NativeSpeechDiagnostic>?
   _nativeSpeechDiagnosticSubscription;
   StreamSubscription<Uint8List>? _batchChunkSubscription;
@@ -4305,6 +4319,7 @@ class ConversationController extends ChangeNotifier
     }
     unawaited(_streamingCompletionSubscription?.cancel());
     unawaited(_partialTextSubscription?.cancel());
+    unawaited(_speechEndedSubscription?.cancel());
     unawaited(_nativeSpeechDiagnosticSubscription?.cancel());
     unawaited(_bluetoothStatusSubscription?.cancel());
     unawaited(_hfpStatusSubscription?.cancel());
