@@ -117,6 +117,67 @@ void main() {
       await media.stopRecording();
     });
 
+    test('HFP start failure falls back to the phone microphone', () async {
+      hfp.startError = const HfpAudioException('SCO failed');
+
+      await start();
+
+      expect(hfp.startCalls, 1);
+      expect(recorder.lastConfig?.device, _FakeLessonRecorder.phone);
+      expect(
+        recorder.lastConfig?.androidConfig.audioSource,
+        AndroidAudioSource.mic,
+      );
+      await media.stopRecording();
+    });
+
+    test(
+      'cancel while HFP start is pending prevents late recorder start',
+      () async {
+        final hfpStart = Completer<void>();
+        hfp.startGate = hfpStart;
+
+        final starting = start();
+        await _waitFor(() => hfp.startCalls == 1);
+        final cancelling = media.cancelRecording();
+        await Future<void>.delayed(Duration.zero);
+
+        hfpStart.complete();
+
+        await expectLater(starting, throwsA(isA<LessonMediaException>()));
+        await cancelling;
+        expect(recorder.startCalls, 0);
+        expect(recorder.cancelCalls, 1);
+        expect(hfp.stopCalls, 1);
+      },
+    );
+
+    test(
+      'new lesson recording supersedes delayed HFP start response',
+      () async {
+        final hfpStart = Completer<void>();
+        hfp.startGate = hfpStart;
+
+        final first = start();
+        await _waitFor(() => hfp.startCalls == 1);
+        final second = media.startRecording(
+          lessonId: 'colors',
+          sentenceNumber: 2,
+          saveToHistory: false,
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        hfpStart.complete();
+
+        await expectLater(first, throwsA(isA<LessonMediaException>()));
+        await second;
+        expect(hfp.startCalls, 2);
+        expect(hfp.stopCalls, 1);
+        expect(recorder.startCalls, 1);
+        await media.stopRecording();
+      },
+    );
+
     test(
       'route loss reports capture failure instead of no recording',
       () async {
@@ -691,6 +752,14 @@ void main() {
   });
 }
 
+Future<void> _waitFor(bool Function() condition) async {
+  for (var attempt = 0; attempt < 20; attempt += 1) {
+    if (condition()) return;
+    await Future<void>.delayed(Duration.zero);
+  }
+  fail('Timed out waiting for test condition.');
+}
+
 class _ControlledPlaybackService implements AudioPlaybackService {
   final StreamController<bool> _playing = StreamController<bool>.broadcast();
   int playCalls = 0;
@@ -963,7 +1032,7 @@ class _FakeHfpAudioControl implements HfpAudioControl {
   });
 
   final List<String> events;
-  final Object? startError;
+  Object? startError;
   final Stream<BluetoothAudioStatus>? changes;
 
   @override
@@ -971,6 +1040,7 @@ class _FakeHfpAudioControl implements HfpAudioControl {
 
   int startCalls = 0;
   int stopCalls = 0;
+  Completer<void>? startGate;
 
   @override
   bool get usesBrowserAudioInput => false;
@@ -995,6 +1065,7 @@ class _FakeHfpAudioControl implements HfpAudioControl {
   Future<void> startAudioRoute() async {
     startCalls += 1;
     events.add('hfp:start');
+    await startGate?.future;
     final error = startError;
     if (error != null) throw error;
   }
