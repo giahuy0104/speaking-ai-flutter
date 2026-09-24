@@ -365,7 +365,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Nghe và nói lại'), findsOneWidget);
+      expect(find.text('Chạm để bắt đầu ghi âm'), findsOneWidget);
       expect(find.text('Nghe mẫu'), findsNothing);
       expect(find.text('Giữ để nói'), findsNothing);
       expect(find.text('Về Main'), findsNothing);
@@ -396,6 +396,7 @@ void main() {
       expect(media.recording, isTrue);
       expect(media.startCalls, 1);
       expect(media.stopCalls, 0);
+      expect(find.text('Chạm để kết thúc ghi âm'), findsOneWidget);
       expect(
         find.byKey(
           const ValueKey<String>('assets/images/mascot/penguin-speak.png'),
@@ -523,6 +524,40 @@ void main() {
       expect(find.text(VocabularyFlowV3.reviewCycleFinished), findsOneWidget);
     },
   );
+
+  testWidgets('Review action reports microphone preparation and processing', (
+    tester,
+  ) async {
+    final registry = ActiveLearningModuleRegistry();
+    final media = _FakeLessonMediaService()
+      ..startGate = Completer<void>()
+      ..stopGate = Completer<void>();
+    addTearDown(media.close);
+    await _mountReview(
+      tester,
+      registry: registry,
+      media: media,
+      voice: _FakeVoicePromptService(),
+      evaluator: _QueuedAttemptEvaluator(<LessonAttemptOutcome>[
+        LessonAttemptOutcome.good,
+      ]),
+    );
+
+    await tester.tap(find.byKey(const Key('vocabulary-practice-main-action')));
+    await tester.pump();
+    expect(find.text('Đang chuẩn bị mic'), findsOneWidget);
+
+    media.startGate!.complete();
+    await tester.pumpAndSettle();
+    expect(find.text('Chạm để kết thúc ghi âm'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('vocabulary-practice-main-action')));
+    await tester.pump();
+    expect(find.text('Đang xử lý'), findsOneWidget);
+
+    media.stopGate!.complete();
+    await tester.pumpAndSettle();
+  });
 
   testWidgets(
     'completed block lets MAIN route directly to Stars after interruption',
@@ -957,6 +992,8 @@ class _FakeLessonMediaService extends LessonMediaService {
   bool recording = false;
   int startCalls = 0;
   int stopCalls = 0;
+  Completer<void>? startGate;
+  Completer<void>? stopGate;
   final StreamController<double> amplitudes =
       StreamController<double>.broadcast(sync: true);
 
@@ -986,14 +1023,16 @@ class _FakeLessonMediaService extends LessonMediaService {
     bool saveToHistory = true,
   }) async {
     events.add('record');
-    recording = true;
     startCalls += 1;
+    await startGate?.future;
+    recording = true;
   }
 
   @override
   Future<LessonRecording> stopRecording() async {
-    recording = false;
     stopCalls += 1;
+    await stopGate?.future;
+    recording = false;
     return const LessonRecording(
       filePath: '/recordings/apple.m4a',
       duration: Duration(seconds: 2),

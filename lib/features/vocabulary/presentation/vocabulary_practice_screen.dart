@@ -99,6 +99,8 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   bool _busy = false;
   bool _recording = false;
   bool _capturePending = false;
+  bool _preparingRecording = false;
+  bool _processingAttempt = false;
   bool _paused = false;
   bool _pausedAfterNoResponse = false;
   bool _completed = false;
@@ -350,6 +352,8 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     }
     setState(() {
       _busy = true;
+      _preparingRecording = true;
+      _processingAttempt = false;
       _message = 'Đang mở micro…';
     });
     try {
@@ -410,6 +414,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       setState(() {
         _recording = true;
         _capturePending = false;
+        _preparingRecording = false;
         _busy = false;
         _message = 'Đến lượt bạn.';
       });
@@ -429,6 +434,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       setState(() {
         _recording = false;
         _capturePending = false;
+        _preparingRecording = false;
         _busy = false;
         _message = _friendlyError(error);
       });
@@ -445,6 +451,8 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     setState(() {
       _recording = false;
       _capturePending = true;
+      _preparingRecording = false;
+      _processingAttempt = true;
       _busy = true;
       _message = 'HOMI đang nghe lại…';
     });
@@ -1249,9 +1257,13 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
             ? 'Đang tạm dừng'
             : _isToday
             ? 'Bắt đầu nghe'
+            : _preparingRecording && _busy
+            ? 'Đang chuẩn bị mic'
+            : _processingAttempt && _busy
+            ? 'Đang xử lý'
             : _recording
-            ? 'Bạn nói xong'
-            : 'Nghe và nói lại',
+            ? 'Chạm để kết thúc ghi âm'
+            : 'Chạm để bắt đầu ghi âm',
       ),
       style: FilledButton.styleFrom(
         minimumSize: const Size(286, 58),
