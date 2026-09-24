@@ -536,6 +536,30 @@ void main() {
         ),
         hasLength(1),
       );
+      expect(
+        await progressStore.hasCompletedV4LessonActivity(
+          lessonList.initialLessonId!,
+        ),
+        isFalse,
+      );
+
+      await tester.pump(const Duration(milliseconds: 500));
+      Navigator.of(
+        tester.element(find.byType(TopicLessonListScreen, skipOffstage: false)),
+        rootNavigator: true,
+      ).pop();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byKey(const Key('topic-lesson-list-screen')), findsOneWidget);
+
+      Navigator.of(
+        tester.element(find.byType(TopicLessonListScreen)),
+        rootNavigator: true,
+      ).pop();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byKey(const Key('topic-listening-screen')), findsOneWidget);
+      expect(find.byType(TopicLessonListScreen), findsNothing);
     },
   );
 
