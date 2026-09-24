@@ -491,6 +491,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       if (!_isCurrent(generation, entry.id)) return;
       setState(() {
         _capturePending = false;
+        _processingAttempt = false;
         _busy = false;
         _message = _friendlyError(error);
       });
@@ -580,10 +581,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
           age: widget.childAge,
           kind: LessonFeedbackKind.asr,
         );
-        setState(() {
-          _busy = false;
-          _message = feedback;
-        });
+        setState(() => _message = feedback);
         await _playLessonPrompt(
           LessonGuidePrompt(
             audioCode: 'ASR',
@@ -606,10 +604,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
           age: widget.childAge,
           kind: LessonFeedbackKind.noResponse,
         );
-        setState(() {
-          _busy = false;
-          _message = feedback;
-        });
+        setState(() => _message = feedback);
         await _playLessonPrompt(
           LessonGuidePrompt(
             audioCode: 'NO_RESPONSE',
@@ -626,13 +621,12 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         _invalidResponseCount = 0;
         if (_attemptNumber < 2) {
           _attemptNumber = 2;
-          setState(() {
-            _busy = false;
-            _message = LessonAgeFeedbackLibrary.message(
+          setState(
+            () => _message = LessonAgeFeedbackLibrary.message(
               age: widget.childAge,
               kind: LessonFeedbackKind.retry,
-            );
-          });
+            ),
+          );
           await _playLessonPrompt(
             LessonGuidePrompt(
               audioCode: 'RETRY',

@@ -559,6 +559,50 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  testWidgets('Review stays disabled while retry feedback is playing', (
+    tester,
+  ) async {
+    final registry = ActiveLearningModuleRegistry();
+    final media = _FakeLessonMediaService();
+    final voice = _GatedCueVoice(media);
+    final feedback = LessonAgeFeedbackLibrary.message(
+      age: 6,
+      kind: LessonFeedbackKind.asr,
+    );
+    final feedbackGate = Completer<void>();
+    voice.gates['vi-VN:$feedback'] = feedbackGate;
+    addTearDown(media.close);
+    await _mountReview(
+      tester,
+      registry: registry,
+      media: media,
+      voice: voice,
+      evaluator: _QueuedAttemptEvaluator(<LessonAttemptOutcome>[
+        LessonAttemptOutcome.unclear,
+      ]),
+    );
+
+    final action = find.byKey(const Key('vocabulary-practice-main-action'));
+    await tester.tap(action);
+    await tester.pumpAndSettle();
+    expect(media.startCalls, 1);
+
+    await tester.tap(action);
+    await tester.pump();
+    expect(voice.spoken, contains('vi-VN:$feedback'));
+    expect(find.text('Đang xử lý'), findsOneWidget);
+    expect(tester.widget<FilledButton>(action).onPressed, isNull);
+
+    await tester.tap(action, warnIfMissed: false);
+    await tester.pump();
+    expect(media.startCalls, 1);
+
+    feedbackGate.complete();
+    await tester.pumpAndSettle();
+    expect(media.startCalls, 2);
+    expect(find.text('Chạm để kết thúc ghi âm'), findsOneWidget);
+  });
+
   testWidgets('correct Review answer shows non-blocking praise fireworks', (
     tester,
   ) async {
