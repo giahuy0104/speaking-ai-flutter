@@ -15,9 +15,13 @@ void main() {
         .cast<Map<String, dynamic>>();
     final builtInPrompts = (builtIn['prompts'] as List)
         .cast<Map<String, dynamic>>();
-    expect(commonPrompts, hasLength(30));
+    expect(commonPrompts, hasLength(31));
     expect(builtInPrompts, hasLength(1130));
-    expect(commonPrompts.map((entry) => entry['asset']).toSet(), hasLength(26));
+    expect(commonPrompts.map((entry) => entry['asset']).toSet(), hasLength(27));
+    expect(
+      commonPrompts.map((entry) => entry['key']),
+      contains('vocabulary.flow.finish_active_group_first.vi'),
+    );
 
     for (final prompt in [...commonPrompts, ...builtInPrompts]) {
       final file = File(prompt['asset'] as String);

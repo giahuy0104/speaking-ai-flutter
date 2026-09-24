@@ -10,6 +10,7 @@ import 'package:ai_speaking_flutter_app/features/listening/application/lesson_gu
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_completion_choice_recognizer.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/data/listening_progress_store.dart';
+import 'package:ai_speaking_flutter_app/features/listening/domain/listening_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_catalog.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_challenge_screen.dart';
@@ -758,6 +759,49 @@ void main() {
     expect(store.resumeStage, ListeningResumeStage.completed);
   });
 
+  testWidgets(
+    'post-Challenge lesson choice uses the authored current-to-next key',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final firstLesson = _v4Lesson();
+      final nextLesson = _v4Lesson(number: 2);
+      final store = _MemoryProgressStore()
+        ..completedSentences = 1
+        ..challengeProcessed = true
+        ..resumeStage = ListeningResumeStage.waitingForChoice
+        ..pendingCompletionChoice = ListeningPendingChoiceStage.lessonEnd;
+      store.completedV4LessonActivities.add(firstLesson.id);
+      final voice = _KeyedRecordingVoicePromptService();
+
+      await tester.pumpWidget(
+        _subject(
+          firstLesson,
+          store,
+          const Key('post-challenge-authored-choice'),
+          voicePromptService: voice,
+          topicContent: ListeningTopicContent(
+            id: 'navigation-test-topic',
+            number: 1,
+            titleVi: 'Chủ đề kiểm tra',
+            titleEn: 'Test topic',
+            lessons: <ListeningLessonContent>[firstLesson, nextLesson],
+          ),
+          initialResumeStage: ListeningResumeStage.waitingForChoice,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        voice.audioKeys,
+        containsAllInOrder(<String>[
+          ListeningAudioKeys.milestoneLesson(1),
+          ListeningAudioKeys.completionLesson(1, 2),
+        ]),
+      );
+      expect(voice.spoken, isEmpty);
+    },
+  );
+
   testWidgets('V4 resumes an interrupted song from its beginning', (
     tester,
   ) async {
@@ -1329,6 +1373,29 @@ class _RecordingVoicePromptService extends _SilentVoicePromptService {
   @override
   Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) =>
       speak(text, locale: locale);
+}
+
+class _KeyedRecordingVoicePromptService extends _RecordingVoicePromptService
+    implements
+        KeyedVoicePromptService,
+        KeyedSelectedMediaOutputVoicePromptService {
+  final List<String> audioKeys = <String>[];
+
+  @override
+  Future<void> speakAndWaitWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) async {
+    audioKeys.add(audioKey);
+  }
+
+  @override
+  Future<void> speakAndWaitOnSelectedMediaOutputWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) => speakAndWaitWithAudioKey(audioKey, text, locale: locale);
 }
 
 class _FixedCompletionChoiceRecognizer

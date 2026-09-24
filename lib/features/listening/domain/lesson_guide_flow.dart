@@ -9,6 +9,51 @@ enum LessonFeedbackKind { correct, retry, give, noResponse, asr, skip }
 /// Reuses the approved V4 feedback library without inventing new praise or
 /// retry wording in individual lesson screens.
 abstract final class LessonAgeFeedbackLibrary {
+  static const Set<String> englishMessages = <String>{
+    'Great!',
+    'Good job!',
+    'Exactly.',
+    'Nice.',
+    'Good.',
+    'Try again.',
+    'One more time.',
+  };
+
+  static String localeFor(String message) =>
+      englishMessages.contains(message.trim()) ? 'en-US' : 'vi-VN';
+
+  static String audioKeyFor(String message) => switch (message.trim()) {
+    'Đúng rồi!' => 'assistant.feedback.v4.correct.vi',
+    'Mình thử lại nhé.' => 'assistant.feedback.v4.try_again.vi',
+    'Bạn thử nói nhé.' => 'assistant.feedback.v4.invite_speak.vi',
+    'Bạn thử lại nhé.' => 'assistant.feedback.v4.retry.vi',
+    'Giỏi lắm!' => 'listening.feedback.age.gioi.vi',
+    'Tốt lắm!' => 'listening.feedback.age.tot.vi',
+    'Nghe lại rồi thử nhé.' => 'listening.feedback.age.listen_retry.vi',
+    'HOMI nói mẫu nhé.' => 'listening.feedback.age.homi_model.vi',
+    'Mình nghe câu đúng nhé.' => 'listening.feedback.age.hear_correct.vi',
+    'Mình thử một lần nhé.' => 'listening.feedback.age.try_once.vi',
+    'HOMI chưa nghe rõ. Bạn nói lại nhé.' =>
+      'listening.feedback.age.not_clear_repeat.vi',
+    'Được rồi. HOMI nói mẫu nhé.' =>
+      'listening.feedback.age.homi_model_after_skip.vi',
+    'Bạn thử trả lời nhé.' => 'listening.feedback.age.answer.vi',
+    'Great!' => 'listening.feedback.age.great.en',
+    'Good job!' => 'listening.feedback.age.good_job.en',
+    'Thử lại nhé.' => 'listening.feedback.age.retry.vi',
+    'HOMI nói đáp án nhé.' => 'listening.feedback.age.homi_answer.vi',
+    'Nghe câu đúng nhé.' => 'listening.feedback.age.correct_answer.vi',
+    'Được. Nghe câu đúng nhé.' => 'listening.feedback.age.skip_correct.vi',
+    'Exactly.' => 'listening.feedback.age.exactly.en',
+    'Nice.' => 'listening.feedback.age.nice.en',
+    'Good.' => 'listening.feedback.age.good.en',
+    'Try again.' => 'listening.feedback.age.try_again.en',
+    'One more time.' => 'listening.feedback.age.one_more_time.en',
+    'HOMI chưa nghe rõ. Thử lại nhé.' =>
+      'listening.feedback.age.not_clear_retry.vi',
+    _ => throw ArgumentError.value(message, 'message', 'Unknown feedback'),
+  };
+
   static List<String> messages({
     required int age,
     required LessonFeedbackKind kind,
@@ -157,11 +202,13 @@ class LessonGuidePrompt {
     required this.audioCode,
     required this.text,
     this.audioKey,
+    this.locale = 'vi-VN',
   });
 
   final String audioCode;
   final String text;
   final String? audioKey;
+  final String locale;
 }
 
 abstract interface class LessonAttemptEvaluator {
@@ -226,24 +273,39 @@ class LessonGuideFlowV2 {
     audioKey: ListeningAudioKeys.guideYourTurn,
   );
 
+  static const LessonGuidePrompt lastItemComplete = LessonGuidePrompt(
+    audioCode: 'CORE_LAST_NEXT',
+    text: 'Đây là câu cuối. Bạn hãy hoàn thành câu này nhé.',
+    audioKey: 'assistant.learning.last_item_complete.vi',
+  );
+
   /// The approved V4 Core speak-cue library. Callers rotate by target index;
   /// adjacent targets therefore never repeat the same cue.
   static const List<LessonGuidePrompt> coreSpeakCues = <LessonGuidePrompt>[
     LessonGuidePrompt(
       audioCode: 'CORE_SPEAK_01',
       text: 'Bạn nói lại nhé.',
-      audioKey: ListeningAudioKeys.guideRepeat,
+      audioKey: 'assistant.guide.core_speak_01.vi',
     ),
-    LessonGuidePrompt(audioCode: 'CORE_SPEAK_02', text: 'Đến lượt bạn.'),
+    LessonGuidePrompt(
+      audioCode: 'CORE_SPEAK_02',
+      text: 'Đến lượt bạn.',
+      audioKey: 'assistant.guide.your_turn.vi',
+    ),
     LessonGuidePrompt(
       audioCode: 'CORE_SPEAK_03',
       text: 'Bạn thử nói nhé.',
-      audioKey: ListeningAudioKeys.guideTryAgain,
+      audioKey: 'assistant.feedback.v4.invite_speak.vi',
     ),
-    LessonGuidePrompt(audioCode: 'CORE_SPEAK_04', text: 'Nói lại câu này.'),
+    LessonGuidePrompt(
+      audioCode: 'CORE_SPEAK_04',
+      text: 'Nói lại câu này.',
+      audioKey: 'assistant.guide.core_speak_04.vi',
+    ),
     LessonGuidePrompt(
       audioCode: 'CORE_SPEAK_05',
       text: 'Bạn nói tiếng Anh nhé.',
+      audioKey: 'assistant.guide.core_speak_05.vi',
     ),
   ];
 

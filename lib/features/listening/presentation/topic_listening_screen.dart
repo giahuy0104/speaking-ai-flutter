@@ -20,6 +20,7 @@ import '../domain/listening_content.dart';
 import '../domain/listening_audio_keys.dart';
 import '../domain/listening_curriculum_flow.dart';
 import '../domain/v4_completion_flow.dart';
+import '../../voice_navigation/domain/main_assistant_audio_keys.dart';
 import 'lesson_recording_history_sheet.dart';
 import 'listening_route_names.dart';
 import 'topic_lesson_list_screen.dart';
@@ -747,7 +748,10 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     }
     final lead = announceLevel ? 'Bắt đầu Level ${level.number}. ' : '';
     await _speakOnSelectedLessonOutput(
-      '${lead}Có ${level.topicNumbers.length} Chủ đề. Bạn muốn học Chủ đề số mấy?',
+      '${lead}Có ${level.topicNumbers.length} Chủ đề. Bạn chọn Chủ đề số mấy?',
+      audioKey: announceLevel
+          ? MainAssistantAudioKeys.levelTopicSelection(level.number)
+          : MainAssistantAudioKeys.chooseTopic(level.topicNumbers.length),
     );
   }
 
@@ -832,7 +836,10 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
             context,
           ).showSnackBar(SnackBar(content: Text(message)));
         }
-        await _speakOnSelectedLessonOutput(message);
+        await _speakOnSelectedLessonOutput(
+          message,
+          audioKey: ListeningAudioKeys.lockedLevel(current),
+        );
         return;
       }
       final progressBefore = _ListeningProgressSnapshot(
@@ -881,6 +888,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           if (state == ListeningTopicLearningState.inProgress) {
             await _speakOnSelectedLessonOutput(
               'Mình học tiếp Chủ đề ${content.number} nhé.',
+              audioKey: ListeningAudioKeys.topicResume(content.number),
             );
           }
         }
@@ -953,8 +961,11 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
 
   Future<bool?> _askCompletedTopicAction(int topicNumber) async {
     final message =
-        'Chủ đề $topicNumber bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?';
-    await _speakOnSelectedLessonOutput(message);
+        'Chủ đề $topicNumber bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề $topicNumber?';
+    await _speakOnSelectedLessonOutput(
+      message,
+      audioKey: MainAssistantAudioKeys.replayTopic(topicNumber),
+    );
     if (!mounted) return null;
     return showModalBottomSheet<bool>(
       context: context,

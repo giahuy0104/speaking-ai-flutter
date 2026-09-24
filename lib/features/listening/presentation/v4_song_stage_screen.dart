@@ -12,6 +12,7 @@ import '../../../l10n/display_language.dart';
 import '../../voice_navigation/domain/master_navigation_contract.dart';
 import '../application/lesson_media_service.dart';
 import '../domain/lesson_guide_flow.dart';
+import '../domain/listening_audio_keys.dart';
 
 enum V4SongStageAction { skipped, continued }
 
@@ -71,7 +72,9 @@ class _V4SongStageScreenState extends State<V4SongStageScreen>
   VoicePromptService get _prompt {
     final current = _voicePromptService;
     if (current != null) return current;
-    return _voicePromptService = createVoicePromptService();
+    return _voicePromptService = createVoicePromptService(
+      owner: AudioTurnOwner.listeningLesson,
+    );
   }
 
   @override
@@ -138,7 +141,26 @@ class _V4SongStageScreenState extends State<V4SongStageScreen>
     try {
       final prompt = _prompt;
       final cue = v4SongStartCue(widget.songTitle);
-      if (!kIsWeb && prompt is SelectedMediaOutputVoicePromptService) {
+      final songAudioId = widget.songAudioId?.trim();
+      final audioKey = songAudioId == null || songAudioId.isEmpty
+          ? null
+          : ListeningAudioKeys.songStart(songAudioId);
+      if (!kIsWeb &&
+          audioKey != null &&
+          prompt is KeyedSelectedMediaOutputVoicePromptService) {
+        await (prompt as KeyedSelectedMediaOutputVoicePromptService)
+            .speakAndWaitOnSelectedMediaOutputWithAudioKey(
+              audioKey,
+              cue,
+              locale: 'vi-VN',
+            );
+      } else if (audioKey != null && prompt is KeyedVoicePromptService) {
+        await (prompt as KeyedVoicePromptService).speakAndWaitWithAudioKey(
+          audioKey,
+          cue,
+          locale: 'vi-VN',
+        );
+      } else if (!kIsWeb && prompt is SelectedMediaOutputVoicePromptService) {
         await (prompt as SelectedMediaOutputVoicePromptService)
             .speakAndWaitOnSelectedMediaOutput(cue, locale: 'vi-VN');
       } else {

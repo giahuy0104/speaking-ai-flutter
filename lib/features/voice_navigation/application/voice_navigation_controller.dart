@@ -333,7 +333,9 @@ class VoiceNavigationController extends ChangeNotifier {
       final acknowledged = await _acknowledgeWakeWord(
         generation,
         promptText: promptText,
-        promptAudioKey: _mainAssistantFlow.currentPromptAudioKey,
+        promptAudioKey:
+            _mainAssistantFlow.audioKeyForPrompt(promptText) ??
+            _mainAssistantFlow.currentPromptAudioKey,
         speakPrompt: !promptAlreadySpoken,
       );
       if (_disposed || generation != _generation) return false;
@@ -513,7 +515,9 @@ class VoiceNavigationController extends ChangeNotifier {
         : await _acknowledgeWakeWord(
             generation,
             promptText: turn.promptText,
-            promptAudioKey: turn.promptAudioKey,
+            promptAudioKey:
+                turn.promptAudioKey ??
+                _mainAssistantFlow.audioKeyForPrompt(turn.promptText),
             promptSequence: turn.promptSequence,
             openCommandWindow: turn.continueListening,
           );

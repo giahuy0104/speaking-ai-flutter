@@ -393,6 +393,20 @@
       "modelId": "eleven_v3",
       "speed": 0.9,
       "textHash": "f1efbb4a92fb8a3b577a7e1769c3dceb5e74fc9b85ad0ddab59781411887c6b9"
+    },
+    {
+      "key": "vocabulary.flow.finish_active_group_first.vi",
+      "enabled": true,
+      "locale": "vi-VN",
+      "text": "Mình học xong lượt này trước nhé.",
+      "asset": "assets/audio/vocabulary-common/vocabulary.flow.finish_active_group_first.vi.mp3",
+      "durationSeconds": 1.52,
+      "sha256": "d8276b6e52ebc1ba30b6ee27f8b7c530e118bfcc81507e4f2b4313b918688d5c",
+      "sizeBytes": 25539,
+      "textHash": "8242b4a1e2cf6e1f2ea15f6015e2022be0d6ec9a29592aa8f124a6af47c18d84",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "modelId": "eleven_v3",
+      "speed": 0.9
     }
   ],
   "minimumAppVersion": "1.0.8"

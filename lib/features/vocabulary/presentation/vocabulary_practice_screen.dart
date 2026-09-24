@@ -545,7 +545,12 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         );
         setState(() => _message = feedback);
         await _playLessonPrompt(
-          LessonGuidePrompt(audioCode: 'CORRECT', text: feedback),
+          LessonGuidePrompt(
+            audioCode: 'CORRECT',
+            text: feedback,
+            audioKey: LessonAgeFeedbackLibrary.audioKeyFor(feedback),
+            locale: LessonAgeFeedbackLibrary.localeFor(feedback),
+          ),
         );
         if (!_isCurrent(generation, entry.id)) return;
         await _advance();
@@ -566,7 +571,12 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
           _message = feedback;
         });
         await _playLessonPrompt(
-          LessonGuidePrompt(audioCode: 'ASR', text: feedback),
+          LessonGuidePrompt(
+            audioCode: 'ASR',
+            text: feedback,
+            audioKey: LessonAgeFeedbackLibrary.audioKeyFor(feedback),
+            locale: LessonAgeFeedbackLibrary.localeFor(feedback),
+          ),
         );
         if (!_isCurrent(generation, entry.id)) return;
         await _startRecording(generation: generation, entry: entry);
@@ -587,7 +597,12 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
           _message = feedback;
         });
         await _playLessonPrompt(
-          LessonGuidePrompt(audioCode: 'NO_RESPONSE', text: feedback),
+          LessonGuidePrompt(
+            audioCode: 'NO_RESPONSE',
+            text: feedback,
+            audioKey: LessonAgeFeedbackLibrary.audioKeyFor(feedback),
+            locale: LessonAgeFeedbackLibrary.localeFor(feedback),
+          ),
         );
         if (!_isCurrent(generation, entry.id)) return;
         await _startRecording(generation: generation, entry: entry);
@@ -605,7 +620,12 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
             );
           });
           await _playLessonPrompt(
-            LessonGuidePrompt(audioCode: 'RETRY', text: _message),
+            LessonGuidePrompt(
+              audioCode: 'RETRY',
+              text: _message,
+              audioKey: LessonAgeFeedbackLibrary.audioKeyFor(_message),
+              locale: LessonAgeFeedbackLibrary.localeFor(_message),
+            ),
           );
           if (!_isCurrent(generation, entry.id)) return;
           await _speakVocabularyText(entry, entry.word, locale: 'en-US');
@@ -656,7 +676,12 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     );
     setState(() => _message = giveFeedback);
     await _playLessonPrompt(
-      LessonGuidePrompt(audioCode: 'GIVE', text: giveFeedback),
+      LessonGuidePrompt(
+        audioCode: 'GIVE',
+        text: giveFeedback,
+        audioKey: LessonAgeFeedbackLibrary.audioKeyFor(giveFeedback),
+        locale: LessonAgeFeedbackLibrary.localeFor(giveFeedback),
+      ),
     );
     if (!_isCurrent(generation, entry.id)) return;
     await _speakAndWait(entry.word, locale: 'en-US');
@@ -822,9 +847,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
             ),
           );
         } else {
-          await _speakAndWait(
-            'Đây là câu cuối. Bạn hãy hoàn thành câu này nhé.',
-          );
+          await _playLessonPrompt(LessonGuideFlowV2.lastItemComplete);
         }
         if (!_isCurrent(generation, entryId)) return;
       } else if (offset > 0) {
@@ -1427,13 +1450,47 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   }
 
   Future<void> _playLessonPrompt(LessonGuidePrompt prompt) async {
+    final audioKey = prompt.audioKey;
+    final voicePrompt = _voicePromptService;
+    if (audioKey != null) {
+      try {
+        if (!kIsWeb &&
+            voicePrompt is KeyedSelectedMediaOutputVoicePromptService) {
+          await widget.mediaService.prepareSelectedLessonOutput();
+          if (_exiting || !mounted) return;
+          await (voicePrompt as KeyedSelectedMediaOutputVoicePromptService)
+              .speakAndWaitOnSelectedMediaOutputWithAudioKey(
+                audioKey,
+                prompt.text,
+                locale: prompt.locale,
+              );
+          return;
+        }
+        if (voicePrompt is KeyedVoicePromptService) {
+          await (voicePrompt as KeyedVoicePromptService)
+              .speakAndWaitWithAudioKey(
+                audioKey,
+                prompt.text,
+                locale: prompt.locale,
+              );
+          return;
+        }
+      } catch (_) {
+        if (_exiting || !mounted) return;
+        // Keep the existing authored-code and TTS fallbacks below.
+      }
+    }
     if (await widget.fixedPromptAudioService?.playAudioCodeIfAvailable(
           prompt.audioCode,
         ) ==
         true) {
       return;
     }
-    await _speakAndWait(prompt.text, allowFixedPrompt: false);
+    await _speakAndWait(
+      prompt.text,
+      locale: prompt.locale,
+      allowFixedPrompt: false,
+    );
   }
 
   Future<void> _speakVocabularyText(

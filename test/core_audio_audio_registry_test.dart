@@ -38,6 +38,26 @@ void main() {
     expect(resolution.bytes, authored);
   });
 
+  test('keyed authored audio rejects changed runtime text', () async {
+    final fixture = _Fixture.bundle(
+      key: key,
+      locale: locale,
+      bytes: authored,
+      text: 'Xin chào',
+    );
+    final matching = await fixture.resolver.resolve(request());
+    final changedRequest = AudioPromptRequest(
+      key: AudioPromptKey(key),
+      fallbackText: 'Xin chào đã đổi',
+      locale: locale,
+    );
+    final changed = await fixture.resolver.resolve(changedRequest);
+
+    expect(matching.source, AudioPromptSource.bundledAsset);
+    expect(changed.source, AudioPromptSource.tts);
+    expect(await fixture.resolver.budget(changedRequest), isNull);
+  });
+
   test(
     'unkeyed fixed text prefers the unique matching authored asset',
     () async {
@@ -516,13 +536,20 @@ void main() {
     final listeningRegistry = listening as VoicePromptAudioRegistryAdapter;
     final vocabularyRegistry = vocabulary as VoicePromptAudioRegistryAdapter;
 
-    expect(await mainRegistry.repository.activeManifests(), hasLength(1));
+    expect(await mainRegistry.repository.activeManifests(), hasLength(2));
     expect(await listeningRegistry.repository.activeManifests(), hasLength(12));
-    expect(await vocabularyRegistry.repository.activeManifests(), hasLength(2));
+    expect(await vocabularyRegistry.repository.activeManifests(), hasLength(3));
 
     expect(
       await mainRegistry.repository.find(
         AudioPromptKey('assistant.main.open_menu.vi'),
+        'vi-VN',
+      ),
+      isNotNull,
+    );
+    expect(
+      await mainRegistry.repository.find(
+        AudioPromptKey('listening.navigation.start_lesson.1.vi'),
         'vi-VN',
       ),
       isNotNull,
@@ -569,6 +596,13 @@ void main() {
       ),
       isNotNull,
     );
+    expect(
+      await vocabularyRegistry.repository.find(
+        AudioPromptKey('listening.feedback.age.great.en'),
+        'en-US',
+      ),
+      isNotNull,
+    );
   });
 }
 
@@ -590,6 +624,7 @@ final class _Fixture {
       checksum: _checksum(bytes),
       asset: audioAsset,
       sizeBytes: bytes.length,
+      text: text,
       textHash: text == null ? null : _textHash(text),
     );
     final cache = MemoryAudioPackCache();
@@ -692,6 +727,7 @@ Map<String, dynamic> _manifestJson({
   String? asset,
   String? url,
   int? sizeBytes,
+  String? text,
   String? textHash,
 }) => <String, dynamic>{
   'schemaVersion': 1,
@@ -707,6 +743,7 @@ Map<String, dynamic> _manifestJson({
       'asset': ?asset,
       'url': ?url,
       'sizeBytes': ?sizeBytes,
+      'text': ?text,
       'textHash': ?textHash,
     },
   ],

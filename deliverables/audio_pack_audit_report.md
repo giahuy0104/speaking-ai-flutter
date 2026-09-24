@@ -1,24 +1,15 @@
 # Audio Pack Audit
 
 - Packs: 16
-- Audio entries: 3578
-- Unique bytes by pack: 111267002
+- Audio entries: 3935
+- Unique bytes by pack: 127569995
 - Text-hash coverage: 100.00%
 - iOS: not verified on Windows
 
-## Verification
-
-- Flutter tests: 1221 passed
-- Flutter analyze: no issues
-- Android: debug APK built successfully
-- Web: production bundle built successfully
-- iOS: not verified on Windows
-- Missing source-text keys: none
-
 | Pack | Version | Audio | Bytes | Preload |
 |---|---:|---:|---:|---|
-| assistant-core | v2 | 25 | 859719 | shared |
-| listening-common | v1 | 126 | 11027901 | shared |
+| assistant-core | v2 | 78 | 2370856 | shared |
+| listening-common | v1 | 429 | 25794218 | shared |
 | listening-3-5 | v1 | 206 | 3527759 | 3-5 |
 | listening-6-7 | v1 | 224 | 4219431 | 6-7 |
 | listening-8-10 | v1 | 220 | 4058340 | 8-10 |
@@ -29,7 +20,7 @@
 | challenge-8-10 | v1 | 220 | 10204017 | 8-10 |
 | challenge-11-12 | v1 | 240 | 12725607 | 11-12 |
 | challenge-13-15 | v1 | 240 | 12854752 | 13-15 |
-| vocabulary-common | v1 | 30 | 1042268 | shared |
+| vocabulary-common | v1 | 31 | 1067807 | shared |
 | vocabulary-built-in | v1 | 1130 | 21938109 | shared |
 | songs | v1 | 5 | 3823128 | shared |
 | system-sfx | v1 | 2 | 53135 | shared |

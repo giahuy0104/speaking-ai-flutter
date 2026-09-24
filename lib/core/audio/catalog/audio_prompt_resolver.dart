@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
@@ -39,6 +40,13 @@ final class AudioPromptResolver {
     }
     if (indexed == null) {
       return _fallback(request, reason: 'key_or_locale_missing');
+    }
+    if (!_isUnkeyed(request) && !_matchesRuntimeText(indexed.prompt, request)) {
+      return _fallback(
+        request,
+        prompt: indexed.prompt,
+        reason: 'text_hash_mismatch',
+      );
     }
     if (!_withinLimits(indexed.prompt)) {
       return _fallback(
@@ -105,9 +113,16 @@ final class AudioPromptResolver {
     return _fallback(request, prompt: prompt, reason: 'audio_unavailable');
   }
 
-  Future<Duration?> budget(AudioPromptRequest request) => _isUnkeyed(request)
-      ? repository.budgetByText(request.fallbackText, request.locale)
-      : repository.budget(request.key, request.locale);
+  Future<Duration?> budget(AudioPromptRequest request) async {
+    if (_isUnkeyed(request)) {
+      return repository.budgetByText(request.fallbackText, request.locale);
+    }
+    final indexed = await repository.find(request.key, request.locale);
+    if (indexed == null || !_matchesRuntimeText(indexed.prompt, request)) {
+      return null;
+    }
+    return repository.budget(request.key, request.locale);
+  }
 
   static bool _isUnkeyed(AudioPromptRequest request) =>
       request.key.value == 'runtime.tts.unkeyed';
@@ -116,6 +131,16 @@ final class AudioPromptResolver {
       prompt.durationSeconds <= 45 &&
       (prompt.sizeBytes == null ||
           prompt.sizeBytes! <= repository.maximumAudioBytes);
+
+  bool _matchesRuntimeText(AudioPackPrompt prompt, AudioPromptRequest request) {
+    final sourceText = prompt.sourceText;
+    if (sourceText == null || sourceText.isEmpty) return true;
+    final normalized = request.fallbackText
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    return sha256.convert(utf8.encode(normalized)).toString() ==
+        prompt.textHash;
+  }
 
   bool _verified(Uint8List bytes, AudioPackPrompt prompt) =>
       bytes.isNotEmpty &&

@@ -1,12 +1,75 @@
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
+import 'package:ai_speaking_flutter_app/features/listening/domain/listening_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_voice_assistant_flow.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_intent_resolver.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/main_assistant_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('Topic dynamic prompts resolve to authored audio keys', () async {
+    final flow = MainVoiceAssistantFlow(
+      contentLoader: _loadContent,
+      childAge: 6,
+    );
+
+    final levelPrompt = flow.beginLevelTopicSelection(
+      childAge: 6,
+      levelNumber: 1,
+      topicNumbers: const <int>[1, 2, 3],
+      completedTopicNumbers: const <int>[2],
+      announceLevel: true,
+    );
+    expect(
+      flow.audioKeyForPrompt(levelPrompt),
+      MainAssistantAudioKeys.levelTopicSelection(1),
+    );
+    expect(flow.silenceRetryAudioKey, MainAssistantAudioKeys.chooseTopic(3));
+
+    final invalid = await flow.handle('Chủ đề số 9');
+    expect(
+      flow.audioKeyForPrompt(invalid.promptText),
+      MainAssistantAudioKeys.invalidTopic(3),
+    );
+
+    final replay = await flow.handle('Chủ đề số 2');
+    expect(
+      flow.audioKeyForPrompt(replay.promptText),
+      MainAssistantAudioKeys.replayTopic(2),
+    );
+    expect(flow.silenceRetryAudioKey, MainAssistantAudioKeys.replayTopic(2));
+
+    final topic = (await _loadContent()).topic(
+      startAge: 6,
+      endAge: 7,
+      topicNumber: 3,
+    );
+    final lessonPrompt = flow.beginLessonSelectionForTopic(
+      childAge: 6,
+      topicNumber: 3,
+      topicContent: topic,
+      completedLessonNumbers: const <int>[],
+    );
+    expect(
+      flow.audioKeyForPrompt(lessonPrompt),
+      ListeningAudioKeys.startLessonChoice(1),
+    );
+    final invalidLesson = await flow.handle('Bài số 9');
+    expect(
+      flow.audioKeyForPrompt(invalidLesson.promptText),
+      ListeningAudioKeys.startLessonChoice(1),
+    );
+    expect(
+      flow.audioKeyForPrompt(
+        'Có ${topic.lessons.length} Bài học. '
+        'Bạn chọn từ số 1 đến số ${topic.lessons.length}.',
+      ),
+      ListeningAudioKeys.invalidLessonCount(topic.lessons.length),
+    );
+  });
+
   test(
     'global module commands remain available during content selection',
     () async {

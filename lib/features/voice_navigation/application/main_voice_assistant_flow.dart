@@ -1,5 +1,6 @@
 import '../../../core/device/active_learning_module.dart';
 import '../../listening/domain/listening_catalog.dart';
+import '../../listening/domain/listening_audio_keys.dart';
 import '../../listening/domain/listening_content.dart';
 import '../../listening/domain/v4_completion_flow.dart';
 import '../../vocabulary/data/vocabulary_store.dart';
@@ -131,17 +132,120 @@ class MainVoiceAssistantFlow {
     MainVoiceAssistantStage.chooseFeature => MainAssistantAudioKeys.openMenu,
     MainVoiceAssistantStage.chooseOtherLearning ||
     MainVoiceAssistantStage.chooseModuleSwitch ||
-    MainVoiceAssistantStage.chooseAfterTranslationStop ||
     MainVoiceAssistantStage.chooseAlternativeAfterLearning =>
       MainAssistantAudioKeys.chooseTranslation,
+    MainVoiceAssistantStage.chooseAfterTranslationStop =>
+      MainAssistantAudioKeys.afterTranslationStop,
     MainVoiceAssistantStage.chooseVocabularyCollection =>
       MainAssistantAudioKeys.chooseVocabulary,
-    MainVoiceAssistantStage.activeLearning when _activeVoicePrompt == null =>
+    MainVoiceAssistantStage.activeLearning => _activeLearningPromptAudioKey,
+    MainVoiceAssistantStage.chooseTopic when _selectedCatalog != null =>
+      MainAssistantAudioKeys.chooseTopic(_selectedCatalog!.topics.length),
+    MainVoiceAssistantStage.chooseTopicAfterCompletion
+        when _allowedTopicNumbers.isNotEmpty =>
+      MainAssistantAudioKeys.chooseTopic(_allowedTopicNumbers.length),
+    MainVoiceAssistantStage.chooseCourseRelearnLevel =>
+      MainAssistantAudioKeys.courseRelearnLevel,
+    MainVoiceAssistantStage.confirmReplayTopic
+        when _pendingReplayTopicNumber != null =>
+      MainAssistantAudioKeys.replayTopic(_pendingReplayTopicNumber!),
+    _ => null,
+  };
+
+  String? get _activeLearningPromptAudioKey => switch (_activeVoiceNode) {
+    ActiveLearningVoiceNode.challenge =>
+      MainAssistantAudioKeys.challengeControls,
+    ActiveLearningVoiceNode.song => MainAssistantAudioKeys.songControls,
+    _ when _activeVoicePrompt == null =>
       MainAssistantAudioKeys.activeLearningControls,
     _ => null,
   };
 
-  String get silenceRetryAudioKey => MainAssistantAudioKeys.noSpeech;
+  String? get silenceRetryAudioKey =>
+      _stage == MainVoiceAssistantStage.chooseFeature
+      ? MainAssistantAudioKeys.noSpeech
+      : audioKeyForPrompt(silenceRetryPrompt) ?? currentPromptAudioKey;
+
+  /// Maps the finite dynamic prompts in the Topic flow to authored recordings.
+  String? audioKeyForPrompt(String text) {
+    final value = text.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (value == courseRelearnLevelPrompt) {
+      return MainAssistantAudioKeys.courseRelearnLevel;
+    }
+    if (value == 'Bạn chọn Level 1, 2, 3 nhé.') {
+      return MainAssistantAudioKeys.chooseRelearnLevel;
+    }
+    if (value == 'Chủ đề này chưa có bài học. Bạn chọn Chủ đề khác nhé.') {
+      return MainAssistantAudioKeys.topicWithoutLessons;
+    }
+    if (value == 'Chủ đề này chưa có bài học. Bạn thử lại sau nhé.') {
+      return MainAssistantAudioKeys.lessonNotFound;
+    }
+    if (value == 'HOMI chưa chọn được Chủ đề. Bạn thử lại nhé.') {
+      return MainAssistantAudioKeys.topicNotFound;
+    }
+    if (value == 'HOMI chưa tải được bài học. Bạn thử lại sau nhé.') {
+      return MainAssistantAudioKeys.catalogLoadError;
+    }
+    if (value == 'Cùng học tiếp nhé') {
+      return MainAssistantAudioKeys.resumeLearning;
+    }
+    if (value == 'Mình tiếp tục Chủ đề nhé.') {
+      return MainAssistantAudioKeys.continueSubject;
+    }
+    if (value == 'Mình chuyển sang câu sau nhé.') {
+      return MainAssistantAudioKeys.nextItem;
+    }
+    if (value == 'Mình nghe lại câu trước nhé') {
+      return MainAssistantAudioKeys.previousItem;
+    }
+    if (value == 'Mình nghe lại câu này nhé') {
+      return MainAssistantAudioKeys.replayItem;
+    }
+    if (value == 'Mình chuyển sang bài tiếp theo nhé') {
+      return MainAssistantAudioKeys.nextLesson;
+    }
+    if (value == 'Mình học lại bài này từ đầu nhé') {
+      return MainAssistantAudioKeys.restartLesson;
+    }
+    if (value == 'Đây là câu đầu tiên. Mình nghe lại nhé.') {
+      return MainAssistantAudioKeys.firstItemReplay;
+    }
+
+    final levelSelection = RegExp(
+      r'^Bắt đầu Level (\d+)\. Có (\d+) Chủ đề\. Bạn chọn Chủ đề số mấy\?$',
+    ).firstMatch(value);
+    if (levelSelection != null) {
+      return MainAssistantAudioKeys.levelTopicSelection(
+        int.parse(levelSelection.group(1)!),
+      );
+    }
+    final chooseTopic = RegExp(
+      r'^Có (\d+) Chủ đề\. Bạn chọn Chủ đề số mấy\?$',
+    ).firstMatch(value);
+    if (chooseTopic != null) {
+      return MainAssistantAudioKeys.chooseTopic(
+        int.parse(chooseTopic.group(1)!),
+      );
+    }
+    final invalidTopic = RegExp(
+      r'^Level này có (\d+) Chủ đề\. Bạn chọn lại nhé\.$',
+    ).firstMatch(value);
+    if (invalidTopic != null) {
+      return MainAssistantAudioKeys.invalidTopic(
+        int.parse(invalidTopic.group(1)!),
+      );
+    }
+    final replayTopic = RegExp(
+      r'^Chủ đề (\d+) bạn đã học xong rồi\. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề (\d+)\?$',
+    ).firstMatch(value);
+    if (replayTopic != null && replayTopic.group(1) == replayTopic.group(2)) {
+      return MainAssistantAudioKeys.replayTopic(
+        int.parse(replayTopic.group(1)!),
+      );
+    }
+    return ListeningAudioKeys.topicContextPrompt(value);
+  }
 
   void setChildAge(int age) {
     if (_configuredChildAge == age) {
@@ -646,7 +750,7 @@ class MainVoiceAssistantFlow {
     if (_looksLikePromptEcho(normalized)) {
       return const MainVoiceAssistantTurn(
         promptText: otherLearningPrompt,
-        promptAudioKey: MainAssistantAudioKeys.chooseTranslation,
+        promptAudioKey: MainAssistantAudioKeys.afterTranslationStop,
         continueListening: true,
       );
     }
@@ -672,7 +776,7 @@ class MainVoiceAssistantFlow {
     }
     return const MainVoiceAssistantTurn(
       promptText: otherLearningPrompt,
-      promptAudioKey: MainAssistantAudioKeys.chooseTranslation,
+      promptAudioKey: MainAssistantAudioKeys.afterTranslationStop,
       continueListening: true,
     );
   }
@@ -721,7 +825,9 @@ class MainVoiceAssistantFlow {
       promptText: resuming
           ? MasterNavigationContract.translationContinue
           : continuousTranslationPrompt,
-      promptAudioKey: MainAssistantAudioKeys.translationStarted,
+      promptAudioKey: resuming
+          ? MainAssistantAudioKeys.translationContinue
+          : MainAssistantAudioKeys.translationStarted,
       continueListening: false,
       navigationAfterPrompt: VoiceNavigationIntent(
         destination: VoiceNavigationDestination.conversation,
@@ -979,6 +1085,7 @@ class MainVoiceAssistantFlow {
     if (_looksLikePromptEcho(normalized)) {
       return MainVoiceAssistantTurn(
         promptText: _activeVoicePrompt ?? activeLearningPrompt,
+        promptAudioKey: currentPromptAudioKey,
         continueListening: true,
       );
     }
@@ -1024,6 +1131,7 @@ class MainVoiceAssistantFlow {
         _isWaitingChoiceNode(_activeVoiceNode)) {
       return MainVoiceAssistantTurn(
         promptText: _activeVoicePrompt ?? activeLearningPrompt,
+        promptAudioKey: currentPromptAudioKey,
         continueListening: true,
       );
     }
@@ -1042,6 +1150,7 @@ class MainVoiceAssistantFlow {
     }
     return MainVoiceAssistantTurn(
       promptText: _activeVoicePrompt ?? activeLearningPrompt,
+      promptAudioKey: currentPromptAudioKey,
       continueListening: true,
     );
   }
@@ -1281,6 +1390,7 @@ class MainVoiceAssistantFlow {
       reset();
       return const MainVoiceAssistantTurn(
         promptText: 'HOMI chưa tải được bài học. Bạn thử lại sau nhé.',
+        promptAudioKey: MainAssistantAudioKeys.catalogLoadError,
         continueListening: false,
       );
     }
@@ -1583,6 +1693,7 @@ class MainVoiceAssistantFlow {
       reset();
       return const MainVoiceAssistantTurn(
         promptText: 'HOMI chưa chọn được Chủ đề. Bạn thử lại nhé.',
+        promptAudioKey: MainAssistantAudioKeys.topicNotFound,
         continueListening: false,
       );
     }

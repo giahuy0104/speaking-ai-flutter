@@ -566,12 +566,28 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
     final prompt = widget.hasNextLesson
         ? 'Giỏi lắm! Bạn đã hoàn thành bài học. Bấm nút Main rồi nói “Bài tiếp theo” để học tiếp, hoặc nói “Luyện lại” để học lại từ đầu nhé.'
         : 'Giỏi lắm! Bạn đã hoàn thành bài học. Bấm nút Main rồi nói “Luyện nghe” để chọn bài khác, hoặc nói “Luyện lại” để học lại từ đầu nhé.';
+    final audioKey = widget.hasNextLesson
+        ? ListeningAudioKeys.reviewCompletedNextLesson
+        : ListeningAudioKeys.reviewCompletedChooseLesson;
     setState(() => _message = prompt);
     try {
       await widget.mediaService.prepareSelectedLessonOutput();
       if (!mounted || _pausedForMainAssistant) return;
       final voicePrompt = _prompt;
-      if (voicePrompt is SelectedMediaOutputVoicePromptService) {
+      if (voicePrompt is KeyedSelectedMediaOutputVoicePromptService) {
+        await (voicePrompt as KeyedSelectedMediaOutputVoicePromptService)
+            .speakAndWaitOnSelectedMediaOutputWithAudioKey(
+              audioKey,
+              prompt,
+              locale: 'vi-VN',
+            );
+      } else if (voicePrompt is KeyedVoicePromptService) {
+        await (voicePrompt as KeyedVoicePromptService).speakAndWaitWithAudioKey(
+          audioKey,
+          prompt,
+          locale: 'vi-VN',
+        );
+      } else if (voicePrompt is SelectedMediaOutputVoicePromptService) {
         await (voicePrompt as SelectedMediaOutputVoicePromptService)
             .speakAndWaitOnSelectedMediaOutput(prompt);
       } else {

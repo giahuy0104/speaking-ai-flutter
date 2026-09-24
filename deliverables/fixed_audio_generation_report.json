@@ -1,0 +1,35 @@
+{
+  "generatedAt": "2026-09-24T08:36:05.5131050Z",
+  "modelId": "eleven_v3",
+  "outputFormat": "mp3_44100_128",
+  "voices": {
+    "en": "Nhs7eitvQWFTQBsf0yiT",
+    "vi": "5CVDNcIPiOYgRUQuxXd7"
+  },
+  "speeds": {
+    "en": 0.75,
+    "vi": 0.9
+  },
+  "summary": {
+    "catalogPrompts": 17,
+    "valid": 9,
+    "reused": 0,
+    "generated": 8,
+    "apiRequests": 8,
+    "vietnameseCharacters": 489.0,
+    "englishCharacters": 0.0,
+    "pendingSegmentApiRequests": 8,
+    "pendingSegmentCharacters": 489.0
+  },
+  "generatedKeys": [
+    "listening.navigation.start_lesson.1.vi",
+    "listening.navigation.invalid_lesson_count.2.vi",
+    "listening.navigation.invalid_lesson_count.3.vi",
+    "listening.completion.lesson.2_to_1.vi",
+    "listening.completion.lesson.3_to_1.vi",
+    "listening.completion.lesson.3_to_2.vi",
+    "listening.review.completed.next_lesson.vi",
+    "listening.review.completed.choose_lesson.vi"
+  ],
+  "reusedKeys": []
+}

@@ -149,6 +149,33 @@ void main() {
     },
   );
 
+  test('Topic GAP recordings support stable contextual audio keys', () async {
+    final delegate = _Delegate();
+    final service = MainAssistantAudioPromptService(
+      delegate: delegate,
+      enabled: true,
+      additionalManifestAssets: const [homiGap66ManifestAsset],
+    );
+    addTearDown(service.dispose);
+
+    final topicEntries = entries.where(
+      (entry) =>
+          entry['group'] == 'gap66-level-selection' ||
+          entry['group'] == 'gap66-topic-replay',
+    );
+    for (final entry in topicEntries) {
+      final key = entry['key'];
+      if (key is! String) continue;
+      delegate.events.clear();
+      await service.speakAndWaitWithAudioKey(
+        key,
+        entry['text'] as String,
+        locale: entry['locale'] as String,
+      );
+      expect(delegate.events, ['mp3'], reason: key);
+    }
+  });
+
   for (final group in groups) {
     test(
       'isolated rollback for $group leaves other new groups playing MP3',

@@ -88,6 +88,7 @@
     },
     {
       "id": "GAP66-005",
+      "key": "assistant.topic.level_selection.1.vi",
       "text": "Bắt đầu Level 1. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
       "locale": "vi-VN",
       "voiceLanguage": "vi",
@@ -106,6 +107,7 @@
     },
     {
       "id": "GAP66-006",
+      "key": "assistant.topic.level_selection.2.vi",
       "text": "Bắt đầu Level 2. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
       "locale": "vi-VN",
       "voiceLanguage": "vi",
@@ -124,6 +126,7 @@
     },
     {
       "id": "GAP66-007",
+      "key": "assistant.topic.level_selection.3.vi",
       "text": "Bắt đầu Level 3. Có 4 Chủ đề. Bạn chọn Chủ đề số mấy?",
       "locale": "vi-VN",
       "voiceLanguage": "vi",
@@ -142,6 +145,7 @@
     },
     {
       "id": "GAP66-008",
+      "key": "assistant.topic.replay.1.vi",
       "text": "Chủ đề 1 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 1?",
       "locale": "vi-VN",
       "voiceLanguage": "vi",
@@ -160,6 +164,7 @@
     },
     {
       "id": "GAP66-009",
+      "key": "assistant.topic.replay.10.vi",
       "text": "Chủ đề 10 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 10?",
       "locale": "vi-VN",
       "voiceLanguage": "vi",
@@ -178,6 +183,7 @@
     },
     {
       "id": "GAP66-010",
+      "key": "assistant.topic.replay.2.vi",
       "text": "Chủ đề 2 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 2?",
       "locale": "vi-VN",
       "voiceLanguage": "vi",
@@ -196,6 +202,7 @@
     },
     {
       "id": "GAP66-011",
+      "key": "assistant.topic.replay.3.vi",
       "text": "Chủ đề 3 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 3?",
       "locale": "vi-VN",
       "voiceLanguage": "vi",
@@ -214,6 +221,7 @@
     },
     {
       "id": "GAP66-012",
+      "key": "assistant.topic.replay.4.vi",
       "text": "Chủ đề 4 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 4?",
       "locale": "vi-VN",
       "voiceLanguage": "vi",
@@ -232,6 +240,7 @@
     },
     {
       "id": "GAP66-013",
+      "key": "assistant.topic.replay.5.vi",
       "text": "Chủ đề 5 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 5?",
       "locale": "vi-VN",
       "voiceLanguage": "vi",
@@ -250,6 +259,7 @@
     },
     {
       "id": "GAP66-014",
+      "key": "assistant.topic.replay.6.vi",
       "text": "Chủ đề 6 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 6?",
       "locale": "vi-VN",
       "voiceLanguage": "vi",
@@ -268,6 +278,7 @@
     },
     {
       "id": "GAP66-015",
+      "key": "assistant.topic.replay.7.vi",
       "text": "Chủ đề 7 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 7?",
       "locale": "vi-VN",
       "voiceLanguage": "vi",
@@ -286,6 +297,7 @@
     },
     {
       "id": "GAP66-016",
+      "key": "assistant.topic.replay.8.vi",
       "text": "Chủ đề 8 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 8?",
       "locale": "vi-VN",
       "voiceLanguage": "vi",
@@ -304,6 +316,7 @@
     },
     {
       "id": "GAP66-017",
+      "key": "assistant.topic.replay.9.vi",
       "text": "Chủ đề 9 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 9?",
       "locale": "vi-VN",
       "voiceLanguage": "vi",

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-23T14:08:45.523044Z",
+  "generatedAt": "2026-09-24T08:36:37.767554Z",
   "minimumAppVersion": "1.0.8",
   "packs": [
     {
@@ -8,9 +8,9 @@
       "version": "v2",
       "minimumAppVersion": "1.0.8",
       "manifest": "assets/data/assistant_core_audio.json",
-      "manifestSha256": "bfa1d167207042dc3b3e883b00171df3dffa0077054a7474f2fb9e536449d77c",
-      "audioCount": 25,
-      "sizeBytes": 859719,
+      "manifestSha256": "430463189c5177bc36f11f50dc5825001289a2a28e6e8f3c6f98c52e98e2891b",
+      "audioCount": 78,
+      "sizeBytes": 2370856,
       "preloadGroup": "shared"
     },
     {
@@ -18,9 +18,9 @@
       "version": "v1",
       "minimumAppVersion": "1.0.8",
       "manifest": "assets/data/listening_common_audio.json",
-      "manifestSha256": "1d8a775e746e73f97b951f7da4692779608bb80cb7e43e87f3d064dda749b220",
-      "audioCount": 126,
-      "sizeBytes": 11027901,
+      "manifestSha256": "7fcdfdc94e4931c6fb22b08a7523373d562f71efbc9b530f6f669e479a0fcd1a",
+      "audioCount": 429,
+      "sizeBytes": 25794218,
       "preloadGroup": "shared"
     },
     {
@@ -128,9 +128,9 @@
       "version": "v1",
       "minimumAppVersion": "1.0.8",
       "manifest": "assets/data/vocabulary_common_audio.json",
-      "manifestSha256": "f4a12192e7f62a7e4b9ce192d53453fdc738134fd0fcec4b30d4cbcad545b666",
-      "audioCount": 30,
-      "sizeBytes": 1042268,
+      "manifestSha256": "bf1a0afe2446cb6b1bdeb20bb3d8701ff98a6fabc1df49e7e61ecd52b356cc32",
+      "audioCount": 31,
+      "sizeBytes": 1067807,
       "preloadGroup": "shared"
     },
     {

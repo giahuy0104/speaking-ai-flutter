@@ -13,6 +13,7 @@ final class AudioPackPrompt {
     this.remoteUri,
     this.sizeBytes,
     this.textHash,
+    this.sourceText,
     this.enabled = true,
   }) {
     if (!_shaPattern.hasMatch(sha256)) {
@@ -54,6 +55,9 @@ final class AudioPackPrompt {
           : null,
       sizeBytes: (json['sizeBytes'] as num?)?.toInt(),
       textHash: (json['textHash'] as String?)?.trim().toLowerCase(),
+      sourceText: (json['text'] as String?)
+          ?.replaceAll(RegExp(r'\s+'), ' ')
+          .trim(),
       enabled: json['enabled'] as bool? ?? true,
     );
   }
@@ -68,6 +72,7 @@ final class AudioPackPrompt {
   final Uri? remoteUri;
   final int? sizeBytes;
   final String? textHash;
+  final String? sourceText;
   final bool enabled;
 }
 

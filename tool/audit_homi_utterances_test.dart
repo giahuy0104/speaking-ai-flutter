@@ -344,6 +344,7 @@ void main() {
               text,
               'age_feedback',
               guideSource,
+              locale: LessonAgeFeedbackLibrary.localeFor(text),
               context: 'age=$age ${kind.name}',
             );
           }
@@ -354,6 +355,7 @@ void main() {
           prompt.text,
           'core_speak_cue',
           guideSource,
+          locale: prompt.locale,
           context: prompt.audioCode,
         );
       }
@@ -461,10 +463,12 @@ void main() {
           );
         }
       }
-      final output = File(const String.fromEnvironment(
-        'HOMI_AUDIT_OUTPUT',
-        defaultValue: 'deliverables/homi-runtime-domain-audit.json',
-      ));
+      final output = File(
+        const String.fromEnvironment(
+          'HOMI_AUDIT_OUTPUT',
+          defaultValue: 'deliverables/homi-runtime-domain-audit.json',
+        ),
+      );
       output.parent.createSync(recursive: true);
       output.writeAsStringSync(
         '${const JsonEncoder.withIndent('  ').convert({'scenarios': scenarios, 'transitions': transitions, 'maxDialogueProbeDepth': 4, 'reachedStages': reached.map((key, value) => MapEntry(key, value.toList()..sort())), 'rows': rows.values.toList()})}\n',

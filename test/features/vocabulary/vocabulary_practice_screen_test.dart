@@ -727,7 +727,7 @@ void main() {
     (tester) async {
       final registry = ActiveLearningModuleRegistry();
       final media = _FakeLessonMediaService();
-      final voice = _GatedCueVoice(media);
+      final voice = _KeyedGatedCueVoice(media);
       addTearDown(registry.dispose);
       addTearDown(media.close);
       await _mountReview(
@@ -767,6 +767,7 @@ void main() {
         await registry.pauseForMainAssistant();
         final before = media.startCalls;
         voice.spoken.clear();
+        voice.audioKeys.clear();
         voice.gates = <String, Completer<void>>{
           'en-US:${scenario.$2}': Completer<void>(),
           'vi-VN:${scenario.$3}': Completer<void>(),
@@ -774,14 +775,22 @@ void main() {
         voice.cue = Completer<void>();
         final command = registry.execute(scenario.$1);
         await tester.pumpAndSettle();
+        final isLastBoundary =
+            scenario.$4 == LessonGuideFlowV2.lastItemComplete.text;
         expect(voice.spoken, <String>[
-          if (scenario.$4 != null) 'vi-VN:${scenario.$4}',
-          'en-US:${scenario.$2}',
+          if (scenario.$4 != null && !isLastBoundary) 'vi-VN:${scenario.$4}',
+        ]);
+        expect(voice.audioKeys, <String>[
+          if (isLastBoundary) LessonGuideFlowV2.lastItemComplete.audioKey!,
+          'vocabulary.entry.${scenario.$2}.word.en',
         ]);
         expect(media.startCalls, before);
         voice.gates['en-US:${scenario.$2}']!.complete();
         await tester.pumpAndSettle();
-        expect(voice.spoken.last, 'vi-VN:${scenario.$3}');
+        expect(
+          voice.audioKeys.last,
+          'vocabulary.entry.${scenario.$2}.meaning.vi',
+        );
         expect(media.startCalls, before);
         voice.gates['vi-VN:${scenario.$3}']!.complete();
         await tester.pumpAndSettle();
@@ -1148,4 +1157,30 @@ class _GatedCueVoice extends _FakeVoicePromptService
     media.events.add('cue');
     await cue?.future;
   }
+}
+
+class _KeyedGatedCueVoice extends _GatedCueVoice
+    implements
+        KeyedVoicePromptService,
+        KeyedSelectedMediaOutputVoicePromptService {
+  _KeyedGatedCueVoice(super.media);
+
+  final List<String> audioKeys = <String>[];
+
+  @override
+  Future<void> speakAndWaitWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) async {
+    audioKeys.add(audioKey);
+    await gates['$locale:$text']?.future;
+  }
+
+  @override
+  Future<void> speakAndWaitOnSelectedMediaOutputWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) => speakAndWaitWithAudioKey(audioKey, text, locale: locale);
 }

@@ -81,7 +81,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
   VoicePromptService? _voicePromptService;
   bool _ownsVoicePromptService = false;
   String? _guideText;
-  bool _isFreshV4Entry = false;
+  String? _introAudioKey;
   ListeningResumeStage _resumeStage = ListeningResumeStage.core;
   ActiveLearningModuleRegistry? _activeModuleRegistry;
   Object? _activeModuleRegistration;
@@ -214,9 +214,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
         prompt,
         text,
         request: request,
-        audioKey: _isFreshV4Entry
-            ? ListeningAudioKeys.lessonIntro(widget.lesson.id)
-            : null,
+        audioKey: _introAudioKey,
       );
     } catch (error, stackTrace) {
       if (!_isCurrentIntroRequest(request)) {
@@ -328,7 +326,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
   }
 
   Future<void> _prepareGuideText() async {
-    _isFreshV4Entry = false;
+    _introAudioKey = null;
     final completed = await widget.progressStore.readLesson(widget.lesson.id);
     final currentSentence = await widget.progressStore.readCurrentSentence(
       widget.lesson.id,
@@ -360,17 +358,21 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
       final lesson = widget.lesson;
       final topicContent = widget.topicContent;
       final String text;
+      final String audioKey;
       if (resumeStage == ListeningResumeStage.challenge ||
           resumeStage == ListeningResumeStage.rolePlay ||
           resumeStage == ListeningResumeStage.mission ||
           resumeStage == ListeningResumeStage.reinforcement) {
         text = 'Mình tiếp tục câu thử thách nhé.';
+        audioKey = ListeningAudioKeys.challengeResume;
       } else if (resumeStage == ListeningResumeStage.song) {
         text = 'Mình nghe lại bài hát ${lesson.songTitle ?? ''} nhé.'
             .replaceAll(RegExp(r'\s+'), ' ')
             .trim();
+        audioKey = ListeningAudioKeys.lessonSongResume(lesson.id);
       } else if (isInProgress) {
         text = 'Mình học tiếp bài $_lessonTitleForGuide nhé.';
+        audioKey = ListeningAudioKeys.lessonResume(lesson.id);
       } else if (widget.relearnFromBeginning ||
           (completed >= lesson.sentences.length &&
               lesson.sentences.isNotEmpty)) {
@@ -386,8 +388,13 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
                   ? 'Bài này bạn còn $remainingStars Ngôi sao chưa chinh phục. Mình cùng thử nhé!'
                   : 'Bài này bạn còn $remainingStars Ngôi sao chưa chinh phục.'
             : 'Mình học lại bài $_lessonTitleForGuide nhé.';
+        audioKey = remainingStars > 0
+            ? ListeningAudioKeys.lessonRemainingStars(
+                remainingStars,
+                childFriendly: widget.startAge <= 10,
+              )
+            : ListeningAudioKeys.lessonRelearn(lesson.id);
       } else {
-        _isFreshV4Entry = true;
         final isFirstLessonInTopic = lesson.number == 1;
         final topicLead = isFirstLessonInTopic && topicContent != null
             ? 'Chủ đề ${topicContent.number}. '
@@ -398,10 +405,12 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
         text = '$topicLead$lessonLead${lesson.entry?.text ?? ''} Bắt đầu nhé.'
             .replaceAll(RegExp(r'\s+'), ' ')
             .trim();
+        audioKey = ListeningAudioKeys.lessonIntro(lesson.id);
       }
       if (mounted && !_pausedForMainAssistant) {
         setState(() {
           _guideText = text;
+          _introAudioKey = audioKey;
           _resumeStage = resumeStage;
         });
       }

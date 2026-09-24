@@ -60,7 +60,7 @@ Future<void> main() async {
       }
       if (requiresTextHash) {
         speechEntries += 1;
-        final text = sourceText[key];
+        final text = sourceText[key] ?? prompt['text'] as String?;
         if (text == null) {
           missingSourceKeys.add(key);
         } else {
@@ -148,6 +148,14 @@ Future<Map<String, String>> _sourceTextByKey() async {
     for (final match in promptPattern.allMatches(source)) {
       result[match.group(1)!] = _normalize(match.group(2)!);
     }
+  }
+
+  final fixedCatalog =
+      jsonDecode(await File('tool/fixed_audio_prompts.json').readAsString())
+          as Map<String, dynamic>;
+  for (final prompt in (fixedCatalog['prompts'] as List<dynamic>)) {
+    final item = prompt as Map<String, dynamic>;
+    result[item['key'] as String] = _normalize(item['text'] as String? ?? '');
   }
 
   final catalog =

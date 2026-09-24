@@ -71,10 +71,26 @@ class MainAssistantAudioPromptService
 
   bool _isCurrent(int generation) => !_disposed && generation == _generation;
 
-  bool _matchesKey(Map<String, dynamic> entry, String audioKey, String locale) {
+  bool _matchesKey(
+    Map<String, dynamic> entry,
+    String audioKey,
+    String text,
+    String locale,
+  ) {
     final group = entry['group'];
     if (group is String && group.isNotEmpty && groupEnabled[group] == false) {
       return false;
+    }
+    final sourceText = entry['text'];
+    if (sourceText is String && sourceText.trim().isNotEmpty) {
+      final normalized = text.replaceAll(RegExp(r'\s+'), ' ').trim();
+      final expected = sourceText.replaceAll(RegExp(r'\s+'), ' ').trim();
+      if (normalized != expected) return false;
+      final textHash = entry['textHash'];
+      if (textHash is String &&
+          sha256.convert(utf8.encode(normalized)).toString() != textHash) {
+        return false;
+      }
     }
     return entry['enabled'] == true &&
         entry['key'] == audioKey &&
@@ -113,7 +129,7 @@ class MainAssistantAudioPromptService
     required String text,
     String locale = 'vi-VN',
   }) => _authoredPromptBudgetWhere(
-    (entry) => _matchesKey(entry, audioKey, locale),
+    (entry) => _matchesKey(entry, audioKey, text, locale),
   );
 
   Future<Duration?> _authoredPromptBudgetWhere(
@@ -213,7 +229,7 @@ class MainAssistantAudioPromptService
   }) => _playMatching(
     text,
     locale,
-    (entry) => _matchesKey(entry, audioKey, locale),
+    (entry) => _matchesKey(entry, audioKey, text, locale),
     fallback,
     forcePhoneSpeaker: forcePhoneSpeaker,
     forceMediaPlayback: forceMediaPlayback,

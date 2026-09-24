@@ -48,10 +48,11 @@ VoicePromptService createVoicePromptService({
       ? VoicePromptAudioRegistryAdapter(
           delegate: fixedPromptService,
           manifestAssets: [
-            if (owner != AudioTurnOwner.vocabulary)
-              'assets/data/assistant_core_audio.json',
-            if (owner == AudioTurnOwner.listeningLesson) ...const [
+            'assets/data/assistant_core_audio.json',
+            if (owner == AudioTurnOwner.mainAssistant ||
+                owner == AudioTurnOwner.listeningLesson)
               'assets/data/listening_common_audio.json',
+            if (owner == AudioTurnOwner.listeningLesson) ...const [
               'assets/data/listening_3_5_audio.json',
               'assets/data/listening_6_7_audio.json',
               'assets/data/listening_8_10_audio.json',

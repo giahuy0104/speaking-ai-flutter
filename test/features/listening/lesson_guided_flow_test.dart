@@ -11,6 +11,7 @@ import 'package:ai_speaking_flutter_app/features/listening/application/lesson_co
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/data/listening_progress_store.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/lesson_guide_flow.dart';
+import 'package:ai_speaking_flutter_app/features/listening/domain/listening_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_catalog.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_intro_screen.dart';
@@ -19,6 +20,7 @@ import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_r
 import 'package:ai_speaking_flutter_app/features/listening/presentation/listening_route_names.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_store.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/main_assistant_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -80,7 +82,7 @@ void main() {
         final registry = ActiveLearningModuleRegistry();
         addTearDown(registry.dispose);
         final media = _GuidedMediaService();
-        final prompts = _FakeVoicePromptService();
+        final prompts = _KeyedVoicePromptService();
         await tester.pumpWidget(
           ActiveLearningModuleScope(
             registry: registry,
@@ -98,6 +100,7 @@ void main() {
         await registry.pauseForMainAssistant();
         final starts = media.startedSentenceIds.length;
         prompts.spoken.clear();
+        prompts.audioKeys.clear();
         await registry.execute(
           atLast
               ? ActiveLearningCommand.nextItem
@@ -105,13 +108,21 @@ void main() {
         );
         await _pumpGuidedSpeechTurn(tester);
         final number = atLast ? 3 : 1;
-        expect(prompts.spoken.take(3), <String>[
+        expect(
+          prompts.audioKeys.take(3),
           atLast
-              ? 'vi-VN|Đây là câu cuối. Bạn hãy hoàn thành câu này nhé.'
-              : 'vi-VN|Đây là câu đầu tiên. Mình nghe lại nhé.',
-          'en-US|Sentence $number',
-          'vi-VN|Câu $number',
-        ]);
+              ? <String>[
+                  LessonGuideFlowV2.lastItemComplete.audioKey!,
+                  'listening.sentence.GUIDED-FLOW_S$number.en',
+                  'listening.sentence.GUIDED-FLOW_S$number.vi',
+                ]
+              : <String>[
+                  MainAssistantAudioKeys.firstItemReplay,
+                  'listening.sentence.GUIDED-FLOW_S$number.en',
+                  'listening.sentence.GUIDED-FLOW_S$number.vi',
+                ],
+        );
+        expect(prompts.spoken, isEmpty);
         expect(
           prompts.spoken.where(
             (line) =>
@@ -756,8 +767,9 @@ void main() {
     tester,
   ) async {
     await _usePhoneSurface(tester);
-    final mediaService = _GuidedMediaService();
-    final voicePrompts = _FakeVoicePromptService();
+    final events = <String>[];
+    final mediaService = _GuidedMediaService(events: events);
+    final voicePrompts = _FakeVoicePromptService(events);
     final progressStore = _MemoryProgressStore();
 
     await tester.pumpWidget(
@@ -785,6 +797,15 @@ void main() {
     );
     expect(praiseIndex, greaterThanOrEqualTo(0));
     expect(firstStarIndex, greaterThan(praiseIndex));
+    expect(
+      events,
+      containsAllInOrder(<String>[
+        'voice|Đúng rồi!',
+        'media|/assets/audio/MAIN/SFX_STAR.mp3',
+        'voice|Bạn vừa nhận Ngôi sao đầu tiên!',
+        'media|/assets/audio/MAIN/SFX_STAR_TING.mp3',
+      ]),
+    );
     expect(progressStore.earnedStars, contains('core:GUIDED-FLOW_S1'));
     expect(
       mediaService.playedUris
@@ -2640,6 +2661,124 @@ void main() {
     ]);
   });
 
+  testWidgets('V4 lesson openings route every state to authored audio keys', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final relearnProgress = _MemoryProgressStore()
+      ..earnedStars.add('core:GUIDED-FLOW_S1');
+    final scenarios =
+        <
+          ({
+            String name,
+            int age,
+            ListeningLessonContent lesson,
+            _MemoryProgressStore progress,
+            bool relearn,
+            String expectedKey,
+          })
+        >[
+          (
+            name: 'fresh',
+            age: 8,
+            lesson: _lesson(v4: true),
+            progress: _MemoryProgressStore(),
+            relearn: false,
+            expectedKey: ListeningAudioKeys.lessonIntro('guided-flow'),
+          ),
+          (
+            name: 'resume',
+            age: 8,
+            lesson: _lesson(v4: true),
+            progress: _MemoryProgressStore()..coreStarted = true,
+            relearn: false,
+            expectedKey: ListeningAudioKeys.lessonResume('guided-flow'),
+          ),
+          (
+            name: 'challenge',
+            age: 8,
+            lesson: _lesson(v4: true),
+            progress: _MemoryProgressStore()
+              ..resumeStage = ListeningResumeStage.challenge,
+            relearn: false,
+            expectedKey: ListeningAudioKeys.challengeResume,
+          ),
+          (
+            name: 'song',
+            age: 8,
+            lesson: _lesson(v4: true, songTitle: 'Test Song'),
+            progress: _MemoryProgressStore()
+              ..resumeStage = ListeningResumeStage.song,
+            relearn: false,
+            expectedKey: ListeningAudioKeys.lessonSongResume('guided-flow'),
+          ),
+          (
+            name: 'relearn',
+            age: 8,
+            lesson: _lesson(v4: true),
+            progress: relearnProgress,
+            relearn: true,
+            expectedKey: ListeningAudioKeys.lessonRelearn('guided-flow'),
+          ),
+          (
+            name: 'remaining stars young',
+            age: 8,
+            lesson: _lesson(v4: true),
+            progress: _MemoryProgressStore(),
+            relearn: true,
+            expectedKey: ListeningAudioKeys.lessonRemainingStars(
+              1,
+              childFriendly: true,
+            ),
+          ),
+          (
+            name: 'remaining stars older',
+            age: 11,
+            lesson: _lesson(v4: true),
+            progress: _MemoryProgressStore(),
+            relearn: true,
+            expectedKey: ListeningAudioKeys.lessonRemainingStars(
+              1,
+              childFriendly: false,
+            ),
+          ),
+        ];
+
+    for (final scenario in scenarios) {
+      final prompts = _AuthoredIntroVoicePromptService();
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: LessonIntroScreen(
+            language: DisplayLanguage.vietnamese,
+            startAge: scenario.age,
+            endAge: scenario.age,
+            topic: listeningCatalogs.first.topics.first,
+            topicContent: _topicContent(<ListeningLessonContent>[
+              scenario.lesson,
+            ]),
+            lesson: scenario.lesson,
+            progressStore: scenario.progress,
+            mediaService: _GuidedMediaService(),
+            voicePromptService: prompts,
+            guideAudioLibrary: _silentGuideAudioLibrary(),
+            autoAdvance: false,
+            relearnFromBeginning: scenario.relearn,
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(prompts.playedKeys, <String>[
+        scenario.expectedKey,
+      ], reason: scenario.name);
+      expect(prompts.spoken, isEmpty, reason: scenario.name);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    }
+  });
+
   testWidgets('V4 unavailable combined hook does not block the full intro', (
     tester,
   ) async {
@@ -3003,6 +3142,7 @@ ListeningLessonContent _lesson({
   Uri? sentenceAudioUri,
   Uri? vietnameseAudioUri,
   bool v4 = false,
+  String? songTitle,
 }) {
   return ListeningLessonContent(
     id: id,
@@ -3015,6 +3155,7 @@ ListeningLessonContent _lesson({
     combinedHookAudioUri: combinedHookAudioUri,
     outro: 'Hoàn thành.',
     estimatedMinutes: 1,
+    songTitle: songTitle,
     type: type,
     autoAdvanceDelay: const Duration(seconds: 3),
     entry: v4
@@ -3130,12 +3271,16 @@ class _CallerOwnedAttemptEvaluator
 }
 
 class _FakeVoicePromptService implements VoicePromptService {
+  _FakeVoicePromptService([this.events]);
+
+  final List<String>? events;
   final List<String> spoken = <String>[];
   int stopCalls = 0;
 
   @override
   Future<void> speak(String text, {String locale = 'vi-VN'}) async {
     spoken.add('$locale|$text');
+    events?.add('voice|$text');
   }
 
   @override
@@ -3172,6 +3317,29 @@ class _KeyedVoicePromptService extends _FakeVoicePromptService
     String text, {
     String locale = 'vi-VN',
   }) => speakAndWaitWithAudioKey(audioKey, text, locale: locale);
+}
+
+class _AuthoredIntroVoicePromptService extends _FakeVoicePromptService
+    implements
+        KeyedAuthoredPromptBudgetProvider,
+        KeyedSelectedMediaOutputVoicePromptService {
+  final List<String> playedKeys = <String>[];
+
+  @override
+  Future<Duration?> authoredPromptBudgetForKey(
+    String audioKey, {
+    required String text,
+    String locale = 'vi-VN',
+  }) async => const Duration(seconds: 20);
+
+  @override
+  Future<void> speakAndWaitOnSelectedMediaOutputWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) async {
+    playedKeys.add(audioKey);
+  }
 }
 
 class _BlockingVoicePromptService extends _FakeVoicePromptService {
@@ -3351,9 +3519,12 @@ class _IntroEventMediaService extends LessonMediaService {
 }
 
 class _GuidedMediaService extends LessonMediaService {
-  _GuidedMediaService({Set<int> recordedSentenceNumbers = const <int>{}})
-    : recordedSentenceNumbers = <int>{...recordedSentenceNumbers};
+  _GuidedMediaService({
+    Set<int> recordedSentenceNumbers = const <int>{},
+    this.events,
+  }) : recordedSentenceNumbers = <int>{...recordedSentenceNumbers};
 
+  final List<String>? events;
   final Set<int> recordedSentenceNumbers;
   bool recording = false;
   final List<Uri> playedUris = <Uri>[];
@@ -3435,6 +3606,7 @@ class _GuidedMediaService extends LessonMediaService {
     bool fixedPlaybackGain = false,
   }) async {
     playedUris.add(uri);
+    events?.add('media|${uri.path}');
     if (uri.toString().contains('latest.m4a')) {
       lastRecordingPlaybackGainDb = playbackGainDb;
     }

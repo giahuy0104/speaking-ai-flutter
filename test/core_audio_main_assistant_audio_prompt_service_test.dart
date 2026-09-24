@@ -120,7 +120,7 @@ void main() {
     },
   );
 
-  test('authored assistant audio resolves only by stable audio key', () async {
+  test('authored assistant audio requires key and matching text', () async {
     final bytes = Uint8List.fromList(<int>[1, 2, 3, 4]);
     final bundle = _KeyedBundle(bytes);
     final delegate = _Delegate();
@@ -134,14 +134,22 @@ void main() {
 
     await service.speakAndWaitWithAudioKey(
       'assistant.main.open_menu.vi',
-      'Fallback text may change without changing the asset identity.',
+      'Nội dung chuẩn',
+    );
+    await service.speakAndWaitWithAudioKey(
+      'assistant.main.open_menu.vi',
+      'Nội dung đã đổi',
     );
     await service.speakAndWaitWithAudioKey(
       'assistant.main.missing.vi',
       'Dùng TTS',
     );
 
-    expect(delegate.events, ['authored', 'wait:Dùng TTS:vi-VN']);
+    expect(delegate.events, [
+      'authored',
+      'wait:Nội dung đã đổi:vi-VN',
+      'wait:Dùng TTS:vi-VN',
+    ]);
   });
 }
 
@@ -167,6 +175,8 @@ class _KeyedBundle extends CachingAssetBundle {
               'assets/audio/assistant-core/assistant.main.open_menu.vi.mp3',
           'durationSeconds': 1.0,
           'sha256': sha256.convert(bytes).toString(),
+          'text': 'Nội dung chuẩn',
+          'textHash': sha256.convert(utf8.encode('Nội dung chuẩn')).toString(),
         },
       ],
     });

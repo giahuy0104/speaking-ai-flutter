@@ -12,6 +12,7 @@ import '../../../core/audio/audio_gain.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/active_learning_module.dart';
 import '../../../l10n/display_language.dart';
+import '../../voice_navigation/domain/main_assistant_audio_keys.dart';
 import '../../voice_navigation/domain/master_navigation_contract.dart';
 import '../application/lesson_attempt_evaluator.dart';
 import '../application/lesson_media_service.dart';
@@ -343,7 +344,10 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       await _prepareSelectedLessonOutputWithRetry(request);
       if (!mounted || request != _request) return false;
       if (announceResume) {
-        await _speakPromptAndWait('Mình tiếp tục câu thử thách nhé.');
+        await _speakPromptAndWait(
+          'Mình tiếp tục câu thử thách nhé.',
+          audioKey: ListeningAudioKeys.challengeResume,
+        );
         if (!mounted || request != _request) return false;
       }
       await _speakPromptAndWait(
@@ -353,6 +357,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       if (!mounted || request != _request) return false;
       await _speakPromptAndWait(
         'Bạn trả lời nhé',
+        audioKey: ListeningAudioKeys.challengeAnswerHandoff,
         // The authored question above has already completed. On iOS a small
         // number of AVSpeechSynthesizer turns play this short hand-off cue but
         // omit didFinish; that must not strand an otherwise audible question.
@@ -856,7 +861,12 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       _pausedAfterNoResponse = true;
       _message = 'Mình tạm dừng nhé.';
     });
-    unawaited(_speakPromptAndWait('Mình tạm dừng nhé.'));
+    unawaited(
+      _speakPromptAndWait(
+        'Mình tạm dừng nhé.',
+        audioKey: MainAssistantAudioKeys.cancelled,
+      ),
+    );
     return false;
   }
 
@@ -971,7 +981,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     ),
     LessonFeedbackKind.skip => (
       message: 'Được. Nghe câu đúng nhé.',
-      audioKey: null,
+      audioKey: MainAssistantAudioKeys.challengeSkipCorrect,
     ),
   };
 

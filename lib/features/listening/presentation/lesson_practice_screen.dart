@@ -18,6 +18,7 @@ import '../../../core/device/active_learning_module.dart';
 import '../../../l10n/display_language.dart';
 import '../../vocabulary/data/vocabulary_store.dart';
 import '../../vocabulary/domain/vocabulary_entry.dart';
+import '../../voice_navigation/domain/main_assistant_audio_keys.dart';
 import '../../voice_navigation/domain/master_navigation_contract.dart';
 import '../application/lesson_attempt_evaluator.dart';
 import '../application/lesson_guide_audio_library.dart';
@@ -613,7 +614,8 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           unawaited(
             _runNavigationSequence(
               () => _replayBoundarySentence(
-                'Đây là câu cuối. Bạn hãy hoàn thành câu này nhé.',
+                LessonGuideFlowV2.lastItemComplete.text,
+                prompt: LessonGuideFlowV2.lastItemComplete,
               ),
             ),
           );
@@ -625,6 +627,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             () => _navigateWithLead(
               MasterNavigationContract.nextItemPrompt,
               () => _advanceToNext(autoPlaySentence: true),
+              audioKey: MainAssistantAudioKeys.nextItem,
             ),
           ),
         );
@@ -636,6 +639,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             _runNavigationSequence(
               () => _replayBoundarySentence(
                 'Đây là câu đầu tiên. Mình nghe lại nhé.',
+                audioKey: MainAssistantAudioKeys.firstItemReplay,
               ),
             ),
           );
@@ -647,6 +651,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             () => _navigateWithLead(
               'Mình nghe lại câu trước nhé',
               () => _previous(autoPlaySentence: true),
+              audioKey: MainAssistantAudioKeys.previousItem,
             ),
           ),
         );
@@ -709,25 +714,37 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     );
   }
 
-  Future<void> _replayBoundarySentence(String lead) async {
+  Future<void> _replayBoundarySentence(
+    String lead, {
+    LessonGuidePrompt? prompt,
+    String? audioKey,
+  }) async {
     await _navigateWithLead(
       lead,
       () => _activateCurrentSentence(
         autoPlay: true,
         restoreExistingRecording: false,
       ),
+      prompt: prompt,
+      audioKey: audioKey,
     );
   }
 
   Future<void> _navigateWithLead(
     String lead,
-    Future<void> Function() action,
-  ) async {
+    Future<void> Function() action, {
+    LessonGuidePrompt? prompt,
+    String? audioKey,
+  }) async {
     final ticket = _lessonSession.mainPauseTicket;
     if (!mounted || _pausedForMainAssistant) return;
     setState(() => _mediaBusy = true);
     try {
-      await _speakLessonPrompt(lead);
+      if (prompt == null) {
+        await _speakLessonPrompt(lead, audioKey: audioKey);
+      } else {
+        await _playPrompt(prompt);
+      }
     } finally {
       if (mounted && _lessonSession.isCurrentMainPause(ticket)) {
         setState(() => _mediaBusy = false);
@@ -1630,10 +1647,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         ).catchError((Object _) {});
         _showPraiseFireworks();
         final correctPrompt = widget.lesson.usesV4Flow
-            ? LessonGuidePrompt(
-                audioCode: 'CORRECT',
-                text: _feedbackMessage(LessonFeedbackKind.correct),
-              )
+            ? _ageFeedbackPrompt('CORRECT', LessonFeedbackKind.correct)
             : LessonGuideFlowV2.good;
         setState(() => _message = correctPrompt.text);
         await _playPrompt(correctPrompt);
@@ -1666,10 +1680,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           return false;
         }
         final prompt = widget.lesson.usesV4Flow
-            ? LessonGuidePrompt(
-                audioCode: 'ASR',
-                text: _feedbackMessage(LessonFeedbackKind.asr),
-              )
+            ? _ageFeedbackPrompt('ASR', LessonFeedbackKind.asr)
             : LessonGuideFlowV2.unclear;
         setState(() {
           _recordingPath = null;
@@ -1699,7 +1710,11 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           _message = feedback;
         });
         await _playPrompt(
-          LessonGuidePrompt(audioCode: 'NO_RESPONSE', text: feedback),
+          LessonGuidePrompt(
+            audioCode: 'NO_RESPONSE',
+            text: feedback,
+            locale: LessonAgeFeedbackLibrary.localeFor(feedback),
+          ),
         );
         return true;
       case LessonAttemptOutcome.retry:
@@ -1713,10 +1728,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           return false;
         }
         final prompt = widget.lesson.usesV4Flow
-            ? LessonGuidePrompt(
-                audioCode: 'RETRY',
-                text: _feedbackMessage(LessonFeedbackKind.retry),
-              )
+            ? _ageFeedbackPrompt('RETRY', LessonFeedbackKind.retry)
             : LessonGuideFlowV2.retryFirst;
         setState(() {
           _attemptNumber = 2;
@@ -1819,6 +1831,19 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     );
   }
 
+  LessonGuidePrompt _ageFeedbackPrompt(
+    String audioCode,
+    LessonFeedbackKind kind,
+  ) {
+    final text = _feedbackMessage(kind);
+    return LessonGuidePrompt(
+      audioCode: audioCode,
+      text: text,
+      audioKey: LessonAgeFeedbackLibrary.audioKeyFor(text),
+      locale: LessonAgeFeedbackLibrary.localeFor(text),
+    );
+  }
+
   Future<void> _resumeAfterNoResponse() async {
     if (!mounted) return;
     _pausedForMainAssistant = false;
@@ -1882,10 +1907,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       return;
     }
     final prompt = widget.lesson.usesV4Flow
-        ? LessonGuidePrompt(
-            audioCode: 'GIVE',
-            text: _feedbackMessage(LessonFeedbackKind.give),
-          )
+        ? _ageFeedbackPrompt('GIVE', LessonFeedbackKind.give)
         : LessonGuideFlowV2.needsPractice;
     setState(() {
       _recordingPath = null;
@@ -2011,10 +2033,16 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     );
     if (!isNew) return false;
     await _playFirstStarSoundEffect();
-    await _playNewStarTingSoundEffect();
-    if (!widget.isRelearn && lessonStarsBefore.isEmpty && mounted) {
-      await _speakLessonPrompt('Bạn vừa nhận Ngôi sao đầu tiên!');
+    if (lessonStarsBefore.isEmpty && mounted) {
+      await _playPrompt(
+        const LessonGuidePrompt(
+          audioCode: 'FIRST_STAR',
+          audioKey: ListeningAudioKeys.rewardFirstStar,
+          text: 'Bạn vừa nhận Ngôi sao đầu tiên!',
+        ),
+      );
     }
+    await _playNewStarTingSoundEffect();
     return true;
   }
 
@@ -2256,7 +2284,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           widget.lesson.id,
           ListeningResumeStage.challenge,
         );
-        await _speakLessonPrompt('Tiếp theo là một câu thử thách nhé.');
+        await _speakLessonPrompt(
+          'Tiếp theo là một câu thử thách nhé.',
+          audioKey: ListeningAudioKeys.challengeIntro,
+        );
         if (!mounted) return;
         bool? challengeCorrect;
         final completed = await pushForActiveLearning<bool>(
@@ -2545,14 +2576,31 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     int? nextLevel,
   }) async {
     if (!mounted) return null;
+    final nextLessonNumber = _nextLessonInTopic?.number;
+    final topicNumber = widget.topicContent?.number;
     final prompt = v4CompletionPrompt(
       stage,
       currentLesson: widget.lesson.number,
-      nextLesson: _nextLessonInTopic?.number,
-      topicNumber: widget.topicContent?.number,
+      nextLesson: nextLessonNumber,
+      topicNumber: topicNumber,
       nextLevel: nextLevel,
     );
-    await _speakLessonPrompt(prompt);
+    final audioKey = switch (stage) {
+      V4CompletionStage.lessonEnd when nextLessonNumber != null =>
+        ListeningAudioKeys.completionLesson(
+          widget.lesson.number,
+          nextLessonNumber,
+        ),
+      V4CompletionStage.topicEnd when topicNumber != null =>
+        ListeningAudioKeys.completionTopicReplay(topicNumber),
+      V4CompletionStage.topicEndOneRemaining =>
+        ListeningAudioKeys.completionTopicOneRemaining,
+      V4CompletionStage.nextLevel when nextLevel != null =>
+        ListeningAudioKeys.completionLevelStart(nextLevel),
+      V4CompletionStage.courseRelearnLevel => ListeningAudioKeys.chooseLevel,
+      _ => null,
+    };
+    await _speakLessonPrompt(prompt, audioKey: audioKey);
     if (!mounted) return null;
     _v4CompletionChoiceVisible = true;
     _mainCompletionPrompt = prompt;
@@ -3673,10 +3721,15 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
               .speakAndWaitOnSelectedMediaOutputWithAudioKey(
                 audioKey,
                 prompt.text,
+                locale: prompt.locale,
               );
         } else {
           await (promptService as KeyedVoicePromptService)
-              .speakAndWaitWithAudioKey(audioKey, prompt.text);
+              .speakAndWaitWithAudioKey(
+                audioKey,
+                prompt.text,
+                locale: prompt.locale,
+              );
         }
         return;
       } catch (error) {
@@ -3716,12 +3769,13 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         );
       }
     }
-    await _speakLessonPrompt(prompt.text);
+    await _speakLessonPrompt(prompt.text, locale: prompt.locale);
   }
 
   Future<void> _speakLessonPrompt(
     String text, {
     String locale = 'vi-VN',
+    String? audioKey,
   }) async {
     final ticket = _lessonSession.mainPauseTicket;
     if (_exiting || !mounted || _pausedForMainAssistant) return;
@@ -3733,9 +3787,29 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       return;
     }
     final promptService = _voicePromptService;
+    final resolvedAudioKey =
+        audioKey ?? ListeningAudioKeys.topicContextPrompt(text);
     if (!kIsWeb && promptService is SelectedMediaOutputVoicePromptService) {
+      if (resolvedAudioKey != null &&
+          promptService is KeyedSelectedMediaOutputVoicePromptService) {
+        await (promptService as KeyedSelectedMediaOutputVoicePromptService)
+            .speakAndWaitOnSelectedMediaOutputWithAudioKey(
+              resolvedAudioKey,
+              text,
+              locale: locale,
+            );
+        return;
+      }
       await (promptService as SelectedMediaOutputVoicePromptService)
           .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
+      return;
+    }
+    if (resolvedAudioKey != null && promptService is KeyedVoicePromptService) {
+      await (promptService as KeyedVoicePromptService).speakAndWaitWithAudioKey(
+        resolvedAudioKey,
+        text,
+        locale: locale,
+      );
       return;
     }
     await promptService.speakAndWait(text, locale: locale);

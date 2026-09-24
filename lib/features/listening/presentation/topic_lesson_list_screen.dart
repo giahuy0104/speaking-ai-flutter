@@ -14,6 +14,7 @@ import '../application/lesson_media_service.dart';
 import '../data/listening_progress_store.dart';
 import '../data/active_listening_session_store.dart';
 import '../domain/listening_catalog.dart';
+import '../domain/listening_audio_keys.dart';
 import '../domain/listening_content.dart';
 import '../domain/listening_curriculum_flow.dart';
 import 'lesson_intro_screen.dart';
@@ -447,7 +448,10 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
             context,
           ).showSnackBar(SnackBar(content: Text(message)));
         }
-        await _speakOnSelectedLessonOutput(message);
+        await _speakOnSelectedLessonOutput(
+          message,
+          audioKey: ListeningAudioKeys.lockedLesson(previous.number),
+        );
         return;
       }
     }

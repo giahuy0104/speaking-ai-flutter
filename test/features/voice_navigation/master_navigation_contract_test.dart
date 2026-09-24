@@ -154,6 +154,7 @@ void main() {
       ),
       MasterNavigationContract.songControlPrompt,
     );
+    expect(flow.currentPromptAudioKey, MainAssistantAudioKeys.songControls);
     final skipped = await flow.handle('Bỏ qua bài hát');
     expect(skipped.promptText, MasterNavigationContract.songSkipped);
     expect(skipped.activeLearningCommand, ActiveLearningCommand.nextItem);
@@ -178,11 +179,34 @@ void main() {
 
       final first = await flow.handle('Hôm nay trời nắng');
       expect(first.promptText, MasterNavigationContract.songControlPrompt);
+      expect(first.promptAudioKey, MainAssistantAudioKeys.songControls);
       expect(first.continueListening, isTrue);
       final second = await flow.handle('Mình đang ngồi đây');
       expect(second.promptText, MasterNavigationContract.keepCurrentContent);
       expect(second.activeLearningCommand, ActiveLearningCommand.resume);
       expect(second.continueListening, isFalse);
+    },
+  );
+
+  test(
+    'Challenge MAIN question and retry use challenge authored audio',
+    () async {
+      final flow = MainVoiceAssistantFlow();
+      flow.beginActiveLearning(
+        kind: ActiveLearningModuleKind.listeningLesson,
+        voiceContext: const _VoiceContext(
+          ActiveLearningVoiceNode.challenge,
+          MasterNavigationContract.challengeControlPrompt,
+        ),
+      );
+
+      expect(
+        flow.currentPromptAudioKey,
+        MainAssistantAudioKeys.challengeControls,
+      );
+      final retry = await flow.handle('Hôm nay trời nắng');
+      expect(retry.promptText, MasterNavigationContract.challengeControlPrompt);
+      expect(retry.promptAudioKey, MainAssistantAudioKeys.challengeControls);
     },
   );
 
