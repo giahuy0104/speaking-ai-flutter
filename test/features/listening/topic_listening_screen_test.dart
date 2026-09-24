@@ -487,12 +487,22 @@ void main() {
     'song action opens the existing V4 lesson without creating a legacy song',
     (tester) async {
       final content = await AssetListeningContentRepository().load();
+      final progressStore = _MemoryProgressStore();
+      final topic = content.topic(startAge: 3, endAge: 5, topicNumber: 2);
+      final songIndex = topic.lessons.indexWhere(
+        (lesson) => lesson.hasV4SongStage,
+      );
+      for (final lesson in topic.lessons.take(songIndex)) {
+        await progressStore.saveLesson(lesson.id, lesson.sentences.length);
+        await progressStore.markV4LessonActivityCompleted(lesson.id);
+      }
       await tester.binding.setSurfaceSize(const Size(390, 844));
       addTearDown(() => tester.binding.setSurfaceSize(null));
       await tester.pumpWidget(
         buildSubject(
           childAge: 3,
           contentFuture: Future<ListeningContentCatalog>.value(content),
+          progressStore: progressStore,
         ),
       );
       await tester.pumpAndSettle();
@@ -528,6 +538,29 @@ void main() {
       );
     },
   );
+
+  testWidgets('V4 song action respects sequential lesson progress', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(buildSubject(childAge: 3));
+    await tester.pumpAndSettle();
+
+    final songAction = find.byKey(const ValueKey('topic-song-action-3-5-1'));
+    await tester.scrollUntilVisible(
+      songAction,
+      180,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('topic-listening-screen')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+
+    expect(tester.widget<IconButton>(songAction).onPressed, isNull);
+  });
 
   testWidgets('song action cannot bypass a locked Level', (tester) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));

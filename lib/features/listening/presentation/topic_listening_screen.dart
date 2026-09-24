@@ -290,6 +290,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
                       progressFor: _topicProgress,
                       lockedFor: _topicLocked,
                       songIdFor: _topicSongId,
+                      songUnlockedFor: _topicSongUnlocked,
                       onTopicPressed: _openTopic,
                       onSongPressed: _openTopicSong,
                     ),
@@ -624,6 +625,31 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
       // Content can still be loading while the lightweight catalog is shown.
     }
     return null;
+  }
+
+  bool _topicSongUnlocked(int topicIndex) {
+    try {
+      final content = _contentCatalog?.topic(
+        startAge: _catalog.startAge,
+        endAge: _catalog.endAge,
+        topicNumber: topicIndex + 1,
+      );
+      if (content == null) return false;
+      final lessonIndex = content.lessons.indexWhere(
+        (lesson) => lesson.hasV4SongStage,
+      );
+      if (lessonIndex < 0) {
+        return _catalog.startAge >= 6 && content.songs.isNotEmpty;
+      }
+      return ListeningCurriculumFlow.lessonUnlocked(
+        content,
+        lessonIndex,
+        _lessonProgress,
+        _completedV4LessonActivities,
+      );
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> _openTopicSong(
@@ -1308,6 +1334,7 @@ typedef _TopicProgressResolver = _TopicProgress Function(int index);
 typedef _TopicLockedResolver = bool Function(int index);
 typedef _TopicEnglishTitleResolver = String Function(int index);
 typedef _TopicSongIdResolver = String? Function(int index);
+typedef _TopicSongUnlockedResolver = bool Function(int index);
 typedef _TopicPressed = Future<void> Function(ListeningTopic topic, int index);
 typedef _TopicSongPressed =
     Future<void> Function(ListeningTopic topic, int index, String lessonId);
@@ -1320,6 +1347,7 @@ class _TopicJourney extends StatelessWidget {
     required this.progressFor,
     required this.lockedFor,
     required this.songIdFor,
+    required this.songUnlockedFor,
     required this.onTopicPressed,
     required this.onSongPressed,
   });
@@ -1330,6 +1358,7 @@ class _TopicJourney extends StatelessWidget {
   final _TopicProgressResolver progressFor;
   final _TopicLockedResolver lockedFor;
   final _TopicSongIdResolver songIdFor;
+  final _TopicSongUnlockedResolver songUnlockedFor;
   final _TopicPressed onTopicPressed;
   final _TopicSongPressed onSongPressed;
 
@@ -1366,6 +1395,7 @@ class _TopicJourney extends StatelessWidget {
                   final progress = progressFor(index);
                   final locked = lockedFor(index);
                   final songId = songIdFor(index);
+                  final songUnlocked = songUnlockedFor(index);
                   return SizedBox(
                     height: rowHeight,
                     child: _JourneyTopicStop(
@@ -1383,7 +1413,7 @@ class _TopicJourney extends StatelessWidget {
                       checkpointWidth: checkpointWidth,
                       imageOnLeft: index.isEven,
                       onPressed: () => onTopicPressed(topic, index),
-                      onSongPressed: songId == null || locked
+                      onSongPressed: songId == null || locked || !songUnlocked
                           ? null
                           : () => onSongPressed(topic, index, songId),
                       hasSong: songId != null,
