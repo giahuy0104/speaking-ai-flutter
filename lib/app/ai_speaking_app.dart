@@ -1800,6 +1800,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
       return Future<bool>.value(true);
     }
+    // A build with both H20 transports disabled has no route to prepare; MAIN
+    // (including the on-screen button) then uses the phone speaker and mic.
+    if (!_config.enableAiv0BleControl && !_config.enableHfpAudio) {
+      return Future<bool>.value(true);
+    }
     if (_androidMainHfpRouteHeld &&
         _controller?.hfpAudioStatus.routeActive == true) {
       return Future<bool>.value(true);
