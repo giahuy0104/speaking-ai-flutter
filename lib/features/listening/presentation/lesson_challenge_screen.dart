@@ -195,9 +195,11 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
 
   @override
   void dispose() {
+    final mediaService = widget.mediaService;
     final wasPlayingPrompt = _playingPrompt;
     final wasRecording =
         _recording || _recordingStartPending || _recordingUsesIosSpeech;
+    final attemptAudioPath = _takeActiveAttemptAudioPath();
     final registration = _activeModuleRegistration;
     if (registration != null) {
       _activeModuleRegistry?.unregister(registration);
@@ -221,11 +223,22 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       unawaited(widget.mediaService.stopPlayback());
     }
     if (wasRecording) {
-      if (_recordingUsesIosSpeech && widget.iosSpeechInput != null) {
-        unawaited(widget.iosSpeechInput!.cancel());
-      } else {
-        unawaited(widget.mediaService.cancelRecording());
-      }
+      final cancellation =
+          _recordingUsesIosSpeech && widget.iosSpeechInput != null
+          ? widget.iosSpeechInput!.cancel()
+          : widget.mediaService.cancelRecording();
+      unawaited(() async {
+        await cancellation.catchError((Object _) {});
+        await _discardAttemptRecordings(<String?>[
+          attemptAudioPath,
+        ], mediaService: mediaService);
+      }());
+    } else if (attemptAudioPath != null) {
+      unawaited(
+        _discardAttemptRecordings(<String?>[
+          attemptAudioPath,
+        ], mediaService: mediaService),
+      );
     }
     final prompt = _voicePromptService;
     if (prompt != null) {
@@ -255,6 +268,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     if (waiter != null && !waiter.isCompleted) waiter.complete();
     final wasRecording = _recording || _recordingStartPending;
     final usedIosSpeech = _recordingUsesIosSpeech;
+    final attemptAudioPath = _takeActiveAttemptAudioPath();
     if (mounted) {
       setState(() {
         _playingPrompt = false;
@@ -274,6 +288,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       else if (wasRecording)
         widget.mediaService.cancelRecording().catchError((Object _) {}),
     ]);
+    await _discardAttemptRecordings(<String?>[attemptAudioPath]);
   }
 
   @override
@@ -536,6 +551,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     final expected = _expectedEnglish;
     if (expected.isEmpty) return;
     final request = _request;
+    String? iosAttemptAudioPath;
     setState(() {
       _busy = true;
       _message = null;
@@ -564,15 +580,19 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
           : null;
       if (iosSpeechInput != null) {
         if (iosSpeechInput is IOSStreamingSpeechInput) {
-          _activeAttemptAudioPath = await widget.mediaService.recordingPath(
+          iosAttemptAudioPath = await widget.mediaService.recordingPath(
             lessonId: '${widget.lesson.id}-challenge',
             sentenceNumber: _recordingNumber,
             extension: 'wav',
           );
         } else {
-          _activeAttemptAudioPath = null;
+          iosAttemptAudioPath = null;
         }
-        if (!mounted || _pausedForMainAssistant || request != _request) return;
+        if (!mounted || _pausedForMainAssistant || request != _request) {
+          await _discardAttemptRecordings(<String?>[iosAttemptAudioPath]);
+          return;
+        }
+        _activeAttemptAudioPath = iosAttemptAudioPath;
         // Publish capture ownership before awaiting native start so MAIN/Back
         // can cancel route preparation, not just an already-open microphone.
         _recordingStartPending = true;
@@ -580,16 +600,20 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         usesIosSpeech = true;
         if (iosSpeechInput is IOSStreamingSpeechInput) {
           await iosSpeechInput
-              .startLessonEnglishRecognitionWithRecording(
-                _activeAttemptAudioPath!,
-              )
+              .startLessonEnglishRecognitionWithRecording(iosAttemptAudioPath!)
               .timeout(const Duration(seconds: 8));
         } else {
           await iosSpeechInput.startLessonEnglishRecognition().timeout(
             const Duration(seconds: 8),
           );
         }
-        if (!mounted || _pausedForMainAssistant || request != _request) return;
+        if (!mounted || _pausedForMainAssistant || request != _request) {
+          if (_activeAttemptAudioPath == iosAttemptAudioPath) {
+            _activeAttemptAudioPath = null;
+            await _discardAttemptRecordings(<String?>[iosAttemptAudioPath]);
+          }
+          return;
+        }
         // The selected iOS policy is on-device scoring. A native failure must
         // never silently start a second recorder and upload the child's audio.
         widget.mediaService.handoffSelectedLessonOutputToNativeCapture();
@@ -612,7 +636,12 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       if (!mounted || _pausedForMainAssistant || request != _request) {
         // The owner that invalidated a native start already cancelled it.
         // Cancelling here could kill a newer MAIN turn on the shared engine.
-        if (!usesIosSpeech) {
+        if (usesIosSpeech) {
+          if (_activeAttemptAudioPath == iosAttemptAudioPath) {
+            _activeAttemptAudioPath = null;
+            await _discardAttemptRecordings(<String?>[iosAttemptAudioPath]);
+          }
+        } else {
           await widget.mediaService.cancelRecording().catchError((Object _) {});
         }
         return;
@@ -640,15 +669,27 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         },
       );
     } catch (error) {
-      if (!mounted || _pausedForMainAssistant || request != _request) return;
+      final ownsAttemptAudioPath =
+          _activeAttemptAudioPath == iosAttemptAudioPath;
+      if (ownsAttemptAudioPath) {
+        _activeAttemptAudioPath = null;
+      }
+      if (!mounted || _pausedForMainAssistant || request != _request) {
+        if (ownsAttemptAudioPath) {
+          await _discardAttemptRecordings(<String?>[iosAttemptAudioPath]);
+        }
+        return;
+      }
       _recordingEndpointDetector.cancel();
       if (_recordingUsesIosSpeech) {
         await widget.iosSpeechInput?.cancel().catchError((Object _) {});
-        if (!mounted || _pausedForMainAssistant || request != _request) return;
       } else if (_recordingStartPending) {
         await widget.mediaService.cancelRecording().catchError((Object _) {});
-        if (!mounted || _pausedForMainAssistant || request != _request) return;
       }
+      if (ownsAttemptAudioPath) {
+        await _discardAttemptRecordings(<String?>[iosAttemptAudioPath]);
+      }
+      if (!mounted || _pausedForMainAssistant || request != _request) return;
       setState(() {
         _recordingStartPending = false;
         _recordingUsesIosSpeech = false;
@@ -665,10 +706,14 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     _recordingEndpointDetector.cancel();
     setState(() => _busy = true);
     var shouldOpenMicrophoneAgain = false;
+    String? attemptAudioPath;
+    LessonRecording? completedRecording;
     try {
       final usesIosSpeech = _recordingUsesIosSpeech;
+      if (usesIosSpeech) {
+        attemptAudioPath = _takeActiveAttemptAudioPath();
+      }
       final LessonAttemptOutcome outcome;
-      LessonRecording? completedRecording;
       final evaluatedAttemptNumber = _attemptNumber + 1;
       if (usesIosSpeech) {
         final result = await _stopAndScoreIosOnDevice(request);
@@ -732,6 +777,10 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         _message = _friendlyError(error);
       });
     } finally {
+      await _discardAttemptRecordings(<String?>[
+        attemptAudioPath,
+        completedRecording?.filePath,
+      ]);
       if (mounted && pauseGeneration == _mainPauseGeneration) {
         setState(() => _busy = false);
       }
@@ -768,6 +817,31 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     } catch (error) {
       // A playback problem must not discard the answer or prevent scoring.
       debugPrint('HOMI challenge attempt playback failed: $error');
+    }
+  }
+
+  String? _takeActiveAttemptAudioPath() {
+    final path = _activeAttemptAudioPath;
+    _activeAttemptAudioPath = null;
+    return path;
+  }
+
+  Future<void> _discardAttemptRecordings(
+    Iterable<String?> paths, {
+    LessonMediaService? mediaService,
+  }) async {
+    final service = mediaService ?? widget.mediaService;
+    final uniquePaths = paths
+        .whereType<String>()
+        .map((path) => path.trim())
+        .where((path) => path.isNotEmpty)
+        .toSet();
+    for (final path in uniquePaths) {
+      try {
+        await service.deleteRecording(path);
+      } catch (error) {
+        debugPrint('HOMI challenge temporary recording cleanup failed: $error');
+      }
     }
   }
 

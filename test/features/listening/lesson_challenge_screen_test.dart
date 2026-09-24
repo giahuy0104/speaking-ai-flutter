@@ -483,12 +483,16 @@ void main() {
       expect(evaluator.evaluationCalls, 1);
       expect(find.text('Câu 1/2'), findsOneWidget);
       expect(mediaService.recordingStarts, 1);
+      expect(mediaService.deletedRecordingPaths, isEmpty);
 
       evaluator.complete(LessonAttemptOutcome.good);
       await _pumpChallengeTransition(tester);
 
       expect(find.text('Câu 2/2'), findsOneWidget);
       expect(mediaService.recordingStarts, 2);
+      expect(mediaService.deletedRecordingPaths, <String>[
+        'test-recording.m4a',
+      ]);
       expect(find.text('Dừng và chấm'), findsOneWidget);
     },
   );
@@ -745,6 +749,15 @@ void main() {
         Uri.file('/recordings/answer-normalized.m4a'),
       ]);
       expect(media.finalizedRecordingPaths, <String>['/recordings/answer.wav']);
+      expect(media.deletedRecordingPaths, <String>[
+        '/recordings/answer.wav',
+        '/recordings/answer-normalized.m4a',
+      ]);
+      expect(media.attemptFileEvents, <String>[
+        'play:/recordings/answer-normalized.m4a',
+        'delete:/recordings/answer.wav',
+        'delete:/recordings/answer-normalized.m4a',
+      ]);
       expect(media.recordingStarts, 0);
       expect(backend.evaluationCalls, 0);
       await tester.pumpWidget(const SizedBox.shrink());
@@ -777,6 +790,11 @@ void main() {
         Uri.file('/recordings/answer.wav'),
       ]);
       expect(media.finalizedRecordingPaths, <String>['/recordings/answer.wav']);
+      expect(media.deletedRecordingPaths, <String>['/recordings/answer.wav']);
+      expect(media.attemptFileEvents, <String>[
+        'play:/recordings/answer.wav',
+        'delete:/recordings/answer.wav',
+      ]);
       expect(media.externalRegistrationCalls, 0);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump();
@@ -976,6 +994,8 @@ class _FakeLessonMediaService extends LessonMediaService {
   Object? finalizationError;
   int externalRegistrationCalls = 0;
   final List<String> finalizedRecordingPaths = <String>[];
+  final List<String> deletedRecordingPaths = <String>[];
+  final List<String> attemptFileEvents = <String>[];
   final List<Uri> completedPlaybackUris = <Uri>[];
   final List<double> completedPlaybackGains = <double>[];
 
@@ -1025,6 +1045,13 @@ class _FakeLessonMediaService extends LessonMediaService {
   }) async {
     completedPlaybackUris.add(uri);
     completedPlaybackGains.add(playbackGainDb);
+    attemptFileEvents.add('play:${uri.path}');
+  }
+
+  @override
+  Future<void> deleteRecording(String path) async {
+    deletedRecordingPaths.add(path);
+    attemptFileEvents.add('delete:$path');
   }
 
   @override
