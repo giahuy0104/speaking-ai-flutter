@@ -83,8 +83,7 @@ class HfpAudioRouteCoordinator {
         }
       } catch (_) {
         if (_retainedForHandoff && _active.isEmpty) {
-          _retainedForHandoff = false;
-          await _delegate.stopAudioRoute().catchError((Object _) {});
+          await _stopRetainedRoute().catchError((Object _) {});
         }
         rethrow;
       }
@@ -142,9 +141,8 @@ class HfpAudioRouteCoordinator {
                   return;
                 }
                 _idleReleaseTimer = null;
-                _retainedForHandoff = false;
                 AudioDiagnostics.event('hfp.handoff.expired');
-                await _delegate.stopAudioRoute();
+                await _stopRetainedRoute();
               }).catchError((Object error) {
                 AudioDiagnostics.event('hfp.handoff.release_failed', {
                   'type': error.runtimeType.toString(),
@@ -173,14 +171,22 @@ class HfpAudioRouteCoordinator {
   Future<void> _flushIdleRelease() => _serialize(() async {
     if (_disposed || _active.isNotEmpty || !_retainedForHandoff) return;
     _cancelIdleRelease();
-    _retainedForHandoff = false;
-    await _delegate.stopAudioRoute();
+    await _stopRetainedRoute();
   });
 
   Future<void> _connect(HfpAudioDevice device) => _serialize(() async {
     _ensureActive();
+    if (_active.isEmpty && _retainedForHandoff) {
+      _cancelIdleRelease();
+      await _stopRetainedRoute();
+    }
     await _delegate.connect(device);
   });
+
+  Future<void> _stopRetainedRoute() async {
+    await _delegate.stopAudioRoute();
+    _retainedForHandoff = false;
+  }
 
   Future<void> disconnect() {
     _connectionGeneration += 1;

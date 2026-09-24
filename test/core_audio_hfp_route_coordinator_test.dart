@@ -104,6 +104,58 @@ void main() {
     await coordinator.dispose();
   });
 
+  testWidgets('connect flushes retained handoff before selecting device', (
+    tester,
+  ) async {
+    final native = _FakeHfpAudioControl();
+    final coordinator = HfpAudioRouteCoordinator(
+      native,
+      handoffGrace: const Duration(milliseconds: 750),
+    );
+    final lesson = coordinator.createScope('lesson');
+    final settings = coordinator.createScope('settings');
+    await lesson.startAudioRoute();
+    await lesson.stopAudioRoute();
+
+    await settings.connect(
+      const HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+    );
+
+    expect(native.connectionEvents, <String>['stop', 'connect:h20']);
+    expect(native.stopCalls, 1);
+    await tester.pump(const Duration(seconds: 1));
+    expect(native.stopCalls, 1);
+    await coordinator.dispose();
+  });
+
+  testWidgets('failed retained cleanup is retried before connect', (
+    tester,
+  ) async {
+    final native = _FakeHfpAudioControl()..stopFailuresRemaining = 2;
+    final coordinator = HfpAudioRouteCoordinator(
+      native,
+      handoffGrace: const Duration(milliseconds: 750),
+    );
+    final lesson = coordinator.createScope('lesson');
+    final settings = coordinator.createScope('settings');
+    const h20 = HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true);
+    await lesson.startAudioRoute();
+    await lesson.stopAudioRoute();
+
+    await tester.pump(const Duration(milliseconds: 751));
+    await expectLater(settings.connect(h20), throwsA(isA<HfpAudioException>()));
+    await settings.connect(h20);
+
+    expect(native.connectionEvents, <String>[
+      'stop',
+      'stop',
+      'stop',
+      'connect:h20',
+    ]);
+    expect(native.stopCalls, 3);
+    await coordinator.dispose();
+  });
+
   test(
     'disconnect cancels another scope start before a queued reconnect',
     () async {
@@ -350,6 +402,7 @@ void main() {
 class _FakeHfpAudioControl implements HfpAudioControl {
   int startCalls = 0;
   int stopCalls = 0;
+  int stopFailuresRemaining = 0;
   int disposeCalls = 0;
   Completer<void>? startGate;
   bool routeActive = true;
@@ -395,6 +448,11 @@ class _FakeHfpAudioControl implements HfpAudioControl {
   @override
   Future<void> stopAudioRoute() async {
     stopCalls += 1;
+    connectionEvents.add('stop');
+    if (stopFailuresRemaining > 0) {
+      stopFailuresRemaining -= 1;
+      throw const HfpAudioException('stop failed');
+    }
   }
 
   @override
