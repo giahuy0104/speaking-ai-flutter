@@ -559,6 +559,69 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  testWidgets('correct Review answer shows non-blocking praise fireworks', (
+    tester,
+  ) async {
+    final media = _FakeLessonMediaService();
+    addTearDown(media.close);
+    await _mountReview(
+      tester,
+      registry: ActiveLearningModuleRegistry(),
+      media: media,
+      voice: _FakeVoicePromptService(),
+      evaluator: _QueuedAttemptEvaluator(<LessonAttemptOutcome>[
+        LessonAttemptOutcome.good,
+      ]),
+    );
+
+    await tester.tap(find.byKey(const Key('vocabulary-practice-main-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-practice-main-action')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(
+      find.byKey(const Key('vocabulary-review-fireworks')),
+      findsOneWidget,
+    );
+    expect(
+      tester
+          .widget<IgnorePointer>(
+            find.byKey(const Key('vocabulary-review-fireworks-interaction')),
+          )
+          .ignoring,
+      isTrue,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 3));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('unclear Review answer does not show praise fireworks', (
+    tester,
+  ) async {
+    final media = _FakeLessonMediaService();
+    addTearDown(media.close);
+    await _mountReview(
+      tester,
+      registry: ActiveLearningModuleRegistry(),
+      media: media,
+      voice: _FakeVoicePromptService(),
+      evaluator: _QueuedAttemptEvaluator(<LessonAttemptOutcome>[
+        LessonAttemptOutcome.unclear,
+      ]),
+    );
+
+    await tester.tap(find.byKey(const Key('vocabulary-practice-main-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-practice-main-action')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.byKey(const Key('vocabulary-review-fireworks')), findsNothing);
+  });
+
   testWidgets(
     'completed block lets MAIN route directly to Stars after interruption',
     (tester) async {

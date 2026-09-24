@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
+import '../../../app/praise_fireworks.dart';
 import '../../../core/audio/streaming_speech_input.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
@@ -107,7 +108,10 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   bool _todayEnViCompleted = false;
   bool _exiting = false;
   bool _reviewHasMore = true;
+  bool _praiseFireworksVisible = false;
   int _invalidResponseCount = 0;
+  int _praiseFireworksSequence = 0;
+  Timer? _praiseFireworksTimer;
   late bool _resumeAnnouncementPending;
   String _message = '';
   late final LessonRecordingEndpointDetector _recordingEndpointDetector;
@@ -174,6 +178,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   @override
   void dispose() {
     _generation += 1;
+    _praiseFireworksTimer?.cancel();
     _recordingEndpointDetector.cancel();
     if (_activeRegistry != null && _activeRegistration != null) {
       _activeRegistry!.unregister(_activeRegistration!);
@@ -552,6 +557,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
           kind: LessonFeedbackKind.correct,
         );
         setState(() => _message = feedback);
+        _showPraiseFireworks();
         await _playLessonPrompt(
           LessonGuidePrompt(
             audioCode: 'CORRECT',
@@ -997,6 +1003,20 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     Navigator.of(context).pop(result);
   }
 
+  void _showPraiseFireworks() {
+    _praiseFireworksTimer?.cancel();
+    if (!mounted) return;
+    setState(() {
+      _praiseFireworksSequence += 1;
+      _praiseFireworksVisible = true;
+    });
+    _praiseFireworksTimer = Timer(const Duration(milliseconds: 2500), () {
+      if (!mounted || !_praiseFireworksVisible) return;
+      setState(() => _praiseFireworksVisible = false);
+      _praiseFireworksTimer = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final screen = DisplayLanguageScope(
@@ -1010,66 +1030,87 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
           body: LearningScenery(
             assetPath: _practiceHomiSceneryAsset,
             overlayOpacity: 0.08,
-            child: SafeArea(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : LayoutBuilder(
-                      builder: (context, constraints) {
-                        final compactHeight = constraints.maxHeight < 700;
-                        return SingleChildScrollView(
-                          padding: EdgeInsets.fromLTRB(
-                            18,
-                            compactHeight ? 8 : 12,
-                            18,
-                            20,
-                          ),
-                          child: Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 560),
-                              child: Column(
-                                children: <Widget>[
-                                  _buildPracticeHeader(context),
-                                  SizedBox(height: compactHeight ? 10 : 14),
-                                  _buildProgress(context),
-                                  SizedBox(height: compactHeight ? 18 : 26),
-                                  if (!_completed)
-                                    _buildEntryCard(
-                                      context,
-                                      compactHeight: compactHeight,
-                                    ),
-                                  SizedBox(height: compactHeight ? 14 : 20),
-                                  Text(
-                                    _message,
-                                    textAlign: TextAlign.center,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant,
-                                          fontSize: compactHeight ? 16 : 17,
-                                          height: 1.25,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                  ),
-                                  SizedBox(height: compactHeight ? 14 : 20),
-                                  if (_completed)
-                                    _buildCompletionActions(context)
-                                  else
-                                    _buildPracticeAction(context),
-                                  SizedBox(height: compactHeight ? 12 : 18),
-                                  _buildHomiCoach(
-                                    context,
-                                    viewportHeight: constraints.maxHeight,
-                                  ),
-                                ],
+            child: Stack(
+              children: <Widget>[
+                SafeArea(
+                  child: _loading
+                      ? const Center(child: CircularProgressIndicator())
+                      : LayoutBuilder(
+                          builder: (context, constraints) {
+                            final compactHeight = constraints.maxHeight < 700;
+                            return SingleChildScrollView(
+                              padding: EdgeInsets.fromLTRB(
+                                18,
+                                compactHeight ? 8 : 12,
+                                18,
+                                20,
                               ),
-                            ),
-                          ),
-                        );
-                      },
+                              child: Center(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 560,
+                                  ),
+                                  child: Column(
+                                    children: <Widget>[
+                                      _buildPracticeHeader(context),
+                                      SizedBox(height: compactHeight ? 10 : 14),
+                                      _buildProgress(context),
+                                      SizedBox(height: compactHeight ? 18 : 26),
+                                      if (!_completed)
+                                        _buildEntryCard(
+                                          context,
+                                          compactHeight: compactHeight,
+                                        ),
+                                      SizedBox(height: compactHeight ? 14 : 20),
+                                      Text(
+                                        _message,
+                                        textAlign: TextAlign.center,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
+                                              fontSize: compactHeight ? 16 : 17,
+                                              height: 1.25,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                      ),
+                                      SizedBox(height: compactHeight ? 14 : 20),
+                                      if (_completed)
+                                        _buildCompletionActions(context)
+                                      else
+                                        _buildPracticeAction(context),
+                                      SizedBox(height: compactHeight ? 12 : 18),
+                                      _buildHomiCoach(
+                                        context,
+                                        viewportHeight: constraints.maxHeight,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+                Positioned.fill(
+                  child: IgnorePointer(
+                    key: const Key('vocabulary-review-fireworks-interaction'),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      reverseDuration: const Duration(milliseconds: 180),
+                      child: _praiseFireworksVisible
+                          ? PraiseFireworks(
+                              keyPrefix: 'vocabulary-review-fireworks',
+                              key: ValueKey(_praiseFireworksSequence),
+                            )
+                          : const SizedBox.shrink(),
                     ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
