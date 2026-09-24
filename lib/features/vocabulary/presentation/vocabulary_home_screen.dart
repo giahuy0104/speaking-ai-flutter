@@ -3255,7 +3255,7 @@ class _VocabularyRow extends StatelessWidget {
         key: ValueKey<String>('vocabulary-entry-highlight-${entry.id}'),
         duration: const Duration(milliseconds: 180),
         margin: const EdgeInsets.symmetric(vertical: 3),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+        padding: const EdgeInsets.symmetric(vertical: 7),
         decoration: BoxDecoration(
           color: isActive
               ? (isDark

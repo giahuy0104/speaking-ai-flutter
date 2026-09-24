@@ -1641,6 +1641,30 @@ class _TopicDetails extends StatelessWidget {
         : CrossAxisAlignment.start;
     final textAlignment = alignRight ? TextAlign.right : TextAlign.left;
     final englishTitle = titleEn.trim();
+    final actionLabel = context.tr(
+      progress.completed == 0
+          ? 'Bắt đầu'
+          : progress.fraction >= 1
+          ? 'Học lại'
+          : 'Tiếp tục',
+      progress.completed == 0
+          ? '开始'
+          : progress.fraction >= 1
+          ? '重学'
+          : '继续',
+    );
+    final actionButton = FilledButton(
+      key: actionKey,
+      onPressed: onPressed,
+      style: FilledButton.styleFrom(
+        minimumSize: Size(hasSong ? 0 : 92, 48),
+        padding: EdgeInsets.symmetric(horizontal: hasSong ? 8 : 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+      ),
+      child: hasSong
+          ? FittedBox(fit: BoxFit.scaleDown, child: Text(actionLabel))
+          : Text(actionLabel),
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Column(
@@ -1699,40 +1723,11 @@ class _TopicDetails extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Row(
-            mainAxisSize: MainAxisSize.max,
-            children: <Widget>[
-              Expanded(
-                child: FilledButton(
-                  key: actionKey,
-                  onPressed: onPressed,
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size(0, 48),
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(13),
-                    ),
-                  ),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      context.tr(
-                        progress.completed == 0
-                            ? 'Bắt đầu'
-                            : progress.fraction >= 1
-                            ? 'Học lại'
-                            : 'Tiếp tục',
-                        progress.completed == 0
-                            ? '开始'
-                            : progress.fraction >= 1
-                            ? '重学'
-                            : '继续',
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              if (hasSong) ...<Widget>[
+          if (hasSong)
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              children: <Widget>[
+                Expanded(child: actionButton),
                 const SizedBox(width: 6),
                 IconButton.outlined(
                   key: songActionKey,
@@ -1747,8 +1742,9 @@ class _TopicDetails extends StatelessWidget {
                   ),
                 ),
               ],
-            ],
-          ),
+            )
+          else
+            actionButton,
         ],
       ),
     );
