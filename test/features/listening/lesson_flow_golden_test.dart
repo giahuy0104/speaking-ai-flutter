@@ -383,7 +383,10 @@ void main() {
     await _precache(
       tester,
       find.byType(LessonPracticeScreen),
-      const <AssetImage>[AssetImage('assets/images/mascot/penguin-speak.png')],
+      const <AssetImage>[
+        AssetImage('assets/images/learning-minimal-sky-background.png'),
+        AssetImage('assets/images/mascot/penguin-speak.png'),
+      ],
     );
     await tester.pump();
     final recordButton = find.byKey(const Key('record-lesson-sentence'));

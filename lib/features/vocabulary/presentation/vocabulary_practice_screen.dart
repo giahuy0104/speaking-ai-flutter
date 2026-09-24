@@ -1166,16 +1166,12 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
                 Positioned.fill(
                   child: IgnorePointer(
                     key: const Key('vocabulary-review-fireworks-interaction'),
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 180),
-                      reverseDuration: const Duration(milliseconds: 180),
-                      child: _praiseFireworksVisible
-                          ? PraiseFireworks(
-                              keyPrefix: 'vocabulary-review-fireworks',
-                              key: ValueKey(_praiseFireworksSequence),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
+                    child: _praiseFireworksVisible
+                        ? PraiseFireworks(
+                            keyPrefix: 'vocabulary-review-fireworks',
+                            key: ValueKey(_praiseFireworksSequence),
+                          )
+                        : const SizedBox.shrink(),
                   ),
                 ),
               ],

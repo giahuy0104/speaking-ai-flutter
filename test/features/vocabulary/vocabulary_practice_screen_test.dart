@@ -828,6 +828,51 @@ void main() {
     );
     expect(media.deletedRecordingPaths, isEmpty);
 
+    await tester.pump(const Duration(seconds: 3));
+    expect(find.byKey(const Key('vocabulary-review-fireworks')), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 3));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('consecutive correct Review answers keep one fireworks overlay', (
+    tester,
+  ) async {
+    final media = _FakeLessonMediaService();
+    addTearDown(media.close);
+    await _mountReview(
+      tester,
+      registry: ActiveLearningModuleRegistry(),
+      media: media,
+      voice: _FakeVoicePromptService(),
+      evaluator: _QueuedAttemptEvaluator(<LessonAttemptOutcome>[
+        LessonAttemptOutcome.good,
+        LessonAttemptOutcome.good,
+      ]),
+    );
+
+    final action = find.byKey(const Key('vocabulary-practice-main-action'));
+    await tester.tap(action);
+    await tester.pumpAndSettle();
+    await tester.tap(action);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(media.startCalls, 2);
+    expect(
+      find.byKey(const Key('vocabulary-review-fireworks')),
+      findsOneWidget,
+    );
+
+    await tester.tap(action);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1));
+
+    expect(
+      find.byKey(const Key('vocabulary-review-fireworks')),
+      findsOneWidget,
+    );
+
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 3));
     expect(tester.takeException(), isNull);
