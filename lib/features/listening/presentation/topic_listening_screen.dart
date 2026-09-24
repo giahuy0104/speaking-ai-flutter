@@ -289,7 +289,9 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
                       englishTitleFor: _topicEnglishTitle,
                       progressFor: _topicProgress,
                       lockedFor: _topicLocked,
+                      songIdFor: _topicSongId,
                       onTopicPressed: _openTopic,
+                      onSongPressed: _openTopicSong,
                     ),
                   ),
                 ),
@@ -604,6 +606,37 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     }
   }
 
+  String? _topicSongId(int topicIndex) {
+    try {
+      final content = _contentCatalog?.topic(
+        startAge: _catalog.startAge,
+        endAge: _catalog.endAge,
+        topicNumber: topicIndex + 1,
+      );
+      if (content == null) return null;
+      for (final lesson in content.lessons) {
+        if (lesson.hasV4SongStage) return lesson.id;
+      }
+      if (_catalog.startAge >= 6 && content.songs.isNotEmpty) {
+        return content.songs.first.id;
+      }
+    } catch (_) {
+      // Content can still be loading while the lightweight catalog is shown.
+    }
+    return null;
+  }
+
+  Future<void> _openTopicSong(
+    ListeningTopic topic,
+    int topicIndex,
+    String lessonId,
+  ) => _openTopic(
+    topic,
+    topicIndex,
+    initialLessonId: lessonId,
+    requestVoiceLessonSelection: false,
+  );
+
   Future<void> _resumeTopicSelectionIfNeeded(
     ListeningContentCatalog catalog,
   ) async {
@@ -796,6 +829,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     ListeningTopic topic,
     int topicIndex, {
     int? initialLessonNumber,
+    String? initialLessonId,
     bool requestVoiceLessonSelection = true,
     bool forceRelearnTopic = false,
     bool forceRelearnLesson = false,
@@ -847,20 +881,26 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
         completedV4LessonActivities: _completedV4LessonActivities,
         startedLessonIds: _startedLessonIds,
       );
-      final state = ListeningCurriculumFlow.topicState(
-        content,
-        progressBefore.lessonProgress,
-        progressBefore.completedV4LessonActivities,
-        startedLessonIds: progressBefore.startedLessonIds,
-      );
       var lessonNumber = initialLessonNumber;
       var relearnTopicSequence = forceRelearnTopic;
-      if (forceRelearnTopic) {
+      if (initialLessonId != null) {
+        final targetExists = <ListeningLessonContent>[
+          ...content.lessons,
+          ...content.songs,
+        ].any((lesson) => lesson.id == initialLessonId);
+        if (!targetExists) return;
+      } else if (forceRelearnTopic) {
         await widget.progressStore.resetLessonsForRelearn(
           content.lessons.map((lesson) => lesson.id),
         );
         lessonNumber = content.lessons.first.number;
       } else if (lessonNumber == null) {
+        final state = ListeningCurriculumFlow.topicState(
+          content,
+          progressBefore.lessonProgress,
+          progressBefore.completedV4LessonActivities,
+          startedLessonIds: progressBefore.startedLessonIds,
+        );
         if (state == ListeningTopicLearningState.completed) {
           final relearn = await _askCompletedTopicAction(content.number);
           if (relearn == null) return;
@@ -916,6 +956,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           progressStore: widget.progressStore,
           voicePromptService: _voicePromptService,
           initialLessonNumber: lessonNumber,
+          initialLessonId: initialLessonId,
           relearnInitialLesson: forceRelearnLesson || relearnTopicSequence,
           relearnTopicSequence: relearnTopicSequence,
           onTopicCompleted: () => topicCompletedDuringVisit = true,
@@ -1266,7 +1307,10 @@ class _LessonGroupPickerSheetState extends State<_LessonGroupPickerSheet> {
 typedef _TopicProgressResolver = _TopicProgress Function(int index);
 typedef _TopicLockedResolver = bool Function(int index);
 typedef _TopicEnglishTitleResolver = String Function(int index);
+typedef _TopicSongIdResolver = String? Function(int index);
 typedef _TopicPressed = Future<void> Function(ListeningTopic topic, int index);
+typedef _TopicSongPressed =
+    Future<void> Function(ListeningTopic topic, int index, String lessonId);
 
 class _TopicJourney extends StatelessWidget {
   const _TopicJourney({
@@ -1275,7 +1319,9 @@ class _TopicJourney extends StatelessWidget {
     required this.englishTitleFor,
     required this.progressFor,
     required this.lockedFor,
+    required this.songIdFor,
     required this.onTopicPressed,
+    required this.onSongPressed,
   });
 
   final String catalogId;
@@ -1283,7 +1329,9 @@ class _TopicJourney extends StatelessWidget {
   final _TopicEnglishTitleResolver englishTitleFor;
   final _TopicProgressResolver progressFor;
   final _TopicLockedResolver lockedFor;
+  final _TopicSongIdResolver songIdFor;
   final _TopicPressed onTopicPressed;
+  final _TopicSongPressed onSongPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -1317,11 +1365,15 @@ class _TopicJourney extends StatelessWidget {
                   final topic = topics[index];
                   final progress = progressFor(index);
                   final locked = lockedFor(index);
+                  final songId = songIdFor(index);
                   return SizedBox(
                     height: rowHeight,
                     child: _JourneyTopicStop(
                       topicKey: ValueKey('topic-$catalogId-$index'),
                       actionKey: ValueKey('topic-action-$catalogId-$index'),
+                      songActionKey: ValueKey(
+                        'topic-song-action-$catalogId-$index',
+                      ),
                       topic: topic,
                       titleEn: englishTitleFor(index),
                       progress: progress,
@@ -1331,6 +1383,10 @@ class _TopicJourney extends StatelessWidget {
                       checkpointWidth: checkpointWidth,
                       imageOnLeft: index.isEven,
                       onPressed: () => onTopicPressed(topic, index),
+                      onSongPressed: songId == null || locked
+                          ? null
+                          : () => onSongPressed(topic, index, songId),
+                      hasSong: songId != null,
                     ),
                   );
                 }),
@@ -1347,6 +1403,7 @@ class _JourneyTopicStop extends StatelessWidget {
   const _JourneyTopicStop({
     required this.topicKey,
     required this.actionKey,
+    required this.songActionKey,
     required this.topic,
     required this.titleEn,
     required this.progress,
@@ -1356,10 +1413,13 @@ class _JourneyTopicStop extends StatelessWidget {
     required this.checkpointWidth,
     required this.imageOnLeft,
     required this.onPressed,
+    required this.onSongPressed,
+    required this.hasSong,
   });
 
   final Key topicKey;
   final Key actionKey;
+  final Key songActionKey;
   final ListeningTopic topic;
   final String titleEn;
   final _TopicProgress progress;
@@ -1369,6 +1429,8 @@ class _JourneyTopicStop extends StatelessWidget {
   final double checkpointWidth;
   final bool imageOnLeft;
   final VoidCallback onPressed;
+  final VoidCallback? onSongPressed;
+  final bool hasSong;
 
   @override
   Widget build(BuildContext context) {
@@ -1407,6 +1469,9 @@ class _JourneyTopicStop extends StatelessWidget {
         alignRight: !imageOnLeft,
         actionKey: actionKey,
         onPressed: onPressed,
+        songActionKey: songActionKey,
+        onSongPressed: onSongPressed,
+        hasSong: hasSong,
       ),
     );
 
@@ -1522,6 +1587,9 @@ class _TopicDetails extends StatelessWidget {
     required this.alignRight,
     required this.actionKey,
     required this.onPressed,
+    required this.songActionKey,
+    required this.onSongPressed,
+    required this.hasSong,
   });
 
   final String title;
@@ -1530,6 +1598,9 @@ class _TopicDetails extends StatelessWidget {
   final bool alignRight;
   final Key actionKey;
   final VoidCallback onPressed;
+  final Key songActionKey;
+  final VoidCallback? onSongPressed;
+  final bool hasSong;
 
   @override
   Widget build(BuildContext context) {
@@ -1598,30 +1669,55 @@ class _TopicDetails extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          FilledButton(
-            key: actionKey,
-            onPressed: onPressed,
-            style: FilledButton.styleFrom(
-              minimumSize: const Size(92, 48),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(13),
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            children: <Widget>[
+              Expanded(
+                child: FilledButton(
+                  key: actionKey,
+                  onPressed: onPressed,
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, 48),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      context.tr(
+                        progress.completed == 0
+                            ? 'Bắt đầu'
+                            : progress.fraction >= 1
+                            ? 'Học lại'
+                            : 'Tiếp tục',
+                        progress.completed == 0
+                            ? '开始'
+                            : progress.fraction >= 1
+                            ? '重学'
+                            : '继续',
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-            child: Text(
-              context.tr(
-                progress.completed == 0
-                    ? 'Bắt đầu'
-                    : progress.fraction >= 1
-                    ? 'Học lại'
-                    : 'Tiếp tục',
-                progress.completed == 0
-                    ? '开始'
-                    : progress.fraction >= 1
-                    ? '重学'
-                    : '继续',
-              ),
-            ),
+              if (hasSong) ...<Widget>[
+                const SizedBox(width: 6),
+                IconButton.outlined(
+                  key: songActionKey,
+                  onPressed: onSongPressed,
+                  tooltip: context.tr('Bài hát', '歌曲'),
+                  icon: const Icon(Icons.music_note_rounded, size: 20),
+                  style: IconButton.styleFrom(
+                    minimumSize: const Size.square(44),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
         ],
       ),

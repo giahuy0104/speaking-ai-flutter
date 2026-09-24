@@ -371,7 +371,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       find.text(
-      'Chủ đề 1 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 1?',
+        'Chủ đề 1 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 1?',
       ),
       findsWidgets,
     );
@@ -482,6 +482,97 @@ void main() {
       );
     },
   );
+
+  testWidgets(
+    'song action opens the existing V4 lesson without creating a legacy song',
+    (tester) async {
+      final content = await AssetListeningContentRepository().load();
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(
+        buildSubject(
+          childAge: 3,
+          contentFuture: Future<ListeningContentCatalog>.value(content),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('topic-song-action-3-5-0')),
+        findsNothing,
+      );
+      final songAction = find.byKey(const ValueKey('topic-song-action-3-5-1'));
+      await tester.scrollUntilVisible(
+        songAction,
+        180,
+        scrollable: find
+            .descendant(
+              of: find.byKey(const Key('topic-listening-screen')),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.tap(songAction);
+      await tester.pump();
+
+      final lessonList = tester.widget<TopicLessonListScreen>(
+        find.byType(TopicLessonListScreen, skipOffstage: false),
+      );
+      expect(lessonList.initialLessonId, 'c35-l1-t02-b03');
+      expect(lessonList.content.songs, isEmpty);
+      expect(
+        lessonList.content.lessons.where(
+          (lesson) => lesson.id == lessonList.initialLessonId,
+        ),
+        hasLength(1),
+      );
+    },
+  );
+
+  testWidgets('song action cannot bypass a locked Level', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(buildSubject(childAge: 3));
+    await tester.pumpAndSettle();
+
+    final songAction = find.byKey(const ValueKey('topic-song-action-3-5-8'));
+    await tester.scrollUntilVisible(
+      songAction,
+      180,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('topic-listening-screen')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+
+    expect(tester.widget<IconButton>(songAction).onPressed, isNull);
+  });
+
+  testWidgets('song action opens an existing legacy song by id', (
+    tester,
+  ) async {
+    final content = _legacySongCatalog();
+    await tester.pumpWidget(
+      buildSubject(
+        childAge: 6,
+        contentFuture: Future<ListeningContentCatalog>.value(content),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final songAction = find.byKey(const ValueKey('topic-song-action-6-7-0'));
+    await tester.ensureVisible(songAction);
+    await tester.tap(songAction);
+    await tester.pump();
+
+    final lessonList = tester.widget<TopicLessonListScreen>(
+      find.byType(TopicLessonListScreen, skipOffstage: false),
+    );
+    expect(lessonList.initialLessonId, 'legacy-song-1');
+    expect(lessonList.content.songs.single.id, lessonList.initialLessonId);
+  });
 
   testWidgets(
     'renders a V4 song milestone as a normal lesson, not a legacy clip',
@@ -656,6 +747,44 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+}
+
+ListeningContentCatalog _legacySongCatalog() {
+  const song = ListeningLessonContent(
+    id: 'legacy-song-1',
+    number: 1,
+    titleVi: 'Bài hát thử nghiệm',
+    titleEn: 'Test Song',
+    intro: '',
+    outro: '',
+    estimatedMinutes: 1,
+    type: ListeningLessonType.song,
+    sentences: <ListeningSentenceContent>[
+      ListeningSentenceContent(
+        number: 1,
+        english: 'Sing with me.',
+        vietnamese: 'Hát cùng mình.',
+      ),
+    ],
+  );
+  return const ListeningContentCatalog(
+    groups: <ListeningContentAgeGroup>[
+      ListeningContentAgeGroup(
+        startAge: 6,
+        endAge: 7,
+        topics: <ListeningTopicContent>[
+          ListeningTopicContent(
+            id: 'legacy-topic-1',
+            number: 1,
+            titleVi: 'Chủ đề có bài hát',
+            titleEn: 'Topic With Song',
+            lessons: <ListeningLessonContent>[],
+            songs: <ListeningLessonContent>[song],
+          ),
+        ],
+      ),
+    ],
+  );
 }
 
 class _MemoryProgressStore extends ListeningProgressStore {

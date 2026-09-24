@@ -39,6 +39,7 @@ class TopicLessonListScreen extends StatefulWidget {
     this.mediaService,
     this.voicePromptService,
     this.initialLessonNumber,
+    this.initialLessonId,
     this.relearnInitialLesson = false,
     this.relearnTopicSequence = false,
     this.onTopicCompleted,
@@ -62,6 +63,7 @@ class TopicLessonListScreen extends StatefulWidget {
   final LessonMediaService? mediaService;
   final VoicePromptService? voicePromptService;
   final int? initialLessonNumber;
+  final String? initialLessonId;
   final bool relearnInitialLesson;
   final bool relearnTopicSequence;
   final VoidCallback? onTopicCompleted;
@@ -388,16 +390,21 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
 
   Future<void> _openInitialLesson() async {
     final lessonNumber = widget.initialLessonNumber;
-    if (_initialLessonOpened || lessonNumber == null || !mounted) {
+    final lessonId = widget.initialLessonId;
+    if (_initialLessonOpened ||
+        (lessonNumber == null && lessonId == null) ||
+        !mounted) {
       return;
     }
     _initialLessonOpened = true;
-    if (widget.content.lessons.isEmpty) {
-      return;
-    }
     ListeningLessonContent? lesson;
-    for (final candidate in widget.content.lessons) {
-      if (candidate.number == lessonNumber) {
+    for (final candidate in <ListeningLessonContent>[
+      ...widget.content.lessons,
+      ...widget.content.songs,
+    ]) {
+      if (lessonId != null
+          ? candidate.id == lessonId
+          : candidate.number == lessonNumber) {
         lesson = candidate;
         break;
       }
@@ -407,8 +414,12 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
         SnackBar(
           content: Text(
             context.tr(
-              'Chủ đề này chưa có Bài $lessonNumber. Bạn hãy chọn một bài đang hiển thị nhé.',
-              '这个主题还没有第 $lessonNumber 课，请选择当前显示的课程。',
+              lessonId != null
+                  ? 'Nội dung này hiện chưa thể mở. Bạn hãy chọn một bài đang hiển thị nhé.'
+                  : 'Chủ đề này chưa có Bài $lessonNumber. Bạn hãy chọn một bài đang hiển thị nhé.',
+              lessonId != null
+                  ? '此内容暂时无法打开，请选择当前显示的课程。'
+                  : '这个主题还没有第 $lessonNumber 课，请选择当前显示的课程。',
             ),
           ),
         ),
