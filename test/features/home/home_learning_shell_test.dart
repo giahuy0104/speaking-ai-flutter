@@ -122,12 +122,13 @@ void main() {
       );
       expect(topicTabRect.top, closeTo(vocabularyTabRect.top, 0.01));
       expect(vocabularyTabRect.top, closeTo(844 * 0.27, 0.01));
-      expect(find.byKey(const Key('conversation-bottom-tab')), findsNothing);
+      expect(find.byKey(const Key('home-conversation-tab')), findsOneWidget);
+      expect(find.byKey(const Key('home-main-button')), findsOneWidget);
+      expect(find.byKey(const Key('home-history-tab')), findsOneWidget);
       expect(
         find.byKey(const Key('main-voice-assistant-button')),
         findsNothing,
       );
-      expect(find.byKey(const Key('history-bottom-tab')), findsNothing);
       expect(find.text('Câu tiếng Việt'), findsOneWidget);
       expect(find.text('Câu tiếng Anh'), findsOneWidget);
       expect(find.text('Con nói tiếng Việt'), findsNothing);
@@ -139,6 +140,8 @@ void main() {
       await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
       await tester.pumpAndSettle();
       expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
+      expect(find.byKey(const Key('home-main-button')), findsOneWidget);
+      expect(find.byKey(const Key('home-vocabulary-tab')), findsOneWidget);
       expect(
         find.byKey(const Key('vocabulary-home-back-button')),
         findsOneWidget,
@@ -336,7 +339,7 @@ void main() {
     expect(visibilityChanges, <bool>[true, false]);
   });
 
-  testWidgets('iOS keeps header, side navigation, and hardware MAIN flow', (
+  testWidgets('iOS exposes the on-screen MAIN action on home and vocabulary', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -401,30 +404,35 @@ void main() {
     await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
     await tester.pumpAndSettle();
     expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
+    await tester.tap(find.byKey(const Key('home-main-button')));
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(speechInput.startCount, 1);
+    await voiceNavigationController.pause();
+    await tester.pump();
 
     await tester.tap(find.byKey(const Key('vocabulary-practice-button')));
     await tester.pumpAndSettle();
     expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
 
     expect(find.byKey(const Key('main-voice-assistant-button')), findsNothing);
-    expect(await voiceNavigationController.activateFromMainButton(), isTrue);
-    await tester.pump();
+    await tester.tap(find.byKey(const Key('home-main-button')));
     await tester.pump(const Duration(milliseconds: 700));
-    expect(speechInput.startCount, 1);
+    expect(speechInput.startCount, 2);
     expect(voiceNavigationController.isMainButtonSessionActive, isTrue);
     expect(voiceNavigationController.isListening, isTrue);
-    expect(find.text('MAIN'), findsNothing);
+    expect(find.byKey(const Key('home-main-button')), findsOneWidget);
 
     // BLE/HFP status and diagnostics are surfaced through ConversationController
     // notifications. On iOS they must not cancel the explicit MAIN recognizer;
     // only Android owns the optional always-on navigation lifecycle here.
+    final cancelCountBeforeAgeChange = speechInput.cancelCount;
     controller.setChildAge(7);
     await tester.pump();
     await tester.pump();
     expect(voiceNavigationController.isMainButtonSessionActive, isTrue);
     expect(voiceNavigationController.isListening, isTrue);
-    expect(speechInput.cancelCount, 0);
-    expect(find.text('MAIN'), findsNothing);
+    expect(speechInput.cancelCount, cancelCountBeforeAgeChange);
+    expect(find.byKey(const Key('home-main-button')), findsOneWidget);
 
     await voiceNavigationController.pause();
     await tester.pump();
