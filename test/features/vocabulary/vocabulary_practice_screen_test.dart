@@ -83,6 +83,117 @@ void main() {
     );
   }
 
+  testWidgets(
+    'iOS Review discards an unretained native recording after evaluation',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final media = _FakeLessonMediaService();
+      final voice = _FakeVoicePromptService();
+      final speech = _GatedIosLessonInput();
+      addTearDown(registry.dispose);
+      addTearDown(media.close);
+      addTearDown(speech.dispose);
+      await _mountReview(
+        tester,
+        registry: registry,
+        media: media,
+        voice: voice,
+        evaluator: null,
+        audioDependencies: _IosLearningDependencies(speech),
+      );
+
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pump();
+      speech.stopGate.complete(
+        const StreamingSpeechCapture(
+          sourceText: '',
+          duration: Duration(seconds: 1),
+          inputLabel: 'Apple Native Speech',
+          confidence: 0,
+          firstResultMs: null,
+          finalAfterStopMs: 0,
+          recordedAudio: AudioCapture(
+            filePath: '/recordings/ios-review.wav',
+            mimeType: 'audio/wav',
+            duration: Duration(seconds: 1),
+            inputLabel: 'Apple Native Speech',
+            isBluetoothInput: true,
+            initialNoiseRms: null,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(media.deletedRecordingPaths, <String>[
+        '/recordings/ios-review.wav',
+      ]);
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'iOS Review discards a completed recording from a stale stop',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final media = _FakeLessonMediaService();
+      final speech = _GatedIosLessonInput();
+      addTearDown(registry.dispose);
+      addTearDown(media.close);
+      addTearDown(speech.dispose);
+      await _mountReview(
+        tester,
+        registry: registry,
+        media: media,
+        voice: _FakeVoicePromptService(),
+        evaluator: null,
+        audioDependencies: _IosLearningDependencies(speech),
+      );
+
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pump();
+      await registry.pauseForMainAssistant();
+      speech.stopGate.complete(
+        const StreamingSpeechCapture(
+          sourceText: 'Apple',
+          duration: Duration(seconds: 1),
+          inputLabel: 'Apple Native Speech',
+          confidence: 1,
+          firstResultMs: 100,
+          finalAfterStopMs: 0,
+          recordedAudio: AudioCapture(
+            filePath: '/recordings/stale-ios-review.wav',
+            mimeType: 'audio/wav',
+            duration: Duration(seconds: 1),
+            inputLabel: 'Apple Native Speech',
+            isBluetoothInput: true,
+            initialNoiseRms: null,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(media.deletedRecordingPaths, <String>[
+        '/recordings/stale-ios-review.wav',
+      ]);
+      expect(speech.takeRecordingCalls, 0);
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
   for (final systemBack in <bool>[false, true]) {
     testWidgets(
       'unfinished Today exits with ${systemBack ? "system" : "screen"} Back even if audio stop hangs',
@@ -600,6 +711,10 @@ void main() {
     feedbackGate.complete();
     await tester.pumpAndSettle();
     expect(media.startCalls, 2);
+    expect(
+      media.events.indexOf('delete:/recordings/apple.m4a'),
+      lessThan(media.events.lastIndexOf('record')),
+    );
     expect(find.text('Chạm để kết thúc ghi âm'), findsOneWidget);
   });
 
@@ -636,6 +751,7 @@ void main() {
           .ignoring,
       isTrue,
     );
+    expect(media.deletedRecordingPaths, isEmpty);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 3));
@@ -664,6 +780,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.byKey(const Key('vocabulary-review-fireworks')), findsNothing);
+    expect(media.deletedRecordingPaths, <String>['/recordings/apple.m4a']);
   });
 
   testWidgets('MAIN interruption dismisses Review praise fireworks', (
@@ -1136,6 +1253,7 @@ class _FakeLessonMediaService extends LessonMediaService {
   bool recording = false;
   int startCalls = 0;
   int stopCalls = 0;
+  final List<String> deletedRecordingPaths = <String>[];
   Completer<void>? startGate;
   Completer<void>? stopGate;
   final StreamController<double> amplitudes =
@@ -1186,6 +1304,12 @@ class _FakeLessonMediaService extends LessonMediaService {
   @override
   Future<void> cancelRecording() async {
     recording = false;
+  }
+
+  @override
+  Future<void> deleteRecording(String path) async {
+    deletedRecordingPaths.add(path);
+    events.add('delete:$path');
   }
 
   @override

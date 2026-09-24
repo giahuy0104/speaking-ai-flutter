@@ -453,6 +453,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     _recordingEndpointDetector.cancel();
     final generation = _generation;
     final entry = _entry;
+    final mediaService = widget.mediaService;
     setState(() {
       _recording = false;
       _capturePending = true;
@@ -463,30 +464,49 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     });
     try {
       if (_usesIosNativeRecognition) {
-        await _finishIosAttempt(generation: generation, entry: entry);
+        await _finishIosAttempt(
+          generation: generation,
+          entry: entry,
+          mediaService: mediaService,
+        );
         return;
       }
-      final recording = await widget.mediaService.stopRecording();
-      if (!_isCurrent(generation, entry.id)) return;
-      _capturePending = false;
-      final outcome = await _attemptEvaluator.evaluate(
-        lessonCode: _recordingLessonId,
-        sentenceId: entry.id,
-        expectedEnglish: entry.word,
-        recordingPath: recording.filePath,
-        recordingDuration: recording.duration,
-        attemptNumber: _attemptNumber,
-        childAge: widget.childAge,
-        acceptedVariants: VocabularyFlowV3.acceptedVariantsFor(entry),
-        requireAllExpectedTokens: false,
-      );
-      if (!_isCurrent(generation, entry.id)) return;
-      await _applyOutcome(
-        outcome,
-        generation: generation,
-        entry: entry,
-        recordingPath: recording.filePath,
-      );
+      final recording = await mediaService.stopRecording();
+      var recordingDiscarded = false;
+      try {
+        if (!_isCurrent(generation, entry.id)) return;
+        _capturePending = false;
+        final outcome = await _attemptEvaluator.evaluate(
+          lessonCode: _recordingLessonId,
+          sentenceId: entry.id,
+          expectedEnglish: entry.word,
+          recordingPath: recording.filePath,
+          recordingDuration: recording.duration,
+          attemptNumber: _attemptNumber,
+          childAge: widget.childAge,
+          acceptedVariants: VocabularyFlowV3.acceptedVariantsFor(entry),
+          requireAllExpectedTokens: false,
+        );
+        if (!_isCurrent(generation, entry.id)) return;
+        if (outcome != LessonAttemptOutcome.good) {
+          await _deleteTemporaryRecording(mediaService, recording.filePath);
+          recordingDiscarded = true;
+        }
+        await _applyOutcome(
+          outcome,
+          generation: generation,
+          entry: entry,
+          recordingPath: recording.filePath,
+        );
+      } finally {
+        if (!recordingDiscarded) {
+          await _discardUnretainedAttemptRecording(
+            mediaService,
+            entry,
+            recording.filePath,
+          );
+        }
+      }
     } catch (error) {
       if (!_isCurrent(generation, entry.id)) return;
       setState(() {
@@ -501,35 +521,78 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   Future<void> _finishIosAttempt({
     required int generation,
     required VocabularyEntry entry,
+    required LessonMediaService mediaService,
   }) async {
     LessonAttemptOutcome outcome;
     String? recordingPath;
+    var recordingDiscarded = false;
     try {
-      final capture = await _iosSpeechInput!.stop();
+      try {
+        final capture = await _iosSpeechInput!.stop();
+        recordingPath = capture.recordedAudio?.filePath;
+        if (!_isCurrent(generation, entry.id)) return;
+        _capturePending = false;
+        outcome = evaluateNativeLessonTranscripts(
+          expectedEnglish: entry.word,
+          transcripts: <String>[capture.sourceText, ...capture.alternatives],
+          acceptedVariants: VocabularyFlowV3.acceptedVariantsFor(entry),
+        );
+      } on StreamingSpeechInputException catch (error) {
+        // A stale stop must not consume a newer MAIN/lesson turn's local WAV.
+        if (!_isCurrent(generation, entry.id)) return;
+        _capturePending = false;
+        recordingPath = _iosSpeechInput!
+            .takeLessonRecordingAudioCapture()
+            ?.filePath;
+        outcome = nativeLessonRecognitionFailureOutcome(error.code);
+      }
       if (!_isCurrent(generation, entry.id)) return;
-      _capturePending = false;
-      recordingPath = capture.recordedAudio?.filePath;
-      outcome = evaluateNativeLessonTranscripts(
-        expectedEnglish: entry.word,
-        transcripts: <String>[capture.sourceText, ...capture.alternatives],
-        acceptedVariants: VocabularyFlowV3.acceptedVariantsFor(entry),
+      if (outcome != LessonAttemptOutcome.good) {
+        await _deleteTemporaryRecording(mediaService, recordingPath);
+        recordingDiscarded = true;
+      }
+      await _applyOutcome(
+        outcome,
+        generation: generation,
+        entry: entry,
+        recordingPath: recordingPath,
       );
-    } on StreamingSpeechInputException catch (error) {
-      // A stale stop must not consume a newer MAIN/lesson turn's local WAV.
-      if (!_isCurrent(generation, entry.id)) return;
-      _capturePending = false;
-      recordingPath = _iosSpeechInput!
-          .takeLessonRecordingAudioCapture()
-          ?.filePath;
-      outcome = nativeLessonRecognitionFailureOutcome(error.code);
+    } finally {
+      if (!recordingDiscarded) {
+        await _discardUnretainedAttemptRecording(
+          mediaService,
+          entry,
+          recordingPath,
+        );
+      }
     }
-    if (!_isCurrent(generation, entry.id)) return;
-    await _applyOutcome(
-      outcome,
-      generation: generation,
-      entry: entry,
-      recordingPath: recordingPath,
-    );
+  }
+
+  Future<void> _discardUnretainedAttemptRecording(
+    LessonMediaService mediaService,
+    VocabularyEntry entry,
+    String? recordingPath,
+  ) async {
+    final path = recordingPath?.trim();
+    if (path == null ||
+        path.isEmpty ||
+        _session.correctAudioPaths[entry.id] == path) {
+      return;
+    }
+    await _deleteTemporaryRecording(mediaService, path);
+  }
+
+  Future<void> _deleteTemporaryRecording(
+    LessonMediaService mediaService,
+    String? recordingPath,
+  ) async {
+    final path = recordingPath?.trim();
+    if (path == null || path.isEmpty) return;
+    try {
+      await mediaService.deleteRecording(path);
+    } catch (error) {
+      debugPrint('HOMI Review temporary recording cleanup failed: $error');
+    }
   }
 
   Future<void> _applyOutcome(
