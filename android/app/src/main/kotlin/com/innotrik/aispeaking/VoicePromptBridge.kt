@@ -56,6 +56,14 @@ class VoicePromptBridge(
     private var synthesizedPromptGainMillibels = 0
     private var synthesizedPromptForcePhoneSpeaker = false
     private var synthesizedPromptForceMediaPlayback = false
+    private var synthesizedPromptLevelKey: String? = null
+    // Matched levels of authored clips by content; main thread only.
+    private val authoredPromptLevels =
+        object : LinkedHashMap<String, PlaybackLoudnessResult>(16, 0.75f, true) {
+            override fun removeEldestEntry(
+                eldest: MutableMap.MutableEntry<String, PlaybackLoudnessResult>?,
+            ) = size > 64
+        }
     private var promptPlaybackId: String? = null
     private var promptPlaybackFile: File? = null
     private var promptPlayer: MediaPlayer? = null
@@ -341,6 +349,7 @@ class VoicePromptBridge(
             call.argument<Boolean>("forcePhoneSpeaker") == true
         synthesizedPromptForceMediaPlayback =
             call.argument<Boolean>("forceMediaPlayback") == true
+        synthesizedPromptLevelKey = "${bytes.size}:${bytes.contentHashCode()}"
         try {
             file.writeBytes(bytes)
             playSynthesizedPrompt(utteranceId)
@@ -388,9 +397,11 @@ class VoicePromptBridge(
         }
         val audioFile = synthesizedPromptFile
         val gainMillibels = synthesizedPromptGainMillibels
+        val levelKey = synthesizedPromptLevelKey
         synthesizedPromptId = null
         synthesizedPromptFile = null
         synthesizedPromptGainMillibels = 0
+        synthesizedPromptLevelKey = null
         if (audioFile == null || !audioFile.exists() || audioFile.length() == 0L) {
             audioFile?.delete()
             completeAwaited(utteranceId, "TTS produced no playable audio.")
@@ -444,6 +455,25 @@ class VoicePromptBridge(
                         finishPromptPlayback(utteranceId, error.message ?: "Unable to start prompt.")
                     }
                 }
+                if (levelKey != null) {
+                    // Authored clips are fixed assets whose MP3 decode rarely fits
+                    // the wait below. Start now; measure in the background so the
+                    // clip's next playback starts with its matched level.
+                    val cached = authoredPromptLevels[levelKey]
+                    startWithLevel(cached)
+                    if (cached == null) {
+                        levelWorker.execute {
+                            val measured = runCatching {
+                                AndroidPlaybackLoudness.analyze(
+                                    audioFile,
+                                    AndroidPlaybackLoudness.BACKGROUND_DECODE_NS,
+                                )
+                            }.getOrNull() ?: return@execute
+                            mainHandler.post { authoredPromptLevels[levelKey] = measured }
+                        }
+                    }
+                    return@setOnPreparedListener
+                }
                 // A slow OEM codec must not reintroduce a seconds-long wait.
                 val levelTimeout = Runnable { startWithLevel(null) }
                 mainHandler.postDelayed(levelTimeout, 450L)
@@ -487,6 +517,7 @@ class VoicePromptBridge(
 
     private fun clearSynthesizedPrompt() {
         synthesizedPromptId = null
+        synthesizedPromptLevelKey = null
         synthesizedPromptGainMillibels = 0
         synthesizedPromptForcePhoneSpeaker = false
         synthesizedPromptForceMediaPlayback = false

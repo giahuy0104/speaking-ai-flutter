@@ -30,6 +30,8 @@ object AndroidPlaybackLoudness {
     const val FALLBACK_GAIN_DB = 8.0
     private const val MAX_DURATION_MS = 30_000L
     private const val MAX_DECODE_NS = 350_000_000L
+    /** For measurements nobody waits on, e.g. warming a clip's next playback. */
+    const val BACKGROUND_DECODE_NS = 3_000_000_000L
     private const val MAX_CACHE_ENTRIES = 128
 
     private data class CacheKey(val path: String, val length: Long, val modified: Long)
@@ -39,11 +41,11 @@ object AndroidPlaybackLoudness {
             size > MAX_CACHE_ENTRIES
     }
 
-    fun analyze(file: File): PlaybackLoudnessResult? {
+    fun analyze(file: File, maxDecodeNs: Long = MAX_DECODE_NS): PlaybackLoudnessResult? {
         if (!file.isFile || file.length() <= 0) return null
         val key = CacheKey(file.absolutePath, file.length(), file.lastModified())
         synchronized(cache) { cache[key]?.let { return it.result } }
-        val deadline = System.nanoTime() + MAX_DECODE_NS
+        val deadline = System.nanoTime() + maxDecodeNs
         val result = try {
             if (isWave(file)) analyzeWave(file, deadline) else decode(file, deadline)
         } catch (_: Exception) {
