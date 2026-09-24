@@ -10,7 +10,8 @@ Nhanh `audio-24th9` duoc giu nguyen. Nhanh tu sua chi gom:
 
 - Hai ban va audio da co san: lifecycle ghi am va HFP reconnect.
 - Cac muc tu sua 2 den 7 trong `phienbantusua.md`.
-- Muc 5 chi kiem chung; khong tao commit neu ma hien tai va test da dung.
+- Muc 5 chi kiem chung; khong sua product code neu ma hien tai da dung. Co the
+  tao commit test-only neu test cu chua xac nhan du thu tu audio va mo mic.
 
 Khong lam tren nhanh nay:
 
@@ -49,6 +50,12 @@ b5b2dcac fix: align vocabulary review recording states
 227cc777 fix: normalize iOS challenge recording playback
 5cb2c295 feat: follow active vocabulary entries
 ccbc67a3 feat: open songs from topic journey
+da283f55 docs: record self-fix integration workflow
+3e4fcd08 fix: cancel stale HFP route revalidation
+945b5a46 fix: stop review celebration on MAIN
+37a5acbe fix: clear completed vocabulary playback highlight
+72931b64 fix: respect V4 song lesson locks
+17b9d761 test: assert boundary replay audio order
 ```
 
 Chi tiet:
@@ -58,10 +65,13 @@ Chi tiet:
 3. Dong bo text va state ghi am Vocabulary Review.
 4. Them phao hoa khi Review tra loi dung.
 5. Tai su dung finalize/normalize cho playback ban ghi Challenge tren iOS.
-6. Kiem chung Previous/Next o bien. Hai test hien co da qua nen khong sua code,
-   khong tao commit rong.
+6. Kiem chung Previous/Next o bien. Khong sua product code; them test-only
+   commit `17b9d761` de xac nhan du thu tu lead, EN, VI, cue va mic.
 7. Them auto-follow cho Ba me da them, Ngoi sao va Luyen lai.
 8. Them nut Bai hat tren card Chu de, dieu huong bang ID toi lesson/song hien co.
+
+Ket qua ra soat sau va rui ro con lai duoc ghi tai
+`docs/self-fix-deep-audit.md`.
 
 Moi phan phai co test rieng va commit rieng. Khong squash vi can rollback tung
 phan doc lap.
