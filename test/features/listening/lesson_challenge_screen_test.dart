@@ -724,7 +724,8 @@ void main() {
     'iOS recognition failure retains its local WAV without backend scoring',
     (tester) async {
       await _usePhoneSurface(tester);
-      final media = _FakeLessonMediaService();
+      final media = _FakeLessonMediaService()
+        ..finalizedRecordingPath = '/recordings/answer-normalized.m4a';
       final speech = _RecordingFailureIosInput();
       final backend = _FailIfCalledAttemptEvaluator();
       addTearDown(speech.dispose);
@@ -741,10 +742,42 @@ void main() {
       await _pumpChallengeTransition(tester);
       expect(speech.takeRecordingCalls, 1);
       expect(media.completedPlaybackUris, <Uri>[
-        Uri.file('/recordings/answer.wav'),
+        Uri.file('/recordings/answer-normalized.m4a'),
       ]);
+      expect(media.finalizedRecordingPaths, <String>['/recordings/answer.wav']);
       expect(media.recordingStarts, 0);
       expect(backend.evaluationCalls, 0);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'iOS normalization failure falls back to the valid challenge WAV',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final media = _FakeLessonMediaService()
+        ..finalizationError = StateError('normalizer unavailable');
+      final speech = _RecordingFailureIosInput();
+      addTearDown(speech.dispose);
+      await tester.pumpWidget(
+        _subject(
+          startAge: 7,
+          mediaService: media,
+          iosSpeechInput: speech,
+          attemptEvaluator: _FailIfCalledAttemptEvaluator(),
+        ),
+      );
+      await _pumpChallengeTransition(tester);
+      await tester.tap(find.byKey(const Key('lesson-challenge-record-button')));
+      await _pumpChallengeTransition(tester);
+
+      expect(media.completedPlaybackUris, <Uri>[
+        Uri.file('/recordings/answer.wav'),
+      ]);
+      expect(media.finalizedRecordingPaths, <String>['/recordings/answer.wav']);
+      expect(media.externalRegistrationCalls, 0);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump();
     },
@@ -939,8 +972,39 @@ class _FakeLessonMediaService extends LessonMediaService {
   int recordingStops = 0;
   int selectedOutputPreparations = 0;
   int nativeCaptureHandoffs = 0;
+  String? finalizedRecordingPath;
+  Object? finalizationError;
+  int externalRegistrationCalls = 0;
+  final List<String> finalizedRecordingPaths = <String>[];
   final List<Uri> completedPlaybackUris = <Uri>[];
   final List<double> completedPlaybackGains = <double>[];
+
+  @override
+  Future<LessonRecording> finalizeExternalRecording({
+    required LessonRecording recording,
+  }) async {
+    finalizedRecordingPaths.add(recording.filePath);
+    final error = finalizationError;
+    if (error != null) throw error;
+    return LessonRecording(
+      filePath: finalizedRecordingPath ?? recording.filePath,
+      duration: recording.duration,
+    );
+  }
+
+  @override
+  Future<LessonRecording> registerExternalRecording({
+    required LessonRecording recording,
+    required String lessonId,
+    required String lessonTitle,
+    required String sentenceId,
+    required int sentenceNumber,
+    required String english,
+    required String vietnamese,
+  }) async {
+    externalRegistrationCalls += 1;
+    return recording;
+  }
 
   @override
   Future<void> cancelRecording() async {}

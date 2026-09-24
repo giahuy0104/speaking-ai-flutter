@@ -795,7 +795,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         transcripts: <String>[capture.sourceText, ...capture.alternatives],
         acceptedVariants: acceptedVariants,
       );
-      return (outcome, recording);
+      return (outcome, await _finalizeIosAttemptRecording(recording));
     } on StreamingSpeechInputException catch (error) {
       if (!isCurrent()) return (LessonAttemptOutcome.unclear, null);
       final recordedAudio = speechInput is IOSStreamingSpeechInput
@@ -811,10 +811,27 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         'HOMI iOS challenge recognition returned no usable speech: '
         'code=${error.code ?? 'unknown'}',
       );
-      return (nativeLessonRecognitionFailureOutcome(error.code), recording);
+      return (
+        nativeLessonRecognitionFailureOutcome(error.code),
+        await _finalizeIosAttemptRecording(recording),
+      );
     } catch (error) {
       debugPrint('HOMI iOS challenge recognition failed locally: $error');
       return (LessonAttemptOutcome.unclear, null);
+    }
+  }
+
+  Future<LessonRecording?> _finalizeIosAttemptRecording(
+    LessonRecording? recording,
+  ) async {
+    if (recording == null) return null;
+    try {
+      return await widget.mediaService.finalizeExternalRecording(
+        recording: recording,
+      );
+    } catch (error) {
+      debugPrint('HOMI iOS challenge recording normalization skipped: $error');
+      return recording;
     }
   }
 

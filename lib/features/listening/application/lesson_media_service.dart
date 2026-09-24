@@ -693,6 +693,22 @@ class LessonMediaService {
 
   /// Adds audio captured by a native speech recognizer to the same local
   /// lesson history used by recordings produced through the record plugin.
+  Future<LessonRecording> finalizeExternalRecording({
+    required LessonRecording recording,
+  }) async {
+    final resolvedPath = await resolveLessonRecording(
+      recording.filePath,
+      recording.filePath,
+    );
+    if (resolvedPath == null) {
+      throw const LessonMediaException('Không tìm thấy bản ghi vừa tạo.');
+    }
+    return LessonRecording(
+      filePath: resolvedPath,
+      duration: recording.duration,
+    );
+  }
+
   Future<LessonRecording> registerExternalRecording({
     required LessonRecording recording,
     required String lessonId,
@@ -702,13 +718,9 @@ class LessonMediaService {
     required String english,
     required String vietnamese,
   }) async {
-    final resolvedPath = await resolveLessonRecording(
-      recording.filePath,
-      recording.filePath,
+    final finalizedRecording = await finalizeExternalRecording(
+      recording: recording,
     );
-    if (resolvedPath == null) {
-      throw const LessonMediaException('Không tìm thấy bản ghi vừa tạo.');
-    }
     final createdAt = DateTime.now();
     final evictedPaths = await historyStore.addSuccessful(
       LessonRecordingHistoryEntry(
@@ -719,18 +731,15 @@ class LessonMediaService {
         sentenceNumber: sentenceNumber,
         english: english,
         vietnamese: vietnamese,
-        filePath: resolvedPath,
-        duration: recording.duration,
+        filePath: finalizedRecording.filePath,
+        duration: finalizedRecording.duration,
         createdAt: createdAt,
       ),
     );
     for (final path in evictedPaths) {
       await deleteLessonRecording(path);
     }
-    return LessonRecording(
-      filePath: resolvedPath,
-      duration: recording.duration,
-    );
+    return finalizedRecording;
   }
 
   Future<void> cancelRecording() {
