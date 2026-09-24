@@ -56,6 +56,13 @@ da283f55 docs: record self-fix integration workflow
 37a5acbe fix: clear completed vocabulary playback highlight
 72931b64 fix: respect V4 song lesson locks
 17b9d761 test: assert boundary replay audio order
+e7ca11a9 docs: record deep self-fix audit
+51486ea5 fix: cancel HFP starts during coordinator disposal
+3cce6445 fix: keep Review recording locked during feedback
+b8244837 fix: clean up transient Challenge recordings
+ccdaaa34 fix: discard failed Review recordings
+3a98339f fix: preserve user scroll during vocabulary playback
+337c04cc test: verify topic song return path
 ```
 
 Chi tiet:
@@ -69,6 +76,11 @@ Chi tiet:
    commit `17b9d761` de xac nhan du thu tu lead, EN, VI, cue va mic.
 7. Them auto-follow cho Ba me da them, Ngoi sao va Luyen lai.
 8. Them nut Bai hat tren card Chu de, dieu huong bang ID toi lesson/song hien co.
+9. Vo hieu hoa pending HFP start ngay khi coordinator duoc dispose.
+10. Giu Review busy trong feedback va don ban ghi attempt khong duoc giu.
+11. Don file ghi am Challenge sau playback/scoring.
+12. Ton trong thao tac cuon tay trong luc vocabulary auto-follow.
+13. Khoa bang test viec mo song khong ghi progress va Back dung route.
 
 Ket qua ra soat sau va rui ro con lai duoc ghi tai
 `docs/self-fix-deep-audit.md`.

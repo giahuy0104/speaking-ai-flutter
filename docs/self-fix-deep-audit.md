@@ -15,9 +15,11 @@ Da doi chieu lai:
 - Ban va disconnect/reconnect HFP `614dda18`.
 - Ma nguon, test va cac commit da dua vao nhanh tu sua.
 
-Ban sua ban dau dung huong, nhung con bon khoang ho hanh vi va mot khoang ho
-kiem thu. Cac diem nay da duoc sua tai nguon va tach commit rieng. Khong dung
-delay tuy y, khong them co global, khong thay secret va khong publish.
+Ban sua ban dau dung huong. Hai dot ra soat sau da tim them cac race khi dispose,
+trang thai Review mo lai qua som, file ghi am tam khong duoc don, auto-follow
+gianh lai scroll cua nguoi dung va hai khoang ho kiem thu. Cac diem nay da duoc
+sua tai nguon hoac khoa bang test rieng. Khong dung delay tuy y, khong them co
+global, khong thay secret va khong publish.
 
 Muc 1 da duoc gop vao muc 8. Muc 8 va 9 van la goi state-machine MAIN/Challenge
 cho senior Flutter/Dart, khong nam trong nhanh tu sua nay va chua duoc danh dau
@@ -108,17 +110,102 @@ Khong sua product code.
 
 Commit: `17b9d761 test: assert boundary replay audio order`
 
+### 2.6 Coordinator dispose co the de pending HFP start bao thanh cong
+
+Trang thai truoc khi sua:
+
+- `dispose()` chi dat `_disposed` khi operation cua no den luot trong queue.
+- Native start dang cho co the hoan tat truoc operation dispose va tra thanh
+  cong cho caller trong luc coordinator toan cuc da duoc yeu cau huy.
+
+Sua dut diem:
+
+- Tang connection generation ngay khi dispose duoc yeu cau.
+- Pending acquire/revalidate khong the tao ownership sau moc nay.
+- Them regression test dispose coordinator trong luc native start dang cho.
+
+Commit: `51486ea5 fix: cancel HFP starts during coordinator disposal`
+
+### 2.7 Review mo lai nut ghi am trong luc feedback con dang phat
+
+Trang thai truoc khi sua:
+
+- Cac ket qua unclear/no-response/retry ha `_busy` truoc khi feedback xong.
+- UI hien idle va co the bat dau them mot capture chong len feedback.
+
+Sua dut diem:
+
+- Giu processing/busy den khi feedback ket thuc va retry capture moi bat dau.
+- Reset processing khi stop/evaluation loi.
+- Test chan feedback, xac nhan nut disabled va khong co recorder thu hai.
+
+Commit: `3cce6445 fix: keep Review recording locked during feedback`
+
+### 2.8 Challenge de lai file ghi am tam
+
+Challenge co `saveToHistory: false`, nhung file Android va raw/normalized iOS
+khong co owner don sau khi playback va scoring ket thuc.
+
+Sua dut diem:
+
+- Theo doi ownership tung attempt.
+- Chi xoa sau khi playback va scoring deu da dung xong file.
+- Don ca raw va normalized iOS; normalization loi thi phat file goc truoc roi
+  moi xoa.
+- Cleanup la best-effort, khong che ket qua hoc neu filesystem loi.
+- Don ca stale start, MAIN va dispose.
+
+Commit: `b8244837 fix: clean up transient Challenge recordings`
+
+### 2.9 Review de lai ban ghi sai va co nguy co xoa file retry dang ghi
+
+Ban ghi dung duoc giu de lam audio Ngoi sao. Ban ghi sai/khong ro khong duoc
+tham chieu nhung truoc day khong bi xoa. Vi cac retry co the dung lai cung path,
+xoa o cuoi feedback se co nguy co xoa file ma retry moi dang ghi.
+
+Sua dut diem:
+
+- Xoa ban ghi khong duoc giu truoc khi khoi dong retry moi.
+- Giu ban ghi dung sau khi path da vao session.
+- Don capture iOS tra ve muon cua stop cu ma khong cham Apple Speech turn moi.
+- Test Android/iOS, stale stop va thu tu `delete old -> start retry`.
+
+Commit: `ccdaaa34 fix: discard failed Review recordings`
+
+### 2.10 Auto-follow gianh lai scroll ngay khi nguoi dung tha tay
+
+Trang thai truoc khi sua:
+
+- ScrollStart do keo tay dung auto-follow dung cach.
+- ScrollEnd lai lap tuc schedule entry hien tai, keo nguoi dung tro ve vi tri cu.
+
+Sua dut diem:
+
+- Khi ket thuc drag chi nhan lai quyen auto-follow.
+- Khong cuon lai entry cu; lan chuyen entry audio tiep theo van schedule nhu cu.
+- Test viewport nho va giu nguyen scroll offset sau khi tha tay.
+
+Commit: `3a98339f fix: preserve user scroll during vocabulary playback`
+
+### 2.11 Bai hat thieu test cho progress va duong Back
+
+Product code da dung: song V4 dung lesson ID hien co, khong tao model thu hai va
+khong ghi progress khi chi mo route. Da bo sung test xac nhan khong tu complete
+va Back di dung chuoi song/lesson -> danh sach bai -> man chon Chu de.
+
+Commit: `337c04cc test: verify topic song return path`
+
 ## 3. Danh gia tung prompt tu sua
 
 | Muc | Ket qua ra soat | Trang thai |
 | --- | --- | --- |
 | 1 | La mot phan cua contract resume o muc 8, khong duoc sua rieng. | Ngoai pham vi |
 | 2 | Fireworks dung shared widget/thoi luong; da bo sung cleanup khi MAIN takeover. | Dat sau `2041ef38`, `945b5a46` |
-| 3 | Text dung co che tap-to-start/tap-to-stop; preparing/recording/processing chan double start. | Dat sau `b5b2dcac` |
-| 4 | Challenge iOS dung finalize/normalize cua lesson, playback path moi, fallback path cu, khong ghi history. | Dat o Dart; con test native/device |
+| 3 | Text dung co che tap-to-start/tap-to-stop; processing khoa het feedback; file attempt sai duoc don truoc retry. | Dat sau `b5b2dcac`, `3cce6445`, `ccdaaa34` |
+| 4 | Challenge iOS dung finalize/normalize cua lesson, fallback path cu, khong ghi history; file tam duoc don sau moi consumer. | Dat o Dart sau `227cc777`, `b8244837`; con test native/device |
 | 5 | Luong product da dung; test bay gio chung minh day du thu tu va mic. | Dat sau `17b9d761` |
-| 6 | Dung stable entry ID, key theo journey, post-frame visibility, viewport check va user-scroll suppression; da xoa stale highlight. | Dat sau `5cb2c295`, `37a5acbe` |
-| 7 | Tai su dung dung song/lesson ID, khong tao model hay progress thu hai; da dong lo hong sequential lock. | Dat sau `ccbc67a3`, `72931b64` |
+| 6 | Dung stable entry ID, key theo journey, viewport/generation guard; khong gianh lai scroll sau drag va da xoa stale highlight. | Dat sau `5cb2c295`, `37a5acbe`, `3a98339f` |
+| 7 | Tai su dung dung song/lesson ID, khong tao model/progress thu hai; ton trong Level/sequential lock va co test Back. | Dat sau `ccbc67a3`, `72931b64`, `337c04cc` |
 | 8 | Resume/replay/MAIN theo module la state-machine chung, can senior Flutter/Dart. | Chua lam co chu dich |
 | 9 | Challenge lifecycle, typed result, idempotent progress va owner context. | Chua lam co chu dich |
 
@@ -146,8 +233,8 @@ Khong tim thay them ban va tam thoi trong pham vi Dart nay.
 
 Da xac nhan native mutation di qua coordinator queue; disconnect vo hieu hoa
 pending acquire tren moi scope; connect cho teardown cu; old release khong dong
-route cua owner moi. Khoang ho revalidation duoc phat hien trong dot nay va da
-sua o `3e4fcd08`.
+route cua owner moi. Khoang ho revalidation va dispose toan coordinator da duoc
+sua o `3e4fcd08` va `51486ea5`.
 
 ## 5. iOS Challenge normalization
 
@@ -160,6 +247,7 @@ Static audit xac nhan:
 - Source chi bi xoa sau khi normalized output duoc ghi thanh cong.
 - Normalizer loi thi playback dung file hop le ban dau.
 - Transcript on-device va contract khong luu history duoc giu nguyen.
+- Raw/normalized Challenge file chi duoc don sau khi playback va scoring xong.
 
 Day khong con la cach tang volume co dinh. Tuy nhien Windows khong the chay
 XCTest/AVAudioSession, nen van can macOS va iPhone that de xac nhan am luong,
@@ -177,7 +265,7 @@ Flutter focused suites:
 - Vocabulary Review practice va Vocabulary Home.
 - Topic listening va song entry.
 
-Ket qua: 236 test cases da pass trong cac file muc tieu.
+Ket qua: 241 test cases da pass trong cac file muc tieu.
 
 Android native:
 
