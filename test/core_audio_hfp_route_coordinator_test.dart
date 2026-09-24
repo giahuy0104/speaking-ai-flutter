@@ -256,6 +256,25 @@ void main() {
     },
   );
 
+  test('coordinator dispose invalidates a pending native start', () async {
+    final native = _FakeHfpAudioControl()..startGate = Completer<void>();
+    final coordinator = HfpAudioRouteCoordinator(native);
+    final lesson = coordinator.createScope('lesson');
+    final starting = expectLater(
+      lesson.startAudioRoute(),
+      throwsA(isA<HfpAudioException>()),
+    );
+    await Future<void>.delayed(Duration.zero);
+
+    final disposing = coordinator.dispose();
+    native.startGate!.complete();
+
+    await starting;
+    await disposing;
+    expect((lesson as HfpAudioRouteLeaseControl).activeAudioRouteToken, isNull);
+    expect(native.disposeCalls, 1);
+  });
+
   test('first owner opens HFP and final owner closes it', () async {
     final native = _FakeHfpAudioControl();
     final coordinator = HfpAudioRouteCoordinator(native);

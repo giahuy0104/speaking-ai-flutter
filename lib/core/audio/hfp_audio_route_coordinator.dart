@@ -216,6 +216,9 @@ class HfpAudioRouteCoordinator {
   }
 
   Future<void> dispose() {
+    // Invalidate native starts immediately. Waiting until this operation reaches
+    // the shared queue lets an in-flight acquire report success during teardown.
+    _connectionGeneration += 1;
     return _serialize(() async {
       if (_disposed) {
         return;
