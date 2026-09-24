@@ -221,6 +221,7 @@ void main() {
         () => audio.spoken.length == completedSpeech + 1,
       );
     }
+    await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
     final highlight = tester.widget<AnimatedContainer>(
@@ -237,6 +238,223 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('visible active entry does not trigger a redundant scroll', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final audio = _SteppedVocabularyAudioService();
+    addTearDown(audio.stop);
+    await _mountAutoFollowHome(
+      tester,
+      audio: audio,
+      entries: <VocabularyEntry>[
+        VocabularyEntry(
+          id: 'visible-entry',
+          word: 'Visible word',
+          meaning: 'Nghĩa đang hiện',
+          addedAt: DateTime(2026, 9, 1),
+          status: VocabularyLearningStatus.learnedWell,
+          source: VocabularySource.parent,
+          parentState: ParentVocabularyState.unlocked,
+        ),
+      ],
+    );
+    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+    await tester.pumpAndSettle();
+    final entry = find.byKey(
+      const Key('vocabulary-entry-highlight-visible-entry'),
+    );
+    await tester.ensureVisible(entry);
+    await tester.pumpAndSettle();
+    final scrollView = tester.widget<SingleChildScrollView>(
+      find.byType(SingleChildScrollView),
+    );
+    final initialOffset = scrollView.controller!.position.pixels;
+    final initialRect = tester.getRect(entry);
+    expect(initialRect.top, greaterThanOrEqualTo(0));
+    expect(
+      initialRect.bottom,
+      lessThanOrEqualTo(tester.view.physicalSize.height),
+    );
+
+    await tester.tap(find.byKey(const Key('vocabulary-action-visible-entry')));
+    await _pumpUntil(tester, () => audio.spoken.length == 1);
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(scrollView.controller!.position.pixels, closeTo(initialOffset, 1));
+    final highlight = tester.widget<AnimatedContainer>(entry);
+    expect((highlight.decoration! as BoxDecoration).border, isNotNull);
+  });
+
+  for (final routeLoss in <bool>[false, true]) {
+    final interruption = routeLoss ? 'route loss' : 'MAIN';
+    testWidgets('$interruption cancels an in-flight vocabulary auto-follow', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(390, 620);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final audio = _SteppedVocabularyAudioService();
+      addTearDown(audio.stop);
+      await _mountAutoFollowHome(
+        tester,
+        entries: _learnedParentEntries(10),
+        audio: audio,
+        registry: registry,
+      );
+      await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+      await tester.pumpAndSettle();
+      final play = find.byKey(const Key('vocabulary-family-action'));
+      await tester.ensureVisible(play);
+      await tester.tap(play);
+      await _pumpUntil(tester, () => audio.spoken.length == 1);
+      await tester.pump(const Duration(milliseconds: 300));
+      final scrollView = tester.widget<SingleChildScrollView>(
+        find.byType(SingleChildScrollView),
+      );
+      await tester.drag(
+        find.byType(SingleChildScrollView),
+        const Offset(0, 1000),
+      );
+      await tester.pump();
+
+      while (audio.spoken.length < 9 &&
+          !scrollView.controller!.position.isScrollingNotifier.value) {
+        final nextSpeechCount = audio.spoken.length + 1;
+        audio.completeCurrentSpeech();
+        await _pumpUntil(tester, () => audio.spoken.length == nextSpeechCount);
+        await tester.pump();
+      }
+      expect(scrollView.controller!.position.isScrollingNotifier.value, isTrue);
+      final interruptedOffset = scrollView.controller!.position.pixels;
+      final activeIndex = (audio.spoken.length - 1) ~/ 2;
+
+      if (routeLoss) {
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(tester.takeException(), isNull);
+        return;
+      }
+
+      await registry.pauseForMainAssistant();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(
+        scrollView.controller!.position.pixels,
+        closeTo(interruptedOffset, 1),
+      );
+      final highlight = tester.widget<AnimatedContainer>(
+        find.byKey(Key('vocabulary-entry-highlight-entry-$activeIndex')),
+      );
+      expect((highlight.decoration! as BoxDecoration).border, isNull);
+    });
+  }
+
+  testWidgets('stale family auto-follow cannot move Stars or Review', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 620);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final audio = _SteppedVocabularyAudioService();
+    addTearDown(audio.stop);
+    await _mountAutoFollowHome(
+      tester,
+      audio: audio,
+      entries: <VocabularyEntry>[
+        ..._learnedParentEntries(10, idPrefix: 'family', wordPrefix: 'Family'),
+        VocabularyEntry(
+          id: 'star-entry',
+          word: 'Star word',
+          meaning: 'Từ ngôi sao',
+          addedAt: DateTime(2026, 9, 20),
+          collection: VocabularyCollection.star,
+          status: VocabularyLearningStatus.learnedWell,
+          source: VocabularySource.topicCore,
+          correctAudioPath: '/tmp/star-entry.wav',
+        ),
+        VocabularyEntry(
+          id: 'review-entry',
+          word: 'Review word',
+          meaning: 'Từ cần luyện',
+          addedAt: DateTime(2026, 9, 21),
+          collection: VocabularyCollection.review,
+          status: VocabularyLearningStatus.needsPractice,
+          source: VocabularySource.topicCore,
+        ),
+      ],
+    );
+    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+    await tester.pumpAndSettle();
+    final play = find.byKey(const Key('vocabulary-family-action'));
+    await tester.ensureVisible(play);
+    await tester.tap(play);
+    await _pumpUntil(tester, () => audio.spoken.length == 1);
+    await tester.pump(const Duration(milliseconds: 300));
+    final familyScrollView = tester.widget<SingleChildScrollView>(
+      find.byType(SingleChildScrollView),
+    );
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, 1000),
+    );
+    await tester.pump();
+    while (audio.spoken.length < 9 &&
+        !familyScrollView.controller!.position.isScrollingNotifier.value) {
+      final nextSpeechCount = audio.spoken.length + 1;
+      audio.completeCurrentSpeech();
+      await _pumpUntil(tester, () => audio.spoken.length == nextSpeechCount);
+      await tester.pump();
+    }
+    expect(
+      familyScrollView.controller!.position.isScrollingNotifier.value,
+      isTrue,
+    );
+
+    await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-stars-card')));
+    await tester.pumpAndSettle();
+    final starsScrollView = tester.widget<SingleChildScrollView>(
+      find.byType(SingleChildScrollView),
+    );
+    final starsOffset = starsScrollView.controller!.position.pixels;
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(
+      starsScrollView.controller!.position.pixels,
+      closeTo(starsOffset, 1),
+    );
+    final starHighlight = tester.widget<AnimatedContainer>(
+      find.byKey(const Key('vocabulary-entry-highlight-star-entry')),
+    );
+    expect((starHighlight.decoration! as BoxDecoration).border, isNull);
+
+    await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-review-card')));
+    await tester.pumpAndSettle();
+    final reviewScrollView = tester.widget<SingleChildScrollView>(
+      find.byType(SingleChildScrollView),
+    );
+    final reviewOffset = reviewScrollView.controller!.position.pixels;
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(
+      reviewScrollView.controller!.position.pixels,
+      closeTo(reviewOffset, 1),
+    );
+    final reviewHighlight = tester.widget<AnimatedContainer>(
+      find.byKey(const Key('vocabulary-entry-highlight-review-entry')),
+    );
+    expect((reviewHighlight.decoration! as BoxDecoration).border, isNull);
+  });
+
   testWidgets('collection playback does not reclaim a completed user drag', (
     tester,
   ) async {
@@ -246,39 +464,11 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     final audio = _SteppedVocabularyAudioService();
     addTearDown(audio.stop);
-    final store = _MemoryVocabularyStore(<VocabularyEntry>[
-      for (var index = 0; index < 10; index++)
-        VocabularyEntry(
-          id: 'entry-$index',
-          word: 'Word $index',
-          meaning: 'Nghĩa $index',
-          addedAt: DateTime(2026, 9, index + 1),
-          status: VocabularyLearningStatus.learnedWell,
-          source: VocabularySource.parent,
-          parentState: ParentVocabularyState.unlocked,
-        ),
-    ]);
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: buildAppTheme(),
-        home: DisplayLanguageScope(
-          language: DisplayLanguage.vietnamese,
-          child: VocabularyHomeScreen(
-            isReady: true,
-            store: store,
-            mediaService: _ImmediateLessonMediaService(),
-            voicePromptService: const _FakeVoicePromptService(),
-            vocabularyAudioService: audio,
-            fixedPromptAudioService:
-                const _UnavailableFixedPromptAudioService(),
-            onReturnToConversation: () {},
-            onHistory: () {},
-            onSettings: () {},
-          ),
-        ),
-      ),
+    await _mountAutoFollowHome(
+      tester,
+      entries: _learnedParentEntries(10),
+      audio: audio,
     );
-    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('vocabulary-family-card')));
     await tester.pumpAndSettle();
     final play = find.byKey(const Key('vocabulary-family-action'));
@@ -303,6 +493,21 @@ void main() {
 
     await tester.pump(const Duration(milliseconds: 400));
     expect(scrollView.controller!.position.pixels, closeTo(userOffset, 1));
+
+    for (var completedSpeech = 1; completedSpeech < 9; completedSpeech++) {
+      audio.completeCurrentSpeech();
+      await _pumpUntil(
+        tester,
+        () => audio.spoken.length == completedSpeech + 1,
+      );
+    }
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(scrollView.controller!.position.pixels, greaterThan(userOffset));
+    final nextRect = tester.getRect(find.text('Word 4'));
+    expect(nextRect.top, greaterThanOrEqualTo(0));
+    expect(nextRect.bottom, lessThanOrEqualTo(tester.view.physicalSize.height));
   });
 
   testWidgets('collection clears its highlight before waiting for a choice', (
@@ -1571,6 +1776,54 @@ void main() {
     },
   );
 }
+
+Future<void> _mountAutoFollowHome(
+  WidgetTester tester, {
+  required List<VocabularyEntry> entries,
+  required _SteppedVocabularyAudioService audio,
+  ActiveLearningModuleRegistry? registry,
+}) async {
+  final app = MaterialApp(
+    theme: buildAppTheme(),
+    home: DisplayLanguageScope(
+      language: DisplayLanguage.vietnamese,
+      child: VocabularyHomeScreen(
+        isReady: true,
+        store: _MemoryVocabularyStore(entries),
+        mediaService: _ImmediateLessonMediaService(),
+        voicePromptService: const _FakeVoicePromptService(),
+        vocabularyAudioService: audio,
+        fixedPromptAudioService: const _UnavailableFixedPromptAudioService(),
+        onReturnToConversation: () {},
+        onHistory: () {},
+        onSettings: () {},
+      ),
+    ),
+  );
+  await tester.pumpWidget(
+    registry == null
+        ? app
+        : ActiveLearningModuleScope(registry: registry, child: app),
+  );
+  await tester.pumpAndSettle();
+}
+
+List<VocabularyEntry> _learnedParentEntries(
+  int count, {
+  String idPrefix = 'entry',
+  String wordPrefix = 'Word',
+}) => <VocabularyEntry>[
+  for (var index = 0; index < count; index++)
+    VocabularyEntry(
+      id: '$idPrefix-$index',
+      word: '$wordPrefix $index',
+      meaning: 'Nghĩa $index',
+      addedAt: DateTime(2026, 9, index + 1),
+      status: VocabularyLearningStatus.learnedWell,
+      source: VocabularySource.parent,
+      parentState: ParentVocabularyState.unlocked,
+    ),
+];
 
 Future<void> _pumpUntil(WidgetTester tester, bool Function() condition) async {
   for (var attempt = 0; attempt < 20 && !condition(); attempt++) {

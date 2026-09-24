@@ -295,6 +295,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   void _cancelHiddenPlayback() {
     _cancelPendingFixedPrompt();
+    _cancelActiveEntryAutoScroll();
     _playbackGeneration++;
     _pausedForMainAssistant = true;
     _playbackInterrupted = false;
@@ -303,7 +304,6 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _awaitingPlaybackEndChoice = false;
     _playbackQueue = const <VocabularyEntry>[];
     _activePlaybackEntryId = null;
-    _autoScrollGeneration += 1;
     _selectedJourney = null;
     for (final operation in <Future<void> Function()>[
       _voicePromptService.stop,
@@ -317,6 +317,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   @override
   void dispose() {
     _finishPlaybackNavigationCleanup();
+    _cancelActiveEntryAutoScroll();
     widget.activationController?.removeListener(_handleActivationChanged);
     widget.navigationController?._detach(this);
     _unregisterActiveLearningModule();
@@ -1357,10 +1358,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   void _closeJourney() {
     _searchFocusNode.unfocus();
+    _cancelActiveEntryAutoScroll();
     setState(() {
       _selectedJourney = null;
       _activePlaybackEntryId = null;
-      _autoScrollGeneration += 1;
       _lastVoiceChoicePrompt = VocabularyFlowV3.menu;
       _searchController.clear();
     });
@@ -1391,10 +1392,18 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     }
     setState(() => _activePlaybackEntryId = entryId);
     if (entryId == null) {
-      _autoScrollGeneration += 1;
+      _cancelActiveEntryAutoScroll();
     } else {
       _scheduleActiveEntryVisibility();
     }
+  }
+
+  void _cancelActiveEntryAutoScroll() {
+    _autoScrollGeneration += 1;
+    if (_userIsScrollingJourney || !_journeyScrollController.hasClients) return;
+    final position = _journeyScrollController.position;
+    if (!position.isScrollingNotifier.value) return;
+    _journeyScrollController.jumpTo(position.pixels);
   }
 
   void _scheduleActiveEntryVisibility() {
@@ -1946,11 +1955,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       }
     } finally {
       if (mounted && generation == _playbackGeneration) {
+        _cancelActiveEntryAutoScroll();
         setState(() {
           _playingCollection = false;
           _activePlaybackEntryId = null;
         });
-        _autoScrollGeneration += 1;
       }
     }
   }
