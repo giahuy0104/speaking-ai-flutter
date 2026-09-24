@@ -81,8 +81,9 @@ void main() {
         await _usePhoneSurface(tester);
         final registry = ActiveLearningModuleRegistry();
         addTearDown(registry.dispose);
-        final media = _GuidedMediaService();
-        final prompts = _KeyedVoicePromptService();
+        final events = <String>[];
+        final media = _GuidedMediaService(events: events);
+        final prompts = _KeyedVoicePromptService(events);
         await tester.pumpWidget(
           ActiveLearningModuleScope(
             registry: registry,
@@ -101,6 +102,7 @@ void main() {
         final starts = media.startedSentenceIds.length;
         prompts.spoken.clear();
         prompts.audioKeys.clear();
+        events.clear();
         await registry.execute(
           atLast
               ? ActiveLearningCommand.nextItem
@@ -133,6 +135,13 @@ void main() {
         );
         expect(media.startedSentenceIds.length, starts + 1);
         expect(media.startedSentenceIds.last, 'GUIDED-FLOW_S$number');
+        expect(events, <String>[
+          'prompt|${atLast ? LessonGuideFlowV2.lastItemComplete.audioKey! : MainAssistantAudioKeys.firstItemReplay}',
+          'prompt|listening.sentence.GUIDED-FLOW_S$number.en',
+          'prompt|listening.sentence.GUIDED-FLOW_S$number.vi',
+          'prompt|${LessonGuideFlowV2.coreSpeakCue(number - 1).audioKey!}',
+          'record|GUIDED-FLOW_S$number',
+        ]);
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pump();
       },
@@ -3300,6 +3309,8 @@ class _KeyedVoicePromptService extends _FakeVoicePromptService
     implements
         KeyedVoicePromptService,
         KeyedSelectedMediaOutputVoicePromptService {
+  _KeyedVoicePromptService([super.events]);
+
   final List<String> audioKeys = <String>[];
 
   @override
@@ -3309,6 +3320,7 @@ class _KeyedVoicePromptService extends _FakeVoicePromptService
     String locale = 'vi-VN',
   }) async {
     audioKeys.add(audioKey);
+    events?.add('prompt|$audioKey');
   }
 
   @override
@@ -3571,6 +3583,7 @@ class _GuidedMediaService extends LessonMediaService {
   }) async {
     recording = true;
     startedSentenceIds.add(sentenceId ?? '');
+    events?.add('record|${sentenceId ?? ''}');
   }
 
   @override
