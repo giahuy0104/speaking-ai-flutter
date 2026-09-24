@@ -103,11 +103,17 @@ class HfpAudioRouteCoordinator {
   }
 
   Future<bool> _revalidate(HfpAudioRouteToken token) {
+    final connectionGeneration = _connectionGeneration;
     return _serialize(() async {
-      if (_disposed || _active[token.id] != token) {
+      if (_disposed ||
+          connectionGeneration != _connectionGeneration ||
+          _active[token.id] != token) {
         return false;
       }
       await _delegate.startAudioRoute();
+      if (connectionGeneration != _connectionGeneration) {
+        throw const HfpAudioException('Lượt âm thanh đã dừng.');
+      }
       return true;
     });
   }
@@ -286,11 +292,17 @@ class ScopedHfpAudioControl
       }
       final token = _token;
       if (token != null) {
-        if (await _coordinator._revalidate(token)) {
-          if (_disposed || generation != _requestGeneration) {
-            throw const HfpAudioException('Lượt âm thanh đã dừng.');
+        try {
+          if (await _coordinator._revalidate(token)) {
+            if (_disposed || generation != _requestGeneration) {
+              throw const HfpAudioException('Lượt âm thanh đã dừng.');
+            }
+            return;
           }
-          return;
+        } catch (_) {
+          _token = null;
+          await _coordinator._release(token);
+          rethrow;
         }
         _token = null;
       }

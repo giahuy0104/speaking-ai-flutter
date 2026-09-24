@@ -140,6 +140,44 @@ void main() {
   );
 
   test(
+    'disconnect cancels another scope revalidation before reconnect',
+    () async {
+      final native = _FakeHfpAudioControl();
+      final coordinator = HfpAudioRouteCoordinator(native);
+      addTearDown(coordinator.dispose);
+      final lesson = coordinator.createScope('lesson');
+      final settings = coordinator.createScope('settings');
+      await lesson.startAudioRoute();
+      native.startGate = Completer<void>();
+
+      final revalidating = lesson.startAudioRoute();
+      final cancelled = expectLater(
+        revalidating,
+        throwsA(isA<HfpAudioException>()),
+      );
+      await Future<void>.delayed(Duration.zero);
+      final disconnecting = settings.disconnect();
+      final reconnecting = settings.connect(
+        const HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+      );
+      native.startGate!.complete();
+
+      await cancelled;
+      await disconnecting;
+      await reconnecting;
+      expect(native.connectionEvents, <String>['disconnect', 'connect:h20']);
+      expect(
+        (lesson as HfpAudioRouteLeaseControl).activeAudioRouteToken,
+        isNull,
+      );
+
+      native.startGate = null;
+      await lesson.startAudioRoute();
+      expect(native.startCalls, 3);
+    },
+  );
+
+  test(
     'stop during native start releases the late lease and cancels its caller',
     () async {
       final native = _FakeHfpAudioControl()..startGate = Completer<void>();
