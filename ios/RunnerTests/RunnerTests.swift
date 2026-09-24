@@ -1144,6 +1144,58 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(try XCTUnwrap(buffer.floatChannelData?[0][1]), 1, accuracy: 0.001)
   }
 
+  func testIOSLessonRecordingNormalizerDoesNotBoostAlreadyLoudAudio() throws {
+    let format = try XCTUnwrap(
+      AVAudioFormat(
+        commonFormat: .pcmFormatFloat32,
+        sampleRate: 16_000,
+        channels: 1,
+        interleaved: false
+      )
+    )
+    let buffer = try XCTUnwrap(
+      AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 320)
+    )
+    buffer.frameLength = 320
+    let channels = try XCTUnwrap(buffer.floatChannelData)
+    for index in 0..<320 { channels[0][index] = 0.25 }
+
+    let gainDb = VoicePromptBridge.lessonRecordingGainDb(
+      channels: channels,
+      channelCount: 1,
+      frameLength: 320,
+      sampleRate: format.sampleRate
+    )
+
+    XCTAssertEqual(gainDb, 0, accuracy: 0.001)
+  }
+
+  func testIOSLessonRecordingNormalizerCapsVeryQuietAudioGain() throws {
+    let format = try XCTUnwrap(
+      AVAudioFormat(
+        commonFormat: .pcmFormatFloat32,
+        sampleRate: 16_000,
+        channels: 1,
+        interleaved: false
+      )
+    )
+    let buffer = try XCTUnwrap(
+      AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 320)
+    )
+    buffer.frameLength = 320
+    let channels = try XCTUnwrap(buffer.floatChannelData)
+    for index in 0..<320 { channels[0][index] = 0.001 }
+
+    let gainDb = VoicePromptBridge.lessonRecordingGainDb(
+      channels: channels,
+      channelCount: 1,
+      frameLength: 320,
+      sampleRate: format.sampleRate
+    )
+
+    XCTAssertEqual(gainDb, 28, accuracy: 0.001)
+  }
+
   func testIOSBuiltInMicPolicyExcludesBluetoothOptions() {
     let options = IOSNativeSpeechAudioRoutePolicy.categoryOptions(
       for: .builtInMic

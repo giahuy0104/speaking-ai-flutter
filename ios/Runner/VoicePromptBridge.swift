@@ -204,7 +204,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     }
   }
 
-  private static func lessonRecordingGainDb(
+  static func lessonRecordingGainDb(
     channels: UnsafePointer<UnsafeMutablePointer<Float>>,
     channelCount: Int,
     frameLength: Int,

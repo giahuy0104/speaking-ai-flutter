@@ -725,6 +725,45 @@ void main() {
   });
 
   testWidgets(
+    'iOS successful native capture finalizes before playback without history',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final media = _FakeLessonMediaService()
+        ..finalizedRecordingPath = '/recordings/answer-normalized.wav';
+      final speech = _RecordingSuccessIosInput();
+      final backend = _FailIfCalledAttemptEvaluator();
+      addTearDown(speech.dispose);
+      await tester.pumpWidget(
+        _subject(
+          startAge: 7,
+          mediaService: media,
+          iosSpeechInput: speech,
+          attemptEvaluator: backend,
+        ),
+      );
+      await _pumpChallengeTransition(tester);
+      await tester.tap(find.byKey(const Key('lesson-challenge-record-button')));
+      await _pumpChallengeTransition(tester);
+
+      expect(speech.stopCalls, 1);
+      expect(media.finalizedRecordingPaths, <String>['/recordings/answer.wav']);
+      expect(media.completedPlaybackUris, <Uri>[
+        Uri.file('/recordings/answer-normalized.wav'),
+      ]);
+      expect(media.attemptFileEvents, <String>[
+        'play:/recordings/answer-normalized.wav',
+        'delete:/recordings/answer.wav',
+        'delete:/recordings/answer-normalized.wav',
+      ]);
+      expect(media.externalRegistrationCalls, 0);
+      expect(backend.evaluationCalls, 0);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
     'iOS recognition failure retains its local WAV without backend scoring',
     (tester) async {
       await _usePhoneSurface(tester);
@@ -1204,6 +1243,43 @@ class _RecordingFailureIosInput extends IOSStreamingSpeechInput {
       initialNoiseRms: null,
     );
   }
+}
+
+class _RecordingSuccessIosInput extends IOSStreamingSpeechInput {
+  _RecordingSuccessIosInput()
+    : super(eventStream: const Stream<dynamic>.empty());
+
+  String? recordingPath;
+  int stopCalls = 0;
+
+  @override
+  Future<void> startLessonEnglishRecognitionWithRecording(String path) async {
+    recordingPath = path;
+  }
+
+  @override
+  Future<StreamingSpeechCapture> stop() async {
+    stopCalls += 1;
+    return StreamingSpeechCapture(
+      sourceText: 'Go straight.',
+      duration: const Duration(seconds: 1),
+      inputLabel: 'Apple Speech',
+      confidence: 1,
+      firstResultMs: 120,
+      finalAfterStopMs: 80,
+      recordedAudio: AudioCapture(
+        filePath: recordingPath!,
+        mimeType: 'audio/wav',
+        duration: const Duration(seconds: 1),
+        inputLabel: 'Apple Speech',
+        isBluetoothInput: false,
+        initialNoiseRms: null,
+      ),
+    );
+  }
+
+  @override
+  Future<void> cancel() async {}
 }
 
 class _FakeLessonEnglishSpeechInput implements LessonEnglishSpeechInput {
