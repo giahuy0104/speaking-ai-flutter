@@ -237,6 +237,74 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('collection playback does not reclaim a completed user drag', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 620);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final audio = _SteppedVocabularyAudioService();
+    addTearDown(audio.stop);
+    final store = _MemoryVocabularyStore(<VocabularyEntry>[
+      for (var index = 0; index < 10; index++)
+        VocabularyEntry(
+          id: 'entry-$index',
+          word: 'Word $index',
+          meaning: 'Nghĩa $index',
+          addedAt: DateTime(2026, 9, index + 1),
+          status: VocabularyLearningStatus.learnedWell,
+          source: VocabularySource.parent,
+          parentState: ParentVocabularyState.unlocked,
+        ),
+    ]);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: DisplayLanguageScope(
+          language: DisplayLanguage.vietnamese,
+          child: VocabularyHomeScreen(
+            isReady: true,
+            store: store,
+            mediaService: _ImmediateLessonMediaService(),
+            voicePromptService: const _FakeVoicePromptService(),
+            vocabularyAudioService: audio,
+            fixedPromptAudioService:
+                const _UnavailableFixedPromptAudioService(),
+            onReturnToConversation: () {},
+            onHistory: () {},
+            onSettings: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+    await tester.pumpAndSettle();
+    final play = find.byKey(const Key('vocabulary-family-action'));
+    await tester.ensureVisible(play);
+    await tester.tap(play);
+    await _pumpUntil(tester, () => audio.spoken.length == 1);
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final scrollView = tester.widget<SingleChildScrollView>(
+      find.byType(SingleChildScrollView),
+    );
+    final followedOffset = scrollView.controller!.position.pixels;
+    expect(followedOffset, greaterThan(200));
+
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, 1000),
+    );
+    await tester.pump();
+    final userOffset = scrollView.controller!.position.pixels;
+    expect(userOffset, lessThan(followedOffset));
+
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(scrollView.controller!.position.pixels, closeTo(userOffset, 1));
+  });
+
   testWidgets('collection clears its highlight before waiting for a choice', (
     tester,
   ) async {

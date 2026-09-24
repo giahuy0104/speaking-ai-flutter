@@ -1373,7 +1373,6 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     } else if (notification is ScrollEndNotification &&
         _userIsScrollingJourney) {
       _userIsScrollingJourney = false;
-      _scheduleActiveEntryVisibility();
     }
     return false;
   }
