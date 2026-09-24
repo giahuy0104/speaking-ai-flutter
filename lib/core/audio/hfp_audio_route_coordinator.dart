@@ -61,14 +61,19 @@ class HfpAudioRouteCoordinator {
   Future<void> _operationTail = Future<void>.value();
   int _nextId = 0;
   int _generation = 0;
+  int _connectionGeneration = 0;
   bool _disposed = false;
 
   HfpAudioControl createScope(String owner) =>
       ScopedHfpAudioControl._(this, owner.trim().isEmpty ? 'unknown' : owner);
 
   Future<HfpAudioRouteToken> _acquire(String owner) {
+    final connectionGeneration = _connectionGeneration;
     return _serialize(() async {
       _ensureActive();
+      if (connectionGeneration != _connectionGeneration) {
+        throw const HfpAudioException('Lượt âm thanh đã dừng.');
+      }
       _cancelIdleRelease();
       try {
         if (_active.isEmpty ||
@@ -82,6 +87,9 @@ class HfpAudioRouteCoordinator {
           await _delegate.stopAudioRoute().catchError((Object _) {});
         }
         rethrow;
+      }
+      if (connectionGeneration != _connectionGeneration) {
+        throw const HfpAudioException('Lượt âm thanh đã dừng.');
       }
       _retainedForHandoff = false;
       final token = HfpAudioRouteToken(
@@ -163,7 +171,13 @@ class HfpAudioRouteCoordinator {
     await _delegate.stopAudioRoute();
   });
 
+  Future<void> _connect(HfpAudioDevice device) => _serialize(() async {
+    _ensureActive();
+    await _delegate.connect(device);
+  });
+
   Future<void> disconnect() {
+    _connectionGeneration += 1;
     return _serialize(() async {
       _cancelIdleRelease();
       _retainedForHandoff = false;
@@ -248,14 +262,15 @@ class ScopedHfpAudioControl
   Future<List<HfpAudioDevice>> findDevices() => _delegate.findDevices();
 
   @override
-  Future<void> connect(HfpAudioDevice device) => _delegate.connect(device);
+  Future<void> connect(HfpAudioDevice device) => _coordinator._connect(device);
 
   @override
   Future<void> disconnect() {
     _requestGeneration += 1;
+    final disconnecting = _coordinator.disconnect();
     return _serializeScope(() async {
       _token = null;
-      await _coordinator.disconnect();
+      await disconnecting;
     });
   }
 

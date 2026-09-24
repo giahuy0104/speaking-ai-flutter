@@ -105,6 +105,41 @@ void main() {
   });
 
   test(
+    'disconnect cancels another scope start before a queued reconnect',
+    () async {
+      final native = _FakeHfpAudioControl()..startGate = Completer<void>();
+      final coordinator = HfpAudioRouteCoordinator(native);
+      addTearDown(coordinator.dispose);
+      final lesson = coordinator.createScope('lesson');
+      final settings = coordinator.createScope('settings');
+      final starting = lesson.startAudioRoute();
+      final cancelled = expectLater(
+        starting,
+        throwsA(isA<HfpAudioException>()),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      final disconnecting = settings.disconnect();
+      final reconnecting = settings.connect(
+        const HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+      );
+      native.startGate!.complete();
+
+      await cancelled;
+      await disconnecting;
+      await reconnecting;
+      expect(native.connectionEvents, <String>['disconnect', 'connect:h20']);
+      expect(
+        (lesson as HfpAudioRouteLeaseControl).activeAudioRouteToken,
+        isNull,
+      );
+
+      await lesson.startAudioRoute();
+      expect(native.startCalls, 2);
+    },
+  );
+
+  test(
     'stop during native start releases the late lease and cancels its caller',
     () async {
       final native = _FakeHfpAudioControl()..startGate = Completer<void>();
@@ -261,6 +296,7 @@ class _FakeHfpAudioControl implements HfpAudioControl {
   int disposeCalls = 0;
   Completer<void>? startGate;
   bool routeActive = true;
+  final List<String> connectionEvents = <String>[];
 
   @override
   bool get usesBrowserAudioInput => false;
@@ -282,10 +318,15 @@ class _FakeHfpAudioControl implements HfpAudioControl {
   Future<List<HfpAudioDevice>> findDevices() async => const <HfpAudioDevice>[];
 
   @override
-  Future<void> connect(HfpAudioDevice device) async {}
+  Future<void> connect(HfpAudioDevice device) async {
+    connectionEvents.add('connect:${device.id}');
+  }
 
   @override
-  Future<void> disconnect() async {}
+  Future<void> disconnect() async {
+    connectionEvents.add('disconnect');
+    routeActive = false;
+  }
 
   @override
   Future<void> startAudioRoute() async {
