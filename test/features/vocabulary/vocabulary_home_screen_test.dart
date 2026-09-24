@@ -237,6 +237,71 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('collection clears its highlight before waiting for a choice', (
+    tester,
+  ) async {
+    final audio = _SteppedVocabularyAudioService();
+    final choiceStarted = Completer<void>();
+    final choiceGate = Completer<void>();
+    addTearDown(() {
+      if (!choiceGate.isCompleted) choiceGate.complete();
+      audio.stop();
+    });
+    final store = _MemoryVocabularyStore(<VocabularyEntry>[
+      VocabularyEntry(
+        id: 'entry-1',
+        word: 'Apple',
+        meaning: 'Quả táo',
+        addedAt: DateTime(2026, 9, 1),
+        status: VocabularyLearningStatus.learnedWell,
+        source: VocabularySource.parent,
+        parentState: ParentVocabularyState.unlocked,
+      ),
+    ]);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: DisplayLanguageScope(
+          language: DisplayLanguage.vietnamese,
+          child: VocabularyHomeScreen(
+            isReady: true,
+            store: store,
+            mediaService: _ImmediateLessonMediaService(),
+            voicePromptService: const _FakeVoicePromptService(),
+            vocabularyAudioService: audio,
+            fixedPromptAudioService:
+                const _UnavailableFixedPromptAudioService(),
+            onRequestVoiceChoice:
+                ({noSpeechRetryPrompt, noSpeechExitPrompt}) async {
+                  if (!choiceStarted.isCompleted) choiceStarted.complete();
+                  await choiceGate.future;
+                },
+            onReturnToConversation: () {},
+            onHistory: () {},
+            onSettings: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+    await tester.pumpAndSettle();
+    final play = find.byKey(const Key('vocabulary-family-action'));
+    await tester.ensureVisible(play);
+    await tester.tap(play);
+    await _pumpUntil(tester, () => audio.spoken.length == 1);
+    audio.completeCurrentSpeech();
+    await _pumpUntil(tester, () => audio.spoken.length == 2);
+    audio.completeCurrentSpeech();
+    await _pumpUntil(tester, () => choiceStarted.isCompleted);
+    await tester.pump(const Duration(milliseconds: 200));
+
+    final highlight = tester.widget<AnimatedContainer>(
+      find.byKey(const Key('vocabulary-entry-highlight-entry-1')),
+    );
+    expect((highlight.decoration! as BoxDecoration).border, isNull);
+  });
+
   testWidgets(
     'opens the three vocabulary journeys from the redesigned home',
     (tester) async {

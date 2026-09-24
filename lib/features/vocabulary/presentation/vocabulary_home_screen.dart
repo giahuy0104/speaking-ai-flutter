@@ -1911,6 +1911,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         _nextPlaybackIndex = index + 1;
         if (!played) continue;
       }
+      _setActivePlaybackEntry(null);
       _playbackInterrupted = false;
       if (_playbackBlockEndExclusive < entries.length) {
         _nextPlaybackIndex = _playbackBlockEndExclusive;
