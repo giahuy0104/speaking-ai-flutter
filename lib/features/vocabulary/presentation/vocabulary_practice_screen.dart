@@ -282,6 +282,8 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     setState(() {
       if (_isToday) _todayEnViCompleted = false;
       _busy = true;
+      _preparingRecording = false;
+      _processingAttempt = false;
       _message = includeIntro
           ? (_isToday
                 ? VocabularyFlowV3.todayIntro
@@ -1337,7 +1339,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         key: const Key('vocabulary-resume-after-no-response'),
         onPressed: () => unawaited(_resumeAfterNoResponse()),
         icon: const Icon(Icons.mic_rounded),
-        label: const Text('Thử lại mic'),
+        label: Text(widget.language.choose('Thử lại mic', '重试麦克风')),
         style: FilledButton.styleFrom(
           minimumSize: const Size(240, 58),
           textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
@@ -1361,16 +1363,18 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       ),
       label: Text(
         _paused
-            ? 'Đang tạm dừng'
+            ? widget.language.choose('Đang tạm dừng', '暂停中')
             : _isToday
-            ? 'Bắt đầu nghe'
+            ? widget.language.choose('Bắt đầu nghe', '开始播放')
             : _preparingRecording && _busy
-            ? 'Đang chuẩn bị mic'
+            ? widget.language.choose('Đang chuẩn bị mic', '正在准备麦克风')
             : _processingAttempt && _busy
-            ? 'Đang xử lý'
+            ? widget.language.choose('Đang xử lý', '正在处理')
+            : _busy
+            ? widget.language.choose('Đang phát hướng dẫn', '正在播放引导')
             : _recording
-            ? 'Chạm để kết thúc ghi âm'
-            : 'Chạm để bắt đầu ghi âm',
+            ? widget.language.choose('Chạm để kết thúc ghi âm', '点击结束录音')
+            : widget.language.choose('Chạm để bắt đầu ghi âm', '点击开始录音'),
       ),
       style: FilledButton.styleFrom(
         minimumSize: const Size(286, 58),

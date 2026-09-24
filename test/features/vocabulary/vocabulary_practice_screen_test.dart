@@ -640,6 +640,7 @@ void main() {
     tester,
   ) async {
     final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
     final media = _FakeLessonMediaService()
       ..startGate = Completer<void>()
       ..stopGate = Completer<void>();
@@ -657,6 +658,14 @@ void main() {
     await tester.tap(find.byKey(const Key('vocabulary-practice-main-action')));
     await tester.pump();
     expect(find.text('Đang chuẩn bị mic'), findsOneWidget);
+    expect(media.startCalls, 1);
+
+    await tester.tap(
+      find.byKey(const Key('vocabulary-practice-main-action')),
+      warnIfMissed: false,
+    );
+    await tester.pump();
+    expect(media.startCalls, 1);
 
     media.startGate!.complete();
     await tester.pumpAndSettle();
@@ -665,6 +674,72 @@ void main() {
     await tester.tap(find.byKey(const Key('vocabulary-practice-main-action')));
     await tester.pump();
     expect(find.text('Đang xử lý'), findsOneWidget);
+
+    media.stopGate!.complete();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('Review action reports guide playback while input is locked', (
+    tester,
+  ) async {
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final media = _FakeLessonMediaService();
+    final voice = _GatedCueVoice(media);
+    final englishGate = Completer<void>();
+    voice.gates['en-US:Apple'] = englishGate;
+    addTearDown(media.close);
+    await _mountReview(tester, registry: registry, media: media, voice: voice);
+
+    final action = find.byKey(const Key('vocabulary-practice-main-action'));
+    await tester.tap(action);
+    await tester.pump();
+
+    expect(find.text('Đang phát hướng dẫn'), findsOneWidget);
+    expect(tester.widget<FilledButton>(action).onPressed, isNull);
+    await tester.tap(action, warnIfMissed: false);
+    await tester.pump();
+    expect(media.startCalls, 0);
+
+    englishGate.complete();
+    await tester.pumpAndSettle();
+    expect(media.startCalls, 1);
+  });
+
+  testWidgets('Review recording action localizes every state in Chinese', (
+    tester,
+  ) async {
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final media = _FakeLessonMediaService()
+      ..startGate = Completer<void>()
+      ..stopGate = Completer<void>();
+    addTearDown(media.close);
+    await _mountReview(
+      tester,
+      registry: registry,
+      media: media,
+      voice: _FakeVoicePromptService(),
+      evaluator: _QueuedAttemptEvaluator(<LessonAttemptOutcome>[
+        LessonAttemptOutcome.good,
+      ]),
+      language: DisplayLanguage.simplifiedChinese,
+    );
+
+    final action = find.byKey(const Key('vocabulary-practice-main-action'));
+    expect(find.text('点击开始录音'), findsOneWidget);
+
+    await tester.tap(action);
+    await tester.pump();
+    expect(find.text('正在准备麦克风'), findsOneWidget);
+
+    media.startGate!.complete();
+    await tester.pumpAndSettle();
+    expect(find.text('点击结束录音'), findsOneWidget);
+
+    await tester.tap(action);
+    await tester.pump();
+    expect(find.text('正在处理'), findsOneWidget);
 
     media.stopGate!.complete();
     await tester.pumpAndSettle();
@@ -1201,6 +1276,7 @@ Future<void> _mountReview(
   required VoicePromptService voice,
   LessonAttemptEvaluator? evaluator = const RecordedAttemptEvaluator(),
   LearningAudioDependencies? audioDependencies,
+  DisplayLanguage language = DisplayLanguage.vietnamese,
 }) async {
   SharedPreferences.setMockInitialValues(<String, Object>{});
   const store = VocabularyStore();
@@ -1230,7 +1306,7 @@ Future<void> _mountReview(
       child: MaterialApp(
         theme: buildAppTheme(),
         home: VocabularyPracticeScreen(
-          language: DisplayLanguage.vietnamese,
+          language: language,
           childAge: 6,
           session: session,
           store: store,
