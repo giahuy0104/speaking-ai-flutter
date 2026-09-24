@@ -178,7 +178,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   @override
   void dispose() {
     _generation += 1;
-    _praiseFireworksTimer?.cancel();
+    _cancelPraiseFireworks();
     _recordingEndpointDetector.cancel();
     if (_activeRegistry != null && _activeRegistration != null) {
       _activeRegistry!.unregister(_activeRegistration!);
@@ -791,6 +791,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     if (_paused) return;
     _paused = true;
     _generation += 1;
+    _cancelPraiseFireworks();
     final fixedPrompt = widget.fixedPromptAudioService;
     if (fixedPrompt is CancellableVocabularyFixedPromptAudioService) {
       (fixedPrompt as CancellableVocabularyFixedPromptAudioService)
@@ -803,6 +804,8 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     if (mounted) {
       setState(() {
         _busy = false;
+        _preparingRecording = false;
+        _processingAttempt = false;
         _message = 'Hoạt động đang tạm dừng.';
       });
     }
@@ -1015,6 +1018,12 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       setState(() => _praiseFireworksVisible = false);
       _praiseFireworksTimer = null;
     });
+  }
+
+  void _cancelPraiseFireworks() {
+    _praiseFireworksTimer?.cancel();
+    _praiseFireworksTimer = null;
+    _praiseFireworksVisible = false;
   }
 
   @override

@@ -622,6 +622,43 @@ void main() {
     expect(find.byKey(const Key('vocabulary-review-fireworks')), findsNothing);
   });
 
+  testWidgets('MAIN interruption dismisses Review praise fireworks', (
+    tester,
+  ) async {
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final media = _FakeLessonMediaService();
+    addTearDown(media.close);
+    await _mountReview(
+      tester,
+      registry: registry,
+      media: media,
+      voice: _FakeVoicePromptService(),
+      evaluator: _QueuedAttemptEvaluator(<LessonAttemptOutcome>[
+        LessonAttemptOutcome.good,
+      ]),
+    );
+
+    await tester.tap(find.byKey(const Key('vocabulary-practice-main-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-practice-main-action')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(
+      find.byKey(const Key('vocabulary-review-fireworks')),
+      findsOneWidget,
+    );
+
+    expect(await registry.pauseForMainAssistant(), isTrue);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(find.byKey(const Key('vocabulary-review-fireworks')), findsNothing);
+    expect(find.text('Hoạt động đang tạm dừng.'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 3));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'completed block lets MAIN route directly to Stars after interruption',
     (tester) async {
