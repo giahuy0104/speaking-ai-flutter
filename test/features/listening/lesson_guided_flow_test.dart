@@ -84,14 +84,15 @@ void main() {
         final events = <String>[];
         final media = _GuidedMediaService(events: events);
         final prompts = _KeyedVoicePromptService(events);
+        final progress = _MemoryProgressStore()
+          ..currentSentence = atLast ? 2 : 0;
         await tester.pumpWidget(
           ActiveLearningModuleScope(
             registry: registry,
             child: _subject(
               _lesson(v4: true, sentenceCount: 3),
               media,
-              progressStore: _MemoryProgressStore()
-                ..currentSentence = atLast ? 2 : 0,
+              progressStore: progress,
               guideAudioLibrary: _silentGuideAudioLibrary(),
               voicePromptService: prompts,
             ),
@@ -142,10 +143,87 @@ void main() {
           'prompt|${LessonGuideFlowV2.coreSpeakCue(number - 1).audioKey!}',
           'record|GUIDED-FLOW_S$number',
         ]);
+        expect(progress.currentSentence, atLast ? 2 : 0);
+        expect(progress.completed, 0);
+        expect(progress.sessionResults, isEmpty);
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pump();
       },
     );
+  }
+
+  final boundaryReplayEvents = <String>[
+    'prompt|${MainAssistantAudioKeys.firstItemReplay}',
+    'prompt|listening.sentence.GUIDED-FLOW_S1.en',
+    'prompt|listening.sentence.GUIDED-FLOW_S1.vi',
+    'prompt|${LessonGuideFlowV2.coreSpeakCue(0).audioKey!}',
+  ];
+  const boundaryReplayStages = <String>[
+    'boundary lead',
+    'English sample',
+    'Vietnamese sample',
+    'repeat cue',
+  ];
+  for (
+    var gateIndex = 0;
+    gateIndex < boundaryReplayEvents.length;
+    gateIndex++
+  ) {
+    for (final routeLoss in <bool>[false, true]) {
+      final interruption = routeLoss ? 'route loss' : 'second MAIN';
+      testWidgets(
+        '$interruption during ${boundaryReplayStages[gateIndex]} blocks every later prompt and mic',
+        (tester) async {
+          await _usePhoneSurface(tester);
+          final registry = ActiveLearningModuleRegistry();
+          addTearDown(registry.dispose);
+          final events = <String>[];
+          final media = _GuidedMediaService(events: events);
+          final prompts = _GatedKeyedVoicePromptService(events);
+          final progress = _MemoryProgressStore();
+          await tester.pumpWidget(
+            ActiveLearningModuleScope(
+              registry: registry,
+              child: _subject(
+                _lesson(v4: true, sentenceCount: 3),
+                media,
+                progressStore: progress,
+                guideAudioLibrary: _silentGuideAudioLibrary(),
+                voicePromptService: prompts,
+              ),
+            ),
+          );
+          await _pumpGuidedSpeechTurn(tester);
+          await registry.pauseForMainAssistant();
+          final starts = media.startedSentenceIds.length;
+          events.clear();
+          prompts.gate(boundaryReplayEvents[gateIndex].split('|').last);
+
+          await registry.execute(ActiveLearningCommand.previousItem);
+          await _pumpGuidedSpeechTurn(tester);
+          expect(prompts.gateEntered.isCompleted, isTrue);
+          expect(events, boundaryReplayEvents.take(gateIndex + 1));
+
+          if (routeLoss) {
+            await tester.pumpWidget(const SizedBox.shrink());
+          } else {
+            await registry.pauseForMainAssistant();
+          }
+          prompts.releaseGate();
+          await tester.pump();
+          await tester.pump(LessonGuideFlowV2.englishToVietnamesePause);
+          await tester.pump();
+
+          expect(events, boundaryReplayEvents.take(gateIndex + 1));
+          expect(media.startedSentenceIds.length, starts);
+          expect(progress.currentSentence, 0);
+          expect(progress.completed, 0);
+          expect(progress.sessionResults, isEmpty);
+          await tester.pumpWidget(const SizedBox.shrink());
+          await tester.pump();
+        },
+      );
+    }
   }
 
   testWidgets(
@@ -3329,6 +3407,37 @@ class _KeyedVoicePromptService extends _FakeVoicePromptService
     String text, {
     String locale = 'vi-VN',
   }) => speakAndWaitWithAudioKey(audioKey, text, locale: locale);
+}
+
+class _GatedKeyedVoicePromptService extends _KeyedVoicePromptService {
+  _GatedKeyedVoicePromptService(super.events);
+
+  String? _gatedAudioKey;
+  Completer<void>? _gateCompletion;
+  Completer<void> gateEntered = Completer<void>();
+
+  void gate(String audioKey) {
+    _gatedAudioKey = audioKey;
+    _gateCompletion = Completer<void>();
+    gateEntered = Completer<void>();
+  }
+
+  void releaseGate() {
+    final completion = _gateCompletion;
+    if (completion != null && !completion.isCompleted) completion.complete();
+  }
+
+  @override
+  Future<void> speakAndWaitWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) async {
+    await super.speakAndWaitWithAudioKey(audioKey, text, locale: locale);
+    if (audioKey != _gatedAudioKey) return;
+    if (!gateEntered.isCompleted) gateEntered.complete();
+    await _gateCompletion!.future;
+  }
 }
 
 class _AuthoredIntroVoicePromptService extends _FakeVoicePromptService
