@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
 import 'dart:convert';
@@ -163,6 +164,77 @@ void main() {
     audio.stopGate.complete();
     await tester.pumpAndSettle();
     expect(audio.spoken, ['en-US:Apple']);
+  });
+
+  testWidgets('collection playback highlights and follows an offscreen entry', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 620);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final audio = _SteppedVocabularyAudioService();
+    final store = _MemoryVocabularyStore(<VocabularyEntry>[
+      for (var index = 0; index < 10; index++)
+        VocabularyEntry(
+          id: 'entry-$index',
+          word: 'Word $index',
+          meaning: 'Nghĩa $index',
+          addedAt: DateTime(2026, 9, index + 1),
+          status: VocabularyLearningStatus.learnedWell,
+          source: VocabularySource.parent,
+          parentState: ParentVocabularyState.unlocked,
+        ),
+    ]);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: DisplayLanguageScope(
+          language: DisplayLanguage.vietnamese,
+          child: VocabularyHomeScreen(
+            isReady: true,
+            store: store,
+            mediaService: _ImmediateLessonMediaService(),
+            voicePromptService: const _FakeVoicePromptService(),
+            vocabularyAudioService: audio,
+            fixedPromptAudioService:
+                const _UnavailableFixedPromptAudioService(),
+            onReturnToConversation: () {},
+            onHistory: () {},
+            onSettings: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+    await tester.pumpAndSettle();
+    final play = find.byKey(const Key('vocabulary-family-action'));
+    await tester.ensureVisible(play);
+    await tester.tap(play);
+    await _pumpUntil(tester, () => audio.spoken.length == 1);
+
+    for (var completedSpeech = 1; completedSpeech < 9; completedSpeech++) {
+      audio.completeCurrentSpeech();
+      await _pumpUntil(
+        tester,
+        () => audio.spoken.length == completedSpeech + 1,
+      );
+    }
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final highlight = tester.widget<AnimatedContainer>(
+      find.byKey(const Key('vocabulary-entry-highlight-entry-4')),
+    );
+    expect((highlight.decoration! as BoxDecoration).border, isNotNull);
+    final rect = tester.getRect(find.text('Word 4'));
+    expect(rect.top, greaterThanOrEqualTo(0));
+    expect(rect.bottom, lessThanOrEqualTo(tester.view.physicalSize.height));
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    audio.stop();
+    await tester.pump();
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets(
@@ -1367,6 +1439,13 @@ void main() {
   );
 }
 
+Future<void> _pumpUntil(WidgetTester tester, bool Function() condition) async {
+  for (var attempt = 0; attempt < 20 && !condition(); attempt++) {
+    await tester.pump(const Duration(milliseconds: 20));
+  }
+  expect(condition(), isTrue);
+}
+
 class _MemoryVocabularyStore extends VocabularyStore {
   _MemoryVocabularyStore([List<VocabularyEntry>? entries])
     : entries = List.of(entries ?? const <VocabularyEntry>[]);
@@ -1500,6 +1579,43 @@ class _BlockingVocabularyAudioService implements VocabularyContentAudioService {
 
   @override
   void dispose() {}
+}
+
+class _SteppedVocabularyAudioService implements VocabularyContentAudioService {
+  final List<String> spoken = <String>[];
+  final Queue<Completer<void>> _speechGates = Queue<Completer<void>>();
+
+  void completeCurrentSpeech() {
+    final gate = _speechGates.removeFirst();
+    if (!gate.isCompleted) gate.complete();
+  }
+
+  @override
+  Future<void> prefetch(String text, {required String locale}) async {}
+
+  @override
+  Future<VocabularyAudioSource> speakAndWait(
+    String text, {
+    required String locale,
+  }) async {
+    spoken.add('$locale:$text');
+    final gate = Completer<void>();
+    _speechGates.add(gate);
+    await gate.future;
+    return VocabularyAudioSource.nativeTts;
+  }
+
+  @override
+  Future<void> stop() async {
+    while (_speechGates.isNotEmpty) {
+      completeCurrentSpeech();
+    }
+  }
+
+  @override
+  void dispose() {
+    unawaited(stop());
+  }
 }
 
 class _RecordingVoicePromptService implements VoicePromptService {

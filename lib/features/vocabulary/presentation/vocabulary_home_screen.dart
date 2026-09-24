@@ -151,6 +151,8 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     implements ActiveLearningModuleController, ActiveLearningVoiceContext {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
+  final ScrollController _journeyScrollController = ScrollController();
+  final Map<String, GlobalKey> _entryKeys = <String, GlobalKey>{};
   StreamSubscription<void>? _storeSubscription;
   late final VoicePromptService _voicePromptService;
   late final bool _ownsVoicePromptService;
@@ -183,6 +185,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   int _nextPlaybackIndex = 0;
   bool _waitingForPlaybackContinuation = false;
   bool _awaitingPlaybackEndChoice = false;
+  bool _userIsScrollingJourney = false;
+  String? _activePlaybackEntryId;
+  int _autoScrollGeneration = 0;
   String _lastVoiceChoicePrompt = VocabularyFlowV3.menu;
   ActiveLearningModuleRegistry? _activeLearningRegistry;
   Object? _activeLearningRegistration;
@@ -297,6 +302,8 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _waitingForPlaybackContinuation = false;
     _awaitingPlaybackEndChoice = false;
     _playbackQueue = const <VocabularyEntry>[];
+    _activePlaybackEntryId = null;
+    _autoScrollGeneration += 1;
     _selectedJourney = null;
     for (final operation in <Future<void> Function()>[
       _voicePromptService.stop,
@@ -317,6 +324,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       ..removeListener(_refreshSearch)
       ..dispose();
     _searchFocusNode.dispose();
+    _journeyScrollController.dispose();
     _storeSubscription?.cancel();
     if (_ownsVocabularyAudioService) {
       _vocabularyAudioService?.dispose();
@@ -432,6 +440,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _cancelPendingFixedPrompt();
     _pausedForMainAssistant = true;
     _playbackInterrupted = _playingCollection;
+    _setActivePlaybackEntry(null);
     await Future.wait<void>(<Future<void>>[
       _voicePromptService.stop().catchError((Object _) {}),
       _mediaService.stopPlayback().catchError((Object _) {}),
@@ -789,54 +798,58 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       key: ValueKey<_VocabularyJourney>(journey),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 560),
-        child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(
-            horizontalPadding,
-            12,
-            horizontalPadding,
-            110,
-          ),
-          child: Column(
-            children: <Widget>[
-              _JourneyDetailHeader(
-                title: _journeyTitle(context, journey),
-                countLabel: headerCountLabel,
-              ),
-              const SizedBox(height: 18),
-              if (!isFamilyJourney) ...<Widget>[
-                _buildSearchField(context),
-                const SizedBox(height: 18),
-              ],
-              if (isFamilyJourney) ...<Widget>[
-                _buildParentWaitingQueue(context),
-                const SizedBox(height: 16),
-                _buildSearchField(context),
-                const SizedBox(height: 22),
-                Text(
-                  context.tr(
-                    '${visibleEntries.length} nội dung đã lưu',
-                    '已保存 ${visibleEntries.length} 项内容',
-                  ),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: isDark
-                        ? theme.colorScheme.primary
-                        : AppColors.indigoDark,
-                    fontWeight: FontWeight.w800,
-                    shadows: isDark
-                        ? const <Shadow>[
-                            Shadow(color: Colors.black54, blurRadius: 10),
-                          ]
-                        : const <Shadow>[
-                            Shadow(color: Colors.white, blurRadius: 8),
-                          ],
-                  ),
+        child: NotificationListener<ScrollNotification>(
+          onNotification: _handleJourneyScrollNotification,
+          child: SingleChildScrollView(
+            controller: _journeyScrollController,
+            padding: EdgeInsets.fromLTRB(
+              horizontalPadding,
+              12,
+              horizontalPadding,
+              110,
+            ),
+            child: Column(
+              children: <Widget>[
+                _JourneyDetailHeader(
+                  title: _journeyTitle(context, journey),
+                  countLabel: headerCountLabel,
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 18),
+                if (!isFamilyJourney) ...<Widget>[
+                  _buildSearchField(context),
+                  const SizedBox(height: 18),
+                ],
+                if (isFamilyJourney) ...<Widget>[
+                  _buildParentWaitingQueue(context),
+                  const SizedBox(height: 16),
+                  _buildSearchField(context),
+                  const SizedBox(height: 22),
+                  Text(
+                    context.tr(
+                      '${visibleEntries.length} nội dung đã lưu',
+                      '已保存 ${visibleEntries.length} 项内容',
+                    ),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: isDark
+                          ? theme.colorScheme.primary
+                          : AppColors.indigoDark,
+                      fontWeight: FontWeight.w800,
+                      shadows: isDark
+                          ? const <Shadow>[
+                              Shadow(color: Colors.black54, blurRadius: 10),
+                            ]
+                          : const <Shadow>[
+                              Shadow(color: Colors.white, blurRadius: 8),
+                            ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                ],
+                _buildJourneyAction(context, journey, visibleEntries),
+                const SizedBox(height: 16),
+                _buildVocabularyCard(context, visibleEntries),
               ],
-              _buildJourneyAction(context, journey, visibleEntries),
-              const SizedBox(height: 16),
-              _buildVocabularyCard(context, visibleEntries),
-            ],
+            ),
           ),
         ),
       ),
@@ -1213,47 +1226,51 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       return Column(
         children: <Widget>[
           for (var index = 0; index < entries.length; index++)
-            Container(
-              key: ValueKey<String>(
-                'vocabulary-entry-card-${entries[index].id}',
-              ),
-              width: double.infinity,
-              margin: EdgeInsets.only(
-                bottom: index == entries.length - 1 ? 0 : 10,
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Theme.of(
-                        context,
-                      ).colorScheme.surface.withValues(alpha: 0.94)
-                    : const Color(0xF7FFFDF9),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
+            KeyedSubtree(
+              key: _entryKey(journey, entries[index].id),
+              child: Container(
+                key: ValueKey<String>(
+                  'vocabulary-entry-card-${entries[index].id}',
+                ),
+                width: double.infinity,
+                margin: EdgeInsets.only(
+                  bottom: index == entries.length - 1 ? 0 : 10,
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                decoration: BoxDecoration(
                   color: isDark
                       ? Theme.of(
                           context,
-                        ).colorScheme.outline.withValues(alpha: 0.55)
-                      : const Color(0x80FFFFFF),
-                ),
-                boxShadow: <BoxShadow>[
-                  BoxShadow(
+                        ).colorScheme.surface.withValues(alpha: 0.94)
+                      : const Color(0xF7FFFDF9),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
                     color: isDark
-                        ? Colors.black.withValues(alpha: 0.2)
-                        : AppColors.deepNavy.withValues(alpha: 0.1),
-                    blurRadius: 14,
-                    offset: const Offset(0, 6),
+                        ? Theme.of(
+                            context,
+                          ).colorScheme.outline.withValues(alpha: 0.55)
+                        : const Color(0x80FFFFFF),
                   ),
-                ],
-              ),
-              child: _VocabularyRow(
-                entry: entries[index],
-                order: index + 1,
-                canPlay:
-                    !entries[index].isParentAdded ||
-                    entries[index].isLearnedWell,
-                statusLabel: statusLabel,
-                onPlay: () => unawaited(_playEntry(entries[index])),
+                  boxShadow: <BoxShadow>[
+                    BoxShadow(
+                      color: isDark
+                          ? Colors.black.withValues(alpha: 0.2)
+                          : AppColors.deepNavy.withValues(alpha: 0.1),
+                      blurRadius: 14,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: _VocabularyRow(
+                  entry: entries[index],
+                  order: index + 1,
+                  canPlay:
+                      !entries[index].isParentAdded ||
+                      entries[index].isLearnedWell,
+                  isActive: _activePlaybackEntryId == entries[index].id,
+                  statusLabel: statusLabel,
+                  onPlay: () => unawaited(_playEntry(entries[index])),
+                ),
               ),
             ),
         ],
@@ -1307,13 +1324,17 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                   index < entries.length;
                   index++
                 ) ...<Widget>[
-                  _VocabularyRow(
-                    entry: entries[index],
-                    order: index + 1,
-                    canPlay:
-                        !entries[index].isParentAdded ||
-                        entries[index].isLearnedWell,
-                    onPlay: () => unawaited(_playEntry(entries[index])),
+                  KeyedSubtree(
+                    key: _entryKey(journey, entries[index].id),
+                    child: _VocabularyRow(
+                      entry: entries[index],
+                      order: index + 1,
+                      canPlay:
+                          !entries[index].isParentAdded ||
+                          entries[index].isLearnedWell,
+                      isActive: _activePlaybackEntryId == entries[index].id,
+                      onPlay: () => unawaited(_playEntry(entries[index])),
+                    ),
                   ),
                   if (index != entries.length - 1)
                     Divider(
@@ -1329,6 +1350,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   void _openJourney(_VocabularyJourney journey) {
     setState(() {
       _selectedJourney = journey;
+      _activePlaybackEntryId = null;
       _searchController.clear();
     });
   }
@@ -1337,9 +1359,85 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _searchFocusNode.unfocus();
     setState(() {
       _selectedJourney = null;
+      _activePlaybackEntryId = null;
+      _autoScrollGeneration += 1;
       _lastVoiceChoicePrompt = VocabularyFlowV3.menu;
       _searchController.clear();
     });
+  }
+
+  bool _handleJourneyScrollNotification(ScrollNotification notification) {
+    if (notification is ScrollStartNotification &&
+        notification.dragDetails != null) {
+      _userIsScrollingJourney = true;
+    } else if (notification is ScrollEndNotification &&
+        _userIsScrollingJourney) {
+      _userIsScrollingJourney = false;
+      _scheduleActiveEntryVisibility();
+    }
+    return false;
+  }
+
+  GlobalKey _entryKey(_VocabularyJourney journey, String entryId) =>
+      _entryKeys.putIfAbsent('${journey.name}:$entryId', GlobalKey.new);
+
+  void _setActivePlaybackEntry(String? entryId) {
+    if (_activePlaybackEntryId == entryId) {
+      if (entryId != null) _scheduleActiveEntryVisibility();
+      return;
+    }
+    if (!mounted) {
+      _activePlaybackEntryId = entryId;
+      return;
+    }
+    setState(() => _activePlaybackEntryId = entryId);
+    if (entryId == null) {
+      _autoScrollGeneration += 1;
+    } else {
+      _scheduleActiveEntryVisibility();
+    }
+  }
+
+  void _scheduleActiveEntryVisibility() {
+    final entryId = _activePlaybackEntryId;
+    final journey = _selectedJourney;
+    if (entryId == null || journey == null || _userIsScrollingJourney) return;
+    final generation = ++_autoScrollGeneration;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          generation != _autoScrollGeneration ||
+          _userIsScrollingJourney ||
+          _activePlaybackEntryId != entryId ||
+          _selectedJourney != journey) {
+        return;
+      }
+      unawaited(_ensureActiveEntryVisible(journey, entryId));
+    });
+  }
+
+  Future<void> _ensureActiveEntryVisible(
+    _VocabularyJourney journey,
+    String entryId,
+  ) async {
+    final itemContext = _entryKey(journey, entryId).currentContext;
+    if (itemContext == null || !_journeyScrollController.hasClients) return;
+    final itemBox = itemContext.findRenderObject();
+    final scrollable = Scrollable.maybeOf(itemContext);
+    final viewportBox = scrollable?.context.findRenderObject();
+    if (itemBox is! RenderBox || viewportBox is! RenderBox) return;
+    final itemTop = itemBox
+        .localToGlobal(Offset.zero, ancestor: viewportBox)
+        .dy;
+    final itemBottom = itemTop + itemBox.size.height;
+    final viewportHeight = viewportBox.size.height;
+    if (itemTop >= 0 && itemBottom <= viewportHeight) return;
+    await Scrollable.ensureVisible(
+      itemContext,
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+      alignment: itemTop < 0 ? 0 : 1,
+      alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
+    );
   }
 
   String _journeyTitle(BuildContext context, _VocabularyJourney journey) {
@@ -1795,6 +1893,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
           _playbackInterrupted = true;
           return;
         }
+        _setActivePlaybackEntry(entries[index].id);
         final played = await _speakVocabularyEntry(
           entries[index],
           journey: journey,
@@ -1847,7 +1946,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       }
     } finally {
       if (mounted && generation == _playbackGeneration) {
-        setState(() => _playingCollection = false);
+        setState(() {
+          _playingCollection = false;
+          _activePlaybackEntryId = null;
+        });
+        _autoScrollGeneration += 1;
       }
     }
   }
@@ -3130,6 +3233,7 @@ class _VocabularyRow extends StatelessWidget {
     required this.entry,
     required this.order,
     required this.canPlay,
+    required this.isActive,
     required this.onPlay,
     this.statusLabel,
   });
@@ -3137,6 +3241,7 @@ class _VocabularyRow extends StatelessWidget {
   final VocabularyEntry entry;
   final int order;
   final bool canPlay;
+  final bool isActive;
   final VoidCallback onPlay;
   final String? statusLabel;
 
@@ -3144,119 +3249,139 @@ class _VocabularyRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: <Widget>[
-          Semantics(
-            label: context.tr('Mục số $order', '第 $order 项'),
-            child: ExcludeSemantics(
-              child: Container(
-                width: 46,
-                height: 46,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? theme.colorScheme.surfaceContainerHighest
-                      : AppColors.lavender,
-                  shape: BoxShape.circle,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(7),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      '$order',
-                      key: ValueKey<String>('vocabulary-order-${entry.id}'),
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: isDark
-                            ? theme.colorScheme.primary
-                            : AppColors.indigo,
-                        fontWeight: FontWeight.w900,
-                        height: 1,
+    return Semantics(
+      selected: isActive,
+      child: AnimatedContainer(
+        key: ValueKey<String>('vocabulary-entry-highlight-${entry.id}'),
+        duration: const Duration(milliseconds: 180),
+        margin: const EdgeInsets.symmetric(vertical: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+        decoration: BoxDecoration(
+          color: isActive
+              ? (isDark
+                    ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
+                    : AppColors.mintSoft)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+          border: isActive
+              ? Border.all(
+                  color: isDark ? theme.colorScheme.primary : AppColors.indigo,
+                  width: 1.5,
+                )
+              : null,
+        ),
+        child: Row(
+          children: <Widget>[
+            Semantics(
+              label: context.tr('Mục số $order', '第 $order 项'),
+              child: ExcludeSemantics(
+                child: Container(
+                  width: 46,
+                  height: 46,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? theme.colorScheme.surfaceContainerHighest
+                        : AppColors.lavender,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(7),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '$order',
+                        key: ValueKey<String>('vocabulary-order-${entry.id}'),
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: isDark
+                              ? theme.colorScheme.primary
+                              : AppColors.indigo,
+                          fontWeight: FontWeight.w900,
+                          height: 1,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  entry.word,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onSurface,
-                    fontSize: statusLabel == null ? null : 18,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  entry.meaning,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                if (statusLabel != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 9,
-                      vertical: 3,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    entry.word,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                      fontSize: statusLabel == null ? null : 18,
+                      fontWeight: FontWeight.w800,
                     ),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? theme.colorScheme.tertiaryContainer
-                          : AppColors.mintSoft,
-                      borderRadius: BorderRadius.circular(999),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    entry.meaning,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
-                    child: Text(
-                      statusLabel!,
-                      style: theme.textTheme.bodySmall?.copyWith(
+                  ),
+                  const SizedBox(height: 4),
+                  if (statusLabel != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
                         color: isDark
-                            ? theme.colorScheme.onTertiaryContainer
-                            : AppColors.success,
-                        fontSize: 11,
-                        height: 1.1,
-                        fontWeight: FontWeight.w700,
+                            ? theme.colorScheme.tertiaryContainer
+                            : AppColors.mintSoft,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        statusLabel!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: isDark
+                              ? theme.colorScheme.onTertiaryContainer
+                              : AppColors.success,
+                          fontSize: 11,
+                          height: 1.1,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    )
+                  else
+                    Text(
+                      entry.isStar
+                          ? '${context.tr('Ngôi sao', '星星')} • ${_dateLabel(context)}'
+                          : _dateLabel(context),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontSize: 10,
                       ),
                     ),
-                  )
-                else
-                  Text(
-                    entry.isStar
-                        ? '${context.tr('Ngôi sao', '星星')} • ${_dateLabel(context)}'
-                        : _dateLabel(context),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontSize: 10,
-                    ),
-                  ),
-              ],
+                ],
+              ),
             ),
-          ),
-          IconButton(
-            key: ValueKey<String>('vocabulary-action-${entry.id}'),
-            onPressed: canPlay ? onPlay : null,
-            icon: const Icon(Icons.volume_up_rounded),
-            tooltip: context.tr('Nghe phát âm', '播放发音'),
-            color: isDark ? theme.colorScheme.primary : AppColors.indigo,
-            style: IconButton.styleFrom(
-              minimumSize: const Size.square(44),
-              backgroundColor: isDark
-                  ? theme.colorScheme.surfaceContainerHighest
-                  : AppColors.lavenderSoft,
+            IconButton(
+              key: ValueKey<String>('vocabulary-action-${entry.id}'),
+              onPressed: canPlay ? onPlay : null,
+              icon: const Icon(Icons.volume_up_rounded),
+              tooltip: context.tr('Nghe phát âm', '播放发音'),
+              color: isDark ? theme.colorScheme.primary : AppColors.indigo,
+              style: IconButton.styleFrom(
+                minimumSize: const Size.square(44),
+                backgroundColor: isDark
+                    ? theme.colorScheme.surfaceContainerHighest
+                    : AppColors.lavenderSoft,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
