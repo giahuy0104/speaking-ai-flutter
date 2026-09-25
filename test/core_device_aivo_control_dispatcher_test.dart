@@ -116,7 +116,7 @@ void main() {
     }
   });
   test(
-    'LONG only pauses, SHORT resumes once instead of starting assistant',
+    'LONG only pauses and SHORT asks MAIN before any resume command',
     () async {
       registry.register(module);
       expect(
@@ -138,11 +138,8 @@ void main() {
         ),
         AivoControlStatus.accepted,
       );
-      expect(module.commands, [
-        ActiveLearningCommand.stop,
-        ActiveLearningCommand.resume,
-      ]);
-      expect(mainCalls, 0);
+      expect(module.commands, [ActiveLearningCommand.stop]);
+      expect(mainCalls, 1);
     },
   );
   test(
@@ -192,11 +189,8 @@ void main() {
         await dispatch(Aiv0ButtonGesture.shortPress, sequence: 8),
         AivoControlStatus.accepted,
       );
-      expect(module.commands, [
-        ActiveLearningCommand.stop,
-        ActiveLearningCommand.resume,
-      ]);
-      expect(mainCalls, 0);
+      expect(module.commands, [ActiveLearningCommand.stop]);
+      expect(mainCalls, 1);
     },
   );
   test('new physical sequence rearms even when release is missing', () async {
@@ -220,10 +214,8 @@ void main() {
       ),
       AivoControlStatus.accepted,
     );
-    expect(module.commands, [
-      ActiveLearningCommand.stop,
-      ActiveLearningCommand.resume,
-    ]);
+    expect(module.commands, [ActiveLearningCommand.stop]);
+    expect(mainCalls, 1);
   });
   test(
     'unsequenced held gesture expires and does not survive clock rollback',
@@ -383,10 +375,7 @@ void main() {
     expect(controls.history, isEmpty);
     expect(module.commands, isEmpty);
   });
-  for (final command in [
-    ActiveLearningCommand.resume,
-    ActiveLearningCommand.nextItem,
-  ]) {
+  for (final command in [ActiveLearningCommand.nextItem]) {
     test(
       'obsolete $command completion cannot clear newer MAIN ownership',
       () async {

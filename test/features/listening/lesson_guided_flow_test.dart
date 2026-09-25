@@ -838,6 +838,7 @@ void main() {
         await _pumpGuidedSpeechTurn(tester);
 
         expect(voicePrompts.spoken, <String>[
+          'vi-VN|Mình tiếp tục nhé.',
           'en-US|Sentence ${sentenceIndex + 1}',
           'vi-VN|Câu ${sentenceIndex + 1}',
           sentenceIndex == 0 ? 'vi-VN|Bạn nói lại nhé.' : 'vi-VN|Đến lượt bạn.',

@@ -59,39 +59,25 @@ void main() {
     expect(coordinator.activeModulePausedForMain, isTrue);
   });
 
-  test('resume restores the paused module once', () async {
-    final registry = ActiveLearningModuleRegistry();
-    addTearDown(registry.dispose);
-    final module = _FakeActiveModule();
-    registry.register(module);
-    final coordinator = AppFlowCoordinator(registry: registry);
-    await coordinator.pauseForMainAssistant();
+  test(
+    'owner replacement rejects the command captured for the paused route',
+    () async {
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final pausedModule = _FakeActiveModule();
+      final replacement = _FakeActiveModule();
+      registry.register(pausedModule);
+      final coordinator = AppFlowCoordinator(registry: registry);
+      await coordinator.pauseForMainAssistant();
+      registry.register(replacement);
 
-    await coordinator.resumeAfterMainAssistant();
-    await coordinator.resumeAfterMainAssistant();
+      final result = await coordinator.execute(ActiveLearningCommand.resume);
 
-    expect(module.commands, <ActiveLearningCommand>[
-      ActiveLearningCommand.resume,
-    ]);
-    expect(module.isPausedForMain, isFalse);
-    expect(coordinator.activeModulePausedForMain, isFalse);
-  });
-
-  test('navigation handoff does not resume the lesson being left', () async {
-    final registry = ActiveLearningModuleRegistry();
-    addTearDown(registry.dispose);
-    final module = _FakeActiveModule();
-    registry.register(module);
-    final coordinator = AppFlowCoordinator(registry: registry);
-    await coordinator.pauseForMainAssistant();
-
-    coordinator.forgetPausedModule();
-    await coordinator.resumeAfterMainAssistant();
-
-    expect(module.commands, isEmpty);
-    expect(module.isPausedForMain, isTrue);
-    expect(coordinator.activeModulePausedForMain, isFalse);
-  });
+      expect(result.status, ActiveLearningCommandStatus.unavailable);
+      expect(pausedModule.commands, isEmpty);
+      expect(replacement.commands, isEmpty);
+    },
+  );
 }
 
 class _FakeActiveModule implements ActiveLearningModuleController {

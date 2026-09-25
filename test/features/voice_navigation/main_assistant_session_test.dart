@@ -177,7 +177,7 @@ void main() {
   });
 
   test(
-    'failed MAIN activation resumes the interrupted learning module',
+    'failed MAIN activation keeps learning paused until a real command',
     () async {
       final module = _FakeActiveModule();
       final harness = _SessionHarness(module: module);
@@ -195,10 +195,9 @@ void main() {
       );
 
       expect(activated, isFalse);
-      expect(module.commands, <ActiveLearningCommand>[
-        ActiveLearningCommand.resume,
-      ]);
-      expect(module.isPausedForMain, isFalse);
+      expect(module.commands, isEmpty);
+      expect(module.isPausedForMain, isTrue);
+      expect(harness.coordinator.activeModulePausedForMain, isTrue);
     },
   );
 

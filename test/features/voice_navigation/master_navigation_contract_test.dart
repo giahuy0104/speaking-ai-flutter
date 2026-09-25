@@ -166,7 +166,7 @@ void main() {
   });
 
   test(
-    'song fallback repeats once then resumes the current position',
+    'song fallback repeats once then keeps the current position paused',
     () async {
       final flow = MainVoiceAssistantFlow();
       flow.beginActiveLearning(
@@ -182,8 +182,8 @@ void main() {
       expect(first.promptAudioKey, MainAssistantAudioKeys.songControls);
       expect(first.continueListening, isTrue);
       final second = await flow.handle('Mình đang ngồi đây');
-      expect(second.promptText, MasterNavigationContract.keepCurrentContent);
-      expect(second.activeLearningCommand, ActiveLearningCommand.resume);
+      expect(second.promptText, MasterNavigationContract.pause);
+      expect(second.activeLearningCommand, ActiveLearningCommand.stop);
       expect(second.continueListening, isFalse);
     },
   );
@@ -211,7 +211,7 @@ void main() {
   );
 
   test(
-    'every active learning node resumes after the second fallback',
+    'every active learning node stays paused after the second fallback',
     () async {
       for (final node in <ActiveLearningVoiceNode>[
         ActiveLearningVoiceNode.core,
@@ -235,12 +235,12 @@ void main() {
         final second = await flow.handle('Mình đang ngồi đây');
         expect(
           second.promptText,
-          MasterNavigationContract.keepCurrentContent,
+          MasterNavigationContract.pause,
           reason: '$node second fallback',
         );
         expect(
           second.activeLearningCommand,
-          ActiveLearningCommand.resume,
+          ActiveLearningCommand.stop,
           reason: '$node second fallback',
         );
         expect(second.continueListening, isFalse);
