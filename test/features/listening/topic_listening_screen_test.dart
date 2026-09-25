@@ -496,6 +496,9 @@ void main() {
         await progressStore.saveLesson(lesson.id, lesson.sentences.length);
         await progressStore.markV4LessonActivityCompleted(lesson.id);
       }
+      final progressBeforeOpen = await progressStore.readAll();
+      final activitiesBeforeOpen = await progressStore
+          .readCompletedV4LessonActivities();
       await tester.binding.setSurfaceSize(const Size(390, 844));
       addTearDown(() => tester.binding.setSurfaceSize(null));
       await tester.pumpWidget(
@@ -544,6 +547,12 @@ void main() {
       );
 
       await tester.pump(const Duration(milliseconds: 500));
+      expect(await progressStore.readAll(), progressBeforeOpen);
+      expect(
+        await progressStore.readCompletedV4LessonActivities(),
+        activitiesBeforeOpen,
+      );
+      expect(progressStore.coreStarted, isFalse);
       Navigator.of(
         tester.element(find.byType(TopicLessonListScreen, skipOffstage: false)),
         rootNavigator: true,
@@ -611,10 +620,12 @@ void main() {
     tester,
   ) async {
     final content = _legacySongCatalog();
+    final progressStore = _MemoryProgressStore();
     await tester.pumpWidget(
       buildSubject(
         childAge: 6,
         contentFuture: Future<ListeningContentCatalog>.value(content),
+        progressStore: progressStore,
       ),
     );
     await tester.pumpAndSettle();
@@ -629,6 +640,10 @@ void main() {
     );
     expect(lessonList.initialLessonId, 'legacy-song-1');
     expect(lessonList.content.songs.single.id, lessonList.initialLessonId);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(await progressStore.readAll(), isEmpty);
+    expect(await progressStore.readCompletedV4LessonActivities(), isEmpty);
+    expect(progressStore.coreStarted, isFalse);
   });
 
   testWidgets(
