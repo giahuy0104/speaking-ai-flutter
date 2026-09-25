@@ -1184,7 +1184,8 @@ class RunnerTests: XCTestCase {
     )
     buffer.frameLength = 320
     let channels = try XCTUnwrap(buffer.floatChannelData)
-    for index in 0..<320 { channels[0][index] = 0.001 }
+    let quietSample = Float(pow(10.0, -49.5 / 20.0))
+    for index in 0..<320 { channels[0][index] = quietSample }
 
     let gainDb = VoicePromptBridge.lessonRecordingGainDb(
       channels: channels,
