@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:ai_speaking_flutter_app/features/listening/data/listening_progress_store.dart';
+import 'package:ai_speaking_flutter_app/features/listening/domain/challenge_completion.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -260,6 +261,95 @@ void main() {
         4,
       );
       expect(await fixture.store.readAll(), isEmpty);
+    },
+  );
+
+  test(
+    'Challenge completion serializes duplicate lifecycle commits exactly once',
+    () async {
+      final fixture = await _ProgressFixture.create();
+      addTearDown(fixture.dispose);
+      await fixture.store.saveCurrentChallengeIndex('lesson-challenge', 2);
+      const result = ChallengeCompletionResult(
+        operationId: 41,
+        challengeId: 'challenge-3',
+        challengeIndex: 2,
+        targetId: 'target-3',
+        outcome: ChallengeCompletionOutcome.correct,
+      );
+
+      final commits = await Future.wait<bool>(<Future<bool>>[
+        fixture.store.commitChallengeCompletion(
+          lessonId: 'lesson-challenge',
+          result: result,
+          challengeCount: 4,
+          nextStage: ListeningResumeStage.song,
+        ),
+        fixture.store.commitChallengeCompletion(
+          lessonId: 'lesson-challenge',
+          result: result,
+          challengeCount: 4,
+          nextStage: ListeningResumeStage.song,
+        ),
+      ]);
+
+      expect(commits.where((applied) => applied), hasLength(1));
+      expect(
+        await fixture.store.readChallengeCompletionOutcome(
+          'lesson-challenge',
+          'challenge-3',
+        ),
+        ChallengeCompletionOutcome.correct,
+      );
+      expect(
+        await fixture.store.readCurrentChallengeIndex('lesson-challenge'),
+        isNull,
+      );
+      expect(
+        await fixture.store.readChallengeRotationMask('lesson-challenge'),
+        1 << 2,
+      );
+      expect(
+        await fixture.store.hasProcessedLessonChallenge('lesson-challenge'),
+        isTrue,
+      );
+      expect(
+        await fixture.store.readResumeStage('lesson-challenge'),
+        ListeningResumeStage.song,
+      );
+    },
+  );
+
+  test(
+    'Challenge completion without Song persists completed atomically',
+    () async {
+      final fixture = await _ProgressFixture.create();
+      addTearDown(fixture.dispose);
+
+      expect(
+        await fixture.store.commitChallengeCompletion(
+          lessonId: 'lesson-without-song',
+          result: const ChallengeCompletionResult(
+            operationId: 42,
+            challengeId: 'challenge-1',
+            challengeIndex: 0,
+            targetId: 'target-1',
+            outcome: ChallengeCompletionOutcome.needsPractice,
+          ),
+          challengeCount: 1,
+          nextStage: ListeningResumeStage.completed,
+        ),
+        isTrue,
+      );
+
+      expect(
+        await fixture.store.readResumeStage('lesson-without-song'),
+        ListeningResumeStage.completed,
+      );
+      expect(
+        await fixture.store.hasCompletedV4LessonActivity('lesson-without-song'),
+        isTrue,
+      );
     },
   );
 

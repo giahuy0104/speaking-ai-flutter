@@ -7,6 +7,7 @@ import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
+import 'package:ai_speaking_flutter_app/features/listening/domain/challenge_completion.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/lesson_guide_flow.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_challenge_screen.dart';
@@ -183,6 +184,78 @@ void main() {
       ]),
     );
   });
+
+  testWidgets('Challenge route returns one typed completion result', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final completion = Completer<ChallengeCompletionResult?>();
+    final media = _FakeLessonMediaService();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: FilledButton(
+              key: const Key('open-typed-challenge'),
+              onPressed: () {
+                Navigator.of(context)
+                    .push<ChallengeCompletionResult>(
+                      MaterialPageRoute<ChallengeCompletionResult>(
+                        builder: (_) => LessonChallengeScreen(
+                          language: DisplayLanguage.vietnamese,
+                          startAge: 7,
+                          lesson: _lesson(),
+                          challenges: const <ListeningChallengeContent>[
+                            ListeningChallengeContent(
+                              id: 'challenge-1',
+                              format: 'VI_TO_EN',
+                              prompt: 'Where is the library?',
+                              choices: <String>[
+                                'Go straight.',
+                                'It is five dollars.',
+                              ],
+                              correctAnswer: 'Go straight.',
+                              correctVietnamese: 'Đi thẳng.',
+                              targetId: 'target-1',
+                            ),
+                          ],
+                          challengeOperationId: 77,
+                          challengeBankIndex: 2,
+                          mediaService: media,
+                          attemptEvaluator: const _AlwaysGoodAttemptEvaluator(),
+                          voicePromptService: const _FakeVoicePromptService(),
+                        ),
+                      ),
+                    )
+                    .then(completion.complete);
+              },
+              child: const Text('Open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const Key('open-typed-challenge')));
+    await _pumpChallengeTransition(tester);
+    await tester.tap(find.byKey(const Key('lesson-challenge-record-button')));
+    await _pumpChallengeTransition(tester);
+
+    final result = await completion.future;
+    expect(
+      result,
+      const ChallengeCompletionResult(
+        operationId: 77,
+        challengeId: 'challenge-1',
+        challengeIndex: 2,
+        targetId: 'target-1',
+        outcome: ChallengeCompletionOutcome.correct,
+      ),
+    );
+    expect(find.byKey(const Key('lesson-challenge-screen')), findsNothing);
+  });
+
   testWidgets('Challenge resume uses only RESUME_CHALLENGE before replay', (
     tester,
   ) async {
