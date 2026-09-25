@@ -917,6 +917,55 @@ void main() {
   );
 
   testWidgets(
+    'iOS background handoff failure keeps Challenge on the same attempt',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      await _usePhoneSurface(tester);
+      final media = _FakeLessonMediaService();
+      final backend = _FailIfCalledAttemptEvaluator();
+      final speechInput = _FakeLessonEnglishSpeechInput(
+        '',
+        startError: const StreamingSpeechInputException(
+          'Micro tạm dừng khi ứng dụng ở nền. '
+          'Hãy mở lại HOMI và thử đúng câu này.',
+          code: 'IOS_SPEECH_BACKGROUND_AUDIO_HANDOFF_UNAVAILABLE',
+        ),
+      );
+      var starCommits = 0;
+      var practiceCommits = 0;
+
+      await tester.pumpWidget(
+        _subject(
+          startAge: 7,
+          mediaService: media,
+          iosSpeechInput: speechInput,
+          attemptEvaluator: backend,
+          onStarEarned: (_, _, _) async {
+            starCommits += 1;
+          },
+          onNeedsPractice: (_, _, _) async {
+            practiceCommits += 1;
+          },
+        ),
+      );
+      await _pumpChallengeTransition(tester);
+
+      expect(speechInput.startCalls, 1);
+      expect(speechInput.cancelCalls, 1);
+      expect(media.recordingStarts, 0);
+      expect(media.nativeCaptureHandoffs, 0);
+      expect(backend.evaluationCalls, 0);
+      expect(starCommits, 0);
+      expect(practiceCommits, 0);
+      expect(find.textContaining('thử đúng câu này'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      debugDefaultTargetPlatformOverride = null;
+    },
+  );
+
+  testWidgets(
     'iOS challenge surfaces Speech permission denial without backend fallback',
     (tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;

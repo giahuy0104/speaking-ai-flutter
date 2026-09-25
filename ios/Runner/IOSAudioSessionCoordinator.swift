@@ -125,6 +125,11 @@ protocol IOSBackgroundCaptureHandoffDelegate: AnyObject {
   )
 
   func disarmBackgroundAudioHandoff(caller: String)
+
+  func backgroundAudioRouteDidChange(
+    reason: AVAudioSession.RouteChangeReason,
+    previousInputTypes: [AVAudioSession.Port]
+  )
 }
 
 /// The single writer for AVAudioSession during an iOS MAIN turn.
@@ -1131,13 +1136,21 @@ final class IOSAudioSessionCoordinator: NSObject {
 
   private func recordRouteChange(_ notification: Notification) {
     let rawReason = (notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? NSNumber)?.uintValue ?? 0
-    let previous = (notification.userInfo?[AVAudioSessionRouteChangePreviousRouteKey] as? AVAudioSessionRouteDescription)
-      .map { routeDescription($0) } ?? "unknown"
+    let previousRoute = notification.userInfo?[
+      AVAudioSessionRouteChangePreviousRouteKey
+    ] as? AVAudioSessionRouteDescription
+    let previous = previousRoute.map { routeDescription($0) } ?? "unknown"
     trace(
       stage: "routeChange",
       caller: "AVAudioSession",
       message: "reason=\(rawReason) before=\(previous) after=\(routeDescription())"
     )
+    if let reason = AVAudioSession.RouteChangeReason(rawValue: rawReason) {
+      backgroundCaptureHandoffDelegate?.backgroundAudioRouteDidChange(
+        reason: reason,
+        previousInputTypes: previousRoute?.inputs.map(\.portType) ?? []
+      )
+    }
     // `setActive(false)` may return before `currentRoute` has finished leaving
     // BluetoothHFP. Notify BLE again on the authoritative route-change event so
     // a reconnect deferred by the immediate callback cannot remain stranded.

@@ -208,6 +208,66 @@ void main() {
     expect(input.takeFallbackAudioCapture(), isNull);
   });
 
+  test(
+    'iOS background handoff failure stays recoverable without a second mic',
+    () async {
+      const methodChannel = MethodChannel(
+        'test_ios_background_handoff_failure',
+      );
+      final events = StreamController<dynamic>.broadcast();
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      var nativeStartCount = 0;
+      messenger.setMockMethodCallHandler(methodChannel, (call) async {
+        switch (call.method) {
+          case 'speech.isAvailable':
+            return true;
+          case 'speech.start':
+            nativeStartCount += 1;
+            scheduleMicrotask(() {
+              events.add(<String, dynamic>{
+                'type': 'speech.error',
+                'code': 'BACKGROUND_AUDIO_HANDOFF_UNAVAILABLE',
+                'message':
+                    'Micro tạm dừng khi ứng dụng ở nền. '
+                    'Hãy mở lại HOMI và thử đúng câu này.',
+              });
+            });
+            return true;
+          case 'speech.cancel':
+            return true;
+        }
+        return null;
+      });
+      addTearDown(() async {
+        messenger.setMockMethodCallHandler(methodChannel, null);
+        await events.close();
+      });
+      final input = IOSStreamingSpeechInput(
+        methodChannel: methodChannel,
+        eventStream: events.stream,
+      );
+      addTearDown(input.dispose);
+
+      await expectLater(
+        input.startLessonEnglishRecognitionWithRecording(
+          '/tmp/challenge-attempt.wav',
+        ),
+        throwsA(
+          isA<StreamingSpeechInputException>().having(
+            (error) => error.code,
+            'code',
+            'IOS_SPEECH_BACKGROUND_AUDIO_HANDOFF_UNAVAILABLE',
+          ),
+        ),
+      );
+
+      expect(nativeStartCount, 1);
+      expect(input.takeFallbackAudioCapture(), isNull);
+      expect(input.takeLessonRecordingAudioCapture(), isNull);
+    },
+  );
+
   test('iOS MAIN releases the selected H20 HFP route after a turn', () async {
     const methodChannel = MethodChannel('test_ios_native_hfp_route');
     final events = StreamController<dynamic>.broadcast();

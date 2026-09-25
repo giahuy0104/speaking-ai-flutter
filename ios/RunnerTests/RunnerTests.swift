@@ -236,6 +236,158 @@ class RunnerTests: XCTestCase {
     )
   }
 
+  func testBackgroundAudioHandoffSpeechStartOwnsEveryScreenOffBoundary() {
+    XCTAssertEqual(
+      IOSBackgroundAudioHandoffPolicy.speechStartDecision(
+        phase: .idle,
+        operationSource: nil,
+        requestedSource: .hfp,
+        engineIsValid: false,
+        applicationIsActive: true
+      ),
+      .startForeground
+    )
+    XCTAssertEqual(
+      IOSBackgroundAudioHandoffPolicy.speechStartDecision(
+        phase: .idle,
+        operationSource: nil,
+        requestedSource: .hfp,
+        engineIsValid: false,
+        applicationIsActive: false
+      ),
+      .recoverableFailure
+    )
+    XCTAssertEqual(
+      IOSBackgroundAudioHandoffPolicy.speechStartDecision(
+        phase: .arming,
+        operationSource: .hfp,
+        requestedSource: .hfp,
+        engineIsValid: false,
+        applicationIsActive: false
+      ),
+      .waitForOperation
+    )
+    XCTAssertEqual(
+      IOSBackgroundAudioHandoffPolicy.speechStartDecision(
+        phase: .armed,
+        operationSource: .hfp,
+        requestedSource: .hfp,
+        engineIsValid: true,
+        applicationIsActive: false
+      ),
+      .adoptArmed
+    )
+    XCTAssertEqual(
+      IOSBackgroundAudioHandoffPolicy.speechStartDecision(
+        phase: .capturing,
+        operationSource: .builtInMic,
+        requestedSource: .builtInMic,
+        engineIsValid: true,
+        applicationIsActive: false
+      ),
+      .adoptArmed
+    )
+    XCTAssertEqual(
+      IOSBackgroundAudioHandoffPolicy.speechStartDecision(
+        phase: .failed,
+        operationSource: .hfp,
+        requestedSource: .hfp,
+        engineIsValid: false,
+        applicationIsActive: false
+      ),
+      .recoverableFailure
+    )
+    XCTAssertEqual(
+      IOSBackgroundAudioHandoffPolicy.speechStartDecision(
+        phase: .failed,
+        operationSource: .hfp,
+        requestedSource: .hfp,
+        engineIsValid: false,
+        applicationIsActive: true
+      ),
+      .startForeground
+    )
+  }
+
+  func testBackgroundAudioHandoffRejectsStaleOrWrongSourceCompletion() {
+    XCTAssertTrue(
+      IOSBackgroundAudioHandoffPolicy.ownsTransition(
+        operation: 7,
+        currentOperation: 7,
+        source: .hfp,
+        currentSource: .hfp
+      )
+    )
+    XCTAssertFalse(
+      IOSBackgroundAudioHandoffPolicy.ownsTransition(
+        operation: 6,
+        currentOperation: 7,
+        source: .hfp,
+        currentSource: .hfp
+      )
+    )
+    XCTAssertFalse(
+      IOSBackgroundAudioHandoffPolicy.ownsTransition(
+        operation: 7,
+        currentOperation: 7,
+        source: .builtInMic,
+        currentSource: .hfp
+      )
+    )
+  }
+
+  func testBackgroundAudioHandoffOnlyTreatsAnOwnedArmingRouteAsDisconnected() {
+    XCTAssertFalse(
+      IOSBackgroundAudioHandoffPolicy.shouldInvalidateForRouteChange(
+        phase: .arming,
+        reason: .oldDeviceUnavailable,
+        previousRouteMatchedSource: false
+      )
+    )
+    XCTAssertTrue(
+      IOSBackgroundAudioHandoffPolicy.shouldInvalidateForRouteChange(
+        phase: .arming,
+        reason: .oldDeviceUnavailable,
+        previousRouteMatchedSource: true
+      )
+    )
+    XCTAssertFalse(
+      IOSBackgroundAudioHandoffPolicy.shouldInvalidateForRouteChange(
+        phase: .arming,
+        reason: .categoryChange,
+        previousRouteMatchedSource: true
+      )
+    )
+    XCTAssertTrue(
+      IOSBackgroundAudioHandoffPolicy.shouldInvalidateForRouteChange(
+        phase: .armed,
+        reason: .routeConfigurationChange,
+        previousRouteMatchedSource: false
+      )
+    )
+    XCTAssertTrue(
+      IOSBackgroundAudioHandoffPolicy.routeRemainsValid(
+        sourceMatches: true,
+        snapshot: "in=[BluetoothHFP:H20 A]",
+        currentRoute: "in=[BluetoothHFP:H20 A]"
+      )
+    )
+    XCTAssertFalse(
+      IOSBackgroundAudioHandoffPolicy.routeRemainsValid(
+        sourceMatches: true,
+        snapshot: "in=[BluetoothHFP:H20 A]",
+        currentRoute: "in=[BluetoothHFP:H20 B]"
+      )
+    )
+    XCTAssertFalse(
+      IOSBackgroundAudioHandoffPolicy.routeRemainsValid(
+        sourceMatches: true,
+        snapshot: nil,
+        currentRoute: "in=[BluetoothHFP:H20 A]"
+      )
+    )
+  }
+
   func testH20RemoteControlsNeverInventAPhysicalButtonOrBLEPacket() {
     for command in ["play", "pause", "togglePlayPause", "nextTrack", "previousTrack"] {
       let event = H20RemoteControlPolicy.observation(
@@ -443,6 +595,26 @@ class RunnerTests: XCTestCase {
     XCTAssertTrue(IOSAudioEngineStartupPolicy.shouldRetry(afterAttempt: 1))
     XCTAssertFalse(IOSAudioEngineStartupPolicy.shouldRetry(afterAttempt: 2))
     XCTAssertGreaterThan(IOSAudioEngineStartupPolicy.retryDelayNanoseconds, 0)
+    let backgroundStartError = NSError(
+      domain: "com.apple.coreaudio.avfaudio",
+      code: 2_003_329_396
+    )
+    XCTAssertEqual(
+      IOSAudioEngineStartupPolicy.disposition(
+        after: backgroundStartError,
+        attempt: 1,
+        applicationIsActive: false
+      ),
+      .recoverableBackgroundFailure
+    )
+    XCTAssertEqual(
+      IOSAudioEngineStartupPolicy.disposition(
+        after: backgroundStartError,
+        attempt: 1,
+        applicationIsActive: true
+      ),
+      .retry
+    )
   }
 
   func testIOSAudioOwnershipKeepsActiveLessonAcrossBackgroundAudioGap() {
