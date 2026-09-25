@@ -505,6 +505,8 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   final MethodChannel _methodChannel;
   final EventChannel _eventChannel;
   final Duration _batteryRefreshInterval;
+  static int _lastEventListenerGeneration = 0;
+  final int _eventListenerGeneration = _claimEventListenerGeneration();
   final _statusController = StreamController<Aiv0BleStatus>.broadcast();
   final _buttonController = StreamController<Aiv0ButtonEvent>.broadcast();
   static const _lastDeviceIdPreference = 'aiv0_ble_last_device_id';
@@ -530,16 +532,20 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   @override
   Future<void> initialize() async {
     if (!_enabled || _eventSubscription != null) return;
-    _eventSubscription = _eventChannel.receiveBroadcastStream().listen(
-      _handleEvent,
-      onError: (Object error) => _setStatus(
-        Aiv0BleStatus(
-          phase: Aiv0BlePhase.error,
-          protocolConfirmed: _codec.confirmed,
-          message: error.toString(),
-        ),
-      ),
-    );
+    _eventSubscription = _eventChannel
+        .receiveBroadcastStream(<String, Object?>{
+          'listenerGeneration': _eventListenerGeneration,
+        })
+        .listen(
+          _handleEvent,
+          onError: (Object error) => _setStatus(
+            Aiv0BleStatus(
+              phase: Aiv0BlePhase.error,
+              protocolConfirmed: _codec.confirmed,
+              message: error.toString(),
+            ),
+          ),
+        );
     final map = await _methodChannel.invokeMapMethod<Object?, Object?>(
       'initialize',
     );
@@ -803,6 +809,11 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
 
   void _handleEvent(Object? event) {
     if (event is! Map<Object?, Object?>) return;
+    final listenerGeneration = (event['listenerGeneration'] as num?)?.toInt();
+    if (listenerGeneration != null &&
+        listenerGeneration != _eventListenerGeneration) {
+      return;
+    }
     if (event['type'] == 'controlObservation') {
       final source = event['source']?.toString();
       if (source != 'iosRemoteCommand' && source != 'androidMediaKey') return;
@@ -887,6 +898,15 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
       return;
     }
     _updateStatus(event);
+  }
+
+  static int _claimEventListenerGeneration() {
+    final clockGeneration = DateTime.now().microsecondsSinceEpoch;
+    final generation = clockGeneration > _lastEventListenerGeneration
+        ? clockGeneration
+        : _lastEventListenerGeneration + 1;
+    _lastEventListenerGeneration = generation;
+    return generation;
   }
 
   void _updateStatus(Map<Object?, Object?> map) {

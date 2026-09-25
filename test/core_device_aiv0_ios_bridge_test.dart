@@ -35,6 +35,64 @@ void main() {
   });
 
   test(
+    'one current listener packet is delivered once and a stale packet is ignored',
+    () async {
+      final eventChannelCalls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(events, (call) async {
+            eventChannelCalls.add(call);
+            return null;
+          });
+      final control = MethodChannelAiv0BleControl(
+        enabled: true,
+        draftProtocolConfirmed: false,
+      );
+      final received = <Aiv0ButtonEvent>[];
+      final subscription = control.buttonEvents.listen(received.add);
+
+      await control.initialize();
+      final listenCall = eventChannelCalls.singleWhere(
+        (call) => call.method == 'listen',
+      );
+      final listenArguments = listenCall.arguments as Map<Object?, Object?>;
+      final generation = (listenArguments['listenerGeneration'] as num).toInt();
+
+      Future<void> emit(int listenerGeneration) async {
+        await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .handlePlatformMessage(
+              events.name,
+              const StandardMethodCodec().encodeSuccessEnvelope(
+                <String, Object?>{
+                  'type': 'button',
+                  'listenerGeneration': listenerGeneration,
+                  'bytes': <int>[1, 1, 7, 1, 255, 255, 100, 0, 16, 0, 0, 0],
+                },
+              ),
+              (_) {},
+            );
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      await emit(generation - 1);
+      await emit(generation);
+
+      expect(received, hasLength(1));
+      expect(received.single.button, Aiv0Button.main);
+      expect(received.single.gesture, Aiv0ButtonGesture.shortPress);
+
+      await subscription.cancel();
+      await control.dispose();
+      final cancelCall = eventChannelCalls.singleWhere(
+        (call) => call.method == 'cancel',
+      );
+      expect(
+        (cancelCall.arguments as Map<Object?, Object?>)['listenerGeneration'],
+        generation,
+      );
+    },
+  );
+
+  test(
     'control context is forwarded without starting audio or recording',
     () async {
       final calls = <MethodCall>[];

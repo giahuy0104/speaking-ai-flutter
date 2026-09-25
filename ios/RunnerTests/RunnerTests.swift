@@ -113,6 +113,35 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(buffer.count, 0)
   }
 
+  func testAiv0EventListenerGenerationPreservesTheNewestSink() {
+    var state = Aiv0EventListenerGenerationState()
+
+    XCTAssertEqual(
+      state.attach(arguments: ["listenerGeneration": 101]),
+      101
+    )
+    XCTAssertEqual(
+      state.attach(arguments: ["listenerGeneration": 102]),
+      102
+    )
+    XCTAssertFalse(state.detach(arguments: ["listenerGeneration": 101]))
+    XCTAssertEqual(state.activeGeneration, 102)
+    XCTAssertTrue(state.detach(arguments: ["listenerGeneration": 102]))
+    XCTAssertNil(state.activeGeneration)
+  }
+
+  func testAiv0PendingButtonEventsAreRetargetedToTheAttachedListener() {
+    var buffer = Aiv0PendingButtonEventBuffer(capacity: 2)
+    buffer.append(["sequence": 7])
+
+    let drained = buffer.drain(listenerGeneration: 202)
+
+    XCTAssertEqual(drained.count, 1)
+    XCTAssertEqual(drained[0]["sequence"] as? Int, 7)
+    XCTAssertEqual(drained[0]["listenerGeneration"] as? Int, 202)
+    XCTAssertEqual(buffer.count, 0)
+  }
+
   func testAiv0ReconnectPolicyRecoversMainImmediatelyThenUsesBoundedBackoff() {
     XCTAssertEqual(Aiv0ReconnectPolicy.maxAttempts, 5)
     XCTAssertEqual(Aiv0ReconnectPolicy.delaySeconds(forAttempt: 1), 0)

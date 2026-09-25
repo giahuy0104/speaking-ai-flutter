@@ -70,14 +70,69 @@ struct Aiv0PendingButtonEventBuffer {
     events.append(event)
   }
 
-  mutating func drain() -> [[String: Any]] {
+  mutating func drain(listenerGeneration: Int? = nil) -> [[String: Any]] {
     let pending = events
     events.removeAll(keepingCapacity: true)
-    return pending
+    guard let listenerGeneration else { return pending }
+    return pending.map { event in
+      var delivered = event
+      delivered["listenerGeneration"] = listenerGeneration
+      return delivered
+    }
   }
 
   mutating func removeAll() {
     events.removeAll(keepingCapacity: false)
+  }
+}
+
+/// Identifies the Flutter EventChannel subscription that owns the current
+/// sink. A delayed cancel from an older subscription must not detach the newer
+/// sink, and a delayed envelope must not be accepted by a newer Dart owner.
+struct Aiv0EventListenerGenerationState {
+  private(set) var activeGeneration: Int?
+  private var fallbackGeneration = 0
+
+  mutating func attach(arguments: Any?) -> Int {
+    let supplied = Self.generation(from: arguments)
+    let generation = supplied ?? (fallbackGeneration + 1)
+    fallbackGeneration = max(fallbackGeneration, generation)
+    activeGeneration = generation
+    return generation
+  }
+
+  mutating func detach(arguments: Any?) -> Bool {
+    guard let activeGeneration else { return false }
+    if let cancellingGeneration = Self.generation(from: arguments),
+      cancellingGeneration != activeGeneration
+    {
+      return false
+    }
+    self.activeGeneration = nil
+    return true
+  }
+
+  mutating func reset() {
+    activeGeneration = nil
+  }
+
+  func tag(_ event: [String: Any], generation: Int? = nil) -> [String: Any] {
+    guard let generation = generation ?? activeGeneration else { return event }
+    var tagged = event
+    tagged["listenerGeneration"] = generation
+    return tagged
+  }
+
+  private static func generation(from arguments: Any?) -> Int? {
+    guard let values = arguments as? [String: Any] else { return nil }
+    if let value = values["listenerGeneration"] as? Int, value > 0 {
+      return value
+    }
+    if let value = values["listenerGeneration"] as? NSNumber {
+      let generation = value.intValue
+      return generation > 0 ? generation : nil
+    }
+    return nil
   }
 }
 
@@ -356,6 +411,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   private let eventChannel: FlutterEventChannel
   private let audioSessionCoordinator: IOSAudioSessionCoordinator
   private var eventSink: FlutterEventSink?
+  private var eventListenerGeneration = Aiv0EventListenerGenerationState()
   private var pendingButtonEvents = Aiv0PendingButtonEventBuffer()
   private var central: CBCentralManager?
   private var discoveredDevices: [UUID: DiscoveredDevice] = [:]
@@ -1476,14 +1532,14 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
 
   private func emitStatus() {
     guard !disposed else { return }
-    eventSink?(snapshot())
+    eventSink?(eventListenerGeneration.tag(snapshot()))
   }
 
   @discardableResult
   private func emitButtonEvent(_ event: [String: Any]) -> Bool {
     guard !disposed else { return false }
-    if let eventSink {
-      eventSink(event)
+    if let eventSink, eventListenerGeneration.activeGeneration != nil {
+      eventSink(eventListenerGeneration.tag(event))
     } else {
       pendingButtonEvents.append(event)
     }
@@ -1491,15 +1547,19 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   }
 
   func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+    let generation = eventListenerGeneration.attach(arguments: arguments)
     eventSink = events
     updateRemoteMainCommandAvailability(reason: "event_listener_attached")
-    events(snapshot())
-    let pendingEvents = pendingButtonEvents.drain()
+    events(eventListenerGeneration.tag(snapshot(), generation: generation))
+    let pendingEvents = pendingButtonEvents.drain(listenerGeneration: generation)
     if !pendingEvents.isEmpty {
       audioSessionCoordinator.trace(
         stage: "MAIN_EVENT_PENDING_DRAINED",
         caller: "Aiv0BleControlBridge.onListen",
-        values: ["count": pendingEvents.count]
+        values: [
+          "count": pendingEvents.count,
+          "listenerGeneration": generation,
+        ]
       )
     }
     for event in pendingEvents {
@@ -1509,6 +1569,16 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   }
 
   func onCancel(withArguments arguments: Any?) -> FlutterError? {
+    guard eventListenerGeneration.detach(arguments: arguments) else {
+      audioSessionCoordinator.trace(
+        stage: "MAIN_EVENT_STALE_LISTENER_CANCEL_IGNORED",
+        caller: "Aiv0BleControlBridge.onCancel",
+        values: [
+          "activeListenerGeneration": eventListenerGeneration.activeGeneration ?? 0,
+        ]
+      )
+      return nil
+    }
     eventSink = nil
     setRemoteMainCommandsEnabled(false, reason: "event_listener_detached")
     return nil
@@ -1551,6 +1621,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     pendingWriteResult?(FlutterError(code: "BLE_DISPOSED", message: "Đã đóng cầu nối BLE.", details: nil))
     pendingWriteResult = nil
     eventSink = nil
+    eventListenerGeneration.reset()
     pendingButtonEvents.removeAll()
     for token in controlNotificationTokens {
       NotificationCenter.default.removeObserver(token)
