@@ -133,6 +133,7 @@ class VoiceNavigationController extends ChangeNotifier {
   bool _starting = false;
   bool _listening = false;
   bool _finishing = false;
+  bool Function()? _activeLearningContextIsCurrent;
   bool _speechDetected = false;
   int _speechActivitySamples = 0;
   bool _awaitingCommand = false;
@@ -203,6 +204,7 @@ class VoiceNavigationController extends ChangeNotifier {
     bool activeLearning = false,
     ActiveLearningModuleKind? activeLearningKind,
     ActiveLearningVoiceContext? activeVoiceContext,
+    bool Function()? activeLearningContextIsCurrent,
     String? inputLabelOverride,
     bool promptAlreadySpoken = false,
     String? noSpeechRetryPrompt,
@@ -231,6 +233,9 @@ class VoiceNavigationController extends ChangeNotifier {
       diagnosticActiveLearningKind: activeLearning ? activeLearningKind : null,
       diagnosticActiveLearningNode: activeLearning
           ? activeVoiceContext?.mainVoiceNode
+          : null,
+      activeLearningContextIsCurrent: activeLearning
+          ? activeLearningContextIsCurrent
           : null,
     );
   }
@@ -309,6 +314,7 @@ class VoiceNavigationController extends ChangeNotifier {
     String? noSpeechExitPrompt,
     ActiveLearningModuleKind? diagnosticActiveLearningKind,
     ActiveLearningVoiceNode? diagnosticActiveLearningNode,
+    bool Function()? activeLearningContextIsCurrent,
   }) async {
     if (_disposed) {
       return false;
@@ -322,8 +328,17 @@ class VoiceNavigationController extends ChangeNotifier {
       if (_disposed || activationGeneration != _generation) {
         return false;
       }
+      if (activeLearningContextIsCurrent != null &&
+          !activeLearningContextIsCurrent()) {
+        return false;
+      }
+      _activeLearningContextIsCurrent = activeLearningContextIsCurrent;
       await _beginNativeMainTurn(_generation);
-      if (_disposed || activationGeneration != _generation) return false;
+      if (_disposed ||
+          activationGeneration != _generation ||
+          !_isActiveLearningContextCurrent()) {
+        return false;
+      }
       _activeInputLabelOverride = inputLabelOverride;
       _lastError = null;
       _buttonCommandSession = true;
@@ -352,7 +367,11 @@ class VoiceNavigationController extends ChangeNotifier {
             _mainAssistantFlow.currentPromptAudioKey,
         speakPrompt: !promptAlreadySpoken,
       );
-      if (_disposed || generation != _generation) return false;
+      if (_disposed ||
+          generation != _generation ||
+          !_isActiveLearningContextCurrent()) {
+        return false;
+      }
       if (!acknowledged) {
         _buttonCommandSession = false;
         _continuousRequested = false;
@@ -391,6 +410,7 @@ class VoiceNavigationController extends ChangeNotifier {
     _buttonCommandSession = false;
     _mainNoSpeechRetryCount = 0;
     _mainPrematureCompletionRecoveryCount = 0;
+    _activeLearningContextIsCurrent = null;
     if (!preserveChoice) _mainAssistantFlow.reset();
     final endingGeneration = _generation;
     _generation += 1;
@@ -493,6 +513,11 @@ class VoiceNavigationController extends ChangeNotifier {
     String recognizedText,
     int generation,
   ) async {
+    if (!_isActiveLearningContextCurrent()) {
+      await _cancelStaleActiveLearningTurn(generation);
+      return false;
+    }
+    final activeLearningContextIsCurrent = _activeLearningContextIsCurrent;
     AudioDiagnostics.event('main.command.received', {
       'generation': generation,
       'characters': recognizedText.length,
@@ -613,6 +638,15 @@ class VoiceNavigationController extends ChangeNotifier {
     });
     final activeLearningCommand = turn.activeLearningCommand;
     if (activeLearningCommand != null) {
+      if (activeLearningContextIsCurrent != null &&
+          !activeLearningContextIsCurrent()) {
+        AudioDiagnostics.event('main.active_learning.cancelled', {
+          'generation': generation,
+          'command': activeLearningCommand.name,
+          'reason': 'owner_changed',
+        });
+        return false;
+      }
       final handler = _activeLearningCommandHandler;
       if (handler != null) {
         AudioDiagnostics.event('main.active_learning.dispatch', {
@@ -661,6 +695,26 @@ class VoiceNavigationController extends ChangeNotifier {
     }
   }
 
+  bool _isActiveLearningContextCurrent() {
+    final validator = _activeLearningContextIsCurrent;
+    if (validator == null) return true;
+    try {
+      return validator();
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _cancelStaleActiveLearningTurn(int generation) async {
+    AudioDiagnostics.event('main.active_learning.cancelled', {
+      'generation': generation,
+      'reason': 'owner_changed_before_resolve',
+    });
+    await _suspendForExternalSpeechHandoff();
+    _mainAssistantFlow.reset();
+    await _endNativeMainTurn('active_owner_changed', generation: generation);
+  }
+
   Future<bool> _acknowledgeWakeWord(
     int generation, {
     String? promptText,
@@ -670,6 +724,7 @@ class VoiceNavigationController extends ChangeNotifier {
     bool openCommandWindow = true,
     bool speakPrompt = true,
   }) async {
+    if (!_isActiveLearningContextCurrent()) return false;
     if (_acknowledgingWakeWord) {
       return true;
     }
@@ -696,7 +751,9 @@ class VoiceNavigationController extends ChangeNotifier {
             'generation': generation,
             'characters': utterance.text.length,
           });
-          if (_disposed || generation != _generation) {
+          if (_disposed ||
+              generation != _generation ||
+              !_isActiveLearningContextCurrent()) {
             return false;
           }
           final Future<Duration?>? budgetLookup =
@@ -721,7 +778,11 @@ class VoiceNavigationController extends ChangeNotifier {
                   const Duration(milliseconds: 700),
                   onTimeout: () => null,
                 );
-          if (_disposed || generation != _generation) return false;
+          if (_disposed ||
+              generation != _generation ||
+              !_isActiveLearningContextCurrent()) {
+            return false;
+          }
           AudioDiagnostics.event('main.prompt.budget_ready', {
             'generation': generation,
             'budgetMs': budget?.inMilliseconds,
@@ -732,7 +793,11 @@ class VoiceNavigationController extends ChangeNotifier {
               !await _prepareSelectedOutput()) {
             throw StateError('Selected H20 audio route is unavailable.');
           }
-          if (_disposed || generation != _generation) return false;
+          if (_disposed ||
+              generation != _generation ||
+              !_isActiveLearningContextCurrent()) {
+            return false;
+          }
           final audioKey = utterance.audioKey;
           final promptPlayback =
               !kIsWeb &&
@@ -791,7 +856,9 @@ class VoiceNavigationController extends ChangeNotifier {
       }
       return false;
     }
-    if (_disposed || generation != _generation) {
+    if (_disposed ||
+        generation != _generation ||
+        !_isActiveLearningContextCurrent()) {
       return false;
     }
     if (!openCommandWindow) {
@@ -823,7 +890,9 @@ class VoiceNavigationController extends ChangeNotifier {
         _lastError = error;
       }
     }
-    if (_disposed || generation != _generation) {
+    if (_disposed ||
+        generation != _generation ||
+        !_isActiveLearningContextCurrent()) {
       return false;
     }
     // Keep the visible prompt state through the ready cue. The previous gap
@@ -1002,7 +1071,8 @@ class VoiceNavigationController extends ChangeNotifier {
     if (_disposed ||
         !_continuousRequested ||
         generation != _generation ||
-        isActive) {
+        isActive ||
+        !_isActiveLearningContextCurrent()) {
       return;
     }
     _starting = true;
@@ -1033,10 +1103,14 @@ class VoiceNavigationController extends ChangeNotifier {
           );
         },
       );
-      if (_disposed || !_continuousRequested || generation != _generation) {
+      if (_disposed ||
+          !_continuousRequested ||
+          generation != _generation ||
+          !_isActiveLearningContextCurrent()) {
         // pause already requested cancellation of this start. A late native
         // completion must not cancel the recognizer owned by a newer MAIN.
-        if (!_disposed && !_continuousRequested) {
+        if (!_disposed &&
+            (!_continuousRequested || !_isActiveLearningContextCurrent())) {
           await _boundedCleanup(_speechInput.cancel());
         }
         return;
@@ -1059,7 +1133,10 @@ class VoiceNavigationController extends ChangeNotifier {
           if (!_disposed && generation == _generation) _lastError = error;
         }
       }
-      if (_disposed || !_continuousRequested || generation != _generation) {
+      if (_disposed ||
+          !_continuousRequested ||
+          generation != _generation ||
+          !_isActiveLearningContextCurrent()) {
         return;
       }
       _starting = false;

@@ -7,11 +7,15 @@ class MainLearningPause {
     required this.paused,
     required this.hasActiveModule,
     required this.activeKind,
+    this.operation,
   });
 
   final bool paused;
   final bool hasActiveModule;
   final ActiveLearningModuleKind? activeKind;
+  final ActiveLearningOperationToken? operation;
+
+  ActiveLearningVoiceContext? get voiceContext => operation?.voiceContext;
 }
 
 /// Typed boundary between MAIN navigation and the currently visible learning
@@ -27,6 +31,7 @@ class AppFlowCoordinator {
   bool _activeModulePausedForMain = false;
   bool _resumingActiveModule = false;
   int _pauseGeneration = 0;
+  ActiveLearningOperationToken? _pausedOperation;
 
   bool get hasActiveModule => _registry.hasActiveModule;
   bool get activeModulePausedForMain => _activeModulePausedForMain;
@@ -36,6 +41,7 @@ class AppFlowCoordinator {
     final hadActiveModule = _registry.hasActiveModule;
     var kind = _registry.activeKind;
     if (!hadActiveModule) {
+      _pausedOperation = null;
       return MainLearningPause(
         paused: false,
         hasActiveModule: false,
@@ -55,14 +61,29 @@ class AppFlowCoordinator {
       );
     }
     _activeModulePausedForMain = paused;
+    final operation = paused ? _registry.captureOperation() : null;
     final stableActiveModule =
-        _activeModulePausedForMain && _registry.hasActiveModule;
-    kind = stableActiveModule ? _registry.activeKind : null;
+        operation != null &&
+        _registry.isOperationCurrent(operation) &&
+        _registry.isActiveModulePaused;
+    _activeModulePausedForMain = stableActiveModule;
+    _pausedOperation = stableActiveModule ? operation : null;
+    kind = stableActiveModule ? operation.moduleKind : null;
     return MainLearningPause(
       paused: _activeModulePausedForMain,
       hasActiveModule: stableActiveModule,
       activeKind: kind,
+      operation: _pausedOperation,
     );
+  }
+
+  bool isPauseCurrent(MainLearningPause pause) {
+    final operation = pause.operation;
+    return pause.paused &&
+        operation != null &&
+        identical(operation, _pausedOperation) &&
+        _activeModulePausedForMain &&
+        _registry.isOperationCurrent(operation);
   }
 
   Future<ActiveLearningCommandResult> execute(
@@ -70,8 +91,14 @@ class AppFlowCoordinator {
     AppFlowSpokenReply? onUnhandledReply,
   }) async {
     ActiveLearningCommandResult result;
+    final operation = _activeModulePausedForMain ? _pausedOperation : null;
+    if (_activeModulePausedForMain &&
+        (operation == null || !_registry.isOperationCurrent(operation))) {
+      forgetPausedModule();
+      return const ActiveLearningCommandResult.unavailable();
+    }
     try {
-      result = await _registry.execute(command);
+      result = await _registry.execute(command, operation: operation);
     } catch (_) {
       result = const ActiveLearningCommandResult.busy(
         spokenReply: 'HOMI chưa thực hiện được. Bạn thử lại nhé.',
@@ -79,6 +106,9 @@ class AppFlowCoordinator {
     }
     if (result.wasHandled) {
       _activeModulePausedForMain = false;
+      _pausedOperation = null;
+    } else if (operation != null && !_registry.isOperationCurrent(operation)) {
+      forgetPausedModule();
     } else {
       final reply = result.spokenReply?.trim();
       if (reply != null && reply.isNotEmpty) {
@@ -92,7 +122,7 @@ class AppFlowCoordinator {
     if (!_activeModulePausedForMain || _resumingActiveModule) return;
     _resumingActiveModule = true;
     try {
-      final result = await _registry.execute(ActiveLearningCommand.resume);
+      final result = await execute(ActiveLearningCommand.resume);
       if (result.wasHandled ||
           !_registry.hasActiveModule ||
           !_registry.isActiveModulePaused) {
@@ -108,5 +138,6 @@ class AppFlowCoordinator {
   void forgetPausedModule() {
     _pauseGeneration++;
     _activeModulePausedForMain = false;
+    _pausedOperation = null;
   }
 }

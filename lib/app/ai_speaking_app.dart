@@ -1775,20 +1775,18 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         }
         return ready;
       },
-      activateVoice: ({required activeLearning, required activeLearningKind}) =>
-          voiceController.activateFromMainButton(
-            activeLearning: activeLearning,
-            activeLearningKind: activeLearningKind,
-            activeVoiceContext:
-                _activeLearningModules.controller is ActiveLearningVoiceContext
-                ? _activeLearningModules.controller
-                      as ActiveLearningVoiceContext
-                : null,
-            inputLabelOverride: inputLabelOverride,
-            promptAlreadySpoken: promptAlreadySpoken,
-            noSpeechRetryPrompt: noSpeechRetryPrompt,
-            noSpeechExitPrompt: noSpeechExitPrompt,
-          ),
+      activateVoice: (activation) => voiceController.activateFromMainButton(
+        activeLearning: activation.activeLearning,
+        activeLearningKind: activation.activeLearningKind,
+        activeVoiceContext: activation.activeVoiceContext,
+        activeLearningContextIsCurrent: activation.activeLearning
+            ? activation.isCurrent
+            : null,
+        inputLabelOverride: inputLabelOverride,
+        promptAlreadySpoken: promptAlreadySpoken,
+        noSpeechRetryPrompt: noSpeechRetryPrompt,
+        noSpeechExitPrompt: noSpeechExitPrompt,
+      ),
     );
     if (!activated) {
       unawaited(_releaseAndroidMainHfpRouteIfIdle());

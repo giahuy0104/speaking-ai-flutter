@@ -96,6 +96,23 @@ abstract interface class ActiveLearningModuleController {
   );
 }
 
+/// Identifies the exact learning route that yielded ownership to MAIN.
+///
+/// A command captured for this operation must never fall through to a route
+/// that was pushed or restored while MAIN was asking its question.
+final class ActiveLearningOperationToken {
+  const ActiveLearningOperationToken._(this._owner, this.ownerGeneration);
+
+  final ActiveLearningModuleController _owner;
+  final int ownerGeneration;
+
+  ActiveLearningModuleKind get moduleKind => _owner.moduleKind;
+  ActiveLearningVoiceContext? get voiceContext =>
+      _owner is ActiveLearningVoiceContext
+      ? _owner as ActiveLearningVoiceContext
+      : null;
+}
+
 /// One microphone owner and one visible learning owner at a time.
 ///
 /// Learning routes can temporarily stack (for example, the review route sits
@@ -118,6 +135,16 @@ class ActiveLearningModuleRegistry extends ChangeNotifier {
   bool get isActiveModulePaused => controller?.isPausedForMain ?? false;
   ActiveLearningModuleKind? get activeKind => controller?.moduleKind;
   int get diagnosticOwnerGeneration => _diagnosticOwnerGeneration;
+
+  ActiveLearningOperationToken? captureOperation() {
+    final active = controller;
+    if (active == null) return null;
+    return ActiveLearningOperationToken._(active, _diagnosticOwnerGeneration);
+  }
+
+  bool isOperationCurrent(ActiveLearningOperationToken operation) =>
+      identical(operation._owner, controller) &&
+      operation.ownerGeneration == _diagnosticOwnerGeneration;
 
   Object register(ActiveLearningModuleController controller) {
     final token = Object();
@@ -257,22 +284,25 @@ class ActiveLearningModuleRegistry extends ChangeNotifier {
   }
 
   Future<ActiveLearningCommandResult> execute(
-    ActiveLearningCommand command,
-  ) async {
-    final active = controller;
-    final operation = AudioDiagnostics.nextId();
+    ActiveLearningCommand command, {
+    ActiveLearningOperationToken? operation,
+  }) async {
+    final active = operation?._owner ?? controller;
+    final diagnosticOperation = AudioDiagnostics.nextId();
     final ownerGeneration = _diagnosticOwnerGeneration;
-    if (active == null) {
+    if (active == null ||
+        (operation != null && !isOperationCurrent(operation))) {
       AudioDiagnostics.event('active_learning.command.unavailable', {
-        'operation': operation,
+        'operation': diagnosticOperation,
         'ownerGeneration': ownerGeneration,
         'command': command.name,
+        'reason': active == null ? 'no_owner' : 'stale_owner',
       });
       return const ActiveLearningCommandResult.unavailable();
     }
     AudioDiagnostics.event('active_learning.command.started', {
       ..._diagnosticOwner(active),
-      'operation': operation,
+      'operation': diagnosticOperation,
       'ownerGeneration': ownerGeneration,
       'command': command.name,
     });
@@ -280,9 +310,20 @@ class ActiveLearningModuleRegistry extends ChangeNotifier {
       final result = await active
           .handleMainCommand(command)
           .timeout(_operationTimeout);
+      if (operation != null && !isOperationCurrent(operation)) {
+        AudioDiagnostics.event('active_learning.command.cancelled', {
+          ..._diagnosticOwner(active),
+          'operation': diagnosticOperation,
+          'ownerGeneration': ownerGeneration,
+          'currentOwnerGeneration': _diagnosticOwnerGeneration,
+          'command': command.name,
+          'reason': 'owner_changed',
+        });
+        return const ActiveLearningCommandResult.unavailable();
+      }
       AudioDiagnostics.event('active_learning.command.completed', {
         ..._diagnosticOwner(active),
-        'operation': operation,
+        'operation': diagnosticOperation,
         'ownerGeneration': ownerGeneration,
         'currentOwnerGeneration': _diagnosticOwnerGeneration,
         'sameOwner': identical(active, controller),
@@ -295,7 +336,7 @@ class ActiveLearningModuleRegistry extends ChangeNotifier {
       // overlay that valid flow with a second, unrelated spoken busy prompt.
       AudioDiagnostics.event('active_learning.command.timed_out', {
         ..._diagnosticOwner(active),
-        'operation': operation,
+        'operation': diagnosticOperation,
         'ownerGeneration': ownerGeneration,
         'currentOwnerGeneration': _diagnosticOwnerGeneration,
         'command': command.name,
@@ -304,7 +345,7 @@ class ActiveLearningModuleRegistry extends ChangeNotifier {
     } catch (error) {
       AudioDiagnostics.event('active_learning.command.failed', {
         ..._diagnosticOwner(active),
-        'operation': operation,
+        'operation': diagnosticOperation,
         'ownerGeneration': ownerGeneration,
         'command': command.name,
         'errorType': error.runtimeType.toString(),

@@ -40,11 +40,10 @@ void main() {
             assistantFlowBusy: false,
             canContinue: () => true,
             prepareActivation: () => preparation.future,
-            activateVoice:
-                ({required activeLearning, activeLearningKind}) async {
-                  voiceCalls++;
-                  return true;
-                },
+            activateVoice: (activation) async {
+              voiceCalls++;
+              return true;
+            },
           );
       final oldActivation = activate(oldPreparation);
       expect(harness.session.isActivationPending, isTrue);
@@ -82,7 +81,7 @@ void main() {
           assistantFlowBusy: false,
           canContinue: () => current,
           prepareActivation: () => preparation.future,
-          activateVoice: ({required activeLearning, activeLearningKind}) async {
+          activateVoice: (activation) async {
             voiceCalls++;
             return true;
           },
@@ -113,7 +112,7 @@ void main() {
         conversationBusy: false,
         assistantFlowBusy: false,
         canContinue: () => true,
-        activateVoice: ({required activeLearning, activeLearningKind}) async {
+        activateVoice: (activation) async {
           voiceCalls++;
           return true;
         },
@@ -138,7 +137,7 @@ void main() {
       conversationBusy: true,
       assistantFlowBusy: false,
       canContinue: () => true,
-      activateVoice: ({required activeLearning, activeLearningKind}) async {
+      activateVoice: (activation) async {
         activationCalls += 1;
         return true;
       },
@@ -161,11 +160,16 @@ void main() {
       conversationBusy: true,
       assistantFlowBusy: false,
       canContinue: () => true,
-      activateVoice: ({required activeLearning, activeLearningKind}) async {
+      activateVoice: (activation) async {
         events.add('activate');
         expect(module.isPausedForMain, isTrue);
-        expect(activeLearning, isTrue);
-        expect(activeLearningKind, ActiveLearningModuleKind.vocabulary);
+        expect(activation.activeLearning, isTrue);
+        expect(
+          activation.activeLearningKind,
+          ActiveLearningModuleKind.vocabulary,
+        );
+        expect(activation.activeVoiceContext, same(module));
+        expect(activation.isCurrent(), isTrue);
         return true;
       },
     );
@@ -189,7 +193,7 @@ void main() {
         conversationBusy: false,
         assistantFlowBusy: false,
         canContinue: () => true,
-        activateVoice: ({required activeLearning, activeLearningKind}) async {
+        activateVoice: (activation) async {
           return false;
         },
       );
@@ -200,6 +204,31 @@ void main() {
       expect(harness.coordinator.activeModulePausedForMain, isTrue);
     },
   );
+
+  test('owner replacement invalidates the captured MAIN context', () async {
+    final module = _FakeActiveModule();
+    final harness = _SessionHarness(module: module);
+    addTearDown(harness.dispose);
+    final replacement = _FakeActiveModule();
+
+    final activated = await harness.session.activate(
+      startupReady: true,
+      voiceAccessEnabled: true,
+      conversationBusy: false,
+      assistantFlowBusy: false,
+      canContinue: () => true,
+      activateVoice: (activation) async {
+        expect(activation.isCurrent(), isTrue);
+        harness.registry.register(replacement);
+        expect(activation.isCurrent(), isFalse);
+        return false;
+      },
+    );
+
+    expect(activated, isFalse);
+    expect(module.commands, isEmpty);
+    expect(replacement.commands, isEmpty);
+  });
 
   test('serializes repeated MAIN activation attempts', () async {
     final harness = _SessionHarness();
@@ -213,7 +242,7 @@ void main() {
       conversationBusy: false,
       assistantFlowBusy: false,
       canContinue: () => true,
-      activateVoice: ({required activeLearning, activeLearningKind}) {
+      activateVoice: (activation) {
         activationCalls += 1;
         return gate.future;
       },
@@ -225,7 +254,7 @@ void main() {
       conversationBusy: false,
       assistantFlowBusy: false,
       canContinue: () => true,
-      activateVoice: ({required activeLearning, activeLearningKind}) async {
+      activateVoice: (activation) async {
         activationCalls += 1;
         return true;
       },
@@ -258,7 +287,8 @@ class _SessionHarness {
   void dispose() => registry.dispose();
 }
 
-class _FakeActiveModule implements ActiveLearningModuleController {
+class _FakeActiveModule
+    implements ActiveLearningModuleController, ActiveLearningVoiceContext {
   _FakeActiveModule({this.kind = ActiveLearningModuleKind.listeningLesson});
 
   final ActiveLearningModuleKind kind;
@@ -269,6 +299,12 @@ class _FakeActiveModule implements ActiveLearningModuleController {
 
   @override
   ActiveLearningModuleKind get moduleKind => kind;
+
+  @override
+  ActiveLearningVoiceNode get mainVoiceNode => ActiveLearningVoiceNode.core;
+
+  @override
+  String get mainVoicePrompt => 'Bạn muốn tiếp tục hay nghe lại?';
 
   @override
   bool get isPausedForMain => paused;

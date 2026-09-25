@@ -1443,6 +1443,42 @@ void main() {
   );
 
   test(
+    'owner change before resolve cancels MAIN without dispatching',
+    () async {
+      final speechInput = _FakeNavigationSpeechInput();
+      final voicePrompt = _FakeMainTurnVoicePromptService();
+      final commands = <ActiveLearningCommand>[];
+      var ownerCurrent = true;
+      final controller = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: voicePrompt,
+        activeLearningCommandHandler: (command) async {
+          commands.add(command);
+          return const ActiveLearningCommandResult.handled();
+        },
+      );
+
+      expect(
+        await controller.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: ActiveLearningModuleKind.listeningLesson,
+          activeLearningContextIsCurrent: () => ownerCurrent,
+        ),
+        isTrue,
+      );
+      ownerCurrent = false;
+
+      expect(await controller.dispatchRecognizedText('Tiếp tục'), isFalse);
+      expect(commands, isEmpty);
+      expect(controller.isMainButtonSessionActive, isFalse);
+      expect(voicePrompt.endedReasons.last, 'active_owner_changed');
+
+      controller.dispose();
+      await speechInput.dispose();
+    },
+  );
+
+  test(
     'iOS lesson MAIN does not stay blocked by a late native turn arm',
     () async {
       final speechInput = _FakeNavigationSpeechInput();

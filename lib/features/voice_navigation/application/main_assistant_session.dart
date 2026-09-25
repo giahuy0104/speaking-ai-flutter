@@ -2,10 +2,21 @@ import '../../../core/device/active_learning_module.dart';
 import '../../../core/session/app_flow_coordinator.dart';
 
 typedef MainAssistantActivation =
-    Future<bool> Function({
-      required bool activeLearning,
-      required ActiveLearningModuleKind? activeLearningKind,
-    });
+    Future<bool> Function(MainAssistantActivationContext context);
+
+final class MainAssistantActivationContext {
+  const MainAssistantActivationContext({
+    required this.activeLearning,
+    required this.activeLearningKind,
+    required this.activeVoiceContext,
+    required this.isCurrent,
+  });
+
+  final bool activeLearning;
+  final ActiveLearningModuleKind? activeLearningKind;
+  final ActiveLearningVoiceContext? activeVoiceContext;
+  final bool Function() isCurrent;
+}
 
 /// Owns the activation boundary of the fixed MAIN assistant.
 ///
@@ -73,13 +84,17 @@ class MainAssistantSession {
       final pause = await _appFlowCoordinator.pauseForMainAssistant();
       if (generation != _generation || !canContinue()) return false;
       final activated = await activateVoice(
-        activeLearning: pause.hasActiveModule,
-        activeLearningKind: pause.activeKind,
+        MainAssistantActivationContext(
+          activeLearning: pause.hasActiveModule,
+          activeLearningKind: pause.activeKind,
+          activeVoiceContext: pause.voiceContext,
+          isCurrent: () =>
+              generation == _generation &&
+              canContinue() &&
+              _appFlowCoordinator.isPauseCurrent(pause),
+        ),
       );
       if (generation != _generation) return false;
-      if (!activated && pause.paused) {
-        await _appFlowCoordinator.resumeAfterMainAssistant();
-      }
       return activated;
     } finally {
       if (generation == _generation) _setActivationPending(false);
