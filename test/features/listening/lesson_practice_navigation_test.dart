@@ -10,6 +10,7 @@ import 'package:ai_speaking_flutter_app/features/listening/application/lesson_gu
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_completion_choice_recognizer.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/data/listening_progress_store.dart';
+import 'package:ai_speaking_flutter_app/features/listening/domain/challenge_completion.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_catalog.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
@@ -673,14 +674,15 @@ void main() {
       final challengeWidget = tester.widget<LessonChallengeScreen>(
         find.byType(LessonChallengeScreen),
       );
-      await challengeWidget.onChallengeResolved!(
-        challengeWidget.challenges.single,
-        true,
+      Navigator.of(tester.element(find.byType(LessonChallengeScreen))).pop(
+        ChallengeCompletionResult(
+          operationId: challengeWidget.challengeOperationId,
+          challengeId: challengeWidget.challenges.single.id,
+          challengeIndex: challengeWidget.challengeBankIndex,
+          targetId: challengeWidget.challenges.single.targetId,
+          outcome: ChallengeCompletionOutcome.correct,
+        ),
       );
-
-      Navigator.of(
-        tester.element(find.byType(LessonChallengeScreen)),
-      ).pop(true);
       await tester.pumpAndSettle();
       await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 100)),

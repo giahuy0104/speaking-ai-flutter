@@ -1105,6 +1105,8 @@ Widget _subject({
               targetId: 'target-1',
             ),
           ],
+      challengeOperationId: 1,
+      challengeBankIndex: 0,
       mediaService: mediaService ?? _FakeLessonMediaService(),
       attemptEvaluator: attemptEvaluator ?? const _AlwaysGoodAttemptEvaluator(),
       voicePromptService: voicePromptService ?? const _FakeVoicePromptService(),

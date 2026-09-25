@@ -36,6 +36,7 @@ import '../domain/listening_content.dart';
 import '../domain/listening_curriculum_flow.dart';
 import '../domain/authored_question_selector.dart';
 import '../domain/lesson_guide_flow.dart';
+import '../domain/challenge_completion.dart';
 import '../domain/v4_completion_flow.dart';
 import '../../../core/navigation/active_learning_navigation.dart';
 import 'lesson_challenge_screen.dart';
@@ -2297,7 +2298,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           'challengeId': selection.$2.id,
           'challengeIndex': selection.$1,
           'resumeStage': resumeStage.name,
-          'resultContract': 'bool_plus_callback',
+          'resultContract': 'typed',
         });
         await widget.progressStore.saveResumeStage(
           widget.lesson.id,
@@ -2308,42 +2309,42 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           audioKey: ListeningAudioKeys.challengeIntro,
         );
         if (!mounted) return;
-        bool? challengeCorrect;
-        final completed = await pushForActiveLearning<bool>(
-          context,
-          (_) => LessonChallengeScreen(
-            language: widget.language,
-            startAge: widget.startAge,
-            lesson: widget.lesson,
-            challenges: <ListeningChallengeContent>[selection.$2],
-            mediaService: widget.mediaService,
-            attemptEvaluator: _attemptEvaluator,
-            voicePromptService: _voicePromptService,
-            onChallengeResolved: (_, correct) async {
-              AudioDiagnostics.event('challenge.parent.callback.received', {
-                'operation': challengeOperation,
-                'lessonId': widget.lesson.id,
-                'challengeId': selection.$2.id,
-                'challengeIndex': selection.$1,
-                'outcome': correct ? 'correct' : 'needs_practice',
-              });
-              challengeCorrect = correct;
-            },
-            iosSpeechInput: _usesIosNativeLessonRecognition
-                ? _iosLessonSpeechInput
-                : null,
-          ),
-        );
+        final completed =
+            await pushForActiveLearning<ChallengeCompletionResult>(
+              context,
+              (_) => LessonChallengeScreen(
+                language: widget.language,
+                startAge: widget.startAge,
+                lesson: widget.lesson,
+                challenges: <ListeningChallengeContent>[selection.$2],
+                challengeOperationId: challengeOperation,
+                challengeBankIndex: selection.$1,
+                mediaService: widget.mediaService,
+                attemptEvaluator: _attemptEvaluator,
+                voicePromptService: _voicePromptService,
+                iosSpeechInput: _usesIosNativeLessonRecognition
+                    ? _iosLessonSpeechInput
+                    : null,
+              ),
+            );
         AudioDiagnostics.event('challenge.route.returned', {
           'operation': challengeOperation,
           'lessonId': widget.lesson.id,
           'challengeId': selection.$2.id,
           'challengeIndex': selection.$1,
-          'routeResult': completed,
-          'callbackResultPresent': challengeCorrect != null,
+          'routeResult': completed?.outcome.name,
+          'resultOperation': completed?.operationId,
           'mounted': mounted,
         });
-        if (!mounted || completed != true || challengeCorrect == null) {
+        final resultIsCurrent =
+            completed?.matches(
+              operationId: challengeOperation,
+              challengeId: selection.$2.id,
+              challengeIndex: selection.$1,
+              targetId: selection.$2.targetId,
+            ) ??
+            false;
+        if (!mounted || !resultIsCurrent) {
           AudioDiagnostics.event('challenge.progress.interrupted', {
             'operation': challengeOperation,
             'lessonId': widget.lesson.id,
@@ -2356,11 +2357,12 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           'operation': challengeOperation,
           'lessonId': widget.lesson.id,
           'challengeId': selection.$2.id,
-          'outcome': challengeCorrect! ? 'correct' : 'needs_practice',
+          'outcome': completed!.outcome.name,
         });
         await _commitReviewAfterChallenge(
           selection.$2,
-          challengeCorrect: challengeCorrect!,
+          challengeCorrect:
+              completed.outcome == ChallengeCompletionOutcome.correct,
         );
         await widget.progressStore.markChallengeUsed(
           widget.lesson.id,

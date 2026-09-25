@@ -18,6 +18,7 @@ import '../../voice_navigation/domain/master_navigation_contract.dart';
 import '../application/lesson_attempt_evaluator.dart';
 import '../application/lesson_media_service.dart';
 import '../application/lesson_recording_endpoint_detector.dart';
+import '../domain/challenge_completion.dart';
 import '../domain/lesson_guide_flow.dart';
 import '../domain/listening_audio_keys.dart';
 import '../domain/listening_content.dart';
@@ -33,6 +34,8 @@ class LessonChallengeScreen extends StatefulWidget {
     required this.startAge,
     required this.lesson,
     required this.challenges,
+    required this.challengeOperationId,
+    required this.challengeBankIndex,
     required this.mediaService,
     this.attemptEvaluator,
     this.voicePromptService,
@@ -41,7 +44,6 @@ class LessonChallengeScreen extends StatefulWidget {
     this.onStarEarnedWithResult,
     this.onStarEarnedWithAudioResult,
     this.onNeedsPractice,
-    this.onChallengeResolved,
     super.key,
   });
 
@@ -49,6 +51,8 @@ class LessonChallengeScreen extends StatefulWidget {
   final int startAge;
   final ListeningLessonContent lesson;
   final List<ListeningChallengeContent> challenges;
+  final int challengeOperationId;
+  final int challengeBankIndex;
   final LessonMediaService mediaService;
   final LessonAttemptEvaluator? attemptEvaluator;
   final VoicePromptService? voicePromptService;
@@ -74,12 +78,6 @@ class LessonChallengeScreen extends StatefulWidget {
     String vietnamese,
   )?
   onNeedsPractice;
-  final Future<void> Function(
-    ListeningChallengeContent challenge,
-    bool correct,
-  )?
-  onChallengeResolved;
-
   @override
   State<LessonChallengeScreen> createState() => _LessonChallengeScreenState();
 }
@@ -120,6 +118,8 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   StreamSubscription<LessonMediaException>? _recordingErrorSubscription;
   ActiveLearningModuleRegistry? _activeModuleRegistry;
   Object? _activeModuleRegistration;
+  bool _completionInProgress = false;
+  bool _routeCompletionDispatched = false;
 
   @override
   ActiveLearningModuleKind get moduleKind =>
@@ -924,9 +924,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       _invalidResponseCount = 0;
       await _speakFeedback(LessonFeedbackKind.correct);
       if (!isCurrent()) return false;
-      await _notifyChallengeResolved(correct: true);
-      if (!isCurrent()) return false;
-      return _advance();
+      return _advance(ChallengeCompletionOutcome.correct);
     }
     if (outcome == LessonAttemptOutcome.unclear) {
       if (!_acceptInvalidResponseOrPause()) return false;
@@ -979,28 +977,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     await _playCurrentPrompt(announceResume: true);
   }
 
-  Future<void> _notifyChallengeResolved({required bool correct}) async {
-    final callback = widget.onChallengeResolved;
-    if (callback == null) return;
-    final operation = _request;
-    AudioDiagnostics.event('challenge.result.callback.started', {
-      'operation': operation,
-      'challengeId': _challenge.id,
-      'challengeIndex': _challengeIndex,
-      'outcome': correct ? 'correct' : 'needs_practice',
-      'resultContract': 'bool_plus_callback',
-    });
-    await callback(_challenge, correct);
-    AudioDiagnostics.event('challenge.result.callback.completed', {
-      'operation': operation,
-      'currentOperation': _request,
-      'challengeId': _challenge.id,
-      'challengeIndex': _challengeIndex,
-      'outcome': correct ? 'correct' : 'needs_practice',
-      'mounted': mounted,
-    });
-  }
-
   Future<void> _speakFeedback(LessonFeedbackKind kind) async {
     final request = _request;
     final (:message, :audioKey) = _challengeFeedback(kind);
@@ -1040,10 +1016,8 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     if (!skip) {
       await _saveNeedsPractice();
       if (!isCurrent()) return false;
-      await _notifyChallengeResolved(correct: false);
-      if (!isCurrent()) return false;
     }
-    return _advance();
+    return _advance(ChallengeCompletionOutcome.needsPractice);
   }
 
   Future<void> _saveNeedsPractice() async {
@@ -1057,8 +1031,8 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     }
   }
 
-  Future<bool> _advance() async {
-    if (_pausedForMainAssistant) return false;
+  Future<bool> _advance(ChallengeCompletionOutcome outcome) async {
+    if (_pausedForMainAssistant || _completionInProgress) return false;
     if (_challengeIndex < widget.challenges.length - 1) {
       setState(() {
         _challengeIndex += 1;
@@ -1067,19 +1041,37 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       });
       return _playCurrentPrompt(allowBusy: true, openMicrophone: false);
     }
-    await _speakPromptAndWait(
-      'Bạn đã hoàn thành phần thử thách rồi.',
-      audioKey: ListeningAudioKeys.feedbackCompleted,
-    );
-    if (!mounted || _pausedForMainAssistant) return false;
-    if (mounted) {
+    _completionInProgress = true;
+    final request = _request;
+    final challenge = _challenge;
+    try {
+      await _speakPromptAndWait(
+        'Bạn đã hoàn thành phần thử thách rồi.',
+        audioKey: ListeningAudioKeys.feedbackCompleted,
+      );
+      if (!mounted || _pausedForMainAssistant || request != _request) {
+        return false;
+      }
+      if (_routeCompletionDispatched) return false;
+      _routeCompletionDispatched = true;
+      final result = ChallengeCompletionResult(
+        operationId: widget.challengeOperationId,
+        challengeId: challenge.id,
+        challengeIndex: widget.challengeBankIndex + _challengeIndex,
+        targetId: challenge.targetId,
+        outcome: outcome,
+      );
       AudioDiagnostics.event('challenge.route.pop', {
-        'operation': _request,
-        'challengeId': _challenge.id,
-        'challengeIndex': _challengeIndex,
-        'resultContract': 'bool',
+        'operation': widget.challengeOperationId,
+        'challengeId': result.challengeId,
+        'challengeIndex': result.challengeIndex,
+        'targetId': result.targetId,
+        'outcome': result.outcome.name,
+        'resultContract': 'typed',
       });
-      Navigator.of(context).pop(true);
+      Navigator.of(context).pop(result);
+    } finally {
+      if (!_routeCompletionDispatched) _completionInProgress = false;
     }
     return false;
   }
@@ -1144,7 +1136,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
 
     return DisplayLanguageScope(
       language: widget.language,
-      child: PopScope<bool>(
+      child: PopScope<ChallengeCompletionResult>(
         onPopInvokedWithResult: (didPop, _) {
           if (didPop) {
             unawaited(pauseForMainAssistant().catchError((Object _) {}));
@@ -1162,7 +1154,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
                     Row(
                       children: <Widget>[
                         IconButton(
-                          onPressed: () => Navigator.of(context).pop(false),
+                          onPressed: () => Navigator.of(context).pop(),
                           icon: const Icon(Icons.arrow_back_rounded),
                           tooltip: 'Quay lại',
                         ),
