@@ -159,6 +159,9 @@ class JustAudioPlaybackService
     DeviceAudioCache? cache,
     AudioTurnCoordinator? audioTurnCoordinator,
     AudioTurnOwner audioTurnOwner = AudioTurnOwner.legacy,
+    Duration sourceCacheTimeout = const Duration(seconds: 7),
+    Duration preprocessingTimeout = const Duration(seconds: 2),
+    Duration firstPlayingTimeout = const Duration(seconds: 2),
   }) {
     final defaults = player == null ? _createDefaultPlayer() : null;
     return JustAudioPlaybackService._(
@@ -167,6 +170,9 @@ class JustAudioPlaybackService
       cache: cache,
       audioTurnCoordinator: audioTurnCoordinator,
       audioTurnOwner: audioTurnOwner,
+      sourceCacheTimeout: sourceCacheTimeout,
+      preprocessingTimeout: preprocessingTimeout,
+      firstPlayingTimeout: firstPlayingTimeout,
     );
   }
 
@@ -176,13 +182,19 @@ class JustAudioPlaybackService
     DeviceAudioCache? cache,
     AudioTurnCoordinator? audioTurnCoordinator,
     required AudioTurnOwner audioTurnOwner,
+    required Duration sourceCacheTimeout,
+    required Duration preprocessingTimeout,
+    required Duration firstPlayingTimeout,
   }) : _cache = cache ?? DeviceAudioCache(),
        _ownsCache = cache == null,
        _browserPlayback = createBrowserAudioPlayback(),
        _player = player,
        _androidLoudnessEnhancer = androidLoudnessEnhancer,
        _audioTurnCoordinator = audioTurnCoordinator,
-       _audioTurnOwner = audioTurnOwner {
+       _audioTurnOwner = audioTurnOwner,
+       _sourceCacheTimeout = sourceCacheTimeout,
+       _preprocessingTimeout = preprocessingTimeout,
+       _firstPlayingTimeout = firstPlayingTimeout {
     _audioSession = AudioSession.instance;
     if (audioTurnCoordinator != null) {
       _audioTurnCompletionSubscription = completionStream.listen((_) {
@@ -230,11 +242,15 @@ class JustAudioPlaybackService
   final bool _ownsCache;
   final AudioTurnCoordinator? _audioTurnCoordinator;
   final AudioTurnOwner _audioTurnOwner;
+  final Duration _sourceCacheTimeout;
+  final Duration _preprocessingTimeout;
+  final Duration _firstPlayingTimeout;
   late final Future<AudioSession> _audioSession;
   StreamSubscription<void>? _audioTurnCompletionSubscription;
   AudioTurnLease? _audioTurnLease;
-  Future<void>? _playbackSessionPreparation;
+  _PlaybackPreparation? _playbackSessionPreparation;
   int _playbackPreparationGeneration = 0;
+  int _outputRouteGeneration = 0;
   Future<void> _sourceOperation = Future<void>.value();
   Uri? _loadedOriginalUri;
   Uri? _loadedResolvedUri;
@@ -342,9 +358,16 @@ class JustAudioPlaybackService
   @override
   void setCommunicationRouteActive(bool active) {
     if (_communicationRouteActive == active) return;
+    _playbackRequest?.cancel();
     _communicationRouteActive = active;
     _playbackSessionPreparation = null;
     ++_playbackPreparationGeneration;
+    ++_outputRouteGeneration;
+    AudioDiagnostics.event('media.route.changed', {
+      'owner': _audioTurnOwner.name,
+      'communicationRoute': active,
+      'routeGeneration': _outputRouteGeneration,
+    });
   }
 
   @override
@@ -437,30 +460,26 @@ class JustAudioPlaybackService
       return Future<void>.value();
     }
     final communicationRoute = _communicationRouteActive;
+    final routeGeneration = _outputRouteGeneration;
     final generation = ++_playbackPreparationGeneration;
     final requestedAt = DateTime.now();
     AudioDiagnostics.event('media.prepare.requested', {
       'generation': generation,
       'owner': _audioTurnOwner.name,
       'communicationRoute': communicationRoute,
+      'routeGeneration': routeGeneration,
     });
     final preparation = () async {
       try {
         await _configurePlaybackAudioSession();
-        if (_disposed || generation != _playbackPreparationGeneration) {
-          AudioDiagnostics.event('media.prepare.cancelled', {
-            'generation': generation,
-            'owner': _audioTurnOwner.name,
-            'stage': 'audio_session',
-          });
-          return;
-        }
+        _requireCurrentPreparation(generation, routeGeneration);
         AudioDiagnostics.event('media.prepare.audio_session_ready', {
           'generation': generation,
           'owner': _audioTurnOwner.name,
           'elapsedMs': DateTime.now().difference(requestedAt).inMilliseconds,
         });
         await _applyAndroidPlaybackAttributes(communicationRoute);
+        _requireCurrentPreparation(generation, routeGeneration);
         AudioDiagnostics.event('media.prepare.completed', {
           'generation': generation,
           'owner': _audioTurnOwner.name,
@@ -476,8 +495,28 @@ class JustAudioPlaybackService
         rethrow;
       }
     }();
-    _playbackSessionPreparation = preparation;
+    _playbackSessionPreparation = _PlaybackPreparation(
+      preparation,
+      routeGeneration: routeGeneration,
+    );
     return preparation;
+  }
+
+  void _requireCurrentPreparation(int generation, int routeGeneration) {
+    if (_disposed ||
+        generation != _playbackPreparationGeneration ||
+        routeGeneration != _outputRouteGeneration) {
+      AudioDiagnostics.event('media.prepare.cancelled', {
+        'generation': generation,
+        'owner': _audioTurnOwner.name,
+        'routeGeneration': routeGeneration,
+        'currentRouteGeneration': _outputRouteGeneration,
+      });
+      throw const PlaybackException(
+        'Đường âm thanh đã thay đổi trong lúc chuẩn bị. Bạn thử lại nhé.',
+        stage: PlaybackFailureStage.routeSession,
+      );
+    }
   }
 
   Future<void> _applyAndroidPlaybackAttributes(bool communicationRoute) async {
@@ -494,10 +533,21 @@ class JustAudioPlaybackService
     );
   }
 
-  Future<void> _consumePlaybackPreparation() async {
-    final preparation = _playbackSessionPreparation ?? prepare();
+  Future<void> _consumePlaybackPreparation(_PlaybackRequest request) async {
+    var preparation = _playbackSessionPreparation;
+    if (preparation == null ||
+        preparation.routeGeneration != request.routeGeneration) {
+      final future = prepare();
+      preparation =
+          _playbackSessionPreparation ??
+          _PlaybackPreparation(
+            future,
+            routeGeneration: request.routeGeneration,
+          );
+    }
     try {
-      await preparation;
+      await request.wait(preparation.future);
+      _requireCurrentPlayback(request);
     } finally {
       if (identical(_playbackSessionPreparation, preparation)) {
         _playbackSessionPreparation = null;
@@ -551,7 +601,7 @@ class JustAudioPlaybackService
           }
         }),
       );
-      await request.wait(started.future.timeout(const Duration(seconds: 2)));
+      await request.wait(started.future.timeout(_firstPlayingTimeout));
     } finally {
       await Future.wait<void>(<Future<void>>[
         positionSubscription.cancel(),
@@ -696,13 +746,11 @@ class JustAudioPlaybackService
       final assetPath = uri.path.startsWith('/')
           ? uri.path.substring(1)
           : uri.path;
-      await _player.setAsset(assetPath).timeout(const Duration(seconds: 8));
+      await _player.setAsset(assetPath);
     } else if (uri.isScheme('file')) {
-      await _player
-          .setFilePath(uri.toFilePath())
-          .timeout(const Duration(seconds: 8));
+      await _player.setFilePath(uri.toFilePath());
     } else {
-      await _player.setUrl(uri.toString()).timeout(const Duration(seconds: 8));
+      await _player.setUrl(uri.toString());
     }
   }
 
@@ -750,7 +798,7 @@ class JustAudioPlaybackService
       if (_disposed || revision != _preloadRevision) return;
       _loadedOriginalUri = uri;
       _loadedResolvedUri = cachedUri;
-    });
+    }).timeout(_sourceCacheTimeout);
   }
 
   @override
@@ -776,6 +824,7 @@ class JustAudioPlaybackService
     _playbackRequest?.cancel();
     final request = _PlaybackRequest(
       _communicationRouteActive,
+      routeGeneration: _outputRouteGeneration,
       diagnosticOperation: diagnosticOperation,
     );
     _playbackRequest = request;
@@ -794,6 +843,7 @@ class JustAudioPlaybackService
         'operation': diagnosticOperation,
         'owner': _audioTurnOwner.name,
         'errorType': error.runtimeType.toString(),
+        if (error is PlaybackException) 'failureStage': error.stage?.name,
       });
       // An older failed/cancelled start cannot release the next clip's lease.
       if (identical(_playbackRequest, request)) {
@@ -830,8 +880,12 @@ class JustAudioPlaybackService
   void _requireCurrentPlayback(_PlaybackRequest request) {
     if (_disposed ||
         request.isCancelled ||
+        request.routeGeneration != _outputRouteGeneration ||
         !identical(_playbackRequest, request)) {
-      throw const PlaybackException('Lượt phát âm thanh đã dừng.');
+      throw const PlaybackException(
+        'Lượt phát âm thanh đã dừng.',
+        stage: PlaybackFailureStage.cancelled,
+      );
     }
   }
 
@@ -890,7 +944,7 @@ class JustAudioPlaybackService
 
     ++_preloadRevision;
     _diagnosePlaybackStage(request, 'preparation_wait_started');
-    await request.wait(_consumePlaybackPreparation());
+    await _consumePlaybackPreparation(request);
     _requireCurrentPlayback(request);
     _diagnosePlaybackStage(request, 'preparation_wait_completed');
     final integrity = _integrity[uri];
@@ -898,43 +952,72 @@ class JustAudioPlaybackService
       'verified': integrity != null,
       'scheme': uri.scheme,
     });
-    final resolvedUri = await request.wait(
-      integrity == null
-          ? _cache.resolveAfterPreload(uri)
-          : _cache.resolveAfterPreloadVerified(
-              uri,
-              sha256Checksum: integrity.sha256,
-            ),
-    );
+    late final Uri resolvedUri;
+    try {
+      resolvedUri = await request.wait(
+        (integrity == null
+                ? _cache.resolveAfterPreload(uri)
+                : _cache.resolveAfterPreloadVerified(
+                    uri,
+                    sha256Checksum: integrity.sha256,
+                  ))
+            .timeout(_sourceCacheTimeout),
+      );
+    } on TimeoutException {
+      _diagnosePlaybackStage(request, 'cache_resolve_timed_out');
+      throw const PlaybackException(
+        'Bộ nhớ đệm âm thanh phản hồi quá lâu. Bạn thử lại nhé.',
+        stage: PlaybackFailureStage.sourceCache,
+      );
+    }
     _requireCurrentPlayback(request);
     _diagnosePlaybackStage(request, 'cache_resolve_completed', {
       'resolvedScheme': resolvedUri.scheme,
     });
     final loadStartedAt = DateTime.now();
     _diagnosePlaybackStage(request, 'source_load_started');
-    await request.wait(
-      _queueSource(() async {
-        _requireCurrentPlayback(request);
-        if (_loadedOriginalUri == uri && _loadedResolvedUri == resolvedUri) {
-          return;
-        }
-        _loadedOriginalUri = null;
-        _loadedResolvedUri = null;
-        await _setSource(resolvedUri);
-        _requireCurrentPlayback(request);
-        _loadedOriginalUri = uri;
-        _loadedResolvedUri = resolvedUri;
-      }),
-    );
+    try {
+      await request
+          .wait(
+            _queueSource(() async {
+              _requireCurrentPlayback(request);
+              if (_loadedOriginalUri == uri &&
+                  _loadedResolvedUri == resolvedUri) {
+                return;
+              }
+              _loadedOriginalUri = null;
+              _loadedResolvedUri = null;
+              await _setSource(resolvedUri);
+              _requireCurrentPlayback(request);
+              _loadedOriginalUri = uri;
+              _loadedResolvedUri = resolvedUri;
+            }),
+          )
+          .timeout(_sourceCacheTimeout);
+    } on TimeoutException {
+      _diagnosePlaybackStage(request, 'source_load_timed_out');
+      throw const PlaybackException(
+        'Nguồn âm thanh phản hồi quá lâu. Bạn thử lại nhé.',
+        stage: PlaybackFailureStage.sourceCache,
+      );
+    }
     _requireCurrentPlayback(request);
     final loadedAt = DateTime.now();
     _diagnosePlaybackStage(request, 'source_load_completed', {
       'elapsedMs': loadedAt.difference(loadStartedAt).inMilliseconds,
     });
     _diagnosePlaybackStage(request, 'level_apply_started');
-    await request.wait(
-      _queueSource(() => _applySourceLevel(resolvedUri, request)),
-    );
+    try {
+      await request
+          .wait(_queueSource(() => _applySourceLevel(resolvedUri, request)))
+          .timeout(_preprocessingTimeout);
+    } on TimeoutException {
+      _diagnosePlaybackStage(request, 'level_apply_timed_out');
+      throw const PlaybackException(
+        'Không thể xử lý mức âm thanh trong thời gian cho phép.',
+        stage: PlaybackFailureStage.preprocessing,
+      );
+    }
     _requireCurrentPlayback(request);
     _diagnosePlaybackStage(request, 'level_apply_completed');
     assert(() {
@@ -954,19 +1037,33 @@ class JustAudioPlaybackService
       // ExoPlayer can occasionally remain in a completed-but-playing state
       // when the same short clip is used again. Reset and retry once.
       _requireCurrentPlayback(request);
+      _diagnosePlaybackStage(request, 'first_playing_retry', {
+        'retryAttempt': 1,
+      });
       await request.wait(_player.pause());
+      _requireCurrentPlayback(request);
       await request.wait(_player.seek(Duration.zero));
+      _requireCurrentPlayback(request);
       try {
         await _startPlayback(request);
       } on TimeoutException {
-        throw const PlaybackException('Không thể bắt đầu phát câu tiếng Anh.');
+        _diagnosePlaybackStage(request, 'first_playing_timed_out', {
+          'retryAttempt': 1,
+        });
+        throw const PlaybackException(
+          'Player chưa phát âm thanh sau một lần thử lại.',
+          stage: PlaybackFailureStage.firstPlaying,
+        );
       }
+    } on PlaybackException {
+      rethrow;
     } catch (error) {
       debugPrint('Audio playback failed: $error');
       throw PlaybackException(
         kIsWeb
             ? 'Trình duyệt chưa cho phép phát âm thanh. Hãy chạm nút phát lại.'
             : 'Không thể bắt đầu phát câu tiếng Anh.',
+        stage: PlaybackFailureStage.firstPlaying,
       );
     }
 
@@ -994,6 +1091,7 @@ class JustAudioPlaybackService
       'owner': _audioTurnOwner.name,
       'stage': stage,
       'communicationRoute': request.communicationRoute,
+      'routeGeneration': request.routeGeneration,
       ...fields,
     });
   }
@@ -1067,10 +1165,12 @@ class JustAudioPlaybackService
 class _PlaybackRequest {
   _PlaybackRequest(
     this.communicationRoute, {
+    required this.routeGeneration,
     required this.diagnosticOperation,
   });
 
   final bool communicationRoute;
+  final int routeGeneration;
   final int diagnosticOperation;
   final AudioTurnCancellation turnCancellation = AudioTurnCancellation();
   final Completer<void> _cancelled = Completer<void>();
@@ -1086,9 +1186,19 @@ class _PlaybackRequest {
   Future<T> wait<T>(Future<T> work) => Future.any<T>(<Future<T>>[
     work,
     _cancelled.future.then<T>((_) {
-      throw const PlaybackException('Lượt phát âm thanh đã dừng.');
+      throw const PlaybackException(
+        'Lượt phát âm thanh đã dừng.',
+        stage: PlaybackFailureStage.cancelled,
+      );
     }),
   ]);
+}
+
+class _PlaybackPreparation {
+  const _PlaybackPreparation(this.future, {required this.routeGeneration});
+
+  final Future<void> future;
+  final int routeGeneration;
 }
 
 @visibleForTesting
@@ -1179,10 +1289,20 @@ class PlaybackCompletionTracker {
   }
 }
 
+enum PlaybackFailureStage {
+  routeSession,
+  sourceCache,
+  preprocessing,
+  firstPlaying,
+  cleanup,
+  cancelled,
+}
+
 class PlaybackException implements Exception {
-  const PlaybackException(this.message);
+  const PlaybackException(this.message, {this.stage});
 
   final String message;
+  final PlaybackFailureStage? stage;
 
   @override
   String toString() => message;

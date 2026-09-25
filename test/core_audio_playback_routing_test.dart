@@ -410,6 +410,192 @@ void main() {
       ]);
     },
   );
+
+  test('source load timeout reports the source/cache stage', () async {
+    final pendingLoad = Completer<void>();
+    final player = _ControlledPlayer()..pendingLoad = pendingLoad;
+    final cache = _ControlledCache();
+    final service = JustAudioPlaybackService(
+      player: player,
+      cache: cache,
+      sourceCacheTimeout: const Duration(milliseconds: 20),
+    );
+    addTearDown(() async {
+      if (!pendingLoad.isCompleted) pendingLoad.complete();
+      await service.dispose();
+      cache.dispose();
+    });
+
+    final playing = service.play(firstUri);
+    await player.blockedLoadEntered.future;
+
+    await expectLater(
+      playing,
+      throwsA(
+        isA<PlaybackException>().having(
+          (error) => error.stage,
+          'stage',
+          PlaybackFailureStage.sourceCache,
+        ),
+      ),
+    );
+
+    player.pendingLoad = null;
+    final nextPlayback = service.play(secondUri);
+    pendingLoad.complete();
+    await nextPlayback;
+    expect(player.playedPaths, <String>[secondUri.toFilePath()]);
+  });
+
+  test('route change cancels a source load before it can play', () async {
+    final player = _ControlledPlayer()..pendingLoad = Completer<void>();
+    final cache = _ControlledCache();
+    final service = JustAudioPlaybackService(player: player, cache: cache);
+    addTearDown(() async {
+      await service.dispose();
+      cache.dispose();
+    });
+
+    final playing = service.play(firstUri);
+    await player.blockedLoadEntered.future;
+    service.setCommunicationRouteActive(true);
+    player.pendingLoad!.complete();
+
+    await expectLater(
+      playing,
+      throwsA(
+        isA<PlaybackException>().having(
+          (error) => error.stage,
+          'stage',
+          PlaybackFailureStage.cancelled,
+        ),
+      ),
+    );
+    expect(player.playedPaths, isEmpty);
+  });
+
+  test('route change invalidates an in-flight session preparation', () async {
+    final preparationEntered = Completer<void>();
+    final releasePreparation = Completer<void>();
+    messenger.setMockMethodCallHandler(sessionChannel, (call) async {
+      if (call.method == 'setConfiguration') {
+        preparationEntered.complete();
+        await releasePreparation.future;
+      }
+      return null;
+    });
+    final player = _ControlledPlayer();
+    final cache = _ControlledCache();
+    final service = JustAudioPlaybackService(player: player, cache: cache);
+    addTearDown(() async {
+      await service.dispose();
+      cache.dispose();
+    });
+
+    final preparation = service.prepare();
+    await preparationEntered.future;
+    service.setCommunicationRouteActive(true);
+    releasePreparation.complete();
+
+    await expectLater(
+      preparation,
+      throwsA(
+        isA<PlaybackException>().having(
+          (error) => error.stage,
+          'stage',
+          PlaybackFailureStage.routeSession,
+        ),
+      ),
+    );
+  });
+
+  test('level preprocessing timeout reports its own stage', () async {
+    final pendingVolume = Completer<void>();
+    final player = _ControlledPlayer()..pendingVolume = pendingVolume;
+    final cache = _ControlledCache();
+    final service = JustAudioPlaybackService(
+      player: player,
+      cache: cache,
+      preprocessingTimeout: const Duration(milliseconds: 20),
+    );
+    addTearDown(() async {
+      if (!pendingVolume.isCompleted) pendingVolume.complete();
+      await service.dispose();
+      cache.dispose();
+    });
+
+    final playing = service.play(firstUri);
+    await player.volumeEntered.future;
+
+    await expectLater(
+      playing,
+      throwsA(
+        isA<PlaybackException>().having(
+          (error) => error.stage,
+          'stage',
+          PlaybackFailureStage.preprocessing,
+        ),
+      ),
+    );
+  });
+
+  test(
+    'first-playing timeout retries once with the same source and route',
+    () async {
+      final player = _ControlledPlayer()..silentPlayAttempts = 1;
+      final cache = _ControlledCache();
+      final service = JustAudioPlaybackService(
+        player: player,
+        cache: cache,
+        firstPlayingTimeout: const Duration(milliseconds: 20),
+      );
+      addTearDown(() async {
+        await service.dispose();
+        cache.dispose();
+      });
+      service.setCommunicationRouteActive(true);
+
+      await service.play(firstUri);
+
+      expect(player.playCalls, 2);
+      expect(player.seekCalls, 1);
+      expect(player.playedPaths, <String>[
+        firstUri.toFilePath(),
+        firstUri.toFilePath(),
+      ]);
+      expect(
+        player.attributesAtPlay.map((attributes) => attributes.usage),
+        everyElement(AndroidAudioUsage.voiceCommunication),
+      );
+    },
+  );
+
+  test('first-playing timeout fails after exactly one retry', () async {
+    final player = _ControlledPlayer()..silentPlayAttempts = 2;
+    final cache = _ControlledCache();
+    final service = JustAudioPlaybackService(
+      player: player,
+      cache: cache,
+      firstPlayingTimeout: const Duration(milliseconds: 20),
+    );
+    addTearDown(() async {
+      await service.dispose();
+      cache.dispose();
+    });
+
+    await expectLater(
+      service.play(firstUri),
+      throwsA(
+        isA<PlaybackException>().having(
+          (error) => error.stage,
+          'stage',
+          PlaybackFailureStage.firstPlaying,
+        ),
+      ),
+    );
+    expect(player.playCalls, 2);
+    expect(player.seekCalls, 1);
+  });
 }
 
 Future<void> _flush() async {
@@ -444,11 +630,16 @@ class _ControlledPlayer implements AudioPlayer {
       <AndroidAudioAttributes>[];
   final blockedLoadEntered = Completer<void>();
   final speedEntered = Completer<void>();
+  final volumeEntered = Completer<void>();
   Completer<void>? pendingLoad;
   Completer<void>? pendingSpeed;
+  Completer<void>? pendingVolume;
+  int silentPlayAttempts = 0;
   AndroidAudioAttributes? attributes;
   String? loadedPath;
   int disposeCalls = 0;
+  int playCalls = 0;
+  int seekCalls = 0;
   bool _playing = false;
   double _volume = 1.0;
 
@@ -494,17 +685,26 @@ class _ControlledPlayer implements AudioPlayer {
 
   @override
   Future<void> setVolume(double volume) async {
+    if (!volumeEntered.isCompleted) volumeEntered.complete();
+    await pendingVolume?.future;
     _volume = volume;
     volumeChanges.add(volume);
   }
 
   @override
   Future<void> play() async {
+    playCalls++;
     playedPaths.add(loadedPath!);
     volumesAtPlay.add(_volume);
     if (attributes != null) attributesAtPlay.add(attributes!);
     _playing = true;
+    if (playCalls <= silentPlayAttempts) return;
     _states.add(PlayerState(true, ProcessingState.ready));
+  }
+
+  @override
+  Future<void> seek(Duration? position, {int? index}) async {
+    seekCalls++;
   }
 
   @override

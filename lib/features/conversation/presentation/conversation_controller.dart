@@ -325,6 +325,11 @@ class ConversationController extends ChangeNotifier
   bool _usingRealtimeTranscription = false;
   bool _usingOfflineIntent = false;
   bool _playbackPlaying = false;
+  bool _playbackCommunicationRouteActive = false;
+  int _playbackRouteGeneration = 0;
+  int _playbackClaimGeneration = 0;
+  _ConversationPlaybackOperation? _activePlaybackOperation;
+  Future<void>? _playbackCleanupOperation;
   bool _h20HardwareAudioInputStarted = false;
   bool _h20HardwareStopInProgress = false;
   BatchChunkUploadSession? _batchChunkUpload;
@@ -1372,7 +1377,9 @@ class ConversationController extends ChangeNotifier
     if (phase == ConversationPhase.processing || _preparingMicrophone) {
       return MainButtonActionResult.busy;
     }
-    if (_playbackPlaying) await _playbackService.stop();
+    if (_playbackPlaying) {
+      await _cancelConversationPlayback(alwaysStop: true);
+    }
     if (phase == ConversationPhase.recording) {
       await stopRecording(manual: true);
     } else {
@@ -1415,6 +1422,10 @@ class ConversationController extends ChangeNotifier
         _stopInProgress;
 
     _conversationTurnGeneration += 1;
+    final playbackCleanup = _invalidatePlaybackAndStartCleanup(
+      alwaysStop: true,
+      reason: 'main_cancelled',
+    );
     _preparingMicrophone = false;
     _continuousTranslationSession.cancelInteraction();
     _partialPreviewTimer?.cancel();
@@ -1455,12 +1466,12 @@ class ConversationController extends ChangeNotifier
     }
 
     await _voicePromptService?.stop().catchError((Object _) {});
-    await _playbackService.stop().catchError((Object _) {});
     await _stopHfpRoute();
 
     final cancellationBarriers = await Future.wait<bool>([
       _waitForCancellationBarrier(pendingRecordingStart),
       _waitForCancellationBarrier(pendingHfpStart),
+      _waitForCancellationBarrier(playbackCleanup),
     ]);
     transientMessage = null;
     errorMessage = null;
@@ -2040,7 +2051,13 @@ class ConversationController extends ChangeNotifier
             .unlockForUserGesture();
         if (await abandonCancelledRecordingStart()) return;
       }
-      await _playbackService.stop();
+      final playbackSettled = await _cancelConversationPlayback(
+        alwaysStop: true,
+      );
+      if (!playbackSettled) {
+        _setError('Player vẫn đang dọn lượt phát trước. Bạn thử lại nhé.');
+        return;
+      }
       if (await abandonCancelledRecordingStart()) return;
       final readyCuePlayer = _voicePromptService;
       final cueBeforeStart =
@@ -3166,6 +3183,7 @@ class ConversationController extends ChangeNotifier
           : null;
       Future<PlaybackStartMetrics>? earlyRulePlayback;
       Future<void>? earlyRulePlaybackCompletion;
+      _ConversationPlaybackOperation? earlyRulePlaybackOperation;
       DateTime? earlyRulePlaybackRequestedAt;
       Uri? earlyRulePlaybackUri;
       String? earlyRuleEnglishText;
@@ -3186,7 +3204,15 @@ class ConversationController extends ChangeNotifier
           // reports that it started. The turn must not become ready while the
           // assistant is still speaking, regardless of phone/A2DP/HFP output.
           earlyRulePlaybackCompletion = _waitForActivePlaybackToComplete();
-          earlyRulePlayback = _playbackService.play(localAudioUri);
+          earlyRulePlaybackOperation = await _beginPlaybackOperation(
+            turnGeneration: turnGeneration,
+            source: 'early_rule',
+          );
+          earlyRulePlayback = _awaitPlaybackStartWithTimeout(
+            _playbackService.play(localAudioUri),
+            operation: earlyRulePlaybackOperation,
+          );
+          earlyRulePlayback.ignore();
         }
       }
 
@@ -3246,7 +3272,7 @@ class ConversationController extends ChangeNotifier
       if (batchCommandText.isNotEmpty &&
           _matchesRecognizedSpeechCommand(batchCommandText)) {
         handledSpeechCommand = batchCommandText;
-        await _playbackService.stop();
+        await _cancelConversationPlayback(alwaysStop: true);
         _completeRecognizedSpeechCommand();
         return;
       }
@@ -3304,12 +3330,10 @@ class ConversationController extends ChangeNotifier
           (_preferredPlaybackUri == earlyRulePlaybackUri ||
               nextResult.audioUri == earlyRulePlaybackUri);
       if (canReuseEarlyRulePlayback) {
+        final operation = earlyRulePlaybackOperation!;
         try {
-          final metrics = await _awaitPlaybackStartWithTimeout(
-            earlyRulePlayback,
-            turnGeneration: turnGeneration,
-            source: 'early_rule',
-          );
+          final metrics = await earlyRulePlayback;
+          _requireCurrentPlaybackOperation(operation);
           final startedAt = earlyRulePlaybackRequestedAt.add(
             metrics.startedAfterRequest,
           );
@@ -3318,11 +3342,12 @@ class ConversationController extends ChangeNotifier
             startedAt: startedAt,
             metrics: metrics,
           );
-          await earlyRulePlaybackCompletion;
+          await operation.wait(earlyRulePlaybackCompletion!);
+          _requireCurrentPlaybackOperation(operation);
           reusedEarlyRulePlayback = true;
         } catch (error) {
           debugPrint('Early exact-rule playback failed: $error');
-          await _playbackService.stop().catchError((Object _) {});
+          await _stopPlaybackIfOwned(operation, reason: 'early_rule_failed');
           if (error is PlaybackException &&
               useAndroidOfflineAudio &&
               nextResult.processingMode == 'offline_fallback') {
@@ -3338,13 +3363,22 @@ class ConversationController extends ChangeNotifier
           } else if (error is PlaybackException) {
             rethrow;
           }
+        } finally {
+          _completePlaybackOperation(operation);
         }
       }
       if (!reusedEarlyRulePlayback && earlyRulePlayback != null) {
         // The playback start future cannot be cancelled, but stopping the
         // service releases its source immediately. Never await that stale
         // future again after a timeout.
-        await _playbackService.stop().catchError((Object _) {});
+        final operation = earlyRulePlaybackOperation!;
+        await _stopPlaybackIfOwned(operation, reason: 'early_rule_not_reused');
+        try {
+          await earlyRulePlayback;
+        } catch (_) {
+          // The speculative request was intentionally invalidated.
+        }
+        _completePlaybackOperation(operation);
       }
       if (!reusedEarlyRulePlayback &&
           (nextResult.audioUri != null || _preferredPlaybackUri != null)) {
@@ -3416,88 +3450,252 @@ class ConversationController extends ChangeNotifier
     }
   }
 
+  Future<_ConversationPlaybackOperation> _beginPlaybackOperation({
+    required int turnGeneration,
+    required String source,
+  }) async {
+    final claimGeneration = ++_playbackClaimGeneration;
+    final previous = _activePlaybackOperation;
+    previous?.cancel();
+    _activePlaybackOperation = null;
+    if (previous != null) {
+      _startPlaybackCleanup(reason: 'superseded_by_$source');
+    }
+
+    final cleanup = _playbackCleanupOperation;
+    if (cleanup != null && !await _waitForCancellationBarrier(cleanup)) {
+      throw const PlaybackException(
+        'Player vẫn đang dọn lượt phát trước. Bạn thử lại nhé.',
+        stage: PlaybackFailureStage.cleanup,
+      );
+    }
+    if (_disposed ||
+        claimGeneration != _playbackClaimGeneration ||
+        turnGeneration != _conversationTurnGeneration) {
+      throw const PlaybackException(
+        'Lượt phát âm thanh đã dừng.',
+        stage: PlaybackFailureStage.cancelled,
+      );
+    }
+
+    final operation = _ConversationPlaybackOperation(
+      id: AudioDiagnostics.nextId(),
+      turnGeneration: turnGeneration,
+      routeGeneration: _playbackRouteGeneration,
+      source: source,
+    );
+    _activePlaybackOperation = operation;
+    AudioDiagnostics.event('conversation.playback.operation.claimed', {
+      'operation': operation.id,
+      'turnGeneration': turnGeneration,
+      'routeGeneration': operation.routeGeneration,
+      'source': source,
+    });
+    return operation;
+  }
+
+  _ConversationPlaybackOperation _claimDirectPlaybackOperation({
+    required int turnGeneration,
+    required String source,
+  }) {
+    ++_playbackClaimGeneration;
+    _activePlaybackOperation?.cancel();
+    final operation = _ConversationPlaybackOperation(
+      id: AudioDiagnostics.nextId(),
+      turnGeneration: turnGeneration,
+      routeGeneration: _playbackRouteGeneration,
+      source: source,
+    );
+    _activePlaybackOperation = operation;
+    return operation;
+  }
+
+  bool _isCurrentPlaybackOperation(_ConversationPlaybackOperation operation) {
+    return !_disposed &&
+        !operation.isCancelled &&
+        identical(_activePlaybackOperation, operation) &&
+        operation.turnGeneration == _conversationTurnGeneration &&
+        operation.routeGeneration == _playbackRouteGeneration;
+  }
+
+  void _requireCurrentPlaybackOperation(
+    _ConversationPlaybackOperation operation,
+  ) {
+    if (!_isCurrentPlaybackOperation(operation)) {
+      throw const PlaybackException(
+        'Lượt phát âm thanh đã dừng.',
+        stage: PlaybackFailureStage.cancelled,
+      );
+    }
+  }
+
+  void _completePlaybackOperation(_ConversationPlaybackOperation operation) {
+    if (identical(_activePlaybackOperation, operation)) {
+      _activePlaybackOperation = null;
+    }
+  }
+
+  void _invalidatePlaybackOwnership({required String reason}) {
+    final operation = _activePlaybackOperation;
+    ++_playbackClaimGeneration;
+    operation?.cancel();
+    _activePlaybackOperation = null;
+    if (operation != null) {
+      AudioDiagnostics.event('conversation.playback.operation.invalidated', {
+        'operation': operation.id,
+        'turnGeneration': operation.turnGeneration,
+        'routeGeneration': operation.routeGeneration,
+        'source': operation.source,
+        'reason': reason,
+      });
+    }
+  }
+
+  Future<void> _startPlaybackCleanup({required String reason}) {
+    final current = _playbackCleanupOperation;
+    if (current != null) return current;
+    late final Future<void> tracked;
+    tracked = _playbackService
+        .stop()
+        .catchError((Object error) {
+          AudioDiagnostics.event('conversation.playback.cleanup.failed', {
+            'reason': reason,
+            'errorType': error.runtimeType.toString(),
+          });
+        })
+        .whenComplete(() {
+          if (identical(_playbackCleanupOperation, tracked)) {
+            _playbackCleanupOperation = null;
+          }
+        });
+    _playbackCleanupOperation = tracked;
+    return tracked;
+  }
+
+  Future<void>? _invalidatePlaybackAndStartCleanup({
+    required bool alwaysStop,
+    required String reason,
+  }) {
+    final hadOwner = _activePlaybackOperation != null;
+    _invalidatePlaybackOwnership(reason: reason);
+    if (!alwaysStop && !hadOwner) return _playbackCleanupOperation;
+    return _startPlaybackCleanup(reason: reason);
+  }
+
+  Future<bool> _cancelConversationPlayback({required bool alwaysStop}) async {
+    final cleanup = _invalidatePlaybackAndStartCleanup(
+      alwaysStop: alwaysStop,
+      reason: 'conversation_cancelled',
+    );
+    return _waitForCancellationBarrier(cleanup);
+  }
+
+  Future<bool> _stopPlaybackIfOwned(
+    _ConversationPlaybackOperation operation, {
+    required String reason,
+  }) async {
+    if (!_isCurrentPlaybackOperation(operation)) return true;
+    _invalidatePlaybackOwnership(reason: reason);
+    return _waitForCancellationBarrier(_startPlaybackCleanup(reason: reason));
+  }
+
   Future<void> _preparePlaybackWithTimeout({
     required int turnGeneration,
   }) async {
-    final operation = AudioDiagnostics.nextId();
+    final operation = await _beginPlaybackOperation(
+      turnGeneration: turnGeneration,
+      source: 'prepare',
+    );
     final startedAt = DateTime.now();
     AudioDiagnostics.event('conversation.playback.prepare.started', {
-      'operation': operation,
+      'operation': operation.id,
       'turnGeneration': turnGeneration,
+      'routeGeneration': operation.routeGeneration,
     });
     try {
-      await _playbackService.prepare().timeout(_audioPreparationTimeout);
+      await operation.wait(
+        _playbackService.prepare().timeout(_audioPreparationTimeout),
+      );
+      _requireCurrentPlaybackOperation(operation);
       AudioDiagnostics.event('conversation.playback.prepare.completed', {
-        'operation': operation,
+        'operation': operation.id,
         'turnGeneration': turnGeneration,
         'currentTurnGeneration': _conversationTurnGeneration,
         'elapsedMs': DateTime.now().difference(startedAt).inMilliseconds,
       });
     } on TimeoutException {
       AudioDiagnostics.event('conversation.playback.prepare.timed_out', {
-        'operation': operation,
+        'operation': operation.id,
         'turnGeneration': turnGeneration,
         'currentTurnGeneration': _conversationTurnGeneration,
         'elapsedMs': DateTime.now().difference(startedAt).inMilliseconds,
       });
-      await _playbackService.stop().catchError((Object _) {});
+      await _stopPlaybackIfOwned(operation, reason: 'prepare_timeout');
       throw const PlaybackException(
-        'Không thể chuẩn bị âm thanh trong thời gian cho phép. Bạn thử lại nhé.',
+        'Không thể chuẩn bị phiên và đường âm thanh trong thời gian cho phép.',
+        stage: PlaybackFailureStage.routeSession,
       );
     } catch (error) {
       AudioDiagnostics.event('conversation.playback.prepare.failed', {
-        'operation': operation,
+        'operation': operation.id,
         'turnGeneration': turnGeneration,
         'currentTurnGeneration': _conversationTurnGeneration,
         'errorType': error.runtimeType.toString(),
+        if (error is PlaybackException) 'failureStage': error.stage?.name,
         'elapsedMs': DateTime.now().difference(startedAt).inMilliseconds,
       });
       rethrow;
+    } finally {
+      _completePlaybackOperation(operation);
     }
   }
 
   Future<PlaybackStartMetrics> _awaitPlaybackStartWithTimeout(
     Future<PlaybackStartMetrics> playbackStart, {
-    required int turnGeneration,
-    required String source,
+    required _ConversationPlaybackOperation operation,
   }) async {
-    final operation = AudioDiagnostics.nextId();
     final startedAt = DateTime.now();
     AudioDiagnostics.event('conversation.playback.start_wait.started', {
-      'operation': operation,
-      'turnGeneration': turnGeneration,
-      'source': source,
+      'operation': operation.id,
+      'turnGeneration': operation.turnGeneration,
+      'routeGeneration': operation.routeGeneration,
+      'source': operation.source,
     });
     try {
-      final metrics = await playbackStart.timeout(_audioPreparationTimeout);
+      final metrics = await operation.wait(
+        playbackStart.timeout(_audioPreparationTimeout),
+      );
+      _requireCurrentPlaybackOperation(operation);
       AudioDiagnostics.event('conversation.playback.start_wait.completed', {
-        'operation': operation,
-        'turnGeneration': turnGeneration,
+        'operation': operation.id,
+        'turnGeneration': operation.turnGeneration,
         'currentTurnGeneration': _conversationTurnGeneration,
-        'source': source,
+        'source': operation.source,
         'elapsedMs': DateTime.now().difference(startedAt).inMilliseconds,
         'startDelayMs': metrics.startedAfterRequest.inMilliseconds,
       });
       return metrics;
     } on TimeoutException {
       AudioDiagnostics.event('conversation.playback.start_wait.timed_out', {
-        'operation': operation,
-        'turnGeneration': turnGeneration,
+        'operation': operation.id,
+        'turnGeneration': operation.turnGeneration,
         'currentTurnGeneration': _conversationTurnGeneration,
-        'source': source,
+        'source': operation.source,
         'elapsedMs': DateTime.now().difference(startedAt).inMilliseconds,
       });
-      await _playbackService.stop().catchError((Object _) {});
+      await _stopPlaybackIfOwned(operation, reason: 'first_playing_timeout');
       throw const PlaybackException(
-        'Không thể chuẩn bị âm thanh trong thời gian cho phép. Bạn thử lại nhé.',
+        'Player không xác nhận đã bắt đầu phát trong thời gian cho phép.',
+        stage: PlaybackFailureStage.firstPlaying,
       );
     } catch (error) {
       AudioDiagnostics.event('conversation.playback.start_wait.failed', {
-        'operation': operation,
-        'turnGeneration': turnGeneration,
+        'operation': operation.id,
+        'turnGeneration': operation.turnGeneration,
         'currentTurnGeneration': _conversationTurnGeneration,
-        'source': source,
+        'source': operation.source,
         'errorType': error.runtimeType.toString(),
+        if (error is PlaybackException) 'failureStage': error.stage?.name,
         'elapsedMs': DateTime.now().difference(startedAt).inMilliseconds,
       });
       rethrow;
@@ -3633,10 +3831,18 @@ class ConversationController extends ChangeNotifier
   }
 
   void _setPlaybackCommunicationRoute(bool active) {
+    if (_playbackCommunicationRouteActive == active) return;
+    final hadOwner = _activePlaybackOperation != null;
+    _playbackCommunicationRouteActive = active;
+    ++_playbackRouteGeneration;
+    _invalidatePlaybackOwnership(reason: 'output_route_changed');
     final playback = _playbackService;
     if (playback is CommunicationRouteAwareAudioPlaybackService) {
       (playback as CommunicationRouteAwareAudioPlaybackService)
           .setCommunicationRouteActive(active);
+    }
+    if (hadOwner) {
+      unawaited(_startPlaybackCleanup(reason: 'output_route_changed'));
     }
   }
 
@@ -3808,6 +4014,7 @@ class ConversationController extends ChangeNotifier
     _useTranslatedSpeechPlaybackRate();
 
     var openedHfpForReplay = false;
+    _ConversationPlaybackOperation? playbackOperation;
     try {
       // Native iOS recognition already opened and released one utterance-scoped
       // HFP/SCO route. Reopening HFP only to play the translated sentence makes
@@ -3851,32 +4058,48 @@ class ConversationController extends ChangeNotifier
         final directStart =
             (gesturePlayback as DirectUserGestureAudioPlaybackService)
                 .playLoadedForUserGesture(audioUri);
-        final directMetrics = await directStart.timeout(
-          _audioPreparationTimeout,
-          onTimeout: () => throw const PlaybackException(
-            'Không thể chuẩn bị âm thanh trong thời gian cho phép. Bạn thử lại nhé.',
+        // Claim only after invoking HTMLMediaElement.play() so Safari keeps the
+        // transient user gesture. Native paths use the bounded cleanup barrier.
+        playbackOperation = _claimDirectPlaybackOperation(
+          turnGeneration: playbackTurnGeneration,
+          source: 'assistant_response_web_gesture',
+        );
+        final directMetrics = await playbackOperation.wait(
+          directStart.timeout(
+            _audioPreparationTimeout,
+            onTimeout: () => throw const PlaybackException(
+              'Trình duyệt chưa xác nhận bắt đầu phát trong thời gian cho phép.',
+              stage: PlaybackFailureStage.firstPlaying,
+            ),
           ),
         );
+        _requireCurrentPlaybackOperation(playbackOperation);
         gestureMetrics = directMetrics;
       }
       final playback = _playbackService;
       final checksum = currentResult.audioSha256;
-      final metrics =
-          gestureMetrics ??
-          await _awaitPlaybackStartWithTimeout(
+      late final PlaybackStartMetrics metrics;
+      if (gestureMetrics != null) {
+        metrics = gestureMetrics;
+      } else {
+        playbackOperation = await _beginPlaybackOperation(
+          turnGeneration: playbackTurnGeneration,
+          source: 'assistant_response',
+        );
+        final playbackStart =
             checksum != null && playback is IntegrityAwareAudioPlaybackService
-                ? (playback as IntegrityAwareAudioPlaybackService).playVerified(
-                    audioUri,
-                    sha256: checksum,
-                  )
-                : playback.play(audioUri),
-            turnGeneration: playbackTurnGeneration,
-            source: 'assistant_response',
-          );
-      if (playbackTurnGeneration != _conversationTurnGeneration) {
-        await _playbackService.stop().catchError((Object _) {});
-        return;
+            ? (playback as IntegrityAwareAudioPlaybackService).playVerified(
+                audioUri,
+                sha256: checksum,
+              )
+            : playback.play(audioUri);
+        metrics = await _awaitPlaybackStartWithTimeout(
+          playbackStart,
+          operation: playbackOperation,
+        );
       }
+      final ownedOperation = playbackOperation!;
+      _requireCurrentPlaybackOperation(ownedOperation);
       if (reportLatency && _stoppedAt != null) {
         _reportPlaybackStarted(
           currentResult: currentResult,
@@ -3884,9 +4107,16 @@ class ConversationController extends ChangeNotifier
           metrics: metrics,
         );
       }
-      await playbackCompletion;
+      await ownedOperation.wait(playbackCompletion);
+      _requireCurrentPlaybackOperation(ownedOperation);
     } catch (error) {
-      await _playbackService.stop().catchError((Object _) {});
+      final operation = playbackOperation;
+      if (operation != null) {
+        await _stopPlaybackIfOwned(
+          operation,
+          reason: 'assistant_playback_failed',
+        );
+      }
       if (playbackTurnGeneration != _conversationTurnGeneration) return;
       if (!propagateFailure &&
           !_isHfpRouteLoss(error) &&
@@ -3902,6 +4132,8 @@ class ConversationController extends ChangeNotifier
       notifyListeners();
       if (propagateFailure) rethrow;
     } finally {
+      final operation = playbackOperation;
+      if (operation != null) _completePlaybackOperation(operation);
       if (openedHfpForReplay) await _stopHfpRoute();
     }
   }
@@ -4338,6 +4570,7 @@ class ConversationController extends ChangeNotifier
   @override
   void dispose() {
     _disposed = true;
+    _invalidatePlaybackOwnership(reason: 'controller_disposed');
     _continuousTranslationSession.dispose();
     _realtimeConnectionGeneration += 1;
     _realtimeConnectionFuture = null;
@@ -4394,6 +4627,37 @@ class ConversationController extends ChangeNotifier
     unawaited(_repository.dispose());
     super.dispose();
   }
+}
+
+class _ConversationPlaybackOperation {
+  _ConversationPlaybackOperation({
+    required this.id,
+    required this.turnGeneration,
+    required this.routeGeneration,
+    required this.source,
+  });
+
+  final int id;
+  final int turnGeneration;
+  final int routeGeneration;
+  final String source;
+  final Completer<void> _cancelled = Completer<void>();
+
+  bool get isCancelled => _cancelled.isCompleted;
+
+  void cancel() {
+    if (!isCancelled) _cancelled.complete();
+  }
+
+  Future<T> wait<T>(Future<T> work) => Future.any<T>(<Future<T>>[
+    work,
+    _cancelled.future.then<T>((_) {
+      throw const PlaybackException(
+        'Lượt phát âm thanh đã dừng.',
+        stage: PlaybackFailureStage.cancelled,
+      );
+    }),
+  ]);
 }
 
 class _ConversationContinuousTranslationRuntime

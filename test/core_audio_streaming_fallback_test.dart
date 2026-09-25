@@ -1902,9 +1902,67 @@ void main() {
         .timeout(const Duration(milliseconds: 300));
 
     expect(controller.phase, ConversationPhase.error);
-    expect(controller.errorMessage, contains('chuẩn bị âm thanh'));
+    expect(controller.errorMessage, contains('phiên và đường âm thanh'));
     controller.dispose();
   });
+
+  test(
+    'late preparation from a cancelled turn cannot stop the next turn',
+    () async {
+      final playback = _FirstBlockingPreparationPlaybackService();
+      final repository = _FallbackRepository(
+        streamingOutcomes: <Object>[
+          _result(
+            'old-turn',
+            audioUri: Uri.parse('https://api.example.com/old.mp3'),
+          ),
+          _result(
+            'new-turn',
+            audioUri: Uri.parse('https://api.example.com/new.mp3'),
+          ),
+        ],
+      );
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Phone',
+        ),
+        streamingSpeechInput: _FakeStreamingSpeechInput(
+          sourceText: 'Một câu hoàn toàn mới',
+        ),
+        playbackService: playback,
+        repository: repository,
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+        audioPreparationTimeout: const Duration(milliseconds: 200),
+      );
+
+      await controller.startRecording();
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      final firstStop = controller.stopRecording(manual: true);
+      await playback.firstPreparationEntered.future;
+      await controller.cancelCurrentMainAction();
+      await firstStop.timeout(const Duration(milliseconds: 300));
+
+      await controller.startRecording();
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await controller
+          .stopRecording(manual: true)
+          .timeout(const Duration(milliseconds: 500));
+      final stopCountAfterNextTurn = playback.stopCount;
+      expect(playback.prepareCount, 2);
+      expect(playback.playCount, 1);
+
+      playback.completeFirstPreparation();
+      await _flushPlaybackTasks();
+
+      expect(playback.stopCount, stopCountAfterNextTurn);
+      expect(playback.playCount, 1);
+      expect(controller.phase, ConversationPhase.ready);
+      controller.dispose();
+    },
+  );
 
   test('MAIN cancellation during HFP start prevents late recording', () async {
     final hfp = _BlockingStartHfpAudioControl();
@@ -2039,11 +2097,101 @@ void main() {
         .timeout(const Duration(milliseconds: 300));
 
     expect(controller.phase, ConversationPhase.error);
-    expect(controller.errorMessage, contains('chuẩn bị âm thanh'));
+    expect(controller.errorMessage, contains('Player không xác nhận'));
     expect(controller.result?.conversationId, 'stream-result');
     expect(playback.stopCount, greaterThan(0));
     controller.dispose();
   });
+
+  test('late old playback completion cannot stop a newer playback', () async {
+    final playback = _SequencedPlaybackService();
+    final controller = ConversationController(
+      audioInput: _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Phone',
+      ),
+      playbackService: playback,
+      repository: _FallbackRepository(),
+      childAge: 6,
+    );
+    controller.result = _result(
+      'old-turn',
+      audioUri: Uri.parse('https://api.example.com/old.mp3'),
+    );
+    final oldPlayback = controller.playResult(propagateFailure: true);
+    await playback.firstPlayEntered.future;
+
+    await controller.cancelCurrentMainAction();
+    await oldPlayback.timeout(const Duration(milliseconds: 300));
+    controller.result = _result(
+      'new-turn',
+      audioUri: Uri.parse('https://api.example.com/new.mp3'),
+    );
+    await controller.playResult(propagateFailure: true);
+    final stopCountAfterNewPlayback = playback.stopCount;
+
+    playback.completeFirstPlay();
+    await _flushPlaybackTasks();
+
+    expect(playback.playedUris, <Uri>[
+      Uri.parse('https://api.example.com/old.mp3'),
+      Uri.parse('https://api.example.com/new.mp3'),
+    ]);
+    expect(playback.stopCount, stopCountAfterNewPlayback);
+    controller.dispose();
+  });
+
+  test(
+    'new playback does not reuse a player while old stop is pending',
+    () async {
+      final playback = _SequencedPlaybackService()
+        ..pendingStop = Completer<void>();
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Phone',
+        ),
+        playbackService: playback,
+        repository: _FallbackRepository(),
+        childAge: 6,
+        cancellationBarrierTimeout: const Duration(milliseconds: 20),
+      );
+      controller.result = _result(
+        'old-turn',
+        audioUri: Uri.parse('https://api.example.com/old.mp3'),
+      );
+      final oldPlayback = controller.playResult(propagateFailure: true);
+      await playback.firstPlayEntered.future;
+
+      final cancellation = await controller.cancelCurrentMainAction();
+      expect(cancellation, MainButtonActionResult.busy);
+      await oldPlayback.timeout(const Duration(milliseconds: 300));
+      controller.result = _result(
+        'new-turn',
+        audioUri: Uri.parse('https://api.example.com/new.mp3'),
+      );
+
+      await expectLater(
+        controller.playResult(propagateFailure: true),
+        throwsA(
+          isA<PlaybackException>().having(
+            (error) => error.stage,
+            'stage',
+            PlaybackFailureStage.cleanup,
+          ),
+        ),
+      );
+      expect(playback.playCount, 1);
+
+      playback.pendingStop!.complete();
+      await _flushPlaybackTasks();
+      await controller.playResult(propagateFailure: true);
+      expect(playback.playCount, 2);
+      controller.dispose();
+    },
+  );
 
   test('early exact-rule playback cannot prepare forever', () async {
     final playback = _NeverStartingPlaybackService();
@@ -2583,6 +2731,12 @@ void main() {
     expect(archived.$2.filePath, 'fake.wav');
     controller.dispose();
   });
+}
+
+Future<void> _flushPlaybackTasks() async {
+  for (var index = 0; index < 8; index++) {
+    await Future<void>.delayed(Duration.zero);
+  }
 }
 
 class _FakeStreamingSpeechInput implements StreamingSpeechInput {
@@ -3483,6 +3637,112 @@ class _FakePlaybackService implements AudioPlaybackService {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _FirstBlockingPreparationPlaybackService implements AudioPlaybackService {
+  final Completer<void> firstPreparationEntered = Completer<void>();
+  final Completer<void> _firstPreparation = Completer<void>();
+  int prepareCount = 0;
+  int playCount = 0;
+  int stopCount = 0;
+
+  void completeFirstPreparation() {
+    if (!_firstPreparation.isCompleted) _firstPreparation.complete();
+  }
+
+  @override
+  Stream<bool> get playingStream => const Stream<bool>.empty();
+
+  @override
+  Future<void> prepare() async {
+    prepareCount++;
+    if (prepareCount != 1) return;
+    firstPreparationEntered.complete();
+    await _firstPreparation.future;
+  }
+
+  @override
+  Future<void> preload(Uri uri) async {}
+
+  @override
+  Future<PlaybackStartMetrics> play(Uri uri) async {
+    playCount++;
+    return const PlaybackStartMetrics(
+      audioLoadDuration: Duration.zero,
+      startedAfterRequest: Duration.zero,
+      fromDeviceCache: false,
+    );
+  }
+
+  @override
+  Future<void> stop() async {
+    stopCount++;
+  }
+
+  @override
+  Future<void> dispose() async {}
+}
+
+class _SequencedPlaybackService implements AudioPlaybackService {
+  final Completer<void> firstPlayEntered = Completer<void>();
+  final Completer<PlaybackStartMetrics> _firstPlay =
+      Completer<PlaybackStartMetrics>();
+  final List<Uri> playedUris = <Uri>[];
+  Completer<void>? pendingStop;
+  int playCount = 0;
+  int stopCount = 0;
+
+  void completeFirstPlay() {
+    if (!_firstPlay.isCompleted) {
+      _firstPlay.complete(
+        const PlaybackStartMetrics(
+          audioLoadDuration: Duration.zero,
+          startedAfterRequest: Duration.zero,
+          fromDeviceCache: false,
+        ),
+      );
+    }
+  }
+
+  @override
+  Stream<bool> get playingStream => const Stream<bool>.empty();
+
+  @override
+  Future<void> prepare() async {}
+
+  @override
+  Future<void> preload(Uri uri) async {}
+
+  @override
+  Future<PlaybackStartMetrics> play(Uri uri) {
+    playCount++;
+    playedUris.add(uri);
+    if (playCount == 1) {
+      firstPlayEntered.complete();
+      return _firstPlay.future;
+    }
+    return Future<PlaybackStartMetrics>.value(
+      const PlaybackStartMetrics(
+        audioLoadDuration: Duration.zero,
+        startedAfterRequest: Duration.zero,
+        fromDeviceCache: false,
+      ),
+    );
+  }
+
+  @override
+  Future<void> stop() async {
+    stopCount++;
+    await pendingStop?.future;
+  }
+
+  @override
+  Future<void> dispose() async {
+    completeFirstPlay();
+    if (pendingStop != null && !pendingStop!.isCompleted) {
+      pendingStop!.complete();
+    }
+  }
 }
 
 class _BlockingPlaybackService implements AudioPlaybackService {
