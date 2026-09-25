@@ -305,7 +305,7 @@ void main() {
   );
 
   test(
-    'vague module requests ask, retry once, then keep current content',
+    'vague module requests keep current content paused after retry',
     () async {
       for (final text
           in MasterNavigationContract.phrases['SWITCH_MODULE_MENU']!) {
@@ -331,7 +331,7 @@ void main() {
           MasterNavigationContract.keepCurrentContent,
           reason: text,
         );
-        expect(second.activeLearningCommand, ActiveLearningCommand.resume);
+        expect(second.activeLearningCommand, isNull);
       }
     },
   );

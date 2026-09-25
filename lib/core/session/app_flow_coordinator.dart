@@ -29,7 +29,6 @@ class AppFlowCoordinator {
 
   final ActiveLearningModuleRegistry _registry;
   bool _activeModulePausedForMain = false;
-  bool _resumingActiveModule = false;
   int _pauseGeneration = 0;
   ActiveLearningOperationToken? _pausedOperation;
 
@@ -116,23 +115,6 @@ class AppFlowCoordinator {
       }
     }
     return result;
-  }
-
-  Future<void> resumeAfterMainAssistant() async {
-    if (!_activeModulePausedForMain || _resumingActiveModule) return;
-    _resumingActiveModule = true;
-    try {
-      final result = await execute(ActiveLearningCommand.resume);
-      if (result.wasHandled ||
-          !_registry.hasActiveModule ||
-          !_registry.isActiveModulePaused) {
-        _activeModulePausedForMain = false;
-      }
-    } catch (_) {
-      // Keep the paused marker so a later assistant state change can retry.
-    } finally {
-      _resumingActiveModule = false;
-    }
   }
 
   void forgetPausedModule() {

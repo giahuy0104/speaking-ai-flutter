@@ -454,22 +454,6 @@ class AivoControlDispatcher extends ChangeNotifier {
       return _mainResult(await onPause(mainInput));
     }
     if (intent == AivoControlIntent.assistantOrResume) {
-      if (registry.isActiveModulePaused && (canResume?.call() ?? true)) {
-        final owner = registry.controller;
-        AudioDiagnostics.event('aivo.dispatch.direct_resume', {
-          'dispatcherGeneration': ticket,
-          'ownerGeneration': registry.diagnosticOwnerGeneration,
-          'ownerId': owner == null ? null : identityHashCode(owner),
-        });
-        final result = await registry.execute(ActiveLearningCommand.resume);
-        if (_disposed ||
-            ticket != _generation ||
-            !identical(owner, registry.controller)) {
-          return AivoControlStatus.ignored;
-        }
-        if (result.wasHandled) onModuleHandled?.call();
-        return _moduleResult(result);
-      }
       AudioDiagnostics.event('aivo.dispatch.main_question_requested', {
         'dispatcherGeneration': ticket,
         'ownerGeneration': registry.diagnosticOwnerGeneration,

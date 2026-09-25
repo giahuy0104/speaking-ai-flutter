@@ -851,6 +851,46 @@ void main() {
     );
   }
 
+  testWidgets(
+    'legacy MAIN resume leads then replays sample without opening mic',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final sample = Uri.parse('https://example.test/legacy-sample.mp3');
+      final mediaService = _GuidedMediaService();
+      final voicePrompts = _FakeVoicePromptService();
+
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _subject(
+            _lesson(code: 'LEGACY', sentenceAudioUri: sample),
+            mediaService,
+            voicePromptService: voicePrompts,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      mediaService.playedUris.clear();
+      voicePrompts.spoken.clear();
+
+      expect(
+        (await registry.execute(ActiveLearningCommand.stop)).wasHandled,
+        isTrue,
+      );
+      expect(
+        (await registry.execute(ActiveLearningCommand.resume)).wasHandled,
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+
+      expect(voicePrompts.spoken, <String>['vi-VN|Mình tiếp tục nhé.']);
+      expect(mediaService.playedUris, <Uri>[sample]);
+      expect(mediaService.recording, isFalse);
+    },
+  );
+
   testWidgets('V4 praises before explaining the first earned star', (
     tester,
   ) async {

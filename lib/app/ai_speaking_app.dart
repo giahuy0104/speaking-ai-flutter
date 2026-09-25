@@ -2016,10 +2016,6 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           !_mainSpeakingSessionController.isActive) {
         unawaited(_restoreHfpSelectionAfterPhysicalMain());
       }
-      if (_appFlowCoordinator.activeModulePausedForMain &&
-          !_isActivatingMainAssistant) {
-        unawaited(_resumeActiveModuleAfterMain());
-      }
       unawaited(_releaseAndroidMainHfpRouteIfIdle());
     }
   }
@@ -2110,10 +2106,6 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (!_mainSpeakingSessionController.isActive) {
       unawaited(_releaseAndroidMainHfpRouteIfIdle());
     }
-  }
-
-  Future<void> _resumeActiveModuleAfterMain() async {
-    await _appFlowCoordinator.resumeAfterMainAssistant();
   }
 
   Future<MainButtonActionResult> _handleMainLongPress(

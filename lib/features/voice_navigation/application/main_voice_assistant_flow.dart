@@ -1984,11 +1984,17 @@ class MainVoiceAssistantFlow {
     }
     if (_stage == MainVoiceAssistantStage.chooseModuleSwitch ||
         _stage == MainVoiceAssistantStage.activeLearning) {
-      return const MainVoiceAssistantTurn(
-        promptText: MasterNavigationContract.keepCurrentContent,
-        promptAudioKey: MainAssistantAudioKeys.keepCurrentContent,
+      return MainVoiceAssistantTurn(
+        promptText: _stage == MainVoiceAssistantStage.activeLearning
+            ? MasterNavigationContract.pause
+            : MasterNavigationContract.keepCurrentContent,
+        promptAudioKey: _stage == MainVoiceAssistantStage.activeLearning
+            ? MainAssistantAudioKeys.cancelled
+            : MainAssistantAudioKeys.keepCurrentContent,
         continueListening: false,
-        activeLearningCommand: ActiveLearningCommand.resume,
+        activeLearningCommand: _stage == MainVoiceAssistantStage.activeLearning
+            ? ActiveLearningCommand.stop
+            : null,
       );
     }
     return MainVoiceAssistantTurn(

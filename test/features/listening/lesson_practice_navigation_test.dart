@@ -16,6 +16,7 @@ import 'package:ai_speaking_flutter_app/features/listening/domain/listening_cont
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_challenge_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_practice_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_intro_screen.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -880,6 +881,7 @@ void main() {
     final mediaService = _SilentMediaService(
       existingRecordingPath: 'C:\\recordings\\previous-attempt.m4a',
     );
+    final voicePromptService = _RecordingVoicePromptService();
 
     await tester.pumpWidget(
       ActiveLearningModuleScope(
@@ -901,7 +903,7 @@ void main() {
                       lesson: lesson,
                       progressStore: _MemoryProgressStore(),
                       mediaService: mediaService,
-                      voicePromptService: _SilentVoicePromptService(),
+                      voicePromptService: voicePromptService,
                       guideAudioLibrary: LessonGuideAudioLibrary(
                         assetPaths: const <String>[],
                       ),
@@ -924,6 +926,8 @@ void main() {
     expect(registry.hasActiveModule, isTrue);
     expect(registry.isActiveModulePaused, isFalse);
     expect(mediaService.recording, isFalse);
+    mediaService.playedUris.clear();
+    voicePromptService.spoken.clear();
 
     expect(
       (await registry.execute(ActiveLearningCommand.stop)).wasHandled,
@@ -940,8 +944,12 @@ void main() {
     );
     await tester.pump();
     expect(registry.isActiveModulePaused, isFalse);
-    expect(mediaService.recording, isTrue);
-    expect(mediaService.startRecordingCount, 1);
+    expect(voicePromptService.spoken, <String>[
+      MasterNavigationContract.translationContinue,
+    ]);
+    expect(mediaService.playedUris, <Uri>[lesson.sentences.single.audioUri!]);
+    expect(mediaService.recording, isFalse);
+    expect(mediaService.startRecordingCount, 0);
 
     expect(
       (await registry.execute(ActiveLearningCommand.exitToHome)).wasHandled,

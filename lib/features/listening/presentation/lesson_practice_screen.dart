@@ -700,19 +700,21 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   }
 
   Future<void> _resumeCoreAfterMain() async {
-    if (!_usesGuideV2) {
-      await _startRecording();
-      return;
-    }
-    if (_pausedAfterNoResponse) {
-      await _resumeAfterNoResponse();
-      return;
-    }
-    // A resumed Core turn is a new attempt and must always replay the complete
-    // EN -> VI -> cue sequence before opening the microphone.
-    await _activateCurrentSentence(
-      autoPlay: true,
-      restoreExistingRecording: false,
+    await _navigateWithLead(
+      MasterNavigationContract.translationContinue,
+      () async {
+        if (_pausedAfterNoResponse) {
+          await _resumeAfterNoResponse();
+          return;
+        }
+        // Guided Core restarts EN -> VI -> cue -> mic. Legacy Core replays its
+        // sample and deliberately leaves microphone capture user-controlled.
+        await _activateCurrentSentence(
+          autoPlay: true,
+          restoreExistingRecording: false,
+        );
+      },
+      audioKey: MainAssistantAudioKeys.translationContinue,
     );
   }
 
