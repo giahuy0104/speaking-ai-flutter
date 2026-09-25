@@ -135,6 +135,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   }
 
   static const Duration _mainPauseCleanupTimeout = Duration(seconds: 2);
+  static const Duration _childOwnerRestoreTimeout = Duration(seconds: 2);
   int _sentenceIndex = 0;
   bool _recording = false;
   bool _mediaBusy = false;
@@ -2278,8 +2279,11 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     _cancelIdleReminder();
     _hideCoachPopup();
     if (widget.lesson.usesV4Flow) {
+      var ownerCheckpoint = _captureLessonOwnerCheckpoint();
+      if (ownerCheckpoint == null) return;
       var challengeProcessed = await widget.progressStore
           .hasProcessedLessonChallenge(widget.lesson.id);
+      if (!_isLessonOwnerCheckpointCurrent(ownerCheckpoint)) return;
       if (!challengeProcessed && resumeStage != ListeningResumeStage.song) {
         final challengeOperation = AudioDiagnostics.nextId();
         final selection = await _selectCurrentChallenge();
@@ -2304,10 +2308,12 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           widget.lesson.id,
           ListeningResumeStage.challenge,
         );
+        if (!_isLessonOwnerCheckpointCurrent(ownerCheckpoint)) return;
         await _speakLessonPrompt(
           'Tiếp theo là một câu thử thách nhé.',
           audioKey: ListeningAudioKeys.challengeIntro,
         );
+        if (!_isLessonOwnerCheckpointCurrent(ownerCheckpoint)) return;
         if (!mounted) return;
         final completed =
             await pushForActiveLearning<ChallengeCompletionResult>(
@@ -2327,6 +2333,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
                     : null,
               ),
             );
+        ownerCheckpoint = await _waitForRestoredLessonOwner();
         AudioDiagnostics.event('challenge.route.returned', {
           'operation': challengeOperation,
           'lessonId': widget.lesson.id,
@@ -2335,6 +2342,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           'routeResult': completed?.outcome.name,
           'resultOperation': completed?.operationId,
           'mounted': mounted,
+          'parentOwnerRestored': ownerCheckpoint != null,
         });
         final resultIsCurrent =
             completed?.matches(
@@ -2344,7 +2352,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
               targetId: selection.$2.targetId,
             ) ??
             false;
-        if (!mounted || !resultIsCurrent) {
+        if (ownerCheckpoint == null || !resultIsCurrent) {
           AudioDiagnostics.event('challenge.progress.interrupted', {
             'operation': challengeOperation,
             'lessonId': widget.lesson.id,
@@ -2364,6 +2372,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           challengeCorrect:
               completed.outcome == ChallengeCompletionOutcome.correct,
         );
+        if (!_isLessonOwnerCheckpointCurrent(ownerCheckpoint)) return;
         final nextStage = widget.lesson.hasV4SongStage
             ? ListeningResumeStage.song
             : ListeningResumeStage.completed;
@@ -2387,6 +2396,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           'applied': committed,
         });
         challengeProcessed = true;
+        if (!_isLessonOwnerCheckpointCurrent(ownerCheckpoint)) return;
       }
 
       final shouldOpenSong =
@@ -2394,18 +2404,23 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           widget.lesson.hasV4SongStage &&
           resumeStage != ListeningResumeStage.completed;
       if (shouldOpenSong) {
+        if (!_isLessonOwnerCheckpointCurrent(ownerCheckpoint)) return;
         await widget.progressStore.saveResumeStage(
           widget.lesson.id,
           ListeningResumeStage.song,
         );
+        if (!_isLessonOwnerCheckpointCurrent(ownerCheckpoint)) return;
         // A null result means interruption. The `song` checkpoint is kept so
         // Resume restarts this Song from its beginning.
         if (!await _openV4SongStageIfNeeded()) return;
+        ownerCheckpoint = await _waitForRestoredLessonOwner();
+        if (ownerCheckpoint == null) return;
       }
       await widget.progressStore.commitV4LessonCompletion(widget.lesson.id);
-      await _announceV4ActivityMilestone();
-      if (!mounted) return;
-      await _showV4CompletionChoice();
+      if (!_isLessonOwnerCheckpointCurrent(ownerCheckpoint)) return;
+      await _announceV4ActivityMilestone(ownerCheckpoint);
+      if (!_isLessonOwnerCheckpointCurrent(ownerCheckpoint)) return;
+      await _showV4CompletionChoice(ownerCheckpoint: ownerCheckpoint);
       return;
     }
     final unrecordedSentenceIndexes = await _readUnrecordedSentenceIndexes();
@@ -2445,11 +2460,79 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
   }
 
-  Future<void> _announceV4ActivityMilestone() async {
+  _LessonOwnerCheckpoint? _captureLessonOwnerCheckpoint() {
+    if (!mounted || _pausedForMainAssistant) return null;
+    final registry = _activeModuleRegistry;
+    if (registry == null) {
+      return _LessonOwnerCheckpoint(
+        registry: null,
+        operation: null,
+        mainPauseTicket: _lessonSession.mainPauseTicket,
+      );
+    }
+    if (!identical(registry.controller, this)) return null;
+    final operation = registry.captureOperation();
+    if (operation == null) return null;
+    return _LessonOwnerCheckpoint(
+      registry: registry,
+      operation: operation,
+      mainPauseTicket: _lessonSession.mainPauseTicket,
+    );
+  }
+
+  bool _isLessonOwnerCheckpointCurrent(_LessonOwnerCheckpoint checkpoint) {
+    if (!mounted ||
+        _pausedForMainAssistant ||
+        !_lessonSession.isCurrentMainPause(checkpoint.mainPauseTicket)) {
+      return false;
+    }
+    final registry = checkpoint.registry;
+    if (registry == null) return true;
+    final operation = checkpoint.operation;
+    return identical(_activeModuleRegistry, registry) &&
+        identical(registry.controller, this) &&
+        operation != null &&
+        registry.isOperationCurrent(operation);
+  }
+
+  Future<_LessonOwnerCheckpoint?> _waitForRestoredLessonOwner() async {
+    if (!mounted || _pausedForMainAssistant) return null;
+    final registry = _activeModuleRegistry;
+    if (registry == null || identical(registry.controller, this)) {
+      return _captureLessonOwnerCheckpoint();
+    }
+
+    final restored = Completer<void>();
+    void handleRegistryChange() {
+      if (!restored.isCompleted && identical(registry.controller, this)) {
+        restored.complete();
+      }
+    }
+
+    registry.addListener(handleRegistryChange);
+    try {
+      handleRegistryChange();
+      if (!restored.isCompleted) {
+        await restored.future.timeout(
+          _childOwnerRestoreTimeout,
+          onTimeout: () {},
+        );
+      }
+    } finally {
+      registry.removeListener(handleRegistryChange);
+    }
+    return _captureLessonOwnerCheckpoint();
+  }
+
+  Future<void> _announceV4ActivityMilestone(
+    _LessonOwnerCheckpoint ownerCheckpoint,
+  ) async {
+    if (!_isLessonOwnerCheckpointCurrent(ownerCheckpoint)) return;
     final topic = widget.topicContent;
     await _speakLessonPrompt(
       'Bạn đã hoàn thành Bài ${widget.lesson.number} rồi!',
     );
+    if (!_isLessonOwnerCheckpointCurrent(ownerCheckpoint)) return;
     if (topic != null && _nextLessonInTopic == null) {
       await _speakLessonPrompt('Bạn đã hoàn thành Chủ đề ${topic.number} rồi!');
     }
@@ -2457,13 +2540,20 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
 
   Future<void> _showV4CompletionChoice({
     ListeningPendingChoiceStage? resumePendingStage,
+    _LessonOwnerCheckpoint? ownerCheckpoint,
   }) async {
-    if (!mounted || _v4CompletionChoiceVisible) return;
+    final checkpoint = ownerCheckpoint ?? _captureLessonOwnerCheckpoint();
+    if (checkpoint == null ||
+        !_isLessonOwnerCheckpointCurrent(checkpoint) ||
+        _v4CompletionChoiceVisible) {
+      return;
+    }
     if (resumePendingStage != null) {
       await _runPendingV4Choice(
         pendingStage: resumePendingStage,
         stage: _completionStageFor(resumePendingStage),
         actions: _completionActionsFor(resumePendingStage),
+        ownerCheckpoint: checkpoint,
         nextLevel: resumePendingStage == ListeningPendingChoiceStage.nextLevel
             ? (widget.levelContent?.number ?? 0) + 1
             : null,
@@ -2475,9 +2565,11 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     final level = widget.levelContent;
     final allTopicsCompleted =
         level != null && await _allTopicsInCurrentLevelCompleted();
+    if (!_isLessonOwnerCheckpointCurrent(checkpoint)) return;
     final levelCompletionAlreadyCreated =
         level != null &&
         await widget.progressStore.hasLevelCompletionEventCreated(level.id);
+    if (!_isLessonOwnerCheckpointCurrent(checkpoint)) return;
     if (level != null && allTopicsCompleted && !levelCompletionAlreadyCreated) {
       final levels =
           widget.contentGroup?.levels ?? const <ListeningLevelContent>[];
@@ -2486,16 +2578,21 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       if (isLastLevel) {
         final courseId = '${widget.startAge}-${widget.endAge}';
         await widget.progressStore.markCourseCompleted(courseId);
+        if (!_isLessonOwnerCheckpointCurrent(checkpoint)) return;
         final courseMilestoneCreated = await widget.progressStore
             .hasCourseCompletionEventCreated(courseId);
+        if (!_isLessonOwnerCheckpointCurrent(checkpoint)) return;
         if (!courseMilestoneCreated) {
           await _speakLessonPrompt('Bạn đã hoàn thành khóa học rồi!');
+          if (!_isLessonOwnerCheckpointCurrent(checkpoint)) return;
           await widget.progressStore.markCourseCompletionEventCreated(courseId);
         }
+        if (!_isLessonOwnerCheckpointCurrent(checkpoint)) return;
         await widget.progressStore.markLevelCompletionEventCreated(level.id);
         await widget.progressStore.clearPendingCompletionChoice(
           widget.lesson.id,
         );
+        if (!_isLessonOwnerCheckpointCurrent(checkpoint)) return;
         _returnToListening();
         return;
       }
@@ -2507,6 +2604,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           V4CompletionAction.startNextLevel,
           V4CompletionAction.stop,
         ],
+        ownerCheckpoint: checkpoint,
         nextLevel: level.number + 1,
         beforePrompt: () async {
           await _speakLessonPrompt(
@@ -2528,12 +2626,14 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           V4CompletionAction.relearnCurrentLesson,
           V4CompletionAction.stop,
         ],
+        ownerCheckpoint: checkpoint,
       );
       return;
     }
 
     widget.onTopicCompleted?.call();
     final remainingTopics = await _incompleteTopicsInCurrentLevel();
+    if (!_isLessonOwnerCheckpointCurrent(checkpoint)) return;
     final oneRemaining = remainingTopics.length == 1;
     await _runPendingV4Choice(
       pendingStage: oneRemaining
@@ -2547,6 +2647,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         V4CompletionAction.relearnTopic,
         V4CompletionAction.stop,
       ],
+      ownerCheckpoint: checkpoint,
     );
   }
 
@@ -2554,6 +2655,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     required ListeningPendingChoiceStage pendingStage,
     required V4CompletionStage stage,
     required List<V4CompletionAction> actions,
+    required _LessonOwnerCheckpoint ownerCheckpoint,
     int? nextLevel,
     Future<void> Function()? beforePrompt,
   }) async {
@@ -2561,9 +2663,15 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       widget.lesson.id,
       pendingStage,
     );
+    if (!_isLessonOwnerCheckpointCurrent(ownerCheckpoint)) return;
     await beforePrompt?.call();
-    if (!mounted) return;
-    final action = await _showV4Choice(stage, actions, nextLevel: nextLevel);
+    if (!_isLessonOwnerCheckpointCurrent(ownerCheckpoint)) return;
+    final action = await _showV4Choice(
+      stage,
+      actions,
+      ownerCheckpoint: ownerCheckpoint,
+      nextLevel: nextLevel,
+    );
     if (action == null) return;
     await widget.progressStore.clearPendingCompletionChoice(widget.lesson.id);
     await _handleV4CompletionAction(action);
@@ -2632,9 +2740,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   Future<V4CompletionAction?> _showV4Choice(
     V4CompletionStage stage,
     List<V4CompletionAction> actions, {
+    required _LessonOwnerCheckpoint ownerCheckpoint,
     int? nextLevel,
   }) async {
-    if (!mounted) return null;
+    if (!_isLessonOwnerCheckpointCurrent(ownerCheckpoint)) return null;
     final nextLessonNumber = _nextLessonInTopic?.number;
     final topicNumber = widget.topicContent?.number;
     final prompt = v4CompletionPrompt(
@@ -2660,6 +2769,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       _ => null,
     };
     await _speakLessonPrompt(prompt, audioKey: audioKey);
+    if (!_isLessonOwnerCheckpointCurrent(ownerCheckpoint)) return null;
     if (!mounted) return null;
     _v4CompletionChoiceVisible = true;
     _mainCompletionPrompt = prompt;
@@ -2724,7 +2834,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     // so route/listener setup settles, but do not wait for a frame callback:
     // frames may be suspended after the screen is locked or HOMI is covered.
     await Future<void>.delayed(Duration.zero);
-    if (mounted &&
+    if (_isLessonOwnerCheckpointCurrent(ownerCheckpoint) &&
         _v4CompletionChoiceVisible &&
         _activeV4CompletionStage == stage) {
       // Await recorder startup so the completion sheet never becomes
@@ -4276,6 +4386,18 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
     return message;
   }
+}
+
+final class _LessonOwnerCheckpoint {
+  const _LessonOwnerCheckpoint({
+    required this.registry,
+    required this.operation,
+    required this.mainPauseTicket,
+  });
+
+  final ActiveLearningModuleRegistry? registry;
+  final ActiveLearningOperationToken? operation;
+  final int mainPauseTicket;
 }
 
 class _LessonHeader extends StatelessWidget {

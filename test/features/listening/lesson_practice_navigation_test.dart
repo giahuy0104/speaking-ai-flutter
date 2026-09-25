@@ -644,6 +644,8 @@ void main() {
     'V4 marks the lesson complete only after its authored challenge finishes',
     (tester) async {
       await _usePhoneSurface(tester);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
       final store = _MemoryProgressStore()..completedSentences = 1;
       final mediaService = _SilentMediaService(
         existingRecordingPath: 'C:\\recordings\\saved-v4-attempt.m4a',
@@ -651,16 +653,19 @@ void main() {
       final lesson = _v4Lesson();
 
       await tester.pumpWidget(
-        _subject(
-          lesson,
-          store,
-          const Key('v4-activity-completion'),
-          mediaService: mediaService,
-          voicePromptService: _SilentVoicePromptService(),
-          completionChoiceRecognizer: _FixedCompletionChoiceRecognizer(
-            'Dừng lại',
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _subject(
+            lesson,
+            store,
+            const Key('v4-activity-completion'),
+            mediaService: mediaService,
+            voicePromptService: _SilentVoicePromptService(),
+            completionChoiceRecognizer: _FixedCompletionChoiceRecognizer(
+              'Dừng lại',
+            ),
+            initialResumeStage: ListeningResumeStage.challenge,
           ),
-          initialResumeStage: ListeningResumeStage.challenge,
         ),
       );
       await tester.pumpAndSettle();
@@ -697,6 +702,128 @@ void main() {
       );
     },
   );
+
+  for (final invalidResult in <String>['null', 'stale']) {
+    testWidgets(
+      'V4 keeps Challenge checkpoint after $invalidResult route result',
+      (tester) async {
+        await _usePhoneSurface(tester);
+        final store = _MemoryProgressStore()..completedSentences = 1;
+        final lesson = _v4Lesson();
+
+        await tester.pumpWidget(
+          _subject(
+            lesson,
+            store,
+            Key('v4-$invalidResult-challenge-result'),
+            voicePromptService: _SilentVoicePromptService(),
+            initialResumeStage: ListeningResumeStage.challenge,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final challengeWidget = tester.widget<LessonChallengeScreen>(
+          find.byType(LessonChallengeScreen),
+        );
+        final result = invalidResult == 'null'
+            ? null
+            : ChallengeCompletionResult(
+                operationId: challengeWidget.challengeOperationId + 1,
+                challengeId: challengeWidget.challenges.single.id,
+                challengeIndex: challengeWidget.challengeBankIndex,
+                targetId: challengeWidget.challenges.single.targetId,
+                outcome: ChallengeCompletionOutcome.correct,
+              );
+        Navigator.of(
+          tester.element(find.byType(LessonChallengeScreen)),
+        ).pop(result);
+        await tester.pumpAndSettle();
+
+        expect(store.challengeProcessed, isFalse);
+        expect(store.resumeStage, ListeningResumeStage.challenge);
+        expect(store.completedV4LessonActivities, isEmpty);
+        expect(store.committedChallengeOperations, isEmpty);
+      },
+    );
+  }
+
+  for (final ownershipChange in <String>['MAIN', 'new route owner']) {
+    testWidgets(
+      '$ownershipChange during Challenge commit cannot reopen completion prompt or mic',
+      (tester) async {
+        await _usePhoneSurface(tester);
+        final registry = ActiveLearningModuleRegistry();
+        addTearDown(registry.dispose);
+        final commitStarted = Completer<void>();
+        final commitGate = Completer<void>();
+        final store = _MemoryProgressStore()
+          ..completedSentences = 1
+          ..challengeCommitStarted = commitStarted
+          ..challengeCommitGate = commitGate;
+        final lesson = _v4Lesson();
+        final mediaService = _SilentMediaService();
+        final voicePromptService = _RecordingVoicePromptService();
+
+        await tester.pumpWidget(
+          ActiveLearningModuleScope(
+            registry: registry,
+            child: _subject(
+              lesson,
+              store,
+              const Key('v4-main-during-challenge-commit'),
+              mediaService: mediaService,
+              voicePromptService: voicePromptService,
+              initialResumeStage: ListeningResumeStage.challenge,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final challengeWidget = tester.widget<LessonChallengeScreen>(
+          find.byType(LessonChallengeScreen),
+        );
+        final recordingsBeforeCompletion = mediaService.startRecordingCount;
+        Navigator.of(tester.element(find.byType(LessonChallengeScreen))).pop(
+          ChallengeCompletionResult(
+            operationId: challengeWidget.challengeOperationId,
+            challengeId: challengeWidget.challenges.single.id,
+            challengeIndex: challengeWidget.challengeBankIndex,
+            targetId: challengeWidget.challenges.single.targetId,
+            outcome: ChallengeCompletionOutcome.correct,
+          ),
+        );
+        await tester.pumpAndSettle();
+        await commitStarted.future;
+
+        Object? replacementRegistration;
+        if (ownershipChange == 'MAIN') {
+          expect(await registry.pauseForMainAssistant(), isTrue);
+        } else {
+          replacementRegistration = registry.register(
+            const _ReplacementLearningOwner(),
+          );
+        }
+        commitGate.complete();
+        await tester.pumpAndSettle();
+
+        expect(store.challengeProcessed, isTrue);
+        expect(store.resumeStage, ListeningResumeStage.completed);
+        expect(store.completedV4LessonActivities, contains(lesson.id));
+        expect(
+          voicePromptService.spoken,
+          isNot(contains('Bạn đã hoàn thành Bài 1 rồi!')),
+        );
+        expect(mediaService.startRecordingCount, recordingsBeforeCompletion);
+        expect(
+          find.byKey(const ValueKey<String>('v4-choice-stop')),
+          findsNothing,
+        );
+        if (replacementRegistration != null) {
+          registry.unregister(replacementRegistration);
+        }
+      },
+    );
+  }
 
   testWidgets('V4 resumes the exact completion choice after interruption', (
     tester,
@@ -1092,6 +1219,8 @@ class _MemoryProgressStore extends ListeningProgressStore {
   int? currentChallengeIndex;
   int challengeRotationMask = 0;
   final Set<int> committedChallengeOperations = <int>{};
+  Completer<void>? challengeCommitStarted;
+  Completer<void>? challengeCommitGate;
   ListeningPendingChoiceStage? pendingCompletionChoice;
 
   @override
@@ -1200,6 +1329,9 @@ class _MemoryProgressStore extends ListeningProgressStore {
     required int challengeCount,
     required ListeningResumeStage nextStage,
   }) async {
+    final started = challengeCommitStarted;
+    if (started != null && !started.isCompleted) started.complete();
+    await challengeCommitGate?.future;
     if (!committedChallengeOperations.add(result.operationId)) return false;
     challengeRotationMask |= 1 << result.challengeIndex;
     currentChallengeIndex = null;
@@ -1444,6 +1576,25 @@ class _FixedCompletionChoiceRecognizer
 
   @override
   Future<void> dispose() async {}
+}
+
+class _ReplacementLearningOwner implements ActiveLearningModuleController {
+  const _ReplacementLearningOwner();
+
+  @override
+  bool get isPausedForMain => false;
+
+  @override
+  ActiveLearningModuleKind get moduleKind =>
+      ActiveLearningModuleKind.listeningLesson;
+
+  @override
+  Future<ActiveLearningCommandResult> handleMainCommand(
+    ActiveLearningCommand command,
+  ) async => const ActiveLearningCommandResult.unavailable();
+
+  @override
+  Future<void> pauseForMainAssistant() async {}
 }
 
 class _LearningAudioDependencies implements LearningAudioDependencies {
