@@ -2,6 +2,19 @@ import Flutter
 import Foundation
 import UIKit
 
+enum IOSScreenInteractionPolicy {
+  static func isScreenInteractive(
+    applicationIsActive: Bool,
+    protectedDataAvailable: Bool,
+    lockTransitionObserved: Bool
+  ) -> Bool {
+    if applicationIsActive {
+      return true
+    }
+    return protectedDataAvailable && !lockTransitionObserved
+  }
+}
+
 final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
   private let methodChannel: FlutterMethodChannel
   private let eventChannel: FlutterEventChannel
@@ -12,6 +25,9 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
   private var didEnterBackgroundToken: NSObjectProtocol?
   private var willEnterForegroundToken: NSObjectProtocol?
   private var didBecomeActiveToken: NSObjectProtocol?
+  private var protectedDataWillBecomeUnavailableToken: NSObjectProtocol?
+  private var protectedDataDidBecomeAvailableToken: NSObjectProtocol?
+  private var lockTransitionObserved = !UIApplication.shared.isProtectedDataAvailable
 
   init(
     messenger: FlutterBinaryMessenger,
@@ -61,6 +77,7 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
       queue: .main
     ) { [weak self] _ in
       guard let self else { return }
+      self.lockTransitionObserved = false
       if !IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
         backgroundLearningEnabled: self.audioSessionCoordinator.isBackgroundLearningEnabled,
         applicationIsActive: true
@@ -69,6 +86,20 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
           caller: "BackgroundLearningBridge.didBecomeActive"
         )
       }
+    }
+    protectedDataWillBecomeUnavailableToken = NotificationCenter.default.addObserver(
+      forName: UIApplication.protectedDataWillBecomeUnavailableNotification,
+      object: nil,
+      queue: .main
+    ) { [weak self] _ in
+      self?.lockTransitionObserved = true
+    }
+    protectedDataDidBecomeAvailableToken = NotificationCenter.default.addObserver(
+      forName: UIApplication.protectedDataDidBecomeAvailableNotification,
+      object: nil,
+      queue: .main
+    ) { [weak self] _ in
+      self?.lockTransitionObserved = false
     }
 
     methodChannel.setMethodCallHandler { [weak self] call, result in
@@ -116,6 +147,14 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
             || self.audioSessionCoordinator.isBackgroundCaptureEngineRunning
             || self.audioSessionCoordinator.isSpeechCaptureActive
             || self.audioSessionCoordinator.isHfpRouteActive
+        )
+      case "isScreenInteractive":
+        result(
+          IOSScreenInteractionPolicy.isScreenInteractive(
+            applicationIsActive: UIApplication.shared.applicationState == .active,
+            protectedDataAvailable: UIApplication.shared.isProtectedDataAvailable,
+            lockTransitionObserved: self.lockTransitionObserved
+          )
         )
       default:
         result(FlutterMethodNotImplemented)
@@ -166,6 +205,14 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
       NotificationCenter.default.removeObserver(didBecomeActiveToken)
     }
     didBecomeActiveToken = nil
+    if let protectedDataWillBecomeUnavailableToken {
+      NotificationCenter.default.removeObserver(protectedDataWillBecomeUnavailableToken)
+    }
+    protectedDataWillBecomeUnavailableToken = nil
+    if let protectedDataDidBecomeAvailableToken {
+      NotificationCenter.default.removeObserver(protectedDataDidBecomeAvailableToken)
+    }
+    protectedDataDidBecomeAvailableToken = nil
   }
 
   private func reconcileBackgroundTransitionLease() {

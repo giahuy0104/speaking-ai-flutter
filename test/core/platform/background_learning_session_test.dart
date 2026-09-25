@@ -93,6 +93,29 @@ void main() {
     expect(captured?.method, 'isScreenInteractive');
   });
 
+  test('reads whether the iOS display is interactive', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    const channel = MethodChannel('test_ios_background_screen_state');
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    MethodCall? captured;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      captured = call;
+      return false;
+    });
+    addTearDown(() {
+      debugDefaultTargetPlatformOverride = null;
+      messenger.setMockMethodCallHandler(channel, null);
+    });
+
+    final interactive = await MethodChannelBackgroundLearningSession(
+      methodChannel: channel,
+    ).isScreenInteractive();
+
+    expect(interactive, isFalse);
+    expect(captured?.method, 'isScreenInteractive');
+  });
+
   test(
     'requests parent-visible H20 companion association on Android',
     () async {

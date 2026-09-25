@@ -270,14 +270,14 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       state: state,
       enabled: _stopMediaWhenBackgrounded,
     )) {
-      final screenInteractive = await _readAndroidScreenInteractive();
+      final screenInteractive = await _readScreenInteractive();
       if (!mounted || generation != _lifecycleDecisionGeneration) {
         return;
       }
       if (screenInteractive == false) {
         // Locking the phone is an intended H20 learning mode. Keep the active
-        // lesson/translation and its SCO route; only the always-on foreground
-        // wake loop follows the coordinator's normal Android policy.
+        // lesson/translation and its audio route; only the always-on foreground
+        // wake loop follows the coordinator's platform policy.
         _applyBackgroundLearningDirective(directive);
         return;
       }
@@ -304,8 +304,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     }
   }
 
-  Future<bool?> _readAndroidScreenInteractive() async {
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+  Future<bool?> _readScreenInteractive() async {
+    if (kIsWeb ||
+        (defaultTargetPlatform != TargetPlatform.android &&
+            defaultTargetPlatform != TargetPlatform.iOS)) {
       return null;
     }
     final session = _backgroundLearningSession;

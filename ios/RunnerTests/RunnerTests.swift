@@ -7,6 +7,37 @@ import XCTest
 
 class RunnerTests: XCTestCase {
 
+  func testIOSScreenInteractionPolicyDistinguishesLockFromAppSwitch() {
+    XCTAssertFalse(
+      IOSScreenInteractionPolicy.isScreenInteractive(
+        applicationIsActive: false,
+        protectedDataAvailable: false,
+        lockTransitionObserved: true
+      )
+    )
+    XCTAssertFalse(
+      IOSScreenInteractionPolicy.isScreenInteractive(
+        applicationIsActive: false,
+        protectedDataAvailable: true,
+        lockTransitionObserved: true
+      )
+    )
+    XCTAssertTrue(
+      IOSScreenInteractionPolicy.isScreenInteractive(
+        applicationIsActive: false,
+        protectedDataAvailable: true,
+        lockTransitionObserved: false
+      )
+    )
+    XCTAssertTrue(
+      IOSScreenInteractionPolicy.isScreenInteractive(
+        applicationIsActive: true,
+        protectedDataAvailable: false,
+        lockTransitionObserved: true
+      )
+    )
+  }
+
   func testBackgroundTurnExecutionPolicyOnlyBridgesAnEnabledBackgroundInteraction() {
     XCTAssertTrue(
       IOSBackgroundTurnExecutionPolicy.shouldRetain(

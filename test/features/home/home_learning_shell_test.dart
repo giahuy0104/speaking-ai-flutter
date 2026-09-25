@@ -5,6 +5,7 @@ import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
+import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/core/platform/background_learning_session.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/data/demo_conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
@@ -660,9 +661,13 @@ void main() {
       speechInput: speechInput,
     );
     final controller = _controller();
+    final activeLearningRegistry = ActiveLearningModuleRegistry();
+    final activeModule = _FakeActiveModule();
+    activeLearningRegistry.register(activeModule);
     addTearDown(backgroundSession.dispose);
     addTearDown(voiceNavigationController.dispose);
     addTearDown(controller.dispose);
+    addTearDown(activeLearningRegistry.dispose);
 
     await tester.pumpWidget(
       _app(
@@ -670,6 +675,7 @@ void main() {
         voiceNavigationController: voiceNavigationController,
         backgroundLearningSession: backgroundSession,
         parentMediaSettingsStore: const _FakeParentMediaSettingsStore(true),
+        activeLearningRegistry: activeLearningRegistry,
       ),
     );
     await tester.pump();
@@ -682,6 +688,110 @@ void main() {
     expect(backgroundSession.screenStateReadCount, 1);
     expect(voiceNavigationController.isListening, isTrue);
     expect(speechInput.cancelCount, 0);
+    expect(activeModule.pauseCount, 0);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('keeps an explicit iOS MAIN mic when the display is locked', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    addTearDown(
+      () => tester.binding.handleAppLifecycleStateChanged(
+        AppLifecycleState.resumed,
+      ),
+    );
+    final backgroundSession = _FakeScreenAwareBackgroundLearningSession(
+      screenInteractive: false,
+    );
+    final speechInput = _FakeStreamingSpeechInput();
+    final voiceNavigationController = VoiceNavigationController(
+      speechInput: speechInput,
+    );
+    final controller = _controller();
+    final activeLearningRegistry = ActiveLearningModuleRegistry();
+    final activeModule = _FakeActiveModule();
+    activeLearningRegistry.register(activeModule);
+    addTearDown(backgroundSession.dispose);
+    addTearDown(voiceNavigationController.dispose);
+    addTearDown(controller.dispose);
+    addTearDown(activeLearningRegistry.dispose);
+
+    await tester.pumpWidget(
+      _app(
+        controller,
+        voiceNavigationController: voiceNavigationController,
+        backgroundLearningSession: backgroundSession,
+        parentMediaSettingsStore: const _FakeParentMediaSettingsStore(true),
+        activeLearningRegistry: activeLearningRegistry,
+      ),
+    );
+    await tester.pump();
+    expect(await voiceNavigationController.activateFromMainButton(), isTrue);
+    expect(voiceNavigationController.isListening, isTrue);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(backgroundSession.screenStateReadCount, 1);
+    expect(voiceNavigationController.isListening, isTrue);
+    expect(speechInput.cancelCount, 0);
+    expect(activeModule.pauseCount, 0);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('stops iOS MAIN when another app covers HOMI', (tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    addTearDown(
+      () => tester.binding.handleAppLifecycleStateChanged(
+        AppLifecycleState.resumed,
+      ),
+    );
+    final backgroundSession = _FakeScreenAwareBackgroundLearningSession(
+      screenInteractive: true,
+    );
+    final speechInput = _FakeStreamingSpeechInput();
+    final voiceNavigationController = VoiceNavigationController(
+      speechInput: speechInput,
+    );
+    final controller = _controller();
+    final activeLearningRegistry = ActiveLearningModuleRegistry();
+    final activeModule = _FakeActiveModule();
+    activeLearningRegistry.register(activeModule);
+    addTearDown(backgroundSession.dispose);
+    addTearDown(voiceNavigationController.dispose);
+    addTearDown(controller.dispose);
+    addTearDown(activeLearningRegistry.dispose);
+
+    await tester.pumpWidget(
+      _app(
+        controller,
+        voiceNavigationController: voiceNavigationController,
+        backgroundLearningSession: backgroundSession,
+        parentMediaSettingsStore: const _FakeParentMediaSettingsStore(true),
+        activeLearningRegistry: activeLearningRegistry,
+      ),
+    );
+    await tester.pump();
+    expect(await voiceNavigationController.activateFromMainButton(), isTrue);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(backgroundSession.screenStateReadCount, 1);
+    expect(voiceNavigationController.isListening, isFalse);
+    expect(speechInput.cancelCount, 1);
+    expect(activeModule.pauseCount, 1);
 
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pump();
@@ -1233,6 +1343,7 @@ Widget _app(
   Future<bool> Function(BuildContext)? parentAccessGate,
   bool useDefaultParentAccessGate = false,
   BackgroundLearningSessionControl? backgroundLearningSession,
+  ActiveLearningModuleRegistry? activeLearningRegistry,
   ParentMediaSettingsStore parentMediaSettingsStore =
       const _FakeParentMediaSettingsStore(true),
 }) {
@@ -1266,7 +1377,12 @@ Widget _app(
   return MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: buildAppTheme(),
-    home: home,
+    home: activeLearningRegistry == null
+        ? home
+        : ActiveLearningModuleScope(
+            registry: activeLearningRegistry,
+            child: home,
+          ),
   );
 }
 
@@ -1399,6 +1515,27 @@ class _FakeScreenAwareBackgroundLearningSession
   Future<bool?> isScreenInteractive() async {
     screenStateReadCount += 1;
     return screenInteractive;
+  }
+}
+
+class _FakeActiveModule implements ActiveLearningModuleController {
+  int pauseCount = 0;
+
+  @override
+  bool get isPausedForMain => pauseCount > 0;
+
+  @override
+  ActiveLearningModuleKind get moduleKind =>
+      ActiveLearningModuleKind.listeningLesson;
+
+  @override
+  Future<ActiveLearningCommandResult> handleMainCommand(
+    ActiveLearningCommand command,
+  ) async => const ActiveLearningCommandResult.handled();
+
+  @override
+  Future<void> pauseForMainAssistant() async {
+    pauseCount += 1;
   }
 }
 

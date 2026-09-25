@@ -44,7 +44,7 @@ abstract interface class ActiveLearningBackgroundSessionControl {
   Future<void> setActiveLearning(bool active);
 }
 
-/// Optional Android capability used to distinguish locking the phone from
+/// Optional native capability used to distinguish locking the phone from
 /// covering HOMI with another application. Flutter reports both situations as
 /// a paused/hidden lifecycle, but parent media policy only applies to the
 /// latter.
@@ -168,7 +168,9 @@ class MethodChannelBackgroundLearningSession
 
   @override
   Future<bool?> isScreenInteractive() async {
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+    if (kIsWeb ||
+        (defaultTargetPlatform != TargetPlatform.android &&
+            defaultTargetPlatform != TargetPlatform.iOS)) {
       return null;
     }
     try {
