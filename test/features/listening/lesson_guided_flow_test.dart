@@ -10,6 +10,7 @@ import 'package:ai_speaking_flutter_app/features/listening/application/lesson_gu
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_completion_choice_recognizer.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/data/listening_progress_store.dart';
+import 'package:ai_speaking_flutter_app/features/listening/domain/challenge_completion.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/lesson_guide_flow.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_catalog.dart';
@@ -4074,6 +4075,7 @@ class _MemoryProgressStore extends ListeningProgressStore {
       <int, ListeningSessionResult>{};
   int? currentChallengeIndex;
   int challengeRotationMask = 0;
+  final Set<int> committedChallengeOperations = <int>{};
 
   @override
   Future<Map<String, int>> readAll() async => <String, int>{};
@@ -4230,6 +4232,30 @@ class _MemoryProgressStore extends ListeningProgressStore {
   }) async {
     challengeRotationMask |= 1 << index;
     currentChallengeIndex = null;
+  }
+
+  @override
+  Future<bool> commitChallengeCompletion({
+    required String lessonId,
+    required ChallengeCompletionResult result,
+    required int challengeCount,
+    required ListeningResumeStage nextStage,
+  }) async {
+    if (!committedChallengeOperations.add(result.operationId)) return false;
+    challengeRotationMask |= 1 << result.challengeIndex;
+    currentChallengeIndex = null;
+    challengeProcessed = true;
+    resumeStage = nextStage;
+    if (nextStage == ListeningResumeStage.completed) {
+      completedActivities.add(lessonId);
+    }
+    return true;
+  }
+
+  @override
+  Future<void> commitV4LessonCompletion(String lessonId) async {
+    completedActivities.add(lessonId);
+    resumeStage = ListeningResumeStage.completed;
   }
 
   @override

@@ -2364,21 +2364,27 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           challengeCorrect:
               completed.outcome == ChallengeCompletionOutcome.correct,
         );
-        await widget.progressStore.markChallengeUsed(
-          widget.lesson.id,
-          index: selection.$1,
+        final nextStage = widget.lesson.hasV4SongStage
+            ? ListeningResumeStage.song
+            : ListeningResumeStage.completed;
+        final committed = await widget.progressStore.commitChallengeCompletion(
+          lessonId: widget.lesson.id,
+          result: completed,
           challengeCount: widget.lesson.challengeBank.length,
+          nextStage: nextStage,
         );
-        await widget.progressStore.markLessonChallengeProcessed(
-          widget.lesson.id,
-        );
+        final commitIsCurrent =
+            committed ||
+            await widget.progressStore.hasProcessedLessonChallenge(
+              widget.lesson.id,
+            );
+        if (!commitIsCurrent) return;
         AudioDiagnostics.event('challenge.progress.commit.completed', {
           'operation': challengeOperation,
           'lessonId': widget.lesson.id,
           'challengeId': selection.$2.id,
-          'nextStage': widget.lesson.hasV4SongStage
-              ? ListeningResumeStage.song.name
-              : ListeningResumeStage.completed.name,
+          'nextStage': nextStage.name,
+          'applied': committed,
         });
         challengeProcessed = true;
       }
@@ -2396,13 +2402,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         // Resume restarts this Song from its beginning.
         if (!await _openV4SongStageIfNeeded()) return;
       }
-      await widget.progressStore.markV4LessonActivityCompleted(
-        widget.lesson.id,
-      );
-      await widget.progressStore.saveResumeStage(
-        widget.lesson.id,
-        ListeningResumeStage.completed,
-      );
+      await widget.progressStore.commitV4LessonCompletion(widget.lesson.id);
       await _announceV4ActivityMilestone();
       if (!mounted) return;
       await _showV4CompletionChoice();

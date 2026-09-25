@@ -353,6 +353,40 @@ void main() {
     },
   );
 
+  test('explicit relearn accepts a reused Challenge operation id', () async {
+    final fixture = await _ProgressFixture.create();
+    addTearDown(fixture.dispose);
+    const result = ChallengeCompletionResult(
+      operationId: 43,
+      challengeId: 'challenge-1',
+      challengeIndex: 0,
+      targetId: 'target-1',
+      outcome: ChallengeCompletionOutcome.correct,
+    );
+
+    expect(
+      await fixture.store.commitChallengeCompletion(
+        lessonId: 'lesson-relearn',
+        result: result,
+        challengeCount: 1,
+        nextStage: ListeningResumeStage.completed,
+      ),
+      isTrue,
+    );
+
+    await fixture.store.resetLessonRun('lesson-relearn');
+
+    expect(
+      await fixture.store.commitChallengeCompletion(
+        lessonId: 'lesson-relearn',
+        result: result,
+        challengeCount: 1,
+        nextStage: ListeningResumeStage.completed,
+      ),
+      isTrue,
+    );
+  });
+
   test(
     'stars are idempotent and course completion event is one-shot',
     () async {

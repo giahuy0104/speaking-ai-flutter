@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 
+import '../domain/challenge_completion.dart';
 import '../domain/listening_content.dart';
 import 'listening_progress_persistence.dart';
 import 'listening_topic_patch_migration.dart';
@@ -45,6 +47,7 @@ class ListeningProgressStore {
   const ListeningProgressStore({this.progressFilePath});
 
   static final Map<String, Future<Map<String, int>>> _patchMigrations = {};
+  static final Map<String, Future<void>> _mutationTails = {};
 
   static const String _resumeSuffix = '::current-sentence';
   static const String _skippedMarker = '::skipped-sentence::';
@@ -61,6 +64,10 @@ class ListeningProgressStore {
       '::current-challenge-index-v5';
   static const String _challengeRotationMaskSuffix =
       '::challenge-rotation-mask-v5';
+  static const String _challengeCompletionOperationMarker =
+      '::challenge-completion-operation-v6::';
+  static const String _challengeCompletionOutcomeMarker =
+      '::challenge-completion-outcome-v6::';
   static const String _levelCompletionEventSuffix =
       '::level-completion-event-created-v5';
   static const String _resumeStageSuffix = '::resume-stage';
@@ -105,6 +112,8 @@ class ListeningProgressStore {
           key.contains(_sessionResultMarker) ||
           key.endsWith(_currentChallengeIndexSuffix) ||
           key.endsWith(_challengeRotationMaskSuffix) ||
+          key.contains(_challengeCompletionOperationMarker) ||
+          key.contains(_challengeCompletionOutcomeMarker) ||
           key.endsWith(_levelCompletionEventSuffix) ||
           key.endsWith(_resumeStageSuffix) ||
           key.endsWith(_pendingChoiceStageSuffix) ||
@@ -498,7 +507,70 @@ class ListeningProgressStore {
     await _writeRaw(progress);
   }
 
-  Future<void> resetLessonRun(String lessonId) async {
+  Future<bool> commitChallengeCompletion({
+    required String lessonId,
+    required ChallengeCompletionResult result,
+    required int challengeCount,
+    required ListeningResumeStage nextStage,
+  }) {
+    if (result.operationId < 0 ||
+        result.challengeIndex < 0 ||
+        challengeCount <= 0 ||
+        challengeCount > 30 ||
+        result.challengeIndex >= challengeCount) {
+      return Future<bool>.value(false);
+    }
+    return _serializeMutation<bool>(() async {
+      final progress = await _readRaw();
+      final operationKey =
+          '$lessonId$_challengeCompletionOperationMarker${result.operationId}';
+      if (progress[operationKey] != null) return false;
+
+      final rotationKey = '$lessonId$_challengeRotationMaskSuffix';
+      var mask = progress[rotationKey] ?? 0;
+      final fullMask = (1 << challengeCount) - 1;
+      if ((mask & fullMask) == fullMask) mask = 0;
+      progress[rotationKey] = mask | (1 << result.challengeIndex);
+      progress[operationKey] = result.outcome.index + 1;
+      progress['$lessonId$_challengeCompletionOutcomeMarker${result.challengeId}'] =
+          result.outcome.index + 1;
+      progress['$lessonId$_challengeProcessedMarker'] = 1;
+      progress['$lessonId$_resumeStageSuffix'] = nextStage.index;
+      progress.remove('$lessonId$_currentChallengeIndexSuffix');
+      if (nextStage == ListeningResumeStage.completed) {
+        _markLessonActivityCompleted(progress, lessonId);
+      }
+      await _writeRaw(progress);
+      return true;
+    });
+  }
+
+  Future<ChallengeCompletionOutcome?> readChallengeCompletionOutcome(
+    String lessonId,
+    String challengeId,
+  ) async {
+    final value =
+        (await _readRaw())['$lessonId$_challengeCompletionOutcomeMarker$challengeId'];
+    if (value == null ||
+        value <= 0 ||
+        value > ChallengeCompletionOutcome.values.length) {
+      return null;
+    }
+    return ChallengeCompletionOutcome.values[value - 1];
+  }
+
+  Future<void> commitV4LessonCompletion(String lessonId) =>
+      _serializeMutation<void>(() async {
+        final progress = await _readRaw();
+        _markLessonActivityCompleted(progress, lessonId);
+        progress['$lessonId$_resumeStageSuffix'] =
+            ListeningResumeStage.completed.index;
+        await _writeRaw(progress);
+      });
+
+  Future<void> resetLessonRun(
+    String lessonId,
+  ) => _serializeMutation<void>(() async {
     final progress = await _readRaw();
     progress
       ..remove('$lessonId$_challengeProcessedMarker')
@@ -514,12 +586,14 @@ class ListeningProgressStore {
           key.startsWith(
             '$lessonId${ListeningTopicPatchMigration.processedCoreMarker}',
           ) ||
-          key.startsWith('$lessonId$_needsPracticeMarker'),
+          key.startsWith('$lessonId$_needsPracticeMarker') ||
+          key.startsWith('$lessonId$_challengeCompletionOperationMarker') ||
+          key.startsWith('$lessonId$_challengeCompletionOutcomeMarker'),
     );
     progress['$lessonId$_resumeSuffix'] = 0;
     progress['$lessonId$_resumeStageSuffix'] = ListeningResumeStage.core.index;
     await _writeRaw(progress);
-  }
+  });
 
   Future<ListeningResumeStage> readResumeStage(String lessonId) async {
     final value = (await _readRaw())['$lessonId$_resumeStageSuffix'];
@@ -549,13 +623,13 @@ class ListeningProgressStore {
   Future<void> savePendingCompletionChoice(
     String lessonId,
     ListeningPendingChoiceStage stage,
-  ) async {
+  ) => _serializeMutation<void>(() async {
     final progress = await _readRaw();
     progress['$lessonId$_resumeStageSuffix'] =
         ListeningResumeStage.waitingForChoice.index;
     progress['$lessonId$_pendingChoiceStageSuffix'] = stage.index;
     await _writeRaw(progress);
-  }
+  });
 
   Future<ListeningPendingChoiceStage?> readPendingCompletionChoice(
     String lessonId,
@@ -569,16 +643,17 @@ class ListeningProgressStore {
     return ListeningPendingChoiceStage.values[value];
   }
 
-  Future<void> clearPendingCompletionChoice(String lessonId) async {
-    final progress = await _readRaw();
-    progress.remove('$lessonId$_pendingChoiceStageSuffix');
-    if (progress['$lessonId$_resumeStageSuffix'] ==
-        ListeningResumeStage.waitingForChoice.index) {
-      progress['$lessonId$_resumeStageSuffix'] =
-          ListeningResumeStage.completed.index;
-    }
-    await _writeRaw(progress);
-  }
+  Future<void> clearPendingCompletionChoice(String lessonId) =>
+      _serializeMutation<void>(() async {
+        final progress = await _readRaw();
+        progress.remove('$lessonId$_pendingChoiceStageSuffix');
+        if (progress['$lessonId$_resumeStageSuffix'] ==
+            ListeningResumeStage.waitingForChoice.index) {
+          progress['$lessonId$_resumeStageSuffix'] =
+              ListeningResumeStage.completed.index;
+        }
+        await _writeRaw(progress);
+      });
 
   Future<bool> hasStartedLessonCore(String lessonId) async {
     final progress = await _readRaw();
@@ -910,5 +985,32 @@ class ListeningProgressStore {
 
   Future<void> _writeRaw(Map<String, int> progress) async {
     await _persistence.write(jsonEncode(progress));
+  }
+
+  void _markLessonActivityCompleted(
+    Map<String, int> progress,
+    String lessonId,
+  ) {
+    progress['$lessonId$_lessonCompletedMarker'] = 1;
+    progress.remove(
+      '$lessonId${ListeningTopicPatchMigration.retainedRunSuffix}',
+    );
+    progress.remove('$lessonId$_currentChallengeIndexSuffix');
+  }
+
+  Future<T> _serializeMutation<T>(Future<T> Function() action) {
+    final key = progressFilePath ?? '__default-listening-progress';
+    final previous = _mutationTails[key] ?? Future<void>.value();
+    final operation = previous.then<T>((_) => action());
+    late final Future<void> tail;
+    tail = operation
+        .then<void>((_) {}, onError: (Object _, StackTrace stackTrace) {})
+        .whenComplete(() {
+          if (identical(_mutationTails[key], tail)) {
+            _mutationTails.remove(key);
+          }
+        });
+    _mutationTails[key] = tail;
+    return operation;
   }
 }

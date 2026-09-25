@@ -6,6 +6,7 @@ import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_guide_audio_library.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/data/listening_progress_store.dart';
+import 'package:ai_speaking_flutter_app/features/listening/domain/challenge_completion.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_catalog.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_intro_screen.dart';
@@ -800,6 +801,17 @@ class _GoldenProgressStore extends ListeningProgressStore {
     required int index,
     required int challengeCount,
   }) async {}
+
+  @override
+  Future<bool> commitChallengeCompletion({
+    required String lessonId,
+    required ChallengeCompletionResult result,
+    required int challengeCount,
+    required ListeningResumeStage nextStage,
+  }) async => true;
+
+  @override
+  Future<void> commitV4LessonCompletion(String lessonId) async {}
 
   @override
   Future<void> saveSkippedSentence(String lessonId, int sentenceIndex) async {}
