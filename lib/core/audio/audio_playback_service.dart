@@ -438,10 +438,43 @@ class JustAudioPlaybackService
     }
     final communicationRoute = _communicationRouteActive;
     final generation = ++_playbackPreparationGeneration;
+    final requestedAt = DateTime.now();
+    AudioDiagnostics.event('media.prepare.requested', {
+      'generation': generation,
+      'owner': _audioTurnOwner.name,
+      'communicationRoute': communicationRoute,
+    });
     final preparation = () async {
-      await _configurePlaybackAudioSession();
-      if (_disposed || generation != _playbackPreparationGeneration) return;
-      await _applyAndroidPlaybackAttributes(communicationRoute);
+      try {
+        await _configurePlaybackAudioSession();
+        if (_disposed || generation != _playbackPreparationGeneration) {
+          AudioDiagnostics.event('media.prepare.cancelled', {
+            'generation': generation,
+            'owner': _audioTurnOwner.name,
+            'stage': 'audio_session',
+          });
+          return;
+        }
+        AudioDiagnostics.event('media.prepare.audio_session_ready', {
+          'generation': generation,
+          'owner': _audioTurnOwner.name,
+          'elapsedMs': DateTime.now().difference(requestedAt).inMilliseconds,
+        });
+        await _applyAndroidPlaybackAttributes(communicationRoute);
+        AudioDiagnostics.event('media.prepare.completed', {
+          'generation': generation,
+          'owner': _audioTurnOwner.name,
+          'elapsedMs': DateTime.now().difference(requestedAt).inMilliseconds,
+        });
+      } catch (error) {
+        AudioDiagnostics.event('media.prepare.failed', {
+          'generation': generation,
+          'owner': _audioTurnOwner.name,
+          'errorType': error.runtimeType.toString(),
+          'elapsedMs': DateTime.now().difference(requestedAt).inMilliseconds,
+        });
+        rethrow;
+      }
     }();
     _playbackSessionPreparation = preparation;
     return preparation;
@@ -732,25 +765,36 @@ class JustAudioPlaybackService
 
   @override
   Future<PlaybackStartMetrics> play(Uri uri) async {
+    final diagnosticOperation = AudioDiagnostics.nextId();
     AudioDiagnostics.event('media.play.request', {
+      'operation': diagnosticOperation,
       'owner': _audioTurnOwner.name,
       'communicationRoute': _communicationRouteActive,
       'scheme': uri.scheme,
     });
     if (_disposed) throw const PlaybackException('Lượt phát âm thanh đã dừng.');
     _playbackRequest?.cancel();
-    final request = _PlaybackRequest(_communicationRouteActive);
+    final request = _PlaybackRequest(
+      _communicationRouteActive,
+      diagnosticOperation: diagnosticOperation,
+    );
     _playbackRequest = request;
     try {
       await _acquireAudioTurn(request);
       _requireCurrentPlayback(request);
       final metrics = await _playWithoutTurnCoordination(uri, request);
       AudioDiagnostics.event('media.play.started', {
+        'operation': diagnosticOperation,
         'owner': _audioTurnOwner.name,
         'startDelayMs': metrics.startedAfterRequest.inMilliseconds,
       });
       return metrics;
-    } catch (_) {
+    } catch (error) {
+      AudioDiagnostics.event('media.play.failed', {
+        'operation': diagnosticOperation,
+        'owner': _audioTurnOwner.name,
+        'errorType': error.runtimeType.toString(),
+      });
       // An older failed/cancelled start cannot release the next clip's lease.
       if (identical(_playbackRequest, request)) {
         _playbackRequest = null;
@@ -845,9 +889,15 @@ class JustAudioPlaybackService
     }
 
     ++_preloadRevision;
+    _diagnosePlaybackStage(request, 'preparation_wait_started');
     await request.wait(_consumePlaybackPreparation());
     _requireCurrentPlayback(request);
+    _diagnosePlaybackStage(request, 'preparation_wait_completed');
     final integrity = _integrity[uri];
+    _diagnosePlaybackStage(request, 'cache_resolve_started', {
+      'verified': integrity != null,
+      'scheme': uri.scheme,
+    });
     final resolvedUri = await request.wait(
       integrity == null
           ? _cache.resolveAfterPreload(uri)
@@ -857,7 +907,11 @@ class JustAudioPlaybackService
             ),
     );
     _requireCurrentPlayback(request);
+    _diagnosePlaybackStage(request, 'cache_resolve_completed', {
+      'resolvedScheme': resolvedUri.scheme,
+    });
     final loadStartedAt = DateTime.now();
+    _diagnosePlaybackStage(request, 'source_load_started');
     await request.wait(
       _queueSource(() async {
         _requireCurrentPlayback(request);
@@ -874,10 +928,15 @@ class JustAudioPlaybackService
     );
     _requireCurrentPlayback(request);
     final loadedAt = DateTime.now();
+    _diagnosePlaybackStage(request, 'source_load_completed', {
+      'elapsedMs': loadedAt.difference(loadStartedAt).inMilliseconds,
+    });
+    _diagnosePlaybackStage(request, 'level_apply_started');
     await request.wait(
       _queueSource(() => _applySourceLevel(resolvedUri, request)),
     );
     _requireCurrentPlayback(request);
+    _diagnosePlaybackStage(request, 'level_apply_completed');
     assert(() {
       debugPrint(
         'Audio source ready for $uri after '
@@ -887,6 +946,7 @@ class JustAudioPlaybackService
       return true;
     }());
     try {
+      _diagnosePlaybackStage(request, 'first_playing_wait_started');
       await request.wait(_rewindCompletedPlayback());
       _requireCurrentPlayback(request);
       await _startPlayback(request);
@@ -911,6 +971,9 @@ class JustAudioPlaybackService
     }
 
     final startedAt = DateTime.now();
+    _diagnosePlaybackStage(request, 'first_playing_received', {
+      'elapsedMs': startedAt.difference(requestedAt).inMilliseconds,
+    });
     if (!resolvedUri.isScheme('file')) {
       unawaited(_cache.cache(uri));
     }
@@ -919,6 +982,20 @@ class JustAudioPlaybackService
       startedAfterRequest: startedAt.difference(requestedAt),
       fromDeviceCache: resolvedUri.isScheme('file'),
     );
+  }
+
+  void _diagnosePlaybackStage(
+    _PlaybackRequest request,
+    String stage, [
+    Map<String, Object?> fields = const <String, Object?>{},
+  ]) {
+    AudioDiagnostics.event('media.play.stage', {
+      'operation': request.diagnosticOperation,
+      'owner': _audioTurnOwner.name,
+      'stage': stage,
+      'communicationRoute': request.communicationRoute,
+      ...fields,
+    });
   }
 
   @override
@@ -988,9 +1065,13 @@ class JustAudioPlaybackService
 /// Stops awaiting slow cache/native work immediately, while the source queue
 /// still serializes native loads. Cancelled work can finish but cannot play.
 class _PlaybackRequest {
-  _PlaybackRequest(this.communicationRoute);
+  _PlaybackRequest(
+    this.communicationRoute, {
+    required this.diagnosticOperation,
+  });
 
   final bool communicationRoute;
+  final int diagnosticOperation;
   final AudioTurnCancellation turnCancellation = AudioTurnCancellation();
   final Completer<void> _cancelled = Completer<void>();
 

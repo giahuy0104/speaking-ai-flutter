@@ -9,6 +9,7 @@ import '../../../app/homi_ui.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
 import '../../../app/praise_fireworks.dart';
+import '../../../core/audio/audio_diagnostics.dart';
 import '../../../core/audio/streaming_speech_input.dart';
 import '../../../core/audio/catalog/media_audio_keys.dart';
 import '../../../core/audio/audio_gain.dart';
@@ -2277,11 +2278,25 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       var challengeProcessed = await widget.progressStore
           .hasProcessedLessonChallenge(widget.lesson.id);
       if (!challengeProcessed && resumeStage != ListeningResumeStage.song) {
+        final challengeOperation = AudioDiagnostics.nextId();
         final selection = await _selectCurrentChallenge();
         if (selection == null) {
+          AudioDiagnostics.event('challenge.route.unavailable', {
+            'operation': challengeOperation,
+            'lessonId': widget.lesson.id,
+            'reason': 'selection_missing',
+          });
           await _reportInvalidChallengeContent();
           return;
         }
+        AudioDiagnostics.event('challenge.route.opening', {
+          'operation': challengeOperation,
+          'lessonId': widget.lesson.id,
+          'challengeId': selection.$2.id,
+          'challengeIndex': selection.$1,
+          'resumeStage': resumeStage.name,
+          'resultContract': 'bool_plus_callback',
+        });
         await widget.progressStore.saveResumeStage(
           widget.lesson.id,
           ListeningResumeStage.challenge,
@@ -2303,6 +2318,13 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             attemptEvaluator: _attemptEvaluator,
             voicePromptService: _voicePromptService,
             onChallengeResolved: (_, correct) async {
+              AudioDiagnostics.event('challenge.parent.callback.received', {
+                'operation': challengeOperation,
+                'lessonId': widget.lesson.id,
+                'challengeId': selection.$2.id,
+                'challengeIndex': selection.$1,
+                'outcome': correct ? 'correct' : 'needs_practice',
+              });
               challengeCorrect = correct;
             },
             iosSpeechInput: _usesIosNativeLessonRecognition
@@ -2310,7 +2332,30 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
                 : null,
           ),
         );
-        if (!mounted || completed != true || challengeCorrect == null) return;
+        AudioDiagnostics.event('challenge.route.returned', {
+          'operation': challengeOperation,
+          'lessonId': widget.lesson.id,
+          'challengeId': selection.$2.id,
+          'challengeIndex': selection.$1,
+          'routeResult': completed,
+          'callbackResultPresent': challengeCorrect != null,
+          'mounted': mounted,
+        });
+        if (!mounted || completed != true || challengeCorrect == null) {
+          AudioDiagnostics.event('challenge.progress.interrupted', {
+            'operation': challengeOperation,
+            'lessonId': widget.lesson.id,
+            'challengeId': selection.$2.id,
+            'resumeStage': ListeningResumeStage.challenge.name,
+          });
+          return;
+        }
+        AudioDiagnostics.event('challenge.progress.commit.started', {
+          'operation': challengeOperation,
+          'lessonId': widget.lesson.id,
+          'challengeId': selection.$2.id,
+          'outcome': challengeCorrect! ? 'correct' : 'needs_practice',
+        });
         await _commitReviewAfterChallenge(
           selection.$2,
           challengeCorrect: challengeCorrect!,
@@ -2323,6 +2368,14 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         await widget.progressStore.markLessonChallengeProcessed(
           widget.lesson.id,
         );
+        AudioDiagnostics.event('challenge.progress.commit.completed', {
+          'operation': challengeOperation,
+          'lessonId': widget.lesson.id,
+          'challengeId': selection.$2.id,
+          'nextStage': widget.lesson.hasV4SongStage
+              ? ListeningResumeStage.song.name
+              : ListeningResumeStage.completed.name,
+        });
         challengeProcessed = true;
       }
 

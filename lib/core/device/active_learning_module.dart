@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 
+import '../audio/audio_diagnostics.dart';
+
 /// The small, shared command surface exposed by whichever learning module is
 /// currently visible.
 ///
@@ -108,18 +110,26 @@ class ActiveLearningModuleRegistry extends ChangeNotifier {
   final List<_ActiveLearningModuleRegistration> _registrations =
       <_ActiveLearningModuleRegistration>[];
   bool _notificationScheduled = false;
+  int _diagnosticOwnerGeneration = 0;
 
   ActiveLearningModuleController? get controller =>
       _registrations.lastOrNull?.controller;
   bool get hasActiveModule => controller != null;
   bool get isActiveModulePaused => controller?.isPausedForMain ?? false;
   ActiveLearningModuleKind? get activeKind => controller?.moduleKind;
+  int get diagnosticOwnerGeneration => _diagnosticOwnerGeneration;
 
   Object register(ActiveLearningModuleController controller) {
     final token = Object();
     _registrations.add(
       _ActiveLearningModuleRegistration(controller: controller, token: token),
     );
+    _diagnosticOwnerGeneration += 1;
+    AudioDiagnostics.event('active_learning.owner.registered', {
+      ..._diagnosticOwner(controller),
+      'ownerGeneration': _diagnosticOwnerGeneration,
+      'registrationDepth': _registrations.length,
+    });
     _notifySafely();
     return token;
   }
@@ -132,8 +142,18 @@ class ActiveLearningModuleRegistry extends ChangeNotifier {
       return;
     }
     final wasActive = index == _registrations.length - 1;
+    final removed = _registrations[index].controller;
     _registrations.removeAt(index);
     if (wasActive) {
+      _diagnosticOwnerGeneration += 1;
+      AudioDiagnostics.event('active_learning.owner.unregistered', {
+        ..._diagnosticOwner(removed),
+        'ownerGeneration': _diagnosticOwnerGeneration,
+        'nextOwnerId': controller == null
+            ? null
+            : identityHashCode(controller!),
+        'registrationDepth': _registrations.length,
+      });
       _notifySafely();
     }
   }
@@ -157,27 +177,81 @@ class ActiveLearningModuleRegistry extends ChangeNotifier {
     // leaves the newly visible route playing, and the app then rejects MAIN as
     // busy. Follow the top registration until the visible owner is stable.
     var remainingAttempts = _registrations.length + 1;
+    final operation = AudioDiagnostics.nextId();
     while (remainingAttempts > 0) {
-      if (canContinue != null && !canContinue()) return false;
+      if (canContinue != null && !canContinue()) {
+        AudioDiagnostics.event('active_learning.pause.cancelled', {
+          'operation': operation,
+          'ownerGeneration': _diagnosticOwnerGeneration,
+          'reason': 'caller_cancelled',
+        });
+        return false;
+      }
       remainingAttempts -= 1;
       final active = controller;
       if (active == null) {
+        AudioDiagnostics.event('active_learning.pause.unavailable', {
+          'operation': operation,
+          'ownerGeneration': _diagnosticOwnerGeneration,
+        });
         return false;
       }
+      final ownerGeneration = _diagnosticOwnerGeneration;
+      AudioDiagnostics.event('active_learning.pause.requested', {
+        ..._diagnosticOwner(active),
+        'operation': operation,
+        'ownerGeneration': ownerGeneration,
+      });
       try {
         await active.pauseForMainAssistant().timeout(_operationTimeout);
       } on TimeoutException {
         // Module state is changed synchronously before native media cleanup.
         // Accept that paused state and let obsolete native callbacks drain in
         // the background instead of permanently disabling physical MAIN.
-        return identical(active, controller) && active.isPausedForMain;
-      } catch (_) {
+        final accepted =
+            identical(active, controller) && active.isPausedForMain;
+        AudioDiagnostics.event('active_learning.pause.timed_out', {
+          ..._diagnosticOwner(active),
+          'operation': operation,
+          'ownerGeneration': ownerGeneration,
+          'acceptedPausedState': accepted,
+        });
+        return accepted;
+      } catch (error) {
+        AudioDiagnostics.event('active_learning.pause.failed', {
+          ..._diagnosticOwner(active),
+          'operation': operation,
+          'ownerGeneration': ownerGeneration,
+          'errorType': error.runtimeType.toString(),
+        });
         return false;
       }
-      if (canContinue != null && !canContinue()) return false;
+      if (canContinue != null && !canContinue()) {
+        AudioDiagnostics.event('active_learning.pause.cancelled', {
+          ..._diagnosticOwner(active),
+          'operation': operation,
+          'ownerGeneration': ownerGeneration,
+          'reason': 'caller_cancelled_after_pause',
+        });
+        return false;
+      }
       if (identical(active, controller)) {
+        AudioDiagnostics.event('active_learning.pause.completed', {
+          ..._diagnosticOwner(active),
+          'operation': operation,
+          'ownerGeneration': ownerGeneration,
+        });
         return true;
       }
+      AudioDiagnostics.event('active_learning.pause.owner_changed', {
+        ..._diagnosticOwner(active),
+        'operation': operation,
+        'ownerGeneration': ownerGeneration,
+        'nextOwnerGeneration': _diagnosticOwnerGeneration,
+        'nextOwnerId': controller == null
+            ? null
+            : identityHashCode(controller!),
+      });
     }
     return controller?.isPausedForMain ?? false;
   }
@@ -186,19 +260,69 @@ class ActiveLearningModuleRegistry extends ChangeNotifier {
     ActiveLearningCommand command,
   ) async {
     final active = controller;
+    final operation = AudioDiagnostics.nextId();
+    final ownerGeneration = _diagnosticOwnerGeneration;
     if (active == null) {
+      AudioDiagnostics.event('active_learning.command.unavailable', {
+        'operation': operation,
+        'ownerGeneration': ownerGeneration,
+        'command': command.name,
+      });
       return const ActiveLearningCommandResult.unavailable();
     }
+    AudioDiagnostics.event('active_learning.command.started', {
+      ..._diagnosticOwner(active),
+      'operation': operation,
+      'ownerGeneration': ownerGeneration,
+      'command': command.name,
+    });
     try {
-      return await active.handleMainCommand(command).timeout(_operationTimeout);
+      final result = await active
+          .handleMainCommand(command)
+          .timeout(_operationTimeout);
+      AudioDiagnostics.event('active_learning.command.completed', {
+        ..._diagnosticOwner(active),
+        'operation': operation,
+        'ownerGeneration': ownerGeneration,
+        'currentOwnerGeneration': _diagnosticOwnerGeneration,
+        'sameOwner': identical(active, controller),
+        'command': command.name,
+        'status': result.status.name,
+      });
+      return result;
     } on TimeoutException {
       // The command may still be completing its prompt/native handoff. Do not
       // overlay that valid flow with a second, unrelated spoken busy prompt.
+      AudioDiagnostics.event('active_learning.command.timed_out', {
+        ..._diagnosticOwner(active),
+        'operation': operation,
+        'ownerGeneration': ownerGeneration,
+        'currentOwnerGeneration': _diagnosticOwnerGeneration,
+        'command': command.name,
+      });
       return const ActiveLearningCommandResult.busy();
-    } catch (_) {
+    } catch (error) {
+      AudioDiagnostics.event('active_learning.command.failed', {
+        ..._diagnosticOwner(active),
+        'operation': operation,
+        'ownerGeneration': ownerGeneration,
+        'command': command.name,
+        'errorType': error.runtimeType.toString(),
+      });
       return const ActiveLearningCommandResult.busy();
     }
   }
+
+  Map<String, Object?> _diagnosticOwner(
+    ActiveLearningModuleController active,
+  ) => <String, Object?>{
+    'ownerId': identityHashCode(active),
+    'ownerKind': active.moduleKind.name,
+    'node': active is ActiveLearningVoiceContext
+        ? (active as ActiveLearningVoiceContext).mainVoiceNode.name
+        : null,
+    'paused': active.isPausedForMain,
+  };
 
   /// Stops the visible activity before applying a hardware-style command.
   ///

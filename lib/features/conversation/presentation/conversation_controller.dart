@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../core/audio/adaptive_voice_activity_detector.dart';
+import '../../../core/audio/audio_diagnostics.dart';
 import '../../../core/audio/audio_input.dart';
 import '../../../core/audio/audio_playback_service.dart';
 import '../../../core/audio/catalog/media_audio_keys.dart';
@@ -3232,7 +3233,7 @@ class ConversationController extends ChangeNotifier
       }
       final processing = await Future.wait<Object?>([
         earlyRulePlayback == null
-            ? _preparePlaybackWithTimeout()
+            ? _preparePlaybackWithTimeout(turnGeneration: turnGeneration)
             : Future<void>.value(),
         resultFuture,
       ]);
@@ -3306,6 +3307,8 @@ class ConversationController extends ChangeNotifier
         try {
           final metrics = await _awaitPlaybackStartWithTimeout(
             earlyRulePlayback,
+            turnGeneration: turnGeneration,
+            source: 'early_rule',
           );
           final startedAt = earlyRulePlaybackRequestedAt.add(
             metrics.startedAfterRequest,
@@ -3413,27 +3416,91 @@ class ConversationController extends ChangeNotifier
     }
   }
 
-  Future<void> _preparePlaybackWithTimeout() async {
+  Future<void> _preparePlaybackWithTimeout({
+    required int turnGeneration,
+  }) async {
+    final operation = AudioDiagnostics.nextId();
+    final startedAt = DateTime.now();
+    AudioDiagnostics.event('conversation.playback.prepare.started', {
+      'operation': operation,
+      'turnGeneration': turnGeneration,
+    });
     try {
       await _playbackService.prepare().timeout(_audioPreparationTimeout);
+      AudioDiagnostics.event('conversation.playback.prepare.completed', {
+        'operation': operation,
+        'turnGeneration': turnGeneration,
+        'currentTurnGeneration': _conversationTurnGeneration,
+        'elapsedMs': DateTime.now().difference(startedAt).inMilliseconds,
+      });
     } on TimeoutException {
+      AudioDiagnostics.event('conversation.playback.prepare.timed_out', {
+        'operation': operation,
+        'turnGeneration': turnGeneration,
+        'currentTurnGeneration': _conversationTurnGeneration,
+        'elapsedMs': DateTime.now().difference(startedAt).inMilliseconds,
+      });
       await _playbackService.stop().catchError((Object _) {});
       throw const PlaybackException(
         'Không thể chuẩn bị âm thanh trong thời gian cho phép. Bạn thử lại nhé.',
       );
+    } catch (error) {
+      AudioDiagnostics.event('conversation.playback.prepare.failed', {
+        'operation': operation,
+        'turnGeneration': turnGeneration,
+        'currentTurnGeneration': _conversationTurnGeneration,
+        'errorType': error.runtimeType.toString(),
+        'elapsedMs': DateTime.now().difference(startedAt).inMilliseconds,
+      });
+      rethrow;
     }
   }
 
   Future<PlaybackStartMetrics> _awaitPlaybackStartWithTimeout(
-    Future<PlaybackStartMetrics> playbackStart,
-  ) async {
+    Future<PlaybackStartMetrics> playbackStart, {
+    required int turnGeneration,
+    required String source,
+  }) async {
+    final operation = AudioDiagnostics.nextId();
+    final startedAt = DateTime.now();
+    AudioDiagnostics.event('conversation.playback.start_wait.started', {
+      'operation': operation,
+      'turnGeneration': turnGeneration,
+      'source': source,
+    });
     try {
-      return await playbackStart.timeout(_audioPreparationTimeout);
+      final metrics = await playbackStart.timeout(_audioPreparationTimeout);
+      AudioDiagnostics.event('conversation.playback.start_wait.completed', {
+        'operation': operation,
+        'turnGeneration': turnGeneration,
+        'currentTurnGeneration': _conversationTurnGeneration,
+        'source': source,
+        'elapsedMs': DateTime.now().difference(startedAt).inMilliseconds,
+        'startDelayMs': metrics.startedAfterRequest.inMilliseconds,
+      });
+      return metrics;
     } on TimeoutException {
+      AudioDiagnostics.event('conversation.playback.start_wait.timed_out', {
+        'operation': operation,
+        'turnGeneration': turnGeneration,
+        'currentTurnGeneration': _conversationTurnGeneration,
+        'source': source,
+        'elapsedMs': DateTime.now().difference(startedAt).inMilliseconds,
+      });
       await _playbackService.stop().catchError((Object _) {});
       throw const PlaybackException(
         'Không thể chuẩn bị âm thanh trong thời gian cho phép. Bạn thử lại nhé.',
       );
+    } catch (error) {
+      AudioDiagnostics.event('conversation.playback.start_wait.failed', {
+        'operation': operation,
+        'turnGeneration': turnGeneration,
+        'currentTurnGeneration': _conversationTurnGeneration,
+        'source': source,
+        'errorType': error.runtimeType.toString(),
+        'elapsedMs': DateTime.now().difference(startedAt).inMilliseconds,
+      });
+      rethrow;
     }
   }
 
@@ -3803,6 +3870,8 @@ class ConversationController extends ChangeNotifier
                     sha256: checksum,
                   )
                 : playback.play(audioUri),
+            turnGeneration: playbackTurnGeneration,
+            source: 'assistant_response',
           );
       if (playbackTurnGeneration != _conversationTurnGeneration) {
         await _playbackService.stop().catchError((Object _) {});

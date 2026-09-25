@@ -316,6 +316,28 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
   private var recordingUsesBluetoothInput = false
   private var completedRecordingMetadata: [String: Any] = [:]
 
+  private func backgroundHandoffDiagnosticValues(
+    _ extra: [String: Any] = [:]
+  ) -> [String: Any] {
+    var values: [String: Any] = [
+      "handoffPhase": backgroundHandoffPhase.rawValue,
+      "armGeneration": backgroundHandoffArmGeneration,
+      "startRequestGeneration": startRequestGeneration,
+      "recognitionGeneration": generation,
+      "speechActive": active,
+      "engineRunning": audioEngine.isRunning,
+      "inputTapInstalled": inputTapInstalled,
+      "audioBufferGateOpen": audioBufferGateOpen,
+      "requestedAudioSource": requestedAudioSource.rawValue,
+      "disarmWhenIdle": backgroundHandoffDisarmWhenIdle,
+    ]
+    if let backgroundHandoffAudioSource {
+      values["handoffAudioSource"] = backgroundHandoffAudioSource.rawValue
+    }
+    values.merge(extra) { _, new in new }
+    return values
+  }
+
   init(
     messenger: FlutterBinaryMessenger,
     audioSessionCoordinator: IOSAudioSessionCoordinator
@@ -424,6 +446,15 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     requestedAudioSource = audioSource
     requestedLocale = locale
     startRequestedAt = Date()
+    audioSessionCoordinator.trace(
+      stage: "speech.start_requested",
+      caller: "IOSSpeechRecognizerBridge.start",
+      values: backgroundHandoffDiagnosticValues([
+        "requestGeneration": requestGeneration,
+        "audioSource": audioSource.rawValue,
+        "commandMode": commandMode,
+      ])
+    )
     if active {
       cancelCurrent(
         deleteRecording: true,
@@ -562,6 +593,14 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     guard isCurrentStartRequest(startRequestGeneration) else {
       throw IOSSpeechBridgeError.startCancelled
     }
+    audioSessionCoordinator.trace(
+      stage: "speech.begin_recognition",
+      caller: "IOSSpeechRecognizerBridge.beginRecognition",
+      values: backgroundHandoffDiagnosticValues([
+        "requestGeneration": startRequestGeneration,
+        "audioSource": audioSource.rawValue,
+      ])
+    )
     cancelCurrent(
       deleteRecording: true,
       caller: "IOSSpeechRecognizerBridge.beginRecognition.cleanup"
@@ -583,7 +622,11 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       finishBackgroundHandoffArmCompletions()
       audioSessionCoordinator.trace(
         stage: "background_capture_arm_superseded_by_speech",
-        caller: "IOSSpeechRecognizerBridge.beginRecognition"
+        caller: "IOSSpeechRecognizerBridge.beginRecognition",
+        values: backgroundHandoffDiagnosticValues([
+          "requestGeneration": startRequestGeneration,
+          "audioSource": audioSource.rawValue,
+        ])
       )
     }
     guard isCurrentStartRequest(startRequestGeneration) else {
@@ -830,6 +873,13 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       completion()
       return
     }
+    audioSessionCoordinator.trace(
+      stage: "background_capture_arm_received",
+      caller: caller,
+      values: backgroundHandoffDiagnosticValues([
+        "pendingCompletions": backgroundHandoffArmCompletions.count,
+      ])
+    )
     if audioSessionCoordinator.isBackgroundCaptureArmed,
       audioEngine.isRunning,
       audioSessionCoordinator.isBackgroundCaptureEngineRunning,
@@ -845,7 +895,16 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     }
 
     backgroundHandoffArmCompletions.append(completion)
-    guard backgroundHandoffPhase != .arming else { return }
+    guard backgroundHandoffPhase != .arming else {
+      audioSessionCoordinator.trace(
+        stage: "background_capture_arm_coalesced",
+        caller: caller,
+        values: backgroundHandoffDiagnosticValues([
+          "pendingCompletions": backgroundHandoffArmCompletions.count,
+        ])
+      )
+      return
+    }
     guard audioSession.recordPermission == .granted else {
       audioSessionCoordinator.trace(
         stage: "background_capture_engine_arm_skipped",
@@ -895,6 +954,14 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     backgroundHandoffPhase = .arming
     backgroundHandoffAudioSource = audioSource
     backgroundHandoffArmGeneration += 1
+    audioSessionCoordinator.trace(
+      stage: "background_capture_arm_started",
+      caller: caller,
+      values: backgroundHandoffDiagnosticValues([
+        "audioSource": audioSource.rawValue,
+        "pendingCompletions": backgroundHandoffArmCompletions.count,
+      ])
+    )
     attemptBackgroundAudioHandoffArm(
       audioSource: audioSource,
       attempt: 1,
@@ -913,9 +980,27 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       backgroundHandoffPhase == .arming,
       armGeneration == backgroundHandoffArmGeneration
     else {
+      audioSessionCoordinator.trace(
+        stage: "background_capture_arm_attempt_stale",
+        caller: caller,
+        values: backgroundHandoffDiagnosticValues([
+          "attempt": attempt,
+          "attemptArmGeneration": armGeneration,
+          "audioSource": audioSource.rawValue,
+        ])
+      )
       finishBackgroundHandoffArmCompletions()
       return
     }
+    audioSessionCoordinator.trace(
+      stage: "background_capture_arm_attempt",
+      caller: caller,
+      values: backgroundHandoffDiagnosticValues([
+        "attempt": attempt,
+        "attemptArmGeneration": armGeneration,
+        "audioSource": audioSource.rawValue,
+      ])
+    )
     do {
       rebuildAudioEngineForCurrentRoute()
       try installAudioTap()
@@ -936,10 +1021,10 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       audioSessionCoordinator.trace(
         stage: "background_capture_engine_armed",
         caller: caller,
-        values: [
+        values: backgroundHandoffDiagnosticValues([
           "attempt": attempt,
           "audioSource": audioSource.rawValue,
-        ]
+        ])
       )
       audioSessionCoordinator.backgroundAudioActivityDidStart(caller: caller)
       finishBackgroundHandoffArmCompletions()
@@ -950,7 +1035,11 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
         caller: caller,
         code: "\(nsError.domain):\(nsError.code)",
         message: "attempt=\(attempt) \(error.localizedDescription)",
-        values: ["audioSource": audioSource.rawValue]
+        values: backgroundHandoffDiagnosticValues([
+          "attempt": attempt,
+          "attemptArmGeneration": armGeneration,
+          "audioSource": audioSource.rawValue,
+        ])
       )
       tearDownAudioEngineGraphForRetry()
       if IOSAudioEngineStartupPolicy.shouldRetry(afterAttempt: attempt),
@@ -985,7 +1074,8 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       stage: "background_capture_engine_unavailable",
       caller: caller,
       code: "\(nsError.domain):\(nsError.code)",
-      message: error.localizedDescription
+      message: error.localizedDescription,
+      values: backgroundHandoffDiagnosticValues()
     )
     finishBackgroundHandoffArmCompletions()
   }
@@ -1051,6 +1141,21 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     audioSource: IOSNativeSpeechAudioSource,
     startRequestGeneration: Int
   ) async throws {
+    let canReuseBackgroundEngine = backgroundHandoffPhase == .armed
+      && backgroundHandoffAudioSource == audioSource
+      && audioEngine.isRunning
+      && inputTapInstalled
+      && audioSessionCoordinator.isBackgroundCaptureEngineRunning
+      && audioRouteMatches(audioSource)
+    audioSessionCoordinator.trace(
+      stage: "speech.audio_engine_start_requested",
+      caller: "IOSSpeechRecognizerBridge.startAudioEngineForCurrentRoute",
+      values: backgroundHandoffDiagnosticValues([
+        "requestGeneration": startRequestGeneration,
+        "audioSource": audioSource.rawValue,
+        "canReuseBackgroundEngine": canReuseBackgroundEngine,
+      ])
+    )
     if backgroundHandoffPhase == .armed,
       backgroundHandoffAudioSource == audioSource,
       audioEngine.isRunning,
@@ -1094,6 +1199,15 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       }
 
       do {
+        audioSessionCoordinator.trace(
+          stage: "speech.audio_engine_start_attempt",
+          caller: "IOSSpeechRecognizerBridge.startAudioEngineForCurrentRoute",
+          values: backgroundHandoffDiagnosticValues([
+            "requestGeneration": startRequestGeneration,
+            "attempt": attempt,
+            "audioSource": audioSource.rawValue,
+          ])
+        )
         try audioEngine.start()
         audioBufferGateOpen = true
         if audioSessionCoordinator.isBackgroundCaptureArmed {
@@ -1110,10 +1224,29 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
             message: "attempt=\(attempt)"
           )
         }
+        audioSessionCoordinator.trace(
+          stage: "speech.audio_engine_start_completed",
+          caller: "IOSSpeechRecognizerBridge.startAudioEngineForCurrentRoute",
+          values: backgroundHandoffDiagnosticValues([
+            "requestGeneration": startRequestGeneration,
+            "attempt": attempt,
+            "audioSource": audioSource.rawValue,
+          ])
+        )
         return
       } catch {
         lastStartError = error
         let nsError = error as NSError
+        audioSessionCoordinator.trace(
+          stage: "speech.audio_engine_start_failed",
+          caller: "IOSSpeechRecognizerBridge.startAudioEngineForCurrentRoute",
+          code: "\(nsError.domain):\(nsError.code)",
+          values: backgroundHandoffDiagnosticValues([
+            "requestGeneration": startRequestGeneration,
+            "attempt": attempt,
+            "audioSource": audioSource.rawValue,
+          ])
+        )
         emitStage(
           "audio_engine_start_failed",
           code: "\(nsError.domain):\(nsError.code)",

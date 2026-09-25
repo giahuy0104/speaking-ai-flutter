@@ -975,6 +975,46 @@ class RunnerTests: XCTestCase {
     coordinator.dispose()
   }
 
+  func testIOSDiagnosticPrivacyRedactsUserDataAndKeepsLifecycleSchema() {
+    let sanitized = IOSDiagnosticPrivacy.sanitize([
+      "operation": 7,
+      "generation": 3,
+      "stage": "arming",
+      "transcript": "private speech",
+      "recordingPath": "/private/child.wav",
+      "deviceId": "private-device",
+      "nested": [
+        "promptText": "private prompt",
+        "status": "ready",
+      ],
+    ])
+
+    XCTAssertEqual(sanitized["operation"] as? Int, 7)
+    XCTAssertEqual(sanitized["generation"] as? Int, 3)
+    XCTAssertEqual(sanitized["transcript"] as? String, "<redacted>")
+    XCTAssertEqual(sanitized["recordingPath"] as? String, "<redacted>")
+    XCTAssertEqual(sanitized["deviceId"] as? String, "<redacted>")
+    let nested = sanitized["nested"] as? [String: Any]
+    XCTAssertEqual(nested?["promptText"] as? String, "<redacted>")
+    XCTAssertEqual(nested?["status"] as? String, "ready")
+
+    let coordinator = IOSAudioSessionCoordinator()
+    let event = coordinator.trace(
+      stage: "schema",
+      caller: "RunnerTests",
+      values: ["rawHex": "010203", "recordingPath": "/private/child.wav"]
+    )
+    XCTAssertEqual(event["platform"] as? String, "ios")
+    XCTAssertNotNil(event["elapsedUs"] as? Int)
+    XCTAssertNotNil(event["applicationState"] as? String)
+    XCTAssertNotNil(event["owners"] as? [String])
+    XCTAssertNotNil(event["audioSessionActive"] as? Bool)
+    XCTAssertNotNil(event["backgroundCaptureEngineRunning"] as? Bool)
+    XCTAssertEqual(event["rawHex"] as? String, "<redacted>")
+    XCTAssertEqual(event["recordingPath"] as? String, "<redacted>")
+    coordinator.dispose()
+  }
+
   func testIOSNativeSpeechPrefersSpeechAnalyzerOnIOS26() {
     XCTAssertEqual(
       IOSNativeSpeechEngineSelector.select(

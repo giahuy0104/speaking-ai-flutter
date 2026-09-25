@@ -7,6 +7,7 @@ import '../../../app/app_theme.dart';
 import '../../../app/homi_ui.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
+import '../../../core/audio/audio_diagnostics.dart';
 import '../../../core/audio/streaming_speech_input.dart';
 import '../../../core/audio/audio_gain.dart';
 import '../../../core/audio/voice_prompt_service.dart';
@@ -359,6 +360,12 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       await _prepareSelectedLessonOutputWithRetry(request);
       if (!mounted || request != _request) return false;
       if (announceResume) {
+        AudioDiagnostics.event('active_learning.resume_lead.started', {
+          'module': 'challenge',
+          'operation': request,
+          'challengeId': _challenge.id,
+          'node': mainVoiceNode.name,
+        });
         await _speakPromptAndWait(
           'Mình tiếp tục câu thử thách nhé.',
           audioKey: ListeningAudioKeys.challengeResume,
@@ -975,7 +982,23 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   Future<void> _notifyChallengeResolved({required bool correct}) async {
     final callback = widget.onChallengeResolved;
     if (callback == null) return;
+    final operation = _request;
+    AudioDiagnostics.event('challenge.result.callback.started', {
+      'operation': operation,
+      'challengeId': _challenge.id,
+      'challengeIndex': _challengeIndex,
+      'outcome': correct ? 'correct' : 'needs_practice',
+      'resultContract': 'bool_plus_callback',
+    });
     await callback(_challenge, correct);
+    AudioDiagnostics.event('challenge.result.callback.completed', {
+      'operation': operation,
+      'currentOperation': _request,
+      'challengeId': _challenge.id,
+      'challengeIndex': _challengeIndex,
+      'outcome': correct ? 'correct' : 'needs_practice',
+      'mounted': mounted,
+    });
   }
 
   Future<void> _speakFeedback(LessonFeedbackKind kind) async {
@@ -1049,7 +1072,15 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       audioKey: ListeningAudioKeys.feedbackCompleted,
     );
     if (!mounted || _pausedForMainAssistant) return false;
-    if (mounted) Navigator.of(context).pop(true);
+    if (mounted) {
+      AudioDiagnostics.event('challenge.route.pop', {
+        'operation': _request,
+        'challengeId': _challenge.id,
+        'challengeIndex': _challengeIndex,
+        'resultContract': 'bool',
+      });
+      Navigator.of(context).pop(true);
+    }
     return false;
   }
 

@@ -1494,7 +1494,15 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     eventSink = events
     updateRemoteMainCommandAvailability(reason: "event_listener_attached")
     events(snapshot())
-    for event in pendingButtonEvents.drain() {
+    let pendingEvents = pendingButtonEvents.drain()
+    if !pendingEvents.isEmpty {
+      audioSessionCoordinator.trace(
+        stage: "MAIN_EVENT_PENDING_DRAINED",
+        caller: "Aiv0BleControlBridge.onListen",
+        values: ["count": pendingEvents.count]
+      )
+    }
+    for event in pendingEvents {
       events(event)
     }
     return nil
@@ -2002,7 +2010,21 @@ extension Aiv0BleControlBridge: CBPeripheralDelegate {
         "receivedAtEpochMs": Int(Date().timeIntervalSince1970 * 1_000),
       ]
       H20BleControlObservation.fields(for: bytes).forEach { event[$0.key] = $0.value }
+      let deliveredImmediately = eventSink != nil
       emitButtonEvent(event)
+      if !duplicate, H20BleControlObservation.isObservedMainShort(bytes) {
+        audioSessionCoordinator.trace(
+          stage: deliveredImmediately
+            ? "MAIN_EVENT_DELIVERED"
+            : "MAIN_EVENT_BUFFERED",
+          caller: "Aiv0BleControlBridge.eventChannel",
+          values: [
+            "sequence": Int(bytes[2]),
+            "transportSource": "ble",
+            "pendingCount": pendingButtonEvents.count,
+          ]
+        )
+      }
       emitStatus()
     } else if characteristic.uuid == ProtocolUUID.batteryLevel, let first = data.first {
       batteryPercent = min(max(Int(first), 0), 100)

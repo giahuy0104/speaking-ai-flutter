@@ -45,6 +45,57 @@ struct IOSAudioSessionOwnershipState {
   }
 }
 
+enum IOSDiagnosticPrivacy {
+  private static let sensitiveKeys: Set<String> = [
+    "text",
+    "prompttext",
+    "transcript",
+    "recognizedtext",
+    "recordingpath",
+    "filepath",
+    "path",
+    "uri",
+    "url",
+    "deviceid",
+    "rawhex",
+    "rawpayload",
+    "bytes",
+    "credential",
+    "credentials",
+    "secret",
+    "authorization",
+  ]
+
+  static func sanitize(_ values: [String: Any]) -> [String: Any] {
+    var result: [String: Any] = [:]
+    for (key, value) in values {
+      result[key] = isSensitive(key) ? "<redacted>" : sanitizeValue(value)
+    }
+    return result
+  }
+
+  private static func isSensitive(_ key: String) -> Bool {
+    let normalized = key.lowercased().filter { $0.isLetter || $0.isNumber }
+    return sensitiveKeys.contains(normalized)
+      || normalized.hasSuffix("transcript")
+      || normalized.hasSuffix("recordingpath")
+      || normalized.hasSuffix("filepath")
+  }
+
+  private static func sanitizeValue(_ value: Any) -> Any {
+    if let dictionary = value as? [String: Any] {
+      return sanitize(dictionary)
+    }
+    if let values = value as? [Any] {
+      return values.map(sanitizeValue)
+    }
+    if value is String || value is NSNumber || value is NSNull {
+      return value
+    }
+    return String(describing: type(of: value))
+  }
+}
+
 struct IOSBackgroundTurnExecutionPolicy {
   static func shouldRetain(
     backgroundLearningEnabled: Bool,
@@ -89,6 +140,7 @@ final class IOSAudioSessionCoordinator: NSObject {
   private var interruptionToken: NSObjectProtocol?
   private var traceSink: (([String: Any]) -> Void)?
   private var traceBuffer: [[String: Any]] = []
+  private let traceStartedAtUptime = ProcessInfo.processInfo.systemUptime
   private var pendingTurnId: String?
   private var pendingTurnStartedAt: Date?
   private var activeTurnId: String?
@@ -239,8 +291,8 @@ final class IOSAudioSessionCoordinator: NSObject {
     trace(
       stage: "MAIN_RAW_RECEIVED",
       caller: source == "ble" ? "Aiv0BleControlBridge" : "H20RemoteMainBridge",
-      message: rawHex,
       values: [
+        "rawHex": rawHex,
         "turnId": pendingTurnId ?? "",
         "supersedesTurnId": activeTurnId ?? "",
         "transportSource": source,
@@ -409,6 +461,10 @@ final class IOSAudioSessionCoordinator: NSObject {
     values: [String: Any] = [:]
   ) -> [String: Any] {
     let now = Date()
+    let elapsedUs = max(
+      0,
+      Int((ProcessInfo.processInfo.systemUptime - traceStartedAtUptime) * 1_000_000)
+    )
     sequence += 1
     let startedAt = activeTurnStartedAt ?? pendingTurnStartedAt ?? now
     var payload: [String: Any] = [
@@ -418,20 +474,41 @@ final class IOSAudioSessionCoordinator: NSObject {
       "sequence": sequence,
       "elapsedMs": max(0, Int(now.timeIntervalSince(startedAt) * 1_000)),
       "eventEpochMs": Int(now.timeIntervalSince1970 * 1_000),
+      "elapsedUs": elapsedUs,
+      "platform": "ios",
       "audioRoute": routeDescription(),
+      "applicationState": applicationStateName(),
+      "audioSessionActive": isAudioSessionActive,
+      "mainTurnActive": isMainTurnActive,
+      "backgroundLearningEnabled": isBackgroundLearningEnabled,
+      "backgroundCaptureEngineRunning": isBackgroundCaptureEngineRunning,
+      "owners": ownership.activeOwners.map(\.rawValue),
     ]
     if let turnId = activeTurnId ?? pendingTurnId {
       payload["turnId"] = turnId
     }
     if let code { payload["code"] = code }
     if let message { payload["message"] = message }
-    payload.merge(values) { _, new in new }
+    payload.merge(IOSDiagnosticPrivacy.sanitize(values)) { _, new in new }
     traceBuffer.append(payload)
     if traceBuffer.count > 200 {
       traceBuffer.removeFirst(traceBuffer.count - 200)
     }
     traceSink?(payload)
     return payload
+  }
+
+  private func applicationStateName() -> String {
+    switch UIApplication.shared.applicationState {
+    case .active:
+      return "active"
+    case .inactive:
+      return "inactive"
+    case .background:
+      return "background"
+    @unknown default:
+      return "unknown"
+    }
   }
 
   func preparePrompt(preferredHfpInput: AVAudioSessionPortDescription?, caller: String) throws -> Bool {

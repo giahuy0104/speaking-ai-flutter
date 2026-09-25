@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 
+import '../audio/audio_diagnostics.dart';
 import 'active_learning_module.dart';
 import 'aiv0_ble_control.dart';
 import 'main_button_coordinator.dart';
@@ -282,7 +283,29 @@ class AivoControlDispatcher extends ChangeNotifier {
     if (_disposed) return AivoControlStatus.ignored;
     final intent = AivoControlIntentMapper.map(input.button, input.gesture);
     final before = state;
+    final diagnosticOperation = AudioDiagnostics.nextId();
+    AudioDiagnostics.event('aivo.dispatch.received', {
+      'operation': diagnosticOperation,
+      'dispatcherGeneration': _generation,
+      'ownerGeneration': registry.diagnosticOwnerGeneration,
+      'source': input.source.name,
+      'button': input.button.name,
+      'gesture': input.gesture.name,
+      'sequence': input.sequence,
+      'intent': intent.name,
+      'actionable': input.actionable,
+      'duplicate': input.duplicate,
+    });
     AivoControlStatus finish(AivoControlStatus status) {
+      AudioDiagnostics.event('aivo.dispatch.completed', {
+        'operation': diagnosticOperation,
+        'dispatcherGeneration': _generation,
+        'ownerGeneration': registry.diagnosticOwnerGeneration,
+        'intent': intent.name,
+        'status': status.name,
+        'activeKind': registry.activeKind?.name,
+        'paused': registry.isActiveModulePaused,
+      });
       if (!_disposed) {
         _history.insert(
           0,
@@ -424,11 +447,20 @@ class AivoControlDispatcher extends ChangeNotifier {
           (canResume?.call() ?? true)) {
         return AivoControlStatus.ignored;
       }
+      AudioDiagnostics.event('aivo.dispatch.main_pause', {
+        'dispatcherGeneration': ticket,
+        'ownerGeneration': registry.diagnosticOwnerGeneration,
+      });
       return _mainResult(await onPause(mainInput));
     }
     if (intent == AivoControlIntent.assistantOrResume) {
       if (registry.isActiveModulePaused && (canResume?.call() ?? true)) {
         final owner = registry.controller;
+        AudioDiagnostics.event('aivo.dispatch.direct_resume', {
+          'dispatcherGeneration': ticket,
+          'ownerGeneration': registry.diagnosticOwnerGeneration,
+          'ownerId': owner == null ? null : identityHashCode(owner),
+        });
         final result = await registry.execute(ActiveLearningCommand.resume);
         if (_disposed ||
             ticket != _generation ||
@@ -438,6 +470,11 @@ class AivoControlDispatcher extends ChangeNotifier {
         if (result.wasHandled) onModuleHandled?.call();
         return _moduleResult(result);
       }
+      AudioDiagnostics.event('aivo.dispatch.main_question_requested', {
+        'dispatcherGeneration': ticket,
+        'ownerGeneration': registry.diagnosticOwnerGeneration,
+        'activeKind': registry.activeKind?.name,
+      });
       return _mainResult(await onMain(mainInput));
     }
     if (!registry.hasActiveModule) return AivoControlStatus.unavailable;

@@ -228,6 +228,10 @@ class VoiceNavigationController extends ChangeNotifier {
       promptAlreadySpoken: promptAlreadySpoken,
       noSpeechRetryPrompt: noSpeechRetryPrompt,
       noSpeechExitPrompt: noSpeechExitPrompt,
+      diagnosticActiveLearningKind: activeLearning ? activeLearningKind : null,
+      diagnosticActiveLearningNode: activeLearning
+          ? activeVoiceContext?.mainVoiceNode
+          : null,
     );
   }
 
@@ -303,6 +307,8 @@ class VoiceNavigationController extends ChangeNotifier {
     bool promptAlreadySpoken = false,
     String? noSpeechRetryPrompt,
     String? noSpeechExitPrompt,
+    ActiveLearningModuleKind? diagnosticActiveLearningKind,
+    ActiveLearningVoiceNode? diagnosticActiveLearningNode,
   }) async {
     if (_disposed) {
       return false;
@@ -330,6 +336,14 @@ class VoiceNavigationController extends ChangeNotifier {
       _continuousRequested = true;
       final generation = _generation;
       final promptText = beginFlow();
+      if (diagnosticActiveLearningKind != null) {
+        AudioDiagnostics.event('main.question.started', {
+          'generation': generation,
+          'ownerKind': diagnosticActiveLearningKind.name,
+          'node': diagnosticActiveLearningNode?.name,
+          'promptAlreadySpoken': promptAlreadySpoken,
+        });
+      }
       final acknowledged = await _acknowledgeWakeWord(
         generation,
         promptText: promptText,
@@ -494,6 +508,7 @@ class VoiceNavigationController extends ChangeNotifier {
       'destination': (turn.navigationAfterPrompt ?? turn.navigationBeforePrompt)
           ?.destination
           .name,
+      'activeLearningCommand': turn.activeLearningCommand?.name,
     });
     // A valid transcript starts a new response window at the resulting node.
     _mainNoSpeechRetryCount = 0;
@@ -600,7 +615,16 @@ class VoiceNavigationController extends ChangeNotifier {
     if (activeLearningCommand != null) {
       final handler = _activeLearningCommandHandler;
       if (handler != null) {
-        await handler(activeLearningCommand);
+        AudioDiagnostics.event('main.active_learning.dispatch', {
+          'generation': generation,
+          'command': activeLearningCommand.name,
+        });
+        final result = await handler(activeLearningCommand);
+        AudioDiagnostics.event('main.active_learning.completed', {
+          'generation': generation,
+          'command': activeLearningCommand.name,
+          'status': result.status.name,
+        });
       }
     }
     final navigationAfterPrompt = turn.navigationAfterPrompt;
