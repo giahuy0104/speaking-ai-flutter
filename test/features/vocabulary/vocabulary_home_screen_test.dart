@@ -11,6 +11,7 @@ import 'package:ai_speaking_flutter_app/features/listening/application/lesson_me
 import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_audio_service.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_fixed_prompt_audio_service.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_session_store.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_store.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_dictionary.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
@@ -1468,6 +1469,7 @@ void main() {
               store: store,
               mediaService: media,
               voicePromptService: voice,
+              recordingFinder: (path) async => path,
               fixedPromptAudioService:
                   const _UnavailableFixedPromptAudioService(),
               onReturnToConversation: () {},
@@ -1482,7 +1484,8 @@ void main() {
     await tester.tap(find.byKey(const Key('vocabulary-stars-card')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('vocabulary-stars-action')));
-    await tester.pumpAndSettle();
+    await _pumpUntil(tester, () => media.played.length == 5);
+    await tester.pump();
 
     final childReplays = media.played.where(
       (clip) => clip.uri.path.toLowerCase().endsWith('.wav'),
@@ -1498,7 +1501,8 @@ void main() {
     );
     final next = await registry.execute(ActiveLearningCommand.nextItem);
     expect(next.wasHandled, isTrue);
-    await tester.pumpAndSettle();
+    await _pumpUntil(tester, () => media.played.length == 6);
+    await tester.pump();
     expect(
       voice.spokenTexts.where((text) => text == VocabularyFlowV3.starMyVoice),
       hasLength(2),
@@ -1775,7 +1779,249 @@ void main() {
       expect(find.text('Ngôi sao của bạn'), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'Stars commits its checkpoint only after EN VI and child audio succeed',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final voice = _RecordingVoicePromptService();
+      final media = _TransactionalLessonMediaService();
+      final store = _MemoryVocabularyStore(<VocabularyEntry>[
+        _starEntry('first'),
+      ]);
+      const sessions = VocabularySessionStore();
+      addTearDown(registry.dispose);
+
+      await _mountStarPlaybackHome(
+        tester,
+        registry: registry,
+        voice: voice,
+        media: media,
+        store: store,
+        entries: store.entries,
+      );
+      await tester.tap(find.byKey(const Key('vocabulary-stars-action')));
+      await tester.pumpAndSettle();
+
+      expect(
+        voice.spokenTexts,
+        containsAllInOrder(<String>['Word first', 'Nghĩa first']),
+      );
+      expect(media.playCalls, 1);
+      expect(await sessions.readPlaybackCheckpoint('stars:ordered'), 1);
+      expect(store.entries.single.correctAudioPath, isNotNull);
+    },
+  );
+
+  testWidgets(
+    'Stars repairs a missing recording without advancing its checkpoint',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final store = _MemoryVocabularyStore(<VocabularyEntry>[
+        _starEntry('missing'),
+      ]);
+      final media = _TransactionalLessonMediaService();
+      const sessions = VocabularySessionStore();
+      addTearDown(registry.dispose);
+
+      await _mountStarPlaybackHome(
+        tester,
+        registry: registry,
+        store: store,
+        media: media,
+        entries: store.entries,
+        recordingFinder: (_) async => null,
+      );
+      await tester.tap(find.byKey(const Key('vocabulary-stars-action')));
+      await tester.pumpAndSettle();
+
+      expect(store.entries.single.correctAudioPath, isNull);
+      expect(store.entries.single.collection, VocabularyCollection.star);
+      expect(media.prepareCalls, 0);
+      expect(media.playCalls, 0);
+      expect(await sessions.readPlaybackCheckpoint('stars:ordered'), 0);
+      expect(
+        find.text(
+          'Bản ghi Ngôi sao này không còn khả dụng. Con hãy luyện lại nhé.',
+        ),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'Stars reacquires the route and retries a failed child recording once',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final media = _TransactionalLessonMediaService(playFailures: 1);
+      const sessions = VocabularySessionStore();
+      addTearDown(registry.dispose);
+
+      await _mountStarPlaybackHome(
+        tester,
+        registry: registry,
+        media: media,
+        entries: <VocabularyEntry>[_starEntry('retry')],
+      );
+      await tester.tap(find.byKey(const Key('vocabulary-stars-action')));
+      await tester.pumpAndSettle();
+
+      expect(media.playCalls, 2);
+      expect(media.prepareCalls, greaterThanOrEqualTo(2));
+      expect(await sessions.readPlaybackCheckpoint('stars:ordered'), 1);
+    },
+  );
+
+  testWidgets('Stars retries route preparation at the same entry', (
+    tester,
+  ) async {
+    final registry = ActiveLearningModuleRegistry();
+    final media = _TransactionalLessonMediaService(prepareFailures: 1);
+    const sessions = VocabularySessionStore();
+    addTearDown(registry.dispose);
+
+    await _mountStarPlaybackHome(
+      tester,
+      registry: registry,
+      media: media,
+      entries: <VocabularyEntry>[_starEntry('route-retry')],
+    );
+    await tester.tap(find.byKey(const Key('vocabulary-stars-action')));
+    await tester.pumpAndSettle();
+
+    expect(media.prepareCalls, 2);
+    expect(media.playCalls, 1);
+    expect(await sessions.readPlaybackCheckpoint('stars:ordered'), 1);
+  });
+
+  testWidgets(
+    'Stars keeps the failed entry current and never skips to the next entry',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final voice = _RecordingVoicePromptService();
+      final media = _TransactionalLessonMediaService(playFailures: 2);
+      const sessions = VocabularySessionStore();
+      addTearDown(registry.dispose);
+
+      await _mountStarPlaybackHome(
+        tester,
+        registry: registry,
+        voice: voice,
+        media: media,
+        entries: <VocabularyEntry>[
+          _starEntry('failed'),
+          _starEntry('must-not-play'),
+        ],
+      );
+      await tester.tap(find.byKey(const Key('vocabulary-stars-action')));
+      await tester.pumpAndSettle();
+
+      expect(media.playCalls, 2);
+      expect(voice.spokenTexts, isNot(contains('Word must-not-play')));
+      expect(await sessions.readPlaybackCheckpoint('stars:ordered'), 0);
+    },
+  );
+
+  testWidgets(
+    'MAIN resume waits for cleanup and stale playback cannot checkpoint',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final firstPlay = Completer<void>();
+      final resumedPlay = Completer<void>();
+      final stopGate = Completer<void>();
+      final media = _TransactionalLessonMediaService(
+        playGates: Queue<Completer<void>>.of(<Completer<void>>[
+          firstPlay,
+          resumedPlay,
+        ]),
+        stopGate: stopGate,
+      );
+      const sessions = VocabularySessionStore();
+      addTearDown(registry.dispose);
+      addTearDown(() {
+        if (!stopGate.isCompleted) stopGate.complete();
+        if (!firstPlay.isCompleted) firstPlay.complete();
+        if (!resumedPlay.isCompleted) resumedPlay.complete();
+      });
+
+      await _mountStarPlaybackHome(
+        tester,
+        registry: registry,
+        media: media,
+        entries: <VocabularyEntry>[_starEntry('resume')],
+      );
+      await tester.tap(find.byKey(const Key('vocabulary-stars-action')));
+      await _pumpUntil(tester, () => media.playCalls == 1);
+
+      final pausing = registry.pauseForMainAssistant();
+      await tester.pump();
+      final resume = await registry.execute(ActiveLearningCommand.resume);
+      expect(resume.wasHandled, isTrue);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(media.playCalls, 1);
+      expect(await sessions.readPlaybackCheckpoint('stars:ordered'), 0);
+
+      stopGate.complete();
+      await _pumpUntil(tester, () => media.playCalls == 2);
+      await pausing;
+      expect(await sessions.readPlaybackCheckpoint('stars:ordered'), 0);
+
+      resumedPlay.complete();
+      await tester.pumpAndSettle();
+      expect(await sessions.readPlaybackCheckpoint('stars:ordered'), 1);
+    },
+  );
 }
+
+Future<void> _mountStarPlaybackHome(
+  WidgetTester tester, {
+  required ActiveLearningModuleRegistry registry,
+  required _TransactionalLessonMediaService media,
+  required List<VocabularyEntry> entries,
+  _MemoryVocabularyStore? store,
+  _RecordingVoicePromptService? voice,
+  Future<String?> Function(String path)? recordingFinder,
+}) async {
+  await tester.pumpWidget(
+    MaterialApp(
+      theme: buildAppTheme(),
+      home: ActiveLearningModuleScope(
+        registry: registry,
+        child: DisplayLanguageScope(
+          language: DisplayLanguage.vietnamese,
+          child: VocabularyHomeScreen(
+            isReady: true,
+            store: store ?? _MemoryVocabularyStore(entries),
+            mediaService: media,
+            voicePromptService: voice ?? _RecordingVoicePromptService(),
+            fixedPromptAudioService:
+                const _UnavailableFixedPromptAudioService(),
+            recordingFinder: recordingFinder ?? (path) async => path,
+            onReturnToConversation: () {},
+            onHistory: () {},
+            onSettings: () {},
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(const Key('vocabulary-stars-card')));
+  await tester.pumpAndSettle();
+}
+
+VocabularyEntry _starEntry(String id) => VocabularyEntry(
+  id: id,
+  word: 'Word $id',
+  meaning: 'Nghĩa $id',
+  addedAt: DateTime(2026, 9, 25),
+  earnedAt: DateTime(2026, 9, 25),
+  collection: VocabularyCollection.star,
+  status: VocabularyLearningStatus.learnedWell,
+  source: VocabularySource.topicCore,
+  starSlotId: 'slot:$id',
+  correctAudioPath: 'C:\\recordings\\$id.wav',
+);
 
 Future<void> _mountAutoFollowHome(
   WidgetTester tester, {
@@ -2058,4 +2304,68 @@ class _ImmediateLessonMediaService extends LessonMediaService {
 
   @override
   Future<void> stopPlayback() async {}
+}
+
+class _TransactionalLessonMediaService extends LessonMediaService {
+  _TransactionalLessonMediaService({
+    int prepareFailures = 0,
+    int playFailures = 0,
+    Queue<Completer<void>>? playGates,
+    this.stopGate,
+  }) : _prepareFailures = prepareFailures,
+       _playFailures = playFailures,
+       _playGates = playGates ?? Queue<Completer<void>>();
+
+  int _prepareFailures;
+  int _playFailures;
+  final Queue<Completer<void>> _playGates;
+  final Completer<void>? stopGate;
+  Completer<void>? _activePlayGate;
+  int prepareCalls = 0;
+  int playCalls = 0;
+  int stopCalls = 0;
+
+  @override
+  Future<void> prepareSelectedLessonOutput() async {
+    prepareCalls++;
+    if (_prepareFailures > 0) {
+      _prepareFailures--;
+      throw PlatformException(
+        code: 'HFP_ROUTE_LOST',
+        message: 'H20 route unavailable',
+      );
+    }
+  }
+
+  @override
+  Future<void> playToCompletion(
+    Uri uri, {
+    Duration timeout = const Duration(seconds: 15),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
+  }) async {
+    playCalls++;
+    if (_playGates.isNotEmpty) {
+      final gate = _playGates.removeFirst();
+      _activePlayGate = gate;
+      await gate.future;
+      if (identical(_activePlayGate, gate)) _activePlayGate = null;
+    }
+    if (_playFailures > 0) {
+      _playFailures--;
+      throw PlatformException(
+        code: 'PLAYER_START_FAILED',
+        message: 'Could not start child recording',
+      );
+    }
+  }
+
+  @override
+  Future<void> stopPlayback() async {
+    stopCalls++;
+    await stopGate?.future;
+    final active = _activePlayGate;
+    if (active != null && !active.isCompleted) active.complete();
+  }
 }

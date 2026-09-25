@@ -5,6 +5,8 @@ final Set<String> _availableRecordingPaths = <String>{};
 
 String lessonRecordingFileExtension({TargetPlatform? platform}) => 'webm';
 
+Uri lessonRecordingUri(String reference) => Uri.parse(reference.trim());
+
 Future<String> createLessonRecordingPath(
   String lessonId,
   int sentenceNumber, {

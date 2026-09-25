@@ -256,4 +256,45 @@ void main() {
       );
     },
   );
+
+  test('repairs only the matching stale Star recording reference', () async {
+    final star = VocabularyEntry(
+      id: 'star-recording',
+      word: 'It is red.',
+      meaning: 'Nó màu đỏ.',
+      addedAt: DateTime(2026, 9, 25),
+      collection: VocabularyCollection.star,
+      status: VocabularyLearningStatus.learnedWell,
+      source: VocabularySource.topicCore,
+      starSlotId: 'A035_T01_L01:S1',
+      correctAudioPath: '/recordings/retained.wav',
+      earnedAt: DateTime(2026, 9, 25),
+    );
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      'innotrik.vocabulary.v1': jsonEncode(<Object>[star.toJson()]),
+    });
+    const store = VocabularyStore();
+
+    expect(
+      await store.clearMissingStarRecording(
+        entryId: star.id,
+        expectedPath: '/recordings/newer.wav',
+      ),
+      isFalse,
+    );
+    expect((await store.read()).single.correctAudioPath, star.correctAudioPath);
+
+    expect(
+      await store.clearMissingStarRecording(
+        entryId: star.id,
+        expectedPath: star.correctAudioPath!,
+      ),
+      isTrue,
+    );
+    final repaired = (await store.read()).single;
+    expect(repaired.correctAudioPath, isNull);
+    expect(repaired.collection, VocabularyCollection.star);
+    expect(repaired.starSlotId, star.starSlotId);
+    expect(repaired.earnedAt, star.earnedAt);
+  });
 }

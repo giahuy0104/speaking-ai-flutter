@@ -415,6 +415,26 @@ class VocabularyStore {
     );
   }
 
+  /// Removes only a stale recording reference. The earned result remains in
+  /// storage and can be restored by a later lesson result with a valid file.
+  Future<bool> clearMissingStarRecording({
+    required String entryId,
+    required String expectedPath,
+  }) async {
+    final entries = await read();
+    final index = entries.indexWhere((entry) => entry.id == entryId);
+    if (index < 0) return false;
+    final entry = entries[index];
+    if (!entry.isStar ||
+        entry.correctAudioPath?.trim() != expectedPath.trim()) {
+      return false;
+    }
+    final updated = List<VocabularyEntry>.of(entries);
+    updated[index] = entry.copyWith(correctAudioPath: null);
+    await write(updated);
+    return true;
+  }
+
   Future<int> parentAddCountForDay(DateTime day) async {
     final preferences = await SharedPreferences.getInstance();
     final key = '$_parentAddCountKeyPrefix${_dayKey(day)}';

@@ -36,6 +36,14 @@ const _starAsset = 'assets/images/vocabulary/golden-star.png';
 const _reviewAsset = 'assets/images/vocabulary/review-book.png';
 const _avatarAsset = 'assets/images/mascot/penguin-avatar.png';
 
+class _VocabularyStarRecordingUnavailable implements Exception {
+  const _VocabularyStarRecordingUnavailable();
+
+  @override
+  String toString() =>
+      'Bản ghi Ngôi sao này không còn khả dụng. Con hãy luyện lại nhé.';
+}
+
 /// Activates the vocabulary state machine immediately, even when Android has
 /// stopped producing UI frames because the display is locked. The visual page
 /// still follows [VocabularyHomeScreen.isActive] when frames resume.
@@ -111,6 +119,7 @@ class VocabularyHomeScreen extends StatefulWidget {
     this.dictionaryProvider,
     this.vocabularyAudioService,
     this.fixedPromptAudioService,
+    this.recordingFinder,
     this.activationController,
     this.childAge = 5,
     this.autoStartToday = false,
@@ -135,6 +144,7 @@ class VocabularyHomeScreen extends StatefulWidget {
   final VocabularyDictionaryProvider? dictionaryProvider;
   final VocabularyContentAudioService? vocabularyAudioService;
   final VocabularyFixedPromptAudioService? fixedPromptAudioService;
+  final Future<String?> Function(String path)? recordingFinder;
   final VocabularyActivationController? activationController;
   final int childAge;
   final bool autoStartToday;
@@ -175,9 +185,8 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   bool _playingCollection = false;
   int _playbackGeneration = 0;
   int _audioCommandGeneration = 0;
-  Future<void>? _playbackNavigationCleanup;
-  Timer? _playbackNavigationCleanupTimer;
-  Completer<void>? _playbackNavigationCleanupCompleter;
+  Future<void> _playbackCleanupTail = Future<void>.value();
+  Future<void> _playbackOperationTail = Future<void>.value();
   bool _playbackInterrupted = false;
   List<VocabularyEntry> _playbackQueue = const <VocabularyEntry>[];
   int _playbackIndex = 0;
@@ -307,18 +316,13 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _playbackQueue = const <VocabularyEntry>[];
     _activePlaybackEntryId = null;
     _selectedJourney = null;
-    for (final operation in <Future<void> Function()>[
-      _voicePromptService.stop,
-      _mediaService.stopPlayback,
-      if (_vocabularyAudioService != null) _vocabularyAudioService!.stop,
-    ]) {
-      unawaited(Future<void>.sync(operation).catchError((Object _) {}));
-    }
+    unawaited(_queuePlaybackCleanup());
   }
 
   @override
   void dispose() {
-    _finishPlaybackNavigationCleanup();
+    _playbackGeneration++;
+    _audioCommandGeneration++;
     _cancelActiveEntryAutoScroll();
     widget.activationController?.removeListener(_handleActivationChanged);
     widget.navigationController?._detach(this);
@@ -443,13 +447,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _cancelPendingFixedPrompt();
     _pausedForMainAssistant = true;
     _playbackInterrupted = _playingCollection;
+    _playbackGeneration += 1;
     _setActivePlaybackEntry(null);
-    await Future.wait<void>(<Future<void>>[
-      _voicePromptService.stop().catchError((Object _) {}),
-      _mediaService.stopPlayback().catchError((Object _) {}),
-      if (_vocabularyAudioService != null)
-        _vocabularyAudioService!.stop().catchError((Object _) {}),
-    ]);
+    final cleanup = _queuePlaybackCleanup();
+    await Future.wait<void>(<Future<void>>[cleanup, _playbackOperationTail]);
+    if (mounted) setState(() => _playingCollection = false);
   }
 
   @override
@@ -1796,7 +1798,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   Future<void> _playJourneyWithOutput(_VocabularyJourney journey) async {
     final generation = _playbackGeneration;
-    await _playbackNavigationCleanup;
+    await _playbackCleanupTail;
     if (!mounted || generation != _playbackGeneration) return;
     if (_playingCollection || !mounted) return;
     if (await _resumeBlockingPracticeIfNeeded()) return;
@@ -1874,178 +1876,193 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     int? blockStartIndex,
   }) async {
     final pendingGeneration = _playbackGeneration;
-    await _playbackNavigationCleanup;
-    if (!mounted || pendingGeneration != _playbackGeneration) return;
-    if (_playingCollection || entries.isEmpty) return;
-    final generation = ++_playbackGeneration;
-    final diagnosticOperation = AudioDiagnostics.nextId();
-    final branchKind = branch.split(':').first;
-    AudioDiagnostics.event('vocabulary.queue.started', {
-      'operation': diagnosticOperation,
-      'generation': generation,
-      'journey': journey.name,
-      'branchKind': branchKind,
-      'startIndex': startIndex,
-      'entryCount': entries.length,
-      'checkpointEnabled': checkpoint,
-    });
-    _playbackQueue = entries;
-    _playbackIndex = startIndex;
-    _playbackBlockStartIndex = blockStartIndex ?? startIndex;
-    _playbackBlockEndExclusive = VocabularyFlowV3.playbackBlockEnd(
-      start: _playbackBlockStartIndex,
-      total: entries.length,
-    );
-    _playbackBranch = branch;
-    _nextPlaybackIndex = startIndex;
-    _playbackInterrupted = false;
-    _waitingForPlaybackContinuation = false;
-    _awaitingPlaybackEndChoice = false;
-    if (mounted) setState(() => _playingCollection = true);
+    final previousOperation = _playbackOperationTail;
+    final operationDone = Completer<void>();
+    _playbackOperationTail = operationDone.future;
     try {
-      for (
-        var index = startIndex;
-        index < _playbackBlockEndExclusive;
-        index++
-      ) {
-        _playbackIndex = index;
-        if (generation != _playbackGeneration) {
-          AudioDiagnostics.event('vocabulary.queue.cancelled', {
+      await previousOperation;
+      await _playbackCleanupTail;
+      if (!mounted || pendingGeneration != _playbackGeneration) return;
+      if (_playingCollection || entries.isEmpty) return;
+      final generation = ++_playbackGeneration;
+      final diagnosticOperation = AudioDiagnostics.nextId();
+      final branchKind = branch.split(':').first;
+      AudioDiagnostics.event('vocabulary.queue.started', {
+        'operation': diagnosticOperation,
+        'generation': generation,
+        'journey': journey.name,
+        'branchKind': branchKind,
+        'startIndex': startIndex,
+        'entryCount': entries.length,
+        'checkpointEnabled': checkpoint,
+      });
+      _playbackQueue = entries;
+      _playbackIndex = startIndex;
+      _playbackBlockStartIndex = blockStartIndex ?? startIndex;
+      _playbackBlockEndExclusive = VocabularyFlowV3.playbackBlockEnd(
+        start: _playbackBlockStartIndex,
+        total: entries.length,
+      );
+      _playbackBranch = branch;
+      _nextPlaybackIndex = startIndex;
+      _playbackInterrupted = false;
+      _waitingForPlaybackContinuation = false;
+      _awaitingPlaybackEndChoice = false;
+      if (mounted) setState(() => _playingCollection = true);
+      try {
+        for (
+          var index = startIndex;
+          index < _playbackBlockEndExclusive;
+          index++
+        ) {
+          _playbackIndex = index;
+          if (generation != _playbackGeneration) {
+            AudioDiagnostics.event('vocabulary.queue.cancelled', {
+              'operation': diagnosticOperation,
+              'generation': generation,
+              'currentGeneration': _playbackGeneration,
+              'index': index,
+              'reason': 'generation_superseded',
+            });
+            return;
+          }
+          if (_pausedForMainAssistant) {
+            _playbackInterrupted = true;
+            AudioDiagnostics.event('vocabulary.queue.interrupted', {
+              'operation': diagnosticOperation,
+              'generation': generation,
+              'index': index,
+              'reason': 'main_pause',
+            });
+            return;
+          }
+          AudioDiagnostics.event('vocabulary.entry.started', {
             'operation': diagnosticOperation,
             'generation': generation,
-            'currentGeneration': _playbackGeneration,
             'index': index,
-            'reason': 'generation_superseded',
+            'entryKey': AudioDiagnostics.stableId(<Object?>[
+              entries[index].id,
+              entries[index].starSlotId,
+            ]),
+            'journey': journey.name,
           });
-          return;
+          _setActivePlaybackEntry(entries[index].id);
+          final played = await _speakVocabularyEntry(
+            entries[index],
+            journey: journey,
+            announceStarVoice: announceStarVoice && index == startIndex,
+            generation: generation,
+            diagnosticOperation: diagnosticOperation,
+          );
+          if (generation != _playbackGeneration) {
+            AudioDiagnostics.event('vocabulary.queue.cancelled', {
+              'operation': diagnosticOperation,
+              'generation': generation,
+              'currentGeneration': _playbackGeneration,
+              'index': index,
+              'reason': 'generation_superseded_after_entry',
+            });
+            return;
+          }
+          if (_pausedForMainAssistant) {
+            _playbackInterrupted = true;
+            AudioDiagnostics.event('vocabulary.queue.interrupted', {
+              'operation': diagnosticOperation,
+              'generation': generation,
+              'index': index,
+              'reason': 'main_pause_after_entry',
+            });
+            return;
+          }
+          if (!played) {
+            AudioDiagnostics.event('vocabulary.entry.incomplete', {
+              'operation': diagnosticOperation,
+              'generation': generation,
+              'index': index,
+            });
+            return;
+          }
+          if (checkpoint) {
+            AudioDiagnostics.event('vocabulary.checkpoint.write_started', {
+              'operation': diagnosticOperation,
+              'generation': generation,
+              'branchKind': branchKind,
+              'index': index,
+              'nextIndex': index + 1,
+              'entryPlayed': played,
+            });
+            await widget.sessionStore.savePlaybackCheckpoint(branch, index + 1);
+            AudioDiagnostics.event('vocabulary.checkpoint.write_completed', {
+              'operation': diagnosticOperation,
+              'generation': generation,
+              'branchKind': branchKind,
+              'nextIndex': index + 1,
+              'entryPlayed': played,
+            });
+          }
+          _nextPlaybackIndex = index + 1;
+          AudioDiagnostics.event('vocabulary.entry.completed', {
+            'operation': diagnosticOperation,
+            'generation': generation,
+            'index': index,
+            'entryKey': AudioDiagnostics.stableId(<Object?>[
+              entries[index].id,
+              entries[index].starSlotId,
+            ]),
+            'played': played,
+          });
         }
-        if (_pausedForMainAssistant) {
-          _playbackInterrupted = true;
-          AudioDiagnostics.event('vocabulary.queue.interrupted', {
-            'operation': diagnosticOperation,
-            'generation': generation,
-            'index': index,
-            'reason': 'main_pause',
-          });
-          return;
-        }
-        AudioDiagnostics.event('vocabulary.entry.started', {
-          'operation': diagnosticOperation,
-          'generation': generation,
-          'index': index,
-          'entryKey': AudioDiagnostics.stableId(<Object?>[
-            entries[index].id,
-            entries[index].starSlotId,
-          ]),
-          'journey': journey.name,
-        });
-        _setActivePlaybackEntry(entries[index].id);
-        final played = await _speakVocabularyEntry(
-          entries[index],
-          journey: journey,
-          announceStarVoice: announceStarVoice && index == startIndex,
-          generation: generation,
-          diagnosticOperation: diagnosticOperation,
-        );
-        if (generation != _playbackGeneration) {
-          AudioDiagnostics.event('vocabulary.queue.cancelled', {
-            'operation': diagnosticOperation,
-            'generation': generation,
-            'currentGeneration': _playbackGeneration,
-            'index': index,
-            'reason': 'generation_superseded_after_entry',
-          });
-          return;
-        }
-        if (_pausedForMainAssistant) {
-          _playbackInterrupted = true;
-          AudioDiagnostics.event('vocabulary.queue.interrupted', {
-            'operation': diagnosticOperation,
-            'generation': generation,
-            'index': index,
-            'reason': 'main_pause_after_entry',
-          });
+        _setActivePlaybackEntry(null);
+        _playbackInterrupted = false;
+        if (_playbackBlockEndExclusive < entries.length) {
+          _nextPlaybackIndex = _playbackBlockEndExclusive;
+          _waitingForPlaybackContinuation = true;
+          await _speakAndRequestChoice(
+            journey == _VocabularyJourney.stars
+                ? VocabularyFlowV3.starGroupCompletion
+                : VocabularyFlowV3.parentGroupCompletion,
+          );
           return;
         }
         if (checkpoint) {
-          AudioDiagnostics.event('vocabulary.checkpoint.write_started', {
-            'operation': diagnosticOperation,
-            'generation': generation,
-            'branchKind': branchKind,
-            'index': index,
-            'nextIndex': index + 1,
-            'entryPlayed': played,
-          });
-          await widget.sessionStore.savePlaybackCheckpoint(branch, index + 1);
-          AudioDiagnostics.event('vocabulary.checkpoint.write_completed', {
-            'operation': diagnosticOperation,
-            'generation': generation,
-            'branchKind': branchKind,
-            'nextIndex': index + 1,
-            'entryPlayed': played,
-          });
+          await widget.sessionStore.savePlaybackCheckpoint(
+            branch,
+            entries.length,
+          );
         }
-        _nextPlaybackIndex = index + 1;
-        AudioDiagnostics.event('vocabulary.entry.completed', {
+        _waitingForPlaybackContinuation = false;
+        _awaitingPlaybackEndChoice = !branch.startsWith('single:');
+        if (!branch.startsWith('single:')) {
+          await _speakAndRequestChoice(
+            journey == _VocabularyJourney.stars
+                ? VocabularyFlowV3.starFinished
+                : VocabularyFlowV3.parentFinished,
+          );
+        }
+      } catch (error) {
+        AudioDiagnostics.event('vocabulary.queue.failed', {
           'operation': diagnosticOperation,
           'generation': generation,
-          'index': index,
-          'entryKey': AudioDiagnostics.stableId(<Object?>[
-            entries[index].id,
-            entries[index].starSlotId,
-          ]),
-          'played': played,
+          'currentGeneration': _playbackGeneration,
+          'errorType': error.runtimeType.toString(),
         });
-        if (!played) continue;
-      }
-      _setActivePlaybackEntry(null);
-      _playbackInterrupted = false;
-      if (_playbackBlockEndExclusive < entries.length) {
-        _nextPlaybackIndex = _playbackBlockEndExclusive;
-        _waitingForPlaybackContinuation = true;
-        await _speakAndRequestChoice(
-          journey == _VocabularyJourney.stars
-              ? VocabularyFlowV3.starGroupCompletion
-              : VocabularyFlowV3.parentGroupCompletion,
-        );
-        return;
-      }
-      if (checkpoint) {
-        await widget.sessionStore.savePlaybackCheckpoint(
-          branch,
-          entries.length,
-        );
-      }
-      _waitingForPlaybackContinuation = false;
-      _awaitingPlaybackEndChoice = !branch.startsWith('single:');
-      if (!branch.startsWith('single:')) {
-        await _speakAndRequestChoice(
-          journey == _VocabularyJourney.stars
-              ? VocabularyFlowV3.starFinished
-              : VocabularyFlowV3.parentFinished,
-        );
-      }
-    } catch (error) {
-      AudioDiagnostics.event('vocabulary.queue.failed', {
-        'operation': diagnosticOperation,
-        'generation': generation,
-        'currentGeneration': _playbackGeneration,
-        'errorType': error.runtimeType.toString(),
-      });
-      if (generation != _playbackGeneration) return;
-      if (_pausedForMainAssistant) {
-        _playbackInterrupted = true;
-      } else {
-        _showMessage(_friendlyPlaybackError(error));
+        if (generation != _playbackGeneration) return;
+        if (_pausedForMainAssistant) {
+          _playbackInterrupted = true;
+        } else {
+          _showMessage(_friendlyPlaybackError(error));
+        }
+      } finally {
+        if (mounted && generation == _playbackGeneration) {
+          _cancelActiveEntryAutoScroll();
+          setState(() {
+            _playingCollection = false;
+            _activePlaybackEntryId = null;
+          });
+        }
       }
     } finally {
-      if (mounted && generation == _playbackGeneration) {
-        _cancelActiveEntryAutoScroll();
-        setState(() {
-          _playingCollection = false;
-          _activePlaybackEntryId = null;
-        });
-      }
+      if (!operationDone.isCompleted) operationDone.complete();
     }
   }
 
@@ -2060,44 +2077,24 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       entry.id,
       entry.starSlotId,
     ]);
-    final path = journey == _VocabularyJourney.stars
+    final referencedPath = journey == _VocabularyJourney.stars
         ? entry.correctAudioPath?.trim()
         : null;
+    var path = referencedPath;
     AudioDiagnostics.event('vocabulary.entry.stage', {
       'operation': diagnosticOperation,
       'generation': generation,
       'entryKey': entryKey,
       'stage': 'recording_reference_checked',
-      'recordingReferencePresent': path?.isNotEmpty ?? false,
-      'recordingScheme': path == null || path.isEmpty
+      'recordingReferencePresent': referencedPath?.isNotEmpty ?? false,
+      'recordingScheme': referencedPath == null || referencedPath.isEmpty
           ? null
-          : (Uri.tryParse(path)?.scheme.isNotEmpty ?? false)
-          ? Uri.parse(path).scheme
+          : (Uri.tryParse(referencedPath)?.scheme.isNotEmpty ?? false)
+          ? Uri.parse(referencedPath).scheme
           : 'file',
     });
-    if (AudioDiagnostics.isActive && path != null && path.isNotEmpty) {
-      unawaited(() async {
-        try {
-          final resolvedPath = await findLessonRecording(path);
-          AudioDiagnostics.event('vocabulary.entry.file_checked', {
-            'operation': diagnosticOperation,
-            'generation': generation,
-            'currentGeneration': _playbackGeneration,
-            'entryKey': entryKey,
-            'fileExists': resolvedPath != null,
-          });
-        } catch (error) {
-          AudioDiagnostics.event('vocabulary.entry.file_check_failed', {
-            'operation': diagnosticOperation,
-            'generation': generation,
-            'currentGeneration': _playbackGeneration,
-            'entryKey': entryKey,
-            'errorType': error.runtimeType.toString(),
-          });
-        }
-      }());
-    }
-    if (journey == _VocabularyJourney.stars && (path == null || path.isEmpty)) {
+    if (journey == _VocabularyJourney.stars &&
+        (referencedPath == null || referencedPath.isEmpty)) {
       AudioDiagnostics.event('vocabulary.entry.failed', {
         'operation': diagnosticOperation,
         'generation': generation,
@@ -2106,7 +2103,41 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         'reason': 'recording_reference_missing',
       });
       debugPrint('VOCABULARY_STAR_AUDIO_MISSING slot=${entry.starSlotId}');
-      return false;
+      throw const _VocabularyStarRecordingUnavailable();
+    }
+    if (referencedPath != null && referencedPath.isNotEmpty) {
+      path = await (widget.recordingFinder ?? findLessonRecording)(
+        referencedPath,
+      );
+      AudioDiagnostics.event('vocabulary.entry.file_checked', {
+        'operation': diagnosticOperation,
+        'generation': generation,
+        'currentGeneration': _playbackGeneration,
+        'entryKey': entryKey,
+        'fileExists': path != null,
+      });
+      if (path == null) {
+        if (_canContinueVocabularyEntry(
+          generation: generation,
+          diagnosticOperation: diagnosticOperation,
+          entryKey: entryKey,
+          stage: 'recording_file_checked',
+        )) {
+          await widget.store.clearMissingStarRecording(
+            entryId: entry.id,
+            expectedPath: referencedPath,
+          );
+          if (mounted && generation == _playbackGeneration) await _load();
+        }
+        AudioDiagnostics.event('vocabulary.entry.failed', {
+          'operation': diagnosticOperation,
+          'generation': generation,
+          'entryKey': entryKey,
+          'stage': 'recording_file_checked',
+          'reason': 'recording_file_unavailable',
+        });
+        throw const _VocabularyStarRecordingUnavailable();
+      }
     }
     AudioDiagnostics.event('vocabulary.entry.stage', {
       'operation': diagnosticOperation,
@@ -2114,7 +2145,12 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       'entryKey': entryKey,
       'stage': 'route_prepare_started',
     });
-    await _mediaService.prepareSelectedLessonOutput();
+    final routeReady = await _prepareVocabularyOutput(
+      generation: generation,
+      diagnosticOperation: diagnosticOperation,
+      entryKey: entryKey,
+    );
+    if (!routeReady) return false;
     AudioDiagnostics.event('vocabulary.entry.stage', {
       'operation': diagnosticOperation,
       'generation': generation,
@@ -2183,46 +2219,123 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         return false;
       }
     }
-    final uri = path.startsWith('http://') || path.startsWith('https://')
-        ? Uri.parse(path)
-        : Uri.file(path);
-    try {
-      AudioDiagnostics.event('vocabulary.entry.stage', {
-        'operation': diagnosticOperation,
-        'generation': generation,
-        'entryKey': entryKey,
-        'stage': 'child_recording_started',
-        'recordingScheme': uri.scheme,
-      });
-      await _mediaService.playToCompletion(
-        uri,
-        playbackGainDb: lessonRecordingPlaybackGainDb,
-      );
-      AudioDiagnostics.event('vocabulary.entry.stage', {
-        'operation': diagnosticOperation,
-        'generation': generation,
-        'entryKey': entryKey,
-        'stage': 'child_recording_completed',
-      });
-    } catch (error) {
-      if (journey == _VocabularyJourney.stars) {
+    final uri = lessonRecordingUri(path);
+    return _playStarRecording(
+      entry: entry,
+      uri: uri,
+      generation: generation,
+      diagnosticOperation: diagnosticOperation,
+      entryKey: entryKey,
+    );
+  }
+
+  Future<bool> _prepareVocabularyOutput({
+    required int generation,
+    required int diagnosticOperation,
+    required String entryKey,
+  }) async {
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        await _mediaService.prepareSelectedLessonOutput();
+        return _canContinueVocabularyEntry(
+          generation: generation,
+          diagnosticOperation: diagnosticOperation,
+          entryKey: entryKey,
+          stage: 'route_prepare_attempt_${attempt + 1}',
+        );
+      } catch (error) {
+        AudioDiagnostics.event('vocabulary.entry.stage_failed', {
+          'operation': diagnosticOperation,
+          'generation': generation,
+          'entryKey': entryKey,
+          'stage': 'route_prepare_attempt_${attempt + 1}',
+          'errorType': error.runtimeType.toString(),
+        });
+        if (attempt == 1 ||
+            !_canContinueVocabularyEntry(
+              generation: generation,
+              diagnosticOperation: diagnosticOperation,
+              entryKey: entryKey,
+              stage: 'route_prepare_failed',
+            )) {
+          rethrow;
+        }
+        await _mediaService.stopPlayback().catchError((Object _) {});
+      }
+    }
+    return false;
+  }
+
+  Future<bool> _playStarRecording({
+    required VocabularyEntry entry,
+    required Uri uri,
+    required int generation,
+    required int diagnosticOperation,
+    required String entryKey,
+  }) async {
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        AudioDiagnostics.event('vocabulary.entry.stage', {
+          'operation': diagnosticOperation,
+          'generation': generation,
+          'entryKey': entryKey,
+          'stage': 'child_recording_started',
+          'attempt': attempt + 1,
+          'recordingScheme': uri.scheme,
+        });
+        await _mediaService.playToCompletion(
+          uri,
+          playbackGainDb: lessonRecordingPlaybackGainDb,
+        );
+        if (!_canContinueVocabularyEntry(
+          generation: generation,
+          diagnosticOperation: diagnosticOperation,
+          entryKey: entryKey,
+          stage: 'child_recording_completed',
+        )) {
+          return false;
+        }
+        AudioDiagnostics.event('vocabulary.entry.stage', {
+          'operation': diagnosticOperation,
+          'generation': generation,
+          'entryKey': entryKey,
+          'stage': 'child_recording_completed',
+          'attempt': attempt + 1,
+        });
+        return true;
+      } catch (error) {
         AudioDiagnostics.event('vocabulary.entry.failed', {
           'operation': diagnosticOperation,
           'generation': generation,
           'entryKey': entryKey,
           'stage': 'child_recording_started',
+          'attempt': attempt + 1,
           'reason': 'playback_failed',
           'errorType': error.runtimeType.toString(),
         });
         debugPrint(
           'VOCABULARY_STAR_AUDIO_FAILED slot=${entry.starSlotId} '
-          'errorType=${error.runtimeType}',
+          'attempt=${attempt + 1} errorType=${error.runtimeType}',
         );
-        return false;
+        if (attempt == 1 ||
+            !_canContinueVocabularyEntry(
+              generation: generation,
+              diagnosticOperation: diagnosticOperation,
+              entryKey: entryKey,
+              stage: 'child_recording_failed',
+            )) {
+          rethrow;
+        }
+        await _mediaService.stopPlayback().catchError((Object _) {});
+        final routeReady = await _prepareVocabularyOutput(
+          generation: generation,
+          diagnosticOperation: diagnosticOperation,
+          entryKey: entryKey,
+        );
+        if (!routeReady) return false;
       }
-      rethrow;
     }
-    return true;
+    return false;
   }
 
   bool _canContinueVocabularyEntry({
@@ -2245,8 +2358,13 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   }
 
   Future<void> _resumePlayback({bool announceResume = false}) async {
+    final commandGeneration = _audioCommandGeneration;
     await _waitForPlaybackToSettle();
-    if (!_playbackInterrupted || _playbackQueue.isEmpty || _playingCollection) {
+    if (!mounted ||
+        commandGeneration != _audioCommandGeneration ||
+        !_playbackInterrupted ||
+        _playbackQueue.isEmpty ||
+        _playingCollection) {
       return;
     }
     final queue = _playbackQueue;
@@ -2435,8 +2553,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   }
 
   Future<void> _waitForPlaybackToSettle() async {
-    for (var attempt = 0; attempt < 100 && _playingCollection; attempt++) {
-      await Future<void>.delayed(const Duration(milliseconds: 20));
+    while (true) {
+      final operation = _playbackOperationTail;
+      final cleanup = _playbackCleanupTail;
+      await Future.wait<void>(<Future<void>>[operation, cleanup]);
+      if (identical(operation, _playbackOperationTail) &&
+          identical(cleanup, _playbackCleanupTail)) {
+        return;
+      }
     }
   }
 
@@ -2458,7 +2582,6 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     bool announceMenu = true,
     bool notifyNavigationExit = true,
   }) async {
-    if (_playbackNavigationCleanup != null && announceMenu) return;
     _cancelPendingFixedPrompt();
     if (!announceMenu && notifyNavigationExit) {
       ActiveLearningModuleScope.notifyNavigationExit(context);
@@ -2472,22 +2595,8 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _awaitingPlaybackEndChoice = false;
     _playingCollection = false;
     _closeJourney();
-    final cleanup = _boundPlaybackNavigationCleanup(
-      Future.wait<void>(<Future<void>>[
-        _voicePromptService.stop().catchError((Object _) {}),
-        _mediaService.stopPlayback().catchError((Object _) {}),
-        if (_vocabularyAudioService != null)
-          _vocabularyAudioService!.stop().catchError((Object _) {}),
-      ]).then<void>((_) {}),
-    );
-    _playbackNavigationCleanup = cleanup;
-    try {
-      await cleanup;
-    } finally {
-      if (identical(_playbackNavigationCleanup, cleanup)) {
-        _playbackNavigationCleanup = null;
-      }
-    }
+    final cleanup = _queuePlaybackCleanup();
+    await Future.wait<void>(<Future<void>>[cleanup, _playbackOperationTail]);
     if (!announceMenu ||
         !mounted ||
         !_isEffectivelyActive ||
@@ -2503,34 +2612,18 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     );
   }
 
-  Future<void> _boundPlaybackNavigationCleanup(Future<void> operation) {
-    _finishPlaybackNavigationCleanup();
-    final completer = Completer<void>();
-    _playbackNavigationCleanupCompleter = completer;
-    void finishThisCleanup() {
-      if (identical(_playbackNavigationCleanupCompleter, completer)) {
-        _finishPlaybackNavigationCleanup();
-      }
-    }
-
-    _playbackNavigationCleanupTimer = Timer(const Duration(seconds: 2), () {
-      finishThisCleanup();
+  Future<void> _queuePlaybackCleanup() {
+    final previous = _playbackCleanupTail;
+    final cleanup = previous.then<void>((_) async {
+      await Future.wait<void>(<Future<void>>[
+        _voicePromptService.stop().catchError((Object _) {}),
+        _mediaService.stopPlayback().catchError((Object _) {}),
+        if (_vocabularyAudioService != null)
+          _vocabularyAudioService!.stop().catchError((Object _) {}),
+      ]);
     });
-    unawaited(
-      operation.then(
-        (_) => finishThisCleanup(),
-        onError: (Object _, StackTrace _) => finishThisCleanup(),
-      ),
-    );
-    return completer.future;
-  }
-
-  void _finishPlaybackNavigationCleanup() {
-    _playbackNavigationCleanupTimer?.cancel();
-    _playbackNavigationCleanupTimer = null;
-    final completer = _playbackNavigationCleanupCompleter;
-    _playbackNavigationCleanupCompleter = null;
-    if (completer != null && !completer.isCompleted) completer.complete();
+    _playbackCleanupTail = cleanup;
+    return cleanup;
   }
 
   Future<void> _speakAndRequestChoice(String prompt) async {

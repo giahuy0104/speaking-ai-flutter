@@ -33,8 +33,34 @@ Future<String> createLessonRecordingPath(
       '$lessonId-sentence-$sentenceNumber-$timestamp.$resolvedExtension';
 }
 
-Future<String?> findLessonRecording(String path) async =>
-    await File(path).exists() ? path : null;
+Uri lessonRecordingUri(String reference) {
+  final value = reference.trim();
+  final windowsPath =
+      RegExp(r'^[a-zA-Z]:[\\/]').hasMatch(value) || value.startsWith(r'\\');
+  final parsed = windowsPath ? null : Uri.tryParse(value);
+  if (parsed != null && parsed.hasScheme) return parsed;
+  return Uri.file(value, windows: windowsPath);
+}
+
+Future<String?> findLessonRecording(String path) async {
+  final value = path.trim();
+  if (value.isEmpty) return null;
+  final uri = lessonRecordingUri(value);
+  if (uri.scheme != 'file') {
+    // Remote references are validated by the player. Retained lesson recordings
+    // use local file/blob references and are checked here before playback.
+    return value;
+  }
+  try {
+    final file = File.fromUri(uri);
+    if (!await file.exists()) return null;
+    final handle = await file.open(mode: FileMode.read);
+    await handle.close();
+    return value;
+  } on FileSystemException {
+    return null;
+  }
+}
 
 Future<void> deleteLessonRecording(String path) async {
   final file = File(path);
