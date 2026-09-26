@@ -101,6 +101,9 @@ class HfpAudioBridge(
     private var activeRouteRecoveryGeneration: Int? = null
     private var activeRouteRecoveryReason: String? = null
     var onUnexpectedRouteLoss: () -> Unit = {}
+
+    /** True from startAudioRoute until the route is stopped, even while SCO recovers. */
+    val ownsAudioRoute: Boolean get() = audioModeOwned
     private var communicationDeviceListener: AudioManager.OnCommunicationDeviceChangedListener? = null
 
     private val audioRouteTimeout =

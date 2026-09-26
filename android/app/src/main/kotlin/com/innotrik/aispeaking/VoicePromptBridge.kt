@@ -50,6 +50,7 @@ class VoicePromptBridge(
     private var readyCuePlayer: MediaPlayer? = null
     private var readyCueCompletion: Runnable? = null
     private val readyCueResults = mutableListOf<MethodChannel.Result>()
+    var isH20RouteOwned: () -> Boolean = { false }
     private val levelWorker = Executors.newSingleThreadExecutor()
     private var synthesizedPromptId: String? = null
     private var synthesizedPromptFile: File? = null
@@ -301,16 +302,19 @@ class VoicePromptBridge(
         }
     }
 
+    private fun isScoRouteActive(): Boolean {
+        @Suppress("DEPRECATION")
+        val bluetoothScoOn = audioManager.isBluetoothScoOn
+        return (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S &&
+            audioManager.communicationDevice?.type ==
+            android.media.AudioDeviceInfo.TYPE_BLUETOOTH_SCO) || bluetoothScoOn
+    }
+
     private fun voicePromptAudioAttributes(
         forcePhoneSpeaker: Boolean = false,
         forceMediaPlayback: Boolean = false,
     ): AudioAttributes {
-        @Suppress("DEPRECATION")
-        val bluetoothScoOn = audioManager.isBluetoothScoOn
-        val activeScoRoute =
-            (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S &&
-                audioManager.communicationDevice?.type ==
-                android.media.AudioDeviceInfo.TYPE_BLUETOOTH_SCO) || bluetoothScoOn
+        val activeScoRoute = isScoRouteActive()
         val usage =
             if (!forcePhoneSpeaker && (activeScoRoute || !forceMediaPlayback)) {
                 AudioAttributes.USAGE_VOICE_COMMUNICATION
@@ -390,9 +394,25 @@ class VoicePromptBridge(
         }
     }
 
-    private fun playSynthesizedPrompt(utteranceId: String) {
-        AudioDiagnostics.event("prompt.native.prepare", mapOf("id" to utteranceId))
+    private fun playSynthesizedPrompt(utteranceId: String, scoWaitedMs: Long = 0L) {
+        if (scoWaitedMs == 0L) {
+            AudioDiagnostics.event("prompt.native.prepare", mapOf("id" to utteranceId))
+        }
         if (utteranceId != synthesizedPromptId) {
+            return
+        }
+        if (
+            PromptScoWait.shouldWait(
+                synthesizedPromptForcePhoneSpeaker,
+                isH20RouteOwned(),
+                isScoRouteActive(),
+                scoWaitedMs,
+            )
+        ) {
+            mainHandler.postDelayed(
+                { playSynthesizedPrompt(utteranceId, scoWaitedMs + PromptScoWait.POLL_MS) },
+                PromptScoWait.POLL_MS,
+            )
             return
         }
         val audioFile = synthesizedPromptFile
@@ -581,6 +601,18 @@ class VoicePromptBridge(
         }
         readyCuePlayer = player
         readyCueResults.add(result)
+        prepareSpeechReadyCue(player, cueId)
+    }
+
+    private fun prepareSpeechReadyCue(player: MediaPlayer, cueId: Long, scoWaitedMs: Long = 0L) {
+        if (readyCuePlayer !== player) return
+        if (PromptScoWait.shouldWait(false, isH20RouteOwned(), isScoRouteActive(), scoWaitedMs)) {
+            mainHandler.postDelayed(
+                { prepareSpeechReadyCue(player, cueId, scoWaitedMs + PromptScoWait.POLL_MS) },
+                PromptScoWait.POLL_MS,
+            )
+            return
+        }
         try {
             val file = File(appContext.cacheDir, "speech-ready-v2.wav")
             val waveform = ReadyCueWaveform.wavBytes()

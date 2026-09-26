@@ -99,6 +99,7 @@ object HomiAndroidRuntime {
 
         init {
             hfpAudioBridge.onUnexpectedRouteLoss = voicePromptBridge::stopForRouteLoss
+            voicePromptBridge.isH20RouteOwned = { hfpAudioBridge.ownsAudioRoute }
             registerPlatformChannels()
         }
 
