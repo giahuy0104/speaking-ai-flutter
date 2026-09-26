@@ -2344,7 +2344,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (turnEndReason == ConversationTurnEndReason.completed) {
       _mainSpeakingSessionController.markSpeechTurnCompleted();
     }
-    if (turnEndReason == ConversationTurnEndReason.commandHandled) {
+    // Only a command handled inside this session holds it. A reason left over
+    // from an earlier session (MAIN pressed during translation, then back to
+    // translation) would otherwise block the first iOS turn with no retry.
+    if (_hasMainSpeakingTurnStarted &&
+        turnEndReason == ConversationTurnEndReason.commandHandled) {
       return;
     }
     if (_hasMainSpeakingTurnStarted &&
