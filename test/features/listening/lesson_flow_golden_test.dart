@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
+import 'package:ai_speaking_flutter_app/app/homi_ui.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_guide_audio_library.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
@@ -8,6 +11,7 @@ import 'package:ai_speaking_flutter_app/features/listening/domain/listening_cont
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_intro_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_practice_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_review_screen.dart';
+import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_challenge_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_lesson_list_screen.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +22,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late ListeningTopicContent topicContent;
+  late ListeningTopicContent numbersContent;
+  late ListeningTopicContent favoriteFoodContent;
   late _GoldenMediaService mediaService;
   late _GoldenProgressStore progressStore;
 
@@ -25,6 +31,8 @@ void main() {
     await _loadGoldenFonts();
     final catalog = await AssetListeningContentRepository().load();
     topicContent = catalog.topic(startAge: 3, endAge: 5, topicNumber: 1);
+    numbersContent = catalog.topic(startAge: 3, endAge: 5, topicNumber: 2);
+    favoriteFoodContent = catalog.topic(startAge: 6, endAge: 7, topicNumber: 4);
   });
 
   setUp(() {
@@ -46,13 +54,18 @@ void main() {
           content: topicContent,
           progressStore: progressStore,
           mediaService: mediaService,
+          onMainPressed: _noopMainPress,
         ),
       ),
     );
     await _precache(
       tester,
       find.byType(TopicLessonListScreen),
-      const <AssetImage>[AssetImage('assets/images/topics/hello-goodbye.jpg')],
+      const <AssetImage>[
+        AssetImage('assets/images/learning-minimal-sky-background.png'),
+        AssetImage('assets/images/topics/fun-alphabet.jpg'),
+        AssetImage('assets/images/mascot/penguin-wave.png'),
+      ],
     );
     await tester.pumpAndSettle();
 
@@ -62,6 +75,139 @@ void main() {
     );
   });
 
+  testWidgets('favorite food journey matches the selected HOMI direction', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    await tester.pumpWidget(
+      _GoldenApp(
+        child: TopicLessonListScreen(
+          language: DisplayLanguage.vietnamese,
+          startAge: 6,
+          endAge: 7,
+          topic: listeningCatalogs[1].topics[3],
+          content: favoriteFoodContent,
+          progressStore: progressStore,
+          mediaService: mediaService,
+          onMainPressed: _noopMainPress,
+        ),
+      ),
+    );
+    await _precache(
+      tester,
+      find.byType(TopicLessonListScreen),
+      const <AssetImage>[
+        AssetImage('assets/images/learning-minimal-sky-background.png'),
+        AssetImage('assets/images/topics/favorite-food.jpg'),
+        AssetImage('assets/images/mascot/penguin-wave.png'),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(TopicLessonListScreen),
+      matchesGoldenFile('goldens/topic-favorite-food-390x844.png'),
+    );
+  });
+
+  testWidgets('song journey uses English-first titles and music markers', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    await tester.pumpWidget(
+      _GoldenApp(
+        child: TopicLessonListScreen(
+          language: DisplayLanguage.vietnamese,
+          startAge: 3,
+          endAge: 5,
+          topic: listeningCatalogs.first.topics[1],
+          content: numbersContent,
+          progressStore: progressStore,
+          mediaService: mediaService,
+          onMainPressed: _noopMainPress,
+        ),
+      ),
+    );
+    await _precache(
+      tester,
+      find.byType(TopicLessonListScreen),
+      const <AssetImage>[
+        AssetImage('assets/images/learning-minimal-sky-background.png'),
+        AssetImage('assets/images/topics/counting-1-10.jpg'),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    const songLessonId = 'c35-l1-t02-b03';
+    expect(find.byKey(const Key('topic-song-count')), findsOneWidget);
+    expect(find.text('1 bài hát'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('lesson-song-indicator-c35-l1-t02-b01')),
+      findsNothing,
+    );
+    expect(
+      tester.getTopLeft(find.text('Numbers')).dy,
+      lessThan(tester.getTopLeft(find.text('Số đếm')).dy),
+    );
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName ==
+                'assets/images/mascot/penguin-wave.png',
+      ),
+      findsNothing,
+    );
+
+    await expectLater(
+      find.byType(TopicLessonListScreen),
+      matchesGoldenFile('goldens/topic-song-journey-390x844.png'),
+    );
+    // Count With Me is now the third card, below the lazy-list viewport.
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('start-lesson-$songLessonId')),
+      180,
+    );
+    expect(
+      find.byKey(const ValueKey('lesson-song-indicator-$songLessonId')),
+      findsOneWidget,
+    );
+    expect(
+      tester.getTopLeft(find.text('Lesson 3 · Count With Me')).dy,
+      lessThan(tester.getTopLeft(find.text('Bài 3 · Cùng mình đếm số')).dy),
+    );
+  });
+
+  testWidgets('song summary remains responsive on a compact phone', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 568));
+    tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+    addTearDown(() {
+      tester.binding.setSurfaceSize(null);
+      tester.platformDispatcher.clearTextScaleFactorTestValue();
+    });
+
+    await tester.pumpWidget(
+      _GoldenApp(
+        child: TopicLessonListScreen(
+          language: DisplayLanguage.vietnamese,
+          startAge: 3,
+          endAge: 5,
+          topic: listeningCatalogs.first.topics[1],
+          content: numbersContent,
+          progressStore: progressStore,
+          mediaService: mediaService,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('topic-song-count')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('completed lessons offer review instead of continue', (
     tester,
   ) async {
@@ -69,6 +215,7 @@ void main() {
     final lesson = topicContent.lessons.first;
     progressStore = _GoldenProgressStore(
       progress: <String, int>{lesson.id: lesson.sentences.length},
+      completedV4LessonActivities: <String>{lesson.id},
     );
     await tester.pumpWidget(
       _GoldenApp(
@@ -110,7 +257,22 @@ void main() {
       AssetImage('assets/images/mascot/penguin-wave.png'),
     ]);
     await tester.pump();
+    await tester.pump();
     await tester.pump(const Duration(milliseconds: 700));
+    final authoredGuide = find.textContaining('Bài đầu tiên là A to E Letters');
+    for (
+      var attempt = 0;
+      attempt < 20 && authoredGuide.evaluate().isEmpty;
+      attempt += 1
+    ) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(authoredGuide, findsOneWidget);
+    expect(
+      find.byKey(const Key('lesson-intro-vietnamese-title')),
+      findsNothing,
+    );
+    expect(find.byKey(const Key('lesson-intro-english-title')), findsNothing);
 
     await expectLater(
       find.byType(LessonIntroScreen),
@@ -143,9 +305,15 @@ void main() {
       find.byType(LessonPracticeScreen),
       const <AssetImage>[
         AssetImage('assets/images/learning-minimal-sky-background.png'),
+        AssetImage('assets/images/mascot/penguin-speak.png'),
       ],
     );
     await tester.pumpAndSettle();
+
+    final sampleWaveform = tester.widget<HomiWaveform>(
+      find.byKey(const Key('lesson-sample-waveform')),
+    );
+    expect(sampleWaveform.active, isTrue);
 
     await expectLater(
       find.byType(LessonPracticeScreen),
@@ -157,6 +325,11 @@ void main() {
     tester,
   ) async {
     await _usePhoneSurface(tester);
+    // Freeze the approved sample-playing frame independently of whether the
+    // catalog uses bundled audio or TTS. A zero-duration media fake otherwise
+    // advances to the repeat instruction before this screenshot is captured.
+    final samplePlayback = Completer<void>();
+    mediaService.playbackCompletion = samplePlayback.future;
     await tester.pumpWidget(
       _GoldenApp(
         child: LessonPracticeScreen(
@@ -184,6 +357,9 @@ void main() {
       find.byType(LessonPracticeScreen),
       matchesGoldenFile('goldens/lesson-reminder-popup-390x844.png'),
     );
+    await tester.pumpWidget(const SizedBox.shrink());
+    samplePlayback.complete();
+    await tester.pump(const Duration(seconds: 2));
   });
 
   testWidgets('recording praise fireworks match the approved direction', (
@@ -221,6 +397,8 @@ void main() {
       find.byType(LessonPracticeScreen),
       matchesGoldenFile('goldens/lesson-praise-fireworks-390x844.png'),
     );
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 2));
   });
 
   testWidgets('English-only lesson review matches the approved direction', (
@@ -243,10 +421,8 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(
-      find.byKey(const Key('review-first-sentence-mascot')),
-      findsOneWidget,
-    );
+    expect(find.text('Đã học'), findsOneWidget);
+    expect(find.byKey(const Key('review-first-sentence-mascot')), findsNothing);
 
     await expectLater(
       find.byType(LessonReviewScreen),
@@ -254,7 +430,7 @@ void main() {
     );
   });
 
-  testWidgets('overview play controls fit a compact phone', (tester) async {
+  testWidgets('learned review controls fit a compact phone', (tester) async {
     await tester.binding.setSurfaceSize(const Size(320, 568));
     tester.platformDispatcher.textScaleFactorTestValue = 1.3;
     addTearDown(() {
@@ -276,23 +452,24 @@ void main() {
     ]);
     await tester.pump(const Duration(milliseconds: 300));
 
+    expect(find.text('Đã học'), findsOneWidget);
+    expect(find.byKey(const Key('review-first-sentence-mascot')), findsNothing);
     expect(
-      find.byKey(const Key('review-first-sentence-mascot')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('review-sentence-play-5')),
+      find.byKey(const ValueKey('review-sentence-tile-1')),
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('lesson completion choice matches the approved direction', (
+  testWidgets('V4 completion opens an authored voice challenge', (
     tester,
   ) async {
     await _usePhoneSurface(tester);
     final lesson = topicContent.lessons.first;
-    mediaService.recordedSentenceNumbers = const <int>{1, 3, 5};
+    expect(lesson.usesV4Flow, isTrue);
+    mediaService.recordedSentenceNumbers = lesson.sentences
+        .map((sentence) => sentence.number)
+        .toSet();
     progressStore = _GoldenProgressStore(
       currentSentence: lesson.sentences.length - 1,
     );
@@ -309,6 +486,7 @@ void main() {
           mediaService: mediaService,
           guideAudioLibrary: _silentGuideAudioLibrary(),
           voicePromptService: const _GoldenVoicePromptService(),
+          initialResumeStage: ListeningResumeStage.challenge,
         ),
       ),
     );
@@ -318,21 +496,26 @@ void main() {
       const <AssetImage>[AssetImage('assets/images/mascot/penguin-speak.png')],
     );
     await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const Key('continue-lesson-sentence')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    expect(find.byKey(const Key('lesson-practice-screen')), findsOneWidget);
+    expect(find.byType(LessonChallengeScreen), findsOneWidget);
+    await _precache(
+      tester,
+      find.byType(LessonChallengeScreen),
+      const <AssetImage>[
+        AssetImage('assets/images/learning-minimal-sky-background.png'),
+        AssetImage('assets/images/mascot/penguin-listen.png'),
+      ],
+    );
+    await tester.pump(const Duration(milliseconds: 350));
     expect(find.byKey(const Key('lesson-review-screen')), findsNothing);
+    expect(find.text('Thử thách nghe'), findsOneWidget);
     expect(
-      find.text('Con nói “Luyện lại từ đầu” hoặc “Bài tiếp theo” nhé.'),
+      find.byKey(const Key('lesson-challenge-record-button')),
       findsOneWidget,
     );
-    expect(mediaService.recording, isTrue);
 
     await expectLater(
       find.byType(MaterialApp),
-      matchesGoldenFile('goldens/lesson-completion-390x844.png'),
+      matchesGoldenFile('goldens/lesson-v4-challenge-390x844.png'),
     );
   });
 
@@ -359,10 +542,11 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 100));
 
-    final introTheme = Theme.of(tester.element(find.text(lesson.intro)));
+    final introGuide = find.byKey(const Key('lesson-intro-guide-text'));
+    final introTheme = Theme.of(tester.element(introGuide));
     expect(introTheme.brightness, Brightness.dark);
     expect(
-      tester.widget<Text>(find.text(lesson.intro)).style?.color,
+      tester.widget<Text>(introGuide).style?.color,
       introTheme.colorScheme.onSurface,
     );
 
@@ -387,6 +571,8 @@ void main() {
   });
 }
 
+Future<void> _noopMainPress() async {}
+
 class _GoldenApp extends StatelessWidget {
   const _GoldenApp({required this.child, this.themeMode = ThemeMode.light});
 
@@ -400,6 +586,13 @@ class _GoldenApp extends StatelessWidget {
       theme: buildAppTheme(),
       darkTheme: buildDarkAppTheme(),
       themeMode: themeMode,
+      builder: (context, child) {
+        final mediaQuery = MediaQuery.of(context);
+        return MediaQuery(
+          data: mediaQuery.copyWith(disableAnimations: true),
+          child: child!,
+        );
+      },
       home: child,
     );
   }
@@ -412,7 +605,14 @@ LessonGuideAudioLibrary _silentGuideAudioLibrary() {
 class _GoldenMediaService extends LessonMediaService {
   bool showExistingRecording = false;
   bool recording = false;
+  Future<void>? playbackCompletion;
   Set<int> recordedSentenceNumbers = const <int>{};
+
+  @override
+  Future<void> preparePhoneSpeakerOutput() async {}
+
+  @override
+  Future<void> prepareSelectedLessonOutput() async {}
 
   @override
   Future<String?> existingRecording({
@@ -449,13 +649,23 @@ class _GoldenMediaService extends LessonMediaService {
   }
 
   @override
-  Future<void> play(Uri uri) async {}
+  Future<void> play(
+    Uri uri, {
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
+  }) async {}
 
   @override
   Future<void> playToCompletion(
     Uri uri, {
     Duration timeout = const Duration(seconds: 45),
-  }) async {}
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
+  }) async {
+    await playbackCompletion;
+  }
 
   @override
   Future<void> stopPlayback() async {}
@@ -484,13 +694,57 @@ class _GoldenProgressStore extends ListeningProgressStore {
   const _GoldenProgressStore({
     this.currentSentence = 0,
     this.progress = const <String, int>{},
+    this.completedV4LessonActivities = const <String>{},
   });
 
   final int currentSentence;
   final Map<String, int> progress;
+  final Set<String> completedV4LessonActivities;
+
+  @override
+  Future<bool> hasOpenedLearningGuide() async => false;
+
+  @override
+  Future<void> markLearningGuideOpened() async {}
 
   @override
   Future<Map<String, int>> readAll() async => progress;
+
+  @override
+  Future<Set<String>> readCompletedV4LessonActivities() async =>
+      completedV4LessonActivities;
+
+  @override
+  Future<bool> hasCompletedV4LessonActivity(String lessonId) async =>
+      completedV4LessonActivities.contains(lessonId);
+
+  @override
+  Future<void> markV4LessonActivityCompleted(String lessonId) async {}
+
+  @override
+  Future<ListeningResumeStage> readResumeStage(String lessonId) async =>
+      ListeningResumeStage.core;
+
+  @override
+  Future<bool> hasStartedLessonCore(String lessonId) async => false;
+
+  @override
+  Future<void> markLessonCoreStarted(String lessonId) async {}
+
+  @override
+  Future<void> saveResumeStage(
+    String lessonId,
+    ListeningResumeStage stage,
+  ) async {}
+
+  @override
+  Future<bool> awardStar(String scopeId, String starId) async => true;
+
+  @override
+  Future<Set<String>> readEarnedStars(String scopeId) async => <String>{};
+
+  @override
+  Future<int> readTotalEarnedStars() async => 0;
 
   @override
   Future<int> readLesson(String lessonId) async => progress[lessonId] ?? 0;
@@ -503,6 +757,46 @@ class _GoldenProgressStore extends ListeningProgressStore {
 
   @override
   Future<Set<int>> readNeedsPracticeSentences(String lessonId) async => <int>{};
+
+  @override
+  Future<Map<int, ListeningSessionResult>> readSessionResults(
+    String lessonId,
+  ) async => <int, ListeningSessionResult>{};
+
+  @override
+  Future<ListeningSessionResult> readSessionResult(
+    String lessonId,
+    int sentenceIndex,
+  ) async => ListeningSessionResult.pending;
+
+  @override
+  Future<void> saveSessionResult(
+    String lessonId,
+    int sentenceIndex,
+    ListeningSessionResult result,
+  ) async {}
+
+  @override
+  Future<bool> hasProcessedLessonChallenge(String lessonId) async => false;
+
+  @override
+  Future<void> markLessonChallengeProcessed(String lessonId) async {}
+
+  @override
+  Future<int?> readCurrentChallengeIndex(String lessonId) async => null;
+
+  @override
+  Future<void> saveCurrentChallengeIndex(String lessonId, int index) async {}
+
+  @override
+  Future<int> readChallengeRotationMask(String lessonId) async => 0;
+
+  @override
+  Future<void> markChallengeUsed(
+    String lessonId, {
+    required int index,
+    required int challengeCount,
+  }) async {}
 
   @override
   Future<void> saveSkippedSentence(String lessonId, int sentenceIndex) async {}

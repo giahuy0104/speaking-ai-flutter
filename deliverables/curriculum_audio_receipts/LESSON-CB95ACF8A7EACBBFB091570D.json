@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B01\\C1112-L3-T09-B01-T04_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B01-T04_EN",
+  "sourceText": "My phone is dead.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "My phone is dead.",
+      "generation_key": "e8703fc5cf9f12b3"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-CB95ACF8A7EACBBFB091570D",
+  "text": "My phone is dead.",
+  "asset": "assets/audio/CURRICULUM/cb95acf8a7eacbbfb091570d.en.v1.mp3",
+  "sha256": "eb0d5968d57d20ddaa009ab623d65d7d9258c67b3842990c9132535321109399",
+  "durationSeconds": 2.146395
+}

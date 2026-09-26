@@ -1,0 +1,20 @@
+{
+  "signature": "85be356b96e6018db0c14a946bda66baa87a035e81b917c4c1267927c7053071",
+  "request": {
+    "text": "Problem Phrases",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "45907f5b1e82749119d174cb44d2f71e7aa174a94b6ffb10ae08e86574973c52",
+  "requestId": "BvjEYJzS5xCbh4UFb3b1",
+  "createdAt": "2026-09-15T23:28:46.688Z"
+}

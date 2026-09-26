@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T05-B02\\C35-L2-T05-B02-T05_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-T05-B02-T05_VI",
+  "sourceText": "Đó là con vịt.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đó là con vịt.",
+      "generation_key": "ace3b922231357e7"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-68F9CF155668C7885EE72FE0",
+  "text": "Đó là con vịt.",
+  "asset": "assets/audio/CURRICULUM/68f9cf155668c7885ee72fe0.vi.v1.mp3",
+  "sha256": "7d8c503154697b5063ee6384494208dd9d1e25d37cb3f147d535f3dc581efa8e",
+  "durationSeconds": 1.499728
+}

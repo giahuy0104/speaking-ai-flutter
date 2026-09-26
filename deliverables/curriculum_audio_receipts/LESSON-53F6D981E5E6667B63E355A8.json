@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T04-B02\\C35-L2-T04-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-T04-B02-Q05",
+  "sourceText": "Bạn muốn nói 'Nó là hình tròn.' Hoàn thành câu: It's a... circle hay square?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Nó là hình tròn.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Nó là hình tròn.' Hoàn thành câu:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "It's a... circle",
+      "spoken_text": "It's a... circle",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "square?",
+      "spoken_text": "square?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-53F6D981E5E6667B63E355A8",
+  "text": "Bạn muốn nói 'Nó là hình tròn.' Hoàn thành câu: It's a... circle hay square?",
+  "asset": "assets/audio/CURRICULUM/53f6d981e5e6667b63e355a8.vi.v1.mp3",
+  "sha256": "14ca949f24b8fcc7e8421d6947641c8397b26ad99df6e113904351b8f152a919",
+  "durationSeconds": 7.692336
+}

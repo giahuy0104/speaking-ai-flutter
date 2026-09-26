@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T05-B01\\C1112-L2-T05-B01-T04_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T05-B01-T04_VI",
+  "sourceText": "Vận động mỗi ngày.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Vận động mỗi ngày.",
+      "generation_key": "26d1f62477874567"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7E6325C2DBACF5CFC4A23DC2",
+  "text": "Vận động mỗi ngày.",
+  "asset": "assets/audio/CURRICULUM/7e6325c2dbacf5cfc4a23dc2.vi.v1.mp3",
+  "sha256": "9d288ad09b02f4fb3fe36a7a40fbfb3cbd9a4f3ca282af82498931b0f677209e",
+  "durationSeconds": 1.58737
+}

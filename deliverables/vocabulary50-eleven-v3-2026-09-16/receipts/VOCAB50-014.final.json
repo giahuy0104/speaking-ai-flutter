@@ -1,0 +1,22 @@
+{
+  "number": 14,
+  "id": "VOCAB50-014",
+  "text": "Mình cùng luyện lại nhé. Bắt đầu thôi!",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-014.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "68fb7f14b93a05c7d630aa5ba8b6b93bfd2eddfb393d34f7f25e5b65c2693db9",
+  "bytes": 43511,
+  "sourceDurationSeconds": 2.4,
+  "durationSeconds": 2.650612,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "HEiPeqWXBiQqmiu4OFjy",
+  "characterCost": "21",
+  "createdAt": "2026-09-16T03:20:17.489Z"
+}

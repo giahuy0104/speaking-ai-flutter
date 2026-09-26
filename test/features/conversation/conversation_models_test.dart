@@ -12,6 +12,8 @@ void main() {
   );
 
   test('resolves a relative audio URL against the backend', () {
+    final checksum = List<String>.filled(64, 'a').join();
+    final dynamicKey = List<String>.filled(64, 'b').join();
     final result = ConversationResult.fromJson(<String, dynamic>{
       'conversationId': 'conv_1',
       'sessionId': 'sess_1',
@@ -22,6 +24,9 @@ void main() {
       'processingMode': 'rule',
       'textSource': 'phrase_rule',
       'audioSource': 'cache',
+      'audioSha256': checksum.toUpperCase(),
+      'audioDurationSeconds': 1.25,
+      'dynamicAudioKey': dynamicKey,
       'asrMode': 'batch_chunks',
       'latency': <String, dynamic>{
         'asrMs': 10,
@@ -36,6 +41,25 @@ void main() {
       Uri.parse('https://api.example.com/api/audio/stream?text=pencil'),
     );
     expect(result.context, PracticeContext.school);
+    expect(result.audioSha256, checksum);
+    expect(result.audioDurationSeconds, 1.25);
+    expect(result.dynamicAudioKey, dynamicKey);
+  });
+
+  test('rejects malformed dynamic audio metadata', () {
+    final result = ConversationResult.fromJson(<String, dynamic>{
+      'conversationId': 'conv_bad_audio_metadata',
+      'sessionId': 'sess_bad_audio_metadata',
+      'context': 'home',
+      'audioSha256': 'not-a-checksum',
+      'audioDurationSeconds': 120,
+      'dynamicAudioKey': 'not-a-key',
+      'latency': <String, dynamic>{},
+    }, backendBaseUri: Uri.parse('https://api.example.com'));
+
+    expect(result.audioSha256, isNull);
+    expect(result.audioDurationSeconds, isNull);
+    expect(result.dynamicAudioKey, isNull);
   });
 
   test('history converts timestamps to local time and keeps metadata', () {

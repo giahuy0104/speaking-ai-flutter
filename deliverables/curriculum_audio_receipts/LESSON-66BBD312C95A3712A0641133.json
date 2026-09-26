@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T03-B02\\C1315-L1-T03-B02-T05_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T03-B02-T05_EN",
+  "sourceText": "Because it's safer.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Because it's safer.",
+      "generation_key": "3af88d560476d9d7"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-66BBD312C95A3712A0641133",
+  "text": "Because it's safer.",
+  "asset": "assets/audio/CURRICULUM/66bbd312c95a3712a0641133.en.v1.mp3",
+  "sha256": "f23c9c4dfef0d715378dd135895d68884b3c996f4b10a4a833079ff9982045e3",
+  "durationSeconds": 2.247982
+}

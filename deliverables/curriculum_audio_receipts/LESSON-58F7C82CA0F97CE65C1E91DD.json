@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T07-B02\\C67-L3-T07-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T07-B02-Q06",
+  "sourceText": "Bạn muốn nói \"Mở sách ra\". Sit down hay Open your book?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Mở sách ra\".",
+      "spoken_text": "Bạn muốn nói \"Mở sách ra\".",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Sit down",
+      "spoken_text": "Sit down",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Open your book?",
+      "spoken_text": "Open your book?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-58F7C82CA0F97CE65C1E91DD",
+  "text": "Bạn muốn nói \"Mở sách ra\". Sit down hay Open your book?",
+  "asset": "assets/audio/CURRICULUM/58f7c82ca0f97ce65c1e91dd.vi.v1.mp3",
+  "sha256": "a4b6f2cf2bfc83b853a77d797ad464baf6a5c055dfdb7ea33d2e80ffc32c6682",
+  "durationSeconds": 5.730363
+}

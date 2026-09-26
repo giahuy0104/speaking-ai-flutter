@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T09-B02\\C67-L3-T09-B02-T01_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T09-B02-T01_EN",
+  "sourceText": "At school.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "At school.",
+      "generation_key": "bfa790a656452cd6"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-F4D06D3644BB98A6BE28F352",
+  "text": "At school.",
+  "asset": "assets/audio/CURRICULUM/f4d06d3644bb98a6be28f352.en.v1.mp3",
+  "sha256": "45d4333cf20a631fab0be5e7560eb86df9c7069785902db5c7a70dc4abbf6255",
+  "durationSeconds": 1.690703
+}

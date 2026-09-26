@@ -1,0 +1,20 @@
+{
+  "signature": "6bee3fa5893c644a43a2cf6af10cccd0ca0b7cf198c252609d596077dc04ca02",
+  "request": {
+    "text": "Hot today?",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "568e4a1909d71de5a7b3989ef0ec155f154f5e0d6182f024db6daac6ab6440cb",
+  "requestId": "bemiBC1eoqmwfSqFdZDJ",
+  "createdAt": "2026-09-15T23:18:59.284Z"
+}

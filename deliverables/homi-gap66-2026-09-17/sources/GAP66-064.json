@@ -1,0 +1,21 @@
+{
+  "id": "GAP66-064",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình chưa hiểu. HOMI đây. Bạn muốn dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "nqPiN4vZ2kFMKZVxNDQJ",
+  "historyItemId": "3EQL4flsaIpsuoqY44uc",
+  "characterCost": "42",
+  "createdAt": "2026-09-17T14:26:58.752Z",
+  "sourceSha256": "de6f50ce87238a13eb243ed0ae26b3c1413539f8aa7a01ab31c72b1376d38102"
+}

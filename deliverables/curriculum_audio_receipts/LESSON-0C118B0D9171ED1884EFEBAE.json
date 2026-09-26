@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T09-B01\\C1315-L3-T09-B01-T02_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T09-B01-T02_EN",
+  "sourceText": "Faster.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Faster.",
+      "generation_key": "38b699e50f920d4a"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-0C118B0D9171ED1884EFEBAE",
+  "text": "Faster.",
+  "asset": "assets/audio/CURRICULUM/0c118b0d9171ed1884efebae.en.v1.mp3",
+  "sha256": "f0ae28e4b99ae3062fd0debef5e603014588ab63847ba8fc398ff579c16bc9e4",
+  "durationSeconds": 1.171156
+}

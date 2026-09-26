@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T06-B01\\C810-L2-T06-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T06-B01-Q03",
+  "sourceText": "Máy tính: Computer hay Camera?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Máy tính:",
+      "spoken_text": "Máy tính:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Computer",
+      "spoken_text": "Computer",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Camera?",
+      "spoken_text": "Camera?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-CBA0E8345F75911F8D00F8BC",
+  "text": "Máy tính: Computer hay Camera?",
+  "asset": "assets/audio/CURRICULUM/cba0e8345f75911f8d00f8bc.vi.v1.mp3",
+  "sha256": "0162ba1a190227fbd7fee752535c7dd1e55ffd7dab3e98303b2923b25b7eca44",
+  "durationSeconds": 3.465079
+}

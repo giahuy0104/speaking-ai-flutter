@@ -1,0 +1,20 @@
+{
+  "signature": "17cb2a4e00e4d2076d72efd3f5017e82f7ca45e12f44510ec6926a66e5ec90e2",
+  "request": {
+    "text": "Device Uses",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "576d76d8b716c46cdef910793d3cdcf752fa72e9db1ad3d4a8972e71192089be",
+  "requestId": "G7dGRfFKqbm0nSOhv3o5",
+  "createdAt": "2026-09-15T23:26:58.401Z"
+}

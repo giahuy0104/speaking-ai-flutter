@@ -1,0 +1,20 @@
+{
+  "signature": "bea77257baddbe23c6f1bded19ffaf83dfbb2573ebce3c4b3061c3773a263942",
+  "request": {
+    "text": "Good Habits",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "82a3f42802f5c5279fc3252c188c686705a7114f227dffc77ac781590769d1d6",
+  "requestId": "f4ILUs2v3Oz4QvZ6YydR",
+  "createdAt": "2026-09-15T23:28:22.713Z"
+}

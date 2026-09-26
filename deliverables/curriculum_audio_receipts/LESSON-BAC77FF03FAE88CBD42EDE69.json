@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\MP3\\ROLEPLAY_07\\ROLEPLAY_07_TURN_03_HOMI_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "ROLEPLAY_07_TURN_03_VI",
+  "sourceText": "Mình nghĩ nó hữu ích.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75, VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình nghĩ nó hữu ích.",
+      "generation_key": "843380d98003f8cb"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-BAC77FF03FAE88CBD42EDE69",
+  "text": "Mình nghĩ nó hữu ích.",
+  "asset": "assets/audio/CURRICULUM/bac77ff03fae88cbd42ede69.vi.v1.mp3",
+  "sha256": "fdc21c43f3c59acc9c8443c9693205cacccfae7733efc965956788dd9b6f07b5",
+  "durationSeconds": 1.58737
+}

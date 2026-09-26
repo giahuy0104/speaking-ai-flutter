@@ -1,0 +1,20 @@
+{
+  "signature": "d90c9ba81947f9beb8f2146d3abbb7c973129932180f6567d739942e80a0fdd2",
+  "request": {
+    "text": "S to Z Words",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "700679d5f05bb595c1e8d81972f448c5d793e4ff81196777e551da32af53eeff",
+  "requestId": "eS573L4bFn3QH16gfbr7",
+  "createdAt": "2026-09-15T23:24:54.706Z"
+}

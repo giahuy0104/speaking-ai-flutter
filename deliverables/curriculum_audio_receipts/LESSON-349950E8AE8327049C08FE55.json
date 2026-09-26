@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\MP3\\legacy\\RESUME_MISSION.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "RESUME_MISSION",
+  "sourceText": "Mình tiếp tục Nhiệm vụ cuối Level nhé.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo applied after synthesis to each segment according to declared AUDIO_PLAN language, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình tiếp tục Nhiệm vụ cuối Level nhé.",
+      "generation_key": "bf070f38d1acf8fb"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-349950E8AE8327049C08FE55",
+  "text": "Mình tiếp tục Nhiệm vụ cuối Level nhé.",
+  "asset": "assets/audio/CURRICULUM/349950e8ae8327049c08fe55.vi.v1.mp3",
+  "sha256": "fdb419c1b511e1151d3e240f475f7c6443d1d6cfc41002747301f45acb4afc79",
+  "durationSeconds": 2.487732
+}

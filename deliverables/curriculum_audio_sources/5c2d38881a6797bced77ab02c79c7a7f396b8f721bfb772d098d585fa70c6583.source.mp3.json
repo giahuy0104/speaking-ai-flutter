@@ -1,0 +1,20 @@
+{
+  "signature": "5c2d38881a6797bced77ab02c79c7a7f396b8f721bfb772d098d585fa70c6583",
+  "request": {
+    "text": "It's a duck?",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "5d53df16776ab92d72ae25973400b34c96946ceff978a7b08bd0fc7882ee02e6",
+  "requestId": "ZGnBQmLelCXudnlhAelp",
+  "createdAt": "2026-09-15T23:16:34.384Z"
+}

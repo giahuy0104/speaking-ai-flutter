@@ -1,0 +1,57 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T06-B02\\C1112-L2-T06-B02-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T06-B02-Q07",
+  "sourceText": "HOMI nói: Stranger. Block strangers hay Keep passwords private?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 37
+    },
+    {
+      "language": "en",
+      "text": "Stranger.",
+      "spoken_text": "Stranger.",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Block strangers",
+      "spoken_text": "Block strangers",
+      "input_index": 39
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 40
+    },
+    {
+      "language": "en",
+      "text": "Keep passwords private?",
+      "spoken_text": "Keep passwords private?",
+      "input_index": 41
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-88731E3D3ED3CAD5C837F198",
+  "text": "HOMI nói: Stranger. Block strangers hay Keep passwords private?",
+  "asset": "assets/audio/CURRICULUM/88731e3d3ed3cad5c837f198.vi.v1.mp3",
+  "sha256": "ffd629802280188e5eecda53e0404e47a1aa07702510a68455b8f5b109991e11",
+  "durationSeconds": 7.449365
+}

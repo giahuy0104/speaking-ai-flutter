@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\1889d943fceb38d9d85907a7998b12ef217c36707dc243556702d8dedc6e71d6.tempo.mp3",
+      "signature": "1889d943fceb38d9d85907a7998b12ef217c36707dc243556702d8dedc6e71d6",
+      "request": {
+        "text": "Mình học lại bài",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "3d2375d09e42f0c6ef949b58ea6463ebaa417947d36474a8aa89203156f37f3f",
+      "requestId": "2Kf3OOkeDTH7UaYt6jz4",
+      "createdAt": "2026-09-15T23:22:34.285Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\49c24b6d7b077fc9b3493fe4df39cf9b818dd7928a15e02f919dbffa1f76cca3.tempo.mp3",
+      "signature": "49c24b6d7b077fc9b3493fe4df39cf9b818dd7928a15e02f919dbffa1f76cca3",
+      "request": {
+        "text": "Shapes Around Me",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "a10f4bddf8c1910040dc4467ae10a27cdae4ee5b3256352f0f7081e823b3ad40",
+      "requestId": "C1qNhpwnZCHJA9Aazj7a",
+      "createdAt": "2026-09-15T23:25:32.512Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780.tempo.mp3",
+      "signature": "f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780",
+      "request": {
+        "text": "nhé.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "f8a90b46149d734b590160ab12314af597dc9eb203f9f411637ff57d12e7a8d6",
+      "requestId": "1gbfQaGo6f7yeN8SvxDC",
+      "createdAt": "2026-09-15T23:22:32.853Z"
+    }
+  ],
+  "id": "LESSON-099EBFC51FA8E570887C9CBA",
+  "text": "Mình học lại bài Shapes Around Me nhé.",
+  "asset": "assets/audio/CURRICULUM/099ebfc51fa8e570887c9cba.vi.v1.mp3",
+  "sha256": "737ff674751fe522fa61a65918709e7e695b1d5ae6ead9769194c05def6fe47b",
+  "durationSeconds": 3.733265,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

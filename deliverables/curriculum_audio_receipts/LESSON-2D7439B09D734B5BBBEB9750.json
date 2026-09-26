@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T10-B02\\C67-L3-T10-B02-T05_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T10-B02-T05_EN",
+  "sourceText": "Go to the park.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Go to the park.",
+      "generation_key": "b05c98ab7f37d360"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-2D7439B09D734B5BBBEB9750",
+  "text": "Go to the park.",
+  "asset": "assets/audio/CURRICULUM/2d7439b09d734b5bbbeb9750.en.v1.mp3",
+  "sha256": "4be707249f592fc758174c0020e8accbf99ff0deae066296926f8e8682a9479f",
+  "durationSeconds": 1.899683
+}

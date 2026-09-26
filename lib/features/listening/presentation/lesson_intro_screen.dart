@@ -1,19 +1,25 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
+import '../../../core/audio/voice_prompt_service.dart';
+import '../../../core/audio/learning_audio_dependencies.dart';
+import '../../../core/audio/hfp_audio_control.dart';
 import '../../../core/device/active_learning_module.dart';
 import '../../../l10n/display_language.dart';
 import '../application/lesson_guide_audio_library.dart';
-import '../../conversation/presentation/conversation_controller.dart';
 import '../application/lesson_media_service.dart';
 import '../data/listening_progress_store.dart';
 import '../domain/listening_catalog.dart';
 import '../domain/listening_content.dart';
+import '../domain/lesson_star_flow.dart';
 import '../domain/lesson_guide_flow.dart';
+import '../domain/listening_audio_keys.dart';
+import '../../../core/navigation/active_learning_navigation.dart';
 import 'lesson_practice_screen.dart';
 import 'song_karaoke_screen.dart';
 
@@ -28,9 +34,15 @@ class LessonIntroScreen extends StatefulWidget {
     required this.mediaService,
     this.controller,
     this.topicContent,
+    this.contentGroup,
+    this.levelContent,
     this.guideAudioLibrary,
+    this.voicePromptService,
     this.autoAdvance = true,
+    this.relearnFromBeginning = false,
+    this.relearnTopicSequence = false,
     this.onTopicCompleted,
+    this.onCommunicationRequested,
     super.key,
   });
 
@@ -39,13 +51,19 @@ class LessonIntroScreen extends StatefulWidget {
   final int endAge;
   final ListeningTopic topic;
   final ListeningLessonContent lesson;
-  final ConversationController? controller;
+  final LearningAudioDependencies? controller;
   final ListeningTopicContent? topicContent;
+  final ListeningContentAgeGroup? contentGroup;
+  final ListeningLevelContent? levelContent;
   final ListeningProgressStore progressStore;
   final LessonMediaService mediaService;
   final LessonGuideAudioLibrary? guideAudioLibrary;
+  final VoicePromptService? voicePromptService;
   final bool autoAdvance;
+  final bool relearnFromBeginning;
+  final bool relearnTopicSequence;
   final VoidCallback? onTopicCompleted;
+  final VoidCallback? onCommunicationRequested;
 
   @override
   State<LessonIntroScreen> createState() => _LessonIntroScreenState();
@@ -60,7 +78,11 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
   bool _pausedForMainAssistant = false;
   int _introPlaybackRequest = 0;
   late final LessonGuideAudioLibrary _guideAudioLibrary;
+  VoicePromptService? _voicePromptService;
+  bool _ownsVoicePromptService = false;
   String? _guideText;
+  String? _introAudioKey;
+  ListeningResumeStage _resumeStage = ListeningResumeStage.core;
   ActiveLearningModuleRegistry? _activeModuleRegistry;
   Object? _activeModuleRegistration;
 
@@ -75,6 +97,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
   void initState() {
     super.initState();
     _guideAudioLibrary = widget.guideAudioLibrary ?? LessonGuideAudioLibrary();
+    _voicePromptService = widget.voicePromptService;
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
@@ -110,59 +133,292 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
         request != _introPlaybackRequest) {
       return;
     }
-    final uri = widget.lesson.introAudioUri;
-    if (uri == null) {
-      _showIntroPlaybackFailure();
+    if (widget.lesson.usesV4Flow &&
+        (_resumeStage == ListeningResumeStage.waitingForChoice ||
+            _resumeStage == ListeningResumeStage.completed)) {
+      if (widget.autoAdvance && !_movingForward) {
+        await _openLesson();
+      }
       return;
     }
-    try {
-      await widget.mediaService.playToCompletion(uri);
-      if (!mounted ||
-          _pausedForMainAssistant ||
-          request != _introPlaybackRequest) {
+    // V4's introAudioUri contains only the authored entry, while _guideText
+    // includes the topic/lesson lead and the start cue (or the resume message).
+    // Speak the complete text so the prompt service can select its matching
+    // authored recording instead of substituting the shorter entry clip.
+    final uri =
+        widget.lesson.usesV4Flow ||
+            (_usesGuideV2 && widget.relearnFromBeginning)
+        ? null
+        : widget.lesson.introAudioUri;
+    if (uri == null) {
+      try {
+        await widget.mediaService.prepareSelectedLessonOutput();
+        final prompt = _activeVoicePromptService;
+        final text = _guideText ?? widget.lesson.intro;
+        await _playIntroPrompt(prompt, text, request: request);
+      } catch (error, stackTrace) {
+        debugPrint(
+          'Lesson intro fallback failed for ${widget.lesson.id}: $error',
+        );
+        debugPrintStack(stackTrace: stackTrace);
+        _showIntroPlaybackFailure();
         return;
       }
-      if (_usesGuideV2) {
-        try {
-          await widget.progressStore.markLearningGuideOpened();
-        } catch (error, stackTrace) {
-          debugPrint(
-            'Could not save lesson guide state for ${widget.lesson.id}: $error',
-          );
-          debugPrintStack(stackTrace: stackTrace);
+    } else {
+      try {
+        await widget.mediaService.playToCompletion(uri);
+      } catch (error, stackTrace) {
+        if (_pausedForMainAssistant || request != _introPlaybackRequest) {
+          return;
         }
-      }
-      if (!mounted ||
-          _pausedForMainAssistant ||
-          request != _introPlaybackRequest) {
+        debugPrint(
+          'Lesson intro playback failed for ${widget.lesson.id} ($uri): $error',
+        );
+        debugPrintStack(stackTrace: stackTrace);
+        _showIntroPlaybackFailure();
         return;
       }
-      if (widget.autoAdvance && !_movingForward) {
-        await _openOverview();
+    }
+    if (!mounted ||
+        _pausedForMainAssistant ||
+        request != _introPlaybackRequest) {
+      return;
+    }
+    if (_usesGuideV2) {
+      try {
+        await widget.progressStore.markLearningGuideOpened();
+      } catch (error, stackTrace) {
+        debugPrint(
+          'Could not save lesson guide state for ${widget.lesson.id}: $error',
+        );
+        debugPrintStack(stackTrace: stackTrace);
       }
-    } catch (error, stackTrace) {
-      if (_pausedForMainAssistant || request != _introPlaybackRequest) {
-        return;
-      }
-      debugPrint(
-        'Lesson intro playback failed for ${widget.lesson.id} ($uri): $error',
-      );
-      debugPrintStack(stackTrace: stackTrace);
-      _showIntroPlaybackFailure();
+    }
+    if (!mounted ||
+        _pausedForMainAssistant ||
+        request != _introPlaybackRequest) {
+      return;
+    }
+    if (widget.autoAdvance && !_movingForward) {
+      await _openLesson();
     }
   }
 
+  Future<void> _playIntroPrompt(
+    VoicePromptService prompt,
+    String text, {
+    required int request,
+  }) async {
+    try {
+      await _speakIntroPrompt(
+        prompt,
+        text,
+        request: request,
+        audioKey: _introAudioKey,
+      );
+    } catch (error, stackTrace) {
+      if (!_isCurrentIntroRequest(request)) {
+        return;
+      }
+      if (error is HfpAudioException) rethrow;
+      debugPrint(
+        'Keyed lesson intro failed for ${widget.lesson.id}; using TTS: $error',
+      );
+      debugPrintStack(stackTrace: stackTrace);
+      await _speakIntroPrompt(prompt, text, request: request);
+    }
+  }
+
+  bool _isCurrentIntroRequest(int request) =>
+      mounted && !_pausedForMainAssistant && request == _introPlaybackRequest;
+
+  Future<void> _speakIntroPrompt(
+    VoicePromptService prompt,
+    String text, {
+    required int request,
+    String? audioKey,
+  }) async {
+    if (audioKey != null && prompt is KeyedAuthoredPromptBudgetProvider) {
+      final budget = await (prompt as KeyedAuthoredPromptBudgetProvider)
+          .authoredPromptBudgetForKey(audioKey, text: text, locale: 'vi-VN');
+      if (!mounted ||
+          _pausedForMainAssistant ||
+          request != _introPlaybackRequest) {
+        return;
+      }
+      if (budget != null) {
+        await _speakOnLessonOutput(
+          prompt,
+          text,
+          locale: 'vi-VN',
+          audioKey: audioKey,
+        );
+        return;
+      }
+    } else if (widget.lesson.usesV4Flow &&
+        prompt is AuthoredPromptBudgetProvider) {
+      // Compatibility for injected prompt services that have not adopted
+      // semantic keys yet. Production pack lookup never uses this text path.
+      final budget = await (prompt as AuthoredPromptBudgetProvider)
+          .authoredPromptBudget(text, locale: 'vi-VN');
+      if (!mounted ||
+          _pausedForMainAssistant ||
+          request != _introPlaybackRequest) {
+        return;
+      }
+      if (budget != null) {
+        await _speakOnLessonOutput(prompt, text, locale: 'vi-VN');
+        return;
+      }
+    }
+    final englishTitle = widget.lesson.titleEn.trim();
+    final titleIndex = englishTitle.isEmpty ? -1 : text.indexOf(englishTitle);
+    if (titleIndex < 0) {
+      await _speakOnLessonOutput(prompt, text, locale: 'vi-VN');
+      return;
+    }
+
+    final beforeTitle = text.substring(0, titleIndex).trim();
+    final afterTitle = text.substring(titleIndex + englishTitle.length).trim();
+    for (final part in <({String text, String locale})>[
+      (text: beforeTitle, locale: 'vi-VN'),
+      (text: englishTitle, locale: 'en-US'),
+      (text: afterTitle, locale: 'vi-VN'),
+    ]) {
+      if (part.text.isEmpty ||
+          !mounted ||
+          _pausedForMainAssistant ||
+          request != _introPlaybackRequest) {
+        continue;
+      }
+      await _speakOnLessonOutput(prompt, part.text, locale: part.locale);
+    }
+  }
+
+  Future<void> _speakOnLessonOutput(
+    VoicePromptService prompt,
+    String text, {
+    required String locale,
+    String? audioKey,
+  }) {
+    if (!kIsWeb &&
+        audioKey != null &&
+        prompt is KeyedSelectedMediaOutputVoicePromptService) {
+      return (prompt as KeyedSelectedMediaOutputVoicePromptService)
+          .speakAndWaitOnSelectedMediaOutputWithAudioKey(
+            audioKey,
+            text,
+            locale: locale,
+          );
+    }
+    if (audioKey != null && prompt is KeyedVoicePromptService) {
+      return (prompt as KeyedVoicePromptService).speakAndWaitWithAudioKey(
+        audioKey,
+        text,
+        locale: locale,
+      );
+    }
+    if (!kIsWeb && prompt is SelectedMediaOutputVoicePromptService) {
+      return (prompt as SelectedMediaOutputVoicePromptService)
+          .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
+    }
+    return prompt.speakAndWait(text, locale: locale);
+  }
+
   Future<void> _prepareGuideText() async {
+    _introAudioKey = null;
     final completed = await widget.progressStore.readLesson(widget.lesson.id);
     final currentSentence = await widget.progressStore.readCurrentSentence(
       widget.lesson.id,
     );
     final opened = await widget.progressStore.hasOpenedLearningGuide();
+    var resumeStage = ListeningResumeStage.core;
+    if (widget.lesson.usesV4Flow) {
+      resumeStage = await widget.progressStore.readResumeStage(
+        widget.lesson.id,
+      );
+      if (!widget.relearnFromBeginning &&
+          resumeStage == ListeningResumeStage.core &&
+          completed >= widget.lesson.sentences.length &&
+          widget.lesson.sentences.isNotEmpty &&
+          !await widget.progressStore.hasCompletedV4LessonActivity(
+            widget.lesson.id,
+          )) {
+        resumeStage = ListeningResumeStage.challenge;
+      }
+    }
+    final hasStartedCore = widget.lesson.usesV4Flow
+        ? await widget.progressStore.hasStartedLessonCore(widget.lesson.id)
+        : currentSentence > 0;
     final isInProgress =
-        currentSentence > 0 && completed < widget.lesson.sentences.length;
+        !widget.relearnFromBeginning &&
+        hasStartedCore &&
+        completed < widget.lesson.sentences.length;
+    if (widget.lesson.usesV4Flow) {
+      final lesson = widget.lesson;
+      final topicContent = widget.topicContent;
+      final String text;
+      final String audioKey;
+      if (resumeStage == ListeningResumeStage.challenge ||
+          resumeStage == ListeningResumeStage.rolePlay ||
+          resumeStage == ListeningResumeStage.mission ||
+          resumeStage == ListeningResumeStage.reinforcement) {
+        text = 'Mình tiếp tục câu thử thách nhé.';
+        audioKey = ListeningAudioKeys.challengeResume;
+      } else if (resumeStage == ListeningResumeStage.song) {
+        text = 'Mình nghe lại bài hát ${lesson.songTitle ?? ''} nhé.'
+            .replaceAll(RegExp(r'\s+'), ' ')
+            .trim();
+        audioKey = ListeningAudioKeys.lessonSongResume(lesson.id);
+      } else if (isInProgress) {
+        text = 'Mình học tiếp bài $_lessonTitleForGuide nhé.';
+        audioKey = ListeningAudioKeys.lessonResume(lesson.id);
+      } else if (widget.relearnFromBeginning ||
+          (completed >= lesson.sentences.length &&
+              lesson.sentences.isNotEmpty)) {
+        final earnedStars = await widget.progressStore.readEarnedStars(
+          lesson.id,
+        );
+        final remainingStars = LessonStarFlow.remainingStarCount(
+          lesson,
+          earnedStars,
+        );
+        text = remainingStars > 0
+            ? widget.startAge <= 10
+                  ? 'Bài này bạn còn $remainingStars Ngôi sao chưa chinh phục. Mình cùng thử nhé!'
+                  : 'Bài này bạn còn $remainingStars Ngôi sao chưa chinh phục.'
+            : 'Mình học lại bài $_lessonTitleForGuide nhé.';
+        audioKey = remainingStars > 0
+            ? ListeningAudioKeys.lessonRemainingStars(
+                remainingStars,
+                childFriendly: widget.startAge <= 10,
+              )
+            : ListeningAudioKeys.lessonRelearn(lesson.id);
+      } else {
+        final isFirstLessonInTopic = lesson.number == 1;
+        final topicLead = isFirstLessonInTopic && topicContent != null
+            ? 'Chủ đề ${topicContent.number}. '
+            : '';
+        final lessonLead = isFirstLessonInTopic
+            ? 'Bài đầu tiên là $_lessonTitleForGuide. '
+            : 'Bài này là $_lessonTitleForGuide. ';
+        text = '$topicLead$lessonLead${lesson.entry?.text ?? ''} Bắt đầu nhé.'
+            .replaceAll(RegExp(r'\s+'), ' ')
+            .trim();
+        audioKey = ListeningAudioKeys.lessonIntro(lesson.id);
+      }
+      if (mounted && !_pausedForMainAssistant) {
+        setState(() {
+          _guideText = text;
+          _introAudioKey = audioKey;
+          _resumeStage = resumeStage;
+        });
+      }
+      return;
+    }
     final prompt = LessonGuideFlowV2.entry(
       lessonCode: widget.lesson.code,
-      lessonTitleEn: widget.lesson.titleEn,
+      lessonTitle: _lessonTitleForGuide,
       kind: !opened
           ? LessonEntryGuideKind.first
           : isInProgress
@@ -172,6 +428,11 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
     if (mounted && !_pausedForMainAssistant) {
       setState(() => _guideText = prompt.text);
     }
+  }
+
+  String get _lessonTitleForGuide {
+    final englishTitle = widget.lesson.titleEn.trim();
+    return englishTitle.isEmpty ? widget.lesson.titleVi.trim() : englishTitle;
   }
 
   void _showIntroPlaybackFailure() {
@@ -191,6 +452,14 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
     _animationController.dispose();
     if (!_movingForward) {
       widget.mediaService.stopPlayback();
+      final voicePrompt = _voicePromptService;
+      if (voicePrompt != null) {
+        if (_ownsVoicePromptService) {
+          unawaited(voicePrompt.dispose());
+        } else {
+          unawaited(voicePrompt.stop());
+        }
+      }
     }
     super.dispose();
   }
@@ -230,7 +499,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
                                 const Spacer(),
                                 TextButton(
                                   key: const Key('skip-lesson-intro'),
-                                  onPressed: _openOverview,
+                                  onPressed: _openLesson,
                                   style: TextButton.styleFrom(
                                     backgroundColor: isDark
                                         ? colorScheme.surfaceContainerHighest
@@ -294,6 +563,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
                                 ),
                                 child: Text(
                                   _guideText ?? widget.lesson.intro,
+                                  key: const Key('lesson-intro-guide-text'),
                                   textAlign: TextAlign.center,
                                   style: theme.textTheme.bodyLarge?.copyWith(
                                     color: colorScheme.onSurface,
@@ -319,7 +589,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
                                     )
                                   : _introPlaybackFailed
                                   ? context.tr(
-                                      'Không thể phát lời mở đầu. Con hãy bấm Bỏ qua để tiếp tục.',
+                                      'Không thể phát lời mở đầu. Bạn hãy bấm Bỏ qua để tiếp tục.',
                                       '无法播放开场介绍，请点击跳过继续。',
                                     )
                                   : context.tr(
@@ -378,6 +648,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
       setState(() {});
     }
     await widget.mediaService.stopPlayback().catchError((Object _) {});
+    await _voicePromptService?.stop().catchError((Object _) {});
   }
 
   void _resumeIntro() {
@@ -411,18 +682,21 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.nextItem:
         _pausedForMainAssistant = false;
-        await _openOverview();
+        await _openLesson();
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.previousItem:
         return const ActiveLearningCommandResult.unavailable(
-          spokenReply: 'Con đang ở phần đầu bài học rồi.',
+          spokenReply: 'Bạn đang ở phần đầu bài học rồi.',
         );
       case ActiveLearningCommand.nextLesson:
       case ActiveLearningCommand.previousLesson:
+      case ActiveLearningCommand.vocabularyParentAdded:
       case ActiveLearningCommand.vocabularyPracticeAgain:
       case ActiveLearningCommand.vocabularyStars:
+      case ActiveLearningCommand.vocabularyLatest:
+      case ActiveLearningCommand.vocabularyAll:
         return const ActiveLearningCommandResult.unavailable(
-          spokenReply: 'Con hãy vào bài học trước nhé.',
+          spokenReply: 'Bạn hãy vào bài học trước nhé.',
         );
       case ActiveLearningCommand.exitToHome:
         await pauseForMainAssistant();
@@ -434,7 +708,11 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
     }
   }
 
-  Future<void> _openOverview() async {
+  Future<void> _openLesson() async {
+    if (widget.lesson.usesV4Flow) {
+      await _openV4Practice();
+      return;
+    }
     if (_usesSongKaraoke) {
       await _openSongKaraoke();
       return;
@@ -448,21 +726,60 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
       _movingForward = false;
       return;
     }
-    await Navigator.of(context).pushReplacement<void, void>(
-      MaterialPageRoute<void>(
-        builder: (_) => LessonPracticeScreen(
-          language: widget.language,
-          startAge: widget.startAge,
-          endAge: widget.endAge,
-          topic: widget.topic,
-          lesson: widget.lesson,
-          controller: widget.controller,
-          topicContent: widget.topicContent,
-          progressStore: widget.progressStore,
-          mediaService: widget.mediaService,
-          guideAudioLibrary: _guideAudioLibrary,
-          onTopicCompleted: widget.onTopicCompleted,
-        ),
+    await pushReplacementForActiveLearning<void, void>(
+      context,
+      (_) => LessonPracticeScreen(
+        language: widget.language,
+        startAge: widget.startAge,
+        endAge: widget.endAge,
+        topic: widget.topic,
+        lesson: widget.lesson,
+        controller: widget.controller,
+        topicContent: widget.topicContent,
+        contentGroup: widget.contentGroup,
+        levelContent: widget.levelContent,
+        progressStore: widget.progressStore,
+        mediaService: widget.mediaService,
+        guideAudioLibrary: _guideAudioLibrary,
+        onTopicCompleted: widget.onTopicCompleted,
+        onCommunicationRequested: widget.onCommunicationRequested,
+      ),
+    );
+  }
+
+  Future<void> _openV4Practice() async {
+    if (_movingForward || !mounted) {
+      return;
+    }
+    _movingForward = true;
+    _introPlaybackRequest += 1;
+    await widget.mediaService.stopPlayback();
+    await _voicePromptService?.stop().catchError((Object _) {});
+    if (!mounted || _pausedForMainAssistant) {
+      _movingForward = false;
+      return;
+    }
+    await pushReplacementForActiveLearning<void, void>(
+      context,
+      (_) => LessonPracticeScreen(
+        language: widget.language,
+        startAge: widget.startAge,
+        endAge: widget.endAge,
+        topic: widget.topic,
+        lesson: widget.lesson,
+        controller: widget.controller,
+        topicContent: widget.topicContent,
+        contentGroup: widget.contentGroup,
+        levelContent: widget.levelContent,
+        progressStore: widget.progressStore,
+        mediaService: widget.mediaService,
+        guideAudioLibrary: _guideAudioLibrary,
+        voicePromptService: _voicePromptService,
+        initialResumeStage: _resumeStage,
+        isRelearn: widget.relearnFromBeginning,
+        relearnTopicSequence: widget.relearnTopicSequence,
+        onTopicCompleted: widget.onTopicCompleted,
+        onCommunicationRequested: widget.onCommunicationRequested,
       ),
     );
   }
@@ -477,20 +794,16 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
       _movingForward = false;
       return;
     }
-    await Navigator.of(context).pushReplacement<void, void>(
-      MaterialPageRoute<void>(
-        builder: (_) => SongKaraokeScreen(
-          language: widget.language,
-          lesson: widget.lesson,
-          mediaService: widget.mediaService,
-          topicTitle:
-              widget.topicContent?.titleEn ??
-              widget.language.choose(
-                widget.topic.titleVi,
-                widget.topic.titleZh,
-              ),
-          practiceBuilder: _buildPracticeScreen,
-        ),
+    await pushReplacementForActiveLearning<void, void>(
+      context,
+      (_) => SongKaraokeScreen(
+        language: widget.language,
+        lesson: widget.lesson,
+        mediaService: widget.mediaService,
+        topicTitle:
+            widget.topicContent?.titleEn ??
+            widget.language.choose(widget.topic.titleVi, widget.topic.titleZh),
+        practiceBuilder: _buildPracticeScreen,
       ),
     );
   }
@@ -498,8 +811,19 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
   bool get _usesSongKaraoke =>
       shouldUseSongKaraoke(startAge: widget.startAge, lesson: widget.lesson);
 
-  bool get _usesGuideV2 =>
-      RegExp(r'^A\d+_T\d+_L\d+$').hasMatch(widget.lesson.code);
+  bool get _usesGuideV2 => widget.lesson.usesGuidedPractice;
+
+  VoicePromptService get _activeVoicePromptService {
+    final existing = _voicePromptService;
+    if (existing != null) {
+      return existing;
+    }
+    _ownsVoicePromptService = true;
+    return _voicePromptService = createVoicePromptService(
+      coordinator: widget.controller?.audioTurnCoordinator,
+      owner: AudioTurnOwner.listeningLesson,
+    );
+  }
 
   Widget _buildPracticeScreen(BuildContext context) => LessonPracticeScreen(
     language: widget.language,
@@ -509,9 +833,14 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
     lesson: widget.lesson,
     controller: widget.controller,
     topicContent: widget.topicContent,
+    contentGroup: widget.contentGroup,
+    levelContent: widget.levelContent,
     progressStore: widget.progressStore,
     mediaService: widget.mediaService,
     guideAudioLibrary: _guideAudioLibrary,
+    isRelearn: widget.relearnFromBeginning,
+    relearnTopicSequence: widget.relearnTopicSequence,
     onTopicCompleted: widget.onTopicCompleted,
+    onCommunicationRequested: widget.onCommunicationRequested,
   );
 }

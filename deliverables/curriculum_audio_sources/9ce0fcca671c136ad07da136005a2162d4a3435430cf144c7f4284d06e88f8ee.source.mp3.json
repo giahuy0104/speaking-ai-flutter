@@ -1,0 +1,20 @@
+{
+  "signature": "9ce0fcca671c136ad07da136005a2162d4a3435430cf144c7f4284d06e88f8ee",
+  "request": {
+    "text": "Two claps?",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "955ecc3d017ee9ba725332d503e0e05cda5184dbb368247475a0a946308e586a",
+  "requestId": "d4SL2ZdTrmsTKHKof4jc",
+  "createdAt": "2026-09-15T23:15:48.846Z"
+}

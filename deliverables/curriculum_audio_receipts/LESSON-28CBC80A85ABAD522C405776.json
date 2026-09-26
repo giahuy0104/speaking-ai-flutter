@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\1889d943fceb38d9d85907a7998b12ef217c36707dc243556702d8dedc6e71d6.tempo.mp3",
+      "signature": "1889d943fceb38d9d85907a7998b12ef217c36707dc243556702d8dedc6e71d6",
+      "request": {
+        "text": "Mình học lại bài",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "3d2375d09e42f0c6ef949b58ea6463ebaa417947d36474a8aa89203156f37f3f",
+      "requestId": "2Kf3OOkeDTH7UaYt6jz4",
+      "createdAt": "2026-09-15T23:22:34.285Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\514015c6a4d2ddbec69d80bbe968b65b15dea66cd639200a21d8f8d75b8a5090.tempo.mp3",
+      "signature": "514015c6a4d2ddbec69d80bbe968b65b15dea66cd639200a21d8f8d75b8a5090",
+      "request": {
+        "text": "Body Words",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "285fee1020d01b3a1fc673e625d31b7420f46539b39ab048377a776653667240",
+      "requestId": "uehxvvIXomCcc25MGr70",
+      "createdAt": "2026-09-15T23:23:54.199Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780.tempo.mp3",
+      "signature": "f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780",
+      "request": {
+        "text": "nhé.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "f8a90b46149d734b590160ab12314af597dc9eb203f9f411637ff57d12e7a8d6",
+      "requestId": "1gbfQaGo6f7yeN8SvxDC",
+      "createdAt": "2026-09-15T23:22:32.853Z"
+    }
+  ],
+  "id": "LESSON-28CBC80A85ABAD522C405776",
+  "text": "Mình học lại bài Body Words nhé.",
+  "asset": "assets/audio/CURRICULUM/28cbc80a85abad522c405776.vi.v1.mp3",
+  "sha256": "bc3d7a1b4b48a0586bcc723028408189b1fc2869af2759f2494638e2634ec2a4",
+  "durationSeconds": 3.303175,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

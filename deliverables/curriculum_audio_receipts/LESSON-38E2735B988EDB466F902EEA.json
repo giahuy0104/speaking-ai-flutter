@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B01\\C1112-L3-T09-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B01-Q05",
+  "sourceText": "Mình bị trễ học: I'm late for class hay I lost my key?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình bị trễ học:",
+      "spoken_text": "Mình bị trễ học:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "I'm late for class",
+      "spoken_text": "I'm late for class",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "I lost my key?",
+      "spoken_text": "I lost my key?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-38E2735B988EDB466F902EEA",
+  "text": "Mình bị trễ học: I'm late for class hay I lost my key?",
+  "asset": "assets/audio/CURRICULUM/38e2735b988edb466f902eea.vi.v1.mp3",
+  "sha256": "7da8554e52d4492010576360b6d1a4cb35bf4fb224c3758627856130ade90af7",
+  "durationSeconds": 7.356553
+}

@@ -1,0 +1,57 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B03\\C1112-L3-T09-B03-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B03-Q08",
+  "sourceText": "HOMI nói: I forgot my homework. Ask the teacher hay Take the next bus?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "I forgot my homework.",
+      "spoken_text": "I forgot my homework.",
+      "input_index": 45
+    },
+    {
+      "language": "en",
+      "text": "Ask the teacher",
+      "spoken_text": "Ask the teacher",
+      "input_index": 46
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 47
+    },
+    {
+      "language": "en",
+      "text": "Take the next bus?",
+      "spoken_text": "Take the next bus?",
+      "input_index": 48
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-18E5FFD21BB6ACF59494FCA8",
+  "text": "HOMI nói: I forgot my homework. Ask the teacher hay Take the next bus?",
+  "asset": "assets/audio/CURRICULUM/18e5ffd21bb6acf59494fca8.vi.v1.mp3",
+  "sha256": "6b3cbb4bda95173a18ac46cfff8a80442830fc0906088ea69d8b918beb078a12",
+  "durationSeconds": 7.688438
+}

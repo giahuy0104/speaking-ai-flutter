@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T07-B02\\C1315-L3-T07-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T07-B02-Q05",
+  "sourceText": "Lúc năm giờ rưỡi: At five thirty hay Where's the exit?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Lúc năm giờ rưỡi:",
+      "spoken_text": "Lúc năm giờ rưỡi:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "At five thirty",
+      "spoken_text": "At five thirty",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Where's the exit?",
+      "spoken_text": "Where's the exit?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-1E3064F7AFFA4BA1F12481AC",
+  "text": "Lúc năm giờ rưỡi: At five thirty hay Where's the exit?",
+  "asset": "assets/audio/CURRICULUM/1e3064f7affa4ba1f12481ac.vi.v1.mp3",
+  "sha256": "8028782339b4db114bbc041af65f730120f39228dee29f33d94d6869c393ea96",
+  "durationSeconds": 5.491224
+}

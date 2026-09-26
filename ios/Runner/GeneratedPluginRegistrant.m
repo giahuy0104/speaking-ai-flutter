@@ -12,10 +12,22 @@
 @import audio_session;
 #endif
 
+#if __has_include(<connectivity_plus/ConnectivityPlusPlugin.h>)
+#import <connectivity_plus/ConnectivityPlusPlugin.h>
+#else
+@import connectivity_plus;
+#endif
+
 #if __has_include(<just_audio/JustAudioPlugin.h>)
 #import <just_audio/JustAudioPlugin.h>
 #else
 @import just_audio;
+#endif
+
+#if __has_include(<local_auth_darwin/LocalAuthPlugin.h>)
+#import <local_auth_darwin/LocalAuthPlugin.h>
+#else
+@import local_auth_darwin;
 #endif
 
 #if __has_include(<package_info_plus/FPPPackageInfoPlusPlugin.h>)
@@ -46,7 +58,9 @@
 
 + (void)registerWithRegistry:(NSObject<FlutterPluginRegistry>*)registry {
   [AudioSessionPlugin registerWithRegistrar:[registry registrarForPlugin:@"AudioSessionPlugin"]];
+  [ConnectivityPlusPlugin registerWithRegistrar:[registry registrarForPlugin:@"ConnectivityPlusPlugin"]];
   [JustAudioPlugin registerWithRegistrar:[registry registrarForPlugin:@"JustAudioPlugin"]];
+  [LocalAuthPlugin registerWithRegistrar:[registry registrarForPlugin:@"LocalAuthPlugin"]];
   [FPPPackageInfoPlusPlugin registerWithRegistrar:[registry registrarForPlugin:@"FPPPackageInfoPlusPlugin"]];
   [RecordIosPlugin registerWithRegistrar:[registry registrarForPlugin:@"RecordIosPlugin"]];
   [SharedPreferencesPlugin registerWithRegistrar:[registry registrarForPlugin:@"SharedPreferencesPlugin"]];

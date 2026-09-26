@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B03\\C1112-L3-T09-B03-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B03-Q03",
+  "sourceText": "Đi chuyến xe tiếp theo: Take the next bus hay Charge your phone?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đi chuyến xe tiếp theo:",
+      "spoken_text": "Đi chuyến xe tiếp theo:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Take the next bus",
+      "spoken_text": "Take the next bus",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Charge your phone?",
+      "spoken_text": "Charge your phone?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-95EE9A51130AA2E740C59CF1",
+  "text": "Đi chuyến xe tiếp theo: Take the next bus hay Charge your phone?",
+  "asset": "assets/audio/CURRICULUM/95ee9a51130aa2e740c59cf1.vi.v1.mp3",
+  "sha256": "884f6c8449efc571053fa7cfd8b6cc235743e1947f0d79fe21b8bf60eb4421f9",
+  "durationSeconds": 5.759813
+}

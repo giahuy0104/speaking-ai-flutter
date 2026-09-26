@@ -1,0 +1,20 @@
+{
+  "signature": "3af31912c7b3f0a44d5e47ee78ba3cca8b7e64e85a9f09377fa001407e88d53d",
+  "request": {
+    "text": "My Plan.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "8c52d12026607151c89898d0ee412f9f618c4c74bd83740e69898693d5f92a20",
+  "requestId": "3uspVqm31Wtoxe6B6KHb",
+  "createdAt": "2026-09-15T23:31:09.490Z"
+}

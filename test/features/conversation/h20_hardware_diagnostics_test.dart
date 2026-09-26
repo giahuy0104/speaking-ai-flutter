@@ -163,6 +163,57 @@ void main() {
     controller.dispose();
   });
 
+  test('automatically selects the H20 HFP input after BLE connects', () async {
+    final hfp = _FakeHfpAudioControl(
+      devices: const <HfpAudioDevice>[
+        HfpAudioDevice(id: 'airpods', name: 'AirPods Pro', isConnected: true),
+        HfpAudioDevice(id: 'h20', name: 'H20', isConnected: false),
+      ],
+    );
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      hfpAudioControl: hfp,
+      playbackService: _FakePlaybackService(),
+      repository: _NoNetworkRepository(),
+      childAge: 6,
+    );
+
+    expect(await controller.autoConnectH20Hfp(bleDeviceName: 'H20'), isTrue);
+    expect(hfp.connectedDevice?.id, 'h20');
+    expect(controller.usesHfpInput, isTrue);
+    controller.dispose();
+  });
+
+  test(
+    'background auto-selection waits for an actually connected HFP',
+    () async {
+      final hfp = _FakeHfpAudioControl(
+        devices: const <HfpAudioDevice>[
+          HfpAudioDevice(id: 'airpods', name: 'AirPods Pro', isConnected: true),
+          HfpAudioDevice(id: 'h20', name: 'H20', isConnected: false),
+        ],
+      );
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        hfpAudioControl: hfp,
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+      );
+
+      expect(
+        await controller.autoConnectH20Hfp(
+          bleDeviceName: 'H20',
+          requireConnected: true,
+        ),
+        isFalse,
+      );
+      expect(hfp.connectedDevice, isNull);
+      expect(controller.usesHfpInput, isFalse);
+      controller.dispose();
+    },
+  );
+
   test(
     'BLE long press stops once and release does not restart capture',
     () async {
@@ -201,6 +252,226 @@ void main() {
       controller.dispose();
     },
   );
+
+  test('continuous HFP opens without blocking on BLE MAIN recovery', () async {
+    final aiv0 = _FakeAiv0BleControl(
+      protocolConfirmed: true,
+      initialStatus: const Aiv0BleStatus(
+        phase: Aiv0BlePhase.reconnecting,
+        protocolConfirmed: true,
+        deviceId: 'H20-BLE',
+        deviceName: 'H20',
+        peripheralState: 'connecting',
+        mainNotificationState: 'unavailable',
+      ),
+    );
+    final speechInput = _FakeContinuousHfpStreamingSpeechInput();
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      streamingSpeechInput: speechInput,
+      hfpAudioControl: _FakeHfpAudioControl(),
+      aiv0BleControl: aiv0,
+      playbackService: _FakePlaybackService(),
+      repository: _NoNetworkRepository(),
+      childAge: 6,
+      initialAsrMode: AsrMode.hfpStreaming,
+    );
+
+    expect(
+      await controller.beginContinuousHfpSession().timeout(
+        const Duration(seconds: 1),
+      ),
+      isTrue,
+    );
+    expect(speechInput.cancelCount, 1);
+    expect(speechInput.beginSessionCount, 1);
+    expect(controller.isContinuousHfpSessionActive, isTrue);
+    controller.dispose();
+  });
+
+  test(
+    'continuous HFP recording start does not wait for BLE coexistence',
+    () async {
+      final aiv0 = _FakeAiv0BleControl(
+        protocolConfirmed: true,
+        initialStatus: const Aiv0BleStatus(
+          phase: Aiv0BlePhase.reconnecting,
+          protocolConfirmed: true,
+          deviceId: 'H20-BLE',
+          deviceName: 'H20',
+          peripheralState: 'connecting',
+          mainNotificationState: 'unavailable',
+        ),
+      );
+      final speechInput = _FakeContinuousHfpStreamingSpeechInput();
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        streamingSpeechInput: speechInput,
+        hfpAudioControl: _FakeHfpAudioControl(),
+        aiv0BleControl: aiv0,
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.hfpStreaming,
+      );
+
+      expect(await controller.beginContinuousHfpSession(), isTrue);
+      expect(speechInput.cancelCount, 1);
+      expect(speechInput.beginSessionCount, 1);
+      await controller
+          .startRecording(noSpeechTimeout: const Duration(minutes: 1))
+          .timeout(const Duration(seconds: 1));
+      expect(controller.isRecording, isTrue);
+      expect(speechInput.startCount, 1);
+      await controller.cancelCurrentMainAction();
+      controller.dispose();
+    },
+  );
+
+  test(
+    'phone microphone recording starts while AIV0 BLE scans independently',
+    () async {
+      final aiv0 = _FakeAiv0BleControl(
+        protocolConfirmed: false,
+        initialStatus: const Aiv0BleStatus(
+          phase: Aiv0BlePhase.scanning,
+          protocolConfirmed: false,
+          peripheralState: 'scanning',
+          mainNotificationState: 'unavailable',
+        ),
+      );
+      final speechInput = _FakeContinuousHfpStreamingSpeechInput();
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        streamingSpeechInput: speechInput,
+        aiv0BleControl: aiv0,
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+      );
+
+      // BLE scanning remains visible as global background work, but it is not
+      // an audio-resource conflict for Apple Speech on the phone microphone.
+      expect(controller.isBusy, isTrue);
+      expect(controller.isRecordingStartBlocked, isFalse);
+
+      await controller
+          .startRecording(noSpeechTimeout: const Duration(minutes: 1))
+          .timeout(const Duration(seconds: 1));
+
+      expect(controller.isRecording, isTrue);
+      expect(speechInput.startCount, 1);
+      await controller.cancelCurrentMainAction();
+      controller.dispose();
+    },
+  );
+
+  test('phone microphone does not race an HFP route change', () async {
+    final speechInput = _FakeContinuousHfpStreamingSpeechInput();
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      streamingSpeechInput: speechInput,
+      hfpAudioControl: _FakeHfpAudioControl(
+        initialStatus: const BluetoothAudioStatus(
+          phase: BluetoothAudioConnectionPhase.connecting,
+          sampleRate: 16000,
+        ),
+      ),
+      playbackService: _FakePlaybackService(),
+      repository: _NoNetworkRepository(),
+      childAge: 6,
+    );
+
+    expect(controller.usesHfpInput, isFalse);
+    expect(controller.isRecordingStartBlocked, isTrue);
+
+    await controller.startRecording();
+
+    expect(speechInput.startCount, 0);
+    expect(controller.errorMessage, 'Nguồn âm thanh hiện chưa sẵn sàng.');
+    controller.dispose();
+  });
+
+  test(
+    'continuous HFP observes cached English playback completion before play',
+    () async {
+      final speechInput = _FakeContinuousHfpStreamingSpeechInput();
+      final playback = _FakePlaybackService();
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        streamingSpeechInput: speechInput,
+        hfpAudioControl: _FakeHfpAudioControl(),
+        aiv0BleControl: _FakeAiv0BleControl(protocolConfirmed: true),
+        playbackService: playback,
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.hfpStreaming,
+      );
+      controller.result = ConversationResult(
+        conversationId: 'continuous-turn',
+        sessionId: 'continuous-session',
+        context: PracticeContext.home,
+        vietnameseText: 'Con khát nước.',
+        englishText: 'I am thirsty.',
+        audioUri: Uri.parse('https://example.com/i-am-thirsty.mp3'),
+        processingMode: 'rule',
+        textSource: 'phrase_rule',
+        audioSource: 'cache',
+        asrMode: 'android_streaming',
+        latency: const ConversationLatency(
+          asrMs: 1,
+          llmMs: 0,
+          ttsMs: 0,
+          timeToFirstAudioMs: 1,
+        ),
+      );
+
+      expect(await controller.beginContinuousHfpSession(), isTrue);
+      await controller.playResult().timeout(const Duration(seconds: 1));
+
+      expect(playback.playedUris, <Uri>[
+        Uri.parse('https://example.com/i-am-thirsty.mp3'),
+      ]);
+      controller.dispose();
+    },
+  );
+
+  test(
+    'completed turn stays blocked until its microphone cleanup finishes',
+    () async {
+      final speechInput = _FakeContinuousHfpStreamingSpeechInput();
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        streamingSpeechInput: speechInput,
+        playbackService: _FakePlaybackService(),
+        repository: _SuccessfulStreamingRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+      );
+      final readyStartBlocked = <bool>[];
+      controller.addListener(() {
+        if (controller.phase == ConversationPhase.ready) {
+          readyStartBlocked.add(controller.isRecordingStartBlocked);
+        }
+      });
+
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(minutes: 1),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await controller.stopRecording(manual: true);
+
+      expect(controller.lastTurnEndReason, ConversationTurnEndReason.completed);
+      expect(readyStartBlocked, isNotEmpty);
+      expect(
+        readyStartBlocked.first,
+        isTrue,
+        reason: 'The next turn must not start before old-turn cleanup.',
+      );
+      expect(readyStartBlocked.last, isFalse);
+      controller.dispose();
+    },
+  );
 }
 
 Future<void> _flushAsyncEvents() async {
@@ -234,7 +505,9 @@ class _FakeAudioInput implements AudioInput {
   Future<AudioCapture> stop() async {
     stopCount += 1;
     return const AudioCapture(
-      filePath: r'C:\temp\h20-offline-test.m4a',
+      // URI-only fake path: use POSIX form so Uri.file is valid on both the
+      // Windows golden baseline and Codemagic macOS builders.
+      filePath: '/tmp/h20-offline-test.m4a',
       mimeType: 'audio/mp4',
       duration: Duration(seconds: 3),
       inputLabel: 'Mic điện thoại',
@@ -252,20 +525,95 @@ class _FakeAudioInput implements AudioInput {
   Future<void> dispose() async {}
 }
 
+class _FakeContinuousHfpStreamingSpeechInput
+    implements
+        StreamingSpeechInput,
+        HfpRouteOwningStreamingSpeechInput,
+        ContinuousHfpSessionStreamingSpeechInput {
+  int cancelCount = 0;
+  int beginSessionCount = 0;
+  int startCount = 0;
+  bool _sessionActive = false;
+
+  @override
+  String get label => 'H20 Apple Speech';
+
+  @override
+  Stream<double> get amplitudeDbfs => const Stream<double>.empty();
+
+  @override
+  Stream<void> get completed => const Stream<void>.empty();
+
+  @override
+  Stream<String> get partialText => const Stream<String>.empty();
+
+  @override
+  bool get isContinuousHfpSessionActive => _sessionActive;
+
+  @override
+  Future<bool> checkAvailability() async => true;
+
+  @override
+  Future<void> start() async {
+    startCount += 1;
+  }
+
+  @override
+  Future<StreamingSpeechCapture> stop() async => const StreamingSpeechCapture(
+    sourceText: 'hello',
+    duration: Duration(seconds: 1),
+    inputLabel: 'H20 Apple Speech',
+    confidence: 1,
+    firstResultMs: 10,
+    finalAfterStopMs: 10,
+    isBluetoothInput: true,
+  );
+
+  @override
+  Future<void> cancel() async {
+    cancelCount += 1;
+  }
+
+  @override
+  Future<void> beginContinuousHfpSession() async {
+    beginSessionCount += 1;
+    _sessionActive = true;
+  }
+
+  @override
+  Future<void> endContinuousHfpSession() async {
+    _sessionActive = false;
+  }
+
+  @override
+  Future<void> dispose() async {
+    _sessionActive = false;
+  }
+}
+
 class _FakeHfpAudioControl implements HfpAudioControl {
-  _FakeHfpAudioControl({this.activateRoute = true});
+  _FakeHfpAudioControl({
+    this.activateRoute = true,
+    this.devices = const <HfpAudioDevice>[],
+    BluetoothAudioStatus? initialStatus,
+  }) : _status =
+           initialStatus ??
+           const BluetoothAudioStatus(
+             phase: BluetoothAudioConnectionPhase.ready,
+             deviceId: '00:11:22:33:44:55',
+             deviceName: 'H20',
+             sampleRate: 16000,
+           );
 
   final bool activateRoute;
+  final List<HfpAudioDevice> devices;
   final StreamController<BluetoothAudioStatus> _statuses =
       StreamController<BluetoothAudioStatus>.broadcast(sync: true);
-  BluetoothAudioStatus _status = const BluetoothAudioStatus(
-    phase: BluetoothAudioConnectionPhase.ready,
-    deviceId: '00:11:22:33:44:55',
-    deviceName: 'H20',
-    sampleRate: 16000,
-  );
+  BluetoothAudioStatus _status;
   int startRouteCount = 0;
   int stopRouteCount = 0;
+  int disconnectCount = 0;
+  HfpAudioDevice? connectedDevice;
 
   @override
   bool get usesBrowserAudioInput => false;
@@ -280,13 +628,29 @@ class _FakeHfpAudioControl implements HfpAudioControl {
   Future<void> initialize() async {}
 
   @override
-  Future<List<HfpAudioDevice>> findDevices() async => const <HfpAudioDevice>[];
+  Future<List<HfpAudioDevice>> findDevices() async => devices;
 
   @override
-  Future<void> connect(HfpAudioDevice device) async {}
+  Future<void> connect(HfpAudioDevice device) async {
+    connectedDevice = device;
+    _status = BluetoothAudioStatus(
+      phase: BluetoothAudioConnectionPhase.ready,
+      deviceId: device.id,
+      deviceName: device.displayName,
+      sampleRate: 16000,
+    );
+    _statuses.add(_status);
+  }
 
   @override
-  Future<void> disconnect() async {}
+  Future<void> disconnect() async {
+    disconnectCount += 1;
+    _status = const BluetoothAudioStatus(
+      phase: BluetoothAudioConnectionPhase.idle,
+      sampleRate: 16000,
+    );
+    _statuses.add(_status);
+  }
 
   @override
   Future<void> startAudioRoute() async {
@@ -368,9 +732,23 @@ class _FakePlaybackService
 }
 
 class _FakeAiv0BleControl implements Aiv0BleControl {
-  _FakeAiv0BleControl({required this.protocolConfirmed});
+  _FakeAiv0BleControl({
+    required this.protocolConfirmed,
+    Aiv0BleStatus? initialStatus,
+  }) : _status =
+           initialStatus ??
+           Aiv0BleStatus(
+             phase: Aiv0BlePhase.connected,
+             protocolConfirmed: protocolConfirmed,
+             deviceId: 'H20-BLE',
+             deviceName: 'H20',
+             writeMode: 'withResponse',
+             peripheralState: 'connected',
+             mainNotificationState: 'notifying',
+           );
 
   final bool protocolConfirmed;
+  Aiv0BleStatus _status;
   final StreamController<Aiv0BleStatus> _statuses =
       StreamController<Aiv0BleStatus>.broadcast(sync: true);
   final StreamController<Aiv0ButtonEvent> _buttons =
@@ -378,19 +756,21 @@ class _FakeAiv0BleControl implements Aiv0BleControl {
   int appStateWrites = 0;
 
   @override
-  Aiv0BleStatus get status => Aiv0BleStatus(
-    phase: Aiv0BlePhase.connected,
-    protocolConfirmed: protocolConfirmed,
-    deviceId: 'H20-BLE',
-    deviceName: 'H20',
-    writeMode: 'withResponse',
-  );
+  Aiv0BleStatus get status => _status;
 
   @override
   Stream<Aiv0BleStatus> get statusStream => _statuses.stream;
 
   @override
   Stream<Aiv0ButtonEvent> get buttonEvents => _buttons.stream;
+
+  @override
+  Future<void> markParentDiagnosticsOpened() async {}
+
+  void emitStatus(Aiv0BleStatus status) {
+    _status = status;
+    _statuses.add(status);
+  }
 
   void emitMain({
     required int sequence,
@@ -552,4 +932,31 @@ class _NoNetworkRepository implements ConversationRepository {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _SuccessfulStreamingRepository extends _NoNetworkRepository {
+  @override
+  Future<ConversationResult> processStreamingText({
+    required StreamingSpeechCapture capture,
+    required PracticeContext context,
+    required int childAge,
+    required int vadSilenceMs,
+  }) async => ConversationResult(
+    conversationId: 'continuous-turn',
+    sessionId: 'continuous-session',
+    context: context,
+    vietnameseText: capture.sourceText,
+    englishText: 'Hello.',
+    audioUri: null,
+    processingMode: 'streaming',
+    textSource: 'native_speech',
+    audioSource: 'none',
+    asrMode: capture.asrMode,
+    latency: const ConversationLatency(
+      asrMs: 1,
+      llmMs: 1,
+      ttsMs: 0,
+      timeToFirstAudioMs: 0,
+    ),
+  );
 }

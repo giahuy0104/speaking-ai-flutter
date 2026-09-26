@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T05-B02\\C810-L2-T05-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T05-B02-Q05",
+  "sourceText": "Mặc áo khoác: Wear a jacket hay Play outside?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mặc áo khoác:",
+      "spoken_text": "Mặc áo khoác:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Wear a jacket",
+      "spoken_text": "Wear a jacket",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Play outside?",
+      "spoken_text": "Play outside?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-05FFA221B0415F7A1C6A4EA1",
+  "text": "Mặc áo khoác: Wear a jacket hay Play outside?",
+  "asset": "assets/audio/CURRICULUM/05ffa221b0415f7a1c6a4ea1.vi.v1.mp3",
+  "sha256": "9edbcad03b1cae10832893a30b5216d5b505f5c1be49506c77a2427b1d6cab22",
+  "durationSeconds": 4.971701
+}

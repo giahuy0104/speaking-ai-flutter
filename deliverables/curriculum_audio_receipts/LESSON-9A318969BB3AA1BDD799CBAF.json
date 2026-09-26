@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T07-B01\\C810-L3-T07-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T07-B01-Q07",
+  "sourceText": "Bạn cần nói \"Giày\". Shoes hay Price?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn cần nói \"Giày\".",
+      "spoken_text": "Bạn cần nói \"Giày\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Shoes",
+      "spoken_text": "Shoes",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Price?",
+      "spoken_text": "Price?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9A318969BB3AA1BDD799CBAF",
+  "text": "Bạn cần nói \"Giày\". Shoes hay Price?",
+  "asset": "assets/audio/CURRICULUM/9a318969bb3aa1bdd799cbaf.vi.v1.mp3",
+  "sha256": "2ecad17e91dcce14e5c10de1a77ebfea3f37da8f9bbc7c435268e49760150ebe",
+  "durationSeconds": 5.768163
+}

@@ -12,6 +12,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  const backgroundEvents = MethodChannel('ailingo_background_learning/events');
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+
+  setUp(() {
+    messenger.setMockMethodCallHandler(backgroundEvents, (_) async => null);
+  });
+  tearDown(() {
+    messenger.setMockMethodCallHandler(backgroundEvents, null);
+  });
+
   testWidgets('home communication matches image one', (tester) async {
     final controller = await _pumpGoldenApp(tester);
     addTearDown(controller.dispose);
@@ -63,9 +75,52 @@ void main() {
       matchesGoldenFile('goldens/home-add-vocabulary-390x844.png'),
     );
   });
+
+  testWidgets('dark communication matches the approved rail treatment', (
+    tester,
+  ) async {
+    final controller = await _pumpGoldenApp(tester, themeMode: ThemeMode.dark);
+    addTearDown(controller.dispose);
+
+    await expectLater(
+      find.byType(HomeLearningShell),
+      matchesGoldenFile('goldens/dark-home-communication-390x844.png'),
+    );
+  });
+
+  testWidgets('dark home keeps the approved option two composition', (
+    tester,
+  ) async {
+    final controller = await _pumpGoldenApp(tester, themeMode: ThemeMode.dark);
+    addTearDown(controller.dispose);
+
+    await expectLater(
+      find.byType(HomeLearningShell),
+      matchesGoldenFile('goldens/dark-home-communication-390x844.png'),
+    );
+
+    await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(HomeLearningShell),
+      matchesGoldenFile('goldens/dark-home-vocabulary-390x844.png'),
+    );
+
+    await tester.tap(find.byKey(const Key('vocabulary-practice-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('topic-listening-edge-tab')));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(TopicListeningScreen),
+      matchesGoldenFile('goldens/dark-home-topics-390x844.png'),
+    );
+  });
 }
 
-Future<ConversationController> _pumpGoldenApp(WidgetTester tester) async {
+Future<ConversationController> _pumpGoldenApp(
+  WidgetTester tester, {
+  ThemeMode themeMode = ThemeMode.light,
+}) async {
   SharedPreferences.setMockInitialValues(<String, Object>{});
   await _loadGoldenFonts();
   await tester.binding.setSurfaceSize(const Size(390, 844));
@@ -81,8 +136,11 @@ Future<ConversationController> _pumpGoldenApp(WidgetTester tester) async {
     MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
+      darkTheme: buildDarkAppTheme(),
+      themeMode: themeMode,
       home: HomeLearningShell(
         controller: controller,
+        onScreenMainPressed: () async {},
         config: AppConfig(
           backendBaseUri: Uri.parse('https://example.com'),
           useDemoBackend: true,
@@ -96,10 +154,15 @@ Future<ConversationController> _pumpGoldenApp(WidgetTester tester) async {
     await Future.wait<void>(
       const <AssetImage>[
         AssetImage('assets/images/learning-minimal-sky-background.png'),
+        AssetImage('assets/images/home-hero-blob.png'),
         AssetImage('assets/images/mascot/penguin-avatar.png'),
         AssetImage('assets/images/mascot/penguin-listen.png'),
         AssetImage('assets/images/mascot/penguin-wave.png'),
         AssetImage('assets/images/topics/my-family.jpg'),
+        AssetImage('assets/images/topics/fun-alphabet.jpg'),
+        AssetImage('assets/images/topics/numbers-time.jpg'),
+        AssetImage('assets/images/topics/cute-animals.jpg'),
+        AssetImage('assets/images/topics/favorite-food.jpg'),
         AssetImage('assets/images/vocabulary/golden-star.png'),
         AssetImage('assets/images/vocabulary/review-book.png'),
       ].map((provider) => precacheImage(provider, context)),

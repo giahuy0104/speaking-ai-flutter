@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T07-B01\\C35-L3-T07-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T07-B01-Q07",
+  "sourceText": "Bạn muốn nói \"Quả chuối\". Banana hay Milk?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Quả chuối\".",
+      "spoken_text": "Bạn muốn nói \"Quả chuối\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Banana",
+      "spoken_text": "Banana",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Milk?",
+      "spoken_text": "Milk?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-B399BBFDFC2DFBC1D5BC5F16",
+  "text": "Bạn muốn nói \"Quả chuối\". Banana hay Milk?",
+  "asset": "assets/audio/CURRICULUM/b399bbfdfc2dfbc1d5bc5f16.vi.v1.mp3",
+  "sha256": "d1e2f033458e9b7f06137eda12e0596f4a9efaaa1928200d43104464b2b3a564",
+  "durationSeconds": 4.932925
+}

@@ -1,8 +1,8 @@
 package com.innotrik.aispeaking
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
@@ -14,11 +14,14 @@ import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.util.Log
+import android.view.KeyEvent
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
@@ -28,27 +31,38 @@ import java.util.Locale
 
 @SuppressLint("MissingPermission")
 class Aiv0BleControlBridge(
-    private val activity: Activity,
+    private val host: HomiAndroidHost,
     messenger: BinaryMessenger,
 ) : MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
     companion object {
         private const val CONTROL_CHANNEL = "ailingo_aiv0_ble_control"
         private const val EVENT_CHANNEL = "ailingo_aiv0_ble_control/events"
         private const val PERMISSION_REQUEST_CODE = 7395
+        private const val ENABLE_BLUETOOTH_REQUEST_CODE = 7396
         private const val MAX_RECONNECT_ATTEMPTS = 5
         private const val DUPLICATE_WINDOW_MS = 750L
         private const val TAG = "Aiv0BleControl"
+        private const val RUNTIME_PREFERENCES = "homi_android_runtime"
+        private const val LAST_DEVICE_ID = "h20_ble_device_id"
+        private const val LAST_DEVICE_NAME = "h20_ble_device_name"
+        private const val MAX_BUFFERED_BUTTON_EVENTS = 32
     }
 
     private val methodChannel = MethodChannel(messenger, CONTROL_CHANNEL)
     private val eventChannel = EventChannel(messenger, EVENT_CHANNEL)
+    private val appContext = host.applicationContext
     private val mainHandler = Handler(Looper.getMainLooper())
     private val bluetoothManager =
-        activity.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        appContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
     private val adapter: BluetoothAdapter? get() = bluetoothManager.adapter
     private val scanDevices = linkedMapOf<String, ScannedDevice>()
+    private val runtimePreferences =
+        appContext.getSharedPreferences(RUNTIME_PREFERENCES, Context.MODE_PRIVATE)
+    private val bufferedButtonEvents = ArrayDeque<Map<String, Any?>>()
+    private val mediaKeyObserver = H20MediaKeyObserver(appContext, ::emitButtonEvent)
 
     private var eventSink: EventChannel.EventSink? = null
+    private var enableBluetoothResult: MethodChannel.Result? = null
     private var phase = "idle"
     private var message: String? = null
     private var deviceId: String? = null
@@ -91,13 +105,31 @@ class Aiv0BleControlBridge(
         when (call.method) {
             "initialize" -> initialize(result)
             "requestPermissions" -> requestPermissions(result)
+            "bluetoothAdapterState" -> result.success(bluetoothAdapterState())
+            "requestEnableBluetooth" -> requestEnableBluetooth(result)
+            "openBluetoothSettings" -> openBluetoothSettings(result)
             "scan" -> scan(call, result)
             "connect" -> connect(call, result)
             "disconnect" -> disconnect(result)
+            "refreshBattery" -> refreshBattery(result)
             "sendAppState" -> sendAppState(call, result)
             "status" -> result.success(snapshot())
+            "setControlContext" -> {
+                mediaKeyObserver.setControlContext(
+                    learningActive = call.argument<Boolean>("learningActive") == true,
+                    diagnosticsActive = call.argument<Boolean>("diagnosticsActive") == true,
+                )
+                result.success(snapshot())
+                emitStatus()
+            }
             "dispose" -> {
-                dispose()
+                // The native bridge belongs to the process-scoped HOMI runtime,
+                // not to an individual Dart controller. A screen/controller may
+                // be disposed while the foreground service must keep H20 alive.
+                // EventChannel.onCancel detaches the old Dart listener; a later
+                // controller can subscribe again and receive the current state.
+                eventSink = null
+                mediaKeyObserver.setControlContext(false, false)
                 result.success(null)
             }
             else -> result.notImplemented()
@@ -107,15 +139,29 @@ class Aiv0BleControlBridge(
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
         eventSink = events
         events?.success(snapshot())
+        while (events != null && bufferedButtonEvents.isNotEmpty()) {
+            events.success(bufferedButtonEvents.removeFirst())
+        }
     }
 
     override fun onCancel(arguments: Any?) {
         eventSink = null
+        mediaKeyObserver.setControlContext(false, false)
+    }
+
+    fun observeMediaKey(key: KeyEvent) {
+        // Activity remains non-consuming: phone volume/power behavior is untouched.
+        mediaKeyObserver.observe(key, "activity")
+    }
+
+    fun setControlForeground(foreground: Boolean) {
+        mediaKeyObserver.setForeground(foreground)
+        emitStatus()
     }
 
     private fun initialize(result: MethodChannel.Result) {
         phase = when {
-            !activity.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) ->
+            !appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) ->
                 "disabled"
             adapter == null -> "disabled"
             else -> if (phase == "disabled") "idle" else phase
@@ -137,7 +183,7 @@ class Aiv0BleControlBridge(
         }
 
     private fun hasPermissions(): Boolean = requiredPermissions().all {
-        activity.checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED
+        appContext.checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun requestPermissions(result: MethodChannel.Result) {
@@ -152,7 +198,14 @@ class Aiv0BleControlBridge(
         permissionResult = result
         message = "Cần quyền Thiết bị ở gần/Bluetooth để tìm H20."
         emitStatus()
-        activity.requestPermissions(requiredPermissions(), PERMISSION_REQUEST_CODE)
+        if (!host.requestPermissions(requiredPermissions(), PERMISSION_REQUEST_CODE)) {
+            permissionResult = null
+            result.error(
+                "VISIBLE_ACTIVITY_REQUIRED",
+                "Hãy mở HOMI để cấp quyền Bluetooth trước khi tiếp tục.",
+                null,
+            )
+        }
     }
 
     fun onRequestPermissionsResult(requestCode: Int, grantResults: IntArray): Boolean {
@@ -167,8 +220,81 @@ class Aiv0BleControlBridge(
         return true
     }
 
+    fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+        if (requestCode != ENABLE_BLUETOOTH_REQUEST_CODE) return false
+        val pending = enableBluetoothResult
+        enableBluetoothResult = null
+        val enabled = resultCode == Activity.RESULT_OK && adapter?.isEnabled == true
+        phase = if (enabled) "idle" else "error"
+        message = if (enabled) null else "Bluetooth vẫn đang tắt."
+        emitStatus()
+        pending?.success(enabled)
+        return true
+    }
+
+    private fun bluetoothAdapterState(): String = when {
+        adapter == null ||
+            !appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) ->
+            "unsupported"
+        !hasPermissions() -> "unauthorized"
+        adapter?.isEnabled == true -> "poweredOn"
+        else -> "poweredOff"
+    }
+
+    private fun requestEnableBluetooth(result: MethodChannel.Result) {
+        if (adapter == null ||
+            !appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
+        ) {
+            result.error("BLE_UNSUPPORTED", "Điện thoại không hỗ trợ BLE.", null)
+            return
+        }
+        if (!hasPermissions()) {
+            result.error("PERMISSION_REQUIRED", "Cần cấp quyền Bluetooth trước.", null)
+            return
+        }
+        if (adapter?.isEnabled == true) {
+            result.success(true)
+            return
+        }
+        if (enableBluetoothResult != null) {
+            result.error(
+                "ENABLE_BLUETOOTH_IN_PROGRESS",
+                "Đang chờ phụ huynh bật Bluetooth.",
+                null,
+            )
+            return
+        }
+        val activity = host.currentActivity
+        if (activity == null) {
+            result.error(
+                "VISIBLE_ACTIVITY_REQUIRED",
+                "Hãy mở HOMI để bật Bluetooth trước khi tiếp tục.",
+                null,
+            )
+            return
+        }
+        enableBluetoothResult = result
+        activity.startActivityForResult(
+            Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE),
+            ENABLE_BLUETOOTH_REQUEST_CODE,
+        )
+    }
+
+    private fun openBluetoothSettings(result: MethodChannel.Result) {
+        val opened = host.startVisibleActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+        if (opened) {
+            result.success(true)
+        } else {
+            result.error(
+                "VISIBLE_ACTIVITY_REQUIRED",
+                "Hãy mở HOMI để đi tới Cài đặt Bluetooth.",
+                null,
+            )
+        }
+    }
+
     private fun ensureBluetoothReady(result: MethodChannel.Result): Boolean {
-        if (adapter == null || !activity.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+        if (adapter == null || !appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             result.error("BLE_UNSUPPORTED", "Điện thoại không hỗ trợ BLE.", null)
             return false
         }
@@ -311,9 +437,9 @@ class Aiv0BleControlBridge(
         mainHandler.removeCallbacks(connectionTimeout)
         val opened = runCatching {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                device.connectGatt(activity, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
+                device.connectGatt(appContext, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
             } else {
-                device.connectGatt(activity, false, gattCallback)
+                device.connectGatt(appContext, false, gattCallback)
             }
         }.getOrElse { error ->
             failConnection("Không thể mở GATT H20: ${error.message}")
@@ -330,6 +456,9 @@ class Aiv0BleControlBridge(
                     BluetoothProfile.STATE_CONNECTED -> {
                         bluetoothGatt = gatt
                         reconnectAttempts = 0
+                        // Do not publish a stale value from the previous GATT
+                        // session before this peripheral has been read.
+                        batteryPercent = null
                         phase = "connecting"
                         message = "Đang đọc dịch vụ BLE Control…"
                         emitStatus()
@@ -422,6 +551,10 @@ class Aiv0BleControlBridge(
                 }
                 phase = "connected"
                 mainHandler.removeCallbacks(connectionTimeout)
+                runtimePreferences.edit()
+                    .putString(LAST_DEVICE_ID, deviceId)
+                    .putString(LAST_DEVICE_NAME, deviceName)
+                    .apply()
                 message = if (writeMode == "withoutResponse") {
                     "Đã kết nối. ODM cần bổ sung Write with response cho 9E3B0003."
                 } else {
@@ -489,6 +622,13 @@ class Aiv0BleControlBridge(
     }
 
     private fun handleCharacteristicChanged(uuid: java.util.UUID, value: ByteArray) {
+        if (uuid == Aiv0BleProtocol.batteryLevelUuid) {
+            mainHandler.post {
+                batteryPercent = value.firstOrNull()?.toInt()?.and(0xFF)?.coerceIn(0, 100)
+                emitStatus()
+            }
+            return
+        }
         if (uuid != Aiv0BleProtocol.buttonEventUuid) return
         mainHandler.post {
             packetCount += 1
@@ -500,13 +640,17 @@ class Aiv0BleControlBridge(
             if (value.size != 12) invalidPacketCount += 1
             lastRawHex = hex
             lastPacketAt = now
+            H20ControlObservation.batteryPercent(value)?.let { batteryPercent = it }
             Log.i(
                 TAG,
                 "Button Event device=$deviceId len=${value.size} duplicate=$duplicate raw=$hex",
             )
+            if (!duplicate && isObservedH20MainPacket(value)) {
+                BackgroundLearningService.notePhysicalMain()
+            }
             emitStatus()
-            eventSink?.success(
-                mapOf(
+            emitButtonEvent(
+                H20ControlObservation.bleMetadata(value) + mapOf(
                     "type" to "button",
                     "deviceId" to deviceId,
                     "bytes" to value.map { it.toInt() and 0xFF },
@@ -522,6 +666,18 @@ class Aiv0BleControlBridge(
         if (battery != null && gatt.readCharacteristic(battery)) return
         val firmware = firmwareCharacteristic
         if (firmware != null) gatt.readCharacteristic(firmware)
+    }
+
+    private fun refreshBattery(result: MethodChannel.Result) {
+        val gatt = bluetoothGatt
+        val battery = batteryCharacteristic
+        // APP State drives MAIN feedback and always wins over telemetry. If a
+        // write is active, skip this minute's optional read and try next time.
+        if (phase != "connected" || gatt == null || battery == null || pendingWriteResult != null) {
+            result.success(false)
+            return
+        }
+        result.success(runCatching { gatt.readCharacteristic(battery) }.getOrDefault(false))
     }
 
     private fun handleCharacteristicRead(
@@ -684,6 +840,7 @@ class Aiv0BleControlBridge(
         "invalidPacketCount" to invalidPacketCount,
         "duplicatePacketCount" to duplicatePacketCount,
         "reconnectCount" to reconnectCount,
+        "mediaKeyObservationActive" to mediaKeyObserver.active,
     )
 
     private fun emitStatus() {
@@ -694,9 +851,63 @@ class Aiv0BleControlBridge(
         eventSink?.success(snapshot())
     }
 
+    private fun emitButtonEvent(event: Map<String, Any?>) {
+        val sink = eventSink
+        if (sink != null) {
+            sink.success(event)
+            return
+        }
+        while (bufferedButtonEvents.size >= MAX_BUFFERED_BUTTON_EVENTS) {
+            bufferedButtonEvents.removeFirst()
+        }
+        bufferedButtonEvents.addLast(event)
+    }
+
+    /** Reopens the last verified H20 GATT link after service/process recovery. */
+    fun onBackgroundSessionStarted() {
+        mainHandler.post {
+            if (disposed || bluetoothGatt != null ||
+                phase == "connecting" || phase == "reconnecting" ||
+                !hasPermissions() || adapter?.isEnabled != true
+            ) {
+                return@post
+            }
+            val savedId = runtimePreferences.getString(LAST_DEVICE_ID, null)
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() }
+                ?: return@post
+            val device = runCatching { adapter?.getRemoteDevice(savedId) }.getOrNull()
+                ?: return@post
+            deviceId = savedId
+            deviceName = runtimePreferences.getString(LAST_DEVICE_NAME, null)
+                ?: runCatching { device.name }.getOrNull()
+                ?: "H20"
+            shouldReconnect = true
+            reconnectAttempts = 0
+            phase = "reconnecting"
+            message = "Đang khôi phục kết nối H20…"
+            emitStatus()
+            openGatt(device)
+        }
+    }
+
+    /** Stops service-owned BLE without forgetting the parent's verified H20. */
+    fun onBackgroundSessionStopped() {
+        mainHandler.post {
+            if (disposed) return@post
+            shouldReconnect = false
+            reconnectAttempts = 0
+            closeGatt()
+            phase = "idle"
+            message = "Phiên HOMI nền đã dừng."
+            emitStatus()
+        }
+    }
+
     fun dispose() {
         if (disposed) return
         disposed = true
+        mediaKeyObserver.dispose()
         shouldReconnect = false
         mainHandler.removeCallbacksAndMessages(null)
         stopScan(complete = false)
@@ -706,6 +917,8 @@ class Aiv0BleControlBridge(
         pendingWriteResult = null
         permissionResult?.error("DISPOSED", "BLE Control đã đóng.", null)
         permissionResult = null
+        enableBluetoothResult?.error("DISPOSED", "BLE Control đã đóng.", null)
+        enableBluetoothResult = null
         closeGatt()
         methodChannel.setMethodCallHandler(null)
         eventChannel.setStreamHandler(null)
@@ -727,6 +940,9 @@ class Aiv0BleControlBridge(
             "advertisesControlService" to advertisesControlService,
         )
     }
+
+    private fun isObservedH20MainPacket(value: ByteArray): Boolean =
+        H20ControlObservation.isObservedMainPacket(value)
 
     private fun ByteArray.toHex(): String = joinToString(" ") {
         (it.toInt() and 0xFF).toString(16).padStart(2, '0').uppercase(Locale.ROOT)

@@ -1,18 +1,24 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
 import '../../../app/learning_scenery.dart';
+import '../../../core/audio/voice_prompt_service.dart';
+import '../../../core/audio/learning_audio_dependencies.dart';
 import '../../../l10n/display_language.dart';
-import '../../conversation/presentation/conversation_controller.dart';
+import '../../../app/homi_bottom_navigation.dart';
+import '../../../core/navigation/active_learning_navigation.dart';
 import '../application/lesson_media_service.dart';
 import '../data/listening_progress_store.dart';
+import '../data/active_listening_session_store.dart';
 import '../domain/listening_catalog.dart';
+import '../domain/listening_audio_keys.dart';
 import '../domain/listening_content.dart';
+import '../domain/listening_curriculum_flow.dart';
 import 'lesson_intro_screen.dart';
 import 'lesson_recording_history_sheet.dart';
-import 'listening_navigation_bar.dart';
 import 'song_karaoke_screen.dart';
 
 class TopicLessonListScreen extends StatefulWidget {
@@ -22,13 +28,21 @@ class TopicLessonListScreen extends StatefulWidget {
     required this.endAge,
     required this.topic,
     required this.content,
+    this.contentGroup,
+    this.levelContent,
     this.controller,
+    this.onMainPressed,
+    this.onVocabularyRequested,
     this.onVoiceNavigationPause,
     this.onVoiceNavigationResume,
     this.progressStore = const ListeningProgressStore(),
     this.mediaService,
+    this.voicePromptService,
     this.initialLessonNumber,
+    this.relearnInitialLesson = false,
+    this.relearnTopicSequence = false,
     this.onTopicCompleted,
+    this.onCommunicationRequested,
     super.key,
   });
 
@@ -37,13 +51,21 @@ class TopicLessonListScreen extends StatefulWidget {
   final int endAge;
   final ListeningTopic topic;
   final ListeningTopicContent content;
-  final ConversationController? controller;
+  final ListeningContentAgeGroup? contentGroup;
+  final ListeningLevelContent? levelContent;
+  final LearningAudioDependencies? controller;
+  final Future<void> Function()? onMainPressed;
+  final VoidCallback? onVocabularyRequested;
   final Future<void> Function()? onVoiceNavigationPause;
   final VoidCallback? onVoiceNavigationResume;
   final ListeningProgressStore progressStore;
   final LessonMediaService? mediaService;
+  final VoicePromptService? voicePromptService;
   final int? initialLessonNumber;
+  final bool relearnInitialLesson;
+  final bool relearnTopicSequence;
   final VoidCallback? onTopicCompleted;
+  final VoidCallback? onCommunicationRequested;
 
   bool get showsSongs => startAge >= 6 && content.songs.isNotEmpty;
 
@@ -53,16 +75,30 @@ class TopicLessonListScreen extends StatefulWidget {
 
 class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
   late final LessonMediaService _mediaService;
-  late Future<Map<String, int>> _progressFuture;
+  late Future<_TopicLessonProgressSnapshot> _progressFuture;
   late final bool _ownsMediaService;
+  late final VoicePromptService _voicePromptService;
+  late final bool _ownsVoicePromptService;
   bool _initialLessonOpened = false;
 
   @override
   void initState() {
     super.initState();
     _ownsMediaService = widget.mediaService == null;
-    _mediaService = widget.mediaService ?? LessonMediaService();
-    _progressFuture = widget.progressStore.readAll();
+    _mediaService =
+        widget.mediaService ??
+        LessonMediaService(
+          hfpAudioControl: widget.controller?.createLearningAudioRouteControl(),
+          audioTurnCoordinator: widget.controller?.audioTurnCoordinator,
+        );
+    _ownsVoicePromptService = widget.voicePromptService == null;
+    _voicePromptService =
+        widget.voicePromptService ??
+        createVoicePromptService(
+          coordinator: widget.controller?.audioTurnCoordinator,
+          owner: AudioTurnOwner.listeningLesson,
+        );
+    _progressFuture = _loadProgress();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_openInitialLesson());
     });
@@ -70,10 +106,69 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
 
   @override
   void dispose() {
+    if (_ownsVoicePromptService) {
+      unawaited(_voicePromptService.dispose());
+    }
     if (_ownsMediaService) {
       _mediaService.dispose();
     }
     super.dispose();
+  }
+
+  Future<void> _speakOnSelectedLessonOutput(
+    String text, {
+    String locale = 'vi-VN',
+    String? audioKey,
+  }) async {
+    final prompt = _voicePromptService;
+    if (!kIsWeb && prompt is SelectedMediaOutputVoicePromptService) {
+      await _mediaService.prepareSelectedLessonOutput();
+      if (!mounted) return;
+      if (audioKey != null &&
+          prompt is KeyedSelectedMediaOutputVoicePromptService) {
+        await (prompt as KeyedSelectedMediaOutputVoicePromptService)
+            .speakAndWaitOnSelectedMediaOutputWithAudioKey(
+              audioKey,
+              text,
+              locale: locale,
+            );
+        return;
+      }
+      await (prompt as SelectedMediaOutputVoicePromptService)
+          .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
+      return;
+    }
+    if (audioKey != null && prompt is KeyedVoicePromptService) {
+      await (prompt as KeyedVoicePromptService).speakAndWaitWithAudioKey(
+        audioKey,
+        text,
+        locale: locale,
+      );
+      return;
+    }
+    await prompt.speakAndWait(text, locale: locale);
+  }
+
+  Future<_TopicLessonProgressSnapshot> _loadProgress() async {
+    final lessonProgress = await widget.progressStore.readAll();
+    final completedV4LessonActivities = await widget.progressStore
+        .readCompletedV4LessonActivities();
+    return _TopicLessonProgressSnapshot(
+      lessonProgress: lessonProgress,
+      completedV4LessonActivities: completedV4LessonActivities,
+    );
+  }
+
+  bool _isLessonCompleted(
+    ListeningLessonContent lesson,
+    int completedSentences,
+    Set<String> completedV4LessonActivities,
+  ) {
+    final completedCore =
+        completedSentences >= lesson.sentences.length &&
+        lesson.sentences.isNotEmpty;
+    return completedCore &&
+        (!lesson.usesV4Flow || completedV4LessonActivities.contains(lesson.id));
   }
 
   @override
@@ -84,151 +179,212 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
         key: const Key('topic-lesson-list-screen'),
         backgroundColor: Colors.transparent,
         body: LearningScenery(
-          child: SafeArea(
-            bottom: false,
-            child: FutureBuilder<Map<String, int>>(
-              future: _progressFuture,
-              builder: (context, snapshot) {
-                final progress = snapshot.data ?? const <String, int>{};
-                return CustomScrollView(
-                  slivers: <Widget>[
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                      sliver: SliverToBoxAdapter(
-                        child: _Header(onBack: _goBack),
-                      ),
-                    ),
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
-                      sliver: SliverToBoxAdapter(
-                        child: _TopicHero(widget: widget),
-                      ),
-                    ),
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
-                      sliver: SliverToBoxAdapter(
-                        child: Row(
-                          children: <Widget>[
-                            const Icon(
-                              Icons.auto_awesome_rounded,
-                              color: AppColors.periwinkle,
-                              size: 22,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                context.tr('Hành trình học', '学习旅程'),
-                                style: Theme.of(context).textTheme.titleLarge,
+          overlayOpacity: 0.36,
+          child: Stack(
+            children: <Widget>[
+              SafeArea(
+                bottom: false,
+                child: FutureBuilder<_TopicLessonProgressSnapshot>(
+                  future: _progressFuture,
+                  builder: (context, snapshot) {
+                    final progress =
+                        snapshot.data ??
+                        const _TopicLessonProgressSnapshot.empty();
+                    return CustomScrollView(
+                      slivers: <Widget>[
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                          sliver: SliverToBoxAdapter(
+                            child: _Header(
+                              title: context.tr(
+                                widget.content.titleVi,
+                                widget.topic.titleZh,
                               ),
+                              titleEn: widget.content.titleEn,
+                              onBack: _goBack,
                             ),
-                            const Icon(
-                              Icons.star_rounded,
-                              color: Color(0xFFFFC75B),
-                              size: 23,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-                      sliver: SliverList.separated(
-                        itemCount: widget.content.lessons.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final lesson = widget.content.lessons[index];
-                          final completed = (progress[lesson.id] ?? 0).clamp(
-                            0,
-                            lesson.sentences.length,
-                          );
-                          return _LessonPathCard(
-                            key: ValueKey('lesson-${lesson.id}'),
-                            lesson: lesson,
-                            completedSentences: completed,
-                            isLast: index == widget.content.lessons.length - 1,
-                            onPressed: () => _startLesson(
-                              lesson,
-                              reviewFromBeginning:
-                                  lesson.sentences.isNotEmpty &&
-                                  completed >= lesson.sentences.length,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    if (widget.showsSongs) ...<Widget>[
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-                        sliver: SliverToBoxAdapter(
-                          child: Row(
-                            children: <Widget>[
-                              const Icon(
-                                Icons.music_note_rounded,
-                                color: AppColors.coral,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  context.tr('Bài hát & chant', '歌曲与节奏歌'),
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                              ),
-                              Text(
-                                context.tr(
-                                  '${widget.content.songs.length} bài',
-                                  '${widget.content.songs.length} 首',
-                                ),
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(color: AppColors.muted),
-                              ),
-                            ],
                           ),
                         ),
-                      ),
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-                        sliver: SliverList.separated(
-                          itemCount: widget.content.songs.length,
-                          separatorBuilder: (_, _) =>
-                              const SizedBox(height: 12),
-                          itemBuilder: (context, index) {
-                            final song = widget.content.songs[index];
-                            final completed = (progress[song.id] ?? 0).clamp(
-                              0,
-                              song.sentences.length,
-                            );
-                            return _LessonPathCard(
-                              key: ValueKey('song-${song.id}'),
-                              lesson: song,
-                              completedSentences: completed,
-                              isLast: index == widget.content.songs.length - 1,
-                              onPressed: () => _startLesson(
-                                song,
-                                reviewFromBeginning:
-                                    song.sentences.isNotEmpty &&
-                                    completed >= song.sentences.length,
-                              ),
-                            );
-                          },
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                          sliver: SliverToBoxAdapter(
+                            child: _TopicHero(widget: widget),
+                          ),
                         ),
-                      ),
-                    ],
-                  ],
-                );
-              },
-            ),
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(20, 22, 20, 10),
+                          sliver: SliverToBoxAdapter(
+                            child: Text(
+                              context.tr('Hành trình học', '学习旅程'),
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(
+                                    color: AppColors.indigoDark,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                            ),
+                          ),
+                        ),
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 42),
+                          sliver: SliverList.separated(
+                            itemCount: widget.content.lessons.length,
+                            separatorBuilder: (_, _) => Divider(
+                              height: 1,
+                              indent: 72,
+                              color:
+                                  Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Theme.of(context).colorScheme.outlineVariant
+                                  : AppColors.mintBorder,
+                            ),
+                            itemBuilder: (context, index) {
+                              final lesson = widget.content.lessons[index];
+                              final completed =
+                                  (progress.lessonProgress[lesson.id] ?? 0)
+                                      .clamp(0, lesson.sentences.length);
+                              final lessonCompleted = _isLessonCompleted(
+                                lesson,
+                                completed,
+                                progress.completedV4LessonActivities,
+                              );
+                              final lessonUnlocked =
+                                  ListeningCurriculumFlow.lessonUnlocked(
+                                    widget.content,
+                                    index,
+                                    progress.lessonProgress,
+                                    progress.completedV4LessonActivities,
+                                  );
+                              return _LessonPathCard(
+                                key: ValueKey('lesson-${lesson.id}'),
+                                lesson: lesson,
+                                completedSentences: completed,
+                                isCompleted: lessonCompleted,
+                                isLocked: !lessonUnlocked,
+                                needsV4Challenge:
+                                    lesson.usesV4Flow &&
+                                    completed >= lesson.sentences.length &&
+                                    !lessonCompleted,
+                                isLast:
+                                    index == widget.content.lessons.length - 1,
+                                onPressed: () => _startLesson(
+                                  lesson,
+                                  reviewFromBeginning:
+                                      lesson.sentences.isNotEmpty &&
+                                      lessonCompleted,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        if (widget.showsSongs) ...<Widget>[
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+                            sliver: SliverToBoxAdapter(
+                              child: Row(
+                                children: <Widget>[
+                                  const Icon(
+                                    Icons.music_note_rounded,
+                                    color: AppColors.coral,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      context.tr('Bài hát & chant', '歌曲与节奏歌'),
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleLarge,
+                                    ),
+                                  ),
+                                  Text(
+                                    context.tr(
+                                      '${widget.content.songs.length} bài',
+                                      '${widget.content.songs.length} 首',
+                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(color: AppColors.muted),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+                            sliver: SliverList.separated(
+                              itemCount: widget.content.songs.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(height: 12),
+                              itemBuilder: (context, index) {
+                                final song = widget.content.songs[index];
+                                final completed =
+                                    (progress.lessonProgress[song.id] ?? 0)
+                                        .clamp(0, song.sentences.length);
+                                final lessonCompleted = _isLessonCompleted(
+                                  song,
+                                  completed,
+                                  progress.completedV4LessonActivities,
+                                );
+                                return _LessonPathCard(
+                                  key: ValueKey('song-${song.id}'),
+                                  lesson: song,
+                                  completedSentences: completed,
+                                  isCompleted: lessonCompleted,
+                                  isLocked: false,
+                                  needsV4Challenge:
+                                      song.usesV4Flow &&
+                                      completed >= song.sentences.length &&
+                                      !lessonCompleted,
+                                  isLast:
+                                      index == widget.content.songs.length - 1,
+                                  onPressed: () => _startLesson(
+                                    song,
+                                    reviewFromBeginning:
+                                        song.sentences.isNotEmpty &&
+                                        lessonCompleted,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ),
-        bottomNavigationBar: ListeningNavigationBar(
-          onCommunication: () =>
-              Navigator.of(context).popUntil((route) => route.isFirst),
-          onHistory: _showHistory,
+        bottomNavigationBar: KeyedSubtree(
+          key: const Key('listening-bottom-navigation'),
+          child: HomiBottomNavigation(
+            selectedIndex: 1,
+            onConversation: () =>
+                Navigator.of(context).popUntil((route) => route.isFirst),
+            onTopics: _goBack,
+            onMain: widget.onMainPressed == null
+                ? null
+                : () => unawaited(widget.onMainPressed!()),
+            onVocabulary: _openVocabulary,
+            onHistory: _showHistory,
+            conversationKey: const Key('listening-conversation-tab'),
+            topicsKey: const Key('listening-topics-tab'),
+            mainKey: const Key('listening-main-button'),
+            vocabularyKey: const Key('listening-vocabulary-tab'),
+            historyKey: const Key('listening-history-tab'),
+          ),
         ),
       ),
     );
   }
 
   void _goBack() => Navigator.of(context).pop();
+
+  void _openVocabulary() {
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    widget.onVocabularyRequested?.call();
+  }
 
   Future<void> _openInitialLesson() async {
     final lessonNumber = widget.initialLessonNumber;
@@ -251,7 +407,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
         SnackBar(
           content: Text(
             context.tr(
-              'Chủ đề này chưa có Bài $lessonNumber. Con hãy chọn một bài đang hiển thị nhé.',
+              'Chủ đề này chưa có Bài $lessonNumber. Bạn hãy chọn một bài đang hiển thị nhé.',
               '这个主题还没有第 $lessonNumber 课，请选择当前显示的课程。',
             ),
           ),
@@ -259,19 +415,63 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
       );
       return;
     }
-    await _startLesson(lesson, reviewFromBeginning: false);
+    await _startLesson(
+      lesson,
+      reviewFromBeginning: widget.relearnInitialLesson,
+    );
   }
 
   Future<void> _startLesson(
     ListeningLessonContent lesson, {
     required bool reviewFromBeginning,
   }) async {
+    final pendingRelearn = await widget.progressStore.hasLessonPendingRelearn(
+      lesson.id,
+    );
+    final startFromBeginning = reviewFromBeginning || pendingRelearn;
+    final lessonIndex = widget.content.lessons.indexWhere(
+      (candidate) => candidate.id == lesson.id,
+    );
+    if (lessonIndex > 0) {
+      final progress = await _loadProgress();
+      final unlocked = ListeningCurriculumFlow.lessonUnlocked(
+        widget.content,
+        lessonIndex,
+        progress.lessonProgress,
+        progress.completedV4LessonActivities,
+      );
+      if (!unlocked) {
+        final previous = widget.content.lessons[lessonIndex - 1];
+        final message = 'Bạn cần học xong Bài ${previous.number} trước nhé.';
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(message)));
+        }
+        await _speakOnSelectedLessonOutput(
+          message,
+          audioKey: ListeningAudioKeys.lockedLesson(previous.number),
+        );
+        return;
+      }
+    }
+    unawaited(
+      const ActiveListeningSessionStore().save(
+        childAge: widget.startAge,
+        topicNumber: widget.content.number,
+        lessonNumber: lesson.number,
+      ),
+    );
     final unlockFuture =
         shouldUseSongKaraoke(startAge: widget.startAge, lesson: lesson)
         ? _mediaService.unlockPlaybackForUserGesture()
         : null;
-    if (reviewFromBeginning) {
-      await widget.progressStore.saveCurrentSentence(lesson.id, 0);
+    if (startFromBeginning) {
+      if (lesson.usesV4Flow) {
+        await widget.progressStore.resetLessonRun(lesson.id);
+      } else {
+        await widget.progressStore.saveCurrentSentence(lesson.id, 0);
+      }
     }
     await unlockFuture;
     if (!mounted) {
@@ -282,20 +482,25 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
       if (!mounted) {
         return;
       }
-      await Navigator.of(context).push<void>(
-        MaterialPageRoute<void>(
-          builder: (_) => LessonIntroScreen(
-            language: widget.language,
-            startAge: widget.startAge,
-            endAge: widget.endAge,
-            topic: widget.topic,
-            lesson: lesson,
-            controller: widget.controller,
-            topicContent: widget.content,
-            progressStore: widget.progressStore,
-            mediaService: _mediaService,
-            onTopicCompleted: widget.onTopicCompleted,
-          ),
+      await pushForActiveLearning<void>(
+        context,
+        (_) => LessonIntroScreen(
+          language: widget.language,
+          startAge: widget.startAge,
+          endAge: widget.endAge,
+          topic: widget.topic,
+          lesson: lesson,
+          controller: widget.controller,
+          topicContent: widget.content,
+          contentGroup: widget.contentGroup,
+          levelContent: widget.levelContent,
+          progressStore: widget.progressStore,
+          mediaService: _mediaService,
+          voicePromptService: _voicePromptService,
+          relearnFromBeginning: startFromBeginning,
+          relearnTopicSequence: widget.relearnTopicSequence || pendingRelearn,
+          onTopicCompleted: widget.onTopicCompleted,
+          onCommunicationRequested: widget.onCommunicationRequested,
         ),
       );
     } finally {
@@ -307,7 +512,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
       return;
     }
     setState(() {
-      _progressFuture = widget.progressStore.readAll();
+      _progressFuture = _loadProgress();
     });
   }
 
@@ -336,8 +541,14 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.onBack});
+  const _Header({
+    required this.title,
+    required this.titleEn,
+    required this.onBack,
+  });
 
+  final String title;
+  final String titleEn;
   final VoidCallback onBack;
 
   @override
@@ -346,20 +557,73 @@ class _Header extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: <Widget>[
-        IconButton(
+        IconButton.filled(
           onPressed: onBack,
           icon: const Icon(Icons.arrow_back_rounded),
           tooltip: context.tr('Quay lại', '返回'),
+          style: IconButton.styleFrom(
+            minimumSize: const Size.square(52),
+            backgroundColor: isDark
+                ? colorScheme.surfaceContainerHighest
+                : const Color(0xF8FFFDF9),
+            foregroundColor: isDark ? colorScheme.primary : AppColors.ink,
+            elevation: 3,
+            shadowColor: const Color(0x24142451),
+          ),
         ),
-        const Spacer(),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              if (titleEn.trim().isNotEmpty)
+                Text(
+                  titleEn,
+                  key: const Key('topic-header-english-title'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: isDark
+                        ? colorScheme.onSurface
+                        : AppColors.indigoDark,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              if (titleEn.trim().isNotEmpty) const SizedBox(height: 1),
+              Text(
+                title,
+                key: const Key('topic-header-localized-title'),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: isDark
+                      ? colorScheme.onSurfaceVariant
+                      : AppColors.ink.withValues(alpha: 0.72),
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 10),
         Container(
-          width: 48,
-          height: 48,
+          width: 52,
+          height: 52,
           decoration: BoxDecoration(
             color: isDark
                 ? colorScheme.surfaceContainerHighest
-                : AppColors.lavender,
+                : const Color(0xF8FFFDF9),
             shape: BoxShape.circle,
+            boxShadow: const <BoxShadow>[
+              BoxShadow(
+                color: Color(0x24142451),
+                blurRadius: 16,
+                offset: Offset(0, 7),
+              ),
+            ],
           ),
           child: Icon(
             Icons.person_rounded,
@@ -371,6 +635,20 @@ class _Header extends StatelessWidget {
   }
 }
 
+class _TopicLessonProgressSnapshot {
+  const _TopicLessonProgressSnapshot({
+    required this.lessonProgress,
+    required this.completedV4LessonActivities,
+  });
+
+  const _TopicLessonProgressSnapshot.empty()
+    : lessonProgress = const <String, int>{},
+      completedV4LessonActivities = const <String>{};
+
+  final Map<String, int> lessonProgress;
+  final Set<String> completedV4LessonActivities;
+}
+
 class _TopicHero extends StatelessWidget {
   const _TopicHero({required this.widget});
 
@@ -379,21 +657,23 @@ class _TopicHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = widget.content;
+    final songLessonCount =
+        content.lessons.where((lesson) => lesson.hasV4SongStage).length +
+        content.songs.length;
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Text(
-          context.tr(content.titleVi, widget.topic.titleZh),
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-        const SizedBox(height: 14),
         AspectRatio(
-          aspectRatio: 1.58,
+          aspectRatio: 1.45,
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(54),
+              topRight: Radius.circular(76),
+              bottomLeft: Radius.circular(68),
+              bottomRight: Radius.circular(44),
+            ),
             child: ColoredBox(
               color: widget.topic.background,
               child: widget.topic.imagePath == null
@@ -410,7 +690,7 @@ class _TopicHero extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         if (widget.showsSongs) ...<Widget>[
           Align(
             alignment: Alignment.center,
@@ -437,10 +717,16 @@ class _TopicHero extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
           decoration: BoxDecoration(
-            color: isDark
-                ? colorScheme.surfaceContainer
-                : AppColors.lavenderSoft,
-            borderRadius: BorderRadius.circular(18),
+            color: isDark ? colorScheme.surfaceContainer : Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: <BoxShadow>[
+              if (!isDark)
+                const BoxShadow(
+                  color: Color(0x14244883),
+                  blurRadius: 18,
+                  offset: Offset(0, 8),
+                ),
+            ],
           ),
           child: Row(
             children: <Widget>[
@@ -506,6 +792,49 @@ class _TopicHero extends StatelessWidget {
                   ],
                 ),
               ),
+              if (songLessonCount > 0) ...<Widget>[
+                SizedBox(
+                  height: 22,
+                  child: VerticalDivider(
+                    color: isDark
+                        ? colorScheme.outlineVariant
+                        : AppColors.lavenderBorder,
+                  ),
+                ),
+                Expanded(
+                  child: Row(
+                    key: const Key('topic-song-count'),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Icon(
+                        Icons.music_note_rounded,
+                        color: isDark
+                            ? colorScheme.primary
+                            : AppColors.accentPink,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 5),
+                      Flexible(
+                        child: Text(
+                          context.tr(
+                            '$songLessonCount bài hát',
+                            '$songLessonCount 首歌曲',
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: isDark
+                                ? colorScheme.onSurface
+                                : AppColors.ink,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -518,6 +847,9 @@ class _LessonPathCard extends StatelessWidget {
   const _LessonPathCard({
     required this.lesson,
     required this.completedSentences,
+    required this.isCompleted,
+    required this.isLocked,
+    required this.needsV4Challenge,
     required this.isLast,
     required this.onPressed,
     super.key,
@@ -525,6 +857,9 @@ class _LessonPathCard extends StatelessWidget {
 
   final ListeningLessonContent lesson;
   final int completedSentences;
+  final bool isCompleted;
+  final bool isLocked;
+  final bool needsV4Challenge;
   final bool isLast;
   final VoidCallback onPressed;
 
@@ -534,25 +869,20 @@ class _LessonPathCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final total = lesson.sentences.length;
     final progress = total == 0 ? 0.0 : completedSentences / total;
-    final completed = total > 0 && completedSentences >= total;
+    final completed = isCompleted;
+    final hasSong =
+        lesson.hasV4SongStage || lesson.type == ListeningLessonType.song;
     return Semantics(
       button: true,
-      label: 'Bài ${lesson.number}, ${lesson.titleVi}',
+      label: 'Bài ${lesson.number}, ${lesson.titleVi}, ${lesson.titleEn}',
       child: Material(
-        color: isDark
-            ? colorScheme.surface.withValues(alpha: 0.96)
-            : AppColors.lavenderSoft,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(22),
-          side: BorderSide(
-            color: isDark ? colorScheme.outline : AppColors.lavenderBorder,
-          ),
-        ),
+        color: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onPressed,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 16, 14, 16),
+            padding: const EdgeInsets.fromLTRB(8, 14, 8, 16),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -564,7 +894,9 @@ class _LessonPathCard extends StatelessWidget {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: AppColors.indigo,
+                          color: lesson.number == 1 || completedSentences > 0
+                              ? AppColors.indigo
+                              : AppColors.softNavy,
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 3),
                           boxShadow: const <BoxShadow>[
@@ -576,12 +908,16 @@ class _LessonPathCard extends StatelessWidget {
                           ],
                         ),
                         child: Icon(
-                          lesson.type == ListeningLessonType.song
+                          isLocked
+                              ? Icons.lock_rounded
+                              : lesson.type == ListeningLessonType.song
                               ? Icons.music_note_rounded
                               : lesson.type == ListeningLessonType.dialogue
                               ? Icons.forum_rounded
                               : Icons.star_rounded,
-                          color: lesson.type == ListeningLessonType.song
+                          color: isLocked
+                              ? Colors.white
+                              : lesson.type == ListeningLessonType.song
                               ? Colors.white
                               : const Color(0xFFFFD36A),
                           size: 28,
@@ -590,7 +926,7 @@ class _LessonPathCard extends StatelessWidget {
                       if (!isLast)
                         Container(
                           width: 5,
-                          height: 126,
+                          height: 150,
                           color: AppColors.periwinkle,
                         ),
                     ],
@@ -601,13 +937,79 @@ class _LessonPathCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text(
-                        context.tr(
-                          'Bài ${lesson.number} · ${lesson.titleVi}',
-                          '第 ${lesson.number} 课 · ${lesson.titleVi}',
-                        ),
-                        style: Theme.of(context).textTheme.titleMedium,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Expanded(
+                            child: Text(
+                              lesson.titleEn.trim().isEmpty
+                                  ? context.tr(
+                                      'Bài ${lesson.number} · ${lesson.titleVi}',
+                                      '第 ${lesson.number} 课 · ${lesson.titleVi}',
+                                    )
+                                  : 'Lesson ${lesson.number} · ${lesson.titleEn}',
+                              key: ValueKey(
+                                'lesson-english-title-${lesson.id}',
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                          if (hasSong) ...<Widget>[
+                            const SizedBox(width: 8),
+                            Tooltip(
+                              message: context.tr('Có bài hát', '包含歌曲'),
+                              child: Semantics(
+                                label: context.tr('Có bài hát', '包含歌曲'),
+                                child: Container(
+                                  width: 30,
+                                  height: 30,
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? AppColors.darkPink.withValues(
+                                            alpha: 0.18,
+                                          )
+                                        : AppColors.accentPinkSoft,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.music_note_rounded,
+                                    key: ValueKey(
+                                      'lesson-song-indicator-${lesson.id}',
+                                    ),
+                                    color: isDark
+                                        ? AppColors.darkPink
+                                        : AppColors.accentPink,
+                                    size: 19,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
+                      if (lesson.titleEn.trim().isNotEmpty) ...<Widget>[
+                        const SizedBox(height: 3),
+                        Text(
+                          context.tr(
+                            'Bài ${lesson.number} · ${lesson.titleVi}',
+                            '第 ${lesson.number} 课 · ${lesson.titleVi}',
+                          ),
+                          key: ValueKey('lesson-localized-title-${lesson.id}'),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: isDark
+                                    ? colorScheme.primary
+                                    : AppColors.indigo.withValues(alpha: 0.78),
+                                fontSize: 13.5,
+                                height: 1.2,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ],
                       const SizedBox(height: 7),
                       Wrap(
                         spacing: 10,
@@ -649,7 +1051,7 @@ class _LessonPathCard extends StatelessWidget {
                                 value: progress,
                                 minHeight: 7,
                                 backgroundColor: AppColors.lavenderBorder,
-                                color: AppColors.indigo,
+                                color: AppColors.accentPink,
                               ),
                             ),
                           ),
@@ -674,12 +1076,20 @@ class _LessonPathCard extends StatelessWidget {
                           child: Text(
                             context.tr(
                               completedSentences == 0
-                                  ? 'Học ngay'
+                                  ? isLocked
+                                        ? 'Chưa mở khóa'
+                                        : 'Học ngay'
+                                  : needsV4Challenge
+                                  ? 'Hoàn thành thử thách'
                                   : completed
                                   ? 'Ôn lại'
                                   : 'Học tiếp',
                               completedSentences == 0
-                                  ? '立即学习'
+                                  ? isLocked
+                                        ? '尚未解锁'
+                                        : '立即学习'
+                                  : needsV4Challenge
+                                  ? '完成挑战'
                                   : completed
                                   ? '复习'
                                   : '继续学习',

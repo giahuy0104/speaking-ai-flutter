@@ -1,0 +1,41 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\08a33c815a83a9a8bd4af33ada3b2adc119c4d17b3e40b324ce1a17e9331072e.tempo.mp3",
+      "signature": "08a33c815a83a9a8bd4af33ada3b2adc119c4d17b3e40b324ce1a17e9331072e",
+      "request": {
+        "text": "HOMI đang ở đâu nhỉ?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "8938aa44d4f212ce031e27976e17563cd2bb041ddb23341e1403eab6d8ca464a",
+      "requestId": "dq1FnTJfFU4y3bGFWg2V",
+      "createdAt": "2026-09-15T23:18:16.676Z"
+    }
+  ],
+  "id": "LESSON-19E4FCF1B5BC766CDCE6DC72",
+  "text": "HOMI đang ở đâu nhỉ?",
+  "asset": "assets/audio/CURRICULUM/19e4fcf1b5bc766cdce6dc72.vi.v1.mp3",
+  "sha256": "6b6474ee2aa658e049aa389f75f56921d9169138a2020d06aa7f45c7c4389850",
+  "durationSeconds": 1.579955,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

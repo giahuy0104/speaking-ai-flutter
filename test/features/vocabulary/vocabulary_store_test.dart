@@ -97,6 +97,115 @@ void main() {
     expect(entries.single.collection, VocabularyCollection.saved);
   });
 
+  test('migrates an introduced legacy parent entry as learned well', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      'innotrik.vocabulary.v1': jsonEncode(<Object>[
+        <String, Object>{
+          'id': 'legacy-learned',
+          'word': 'Apple',
+          'meaning': 'Quả táo',
+          'addedAt': DateTime(2026, 8, 14).toIso8601String(),
+          'introducedAt': DateTime(2026, 8, 15).toIso8601String(),
+        },
+      ]),
+    });
+
+    final entry = (await const VocabularyStore().read()).single;
+
+    expect(entry.status, VocabularyLearningStatus.learnedWell);
+    expect(entry.isParentAdded, isTrue);
+    expect(entry.parentState, ParentVocabularyState.unlocked);
+  });
+
+  test('migrates legacy parent data in place to the FINAL schema', () async {
+    final addedAt = DateTime(2026, 8, 14);
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      'innotrik.vocabulary.v1': jsonEncode(<Object>[
+        <String, Object>{
+          'id': 'legacy-sentence',
+          'word': 'I like red apples.',
+          'meaning': 'Con thích những quả táo đỏ.',
+          'addedAt': addedAt.toIso8601String(),
+        },
+      ]),
+    });
+
+    const store = VocabularyStore();
+    final entry = (await store.read()).single;
+
+    expect(entry.contentKind, VocabularyContentKind.sentence);
+    expect(entry.parentState, ParentVocabularyState.waiting);
+    expect(entry.todayStatus, isNull);
+    expect(entry.canParentEdit, isTrue);
+
+    final preferences = await SharedPreferences.getInstance();
+    final persisted =
+        jsonDecode(preferences.getString('innotrik.vocabulary.v1')!)
+            as List<Object?>;
+    final migrated = persisted.single as Map<String, Object?>;
+    expect(migrated['schemaVersion'], 4);
+    expect(migrated['contentKind'], 'sentence');
+    expect(migrated['parentState'], 'waiting');
+  });
+
+  test(
+    'new parent selections share a batch id and infer content kind',
+    () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      const store = VocabularyStore();
+
+      final entries = await store.addParentEntries(
+        const <VocabularyTranslation>[
+          VocabularyTranslation(englishText: 'Mad', vietnameseText: 'Tức giận'),
+          VocabularyTranslation(
+            englishText: 'I am mad.',
+            vietnameseText: 'Con đang tức giận.',
+          ),
+        ],
+        now: DateTime(2026, 9, 14, 9),
+      );
+      final parent = entries.where((entry) => entry.isParentAdded).toList();
+
+      expect(parent.map((entry) => entry.parentState).toSet(), {
+        ParentVocabularyState.waiting,
+      });
+      expect(parent.map((entry) => entry.originBatchId).toSet(), hasLength(1));
+      expect(
+        parent.map((entry) => entry.contentKind),
+        containsAll(<Object>[
+          VocabularyContentKind.word,
+          VocabularyContentKind.sentence,
+        ]),
+      );
+    },
+  );
+
+  test(
+    'allows one English word with distinct Vietnamese meanings in a batch',
+    () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      const store = VocabularyStore();
+
+      final entries = await store.addParentEntries(
+        const <VocabularyTranslation>[
+          VocabularyTranslation(englishText: 'Mad', vietnameseText: 'Tức giận'),
+          VocabularyTranslation(englishText: 'Mad', vietnameseText: 'Điên rồ'),
+          VocabularyTranslation(
+            englishText: 'I am mad.',
+            vietnameseText: 'Tôi đang tức giận.',
+          ),
+        ],
+        now: DateTime(2026, 9, 16, 9),
+      );
+
+      expect(entries, hasLength(3));
+      expect(
+        entries.map((entry) => entry.meaning),
+        containsAll(<String>['Tức giận', 'Điên rồ', 'Tôi đang tức giận.']),
+      );
+    },
+  );
+
   test(
     'marks parent vocabulary as introduced and persists the state',
     () async {
@@ -119,6 +228,32 @@ void main() {
       expect(entry.introducedAt, isNotNull);
       expect(entry.word, 'Apple');
       expect(entry.collection, VocabularyCollection.saved);
+    },
+  );
+
+  test(
+    'suggestions are capped at three and unsafe content is rejected',
+    () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      const store = VocabularyStore();
+      final options = await store
+          .filterParentSuggestions(const <VocabularyTranslation>[
+            VocabularyTranslation(englishText: 'One', vietnameseText: 'Một'),
+            VocabularyTranslation(englishText: 'Two', vietnameseText: 'Hai'),
+            VocabularyTranslation(englishText: 'Three', vietnameseText: 'Ba'),
+            VocabularyTranslation(englishText: 'Four', vietnameseText: 'Bốn'),
+          ]);
+
+      expect(options, hasLength(3));
+      await expectLater(
+        store.validateParentCandidate(
+          const VocabularyTranslation(
+            englishText: 'A shit word',
+            vietnameseText: 'Nội dung xấu',
+          ),
+        ),
+        throwsA(isA<VocabularyValidationException>()),
+      );
     },
   );
 }

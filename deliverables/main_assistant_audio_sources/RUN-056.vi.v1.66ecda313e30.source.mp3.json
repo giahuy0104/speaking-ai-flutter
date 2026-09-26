@@ -1,0 +1,20 @@
+{
+  "id": "RUN-056",
+  "signature": "66ecda313e30c98e7010f47e84c30ce4c9ff992c454da122e2933fd67fdc5514",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn muốn học Ngôi sao hay Luyện lại?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:13:01.242Z",
+  "requestId": "icJ19SD4UvjgfNPNynw7",
+  "characterCost": "20",
+  "sourceSha256": "08042151d67b75928ebd8afa9b4da822d00ee2761e7b0060ee560ee4456d0ca0"
+}

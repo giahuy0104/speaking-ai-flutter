@@ -1,12 +1,1207 @@
+import AVFoundation
 import Flutter
+@testable import Runner
+import Speech
 import UIKit
 import XCTest
 
 class RunnerTests: XCTestCase {
 
-  func testExample() {
-    // If you add code to the Runner application, consider adding tests here.
-    // See https://developer.apple.com/documentation/xctest for more information about using XCTest.
+  func testBackgroundTurnExecutionPolicyOnlyBridgesAnEnabledBackgroundInteraction() {
+    XCTAssertTrue(
+      IOSBackgroundTurnExecutionPolicy.shouldRetain(
+        backgroundLearningEnabled: true,
+        applicationIsActive: false,
+        interactionPendingOrActive: true
+      )
+    )
+    XCTAssertFalse(
+      IOSBackgroundTurnExecutionPolicy.shouldRetain(
+        backgroundLearningEnabled: false,
+        applicationIsActive: false,
+        interactionPendingOrActive: true
+      )
+    )
+    XCTAssertFalse(
+      IOSBackgroundTurnExecutionPolicy.shouldRetain(
+        backgroundLearningEnabled: true,
+        applicationIsActive: true,
+        interactionPendingOrActive: true
+      )
+    )
+    XCTAssertFalse(
+      IOSBackgroundTurnExecutionPolicy.shouldRetain(
+        backgroundLearningEnabled: true,
+        applicationIsActive: false,
+        interactionPendingOrActive: false
+      )
+    )
+
+    XCTAssertTrue(
+      IOSBackgroundTurnExecutionPolicy.shouldDeferToActiveAudio(
+        applicationIsActive: false,
+        promptActive: true,
+        speechCaptureActive: false,
+        backgroundCaptureRunning: false
+      )
+    )
+    XCTAssertTrue(
+      IOSBackgroundTurnExecutionPolicy.shouldDeferToActiveAudio(
+        applicationIsActive: false,
+        promptActive: false,
+        speechCaptureActive: true,
+        backgroundCaptureRunning: false
+      )
+    )
+    XCTAssertFalse(
+      IOSBackgroundTurnExecutionPolicy.shouldDeferToActiveAudio(
+        applicationIsActive: true,
+        promptActive: true,
+        speechCaptureActive: true,
+        backgroundCaptureRunning: true
+      )
+    )
+    XCTAssertFalse(
+      IOSBackgroundTurnExecutionPolicy.shouldDeferToActiveAudio(
+        applicationIsActive: false,
+        promptActive: false,
+        speechCaptureActive: false,
+        backgroundCaptureRunning: false
+      )
+    )
+    XCTAssertTrue(
+      IOSBackgroundTurnExecutionPolicy.shouldDeferToActiveAudio(
+        applicationIsActive: false,
+        promptActive: false,
+        speechCaptureActive: false,
+        backgroundCaptureRunning: true
+      )
+    )
+  }
+
+  func testBackgroundAudioHandoffOnlyStaysWarmOutsideForeground() {
+    XCTAssertTrue(
+      IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
+        backgroundLearningEnabled: true,
+        applicationIsActive: false
+      )
+    )
+    XCTAssertFalse(
+      IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
+        backgroundLearningEnabled: false,
+        applicationIsActive: false
+      )
+    )
+    XCTAssertFalse(
+      IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
+        backgroundLearningEnabled: true,
+        applicationIsActive: true
+      )
+    )
+  }
+
+  func testAiv0PendingButtonBufferIsBoundedAndDrainsChronologically() throws {
+    var buffer = Aiv0PendingButtonEventBuffer(capacity: 2)
+
+    buffer.append(["sequence": 1])
+    buffer.append(["sequence": 2])
+    buffer.append(["sequence": 3])
+
+    XCTAssertEqual(buffer.count, 2)
+    let drained = buffer.drain()
+    XCTAssertEqual(drained.compactMap { $0["sequence"] as? Int }, [2, 3])
+    XCTAssertEqual(buffer.count, 0)
+  }
+
+  func testAiv0ReconnectPolicyRecoversMainImmediatelyThenUsesBoundedBackoff() {
+    XCTAssertEqual(Aiv0ReconnectPolicy.maxAttempts, 5)
+    XCTAssertEqual(Aiv0ReconnectPolicy.delaySeconds(forAttempt: 1), 0)
+    XCTAssertEqual(Aiv0ReconnectPolicy.delaySeconds(forAttempt: 2), 0.25)
+    XCTAssertEqual(Aiv0ReconnectPolicy.delaySeconds(forAttempt: 3), 0.75)
+    XCTAssertEqual(Aiv0ReconnectPolicy.delaySeconds(forAttempt: 4), 1.5)
+    XCTAssertEqual(Aiv0ReconnectPolicy.delaySeconds(forAttempt: 5), 3)
+  }
+
+  func testIOSSpeechStopSalvagePolicyPreservesOnlyStopTimePartialText() {
+    XCTAssertEqual(
+      IOSSpeechStopSalvagePolicy.transcript(
+        stopping: true,
+        latestText: "  Con muốn đi sở thú  "
+      ),
+      "Con muốn đi sở thú"
+    )
+    XCTAssertNil(
+      IOSSpeechStopSalvagePolicy.transcript(
+        stopping: true,
+        latestText: "   "
+      )
+    )
+    XCTAssertNil(
+      IOSSpeechStopSalvagePolicy.transcript(
+        stopping: false,
+        latestText: "Con muốn đi sở thú"
+      )
+    )
+  }
+
+  func testAiv0DuplicatePacketFilterUsesAndroidParityWindow() {
+    var filter = Aiv0DuplicatePacketFilter()
+
+    XCTAssertFalse(filter.register(bytes: [0x01, 0x01], uptimeMilliseconds: 1_000))
+    XCTAssertTrue(filter.register(bytes: [0x01, 0x01], uptimeMilliseconds: 1_750))
+    XCTAssertEqual(filter.duplicateCount, 1)
+    XCTAssertFalse(filter.register(bytes: [0x01, 0x02], uptimeMilliseconds: 1_800))
+
+    filter.resetWindow()
+    XCTAssertFalse(filter.register(bytes: [0x01, 0x02], uptimeMilliseconds: 1_900))
+    XCTAssertEqual(filter.duplicateCount, 1)
+  }
+
+  func testAiv0DuplicatePacketFilterCollapsesObservedH20MainBurst() {
+    var filter = Aiv0DuplicatePacketFilter()
+    let packets: [[UInt8]] = [
+      [0x01, 0x01, 0x06, 0x01, 0x01, 0x00, 0x39, 0x00, 0x83, 0x8C, 0x03, 0x00],
+      [0x01, 0x01, 0x07, 0x01, 0x01, 0x00, 0x39, 0x00, 0x2B, 0x8F, 0x03, 0x00],
+      [0x01, 0x01, 0x08, 0x01, 0x01, 0x00, 0x39, 0x00, 0xF3, 0x8F, 0x03, 0x00],
+      [0x01, 0x01, 0x09, 0x01, 0x01, 0x00, 0x39, 0x00, 0xBB, 0x90, 0x03, 0x00],
+      [0x01, 0x01, 0x0A, 0x01, 0x01, 0x00, 0x39, 0x00, 0x4B, 0x92, 0x03, 0x00],
+    ]
+
+    XCTAssertFalse(filter.register(bytes: packets[0], uptimeMilliseconds: 1_000))
+    for (index, packet) in packets.dropFirst().enumerated() {
+      XCTAssertTrue(
+        filter.register(
+          bytes: packet,
+          uptimeMilliseconds: 1_200 + TimeInterval(index * 200)
+        )
+      )
+    }
+    XCTAssertEqual(filter.duplicateCount, 4)
+
+    XCTAssertFalse(filter.register(bytes: packets[0], uptimeMilliseconds: 2_751))
+  }
+
+  func testAiv0DuplicatePacketFilterAcceptsANewMainAfterTheQuietWindow() {
+    var filter = Aiv0DuplicatePacketFilter()
+    let mainPacket: [UInt8] = [
+      0x01, 0x01, 0x10, 0x01, 0x01, 0x00, 0x39, 0x00, 0x00, 0x10, 0x00, 0x00,
+    ]
+
+    XCTAssertFalse(filter.register(bytes: mainPacket, uptimeMilliseconds: 1_000))
+    XCTAssertTrue(filter.register(bytes: mainPacket, uptimeMilliseconds: 1_750))
+    XCTAssertFalse(filter.register(bytes: mainPacket, uptimeMilliseconds: 2_501))
+    XCTAssertEqual(filter.duplicateCount, 1)
+  }
+
+  func testH20RemoteControlsRequireForegroundH20AndAnExplicitContext() {
+    XCTAssertTrue(
+      H20RemoteControlPolicy.shouldListen(
+        applicationIsActive: true,
+        learningActive: true,
+        diagnosticsActive: false,
+        bluetoothPortNames: ["H20"]
+      )
+    )
+    XCTAssertFalse(
+      H20RemoteControlPolicy.shouldListen(
+        applicationIsActive: false,
+        learningActive: true,
+        diagnosticsActive: true,
+        bluetoothPortNames: ["H20 Hands-Free"]
+      )
+    )
+    XCTAssertFalse(
+      H20RemoteControlPolicy.shouldListen(
+        applicationIsActive: true,
+        learningActive: false,
+        diagnosticsActive: false,
+        bluetoothPortNames: ["H20"]
+      )
+    )
+    XCTAssertFalse(
+      H20RemoteControlPolicy.shouldListen(
+        applicationIsActive: true,
+        learningActive: true,
+        diagnosticsActive: true,
+        bluetoothPortNames: ["AirPods Pro"]
+      )
+    )
+    XCTAssertTrue(
+      H20RemoteControlPolicy.shouldListen(
+        applicationIsActive: true,
+        learningActive: false,
+        diagnosticsActive: true,
+        bluetoothPortNames: ["H20 Stereo"]
+      )
+    )
+  }
+
+  func testH20RemoteControlsNeverInventAPhysicalButtonOrBLEPacket() {
+    for command in ["play", "pause", "togglePlayPause", "nextTrack", "previousTrack"] {
+      let event = H20RemoteControlPolicy.observation(
+        command: command,
+        receivedAtEpochMs: 123
+      )
+      XCTAssertEqual(event["type"] as? String, "controlObservation")
+      XCTAssertEqual(event["source"] as? String, "iosRemoteCommand")
+      XCTAssertEqual(event["mediaCommand"] as? String, command)
+      XCTAssertEqual(event["rawPayload"] as? String, command)
+      XCTAssertEqual(event["button"] as? String, "unknown")
+      XCTAssertEqual(event["gesture"] as? String, "unknown")
+      XCTAssertEqual(event["protocol"] as? String, "unknown")
+      XCTAssertEqual(event["receivedAtEpochMs"] as? Int, 123)
+      XCTAssertNil(event["bytes"])
+      XCTAssertNil(event["sequence"])
+    }
+  }
+
+  func testH20BLEDiagnosticsDescribeOnlyObservedMainShort() {
+    let blePacket: [UInt8] = [
+      0x01, 0x01, 0x19, 0x01, 0x01, 0x00, 0x37, 0x00, 0x10, 0x04, 0x00, 0x00,
+    ]
+    let event = H20BleControlObservation.fields(for: blePacket)
+    XCTAssertEqual(event["button"] as? String, "main")
+    XCTAssertEqual(event["gesture"] as? String, "shortPress")
+    XCTAssertEqual(event["protocol"] as? String, "observedV1")
+    XCTAssertEqual(event["sequence"] as? Int, 0x19)
+    XCTAssertEqual(H20BleControlObservation.batteryPercent(blePacket), 55)
+    XCTAssertEqual(event["rawPayload"] as? String, "01 01 19 01 01 00 37 00 10 04 00 00")
+  }
+
+  func testH20BLEDiagnosticsKeepDraftAndMalformedPacketsUnknown() {
+    let packets: [[UInt8]] = [
+      [],
+      [0x01, 0x01],
+      [0x01, 0x01, 0x19, 0x02, 0x01, 0x00, 0x37, 0x00, 0x10, 0x04, 0x00, 0x00],
+      [0x01, 0x02, 0x19, 0x01, 0x01, 0x00, 0x37, 0x00, 0x10, 0x04, 0x00, 0x00],
+      [0xA5, 0x01, 0x01, 0x01, 0x01, 0x00, 0x37, 0x00, 0x10, 0x04, 0x00, 0x00],
+    ]
+    for packet in packets {
+      let event = H20BleControlObservation.fields(for: packet)
+      XCTAssertEqual(event["button"] as? String, "unknown")
+      XCTAssertEqual(event["gesture"] as? String, "unknown")
+      XCTAssertEqual(event["protocol"] as? String, "unknown")
+      XCTAssertNil(event["sequence"])
+      XCTAssertEqual(
+        event["rawPayload"] as? String,
+        packet.map { String(format: "%02X", $0) }.joined(separator: " ")
+      )
+    }
+  }
+
+  func testAiv0ReconnectPolicyCapsBackoffAfterTheFifthAttempt() {
+    XCTAssertEqual(Aiv0ReconnectPolicy.maxAttempts, 5)
+    XCTAssertEqual(Aiv0ReconnectPolicy.delaySeconds(forAttempt: 5), 3)
+    XCTAssertEqual(Aiv0ReconnectPolicy.delaySeconds(forAttempt: 6), 3)
+  }
+
+  func testAiv0DisconnectRecoveryDoesNotFightCoreBluetoothAutoReconnect() {
+    XCTAssertEqual(
+      Aiv0DisconnectRecoveryPolicy.nextStep(
+        manualDisconnect: false,
+        disposed: false,
+        systemIsReconnecting: true
+      ),
+      .waitForSystem
+    )
+    XCTAssertEqual(
+      Aiv0DisconnectRecoveryPolicy.nextStep(
+        manualDisconnect: false,
+        disposed: false,
+        systemIsReconnecting: false
+      ),
+      .scheduleManualReconnect
+    )
+    XCTAssertEqual(
+      Aiv0DisconnectRecoveryPolicy.nextStep(
+        manualDisconnect: true,
+        disposed: false,
+        systemIsReconnecting: true
+      ),
+      .ignore
+    )
+  }
+
+  func testAiv0ReconnectPolicyKeepsBleControlRecoveryIndependentOfHfpAudio() {
+    XCTAssertFalse(
+      Aiv0ReconnectPolicy.shouldDeferReconnect(
+        mainTurnActive: true,
+        promptActive: false,
+        speechCaptureActive: false,
+        hfpRouteActive: false
+      )
+    )
+    XCTAssertFalse(
+      Aiv0ReconnectPolicy.shouldDeferReconnect(
+        mainTurnActive: false,
+        promptActive: false,
+        speechCaptureActive: false,
+        hfpRouteActive: false
+      )
+    )
+    XCTAssertFalse(
+      Aiv0ReconnectPolicy.shouldDeferReconnect(
+        mainTurnActive: false,
+        promptActive: true,
+        speechCaptureActive: false,
+        hfpRouteActive: false
+      )
+    )
+    XCTAssertFalse(
+      Aiv0ReconnectPolicy.shouldDeferReconnect(
+        mainTurnActive: false,
+        promptActive: false,
+        speechCaptureActive: true,
+        hfpRouteActive: false
+      )
+    )
+    XCTAssertFalse(
+      Aiv0ReconnectPolicy.shouldDeferReconnect(
+        mainTurnActive: false,
+        promptActive: false,
+        speechCaptureActive: false,
+        hfpRouteActive: true
+      )
+    )
+    XCTAssertFalse(
+      Aiv0ReconnectPolicy.shouldDeferNotificationMaintenance(
+        mainTurnActive: false,
+        speechCaptureActive: false,
+        hfpRouteActive: true
+      )
+    )
+    XCTAssertFalse(
+      Aiv0ReconnectPolicy.shouldDeferNotificationMaintenance(
+        mainTurnActive: false,
+        speechCaptureActive: false,
+        hfpRouteActive: false
+      )
+    )
+    XCTAssertFalse(
+      Aiv0ReconnectPolicy.shouldDeferNotificationMaintenance(
+        mainTurnActive: false,
+        speechCaptureActive: true,
+        hfpRouteActive: true
+      )
+    )
+  }
+
+  func testIOSHfpIdleRouteReleaseWaitsForTheAuthoritativeRouteChange() {
+    XCTAssertEqual(
+      IOSHfpIdleRouteReleasePolicy.nextStep(
+        hasTwoWayHfpRoute: true,
+        attemptsRemaining: 20
+      ),
+      .wait
+    )
+    XCTAssertEqual(
+      IOSHfpIdleRouteReleasePolicy.nextStep(
+        hasTwoWayHfpRoute: false,
+        attemptsRemaining: 20
+      ),
+      .complete
+    )
+    XCTAssertEqual(
+      IOSHfpIdleRouteReleasePolicy.nextStep(
+        hasTwoWayHfpRoute: true,
+        attemptsRemaining: 0
+      ),
+      .timedOut
+    )
+  }
+
+  func testIOSAudioOwnershipKeepsPromptAliveWhenMainTurnEnds() {
+    var ownership = IOSAudioSessionOwnershipState()
+
+    ownership.acquire(.mainTurn)
+    ownership.acquire(.prompt)
+    ownership.release(.mainTurn)
+
+    XCTAssertFalse(ownership.canDeactivate)
+    XCTAssertEqual(ownership.activeOwners, [.prompt])
+
+    ownership.release(.prompt)
+    XCTAssertTrue(ownership.canDeactivate)
+  }
+
+  func testIOSAudioOwnershipKeepsHfpRouteAcrossSpeechHandoffs() {
+    var ownership = IOSAudioSessionOwnershipState()
+
+    ownership.acquire(.hfpRoute)
+    ownership.acquire(.speechCapture)
+    ownership.release(.speechCapture)
+
+    XCTAssertFalse(ownership.canDeactivate)
+    XCTAssertEqual(ownership.activeOwners, [.hfpRoute])
+
+    ownership.release(.hfpRoute)
+    XCTAssertTrue(ownership.canDeactivate)
+  }
+
+  func testIOSAudioEngineStartupPolicyAllowsExactlyOneBoundedRetry() {
+    XCTAssertEqual(IOSAudioEngineStartupPolicy.maxAttempts, 2)
+    XCTAssertTrue(IOSAudioEngineStartupPolicy.shouldRetry(afterAttempt: 1))
+    XCTAssertFalse(IOSAudioEngineStartupPolicy.shouldRetry(afterAttempt: 2))
+    XCTAssertGreaterThan(IOSAudioEngineStartupPolicy.retryDelayNanoseconds, 0)
+  }
+
+  func testIOSAudioOwnershipKeepsActiveLessonAcrossBackgroundAudioGap() {
+    var ownership = IOSAudioSessionOwnershipState()
+
+    ownership.acquire(.backgroundTransition)
+    XCTAssertFalse(ownership.canDeactivate)
+    XCTAssertEqual(ownership.activeOwners, [.backgroundTransition])
+
+    ownership.release(.backgroundTransition)
+    XCTAssertTrue(ownership.canDeactivate)
+  }
+
+  func testIOSAudioOwnershipKeepsPrearmedBackgroundCaptureAcrossPromptHandoff() {
+    var ownership = IOSAudioSessionOwnershipState()
+
+    ownership.acquire(.backgroundCapture)
+    ownership.acquire(.prompt)
+    ownership.release(.prompt)
+
+    XCTAssertFalse(ownership.canDeactivate)
+    XCTAssertEqual(ownership.activeOwners, [.backgroundCapture])
+
+    ownership.release(.backgroundCapture)
+    XCTAssertTrue(ownership.canDeactivate)
+  }
+
+  func testIOSAudioOwnershipOnlyReportsARealCaptureReleaseOnce() {
+    var ownership = IOSAudioSessionOwnershipState()
+
+    XCTAssertFalse(ownership.contains(.speechCapture))
+    XCTAssertFalse(ownership.release(.speechCapture))
+    ownership.acquire(.speechCapture)
+    XCTAssertTrue(ownership.contains(.speechCapture))
+    XCTAssertTrue(ownership.release(.speechCapture))
+    XCTAssertFalse(ownership.release(.speechCapture))
+  }
+
+  func testIOSAudioOwnershipRequiresEverySameOwnerLeaseToRelease() {
+    var ownership = IOSAudioSessionOwnershipState()
+
+    ownership.acquire(.prompt)
+    ownership.acquire(.prompt)
+
+    XCTAssertTrue(ownership.release(.prompt))
+    XCTAssertFalse(ownership.canDeactivate)
+    XCTAssertEqual(ownership.activeOwners, [.prompt])
+
+    XCTAssertTrue(ownership.release(.prompt))
+    XCTAssertTrue(ownership.canDeactivate)
+  }
+
+  func testVoicePromptLeaseIgnoresAStaleCompletionFromThePreviousPrompt() {
+    var lease = IOSPromptOperationLeaseState()
+    let firstPrompt = UUID()
+    let secondPrompt = UUID()
+
+    lease.activate(firstPrompt)
+    XCTAssertTrue(lease.release(firstPrompt))
+
+    lease.activate(secondPrompt)
+    XCTAssertFalse(lease.release(firstPrompt))
+    XCTAssertEqual(lease.activeToken, secondPrompt)
+    XCTAssertTrue(lease.release(secondPrompt))
+    XCTAssertNil(lease.activeToken)
+  }
+
+  func testIOSHfpRouteLeaseReleasesAtUtteranceBoundary() {
+    var lease = IOSHfpRouteLeaseState()
+
+    XCTAssertTrue(lease.acquireIfNeeded(generation: 1))
+    XCTAssertFalse(lease.acquireIfNeeded(generation: 1))
+    XCTAssertTrue(lease.isHeld)
+
+    XCTAssertTrue(lease.finishUtterance(generation: 1))
+    XCTAssertFalse(lease.finishUtterance(generation: 1))
+    XCTAssertFalse(lease.isHeld)
+  }
+
+  func testIOSHfpRouteLeaseIgnoresAStaleActivationCompletion() {
+    var lease = IOSHfpRouteLeaseState()
+
+    XCTAssertTrue(lease.acquireIfNeeded(generation: 1))
+    XCTAssertTrue(lease.finishUtterance(generation: 1))
+    XCTAssertTrue(lease.acquireIfNeeded(generation: 2))
+
+    XCTAssertFalse(lease.releaseIfHeld(generation: 1))
+    XCTAssertEqual(lease.activeGeneration, 2)
+    XCTAssertTrue(lease.releaseIfHeld(generation: 2))
+  }
+
+  func testIOSHfpRouteLeaseTransfersWithoutAddingAnotherOwner() {
+    var lease = IOSHfpRouteLeaseState()
+
+    XCTAssertTrue(lease.acquireIfNeeded(generation: 1))
+    XCTAssertFalse(lease.acquireIfNeeded(generation: 2))
+    XCTAssertEqual(lease.activeGeneration, 2)
+    XCTAssertFalse(lease.releaseIfHeld(generation: 1))
+    XCTAssertTrue(lease.releaseIfHeld(generation: 2))
+  }
+
+  func testIOSHfpRouteReuseRequiresAnActiveAudioSession() {
+    XCTAssertTrue(
+      IOSHfpRouteReusePolicy.canReuse(
+        hasTwoWayHfpRoute: true,
+        audioSessionActive: true
+      )
+    )
+    XCTAssertFalse(
+      IOSHfpRouteReusePolicy.canReuse(
+        hasTwoWayHfpRoute: true,
+        audioSessionActive: false
+      )
+    )
+  }
+
+  func testIOSHfpRouteReuseRejectsAnActiveSessionWithoutTwoWayHfp() {
+    XCTAssertFalse(
+      IOSHfpRouteReusePolicy.canReuse(
+        hasTwoWayHfpRoute: false,
+        audioSessionActive: true
+      )
+    )
+  }
+
+  func testIOSPromptDoesNotReuseAStaleHfpRouteAfterSessionDeactivation() {
+    XCTAssertFalse(
+      IOSHfpRouteReusePolicy.canReuse(
+        hasTwoWayHfpRoute: true,
+        audioSessionActive: false
+      )
+    )
+  }
+
+  func testIOSCaptureDoesNotReuseAStaleHfpRouteAfterInterruption() {
+    XCTAssertFalse(
+      IOSHfpRouteReusePolicy.canReuse(
+        hasTwoWayHfpRoute: true,
+        audioSessionActive: false
+      )
+    )
+  }
+
+  func testIOSHfpInputSelectionRecoversTheSameH20AfterUIDChanges() {
+    let selected = IOSHfpInputSelectionPolicy.select(
+      from: [
+        IOSHfpInputIdentity(uid: "new-h20-uid", name: "H20"),
+        IOSHfpInputIdentity(uid: "airpods", name: "AirPods Pro")
+      ],
+      selectedUID: "old-h20-uid",
+      selectedName: "H20"
+    )
+
+    XCTAssertEqual(selected?.uid, "new-h20-uid")
+  }
+
+  func testIOSHfpInputSelectionNeverSubstitutesAnUnrelatedHeadset() {
+    let selected = IOSHfpInputSelectionPolicy.select(
+      from: [IOSHfpInputIdentity(uid: "airpods", name: "AirPods Pro")],
+      selectedUID: "old-h20-uid",
+      selectedName: "H20"
+    )
+
+    XCTAssertNil(selected)
+  }
+
+  func testAiv0MainNotificationRefreshPreservesAHealthySubscription() {
+    XCTAssertEqual(
+      Aiv0MainNotificationRefreshPolicy.nextStep(
+        peripheralConnected: true,
+        hasButtonCharacteristic: true,
+        refreshInProgress: false,
+        isNotifying: true
+      ),
+      .complete
+    )
+  }
+
+  func testAiv0MainNotificationRecoveryNeverTogglesAHealthyHfpSubscription() {
+    XCTAssertEqual(
+      Aiv0MainNotificationRefreshPolicy.nextStep(
+        peripheralConnected: true,
+        hasButtonCharacteristic: true,
+        isNotifying: true
+      ),
+      .complete
+    )
+    XCTAssertEqual(
+      Aiv0MainNotificationRefreshPolicy.nextStep(
+        peripheralConnected: true,
+        hasButtonCharacteristic: true,
+        isNotifying: false
+      ),
+      .enable
+    )
+  }
+
+  func testAiv0MainNotificationTimeoutNeverDisconnectsAHealthyGattLink() {
+    XCTAssertEqual(
+      Aiv0MainNotificationTimeoutPolicy.nextStep(
+        peripheralConnected: true,
+        isNotifying: true
+      ),
+      .complete
+    )
+    XCTAssertEqual(
+      Aiv0MainNotificationTimeoutPolicy.nextStep(
+        peripheralConnected: true,
+        isNotifying: false
+      ),
+      .reportFailure
+    )
+    XCTAssertEqual(
+      Aiv0MainNotificationTimeoutPolicy.nextStep(
+        peripheralConnected: false,
+        isNotifying: false
+      ),
+      .reconnect
+    )
+  }
+
+  func testAiv0DeferredRecoveryRepairsBleControlDuringAnHfpTurn() {
+    XCTAssertEqual(
+      Aiv0DeferredRecoveryPolicy.nextStep(
+        audioCritical: true,
+        peripheralConnected: true,
+        hasButtonCharacteristic: true
+      ),
+      .rearmNotification
+    )
+    XCTAssertEqual(
+      Aiv0DeferredRecoveryPolicy.nextStep(
+        audioCritical: true,
+        peripheralConnected: true,
+        hasButtonCharacteristic: false
+      ),
+      .rediscover
+    )
+    XCTAssertEqual(
+      Aiv0DeferredRecoveryPolicy.nextStep(
+        audioCritical: true,
+        peripheralConnected: false,
+        hasButtonCharacteristic: false
+      ),
+      .reconnect
+    )
+    XCTAssertEqual(
+      Aiv0DeferredRecoveryPolicy.nextStep(
+        audioCritical: false,
+        peripheralConnected: true,
+        hasButtonCharacteristic: true
+      ),
+      .rearmNotification
+    )
+    XCTAssertEqual(
+      Aiv0DeferredRecoveryPolicy.nextStep(
+        audioCritical: false,
+        peripheralConnected: true,
+        hasButtonCharacteristic: false
+      ),
+      .rediscover
+    )
+    XCTAssertEqual(
+      Aiv0DeferredRecoveryPolicy.nextStep(
+        audioCritical: false,
+        peripheralConnected: false,
+        hasButtonCharacteristic: false
+      ),
+      .reconnect
+    )
+  }
+
+  func testAiv0DeferredRecoveryTraceCollapsesRepeatedWaits() {
+    var traceState = Aiv0DeferredRecoveryTraceState()
+
+    XCTAssertTrue(traceState.record(.wait))
+    XCTAssertFalse(traceState.record(.wait))
+    XCTAssertFalse(traceState.record(.wait))
+    XCTAssertEqual(traceState.repeatCount, 3)
+
+    XCTAssertTrue(traceState.record(.rearmNotification))
+    XCTAssertEqual(traceState.repeatCount, 1)
+
+    traceState.reset()
+    XCTAssertEqual(traceState.repeatCount, 0)
+    XCTAssertTrue(traceState.record(.wait))
+  }
+
+  func testAiv0MainNotificationRefreshEnablesOnlyAMissingSubscription() {
+    XCTAssertEqual(
+      Aiv0MainNotificationRefreshPolicy.nextStep(
+        peripheralConnected: true,
+        hasButtonCharacteristic: true,
+        refreshInProgress: false,
+        isNotifying: false
+      ),
+      .enable
+    )
+    XCTAssertEqual(
+      Aiv0MainNotificationRefreshPolicy.nextStep(
+        peripheralConnected: true,
+        hasButtonCharacteristic: true,
+        refreshInProgress: true,
+        isNotifying: false
+      ),
+      .enable
+    )
+    XCTAssertEqual(
+      Aiv0MainNotificationRefreshPolicy.nextStep(
+        peripheralConnected: true,
+        hasButtonCharacteristic: true,
+        refreshInProgress: true,
+        isNotifying: true
+      ),
+      .complete
+    )
+  }
+
+  func testAiv0MainNotificationRefreshSkipsAnUnavailableGattLink() {
+    XCTAssertEqual(
+      Aiv0MainNotificationRefreshPolicy.nextStep(
+        peripheralConnected: false,
+        hasButtonCharacteristic: true,
+        refreshInProgress: false,
+        isNotifying: true
+      ),
+      .reconnect
+    )
+    XCTAssertEqual(
+      Aiv0MainNotificationRefreshPolicy.nextStep(
+        peripheralConnected: true,
+        hasButtonCharacteristic: false,
+        refreshInProgress: false,
+        isNotifying: false
+      ),
+      .rediscover
+    )
+  }
+
+  func testAiv0ConnectStartPreservesAnAlreadyReadyGattSession() {
+    XCTAssertEqual(
+      Aiv0ConnectStartPolicy.nextStep(
+        peripheralConnected: true,
+        hasButtonCharacteristic: true,
+        hasStateCharacteristic: true,
+        isNotifying: true
+      ),
+      .complete
+    )
+  }
+
+  func testAiv0ConnectStartRediscoversWithoutReconnectingAnAttachedPeripheral() {
+    XCTAssertEqual(
+      Aiv0ConnectStartPolicy.nextStep(
+        peripheralConnected: true,
+        hasButtonCharacteristic: false,
+        hasStateCharacteristic: false,
+        isNotifying: false
+      ),
+      .rediscover
+    )
+  }
+
+  func testAiv0ConnectStartRestoresOnlyAMissingNotification() {
+    XCTAssertEqual(
+      Aiv0ConnectStartPolicy.nextStep(
+        peripheralConnected: true,
+        hasButtonCharacteristic: true,
+        hasStateCharacteristic: true,
+        isNotifying: false
+      ),
+      .enable
+    )
+  }
+
+  func testAiv0ConnectStartConnectsOnlyADisconnectedPeripheral() {
+    XCTAssertEqual(
+      Aiv0ConnectStartPolicy.nextStep(
+        peripheralConnected: false,
+        hasButtonCharacteristic: false,
+        hasStateCharacteristic: false,
+        isNotifying: false
+      ),
+      .connect
+    )
+  }
+
+  func testAiv0InitialNotificationSetupCompletesAnExistingSubscription() {
+    XCTAssertEqual(
+      Aiv0InitialNotificationSetupPolicy.nextStep(isNotifying: true),
+      .complete
+    )
+    XCTAssertEqual(
+      Aiv0InitialNotificationSetupPolicy.nextStep(isNotifying: false),
+      .enable
+    )
+  }
+
+  func testIOSAudioCoordinatorPromotesPhysicalMainIntoOneTurnTimeline() {
+    let coordinator = IOSAudioSessionCoordinator()
+    var timeline: [[String: Any]] = []
+    coordinator.attachTraceSink { timeline.append($0) }
+
+    coordinator.notePhysicalMain(rawHex: "01 01 01 01")
+    let turnId = coordinator.beginMainTurn(source: "RunnerTests")
+
+    let rawEvent = timeline.first {
+      ($0["stage"] as? String) == "MAIN_RAW_RECEIVED"
+    }
+    XCTAssertEqual(rawEvent?["turnId"] as? String, turnId)
+    XCTAssertTrue(
+      timeline.contains { ($0["stage"] as? String) == "main_turn_started" }
+    )
+    XCTAssertTrue(coordinator.isMainTurnActive)
+
+    coordinator.endMainTurn(reason: "test_complete", caller: "RunnerTests")
+    XCTAssertFalse(coordinator.isMainTurnActive)
+    let lastMainTurnStage = timeline.reversed().compactMap {
+      $0["stage"] as? String
+    }.first { $0.hasPrefix("main_turn_") }
+    XCTAssertEqual(lastMainTurnStage, "main_turn_ended")
+    XCTAssertTrue(
+      timeline.contains {
+        ($0["stage"] as? String) == "audio_session_release_requested"
+      }
+    )
+    coordinator.dispose()
+  }
+
+  func testIOSAudioCoordinatorIgnoresStaleMainTurnEnd() {
+    let coordinator = IOSAudioSessionCoordinator()
+    var timeline: [[String: Any]] = []
+    coordinator.attachTraceSink { timeline.append($0) }
+
+    let turnId = coordinator.beginMainTurn(source: "RunnerTests")
+    coordinator.endMainTurn(
+      reason: "late_controller_pause",
+      caller: "RunnerTests",
+      expectedTurnId: "obsolete-turn"
+    )
+
+    XCTAssertTrue(coordinator.isMainTurnActive)
+    let stageAfterStaleEnd = timeline.reversed().compactMap {
+      $0["stage"] as? String
+    }.first { $0.hasPrefix("main_turn_") }
+    XCTAssertEqual(stageAfterStaleEnd, "main_turn_end_stale_ignored")
+
+    coordinator.endMainTurn(
+      reason: "test_complete",
+      caller: "RunnerTests",
+      expectedTurnId: turnId
+    )
+    XCTAssertFalse(coordinator.isMainTurnActive)
+    let stageAfterValidEnd = timeline.reversed().compactMap {
+      $0["stage"] as? String
+    }.first { $0.hasPrefix("main_turn_") }
+    XCTAssertEqual(stageAfterValidEnd, "main_turn_ended")
+    XCTAssertTrue(
+      timeline.contains {
+        ($0["stage"] as? String) == "audio_session_release_requested"
+      }
+    )
+    coordinator.dispose()
+  }
+
+  func testIOSAudioCoordinatorGivesASecondPhysicalPressAFreshTurn() {
+    let coordinator = IOSAudioSessionCoordinator()
+    var timeline: [[String: Any]] = []
+    coordinator.attachTraceSink { timeline.append($0) }
+
+    coordinator.notePhysicalMain(rawHex: "01 01 01 01")
+    let firstTurnId = coordinator.beginMainTurn(source: "RunnerTests.first")
+
+    coordinator.notePhysicalMain(rawHex: "01 01 02 01")
+    let secondRawEvent = timeline.last {
+      ($0["stage"] as? String) == "MAIN_RAW_RECEIVED"
+    }
+    let secondTurnId = coordinator.beginMainTurn(source: "RunnerTests.second")
+
+    XCTAssertNotEqual(secondTurnId, firstTurnId)
+    XCTAssertEqual(secondRawEvent?["turnId"] as? String, secondTurnId)
+    XCTAssertTrue(
+      timeline.contains {
+        ($0["stage"] as? String) == "main_turn_superseded"
+          && ($0["previousTurnId"] as? String) == firstTurnId
+      }
+    )
+
+    coordinator.endMainTurn(
+      reason: "late_first_turn_cleanup",
+      caller: "RunnerTests",
+      expectedTurnId: firstTurnId
+    )
+    XCTAssertTrue(coordinator.isMainTurnActive)
+    XCTAssertEqual(
+      timeline.last { ($0["stage"] as? String)?.hasPrefix("main_turn_") == true }?["stage"] as? String,
+      "main_turn_end_stale_ignored"
+    )
+
+    coordinator.endMainTurn(
+      reason: "test_complete",
+      caller: "RunnerTests",
+      expectedTurnId: secondTurnId
+    )
+    XCTAssertFalse(coordinator.isMainTurnActive)
+    coordinator.dispose()
+  }
+
+  func testIOSAudioCoordinatorReturnsABoundedChronologicalDiagnosticTimeline() {
+    let coordinator = IOSAudioSessionCoordinator()
+    for index in 0..<205 {
+      coordinator.trace(
+        stage: "event_\(index)",
+        caller: "RunnerTests",
+        values: ["index": index]
+      )
+    }
+
+    let timeline = coordinator.diagnosticTimelineSnapshot()
+
+    XCTAssertEqual(timeline.count, 200)
+    XCTAssertEqual(timeline.first?["stage"] as? String, "event_5")
+    XCTAssertEqual(timeline.last?["stage"] as? String, "event_204")
+    XCTAssertEqual(
+      coordinator.diagnosticTimelineSnapshot(limit: 2).compactMap {
+        $0["stage"] as? String
+      },
+      ["event_203", "event_204"]
+    )
+    coordinator.dispose()
+  }
+
+  func testIOSNativeSpeechPrefersSpeechAnalyzerOnIOS26() {
+    XCTAssertEqual(
+      IOSNativeSpeechEngineSelector.select(
+        isIOS26OrNewer: true,
+        speechAnalyzerSupported: true,
+        sfOnDeviceSupported: true
+      ),
+      .speechAnalyzer
+    )
+  }
+
+  func testIOSNativeSpeechFallsBackOnlyToOnDeviceLegacyRecognizer() {
+    XCTAssertEqual(
+      IOSNativeSpeechEngineSelector.select(
+        isIOS26OrNewer: true,
+        speechAnalyzerSupported: false,
+        sfOnDeviceSupported: true
+      ),
+      .sfSpeechRecognizer
+    )
+    XCTAssertNil(
+      IOSNativeSpeechEngineSelector.select(
+        isIOS26OrNewer: false,
+        speechAnalyzerSupported: false,
+        sfOnDeviceSupported: false
+      )
+    )
+  }
+
+  func testIOSMainUsesDictationForVietnameseNavigationPhrases() {
+    XCTAssertEqual(
+      IOSNativeSpeechTaskHintSelector.select(commandMode: true),
+      .dictation
+    )
+  }
+
+  func testIOSMainKeepsPreparedSpeechAnalyzerOnIOS26() {
+    XCTAssertEqual(
+      IOSNativeSpeechEngineSelector.selectForRecognition(
+        preparedEngine: .speechAnalyzer,
+        commandMode: true,
+        sfOnDeviceSupported: true
+      ),
+      .speechAnalyzer
+    )
+    XCTAssertEqual(
+      IOSNativeSpeechEngineSelector.selectForRecognition(
+        preparedEngine: .speechAnalyzer,
+        commandMode: false,
+        sfOnDeviceSupported: true
+      ),
+      .speechAnalyzer
+    )
+  }
+
+  func testIOSAudioBufferLevelReadsFloatAndInt16MicrophoneBuffers() throws {
+    let floatFormat = try XCTUnwrap(
+      AVAudioFormat(
+        commonFormat: .pcmFormatFloat32,
+        sampleRate: 16_000,
+        channels: 1,
+        interleaved: false
+      )
+    )
+    let floatBuffer = try XCTUnwrap(
+      AVAudioPCMBuffer(pcmFormat: floatFormat, frameCapacity: 4)
+    )
+    floatBuffer.frameLength = 4
+    for index in 0..<4 {
+      floatBuffer.floatChannelData?[0][index] = 0.5
+    }
+
+    let int16Format = try XCTUnwrap(
+      AVAudioFormat(
+        commonFormat: .pcmFormatInt16,
+        sampleRate: 8_000,
+        channels: 1,
+        interleaved: false
+      )
+    )
+    let int16Buffer = try XCTUnwrap(
+      AVAudioPCMBuffer(pcmFormat: int16Format, frameCapacity: 4)
+    )
+    int16Buffer.frameLength = 4
+    for index in 0..<4 {
+      int16Buffer.int16ChannelData?[0][index] = 16_384
+    }
+
+    XCTAssertEqual(try XCTUnwrap(IOSAudioBufferLevel.dbfs(floatBuffer)), -6.02, accuracy: 0.1)
+    XCTAssertEqual(try XCTUnwrap(IOSAudioBufferLevel.dbfs(int16Buffer)), -6.02, accuracy: 0.1)
+  }
+
+  func testIOSLessonRecordingFormatKeepsHfpAndPhoneRatesWithPCM16Storage() throws {
+    for rate in [8_000.0, 16_000.0, 48_000.0] {
+      let format = try XCTUnwrap(
+        AVAudioFormat(
+          commonFormat: .pcmFormatFloat32,
+          sampleRate: rate,
+          channels: 1,
+          interleaved: false
+        )
+      )
+      let settings = IOSLessonRecordingFormat.settings(for: format)
+      XCTAssertEqual(settings[AVSampleRateKey] as? Double, rate)
+      XCTAssertEqual(settings[AVNumberOfChannelsKey] as? AVAudioChannelCount, 1)
+      XCTAssertEqual(settings[AVLinearPCMBitDepthKey] as? Int, 16)
+      XCTAssertEqual(settings[AVLinearPCMIsFloatKey] as? Bool, false)
+      XCTAssertEqual(settings[AVLinearPCMIsBigEndianKey] as? Bool, false)
+    }
+  }
+
+  func testIOSLessonRecordingWritesReadablePCM16WavWithoutMutatingASRBuffer() throws {
+    let format = try XCTUnwrap(
+      AVAudioFormat(
+        commonFormat: .pcmFormatFloat32,
+        sampleRate: 48_000,
+        channels: 1,
+        interleaved: false
+      )
+    )
+    let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 480))
+    buffer.frameLength = 480
+    for index in 0..<480 { buffer.floatChannelData?[0][index] = 0.25 }
+    let url = FileManager.default.temporaryDirectory
+      .appendingPathComponent("homi-pcm16-test-\(UUID().uuidString).wav")
+    defer { try? FileManager.default.removeItem(at: url) }
+    var writer: AVAudioFile? = try AVAudioFile(
+      forWriting: url,
+      settings: IOSLessonRecordingFormat.settings(for: format),
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    try writer?.write(from: buffer)
+    writer = nil
+
+    let reader = try AVAudioFile(forReading: url)
+    XCTAssertEqual(reader.fileFormat.commonFormat, .pcmFormatInt16)
+    XCTAssertEqual(reader.fileFormat.sampleRate, 48_000)
+    XCTAssertEqual(reader.length, 480)
+    XCTAssertEqual(try XCTUnwrap(buffer.floatChannelData?[0][0]), 0.25, accuracy: 0.0001)
+    let readBack = try XCTUnwrap(
+      AVAudioPCMBuffer(pcmFormat: reader.processingFormat, frameCapacity: 480)
+    )
+    try reader.read(into: readBack)
+    XCTAssertEqual(try XCTUnwrap(readBack.floatChannelData?[0][0]), 0.25, accuracy: 0.0001)
+  }
+
+  func testIOSLessonRecordingGainRaisesAndClipsPersistedSamples() throws {
+    let format = try XCTUnwrap(
+      AVAudioFormat(
+        commonFormat: .pcmFormatFloat32,
+        sampleRate: 16_000,
+        channels: 1,
+        interleaved: false
+      )
+    )
+    let buffer = try XCTUnwrap(
+      AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 2)
+    )
+    buffer.frameLength = 2
+    buffer.floatChannelData?[0][0] = 0.2
+    buffer.floatChannelData?[0][1] = 0.8
+
+    IOSLessonRecordingGain.apply(to: buffer)
+
+    XCTAssertEqual(try XCTUnwrap(buffer.floatChannelData?[0][0]), 0.5, accuracy: 0.001)
+    XCTAssertEqual(try XCTUnwrap(buffer.floatChannelData?[0][1]), 1, accuracy: 0.001)
+  }
+
+  func testIOSBuiltInMicPolicyExcludesBluetoothOptions() {
+    let options = IOSNativeSpeechAudioRoutePolicy.categoryOptions(
+      for: .builtInMic
+    )
+
+    XCTAssertTrue(options.contains(.defaultToSpeaker))
+    XCTAssertFalse(options.contains(.allowBluetoothHFP))
+    XCTAssertFalse(options.contains(.allowBluetoothA2DP))
+    XCTAssertTrue(
+      IOSNativeSpeechAudioRoutePolicy.accepts(
+        portType: .builtInMic,
+        for: .builtInMic
+      )
+    )
+    XCTAssertFalse(
+      IOSNativeSpeechAudioRoutePolicy.accepts(
+        portType: .bluetoothHFP,
+        for: .builtInMic
+      )
+    )
+  }
+
+  func testIOSHfpPolicyRequiresARealBluetoothInputRoute() {
+    let options = IOSNativeSpeechAudioRoutePolicy.categoryOptions(for: .hfp)
+
+    XCTAssertTrue(options.contains(.allowBluetoothHFP))
+    XCTAssertFalse(options.contains(.defaultToSpeaker))
+    XCTAssertFalse(options.contains(.allowBluetoothA2DP))
+    XCTAssertTrue(
+      IOSNativeSpeechAudioRoutePolicy.accepts(
+        portType: .bluetoothHFP,
+        for: .hfp
+      )
+    )
+    XCTAssertFalse(
+      IOSNativeSpeechAudioRoutePolicy.accepts(
+        portType: .bluetoothLE,
+        for: .hfp
+      )
+    )
+    XCTAssertFalse(
+      IOSNativeSpeechAudioRoutePolicy.accepts(
+        portType: .builtInMic,
+        for: .hfp
+      )
+    )
+    XCTAssertTrue(
+      IOSHfpRoutePolicy.isTwoWayHfpRoute(
+        inputTypes: [.bluetoothHFP],
+        outputTypes: [.bluetoothHFP]
+      )
+    )
+    XCTAssertFalse(
+      IOSHfpRoutePolicy.isTwoWayHfpRoute(
+        inputTypes: [.bluetoothHFP],
+        outputTypes: [.builtInSpeaker]
+      )
+    )
   }
 
 }

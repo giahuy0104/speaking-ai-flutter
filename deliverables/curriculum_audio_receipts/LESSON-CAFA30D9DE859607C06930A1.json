@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T08\\C67-L3-M06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-M06",
+  "sourceText": "Chơi cùng mình nhé: Play with me hay Come with me?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Chơi cùng mình nhé:",
+      "text": "Chơi cùng mình nhé:",
+      "spoken_text": "Chơi cùng mình nhé:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "source_text": "Play with me",
+      "text": "Play with me",
+      "spoken_text": "Play with me",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "source_text": "Come with me?",
+      "text": "Come with me?",
+      "spoken_text": "Come with me?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": "de8663d7a21a3d5568ed212f6f61c2d40c170f75db5d268b47f5813ab5ee3abc",
+  "id": "LESSON-CAFA30D9DE859607C06930A1",
+  "text": "Chơi cùng mình nhé: Play with me hay Come with me?",
+  "asset": "assets/audio/CURRICULUM/cafa30d9de859607c06930a1.vi.v1.mp3",
+  "sha256": "de8663d7a21a3d5568ed212f6f61c2d40c170f75db5d268b47f5813ab5ee3abc",
+  "durationSeconds": 5.872744
+}

@@ -1,0 +1,17 @@
+00:00 +0: loading D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: topic lesson journey matches the approved direction
+00:00 +1: favorite food journey matches the selected HOMI direction
+00:01 +2: song journey uses English-first titles and music markers
+00:01 +3: song summary remains responsive on a compact phone
+00:01 +4: completed lessons offer review instead of continue
+00:01 +5: lesson intro matches the approved direction
+00:01 +6: sentence practice matches the approved direction
+00:01 +7: friendly reminder popup matches the approved direction
+00:02 +8: recording praise fireworks match the approved direction
+00:02 +9: English-only lesson review matches the approved direction
+00:02 +10: learned review controls fit a compact phone
+00:02 +11: V4 completion opens an authored voice challenge
+00:03 +12: dark theme keeps lesson intro and review text readable
+00:03 +13: (tearDownAll)
+00:03 +13: All tests passed!

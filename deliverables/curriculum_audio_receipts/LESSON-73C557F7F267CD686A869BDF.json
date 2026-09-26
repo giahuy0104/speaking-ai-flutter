@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T10-B01\\C35-L3-T10-B01-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T10-B01-Q02",
+  "sourceText": "Ăn: Play hay Eat?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Ăn:",
+      "spoken_text": "Ăn:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Play",
+      "spoken_text": "Play",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Eat?",
+      "spoken_text": "Eat?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-73C557F7F267CD686A869BDF",
+  "text": "Ăn: Play hay Eat?",
+  "asset": "assets/audio/CURRICULUM/73c557f7f267cd686a869bdf.vi.v1.mp3",
+  "sha256": "4d93192c57f4cdbba51f46020bfb09a6e8ca81438384d0db08a069566967d18e",
+  "durationSeconds": 3.236757
+}

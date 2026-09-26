@@ -1,0 +1,20 @@
+{
+  "id": "AI-020",
+  "signature": "e205f47a5ad1d81fcee50b4f73ac0dd51dd4dee756588f2f959a4ab275503631",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình cùng dịch sang tiếng Anh nha.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:07:04.101Z",
+  "requestId": "DzluaxxjaIQTTNCwjLnE",
+  "characterCost": "19",
+  "sourceSha256": "b09dc2b66fea606e3e263df9536d40652025554689ca2460c8e7f383ba6c298c"
+}

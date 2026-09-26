@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T03-B01\\C1112-L1-T03-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T03-B01-Q07",
+  "sourceText": "Bạn muốn diễn đạt \"Giải quyết vấn đề\". Solve problems hay Remember words?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Giải quyết vấn đề\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Giải quyết vấn đề\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Solve problems",
+      "spoken_text": "Solve problems",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Remember words?",
+      "spoken_text": "Remember words?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-68385763265D732A82305E1E",
+  "text": "Bạn muốn diễn đạt \"Giải quyết vấn đề\". Solve problems hay Remember words?",
+  "asset": "assets/audio/CURRICULUM/68385763265d732a82305e1e.vi.v1.mp3",
+  "sha256": "e59525ef0f4cefcbff9bfd2b7438ea1d0cd5ba0782f9e755edb1a1b73c3c781d",
+  "durationSeconds": 6.591905
+}

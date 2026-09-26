@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\4cf4ea3c375c213987ed0d435e3e1d3f34d9069791cfd62b086349916ee7e844.tempo.mp3",
+      "signature": "4cf4ea3c375c213987ed0d435e3e1d3f34d9069791cfd62b086349916ee7e844",
+      "request": {
+        "text": "Five claps",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "5c6e85073ba32a3282e1788fc32ce69604f041da1e52ee8d7d3ecc03a3ef711c",
+      "requestId": "9Cl6O1GLPHjvMGtdUJ89",
+      "createdAt": "2026-09-15T23:15:47.560Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732.tempo.mp3",
+      "signature": "bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732",
+      "request": {
+        "text": "hay",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "587b62310066af72f7481443c9fccef371a1ad2d8d537d3d1e9b16ebd3efc8b4",
+      "requestId": "Y8EyPPYGalhB5eNl9yAL",
+      "createdAt": "2026-09-15T23:15:44.925Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\9ce0fcca671c136ad07da136005a2162d4a3435430cf144c7f4284d06e88f8ee.tempo.mp3",
+      "signature": "9ce0fcca671c136ad07da136005a2162d4a3435430cf144c7f4284d06e88f8ee",
+      "request": {
+        "text": "Two claps?",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "955ecc3d017ee9ba725332d503e0e05cda5184dbb368247475a0a946308e586a",
+      "requestId": "d4SL2ZdTrmsTKHKof4jc",
+      "createdAt": "2026-09-15T23:15:48.846Z"
+    }
+  ],
+  "id": "LESSON-620AD80E4A779F8F8D9EFF59",
+  "text": "Five claps hay Two claps?",
+  "asset": "assets/audio/CURRICULUM/620ad80e4a779f8f8d9eff59.vi.v1.mp3",
+  "sha256": "01127c81a7a572945e1f3a6a8de5aa6b97f64327e62d63201ef38762fba14db9",
+  "durationSeconds": 4.111995,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

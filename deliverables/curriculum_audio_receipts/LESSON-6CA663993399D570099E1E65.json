@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T10-B02\\C810-L3-T10-B02-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T10-B02-Q07",
+  "sourceText": "Bạn cần nói \"Đi xe buýt\". Take the bus hay Ride a bike?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn cần nói \"Đi xe buýt\".",
+      "spoken_text": "Bạn cần nói \"Đi xe buýt\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Take the bus",
+      "spoken_text": "Take the bus",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Ride a bike?",
+      "spoken_text": "Ride a bike?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-6CA663993399D570099E1E65",
+  "text": "Bạn cần nói \"Đi xe buýt\". Take the bus hay Ride a bike?",
+  "asset": "assets/audio/CURRICULUM/6ca663993399d570099e1e65.vi.v1.mp3",
+  "sha256": "59496b99c8bd06b0fe535f999aafee713a2ddd7ec08884db11e3e255d6440f6d",
+  "durationSeconds": 5.960975
+}

@@ -1,0 +1,302 @@
+00:00 +0: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap66_audio_test.dart
+00:00 +0: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap66_audio_test.dart: 66 exact reviewed texts, unique across every enabled pack, correct receipts
+00:00 +1: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap66_audio_test.dart: real factory honors pack/global/per-group build switches on all routes
+00:01 +2: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap66_audio_test.dart: isolated rollback for gap66-active-screen leaves other new groups playing MP3
+00:01 +3: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap66_audio_test.dart: isolated rollback for gap66-level-selection leaves other new groups playing MP3
+00:01 +4: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap66_audio_test.dart: isolated rollback for gap66-topic-replay leaves other new groups playing MP3
+00:01 +5: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap66_audio_test.dart: isolated rollback for gap66-navigation-recovery leaves other new groups playing MP3
+00:01 +6: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap66_audio_test.dart: isolated rollback for gap66-vocabulary-recovery leaves other new groups playing MP3
+00:01 +7: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap66_audio_test.dart: isolated rollback for gap66-completion-recovery leaves other new groups playing MP3
+00:01 +8: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap66_audio_test.dart: isolated rollback for gap66-topic-replay-recovery leaves other new groups playing MP3
+00:01 +9: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap66_audio_test.dart: missing-pack uses original TTS; unknown dynamic text remains TTS
+00:01 +10: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap66_audio_test.dart: missing-file uses original TTS; unknown dynamic text remains TTS
+00:01 +11: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap66_audio_test.dart: corrupt-file uses original TTS; unknown dynamic text remains TTS
+00:01 +12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap66_audio_test.dart: playback uses original TTS; unknown dynamic text remains TTS
+00:01 +13: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart
+00:02 +13: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: optional curriculum pack plays locally with its duration budget
+00:02 +14: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: an missing optional curriculum pack preserves MAIN and fallback
+00:02 +15: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: an invalid optional curriculum pack preserves MAIN and fallback
+00:02 +16: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: an disabled optional curriculum pack preserves MAIN and fallback
+00:02 +17: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: dispose cancels pending manifest timer immediately
+00:02 +18: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: dispose cancels pending asset timer immediately
+00:02 +19: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: dispose cancels pending playback timer immediately
+00:02 +20: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: authored timeout budget is duration aware; unknown text keeps default
+00:02 +21: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: English feedback can match the explicit legacy Vietnamese lookup locale
+00:02 +22: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: real pilot matches runtime text, voices, speeds, checksum and watchdog
+00:02 +23: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: plays only exact text and locale, waiting for audio completion
+00:02 +24: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: missing, disabled, corrupted and mismatched entries keep existing TTS
+00:02 +25: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: feature switch avoids even reading the manifest
+00:02 +26: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: a disabled audio group falls back without disabling other groups
+00:02 +27: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: native playback failure stops failed audio before one TTS fallback
+00:02 +28: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: stop during asset loading cannot start audio or fallback TTS
+00:02 +29: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: stop during failing playback cannot resurrect the canceled prompt
+00:02 +30: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: load timeout is bounded and late asset result cannot play
+00:02 +31: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: disposal during loading prevents late playback
+00:02 +32: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: phone route, ready cue, native MAIN lease and style are forwarded
+00:02 +33: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: authored playback retains one lease until done, then allows recording
+00:02 +34: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: factory serves only allowlisted assistant text across feature owners
+00:02 +35: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/assistant_audio_inventory_test.dart
+00:03 +35: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/assistant_audio_inventory_test.dart: (setUpAll)
+00:03 +35: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/assistant_audio_inventory_test.dart: all fixed catalog, silence and fallback texts are covered without duplicates
+00:03 +36: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/assistant_audio_inventory_test.dart: local spoken replies and guide objects are also covered
+00:03 +37: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/assistant_audio_inventory_test.dart: every generated entry is enabled, reachable and matches its Eleven v3 receipt
+00:03 +38: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/assistant_audio_inventory_test.dart: (tearDownAll)
+00:03 +38: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/curriculum_audio_inventory_test.dart
+00:04 +38: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/curriculum_audio_inventory_test.dart: (setUpAll)
+00:04 +38: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/curriculum_audio_inventory_test.dart: every concrete curriculum manifest text has enabled audio
+00:04 +39: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/curriculum_audio_inventory_test.dart: all 109 lessons retain IDs and bundle all 1202 bilingual core samples
+00:05 +40: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/curriculum_audio_inventory_test.dart: runtime intro and resume strings have their own exact audio
+00:05 +41: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:08 +42: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/curriculum_audio_inventory_test.dart: factory routes a lesson challenge to Cloudinary authored playback
+00:09 +43: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/curriculum_audio_inventory_test.dart: (tearDownAll)
+00:09 +43: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap28_audio_test.dart
+00:09 +43: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap28_audio_test.dart: (setUpAll)
+00:09 +43: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap28_audio_test.dart: all 28 reviewed gaps have unique enabled Cloudinary audio
+00:09 +44: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap28_audio_test.dart: real text lookup plays each gap as an asset on all output routes, without TTS
+00:10 +45: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/homi_gap28_audio_test.dart: (tearDownAll)
+00:10 +45: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_coordinated_voice_prompt_service_test.dart
+00:10 +45: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_coordinated_voice_prompt_service_test.dart: serializes prompts from different feature owners
+00:10 +46: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_coordinated_voice_prompt_service_test.dart: stopping an old prompt cannot stop the next owner
+00:10 +47: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_coordinated_voice_prompt_service_test.dart: forwards selected-output and ready-cue capabilities
+00:10 +48: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/active_learning_command_resolver_test.dart
+00:10 +48: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/active_learning_command_resolver_test.dart: maps Vietnamese active lesson commands deterministically
+00:11 +49: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/active_learning_command_resolver_test.dart: does not treat lesson content as a control command
+00:11 +50: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/active_learning_command_resolver_test.dart: maps skip to next item only inside Vocabulary
+00:11 +51: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/controlled_speech_lexicon_test.dart
+00:11 +51: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/controlled_speech_lexicon_test.dart: contains the approved HOMI fallback expansion of the controlled grammar
+00:11 +52: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/controlled_speech_lexicon_test.dart: every controlled phrase resolves to its declared intent
+00:11 +53: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/controlled_speech_lexicon_test.dart: routes duplicated phrases by the current state
+00:11 +54: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/controlled_speech_lexicon_test.dart: normalizes Vietnamese accents, punctuation and whitespace
+00:11 +55: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/controlled_speech_lexicon_test.dart: global stop wins across N-best candidates and every state
+00:11 +56: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/controlled_speech_lexicon_test.dart: does not guess from an uncontrolled sentence
+00:11 +57: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/homi_fallback_catalog_test.dart
+00:12 +57: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/homi_fallback_catalog_test.dart: HomiFallbackCatalog preserves the approved catalog counts and structurally valid records
+00:12 +58: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/homi_fallback_catalog_test.dart: HomiFallbackCatalog keeps colliding commands explicit for state-aware callers
+00:12 +59: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/homi_fallback_catalog_test.dart: HomiFallbackCatalog recognizes representative controlled-command fallback variants
+00:12 +60: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/homi_fallback_catalog_test.dart: HomiFallbackCatalog provides main-assistant yes, no, and number choices safely
+00:12 +61: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/homi_fallback_catalog_test.dart: HomiFallbackCatalog keeps continuous translation requests out of one-shot translation
+00:12 +62: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/homi_fallback_catalog_test.dart: HomiFallbackCatalog accepts approved HOMI wake-word variants but not incidental mentions
+00:12 +63: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_assistant_session_test.dart
+00:12 +63: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_assistant_session_test.dart: Back invalidates pending MAIN takeover without resuming the exited module
+00:12 +64: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_assistant_session_test.dart: rejects MAIN while conversation owns audio outside learning
+00:12 +65: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_assistant_session_test.dart: pauses learning before activating MAIN with typed context
+00:12 +66: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_assistant_session_test.dart: failed MAIN activation resumes the interrupted learning module
+00:12 +67: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_assistant_session_test.dart: serializes repeated MAIN activation attempts
+00:12 +68: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_speaking_command_resolver_test.dart
+00:13 +68: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_speaking_command_resolver_test.dart: detects requests to learn something else
+00:13 +69: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_speaking_command_resolver_test.dart: only the exact approved stop exits continuous translation
+00:13 +70: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_speaking_command_resolver_test.dart: keeps unapproved non-translation stop requests out of this flow
+00:13 +71: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_speaking_command_resolver_test.dart: keeps ordinary speaking sentences in the translation flow
+00:13 +72: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_speaking_fallback_flow_test.dart
+00:13 +72: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_speaking_fallback_flow_test.dart: leave translation hands the choice to navigation immediately
+00:13 +73: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_speaking_fallback_flow_test.dart: only exact Dừng lại exits, other stop phrases remain translation content
+00:13 +74: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_speaking_fallback_flow_test.dart: help repeats translation guidance without switching module
+00:13 +75: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_speaking_session_controller_test.dart
+00:14 +75: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_speaking_session_controller_test.dart: exits speaking mode after ten seconds of waiting for Main
+00:14 +76: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_speaking_session_controller_test.dart: suspends idle timeout while a speaking turn is active
+00:14 +77: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_speaking_session_controller_test.dart: repeated synchronization does not extend the ready timeout
+00:14 +78: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_speaking_session_controller_test.dart: retries the first silent turn and exits after the second
+00:14 +79: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_speaking_session_controller_test.dart: a successful turn resets the consecutive silence count
+00:14 +80: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_speaking_session_controller_test.dart: physical MAIN cancels translation before opening the assistant
+00:14 +81: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_speaking_session_controller_test.dart: does not open assistant until current capture is cancelled
+00:14 +82: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_speaking_session_controller_test.dart: MAIN interrupts recording, processing, and playback states
+00:14 +83: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart
+00:14 +83: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: fast path accepts unambiguous fallback phrases but defers broad input
+00:14 +84: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: chooses continuous translation after the Main menu
+00:14 +85: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: accepts short child-friendly continuous speaking choices
+00:14 +86: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: opens continuous translation directly from the Main choice
+00:14 +87: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: after translation stop offers topic, vocabulary, or stop
+00:14 +88: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: offers all three top-level choices from Main
+00:14 +89: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: learned parent words hand off to the shared vocabulary flow
+00:14 +90: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: accepts every D04 topic-learning synonym from Main
+00:14 +91: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: accepts every D05 vocabulary-learning synonym from Main
+00:14 +92: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: vocabulary content selection belongs to the destination screen
+00:14 +93: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: moves to the next sentence in an active lesson
+00:15 +94: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: active lesson prompt offers pause and leaving the lesson
+00:15 +95: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: accepts a natural phrase containing next
+00:15 +96: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: moves to the previous sentence in an active lesson
+00:15 +97: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: maps every D07 and D08 command to the active lesson module
+00:15 +98: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: routes the workbook phrase Học bài khác to the next lesson in an active course
+00:15 +99: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: offers translation or vocabulary after leaving an active lesson
+00:15 +100: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: can choose translation after leaving an active lesson
+00:15 +101: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: missing profile age is handed to Topics without asking for spoken age
+00:15 +102: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: uses the saved age and skips asking age for topic learning
+00:15 +103: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: offers topics or vocabulary after leaving speaking practice
+00:15 +104: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: understands Vietnamese number words and rejects out-of-range choices
+00:15 +105: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: does not treat its own spoken prompts as child selections
+00:15 +106: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: asks before reopening a completed topic after lesson completion
+00:15 +107: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: uses Level-scoped topic selection and opens the mic-ready flow
+00:15 +108: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: completed Course asks for a Level and opens that relearn branch
+00:15 +109: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: accepts named alternatives and rejects yes/no for completed topics
+00:15 +110: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: uses the current choice retry instead of treating Mình muốn bài khác as yes
+00:15 +111: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: uses the current choice retry instead of treating Không biết as no
+00:15 +112: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: repeats the current Level count for an invalid topic number
+00:15 +113: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: keeps Level selection open after repeated invalid topic numbers
+00:15 +114: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: repeats the current question for an invalid lesson number
+00:15 +115: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: pauses for a repeated invalid lesson
+00:15 +116: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: opens an unfinished topic without asking to replay it
+00:15 +117: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: offers the next unfinished lesson from real topic progress
+00:15 +118: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: a completed topic offers replay or delegates other topics to the owner
+00:15 +119: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: confirms before replaying a completed lesson
+00:15 +120: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/master_navigation_contract_test.dart
+00:15 +120: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/master_navigation_contract_test.dart: every literal MAIN sample hands off to the correct existing module
+00:15 +121: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/master_navigation_contract_test.dart: MAIN does not guess from an embedded destination or closed-choice answer
+00:15 +122: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/master_navigation_contract_test.dart: after stop and switch menus accept continue translation in their own state
+00:15 +123: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/master_navigation_contract_test.dart: numbers are scoped to the current menu and cannot come from free speech
+00:15 +124: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/master_navigation_contract_test.dart: paused choice retains its question and allowed topics for reactivation
+00:15 +125: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/master_navigation_contract_test.dart: vocabulary choices are closed and replay keeps its scope
+00:15 +126: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/master_navigation_contract_test.dart: unsupported activity commands cannot escape to generic grammar
+00:15 +127: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/master_navigation_contract_test.dart: ambiguous next means next Core item, not resume current item
+00:15 +128: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/master_navigation_contract_test.dart: deprecated replay-or-stop prompt is silent for Challenge
+00:15 +129: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/master_navigation_contract_test.dart: active context supplies help and stop without touching study data
+00:15 +130: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/master_navigation_contract_test.dart: FINAL T09 repairs ambiguous lesson continuation and rejects locked numbers
+00:15 +131: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart
+00:16 +131: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: authored prompt longer than eight seconds finishes before command window opens
+00:16 +132: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: forced pause stops assistant audio when HOMI leaves foreground
+00:16 +133: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: MAIN-only configuration never starts or acknowledges voice wake
+00:16 +134: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: two silent active-module windows dispatch STOP rather than resume
+00:16 +135: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: silent topic selection resumes the same Level when MAIN is pressed again
+00:16 +136: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: navigation transcript is handled without entering conversation
+00:16 +137: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main button speaks the menu then starts the speaking flow
+00:17 +138: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: MAIN handles an unambiguous fallback phrase from a stable partial
+00:17 +139: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS MAIN prompts use the selected H20 media output
+00:17 +140: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Android MAIN prompts use the selected H20 HFP output
+00:17 +141: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main opens the microphone when the native ready cue never completes
+00:17 +142: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:18 +143: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main prompt reopens the mic immediately after final recognition
+00:18 +144: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: HFP speech activity extends MAIN command window before transcript
+00:18 +145: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main exposes its first microphone start failure without retrying
+00:18 +146: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main pauses its command deadline while a premature completion recovers
+00:18 +147: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Android MAIN recovers a transient recognizer timeout without showing a mic error
+00:18 +148: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: repeated Android timeouts use the normal spoken no-speech retry
+00:18 +149: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main stops automatic retries and exposes the microphone error
+00:18 +150: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main activation never exposes a transient inactive session
+00:18 +151: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main delegates missing profile age to the topic screen
+00:18 +152: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: saved age lets MAIN open Level selection without the legacy total
+00:18 +153: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: completed topic prompt continues through topic and lesson
+00:18 +154: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: completed Course Level choice is handled by the MAIN microphone
+00:18 +155: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: speaking command opens the other-learning voice menu
+00:18 +156: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: translation STOP keeps both menus and mic closed until explicit MAIN
+00:18 +157: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main opens today practice when parent vocabulary is pending
+00:18 +158: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: active lesson Main next answer advances through the module bridge
+00:19 +159: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: active lesson Main previous answer moves back through the module bridge
+00:19 +160: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: active lesson Main dispatches the remaining D07 and D08 commands
+00:19 +161: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: active lesson exit choice keeps listening then opens vocabulary
+00:19 +162: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: MAIN finalizes buffered iOS transcript when its command window ends
+00:19 +163: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main asks once after silence then exits on the second timeout
+00:19 +164: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: vocabulary star branch uses its exact silence prompts
+00:19 +165: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: pauses navigation recognizer before conversation can reuse it
+00:19 +166: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: handles an explicit command from a stable partial result
+00:19 +167: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: hears the wake phrase from a secondary Android transcript
+00:19 +168: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: uses final Android alternatives when the primary text misses
+00:19 +169: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: wake-word MAIN exits after its two silent command windows
+00:19 +170: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: does not reopen the microphone until the wake reply finishes
+00:19 +171: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: pause waits for a pending navigation start to release the mic
+00:19 +172: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_intent_resolver_test.dart
+00:20 +172: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_intent_resolver_test.dart: VoiceNavigationIntentResolver recognizes approved INT-022 HOMI wake phrases and ASR variants
+00:20 +173: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_intent_resolver_test.dart: VoiceNavigationIntentResolver recognizes vocabulary commands with and without accents
+00:20 +174: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_intent_resolver_test.dart: VoiceNavigationIntentResolver recognizes all supported topic-learning synonyms
+00:20 +175: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_intent_resolver_test.dart: VoiceNavigationIntentResolver recognizes the supported top-level destinations
+00:20 +176: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_intent_resolver_test.dart: VoiceNavigationIntentResolver recognizes a direct topic lesson command
+00:20 +177: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_intent_resolver_test.dart: VoiceNavigationIntentResolver accepts a short destination name as a direct command
+00:20 +178: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_intent_resolver_test.dart: VoiceNavigationIntentResolver routes an approved workbook phrase in a longer utterance
+00:20 +179: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_intent_resolver_test.dart: VoiceNavigationIntentResolver does not redirect a normal sentence without an approved command phrase
+00:20 +180: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_intent_resolver_test.dart: VoiceNavigationIntentResolver prefers the most specific phrase in an ambiguous command
+00:20 +181: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/web_batch_streaming_speech_input_test.dart
+00:20 +181: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/web_batch_streaming_speech_input_test.dart: uploads Web MAIN audio while speaking and finalizes Batch
+{"event":"main_cloud_batch_latency","audioStartMs":1,"uploadSessionReadyMs":1,"firstChunkMs":4,"speechDetectedMs":3,"captureStopMs":0,"batchFinalizeMs":2,"totalMs":9,"usedBluetoothInput":false}
+00:20 +182: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/web_batch_streaming_speech_input_test.dart: emits completed after speech followed by VAD silence
+{"event":"main_cloud_batch_latency","audioStartMs":0,"uploadSessionReadyMs":0,"firstChunkMs":null,"speechDetectedMs":0,"captureStopMs":0,"batchFinalizeMs":0,"totalMs":16,"usedBluetoothInput":false}
+00:20 +183: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/web_batch_streaming_speech_input_test.dart: discard Web MAIN Batch session when command is cancelled
+00:20 +184: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/web_batch_streaming_speech_input_test.dart: opens the native HFP route before iOS MAIN capture
+{"event":"main_cloud_batch_latency","audioStartMs":0,"uploadSessionReadyMs":0,"firstChunkMs":null,"speechDetectedMs":0,"captureStopMs":0,"batchFinalizeMs":0,"totalMs":0,"usedBluetoothInput":false}
+00:20 +185: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/web_batch_streaming_speech_input_test.dart: uses the phone recorder when the iOS HFP route fails
+HOMI Batch HFP route failed; falling back to phone mic: HFP route unavailable
+00:20 +186: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart
+00:21 +186: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: Android recorded recognizer uses the HOMI offline channel
+00:21 +187: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: returns good only when backend confirms the target English words
+00:21 +188: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: returns retry when recognized speech does not match the lesson
+00:21 +189: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: does not trust a loose backend match when its transcript omits words
+00:21 +190: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: accepts a matching recognizer transcript after a stale backend false negative
+00:21 +191: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: keeps unclear or silent audio separate from a wrong answer
+00:21 +192: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: hides connection details behind a child-friendly message
+00:21 +193: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: falls back to the production audio recognizer when route is missing
+00:21 +194: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: fallback rejects speech that differs from the lesson sentence
+00:21 +195: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: fallback accepts the observed Amen transcription for I am An
+00:21 +196: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: V4 fallback requires the complete Alphabet target
+00:21 +197: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: fallback keeps an ASR failure separate from a wrong answer
+00:21 +198: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: handles a non-JSON server error without FormatException
+00:21 +199: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: basic Apple Speech lesson matching accepts exact speech and common contraction/name variants
+00:21 +200: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: basic Apple Speech lesson matching allows a short recognizer prefix around the target sentence
+00:21 +201: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: basic Apple Speech lesson matching keeps silence and a different sentence out of the pass result
+00:21 +202: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: basic Apple Speech lesson matching requires the complete target word count
+00:21 +203: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: basic Apple Speech lesson matching accepts one light ASR substitution without an omitted word
+00:21 +204: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: basic Apple Speech lesson matching also applies encouraging matching to authored alternatives
+00:21 +205: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: basic Apple Speech lesson matching keeps single words and explicitly strict phrases strict
+00:21 +206: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: Android backend-first offline fallback keeps the normal backend result without calling on-device ASR
+00:21 +207: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: Android backend-first offline fallback uses strict English on-device ASR only after connectivity failure
+00:21 +208: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: Android backend-first offline fallback skips the backend immediately when network transport is gone
+00:21 +209: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: Android backend-first offline fallback accepts alternatives and returns retry for different speech
+00:21 +210: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: Android backend-first offline fallback separates silence and timeout from unclear ASR
+00:21 +211: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: Android backend-first offline fallback preserves backend error when local model or WAV is unavailable
+00:21 +212: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: Android backend-first offline fallback does not use local ASR for a non-connectivity backend failure
+00:21 +213: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: uses WAV on Android and preserves existing backend extensions
+00:21 +214: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_attempt_evaluator_test.dart: default Android evaluator is backend-first with offline fallback
+00:21 +215: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_recording_endpoint_detector_test.dart
+00:21 +215: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_recording_endpoint_detector_test.dart: ASR confirmation endpoints without RMS and renews on new words
+00:22 +216: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_recording_endpoint_detector_test.dart: keeps six seconds as the hard recording limit
+00:22 +217: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_recording_endpoint_detector_test.dart: stops after detected speech is silent for 700 milliseconds
+00:22 +218: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_recording_endpoint_detector_test.dart: voice activity cancels a pending silence endpoint
+00:22 +219: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_recording_endpoint_detector_test.dart: short flat HFP speech ends on silence instead of waiting for six seconds
+00:22 +220: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_recording_endpoint_detector_test.dart: cancel prevents both silence and maximum callbacks
+00:22 +221: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/listening_progress_store_test.dart
+00:22 +221: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/listening_progress_store_test.dart: resume sentence can move backward without losing completion
+00:22 +222: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/listening_progress_store_test.dart: legacy progress remains a valid resume position
+00:22 +223: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/listening_progress_store_test.dart: skipped sentences persist without leaking into lesson totals
+00:23 +224: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/listening_progress_store_test.dart: V2 guide and retry queue metadata do not change totals
+00:23 +225: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/listening_progress_store_test.dart: V4 level mission completion does not inflate lesson totals
+00:23 +226: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/listening_progress_store_test.dart: V4 lesson activity completion stays separate from core progress
+00:23 +227: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/listening_progress_store_test.dart: legacy stages migrate to Challenge while old data remains readable
+00:23 +228: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/listening_progress_store_test.dart: pending completion choice survives interruption and clears atomically
+00:23 +229: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/listening_progress_store_test.dart: first core sentence start persists without changing totals
+00:23 +230: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/listening_progress_store_test.dart: session achievement cannot be downgraded by navigation or replay
+00:23 +231: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/listening_progress_store_test.dart: Challenge selection survives interruption and rotates after processing
+00:24 +232: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/listening_progress_store_test.dart: stars are idempotent and course completion event is one-shot
+00:24 +233: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/listening_progress_store_test.dart: topic-selection checkpoint survives interruption but not totals
+00:24 +234: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/listening_progress_store_test.dart: full-topic and full-level relearn preserve earned stars
+00:24 +235: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart
+00:25 +235: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: failed Challenge question does not open mic
+00:26 +236: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: Challenge resume uses only RESUME_CHALLENGE before replay
+00:26 +237: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: long authored challenge finishes before the microphone opens
+00:26 +238: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: ignores legacy role-play data and keeps the authored Challenge choices
+00:26 +239: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: multiple legacy inputs never award Challenge Stars
+00:26 +240: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: Challenge has no Skip action
+00:26 +241: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: opens the H20 microphone when iOS TTS omits its finish callback
+00:26 +242: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: auto-stops, waits for a correct score, then opens challenge two
+00:26 +243: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: moves on after two retries instead of recording forever
+00:26 +244: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: pauses directly after the second unusable response
+00:26 +245: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: second answer correct gets correct feedback without HOMI sample
+00:27 +246: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: iOS scores a challenge on device without calling the backend
+00:27 +247: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: iOS challenge surfaces Speech permission denial without backend fallback
+00:27 +248: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/v4_completion_flow_test.dart
+00:27 +248: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/v4_completion_flow_test.dart: completion choices reject negation, embedded text and wrong spoken numbers
+00:27 +249: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/v4_completion_flow_test.dart: uses the approved V4.1 completion prompts verbatim
+00:27 +250: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/v4_completion_flow_test.dart: resolves spoken V4 choices within the active completion stage
+00:27 +251: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/v4_completion_flow_test.dart: global STOP can pause even when only learning choices are displayed
+00:27 +252: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/v4_completion_flow_test.dart: does not navigate on prompt echo or replay of a different lesson
+00:27 +253: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/v4_completion_flow_test.dart: understands the actual numbered choices and short continue answers
+00:27 +254: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/v4_song_stage_screen_test.dart
+00:28 +254: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/v4_song_stage_screen_test.dart: announces SONG_START_CUE, shows the title, and can skip
+00:28 +255: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/v4_song_stage_screen_test.dart: automatically plays the approved song after SONG_START_CUE
+00:28 +256: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/v4_song_stage_screen_test.dart: skip interrupts an active song and continues without resuming
+00:29 +257: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/vocabulary/vocabulary_audio_service_test.dart
+00:29 +257: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/vocabulary/vocabulary_audio_service_test.dart: Back cancels delayed cache result null without late playback or TTS
+00:29 +258: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/vocabulary/vocabulary_audio_service_test.dart: Back cancels delayed cache result file:///cache/late.mp3 without late playback or TTS
+00:29 +259: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/vocabulary/vocabulary_audio_service_test.dart: prefetch caches dynamic audio without playing or speaking
+00:29 +260: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/vocabulary/vocabulary_audio_service_test.dart: plays cached minhqnd audio without invoking native TTS
+00:29 +261: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/vocabulary/vocabulary_audio_service_test.dart: falls back to native TTS when cloud audio cannot be cached
+00:29 +262: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/vocabulary/vocabulary_fixed_prompt_audio_service_test.dart
+00:29 +262: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/vocabulary/vocabulary_fixed_prompt_audio_service_test.dart: cancel during H20 route preparation prevents late fixed prompt playback
+00:29 +263: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/vocabulary/vocabulary_fixed_prompt_audio_service_test.dart: resolves a shared FINAL state ID alias before TTS fallback
+00:29 +264: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/vocabulary/vocabulary_fixed_prompt_audio_service_test.dart: reports missing authored audio so the caller can use TTS
+00:30 +265: All tests passed!

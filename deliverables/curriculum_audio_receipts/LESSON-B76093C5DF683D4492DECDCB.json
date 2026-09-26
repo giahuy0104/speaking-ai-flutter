@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B02\\C1112-L3-T09-B02-T02_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B02-T02_EN",
+  "sourceText": "A charger, please.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "A charger, please.",
+      "generation_key": "0d6653759b432a22"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-B76093C5DF683D4492DECDCB",
+  "text": "A charger, please.",
+  "asset": "assets/audio/CURRICULUM/b76093c5df683d4492decdcb.en.v1.mp3",
+  "sha256": "75c69acce9ec274829b40edf7a9abb35c552b879eb9d40450cd13ab1d3bce67a",
+  "durationSeconds": 2.146395
+}

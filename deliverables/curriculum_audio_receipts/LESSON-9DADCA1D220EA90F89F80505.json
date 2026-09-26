@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T04-B02\\C67-L2-T04-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T04-B02-Q06",
+  "sourceText": "HOMI nói: Do you like noodles? Bạn đồng ý. Yes, I do hay No, I don't?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Do you like noodles?",
+      "spoken_text": "Do you like noodles?",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "Bạn đồng ý.",
+      "spoken_text": "Bạn đồng ý.",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Yes, I do",
+      "spoken_text": "Yes, I do",
+      "input_index": 33
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 34
+    },
+    {
+      "language": "en",
+      "text": "No, I don't?",
+      "spoken_text": "No, I don't?",
+      "input_index": 35
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9DADCA1D220EA90F89F80505",
+  "text": "HOMI nói: Do you like noodles? Bạn đồng ý. Yes, I do hay No, I don't?",
+  "asset": "assets/audio/CURRICULUM/9dadca1d220ea90f89f80505.vi.v1.mp3",
+  "sha256": "feb734c4a5bc433848b3e426c583da4f21c046006014216e60b89c2c56458601",
+  "durationSeconds": 7.851905
+}

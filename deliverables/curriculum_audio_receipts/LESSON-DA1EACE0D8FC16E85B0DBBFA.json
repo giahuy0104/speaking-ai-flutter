@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T03-B01\\C35-L1-T03-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T03-B01-Q08",
+  "sourceText": "Trắng: White hay Red?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Trắng:",
+      "spoken_text": "Trắng:",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "White",
+      "spoken_text": "White",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Red?",
+      "spoken_text": "Red?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-DA1EACE0D8FC16E85B0DBBFA",
+  "text": "Trắng: White hay Red?",
+  "asset": "assets/audio/CURRICULUM/da1eace0d8fc16e85b0dbbfa.vi.v1.mp3",
+  "sha256": "b5388c23bee940f30bf287960b8e447ea94c1944f9c1ae099317a800e937a331",
+  "durationSeconds": 3.223447
+}

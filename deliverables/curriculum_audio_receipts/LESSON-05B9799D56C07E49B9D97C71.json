@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T06-B01\\C35-L2-T06-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-T06-B01-Q03",
+  "sourceText": "Mũi: Nose hay Hands?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mũi:",
+      "spoken_text": "Mũi:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Nose",
+      "spoken_text": "Nose",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Hands?",
+      "spoken_text": "Hands?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-05B9799D56C07E49B9D97C71",
+  "text": "Mũi: Nose hay Hands?",
+  "asset": "assets/audio/CURRICULUM/05b9799d56c07e49b9d97c71.vi.v1.mp3",
+  "sha256": "f39a04ec41ca28ca7160ec1e79fae60c051cfedc7c4e4b7adc0df1845eb701e5",
+  "durationSeconds": 3.591905
+}

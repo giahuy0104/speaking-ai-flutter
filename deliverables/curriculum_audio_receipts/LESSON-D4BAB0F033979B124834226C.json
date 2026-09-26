@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T03-B02\\C1112-L1-T03-B02-T03_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T03-B02-T03_EN",
+  "sourceText": "I'm good at sports.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "I'm good at sports.",
+      "generation_key": "35057f96e91e199a"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-D4BAB0F033979B124834226C",
+  "text": "I'm good at sports.",
+  "asset": "assets/audio/CURRICULUM/d4bab0f033979b124834226c.en.v1.mp3",
+  "sha256": "74eecb3cb0d8b15975b968d99185580095ec0a5b5acbeb0689a94dfabde74e28",
+  "durationSeconds": 2.564354
+}

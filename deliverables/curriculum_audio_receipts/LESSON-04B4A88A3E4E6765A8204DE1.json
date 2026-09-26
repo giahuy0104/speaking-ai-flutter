@@ -1,0 +1,33 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T01-B03\\C67-L1-T01-B03-Q07_CHOICE_2_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T01-B03-Q07",
+  "sourceText": "Zoo.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Zoo.",
+      "spoken_text": "Zoo.",
+      "input_index": 41
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-04B4A88A3E4E6765A8204DE1",
+  "text": "Zoo.",
+  "asset": "assets/audio/CURRICULUM/04b4a88a3e4e6765a8204de1.en.v1.mp3",
+  "sha256": "d1ad80a0271bfa2dec9a7a834ab389fd7cbe69b06ff764572d5ca517e845a788",
+  "durationSeconds": 1.131859
+}

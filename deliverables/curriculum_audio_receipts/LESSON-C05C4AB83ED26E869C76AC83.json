@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T04\\C1315-L2-M04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-M04",
+  "sourceText": "Bạn cần diễn đạt \"Mình sẽ suy nghĩ thêm\". I'll think about it hay Is it worth it?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Mình sẽ suy nghĩ thêm\".",
+      "text": "Bạn cần diễn đạt \"Mình sẽ suy nghĩ thêm\".",
+      "spoken_text": "Bạn cần diễn đạt \"Mình sẽ suy nghĩ thêm\".",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "source_text": "I'll think about it",
+      "text": "I'll think about it",
+      "spoken_text": "I'll think about it",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "source_text": "Is it worth it?",
+      "text": "Is it worth it?",
+      "spoken_text": "Is it worth it?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": "9afff68923049e784f80cbfbdb99ca73f6814bc58250fbe04681300a71562adf",
+  "id": "LESSON-C05C4AB83ED26E869C76AC83",
+  "text": "Bạn cần diễn đạt \"Mình sẽ suy nghĩ thêm\". I'll think about it hay Is it worth it?",
+  "asset": "assets/audio/CURRICULUM/c05c4ab83ed26e869c76ac83.vi.v1.mp3",
+  "sha256": "9afff68923049e784f80cbfbdb99ca73f6814bc58250fbe04681300a71562adf",
+  "durationSeconds": 6.298957
+}

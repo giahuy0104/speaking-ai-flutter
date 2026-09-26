@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T10-B02\\C35-L3-T10-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T10-B02-Q05",
+  "sourceText": "Chúc ngủ ngon: Good night hay Wake up?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Chúc ngủ ngon:",
+      "spoken_text": "Chúc ngủ ngon:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Good night",
+      "spoken_text": "Good night",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Wake up?",
+      "spoken_text": "Wake up?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-540879210D1954BFCAD05BBB",
+  "text": "Chúc ngủ ngon: Good night hay Wake up?",
+  "asset": "assets/audio/CURRICULUM/540879210d1954bfcad05bbb.vi.v1.mp3",
+  "sha256": "e1ec06790447d175c8310884c678ee59c8bce00c8a5408d32ee7f3a38353ae98",
+  "durationSeconds": 4.005442
+}

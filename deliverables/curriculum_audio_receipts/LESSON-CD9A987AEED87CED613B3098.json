@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T06-B02\\C1315-L2-T06-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T06-B02-Q04",
+  "sourceText": "Bạn muốn diễn đạt \"Chặn người dùng lạ\". Block unknown users hay Keep passwords private?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Chặn người dùng lạ\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Chặn người dùng lạ\".",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Block unknown users",
+      "spoken_text": "Block unknown users",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Keep passwords private?",
+      "spoken_text": "Keep passwords private?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-CD9A987AEED87CED613B3098",
+  "text": "Bạn muốn diễn đạt \"Chặn người dùng lạ\". Block unknown users hay Keep passwords private?",
+  "asset": "assets/audio/CURRICULUM/cd9a987aeed87ced613b3098.vi.v1.mp3",
+  "sha256": "1411e9fbb44f50ea6c472f902432ed4a1827a727150c995dbf2b914e2ff768a3",
+  "durationSeconds": 8.965782
+}

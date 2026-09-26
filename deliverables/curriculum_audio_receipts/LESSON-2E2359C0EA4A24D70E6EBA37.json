@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B02\\C1112-L3-T09-B02-T03_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B02-T03_VI",
+  "sourceText": "Làm ơn gọi cho ba mình.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Làm ơn gọi cho ba mình.",
+      "generation_key": "838041e598b5a2eb"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-2E2359C0EA4A24D70E6EBA37",
+  "text": "Làm ơn gọi cho ba mình.",
+  "asset": "assets/audio/CURRICULUM/2e2359c0ea4a24d70e6eba37.vi.v1.mp3",
+  "sha256": "4690f560563bfb5455cabb6b93589fb8706ffe29e6ca5abfb996162662f9ac87",
+  "durationSeconds": 2.051769
+}

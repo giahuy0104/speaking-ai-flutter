@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T10-B01\\C810-L3-T10-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T10-B01-Q08",
+  "sourceText": "Bạn cần nói \"Đi công viên\". Eat ice cream hay Go to the park?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn cần nói \"Đi công viên\".",
+      "spoken_text": "Bạn cần nói \"Đi công viên\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Eat ice cream",
+      "spoken_text": "Eat ice cream",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Go to the park?",
+      "spoken_text": "Go to the park?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-998A9C18FE81EDA829F293AF",
+  "text": "Bạn cần nói \"Đi công viên\". Eat ice cream hay Go to the park?",
+  "asset": "assets/audio/CURRICULUM/998a9c18fe81eda829f293af.vi.v1.mp3",
+  "sha256": "bed50f73cd035579a4f13f486facc97914879cf5a058bfe64b52f64953697e56",
+  "durationSeconds": 5.341406
+}

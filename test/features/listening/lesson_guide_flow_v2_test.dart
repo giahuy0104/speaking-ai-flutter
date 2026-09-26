@@ -11,7 +11,54 @@ void main() {
       LessonGuideFlowV2.englishToVietnamesePause,
       const Duration(seconds: 2),
     );
-    expect(LessonGuideFlowV2.beforeSentence.text, 'Nói theo cô nhé.');
+    expect(LessonGuideFlowV2.beforeSentence.text, 'Nói theo mình nhé.');
+  });
+
+  test('keeps the exact V4.1 Challenge and Mission introductions', () {
+    expect(v4ChallengeIntroAudioId, 'CHALLENGE_INTRO');
+    expect(v4ChallengeIntro, 'Tiếp theo là một câu thử thách nhé.');
+    expect(v4MissionIntroAudioId, 'MISSION_INTRO');
+    expect(
+      v4MissionIntro,
+      'Tiếp theo là Nhiệm vụ cuối Level. Bạn sẽ có bốn câu thử thách.',
+    );
+  });
+
+  test('selects only approved V4 feedback for each age band', () {
+    expect(
+      LessonAgeFeedbackLibrary.message(
+        age: 4,
+        kind: LessonFeedbackKind.correct,
+      ),
+      'Đúng rồi!',
+    );
+    expect(
+      LessonAgeFeedbackLibrary.message(age: 9, kind: LessonFeedbackKind.retry),
+      'Thử lại nhé.',
+    );
+    expect(
+      LessonAgeFeedbackLibrary.message(age: 12, kind: LessonFeedbackKind.give),
+      'Nghe câu đúng nhé.',
+    );
+    expect(
+      LessonAgeFeedbackLibrary.message(age: 15, kind: LessonFeedbackKind.asr),
+      'HOMI chưa nghe rõ. Thử lại nhé.',
+    );
+    expect(
+      LessonAgeFeedbackLibrary.messages(
+        age: 4,
+        kind: LessonFeedbackKind.correct,
+      ),
+      <String>['Đúng rồi!', 'Giỏi lắm!', 'Tốt lắm!'],
+    );
+    expect(
+      LessonAgeFeedbackLibrary.message(
+        age: 4,
+        kind: LessonFeedbackKind.correct,
+        variationIndex: 4,
+      ),
+      'Giỏi lắm!',
+    );
   });
 
   test('defines the authoritative common guide prompts', () {
@@ -21,12 +68,37 @@ void main() {
     );
     expect(LessonGuideFlowV2.afterSample.audioCode, 'AI_GUIDE_AFTER_SAMPLE');
     expect(
+      LessonGuideFlowV2.coreSpeakCues.map((cue) => cue.audioCode),
+      <String>[
+        'CORE_SPEAK_01',
+        'CORE_SPEAK_02',
+        'CORE_SPEAK_03',
+        'CORE_SPEAK_04',
+        'CORE_SPEAK_05',
+      ],
+    );
+    expect(
+      List<String>.generate(
+        7,
+        (index) => LessonGuideFlowV2.coreSpeakCue(index).text,
+      ),
+      <String>[
+        'Bạn nói lại nhé.',
+        'Đến lượt bạn.',
+        'Bạn thử nói nhé.',
+        'Nói lại câu này.',
+        'Bạn nói tiếng Anh nhé.',
+        'Bạn nói lại nhé.',
+        'Đến lượt bạn.',
+      ],
+    );
+    expect(
       LessonGuideFlowV2.completionChoiceUnclear.audioCode,
       'AI_GUIDE_COMPLETION_CHOICE_UNCLEAR',
     );
     expect(
       LessonGuideFlowV2.completionChoiceUnclear.text,
-      'Nói lại lựa chọn của con nhé',
+      'Bạn nói lại lựa chọn nhé.',
     );
     expect(LessonGuideFlowV2.good.audioCode, 'AI_GUIDE_GOOD');
     expect(LessonGuideFlowV2.retryFirst.audioCode, 'AI_GUIDE_RETRY_1');
@@ -42,26 +114,28 @@ void main() {
   test('builds exact per-lesson entry and ending audio codes', () {
     final first = LessonGuideFlowV2.entry(
       lessonCode: 'A035_T01_L01',
-      lessonTitleEn: 'Saying Hello',
+      lessonTitle: 'Saying Hello',
       kind: LessonEntryGuideKind.first,
     );
     final next = LessonGuideFlowV2.entry(
       lessonCode: 'A035_T01_L01',
-      lessonTitleEn: 'Saying Hello',
+      lessonTitle: 'Saying Hello',
       kind: LessonEntryGuideKind.newLesson,
     );
     final resume = LessonGuideFlowV2.entry(
       lessonCode: 'A035_T01_L01',
-      lessonTitleEn: 'Saying Hello',
+      lessonTitle: 'Saying Hello',
       kind: LessonEntryGuideKind.resume,
     );
     final ending = LessonGuideFlowV2.ending(
       lessonCode: 'A035_T01_L01',
-      lessonTitleEn: 'Saying Hello',
+      lessonTitleVi: 'Chào hỏi',
     );
 
     expect(first.audioCode, 'A035_T01_L01_FIRST');
     expect(first.text, contains('bấm nút Main'));
+    expect(first.text, contains('Saying Hello'));
+    expect(first.text, isNot(contains('Chào hỏi')));
     expect(next.audioCode, 'A035_T01_L01_NEW');
     expect(resume.audioCode, 'A035_T01_L01_RESUME');
     expect(resume.text, contains('chỗ lúc trước'));

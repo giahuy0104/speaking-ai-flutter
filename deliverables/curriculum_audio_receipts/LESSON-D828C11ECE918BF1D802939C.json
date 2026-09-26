@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T02-B02\\C1315-L1-T02-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T02-B02-Q06",
+  "sourceText": "HOMI nói: Improve my English. Bạn chọn bước đầu tiên. Practice every day hay Check my progress?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Improve my English.",
+      "spoken_text": "Improve my English.",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "Bạn chọn bước đầu tiên.",
+      "spoken_text": "Bạn chọn bước đầu tiên.",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Practice every day",
+      "spoken_text": "Practice every day",
+      "input_index": 33
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 34
+    },
+    {
+      "language": "en",
+      "text": "Check my progress?",
+      "spoken_text": "Check my progress?",
+      "input_index": 35
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-D828C11ECE918BF1D802939C",
+  "text": "HOMI nói: Improve my English. Bạn chọn bước đầu tiên. Practice every day hay Check my progress?",
+  "asset": "assets/audio/CURRICULUM/d828c11ece918bf1d802939c.vi.v1.mp3",
+  "sha256": "a5d6b089cdc3a5ea7086f758c4d71d884d5a7df76f772a87cd8610a4227272bc",
+  "durationSeconds": 9.241066
+}

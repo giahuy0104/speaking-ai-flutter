@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T02-B01\\C1315-L1-T02-B01-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T02-B01-Q06",
+  "sourceText": "Bạn muốn diễn đạt \"Cải thiện tiếng Anh\". Read more books hay Improve my English?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Cải thiện tiếng Anh\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Cải thiện tiếng Anh\".",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Read more books",
+      "spoken_text": "Read more books",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Improve my English?",
+      "spoken_text": "Improve my English?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-070305D141591D5E238592A3",
+  "text": "Bạn muốn diễn đạt \"Cải thiện tiếng Anh\". Read more books hay Improve my English?",
+  "asset": "assets/audio/CURRICULUM/070305d141591d5e238592a3.vi.v1.mp3",
+  "sha256": "d5762b418434e3960c67ce1ed073f041ea6d8e9b1cb4756053fe4104366b1de2",
+  "durationSeconds": 6.707574
+}

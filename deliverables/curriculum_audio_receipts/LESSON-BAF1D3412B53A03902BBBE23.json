@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T10-B01\\C810-L3-T10-B01-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T10-B01-Q06",
+  "sourceText": "Bạn muốn nói 'Đi sở thú.' Hoàn thành câu: Go to the... park hay zoo?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Đi sở thú.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Đi sở thú.' Hoàn thành câu:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Go to the... park",
+      "spoken_text": "Go to the... park",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "zoo?",
+      "spoken_text": "zoo?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-BAF1D3412B53A03902BBBE23",
+  "text": "Bạn muốn nói 'Đi sở thú.' Hoàn thành câu: Go to the... park hay zoo?",
+  "asset": "assets/audio/CURRICULUM/baf1d3412b53a03902bbbe23.vi.v1.mp3",
+  "sha256": "0c7cb36ab66014908509c6809c9352bd6139d0c0254cf57274407310c42b7ddb",
+  "durationSeconds": 8.827596
+}

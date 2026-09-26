@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T03\\C35-L1-M12_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-M12",
+  "sourceText": "Bạn muốn nói 'Nó màu trắng.' Hoàn thành câu: It's... white hay red?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn muốn nói 'Nó màu trắng.' Hoàn thành câu:",
+      "text": "Bạn muốn nói 'Nó màu trắng.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Nó màu trắng.' Hoàn thành câu:",
+      "input_index": 66
+    },
+    {
+      "language": "en",
+      "source_text": "It's... white",
+      "text": "It's... white",
+      "spoken_text": "It's... white",
+      "input_index": 67
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 68
+    },
+    {
+      "language": "en",
+      "source_text": "red?",
+      "text": "red?",
+      "spoken_text": "red?",
+      "input_index": 69
+    }
+  ],
+  "sourceSha256": "4ab7c3095aaadb75ce0381f7aba470dcf4f2507a3aa58662c3b1dd039263ba11",
+  "id": "LESSON-C1393BD796C94CFDAB6E83F5",
+  "text": "Bạn muốn nói 'Nó màu trắng.' Hoàn thành câu: It's... white hay red?",
+  "asset": "assets/audio/CURRICULUM/c1393bd796c94cfdab6e83f5.vi.v1.mp3",
+  "sha256": "4ab7c3095aaadb75ce0381f7aba470dcf4f2507a3aa58662c3b1dd039263ba11",
+  "durationSeconds": 8.985782
+}

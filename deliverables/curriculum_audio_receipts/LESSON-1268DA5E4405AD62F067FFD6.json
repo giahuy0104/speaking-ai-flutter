@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T08\\C1112-L3-M04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-M04",
+  "sourceText": "Bạn cần diễn đạt \"Cái này rẻ hơn\". This one is cheaper hay That one is cheaper?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Cái này rẻ hơn\".",
+      "text": "Bạn cần diễn đạt \"Cái này rẻ hơn\".",
+      "spoken_text": "Bạn cần diễn đạt \"Cái này rẻ hơn\".",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "source_text": "This one is cheaper",
+      "text": "This one is cheaper",
+      "spoken_text": "This one is cheaper",
+      "input_index": 21
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 22
+    },
+    {
+      "language": "en",
+      "source_text": "That one is cheaper?",
+      "text": "That one is cheaper?",
+      "spoken_text": "That one is cheaper?",
+      "input_index": 23
+    }
+  ],
+  "sourceSha256": "4ebf0845e9a60fff2df252558ff580a8f805a8d0d51e851bd37691a250b436ad",
+  "id": "LESSON-1268DA5E4405AD62F067FFD6",
+  "text": "Bạn cần diễn đạt \"Cái này rẻ hơn\". This one is cheaper hay That one is cheaper?",
+  "asset": "assets/audio/CURRICULUM/1268da5e4405ad62f067ffd6.vi.v1.mp3",
+  "sha256": "4ebf0845e9a60fff2df252558ff580a8f805a8d0d51e851bd37691a250b436ad",
+  "durationSeconds": 9.591066
+}

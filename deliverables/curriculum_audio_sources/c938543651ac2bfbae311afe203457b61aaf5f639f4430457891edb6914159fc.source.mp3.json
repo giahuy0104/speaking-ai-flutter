@@ -1,0 +1,20 @@
+{
+  "signature": "c938543651ac2bfbae311afe203457b61aaf5f639f4430457891edb6914159fc",
+  "request": {
+    "text": "Count With Me.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "4f0ec7e7ad3412b966a8a9d750b35a1f01c11940aae53f6f01cc45f94f1cbfc0",
+  "requestId": "zAxQOdgcysTKTJBPbcq1",
+  "createdAt": "2026-09-15T23:23:19.870Z"
+}

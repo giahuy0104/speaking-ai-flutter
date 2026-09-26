@@ -1,0 +1,20 @@
+{
+  "id": "RUN-049",
+  "signature": "f9775d3c7f1e480d689919a5c86c1f4d0e0a3eff382369abf5df0b2bd42d5dcb",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình tạm dừng nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:12:46.959Z",
+  "requestId": "pzfQFm3RPOMnNA0SYOyJ",
+  "characterCost": "10",
+  "sourceSha256": "238f03a0cc5b764bb6d3d54f2170209884421c8f4b95d0471a96643d4a747f3c"
+}

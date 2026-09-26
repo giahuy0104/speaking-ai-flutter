@@ -11,29 +11,58 @@ void main() {
       'Con muốn học cái khác',
       'Con muốn học thứ khác',
       'Cho con học bài khác',
-      'Con không muốn luyện nói nữa',
     ]) {
       expect(resolver.resolve(text), MainSpeakingCommand.otherLearning);
     }
   });
 
-  test('detects D10/E04 stop phrases without matching ordinary sentences', () {
+  test('only the exact approved stop exits continuous translation', () {
+    expect(
+      resolver.resolve('DỪNG   LẠI!'),
+      MainSpeakingCommand.stopTranslation,
+    );
     for (final text in <String>[
-      'Dừng lại',
-      'Con muốn dừng lại',
+      'Mình muốn dừng',
       'Dừng dịch liên tục',
-      'Ngừng lại',
-      'Con muốn ngừng lại',
-      'Con không dịch nữa',
+      'Ngừng dịch',
+      'Không dịch nữa',
       'Thoát dịch',
+      'Hổng dịch nữa',
+      'Dừng dịch giúp mình',
     ]) {
-      expect(resolver.resolve(text), MainSpeakingCommand.stop);
+      expect(resolver.resolve(text), isNull, reason: text);
     }
+  });
 
+  test('whole module requests leave translation for the navigation menu', () {
+    for (final text in [
+      'Bộ từ vựng',
+      'Học Bộ từ vựng',
+      'Mình muốn học từ vựng',
+      'Chủ đề',
+      'Học Chủ đề',
+      'Chuyển sang Chủ đề',
+      'Chuyển sang Bộ từ vựng',
+    ]) {
+      expect(
+        resolver.resolve(text),
+        MainSpeakingCommand.otherLearning,
+        reason: text,
+      );
+    }
+    for (final text in [
+      'Từ',
+      'Hôm nay mình học Bộ từ vựng ở trường',
+      'Tôi muốn dịch câu học Chủ đề này',
+    ]) {
+      expect(resolver.resolve(text), isNull, reason: text);
+    }
+  });
+
+  test('keeps unapproved non-translation stop requests out of this flow', () {
     for (final text in <String>[
-      'Con đứng lại chờ mẹ',
-      'Con không muốn dừng ở công viên',
-      'Hôm nay con học liên tục',
+      'Thoát luyện nói',
+      'Con không muốn luyện nói nữa',
     ]) {
       expect(resolver.resolve(text), isNull);
     }
@@ -44,6 +73,7 @@ void main() {
       'Con muốn ăn cơm',
       'Hôm nay con học ở trường',
       'Con thích một bài hát khác',
+      'Tôi muốn học bài khác bằng tiếng Anh',
     ]) {
       expect(resolver.resolve(text), isNull);
     }

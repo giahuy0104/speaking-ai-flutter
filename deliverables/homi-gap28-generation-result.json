@@ -1,0 +1,235 @@
+{
+  "completedAt": "2026-09-16T02:44:01.796Z",
+  "ready": 28,
+  "created": 28,
+  "modelId": "eleven_v3",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "characters": 1306,
+  "receipts": [
+    {
+      "id": "GAP28-001",
+      "asset": "assets/audio/MAIN/GAP28-001.vi.v1.mp3",
+      "durationSeconds": 2.294898,
+      "requestId": "y5bTiu1m4YcxQIW3bLgC",
+      "characterCost": "20",
+      "sha256": "c2d36aa0025e94a44c73008b28e5463b55d5c14d5b9c8a71bd9eb620e115fa2c"
+    },
+    {
+      "id": "GAP28-002",
+      "asset": "assets/audio/MAIN/GAP28-002.vi.v1.mp3",
+      "durationSeconds": 2.287619,
+      "requestId": "zmcIiaH60UZXgcYhegok",
+      "characterCost": "20",
+      "sha256": "a1119f665ea5cd1ba5583f4783a9225c5715edb97a619ab953d5fdda9a541cbe"
+    },
+    {
+      "id": "GAP28-003",
+      "asset": "assets/audio/MAIN/GAP28-003.vi.v1.mp3",
+      "durationSeconds": 2.741474,
+      "requestId": "P3DLYl8n1KiAPkNqjJPy",
+      "characterCost": "15",
+      "sha256": "3c5f7f07a749d247cbb5310cb431dc5549864fabb00e23685d154f110e911d3f"
+    },
+    {
+      "id": "GAP28-004",
+      "asset": "assets/audio/MAIN/GAP28-004.vi.v1.mp3",
+      "durationSeconds": 3.178798,
+      "requestId": "V6BLTuR6Rw8VKsz1AHjp",
+      "characterCost": "24",
+      "sha256": "278615fbd6d209c87b1b97bfa57f4df6f18b25397ef960a6137d3ad457dd0762"
+    },
+    {
+      "id": "GAP28-005",
+      "asset": "assets/audio/MAIN/GAP28-005.vi.v1.mp3",
+      "durationSeconds": 5.669637,
+      "requestId": "L0gP2X8fXelv4DXiil8N",
+      "characterCost": "32",
+      "sha256": "620c56d822772fe22fa2bdb2da034f27a3454e7633699b09d65b47e069325374"
+    },
+    {
+      "id": "GAP28-006",
+      "asset": "assets/audio/MAIN/GAP28-006.vi.v1.mp3",
+      "durationSeconds": 5.060567,
+      "requestId": "95PLWR5M0YcqiPMBIrIB",
+      "characterCost": "37",
+      "sha256": "1c58306af3dd6a8bf163765e4804f25a3deaa5a3619d8d892806b023353cb4b5"
+    },
+    {
+      "id": "GAP28-007",
+      "asset": "assets/audio/MAIN/GAP28-007.vi.v1.mp3",
+      "durationSeconds": 4.793605,
+      "requestId": "3dbNS8pKEs2vZkd2iKfR",
+      "characterCost": "37",
+      "sha256": "7e20449a007a0d479f8812e5d15b17fa7964c643ab14ae7e854dbafef546f81a"
+    },
+    {
+      "id": "GAP28-008",
+      "asset": "assets/audio/MAIN/GAP28-008.vi.v1.mp3",
+      "durationSeconds": 5.055646,
+      "requestId": "FXZ9IOOQuC3dZp1Plzov",
+      "characterCost": "37",
+      "sha256": "7f631836b4df31bcfd5c082e969969336605d486e0aefd5b7588df3cf1b5f1b8"
+    },
+    {
+      "id": "GAP28-009",
+      "asset": "assets/audio/MAIN/GAP28-009.vi.v1.mp3",
+      "durationSeconds": 4.434422,
+      "requestId": "TD28CaLfhwPIjCKorQqB",
+      "characterCost": "37",
+      "sha256": "6489fc9712081eae8c2368a359050105b08d0ba077ed464c7480df7303ec0baa"
+    },
+    {
+      "id": "GAP28-010",
+      "asset": "assets/audio/MAIN/GAP28-010.vi.v1.mp3",
+      "durationSeconds": 5.328435,
+      "requestId": "ZXBQ7e5iqFfXghMYSdWO",
+      "characterCost": "37",
+      "sha256": "daceec53e4e1221f7e1478287e8fca84b387605720487802e6b1dcd196aa4b2d"
+    },
+    {
+      "id": "GAP28-011",
+      "asset": "assets/audio/MAIN/GAP28-011.vi.v1.mp3",
+      "durationSeconds": 5.061383,
+      "requestId": "xOisw6O1L7jVz7rVXDvx",
+      "characterCost": "37",
+      "sha256": "f7aee951d785afdb03192e3d2e35a189ec91de15b53c3f16aa6b0755c7146ffd"
+    },
+    {
+      "id": "GAP28-012",
+      "asset": "assets/audio/MAIN/GAP28-012.vi.v1.mp3",
+      "durationSeconds": 4.873356,
+      "requestId": "6uLS0waQ9WhHuID93RrY",
+      "characterCost": "37",
+      "sha256": "42688be1ac56360c303f83fd9c93f4c03d28a08ca51ef9fcbf01d816aa54c7e6"
+    },
+    {
+      "id": "GAP28-013",
+      "asset": "assets/audio/MAIN/GAP28-013.vi.v1.mp3",
+      "durationSeconds": 5.061655,
+      "requestId": "4AJB1Vb2At8AzVZpoOSB",
+      "characterCost": "37",
+      "sha256": "140112452d9aad41c0620ab88ad0a35fad3850d850b39264ec6be91a82e05e5c"
+    },
+    {
+      "id": "GAP28-014",
+      "asset": "assets/audio/MAIN/GAP28-014.vi.v1.mp3",
+      "durationSeconds": 5.322834,
+      "requestId": "MnGwr6bMf4L2VHeKiTG4",
+      "characterCost": "37",
+      "sha256": "29fb5d7d416a46869a3ca6ed31dcfbf8a3610513625effb1cbd25553c9dc3aa9"
+    },
+    {
+      "id": "GAP28-015",
+      "asset": "assets/audio/MAIN/GAP28-015.vi.v1.mp3",
+      "durationSeconds": 5.234218,
+      "requestId": "ujTrpGXCrMP1MHxqy5Jq",
+      "characterCost": "37",
+      "sha256": "1dd35bd700c142ef5a02de95870075f5ca9e1e639a2673724d43b8f56e6c9b4d"
+    },
+    {
+      "id": "GAP28-016",
+      "asset": "assets/audio/MAIN/GAP28-016.vi.v1.mp3",
+      "durationSeconds": 2.922494,
+      "requestId": "igcyxIX28PeujjNjq5AS",
+      "characterCost": "22",
+      "sha256": "0370c79aa26436a7ea2d1d5a61216c11648450f4b7674938a4c5e9a1414a104c"
+    },
+    {
+      "id": "GAP28-017",
+      "asset": "assets/audio/MAIN/GAP28-017.vi.v1.mp3",
+      "durationSeconds": 3.0939,
+      "requestId": "rs7ALJjFQCTf8somPTP0",
+      "characterCost": "22",
+      "sha256": "f4e8602c910b8f0c2ec3435936206e2cd900d7df89a9c719a2c9f2f039783d2b"
+    },
+    {
+      "id": "GAP28-018",
+      "asset": "assets/audio/MAIN/GAP28-018.vi.v1.mp3",
+      "durationSeconds": 5.939977,
+      "requestId": "ELO4G9UqYKpCtbJlSD8c",
+      "characterCost": "45",
+      "sha256": "cb1eb86330b7fad00b6a7e7abc7792b12c1481ee8c9bc5bf6457767e35a4f44a"
+    },
+    {
+      "id": "GAP28-019",
+      "asset": "assets/audio/MAIN/GAP28-019.vi.v1.mp3",
+      "durationSeconds": 1.938685,
+      "requestId": "1jaCFHsVhSE3RSVRrps2",
+      "characterCost": "15",
+      "sha256": "551295144b544d196f69db247dd636a8480d37203e7a8a2560abf45a0dc16c2d"
+    },
+    {
+      "id": "GAP28-020",
+      "asset": "assets/audio/MAIN/GAP28-020.vi.v1.mp3",
+      "durationSeconds": 1.938821,
+      "requestId": "cmMywQEyFf6ilyIgV5oD",
+      "characterCost": "15",
+      "sha256": "16a2215accacf1c0edf042373200044ebd37a0fc57783a53d5ab5cb63532eb67"
+    },
+    {
+      "id": "GAP28-021",
+      "asset": "assets/audio/MAIN/GAP28-021.vi.v1.mp3",
+      "durationSeconds": 1.938639,
+      "requestId": "64nwOWD4K3Z58eaUG9Nx",
+      "characterCost": "15",
+      "sha256": "c4975b8854b1f086ab1bac8c86e99ad9ccb87059d1bb5fc36d493e5a6ecdb577"
+    },
+    {
+      "id": "GAP28-022",
+      "asset": "assets/audio/MAIN/GAP28-022.vi.v1.mp3",
+      "durationSeconds": 1.938027,
+      "requestId": "BCh1c6n8K9PjWKZlpaRV",
+      "characterCost": "15",
+      "sha256": "ae2e2768405f47b2cecc953fe6f9d81ad5322834f51d42e5c7428115393ad71e"
+    },
+    {
+      "id": "GAP28-023",
+      "asset": "assets/audio/MAIN/GAP28-023.vi.v1.mp3",
+      "durationSeconds": 1.939909,
+      "requestId": "JTpfEv8fyOTIYmtqvIMK",
+      "characterCost": "15",
+      "sha256": "e0bc9e3b51ab0b73304679932bccd3737df6917476d77c9a2e4143b002c89947"
+    },
+    {
+      "id": "GAP28-024",
+      "asset": "assets/audio/MAIN/GAP28-024.vi.v1.mp3",
+      "durationSeconds": 2.481633,
+      "requestId": "P2JddBcpLcCn2rTskjpJ",
+      "characterCost": "15",
+      "sha256": "f39a684919125610ebb2fb1654a1572f9dbd586d641cfe06445f5e39447ffbfb"
+    },
+    {
+      "id": "GAP28-025",
+      "asset": "assets/audio/MAIN/GAP28-025.vi.v1.mp3",
+      "durationSeconds": 1.950023,
+      "requestId": "L0cT3wd2Jbiq20LjQfiW",
+      "characterCost": "15",
+      "sha256": "f9b9f9417be6715c07764ad692d2effdd6af88eb11264afd9f686145b6ed5eb0"
+    },
+    {
+      "id": "GAP28-026",
+      "asset": "assets/audio/MAIN/GAP28-026.vi.v1.mp3",
+      "durationSeconds": 1.937052,
+      "requestId": "fMqp8th45VuKFAuIP7Fe",
+      "characterCost": "15",
+      "sha256": "84dabbdf907d9f483a8ba9ad6f949b7b2746f1669bfb4ce13fc3c4d0105a1953"
+    },
+    {
+      "id": "GAP28-027",
+      "asset": "assets/audio/MAIN/GAP28-027.vi.v1.mp3",
+      "durationSeconds": 1.938277,
+      "requestId": "XXEwJ4NRQjWz0knmQrY9",
+      "characterCost": "15",
+      "sha256": "ebdfcf4aa4e3a03c05ce21a1e69713cb7e010f2b5c0fa17c7c97fd61adcb1839"
+    },
+    {
+      "id": "GAP28-028",
+      "asset": "assets/audio/MAIN/GAP28-028.vi.v1.mp3",
+      "durationSeconds": 1.940839,
+      "requestId": "5AY1n7NjnbTX0c0IBgET",
+      "characterCost": "15",
+      "sha256": "9cc157f504d833c767ce43e03abafb6c8ddda66ef317aad74c29bf3b9b866dcf"
+    }
+  ]
+}

@@ -1,0 +1,2009 @@
+{
+  "schemaVersion": 1,
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "auditedAt": "2026-09-16",
+  "totalCharacters": 1306,
+  "baseline": {
+    "mainCount": 191,
+    "curriculumCount": 2641,
+    "mainPrompts": [
+      {
+        "id": "AI-001",
+        "sha256": "c33d384f48924c445c0e7d458c13ba39770e6409c4ff9b60a60a4702f4b40a70"
+      },
+      {
+        "id": "AI-002",
+        "sha256": "642acf0742350d0247faa69591edc80773334d8bca0a82fd9ccf282aec8ea47b"
+      },
+      {
+        "id": "AI-003",
+        "sha256": "76fb9d531074a1553247ce067b90bd6a199a8c02d86b6b3fb0c4d8172953a0da"
+      },
+      {
+        "id": "AI-004",
+        "sha256": "57d86b29ed960a68a3612268c240162ebe4862c5009e61ba0ad934accd563753"
+      },
+      {
+        "id": "AI-005",
+        "sha256": "ad1f07824adb1afc07860affe8133ef8ce2b9726f5123ae0eabb02d81552b3f8"
+      },
+      {
+        "id": "AI-006",
+        "sha256": "d2cebba24d2a6d104b48b4afe9950a8be3c1605d2427307fc7d08f0c72f69ea2"
+      },
+      {
+        "id": "AI-007",
+        "sha256": "44a24743e5f190138c9e8714189858c37562262c411034ec49b208853cc2464f"
+      },
+      {
+        "id": "AI-008",
+        "sha256": "8a85bb658f4b22fcfb1b44826a8e1b0d1f3d1e0065994dd0d3d0f74a5bc8468a"
+      },
+      {
+        "id": "AI-012",
+        "sha256": "95cec7dcab1323d0e239f3010ebce8386c605d5e21f6f3498208ea871e4f2e61"
+      },
+      {
+        "id": "AI-017",
+        "sha256": "0dc7d563ec3092e5b6a0c64677b7ff0c9c9642d69d8a051eef9b81af69689fd8"
+      },
+      {
+        "id": "AI-018",
+        "sha256": "84a171514b4d16e8fc53bfb53d61fc69ef78fff802b077912e39871c83e61a20"
+      },
+      {
+        "id": "AI-019",
+        "sha256": "fdcda05f134f22690fd4601b3e502a8d600f6e46eca74f5972ddfa5081d6565a"
+      },
+      {
+        "id": "AI-020",
+        "sha256": "f02bb72375a99c2533494c147077a6b327731a678ec3e789d8b65898bc632a9c"
+      },
+      {
+        "id": "AI-022",
+        "sha256": "45ebfd2fc20e90b28fc1f6d62ff70fd68c0ad5a6a1233cc2cf36173d7a1f14a8"
+      },
+      {
+        "id": "AI-023",
+        "sha256": "89d3bcf5d4e5ad8bdcf431e4914db21b3071b2bcd70cfed28ec91e7bd2399307"
+      },
+      {
+        "id": "AI-024",
+        "sha256": "a1d3f7aedc547c0003844204457aedb66073c83b92d2afbe8073eb5fc4d9a5f8"
+      },
+      {
+        "id": "AI-026",
+        "sha256": "97b0cfe3b47f9e57d2f28ce7fd94df02b4258e1769d3d6e8bf83cdf7ef55777e"
+      },
+      {
+        "id": "AI-027",
+        "sha256": "c7cb66c80c62701c1151e9b21d39dc2344ff48dc77294ef37f6a55bf59a69e1e"
+      },
+      {
+        "id": "AI-028",
+        "sha256": "92d999764aad90b043cab360616d7a9198009c1e64d9831ebdaee9c3fae0619b"
+      },
+      {
+        "id": "AI-029",
+        "sha256": "3ab118c56ae1542b195fe714d6c94b0dc8becfffd3d0490ab58a720506519b66"
+      },
+      {
+        "id": "AI-030",
+        "sha256": "d6e1096ef581220b783adbdb2c7ab7a9910d4f9871f0537d32c4323e8cdd114d"
+      },
+      {
+        "id": "AI-032",
+        "sha256": "c26f0d82f90c13b1e02ee86c3a54e2ee9a41aa86cd9bd431fa5fd5117da1c093"
+      },
+      {
+        "id": "AI-033",
+        "sha256": "fd43740efed61243be1e37555a974d6af0ff01050e951c83a26955c99136a3d5"
+      },
+      {
+        "id": "AI-034",
+        "sha256": "05e54b99b9074696d69b58ff3c35ef3d0054c2cd2bc9b1eb598b9ff79a20e503"
+      },
+      {
+        "id": "AI-035",
+        "sha256": "ef48b8ec368f5e37de4aeaf90856d94cb132062fbbafb9e218abb7f07c8f8a8c"
+      },
+      {
+        "id": "AI-036",
+        "sha256": "41bd977f79863fbf8316d83f6918bf5b842786f9737f8425c9bad8b89303abb2"
+      },
+      {
+        "id": "AI-037",
+        "sha256": "d5cf73d2c0887d09ce857393e710c7119520947694c8f2beb28de35cc952627d"
+      },
+      {
+        "id": "AI-038",
+        "sha256": "435b1d682907d8ad6388774f807e3a92db871e258079004cfb3b4dfc980b5aa8"
+      },
+      {
+        "id": "AI-039",
+        "sha256": "d1900989133997a9a5250e7ab95637ff75398f00cc9a16361e2b620400807fe4"
+      },
+      {
+        "id": "AI-040",
+        "sha256": "88efb00d4396a2dfe3694b761af887e9656edd2b25ca4c1f237e007a88902321"
+      },
+      {
+        "id": "AI-041",
+        "sha256": "da574d4324576918830e5445dd650bf582fb78dec796a337197b9d864d3ab2c7"
+      },
+      {
+        "id": "AI-042",
+        "sha256": "5da80cbdb9f64a8f15327e00abd83dec9d5ac8cf03d55d428b5ab2d908f61186"
+      },
+      {
+        "id": "AI-043",
+        "sha256": "c0925b3f6227dc3d02e290ee0ed557922e26d2494245bdacc163e77f9d4a4616"
+      },
+      {
+        "id": "AI-044",
+        "sha256": "df02b5b8f65d8ae04173e349758be608c6fff2e734e59a23beaf07332c5c2529"
+      },
+      {
+        "id": "AI-045",
+        "sha256": "8a177472217a3550a0bdd3cf70e16b4a493e4e8aa06cb38ed44ef86b14a0de64"
+      },
+      {
+        "id": "AI-046",
+        "sha256": "0c22e3380d6401d2f9a7da9b12186ec386a97475d8c9e7938f821848925d0bff"
+      },
+      {
+        "id": "AI-047",
+        "sha256": "4b4ab8ad4d942f86b45b70ac4ece0ebe99cd438219d9ccad39e6025419d84145"
+      },
+      {
+        "id": "AI-048",
+        "sha256": "2f669ff16dafff189940c839a268c09051668ca221dab5c6bef2019b30396281"
+      },
+      {
+        "id": "AI-049",
+        "sha256": "b1b450c26fd885a7569059cc377e5fe768903e55e68bfbf578ed1d4a587376ef"
+      },
+      {
+        "id": "AI-050",
+        "sha256": "ef016faa43fad9f158a46f1fe33d5589a1dcf329149410e2de535c925834fb81"
+      },
+      {
+        "id": "AI-051",
+        "sha256": "c8ca706deaf83dc1a50db07fc21fbc70499e9c9124a347f1e172226ed1805aed"
+      },
+      {
+        "id": "AI-052",
+        "sha256": "9427c7ba548937468628834eb437b260f4a0d94a85758e9ec5702c5ba6cdfac6"
+      },
+      {
+        "id": "AI-053",
+        "sha256": "2a7c4527563bd2741be8c652787cee36ae1b188685839b373b46ea7639e48fb5"
+      },
+      {
+        "id": "AI-054",
+        "sha256": "c61bd7382b7201155f483fb29d9a49c8252c0425ecdf54ce2e51957d29cabfd4"
+      },
+      {
+        "id": "AI-055",
+        "sha256": "3c269264a148d54f532b983b5739801daea0c891a5f10b34dd3947caff2b980a"
+      },
+      {
+        "id": "AI-056",
+        "sha256": "2e5c4b7d12ab7606a50bf38d5a7d0ee01754f6a8a7272f303561466fc52334f2"
+      },
+      {
+        "id": "AI-057",
+        "sha256": "3617000882e693df55f6b69f81d115aebf6b3422f3cd641661f64f8c079c1e7a"
+      },
+      {
+        "id": "AI-058",
+        "sha256": "168bfed8a8ff9d047c80f2c71c6866328d1d177bbb3f5cc3a5ee006ac98fcd69"
+      },
+      {
+        "id": "AI-063",
+        "sha256": "4ed80d78110728db4326a55506d3d076c1c207a2a60a2807247118df572e02ab"
+      },
+      {
+        "id": "AI-064",
+        "sha256": "76c7f09326b60fedab4bb9e2f9f58a1a5c6d9b7f53755ea99956a07d0b77a039"
+      },
+      {
+        "id": "AI-066",
+        "sha256": "b45da67ea44cbe949437f9cccf6add083f391059a0bf1f9c08a2268b66fb6304"
+      },
+      {
+        "id": "AI-067",
+        "sha256": "55d08a091527d239fc11633c80ce1213e2d368964ab071decbb9649957737f3f"
+      },
+      {
+        "id": "AI-068",
+        "sha256": "c414bce721c46004884046c291fc1bb86dcd6e8ac43988d43bb4c2a6b5483002"
+      },
+      {
+        "id": "AI-069",
+        "sha256": "fb5c57623ac261ae034d01024f295374319259ac1331d5abdc5cb549b01373f0"
+      },
+      {
+        "id": "AI-070",
+        "sha256": "2997b3d97a7fca3b898ca32deeec9453495596b28095e599fac264eae25c2b7f"
+      },
+      {
+        "id": "SIL-001",
+        "sha256": "b351fcd63fdb933eb85e20e3c432da9d2266e884900069a97cc9d9ab438f109f"
+      },
+      {
+        "id": "SIL-004",
+        "sha256": "d384304b3980230220b5761c6c0017574bcef3564b82c7b71bcec84fddcae6fd"
+      },
+      {
+        "id": "SIL-006",
+        "sha256": "7b74ecf06dd04975c5a958b9df7301f4b8d9b4567afe05e2e90bb69efba38536"
+      },
+      {
+        "id": "SIL-008",
+        "sha256": "687c8182f315b24b909b8e4407a46ed23a832842f671f34bdfa58c13e1a44406"
+      },
+      {
+        "id": "FB-001-2",
+        "sha256": "3d911db6c2fddbffefe5aaa4156b57d22c36e639657c45a545add29a80ed4e2c"
+      },
+      {
+        "id": "FB-004-1",
+        "sha256": "b3161a93253da05574d91be6b8eb30405d98e83152f6027b8e6a7cfa128b4fc9"
+      },
+      {
+        "id": "FB-004-2",
+        "sha256": "27b268edb5c0f35838bfbf9c18373433d40629830d50018409a67763f7d98984"
+      },
+      {
+        "id": "FB-005-1",
+        "sha256": "8224e367b3e659b39dd611723447de2625bd7db215cafa8906b6cd9cdd737625"
+      },
+      {
+        "id": "FB-005-2",
+        "sha256": "baa6a999ebb7b64a2a86253b7f3e4871ad64c6179a3f4c43d9563a22686bbd7e"
+      },
+      {
+        "id": "FB-006-1",
+        "sha256": "7097da90385f627986fad309557374781ed9cf06e38b95e35e121f0e1769ea1d"
+      },
+      {
+        "id": "FB-006-2",
+        "sha256": "d4e2c2f3be708fad4fd02102ba1c19ef453d8540199758a6bdc2f48671bba729"
+      },
+      {
+        "id": "FB-007-1",
+        "sha256": "04decac15d0afba8d5dcfd31396f8393c6eba060fe314761b3d3dd6927377b9a"
+      },
+      {
+        "id": "FB-007-2",
+        "sha256": "92642995672d5bb8d4fa44d40d674876b83234f9b0bdf48b0f6c6f691efda740"
+      },
+      {
+        "id": "FB-008-1",
+        "sha256": "f1828d3f99673e1fe1c5f715b42709887941389b0abc4d1ee53afd9eb62d711c"
+      },
+      {
+        "id": "FB-008-2",
+        "sha256": "66ea9fba7b52206e75d0434c91e31194a18bb9b64441e222382517d4aa118778"
+      },
+      {
+        "id": "FB-009-1",
+        "sha256": "cda143e2e0c1f7a202e4f59f51bc351cfd4261eb02ea9561b33a0918812128e4"
+      },
+      {
+        "id": "FB-009-2",
+        "sha256": "05a4c9c81895b859dd56f77f4359ded7606f087f405961165a05f902bea01bde"
+      },
+      {
+        "id": "FB-010-1",
+        "sha256": "577fc15d37df40678fed30aa68e9cc4d44d22b3efe2de876ca9412c6ef549e6e"
+      },
+      {
+        "id": "FB-010-2",
+        "sha256": "bfa6cb3caff87d8f3a671a91132b1fd3eed6bd5ac495bb596ef652ec798ae938"
+      },
+      {
+        "id": "RUN-005",
+        "sha256": "fb21708f3e6de7f528ed18952628e27e875790145753438bc79bc77bdeb920d1"
+      },
+      {
+        "id": "RUN-007",
+        "sha256": "7ae00da9e4e6f9d5b30cdf642dbdc84e0b0be617dcf876212c8c00a8c2ecfc4d"
+      },
+      {
+        "id": "RUN-011",
+        "sha256": "e991869890cfd751ab43179f0712385199574fa3132b502bdf9323181ef5f8f4"
+      },
+      {
+        "id": "RUN-012",
+        "sha256": "23c5954bb7604f39ae76cc2f64ea0a61dd79df92515c09a365f63ea6243c6af7"
+      },
+      {
+        "id": "RUN-013",
+        "sha256": "c17d489f669616aa54b359bd08800409d7bf6782b234f59d6fb41d905cd6ce64"
+      },
+      {
+        "id": "RUN-015",
+        "sha256": "31b14a5e34b90c1515f58ca91e18a15d69a3ef9c29a5774e7c15a91769c4ecee"
+      },
+      {
+        "id": "RUN-016",
+        "sha256": "94e608b4ce852f6b1902823e5e19b5a5eb23dcc74866babe66496700d8970f31"
+      },
+      {
+        "id": "RUN-018",
+        "sha256": "3402f73ec325d984e6640aa5c10a7c2af5118cf26d06111d724327e20fcd718f"
+      },
+      {
+        "id": "RUN-019",
+        "sha256": "62b935b555c5d71922be981c60666cf64bbe9933a6d58caa3d0cb2e6ebcc538c"
+      },
+      {
+        "id": "RUN-021",
+        "sha256": "05b5722330a08c3a54c6b7d33ee0e98bbff7b3e4a1a1d158f86e2df0e266bd96"
+      },
+      {
+        "id": "RUN-022",
+        "sha256": "273476dd4ec07e095635a3f52214fb70f788f571641ca914ec63cc389c2e1554"
+      },
+      {
+        "id": "RUN-023",
+        "sha256": "bde0d202d13bf95c93925799d636c0a688e716e88708991d94d674bab4277f82"
+      },
+      {
+        "id": "RUN-024",
+        "sha256": "af9fe8b290cf804a5f98e5e98b0e0891f4fe92b07642f959b3ac0a56f59bc79d"
+      },
+      {
+        "id": "RUN-025",
+        "sha256": "75a6c1dcbec45efecc744972d5f244d72b468236a31608ac32e2b37445aa20a5"
+      },
+      {
+        "id": "RUN-026",
+        "sha256": "5775ae352d2ed15ec2260bc3e20c67f77cc3e09761bcd0d4eec96b92e500d2a6"
+      },
+      {
+        "id": "RUN-027",
+        "sha256": "94a822cbd89dd9d5f7a4bc7af9a96b23a46acbd9ce553f6bde1a3bef63a278e8"
+      },
+      {
+        "id": "RUN-028",
+        "sha256": "76279bbb44316a632325f65143ceff869b2d3a769eb9364d26173af85e778776"
+      },
+      {
+        "id": "RUN-029",
+        "sha256": "5a9c0a21f2c1b843f3fa18f68090311377523e05122c9d83b080aeb1340f6365"
+      },
+      {
+        "id": "RUN-031",
+        "sha256": "3bc6f67191086125c9c99f6bce4efa686bdb30b0de8716638e458895a56223ad"
+      },
+      {
+        "id": "RUN-032",
+        "sha256": "665ca39b528c7ab95b3d56f680a2dc27f5ba817cb4628750bcecaeb5816ea78d"
+      },
+      {
+        "id": "RUN-033",
+        "sha256": "627720e9aae19b2e7b537c7b3ee8f715ed7a111af2b17b8f7edc56cf61e28395"
+      },
+      {
+        "id": "RUN-034",
+        "sha256": "2dffef4b31f296a502096973b44c203e6b6d27ed9a0610f38aa45f47349104a1"
+      },
+      {
+        "id": "RUN-035",
+        "sha256": "ebd5536c5a7ae20d41d95f06f9d790c6315f87a4a8bb265356ec3152afe9c3e3"
+      },
+      {
+        "id": "RUN-036",
+        "sha256": "7c9a201020487afd75b637b660690e5a588ffe967c0542401c88082862377383"
+      },
+      {
+        "id": "RUN-038",
+        "sha256": "4fd0582be7acd534966d28190e28d021fff0a1721ccdd65fdefaeaad8c6dc992"
+      },
+      {
+        "id": "RUN-039",
+        "sha256": "c89649c68842295fc1137dcee5b149447a8e238621eb3740d92480e7c8983749"
+      },
+      {
+        "id": "RUN-040",
+        "sha256": "0ed90a815d01a256f816cd9307ca66e0b47949ca048ea7014bd006ab321d1a29"
+      },
+      {
+        "id": "RUN-042",
+        "sha256": "8927146683dcc76927418d77f82b21dfad68c1be143fab67afd63e8460342a2c"
+      },
+      {
+        "id": "RUN-043",
+        "sha256": "27845ae195ed8dc09f900e41c5ded29a90733198700c4d33ded885c7f6da9563"
+      },
+      {
+        "id": "MAIN-TRANSLATION-INTRO",
+        "sha256": "ca69ba99eccc34c8ff5dd01d869a36dbb1b3f82f653dd43ac8d8cb3949896d0a"
+      },
+      {
+        "id": "RUN-044",
+        "sha256": "0a14a083c6256b9a2421f179a94b0c50a93944dfc27af3b391cf36c3876fff61"
+      },
+      {
+        "id": "RUN-045",
+        "sha256": "4b550ebcec998f5565bd0112f93811d45c569bb891f43d9eeeca16a5e0a7932f"
+      },
+      {
+        "id": "RUN-046",
+        "sha256": "75b76580e5f06e50f99b517482318ec939d4d32e6303ff02773ae0041f49430f"
+      },
+      {
+        "id": "RUN-048",
+        "sha256": "d9e65b6a1aa20bd784efe188fb686bf7a001c71eb934f935bddba68ed9a75a9e"
+      },
+      {
+        "id": "RUN-049",
+        "sha256": "ed07f239bb14d39534f88280252307eac1b85faf88ebdc03f37bc04d4ef3818a"
+      },
+      {
+        "id": "RUN-050",
+        "sha256": "259ee2101b3868c8b2beabdcf52a99895b90692f741d374f3a6a686b4be3324a"
+      },
+      {
+        "id": "RUN-052",
+        "sha256": "cbdbee131c28cd20659d5f5e575d0bc68d540f843a7a7cf13a5ddc9c82090ab7"
+      },
+      {
+        "id": "RUN-053",
+        "sha256": "ad50488e0ac1c14de905880b51d379d79f698dcea32bf9f2f9a8030eb101f491"
+      },
+      {
+        "id": "RUN-054",
+        "sha256": "47846bb94fe0515d4e64437b0cd97a565727ba87e1dc003f10050678a55775f6"
+      },
+      {
+        "id": "RUN-055",
+        "sha256": "6e340fb7111ce8161b98d2ccbd744cc76c2a5c71420404edcc81fd39c38418a7"
+      },
+      {
+        "id": "RUN-056",
+        "sha256": "bf016af084700bdcaf0f806041b7b50fbe825090f885a247884786970984056a"
+      },
+      {
+        "id": "RUN-057",
+        "sha256": "e9eb65756933bd734a96a0c077080033dfeb97aa47c6d7e5ba4681582b4aa36a"
+      },
+      {
+        "id": "RUN-058",
+        "sha256": "16c0d06cbea6c3242d07b8f96753ba090a0d5422b23b38fb2b6ef0024e84f463"
+      },
+      {
+        "id": "RUN-059",
+        "sha256": "82fdf0c9f847339df502cd95e10934b2339034f1f75f831f675d80c540137fbe"
+      },
+      {
+        "id": "RUN-061",
+        "sha256": "2dc5485d51fd83b6f390a78da0a1ed3b923954f9a1a898ea82a8845dd6b2c2de"
+      },
+      {
+        "id": "RUN-062",
+        "sha256": "ed7a89f1a6eafe6f4ff8b563ad27cb94e5767ffb34fa07e5595dd54b405b9495"
+      },
+      {
+        "id": "RUN-063",
+        "sha256": "03b335bf60ab874e6315ac602dc949edd49d5ab927dec1cf6b5e120ec9882ea5"
+      },
+      {
+        "id": "RUN-064",
+        "sha256": "60aa2ddc8132f3f47bef97be65c5b269b051232a107a4d18be786e475d145e03"
+      },
+      {
+        "id": "RUN-065",
+        "sha256": "94f860023af54b15e5f9a8ba82f403ec96c041ff6985aba21abf70b3dec784bc"
+      },
+      {
+        "id": "RUN-066",
+        "sha256": "2d2f06775f7cfa03f7643c51ce38a7f5b823d658dabd03f1599d538264f20587"
+      },
+      {
+        "id": "RUN-068",
+        "sha256": "9d761c76ea872325d4519259e79601f098bf2353e1536ecc5bb70c548edc3ae5"
+      },
+      {
+        "id": "RUN-069",
+        "sha256": "89dd2ef0ff7bd3f0e92c5fadd066e7da2c3f65d1d18195a40a03c67df9e10f09"
+      },
+      {
+        "id": "RUN-071",
+        "sha256": "300bc007930a170fa2d29d0311b0db84882d76c49e97d5402fa1b00dcb806ac1"
+      },
+      {
+        "id": "RUN-072",
+        "sha256": "269fb8e8fef9ff6292ab3367f65457569b1010a9215d105efa4a2640c36db6c9"
+      },
+      {
+        "id": "RUN-073",
+        "sha256": "4ca1e1d1fe34da6cb0a588b03652fe367b962cf9702deb50346ded5daf40ed91"
+      },
+      {
+        "id": "RUN-074",
+        "sha256": "880f4fcc14c1f2553d525b0a39c20628d19d44e1802e11e4d8caeb2e5f04b0d5"
+      },
+      {
+        "id": "RUN-075",
+        "sha256": "62125281f9b686487732ac78d99d62dd850215f9cc70d6fb62a7129d8a16dd7d"
+      },
+      {
+        "id": "RUN-076",
+        "sha256": "2c27e3edc5c8463de110c224d2805b241d5f5aed693b5c198b3174866c1d4eb9"
+      },
+      {
+        "id": "RUN-077",
+        "sha256": "931c3aef8b409f11eb06319bf69a53b02c8ead72cfc7d451a6e17ce020700a36"
+      },
+      {
+        "id": "RUN-078",
+        "sha256": "3850f8b03f77b1e2be40577a827357a04f014a5c3b59fa75f502f5a195235b7e"
+      },
+      {
+        "id": "RUN-079",
+        "sha256": "1b004d4771bcda051bd70058202cfe0f605fbc58d81c33899118019b1ecd6d8c"
+      },
+      {
+        "id": "RUN-080",
+        "sha256": "d58d553702adb943c9a56df2a07d47f515b6f96b5f49ecd6e684eb95a9dd3d60"
+      },
+      {
+        "id": "RUN-081",
+        "sha256": "22d9d071ad880cba7b7de15b23a6262856ffefb9179e4e23d92581583cb3d073"
+      },
+      {
+        "id": "RUN-082",
+        "sha256": "fa451497d3555eb7cdb9ee894470eb9a70599f9516a798b6a111cdf18bc48f99"
+      },
+      {
+        "id": "RUN-085",
+        "sha256": "01b39df82ed20a8cbfb6592211220fd7f4c8453293c5edd2ebd877b5d96909d8"
+      },
+      {
+        "id": "RUN-089",
+        "sha256": "5608720c23b3282499a608779fc7f16b6784061b925372b63c6521a874adc307"
+      },
+      {
+        "id": "RUN-092",
+        "sha256": "1b48d1242e89f3d31e80bc75b1932d7bc34cf64d1c9df207f771e6b4b3013ece"
+      },
+      {
+        "id": "RUN-093",
+        "sha256": "37f78a3ce9156d7e9bc37dc16c7d8def42845e377c7d8daa49a2aa201a5b4fcd"
+      },
+      {
+        "id": "RUN-095",
+        "sha256": "1537e33c5eda05f5ad6bce190082471f64fdd99ecbcdadb0069116c08059b4d4"
+      },
+      {
+        "id": "RUN-097",
+        "sha256": "405fe690d795bd028dcb19197f94df0272e11bc522a22493736dd8b69b0d96a4"
+      },
+      {
+        "id": "RUN-098",
+        "sha256": "ffdc1361c960f854ab229fe8c2cbb0d402ea9d1983beb3284434232b329e66ca"
+      },
+      {
+        "id": "RUN-101",
+        "sha256": "b3dfeb3af61b0bb5d87f9d455d5cbe83f09e73613cc4e40887f6d843f8acc6a3"
+      },
+      {
+        "id": "RUN-103",
+        "sha256": "fc177b0b3c52dad807796ba3959ed38078ac3ae7d7f829daa9ec2684469d5d13"
+      },
+      {
+        "id": "RUN-104",
+        "sha256": "149ba671c29f34b10ce2db9523b730cd31819409a00008ecb010fd5198906270"
+      },
+      {
+        "id": "RUN-113",
+        "sha256": "4e1f1cc03c20eba02fad2f414f54152fd069dad8d0cfd1abbe2b237ab71871d9"
+      },
+      {
+        "id": "RUN-114",
+        "sha256": "e2645e841902473193f2726ea0881d1727a1ddc781e6b32fc615a9c537e51258"
+      },
+      {
+        "id": "RUN-115",
+        "sha256": "2ce13d3480ee97a0a3c89942181c38169a4d207e6113e58b277fd6b01ab6b107"
+      },
+      {
+        "id": "RUN-119",
+        "sha256": "e4e9ff3b690a5e0653d5c00cbe766063c52c332540eb41122d97a5dcbce256dc"
+      },
+      {
+        "id": "RUN-121",
+        "sha256": "29ff51fe6cc2598ab3863c699594932bcc84c86ff0f9c1be9a897b65c03f6faf"
+      },
+      {
+        "id": "RUN-122",
+        "sha256": "ddf1a35cc3fabcd1d7cf88616284d8327bbd679fedcf34aeb815e312d637133f"
+      },
+      {
+        "id": "RUN-123",
+        "sha256": "63ebfca21f9d176244414e7cb45efdef00a801721288069370d50afc66dd6eab"
+      },
+      {
+        "id": "RUN-124",
+        "sha256": "205265ede404157f7481b85e549011fc162456545226e6ce3684a068ee6732b8"
+      },
+      {
+        "id": "RUN-125",
+        "sha256": "4b083202bfe4866a4d2c05fc97c62f34eaf6665c7d5372010fdd334ee82cbbb3"
+      },
+      {
+        "id": "RUN-126",
+        "sha256": "c4b1026a5ae6b80aa86a860a3c9ad284ff57c1adb387c3d092e73d1ffd2d4764"
+      },
+      {
+        "id": "RUN-128",
+        "sha256": "0d9287f8bac85220d45152eab780281fef5cffbff1ecd929728bc01575e9b081"
+      },
+      {
+        "id": "RUN-129",
+        "sha256": "be69c88da19ea5a28138d76da5b2934426fc78d86b9b21fb5bf524f16517e2c2"
+      },
+      {
+        "id": "RUN-130",
+        "sha256": "2a138d9385dc5c7f60f04580ac94afb044ed7aa15f296d8b1720f03986f263b9"
+      },
+      {
+        "id": "RUN-131",
+        "sha256": "07ae06fb25df014b409032b670bf599651f843a588cf119f9204e5f976798a25"
+      },
+      {
+        "id": "RUN-132",
+        "sha256": "c8759107b4ed48ae849be8f8d32ad4afb8f6f583aba5bf1a4f34ccf5a4575b6d"
+      },
+      {
+        "id": "RUN-133",
+        "sha256": "d52f24af0bb85f62aba045e5bf7fc14e5ce0f8f254579890701f2b0bd570a062"
+      },
+      {
+        "id": "RUN-134",
+        "sha256": "b38c281a5c3ac3b50884ac737c3069fbb579ad1dde23ae4dc3e19ec1a27d9f6f"
+      },
+      {
+        "id": "RUN-135",
+        "sha256": "e83b1a2d1db39be11baead9e02083f249022a07bc527f71244d151cb27d0b32a"
+      },
+      {
+        "id": "RUN-136",
+        "sha256": "0d0a913b4469ebdb655a71dc7f24ab3a128f3b07553ea4a0577bc8a9251b3fd3"
+      },
+      {
+        "id": "RUN-137",
+        "sha256": "3237b30d6857b14adc1f58434e13b13fccb0b5ffa228a82b0d8e51d973a785a0"
+      },
+      {
+        "id": "RUN-138",
+        "sha256": "0b175bb7b64d57914f9e9ee6646a2ea716691464906433f4f8265a7de279e29f"
+      },
+      {
+        "id": "RUN-139",
+        "sha256": "faad9647b345385c35619be9698c3403a0648290ec6b3c063bbe30f40f5f9f6c"
+      },
+      {
+        "id": "RUN-140",
+        "sha256": "b9e7097d39e67cd71d9011a57c32db67aca83f58ee44c25fdc11a1119c0ad389"
+      },
+      {
+        "id": "RUN-141",
+        "sha256": "495c2e4e0a07e28a62442a16b0e07a6507caea0b2df9cf5681a10e03626e71a1"
+      },
+      {
+        "id": "RUN-142",
+        "sha256": "c90f72606aae19ac5aa9ebe4e9946df3847eae542c042cf606cf6e0affceba01"
+      },
+      {
+        "id": "RUN-144",
+        "sha256": "94bdb6b21490610d1d4e1c2ceacd2f2b0e012c9b9ae0ae368486b6523836afad"
+      },
+      {
+        "id": "RUN-148",
+        "sha256": "061fc10c1ea71098ee68876e1e6c3f521fadd5d3fcf4eda53b084587d284d0ce"
+      },
+      {
+        "id": "RUN-153",
+        "sha256": "bbc20259af7ec9fd6f6bd89d30aff8f3ced07a2f73fa43a3d47848d51b240a4e"
+      },
+      {
+        "id": "REPLY-001",
+        "sha256": "aac1c091a3016d17e8f3d10951e824f3db36b328e063074564dd7c4738008e19"
+      },
+      {
+        "id": "REPLY-002",
+        "sha256": "53d7d03fea399c72147c4fd684f693a017f344b018bce61636bb4cac178d4372"
+      },
+      {
+        "id": "REPLY-004",
+        "sha256": "349b23cf937ae4f13a04e3fd5c60bbc1f3b54ecfd8331474b91f30ed695d033e"
+      },
+      {
+        "id": "REPLY-005",
+        "sha256": "808321f884ffaf13aa559a96386ee7092b6121e052600f05d6bc498cc0e8655b"
+      },
+      {
+        "id": "LOCAL-CORE_FIRST_PREVIOUS",
+        "sha256": "d6a98bea4b832c0d3cc2ae28fdeba3862de869d99e66cb17230061c77cd550b4"
+      },
+      {
+        "id": "REPLY-007",
+        "sha256": "cbc8e041f5ef266a75b6062d918837a489fe6ec9a49cda1fa04bbf8f3a69eef3"
+      },
+      {
+        "id": "REPLY-009",
+        "sha256": "ab1cb68f6ac48341ff9e89869f1fae3c4b227ff97279cbcf65c88c2aed8e750e"
+      },
+      {
+        "id": "REPLY-011",
+        "sha256": "ce402879f4a5902f7ce6da55ddc799f4a0ef4ca30b21742fcdb6a5d7e74d3f3f"
+      },
+      {
+        "id": "REPLY-013",
+        "sha256": "d2deeb2fafaf7e5657f647ac33756865062d5500109d19a577a5a1431048ad83"
+      },
+      {
+        "id": "REPLY-014",
+        "sha256": "f2f326618ed7c108eff34f7f56c53b108e62abdf43e15f9a10259f7c9616110b"
+      },
+      {
+        "id": "REPLY-016",
+        "sha256": "4feb43f1ae32f9649dd015f8bd2b3da39f53f9b9f9a4a11ee844598c0fb33f94"
+      },
+      {
+        "id": "RUN-157",
+        "sha256": "6c35460021ce7a61d6c0796b774ef5505f9eefc92391c3166772d7bfa161aa9e"
+      },
+      {
+        "id": "RUN-158",
+        "sha256": "94618dc16fd537cd4dfd2bbd994e285c97f19a9c9fb8698ed86c1e1861a9611e"
+      },
+      {
+        "id": "CONVERSATION-UNCLEAR",
+        "sha256": "646528e3090425c4ac64501ffa06adddb987a870178d3eb32eb81d00e7dc38a9"
+      },
+      {
+        "id": "LESSON-INVALID-CHALLENGE",
+        "sha256": "1b13a8765f692563ac4eb0408d9cc5bb2ae16fc8aa00a4cd23d64207848639af"
+      }
+    ],
+    "files": [
+      {
+        "path": "lib/app/ai_speaking_app.dart",
+        "sha256": "52939090981a39a0fcc298ae7d32c799e8c96312800b91c8a62e8659f1c45d2c"
+      },
+      {
+        "path": "lib/app/app_theme.dart",
+        "sha256": "809201e79f54e9c904f7991f66b785db93a372f3114453a3a9219fa42c397bba"
+      },
+      {
+        "path": "lib/app/app_theme_mode.dart",
+        "sha256": "996c1cf59b3b4f45d0b72df81f381cec8264b2725c8b0a268790a79db53b57ba"
+      },
+      {
+        "path": "lib/app/device_connection_feedback_gate.dart",
+        "sha256": "1f42aafbd132aaa4a5428abf4ff09b99e81d0607d6ce0a8e11a011e33062e024"
+      },
+      {
+        "path": "lib/app/device_connection_feedback_overlay.dart",
+        "sha256": "da58d316e14c119cb251d6fe78c4b7e0f5ae21e08bb2094626497191cd5bea96"
+      },
+      {
+        "path": "lib/app/homi_bottom_navigation.dart",
+        "sha256": "31fe6daf4434ab63a9e1a9f784dc2323ab66f8f5f06a665be38a417851991489"
+      },
+      {
+        "path": "lib/app/homi_ui.dart",
+        "sha256": "e24f06af2463fc9a8d259f597fe40b47d17f000f94d8351996152fb9ecf56305"
+      },
+      {
+        "path": "lib/app/learning_scenery.dart",
+        "sha256": "1db400b3bbc7e082fa17d94e13bf219c7a02f89b6b3ca184d7f87b3513611dbe"
+      },
+      {
+        "path": "lib/app/mascot_assets.dart",
+        "sha256": "eea392de47853484f8ba13598feac376dea20d45e125331d02c305141a8f2683"
+      },
+      {
+        "path": "lib/app/scenic_app_header.dart",
+        "sha256": "4ac936f82b3107fae3cda4b5af8b3d9bbb88352e6d83063e1751345c46d76998"
+      },
+      {
+        "path": "lib/config/app_config.dart",
+        "sha256": "f520bb603a739ac6171371624cb782c4b9884c0b7bea031109fe41c4335a5d40"
+      },
+      {
+        "path": "lib/core/audio/adaptive_voice_activity_detector.dart",
+        "sha256": "fd2fa743e7eb53574e729e43d33cfa761040dd7311e9149b6df0e46305c49ad3"
+      },
+      {
+        "path": "lib/core/audio/audio_gain.dart",
+        "sha256": "a5ebaa17ddedaf319ac17876f936671ae1c1c359727e97157a0306a170cbfa11"
+      },
+      {
+        "path": "lib/core/audio/audio_input.dart",
+        "sha256": "1c4227f73155f06cc92c1708cc7ab9badfa504866f5ca59778ffd419bf8bfafe"
+      },
+      {
+        "path": "lib/core/audio/audio_playback_service.dart",
+        "sha256": "ad46fbff3652e4b6d35be71ac8a9e32da950a1990766b4dc54f3e90af0b173b6"
+      },
+      {
+        "path": "lib/core/audio/audio_turn_coordinator.dart",
+        "sha256": "859c69b7e9fda9b78e23e919c67a389b5652c1f3163d8a4aa373f6e72daf5967"
+      },
+      {
+        "path": "lib/core/audio/browser_audio_playback.dart",
+        "sha256": "d40379a43be33fbe3bff3f94c4130dcb573cf897d3519bc9d7ed446e3196d007"
+      },
+      {
+        "path": "lib/core/audio/browser_audio_playback_factory.dart",
+        "sha256": "91b474f020eaffd1129355f84f1e6a9e3ef8ef57eb738fb84b162197631b7cca"
+      },
+      {
+        "path": "lib/core/audio/browser_audio_playback_factory_stub.dart",
+        "sha256": "aec6829fa5a482aaf9b9f2951cb7dd06211cdb259f615605eb8f3510d67d9a8b"
+      },
+      {
+        "path": "lib/core/audio/browser_audio_playback_factory_web.dart",
+        "sha256": "0a2ddb60ed39e3d1263395d96e13a6783c6aa2a8058b91c816211117e58feadd"
+      },
+      {
+        "path": "lib/core/audio/browser_hfp_audio_control.dart",
+        "sha256": "3b71b8b5d62727d859bb638771ded646a1ad06489df0ceb0784a5e60df072c98"
+      },
+      {
+        "path": "lib/core/audio/coordinated_voice_prompt_service.dart",
+        "sha256": "4b7db242a837fba7dc963b488b9a6fbda40704bad7ee5b1ab56a804f81ee9dfb"
+      },
+      {
+        "path": "lib/core/audio/device_audio_cache.dart",
+        "sha256": "f54c740d84c4402477e4824b440075d0f8ee92e45799123e1143f70b6cb7aa20"
+      },
+      {
+        "path": "lib/core/audio/device_audio_cache_native.dart",
+        "sha256": "c80de7a504a1e29a60620e92a7b8700446333b67c8a6aa3c415b29b1bee28524"
+      },
+      {
+        "path": "lib/core/audio/device_audio_cache_web.dart",
+        "sha256": "c7fe1f594796baea01aa27d723287ab5f600d934a12d67de030ad3b9cc183617"
+      },
+      {
+        "path": "lib/core/audio/hfp_audio_control.dart",
+        "sha256": "ed9b875b1cf54d4f4f56d737837c012ebc1c53df6e311d0b03db43b8d3cc739d"
+      },
+      {
+        "path": "lib/core/audio/hfp_audio_route_coordinator.dart",
+        "sha256": "6658b697684848deada4ed81bb8582914a2d8a41a23a4e1cf66bdf0c9113b142"
+      },
+      {
+        "path": "lib/core/audio/innotrik_ble_audio_input.dart",
+        "sha256": "ac0ae8d73022264c478d064a717b38b7ed2b6c37be0c251d271e20886b1a3181"
+      },
+      {
+        "path": "lib/core/audio/innotrik_protocol.dart",
+        "sha256": "55502e12cb2ad30816100286df963f547a22de736615938fd2f4948efb252436"
+      },
+      {
+        "path": "lib/core/audio/learning_audio_dependencies.dart",
+        "sha256": "be695dde0b11836d88d7ec96c8768fa4c170b03e760483a74003dae07ba56d7a"
+      },
+      {
+        "path": "lib/core/audio/main_assistant_audio_prompt_service.dart",
+        "sha256": "18ec9fc6189de509bf23beacbfb7a18b9bb00defdc1cd75e4bc5e3169713b067"
+      },
+      {
+        "path": "lib/core/audio/main_assistant_audio_state.dart",
+        "sha256": "4d6b1db22f9a21eeb404273a4496614d642b9c29359283947f175236f9f92730"
+      },
+      {
+        "path": "lib/core/audio/offline_intent_recognizer.dart",
+        "sha256": "8aa9002d6f6581a77b681e0147c3b9d9becf16182e594ba9d655410bf800e055"
+      },
+      {
+        "path": "lib/core/audio/pcm16_resampler.dart",
+        "sha256": "240e167d15051938f4fb026dcd8d104dea232b9838e4be1f0ce1909eb477eec5"
+      },
+      {
+        "path": "lib/core/audio/pcm16_speech_trimmer.dart",
+        "sha256": "44137376146f42933853673cbdb6b00e674b07e3f25be927051ea9d971f45f3e"
+      },
+      {
+        "path": "lib/core/audio/pcm_speech_preprocessor.dart",
+        "sha256": "b854d20f914635d1ad80f52470eaa0ea3605fbc9791274fd1c363325611406ad"
+      },
+      {
+        "path": "lib/core/audio/phone_microphone_input.dart",
+        "sha256": "6bd565614cc7939206b3f18713c5001e757b5651d2b968c13158f195988a033d"
+      },
+      {
+        "path": "lib/core/audio/preferred_audio_input.dart",
+        "sha256": "a098feaee0a0885ba56521820c1cd97a3c41c92b35ea63c4efd9d3e9d0e6a64a"
+      },
+      {
+        "path": "lib/core/audio/realtime_fallback_buffer.dart",
+        "sha256": "9605368cbf1f3526e8bd195570b23eea2dcd82323557444f745ce99168f5630d"
+      },
+      {
+        "path": "lib/core/audio/recording_storage.dart",
+        "sha256": "95a66a3491012826eb03bcfde470e29c6e85112b2eb967971c323e8902dc34bf"
+      },
+      {
+        "path": "lib/core/audio/recording_storage_native.dart",
+        "sha256": "9439a418db7ee814092102dde329eb2c921b3c20e55befe81de0bb92a1bbe935"
+      },
+      {
+        "path": "lib/core/audio/recording_storage_web.dart",
+        "sha256": "4a0b09f6b7337f0edc7416765004467a222f59c33399449cc297a166b6ffae82"
+      },
+      {
+        "path": "lib/core/audio/streaming_speech_input.dart",
+        "sha256": "15f3ccf9d2c3868601fb2ad625c45b0acea1562a5c004fc752ab2a932153e087"
+      },
+      {
+        "path": "lib/core/audio/voice_prompt_service.dart",
+        "sha256": "ac683441c11d7259704a0c6b5eb6210654719a03e813651dba4bebe032c8b9bf"
+      },
+      {
+        "path": "lib/core/audio/voice_prompt_service_base.dart",
+        "sha256": "96d3c612a4f99d0366c29a4dfab8b7117d9f44059f706edb8e6df61ea1bc3443"
+      },
+      {
+        "path": "lib/core/audio/voice_prompt_service_native.dart",
+        "sha256": "f6615cd2a8cf85190dd4aba3ae39b29ff418468b6bca939d1a94ac1226840eb9"
+      },
+      {
+        "path": "lib/core/audio/voice_prompt_service_web.dart",
+        "sha256": "2ea8f4ffd8e19b3f44dde2fbc2f22036f36d9600c7facda46dc67eec69cca4b9"
+      },
+      {
+        "path": "lib/core/audio/wav_audio.dart",
+        "sha256": "41d09793196c3c52c7c5792d3f4fcc15fb850ef01d249730c06a7fec2dbff32e"
+      },
+      {
+        "path": "lib/core/auth/installation_authenticated_client.dart",
+        "sha256": "9eabb5d4df427102adca8aa65efba8c8ca3ab780b0f9f067c5423d404ec93cbd"
+      },
+      {
+        "path": "lib/core/auth/installation_auth_session.dart",
+        "sha256": "26c6656cc8c5aa6f76efd22c3f458392589b0afe0f556f75088082496051019c"
+      },
+      {
+        "path": "lib/core/auth/installation_credentials.dart",
+        "sha256": "96ef039116ebb9952cf5e20ec9962eeec7741deb56290ee3e0be66113ea6673e"
+      },
+      {
+        "path": "lib/core/auth/installation_credential_store.dart",
+        "sha256": "940a8782e85f9938ada7de207868872862d4df4307d112bfa354376334dca90b"
+      },
+      {
+        "path": "lib/core/auth/installation_credential_store_native.dart",
+        "sha256": "a6e0383704be42561c7bf48176c66b014bb510fc34ad026f0c833ddaafd1e5de"
+      },
+      {
+        "path": "lib/core/auth/installation_credential_store_web.dart",
+        "sha256": "ffc83669b06de1299a2eaa3cfb816970a7f7f9fdf2624b442a6f043d3398fe40"
+      },
+      {
+        "path": "lib/core/device/active_learning_module.dart",
+        "sha256": "51fa6eb37c1526e60de0b597009b29f73f9b107cae86c43a87dc63fe69c7bb60"
+      },
+      {
+        "path": "lib/core/device/aiv0_ble_control.dart",
+        "sha256": "1f107d4a445367f10d1684b514733df47e6175ec9b636e4d6589d485efa94f27"
+      },
+      {
+        "path": "lib/core/device/android_device_hardware.dart",
+        "sha256": "f5747f7518a0220bb5bd76365f8e23e43192567b3f37c4d47ff46268cd3a1cec"
+      },
+      {
+        "path": "lib/core/device/client_identity.dart",
+        "sha256": "80aaa4046fc40ff0b674c3f63edc6e2d484f1148ed5e5294b5937f25de9dbd46"
+      },
+      {
+        "path": "lib/core/device/device_registration_service.dart",
+        "sha256": "6da6bb0634d38575a400c47522150a9bb64fdac7c28324ef36703d0f93b6a77d"
+      },
+      {
+        "path": "lib/core/device/h20_connection_state.dart",
+        "sha256": "32b8cbb04e5a4075d7ba0db4af0dc51b55a4ffa6500774db4ea193e9b8d7de3e"
+      },
+      {
+        "path": "lib/core/device/main_button_coordinator.dart",
+        "sha256": "57ef73e33eeefe6ebc8a0494ec54d28ad7b260f989428ec7746dfb983f26f5ec"
+      },
+      {
+        "path": "lib/core/device/platform_client_identity.dart",
+        "sha256": "dd2a388a3f77a6f7df46ed1754395b1269400452b03a9129b3775d16ec42d763"
+      },
+      {
+        "path": "lib/core/device/platform_client_identity_native.dart",
+        "sha256": "c4f86c33ca59f8520fdd67d8b9b114ab0b8cd34d5af83df7b1683d1096e9f33f"
+      },
+      {
+        "path": "lib/core/device/platform_client_identity_web.dart",
+        "sha256": "5e5cec61d66d9ad46faa50e9f87df19f0f9db21a9819f2f8214eeb34975de1d7"
+      },
+      {
+        "path": "lib/core/navigation/active_learning_navigation.dart",
+        "sha256": "5443a570178ea7ca28bf097bb4d0845cae7ba1251d4eef144333cb9021264df3"
+      },
+      {
+        "path": "lib/core/network/browser_network_quality.dart",
+        "sha256": "20dd44c4e02247d63c4b567956e8681c542ed876297d547d4072ca7f1c76de1d"
+      },
+      {
+        "path": "lib/core/network/browser_network_quality_native.dart",
+        "sha256": "3912fefbd90d2b40310e5c32fadb9f4650326092d8fe2eb893065ffb569bc6c3"
+      },
+      {
+        "path": "lib/core/network/browser_network_quality_web.dart",
+        "sha256": "6fe44b6e0147742bcac161e9cca2d0d45a371bf3c39928b3fb75e1398ff4c116"
+      },
+      {
+        "path": "lib/core/network/multipart_audio_file.dart",
+        "sha256": "46e9260d6b66e3ca1410bc6a9de95888be0cee693eed801f0ee8b558e981dbae"
+      },
+      {
+        "path": "lib/core/network/multipart_audio_file_native.dart",
+        "sha256": "a50e0a2dfc39a2dd57f5bef9f5e92409384002af105fa8a3eb48e9f713db564c"
+      },
+      {
+        "path": "lib/core/network/multipart_audio_file_web.dart",
+        "sha256": "fd6632bdf5242430c1a660f24979c848c4c382a3705e2da1cd14089e801f0647"
+      },
+      {
+        "path": "lib/core/network/network_availability.dart",
+        "sha256": "d7577b6fb005d6339ab6750f12a2e2d83433c8cd5aa6eb8f71474c5e2dc61d91"
+      },
+      {
+        "path": "lib/core/network/realtime_socket.dart",
+        "sha256": "bba928dc97124046fd33071ba54729d6622d84854c5daed26c866eba8db675ea"
+      },
+      {
+        "path": "lib/core/network/realtime_socket_native.dart",
+        "sha256": "f4d5fece29df6d272538369ed0fd2d60526e55a8b163d8e359e78368b7deac29"
+      },
+      {
+        "path": "lib/core/network/realtime_socket_web.dart",
+        "sha256": "bd96bdc4f23affd4ab5a3265b81be2bd7d88010c394dd1d1f4c32bb9046a8d52"
+      },
+      {
+        "path": "lib/core/platform/background_learning_session.dart",
+        "sha256": "e00f2b79d5b292d3adc3ace939c679ce422c89037b2f766fdc4bc58ea91da7f3"
+      },
+      {
+        "path": "lib/core/platform/platform_access_policy.dart",
+        "sha256": "e6f7230e8a47820f010eb4efb787dbd215076aceb4ff64fa3b7ed2e9fd0687c9"
+      },
+      {
+        "path": "lib/core/privacy/parental_gate.dart",
+        "sha256": "a41bfbd4c473a47055acdd8ba30305ffaa1401cbcb262d6c1854a80fc585011b"
+      },
+      {
+        "path": "lib/core/pwa/pwa_install_gate.dart",
+        "sha256": "d5ce1b2675cc6b1771ae5a970d750e45fc0f4fb3e998ac7139e3f7c2c281cad7"
+      },
+      {
+        "path": "lib/core/pwa/pwa_runtime.dart",
+        "sha256": "53ba9071db12dc21d176259f8aef86209141087a00ac77b98e180754b6452bfd"
+      },
+      {
+        "path": "lib/core/pwa/pwa_runtime_native.dart",
+        "sha256": "1be49f423b6b82c1addb9c4d4d23e7712e8870ebb03a8111d5b3de199d926614"
+      },
+      {
+        "path": "lib/core/pwa/pwa_runtime_web.dart",
+        "sha256": "6fcbf09fd1df832c3abcd92752b831d29d23bd52a27a233d1e29d2f789fea7bd"
+      },
+      {
+        "path": "lib/core/pwa/pwa_update_gate.dart",
+        "sha256": "b88dd8cd9600e8c69ebda7845d58b027935a0fb7004f700aca429b38d7b26a08"
+      },
+      {
+        "path": "lib/core/pwa/pwa_update_service.dart",
+        "sha256": "e153531271b25eac086601ca837b1de7e7c0d9a2afd014a4f3b46407e8429627"
+      },
+      {
+        "path": "lib/core/session/app_flow_coordinator.dart",
+        "sha256": "759ce3e11134b2448b8eb7c5c9686e8945fe998f932d4dfd57edc9cdd9917994"
+      },
+      {
+        "path": "lib/core/update/android_update_gate.dart",
+        "sha256": "173de68ab2923a4637758d99a010fd1480e69b5a128a4f13cdf12b3bf6e75668"
+      },
+      {
+        "path": "lib/core/update/app_update_policy.dart",
+        "sha256": "12236203535778c58ebd2966cbf47e62ed0ed89694888d0a04b1b7501f45894a"
+      },
+      {
+        "path": "lib/core/update/app_update_service.dart",
+        "sha256": "201217806461d62e460e50912f064edf3470910479d85477427cdd5fda41e009"
+      },
+      {
+        "path": "lib/features/conversation/application/continuous_translation_session.dart",
+        "sha256": "10adcdfb425130973f35c164c8de68f46697d7ef736e7709bdb1b92717da9a78"
+      },
+      {
+        "path": "lib/features/conversation/application/conversation_recording_endpoint_policy.dart",
+        "sha256": "e2bad3d76bb54ff891d723e67ac98469465673272ef12ed02d922ad199ae654e"
+      },
+      {
+        "path": "lib/features/conversation/application/conversation_settings_port.dart",
+        "sha256": "22e3228e845456d2929062512754f2fc58a129349cf36b5e46f906c45acbdde7"
+      },
+      {
+        "path": "lib/features/conversation/application/offline_language_service.dart",
+        "sha256": "7362bbfd213badb7b0fe27aa6f4a76f276f267305cf7b4fc390052d9a86b73e1"
+      },
+      {
+        "path": "lib/features/conversation/application/vietnamese_transcript_corrector.dart",
+        "sha256": "78b3a03efd144f41397830b71b20483db44c62eca206fdce3c54ea0f204fd0df"
+      },
+      {
+        "path": "lib/features/conversation/data/demo_conversation_repository.dart",
+        "sha256": "871232957504519e2162cc598a8f42f5d39424039a2de031d16e21eee6eb0b6c"
+      },
+      {
+        "path": "lib/features/conversation/data/next_conversation_repository.dart",
+        "sha256": "9111d56c916feed145e61b8e3cedaf8d433d02f6911a296c58c98686ea10bfec"
+      },
+      {
+        "path": "lib/features/conversation/domain/conversation_models.dart",
+        "sha256": "157af204f82a54cefde237d008803f3c292141b1393951f9b8d6b36508f8c532"
+      },
+      {
+        "path": "lib/features/conversation/domain/conversation_repository.dart",
+        "sha256": "1bd35419831b629ceb56c025b6606f4c838cc49fce28a6f7c37ca2d2750962cf"
+      },
+      {
+        "path": "lib/features/conversation/domain/speech_gated_batch_upload_session.dart",
+        "sha256": "f427332403047afe4bc76478907c6999d21229eb9535765f273c3d2f0bb408b7"
+      },
+      {
+        "path": "lib/features/conversation/presentation/conversation_controller.dart",
+        "sha256": "65766dff5aaf83c1c1cdeb6f42b340d205d1c5a44c6d7664964c671106fb76df"
+      },
+      {
+        "path": "lib/features/conversation/presentation/conversation_screen.dart",
+        "sha256": "468fddc8d1bcad8f49fc05296b142b5b30d6091dae9e5edc2139db1c3e3b5671"
+      },
+      {
+        "path": "lib/features/conversation/presentation/widgets/feedback_buttons.dart",
+        "sha256": "c89302869b383ec1ca683109174bbaf7caf90dfaba4ffda6f425f2478e4f2515"
+      },
+      {
+        "path": "lib/features/conversation/presentation/widgets/result_panel.dart",
+        "sha256": "afcfdd78afaec48783dfd99a9f4765d951ca050d866d77536bc0833eef0ded4d"
+      },
+      {
+        "path": "lib/features/conversation/presentation/widgets/speak_action_bar.dart",
+        "sha256": "d122698da3a6af9f20b6f7aef373dfcf4bac31829fbfab4a98673bd1db640487"
+      },
+      {
+        "path": "lib/features/conversation/presentation/widgets/voice_hero.dart",
+        "sha256": "9fd3c1e39c9a3e2ffc36c74df2051900fbc7764b34bddecc6e84ff51365aba44"
+      },
+      {
+        "path": "lib/features/home/application/authored_vocabulary_suggestion_provider.dart",
+        "sha256": "d5dc9886b94a488f2ece8d65828a59939d0f61826922eec2079b972a103798c4"
+      },
+      {
+        "path": "lib/features/home/application/background_learning_coordinator.dart",
+        "sha256": "6983ff71325fff93ecb1cdc265242a2babb027ae565452ee9c4a39bda67867ac"
+      },
+      {
+        "path": "lib/features/home/presentation/home_learning_shell.dart",
+        "sha256": "04f1eecfc09c5a35fc4d54d5080077b7ac63dfdd714316204c19747a18c9f171"
+      },
+      {
+        "path": "lib/features/home/presentation/home_mode_rail.dart",
+        "sha256": "9f7a13c518ced32a18da65b8f0dcdbd92f4c5fae46e3cae9b6c1bd4c61f1f58f"
+      },
+      {
+        "path": "lib/features/listening/application/android_offline_speech_model_service.dart",
+        "sha256": "65ddca906fbbf7de0ec24c6ec9442c70657d5263000d3f897561ee45b29f6207"
+      },
+      {
+        "path": "lib/features/listening/application/android_runtime_platform.dart",
+        "sha256": "b615c9ca3c171ebc3574a7ff2d88e8b5b61884d41ceabd9ef14117d0a1360e99"
+      },
+      {
+        "path": "lib/features/listening/application/android_runtime_platform_io.dart",
+        "sha256": "d1337590c1ccf840963508c6d0ac29dd78ee5fa5b37273195086cbbaca312e4e"
+      },
+      {
+        "path": "lib/features/listening/application/android_runtime_platform_stub.dart",
+        "sha256": "bfcde25201068a15fd0facfa0aa73c7d8dacae1702c1014c61d4fc7bd86b5ee2"
+      },
+      {
+        "path": "lib/features/listening/application/lesson_attempt_evaluator.dart",
+        "sha256": "f934fbcd5b4d8c1c91fdcb703f62d9a42b78f1f3e98fc121cf6143134cb55991"
+      },
+      {
+        "path": "lib/features/listening/application/lesson_audio_format.dart",
+        "sha256": "1633f88ee0ac072949547a659b8a5394a6cec41a9fd0ee72fe312da3dfa7d06e"
+      },
+      {
+        "path": "lib/features/listening/application/lesson_completion_choice_recognizer.dart",
+        "sha256": "637eaaad04a4f176dea2389380947738699164fdf064242afb37e7fe9b79bd48"
+      },
+      {
+        "path": "lib/features/listening/application/lesson_guide_audio_library.dart",
+        "sha256": "1d97425a6765cf4d46c2ff4fe892164c20f14665fdcc9b82cc79f59dc19c48b3"
+      },
+      {
+        "path": "lib/features/listening/application/lesson_media_service.dart",
+        "sha256": "192ba661cb5f5bdaf7e3adf0b18a5d0f7f3b783f6275824b304ca3d9f8e94a46"
+      },
+      {
+        "path": "lib/features/listening/application/lesson_recording_endpoint_detector.dart",
+        "sha256": "9bc475e9b2fcf00b26274ca863cfeaed8f4fb342955dbed96471d52a63b8310f"
+      },
+      {
+        "path": "lib/features/listening/application/lesson_recording_storage.dart",
+        "sha256": "e6fac82633ab4d0708a090b8316ce38a0668ee7e330d74690ec07fe9ff2ea74c"
+      },
+      {
+        "path": "lib/features/listening/application/lesson_recording_storage_native.dart",
+        "sha256": "2c94bc549c4e96d852e4b70b9ac6f0a75475ee8aaf1574436876c9b97a279ca1"
+      },
+      {
+        "path": "lib/features/listening/application/lesson_recording_storage_web.dart",
+        "sha256": "f1ef208d40a7c70f1d5f867e2a5710ef7de6476d6fe37f8d9b86b4214c8d73cc"
+      },
+      {
+        "path": "lib/features/listening/application/listening_lesson_session.dart",
+        "sha256": "f5013ef775131dbda4bcd6b15a7385e92d06351953d4398310dcbd26b043684d"
+      },
+      {
+        "path": "lib/features/listening/application/listening_voice_navigation_target.dart",
+        "sha256": "3c9d563a5e4665b36bf3eed2f5147b624eee62f0aa06db7881af9b2443190952"
+      },
+      {
+        "path": "lib/features/listening/data/active_listening_session_store.dart",
+        "sha256": "dcb6baeb58104092f638776caf074895d2b59ea01212196c0ba4745802122c48"
+      },
+      {
+        "path": "lib/features/listening/data/lesson_recording_history_persistence.dart",
+        "sha256": "704c421ce60ac705f4debafd0d7f45e09ad6e92bdf7fa6d03451260eae60cad8"
+      },
+      {
+        "path": "lib/features/listening/data/lesson_recording_history_persistence_native.dart",
+        "sha256": "a7e6edf552c0c2afd9e17c5aac4e2618eb6cb09500ed8537ac0ded4dd70836c7"
+      },
+      {
+        "path": "lib/features/listening/data/lesson_recording_history_persistence_web.dart",
+        "sha256": "2b14c0343aa314e0460c5886ae0d91c09037e6944c9f0fd3c27fbeea81bbd461"
+      },
+      {
+        "path": "lib/features/listening/data/lesson_recording_history_store.dart",
+        "sha256": "e50ca3e7725cc248b904840467114138b0b3653b4e6bd9673e51e19174ebe30a"
+      },
+      {
+        "path": "lib/features/listening/data/listening_progress_persistence.dart",
+        "sha256": "53e66d4f8b3a67dd89c948c72bfd84aa51d8ac9082f48e81bb411dce52b02caf"
+      },
+      {
+        "path": "lib/features/listening/data/listening_progress_persistence_native.dart",
+        "sha256": "dba58750e773a7a02be91c1a6d42349a184433ac9a2d22337d44e1337e44e040"
+      },
+      {
+        "path": "lib/features/listening/data/listening_progress_persistence_web.dart",
+        "sha256": "0708f66e8773b745ec4e7f4df7e5d3148f5d89ad823f7beb086dc7959ea2d49b"
+      },
+      {
+        "path": "lib/features/listening/data/listening_progress_store.dart",
+        "sha256": "c1322c0738a9bb523887b650898b42f6bf8e183012cbf4f857670809d7810f12"
+      },
+      {
+        "path": "lib/features/listening/domain/authored_question_selector.dart",
+        "sha256": "e7f6dfd7a6068e9267fb2d95670e35fa9ab315599b20c6f8c7c63ea459fffb77"
+      },
+      {
+        "path": "lib/features/listening/domain/lesson_guide_flow.dart",
+        "sha256": "ff5c29300d69c58eb70959378452c111100ad82c305a895fb5d7ee2fc26394ba"
+      },
+      {
+        "path": "lib/features/listening/domain/lesson_recognition.dart",
+        "sha256": "390b0feadaadc920e335e8ac460bd444ccbab14fc31fc19d3b9857c840c665ee"
+      },
+      {
+        "path": "lib/features/listening/domain/lesson_star_flow.dart",
+        "sha256": "36146124a414be05c016dfbf591fcaa953baa04120cc12cc9b40e942e01439a7"
+      },
+      {
+        "path": "lib/features/listening/domain/listening_catalog.dart",
+        "sha256": "38a1f991b626082fd6c21b75d22bc1edb78821de0943fee6b7a86ea379eb72aa"
+      },
+      {
+        "path": "lib/features/listening/domain/listening_content.dart",
+        "sha256": "d3cb570146b91ee9bb7da77f512696f02760fd82504fa657a9d80b3b52f35ae5"
+      },
+      {
+        "path": "lib/features/listening/domain/listening_curriculum_flow.dart",
+        "sha256": "eec687622870310b49b7a49c44e302db679c4f2f310c62ba8470d3cfe23aa4d0"
+      },
+      {
+        "path": "lib/features/listening/domain/v4_completion_flow.dart",
+        "sha256": "b5f4b5b30348b8db95ed59523e814fe0151f04cc2e5ce12fe2d4b771410114ac"
+      },
+      {
+        "path": "lib/features/listening/presentation/lesson_challenge_screen.dart",
+        "sha256": "25f70c67f8c0996f408656e9eb549e855b471103d2f59bc5d691b095898a62f6"
+      },
+      {
+        "path": "lib/features/listening/presentation/lesson_intro_screen.dart",
+        "sha256": "a352f95a33aa05a017940e65993a3cbe8a47961ce4a24ec5f4801d7bbf55b554"
+      },
+      {
+        "path": "lib/features/listening/presentation/lesson_overview_screen.dart",
+        "sha256": "1ce37c6b9d4b99d44ad1bfe4e13045b9a5d4d29ebef762d27e0676b6708aebed"
+      },
+      {
+        "path": "lib/features/listening/presentation/lesson_practice_screen.dart",
+        "sha256": "c0c2358d5ad9d8a90ff7a076ea198ed4c38cd3a10844461f2b6aced8ab8f50e1"
+      },
+      {
+        "path": "lib/features/listening/presentation/lesson_recording_history_sheet.dart",
+        "sha256": "d46ad382259622e36e584a3e81e2ee95d7cb6d4b0ea9f02dd24269c987f2b22f"
+      },
+      {
+        "path": "lib/features/listening/presentation/lesson_review_screen.dart",
+        "sha256": "f1383daab27595abf25fc1f2dbc5e2a89128c2f8e5161720937e51dadfe50dba"
+      },
+      {
+        "path": "lib/features/listening/presentation/listening_navigation_bar.dart",
+        "sha256": "005ac78d38b4deb226516af9756088ee7fde001ed2d7af9791d0783f3649382a"
+      },
+      {
+        "path": "lib/features/listening/presentation/listening_route_names.dart",
+        "sha256": "d93e62b3e7c5a201621ec095c145fa0c45f8710169dc9805eee20de83f2b90d3"
+      },
+      {
+        "path": "lib/features/listening/presentation/song_karaoke_screen.dart",
+        "sha256": "b2a30bd22dfc57684199ee16b232aa27924adc5ae88bd5f5c3bb6a9143d61710"
+      },
+      {
+        "path": "lib/features/listening/presentation/topic_lesson_list_screen.dart",
+        "sha256": "5c538e8fd5a1f19eee79f94cfe5a7f77c5bd9128fab3597c860300d032377de0"
+      },
+      {
+        "path": "lib/features/listening/presentation/topic_listening_screen.dart",
+        "sha256": "292d149a023e035145d32cb379c09bd09671a86602704ed5558fcbf2bb61984c"
+      },
+      {
+        "path": "lib/features/listening/presentation/v4_song_stage_screen.dart",
+        "sha256": "749a3bd1adcdd233627cff4c5575115d730a9d8479f7e5aad30853c65608b549"
+      },
+      {
+        "path": "lib/features/onboarding/application/onboarding_progress_store.dart",
+        "sha256": "181eac0a6d69ecfeb98e697528597a2e6f522cc2c7f569da30614fca1e184ecf"
+      },
+      {
+        "path": "lib/features/onboarding/application/parent_setup_progress_store.dart",
+        "sha256": "d708fcec6e2738b4464c87e6504c5d48863f0d3eed2841b9db71d4639451b6db"
+      },
+      {
+        "path": "lib/features/onboarding/presentation/startup_setup_screen.dart",
+        "sha256": "3f70dc4711a70da6eff928d1aa6b573d9575eed46b8c327a34c4cd46df615c34"
+      },
+      {
+        "path": "lib/features/onboarding/presentation/user_onboarding_tour.dart",
+        "sha256": "bc525bec2e63de3d1a9b5a8869969a1685e7b1282924fc7acf7aa9d9e79e47b9"
+      },
+      {
+        "path": "lib/features/privacy/data/privacy_consent_store.dart",
+        "sha256": "ea8654f63044cb90265abee8d1129c344ef3d6aed916c46f5db189d99b73fe35"
+      },
+      {
+        "path": "lib/features/settings/data/child_age_store.dart",
+        "sha256": "e4bf1b47fd9be6b793909ee0229230dd20fac7dca6a48cee135e0f752a0d0fc5"
+      },
+      {
+        "path": "lib/features/settings/presentation/history_sheet.dart",
+        "sha256": "66d9a14e45c6335bfb1913305b619a699c6ba9b277b92f2076fd05632dfd53a2"
+      },
+      {
+        "path": "lib/features/settings/presentation/settings_sheet.dart",
+        "sha256": "27f1511eab0064608d5efc2d063daf82d6a0a422ddd59198881821609b27d36d"
+      },
+      {
+        "path": "lib/features/vocabulary/application/local_vocabulary_suggestion_provider.dart",
+        "sha256": "08b31e3bf0ab94b8dbedbe2cb23776afd9cef9218c6bba6fb984310bafe09462"
+      },
+      {
+        "path": "lib/features/vocabulary/application/vocabulary_audio_service.dart",
+        "sha256": "81802ea1ec416edffc4b2668c02d8da70caf3917e6d5111670907f0df59e003a"
+      },
+      {
+        "path": "lib/features/vocabulary/application/vocabulary_fixed_prompt_audio_service.dart",
+        "sha256": "26c83b6d99c4da1f17fb8dbbcbcacfd55273821f250c1d6e971a1c075a115cfe"
+      },
+      {
+        "path": "lib/features/vocabulary/data/minhqnd_dictionary_provider.dart",
+        "sha256": "40a6233bba130515bd2183aa70abc42fdf12e346481baf6b57502ac4bf0776d2"
+      },
+      {
+        "path": "lib/features/vocabulary/data/vocabulary_session_store.dart",
+        "sha256": "bd2d46300e8e521f5d4d516f2c1568edca6d3848f437679c903422552ce12822"
+      },
+      {
+        "path": "lib/features/vocabulary/data/vocabulary_store.dart",
+        "sha256": "a29688d2d6ea7b905c3d9372ba44b4434bbf86978a1b5a299bfdea2dd90ce6bb"
+      },
+      {
+        "path": "lib/features/vocabulary/domain/vocabulary_dictionary.dart",
+        "sha256": "1bcd3e2a3054a4e34dd32a88f3e25c5bce0b3a788eec5a831d59249abf7bc67d"
+      },
+      {
+        "path": "lib/features/vocabulary/domain/vocabulary_entry.dart",
+        "sha256": "d25f2961bbd1bbe073db2b9a2db92941bc66eed8c6fa6f39ce9a6e04909b2ce8"
+      },
+      {
+        "path": "lib/features/vocabulary/domain/vocabulary_flow_v3.dart",
+        "sha256": "e8a8aea66095656f87f23ff48b668a4f2dd0d53ca410f6964f770ee6565cf42f"
+      },
+      {
+        "path": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+        "sha256": "78a5d12d4b8a05c7248d692d184d77c32d9805099d9df491fd15ed900d5c1af7"
+      },
+      {
+        "path": "lib/features/vocabulary/presentation/vocabulary_practice_screen.dart",
+        "sha256": "094815b6cdbc32626d79b887a8c0679a79eaef3ca18aa0b9a7a2751915aad363"
+      },
+      {
+        "path": "lib/features/voice_navigation/application/active_learning_command_resolver.dart",
+        "sha256": "69dcd9eecbe04e2fa4c5a3cd896b8251bd8b32a1c87d2b2303f1363ef97d7961"
+      },
+      {
+        "path": "lib/features/voice_navigation/application/main_assistant_session.dart",
+        "sha256": "39ca87ab7cbec8b2d14bc151b7fe089ce702312f05c12a5e9cea39abf1017423"
+      },
+      {
+        "path": "lib/features/voice_navigation/application/main_speaking_command_resolver.dart",
+        "sha256": "ec7db7fddcb24fe731ccdc3780742aa0f118dd5081607aef6d28cc478f008f83"
+      },
+      {
+        "path": "lib/features/voice_navigation/application/main_speaking_fallback_flow.dart",
+        "sha256": "7026809f0f1b2567a0540d70a8901befed489a2f74c4fdc32b1e2e7055757939"
+      },
+      {
+        "path": "lib/features/voice_navigation/application/main_speaking_session_controller.dart",
+        "sha256": "5e94a92b7c36076f76ef4886d29da1f33b284d827803b08aa32b28feb365d0f4"
+      },
+      {
+        "path": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "sha256": "ddc8b0650d483990125ae9b6e275e7ff144bc44a0a2e24a76c1158d7176aff2e"
+      },
+      {
+        "path": "lib/features/voice_navigation/application/voice_navigation_controller.dart",
+        "sha256": "ed0418caaeca54e74ea888a01395c4522f0e29040680219bb6616d8b64897198"
+      },
+      {
+        "path": "lib/features/voice_navigation/application/voice_navigation_intent_resolver.dart",
+        "sha256": "c995cbd461ec81aa66adb52fdd7e797064b795147eb7bd41ac5db39c0728c5d9"
+      },
+      {
+        "path": "lib/features/voice_navigation/data/web_batch_streaming_speech_input.dart",
+        "sha256": "685a613392ee1391101c4d41db4635c359224fccd3523b09694b6a49c5aa82a7"
+      },
+      {
+        "path": "lib/features/voice_navigation/domain/controlled_speech_lexicon.dart",
+        "sha256": "d5d30d4c4d6c34aea5e041679e5bdcbdc2d6f5661ad3c09379a749a5cf150aad"
+      },
+      {
+        "path": "lib/features/voice_navigation/domain/homi_fallback_catalog.dart",
+        "sha256": "179b7a05d9e8bdf4326e1c8043e803ac1d8599e3e63e6f14f2de9ab3bfd5ed4a"
+      },
+      {
+        "path": "lib/features/voice_navigation/presentation/main_voice_assistant_button.dart",
+        "sha256": "1b2a76438bb5bc93a66a6237744700c60a6b77ed9bc42b500d2577f1cdb7bca4"
+      },
+      {
+        "path": "lib/l10n/display_language.dart",
+        "sha256": "511263517a9ff507cf07afa5000853fcc4d5fc965836250e53507bd640df7dae"
+      },
+      {
+        "path": "lib/l10n/display_language_persistence.dart",
+        "sha256": "094fac28b3cce12becd9231dbff9532c256e34332a17f87fd762835521176479"
+      },
+      {
+        "path": "lib/l10n/display_language_persistence_native.dart",
+        "sha256": "7863f16aab35eeb06ff0201e027a3062f214a6a25c426fa8520e2325dee64eec"
+      },
+      {
+        "path": "lib/l10n/display_language_persistence_web.dart",
+        "sha256": "7a59d70247a5d416ef3216744cba12cd13a87199c5b46050157862bdcb3f6c08"
+      },
+      {
+        "path": "lib/main.dart",
+        "sha256": "b9052f63f5a0131afa20b4624b7176a4f23bf04968cf80867c71ad300c158301"
+      },
+      {
+        "path": "assets/data/curriculum_audio.json",
+        "sha256": "ec97d30bad01dac681164fd1637620fe8972f2a0841334257bba9662936db334"
+      },
+      {
+        "path": "assets/data/listening_lessons.json",
+        "sha256": "16efc78ab9ddad3c987b3402f3593123376e568799e8adda423509d76d6c0f0a"
+      }
+    ]
+  },
+  "prompts": [
+    {
+      "id": "GAP28-001",
+      "text": "Bạn cần hoàn thành Level 1 trước nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-001.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-001"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-002",
+      "text": "Bạn cần hoàn thành Level 2 trước nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-002.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-002"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-003",
+      "text": "Bạn chọn Level 1, 2, 3 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-003.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "GAP28-003"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-004",
+      "text": "Bi cô chưa thực hiện được. Con thử lại nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-004.vi.v1.mp3",
+      "sources": [
+        "lib/core/session/app_flow_coordinator.dart"
+      ],
+      "aliases": [
+        "GAP28-004"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-005",
+      "text": "Bi cô có bài học cho các bạn từ 3 đến 15 tuổi. Con mấy tuổi",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-005.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "GAP28-005"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-006",
+      "text": "Chủ đề 1 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-006.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-006"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-007",
+      "text": "Chủ đề 2 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-007.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-007"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-008",
+      "text": "Chủ đề 3 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-008.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-008"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-009",
+      "text": "Chủ đề 4 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-009.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-009"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-010",
+      "text": "Chủ đề 5 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-010.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-010"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-011",
+      "text": "Chủ đề 6 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-011.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-011"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-012",
+      "text": "Chủ đề 7 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-012.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-012"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-013",
+      "text": "Chủ đề 8 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-013.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-013"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-014",
+      "text": "Chủ đề 9 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-014.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-014"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-015",
+      "text": "Chủ đề 10 bạn đã học xong rồi. Bạn muốn học chủ đề khác hay học lại?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-015.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-015"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-016",
+      "text": "Có 3 Chủ đề. Bạn muốn học Chủ đề số mấy?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-016.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "GAP28-016"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-017",
+      "text": "Có 4 Chủ đề. Bạn muốn học Chủ đề số mấy?",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-017.vi.v1.mp3",
+      "sources": [
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
+      ],
+      "aliases": [
+        "GAP28-017"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-018",
+      "text": "Cô chưa mở được micro để dịch liên tục. Con kiểm tra quyền micro rồi thử lại nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-018.vi.v1.mp3",
+      "sources": [
+        "lib/app/ai_speaking_app.dart"
+      ],
+      "aliases": [
+        "GAP28-018"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-019",
+      "text": "Mình học tiếp Chủ đề 1 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-019.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-019"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-020",
+      "text": "Mình học tiếp Chủ đề 2 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-020.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-020"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-021",
+      "text": "Mình học tiếp Chủ đề 3 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-021.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-021"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-022",
+      "text": "Mình học tiếp Chủ đề 4 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-022.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-022"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-023",
+      "text": "Mình học tiếp Chủ đề 5 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-023.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-023"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-024",
+      "text": "Mình học tiếp Chủ đề 6 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-024.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-024"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-025",
+      "text": "Mình học tiếp Chủ đề 7 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-025.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-025"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-026",
+      "text": "Mình học tiếp Chủ đề 8 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-026.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-026"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-027",
+      "text": "Mình học tiếp Chủ đề 9 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-027.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-027"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    },
+    {
+      "id": "GAP28-028",
+      "text": "Mình học tiếp Chủ đề 10 nhé.",
+      "locale": "vi-VN",
+      "voiceLanguage": "vi",
+      "version": 1,
+      "enabled": false,
+      "asset": "assets/audio/MAIN/GAP28-028.vi.v1.mp3",
+      "sources": [
+        "lib/features/listening/presentation/topic_listening_screen.dart"
+      ],
+      "aliases": [
+        "GAP28-028"
+      ],
+      "batch": "homi-runtime-gap28-2026-09-16"
+    }
+  ]
+}

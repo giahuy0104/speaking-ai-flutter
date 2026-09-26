@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T05-B02\\C67-L2-T05-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T05-B02-Q04",
+  "sourceText": "Biển hiệu hình tam giác: Star sticker hay Triangle sign?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Biển hiệu hình tam giác:",
+      "spoken_text": "Biển hiệu hình tam giác:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Star sticker",
+      "spoken_text": "Star sticker",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Triangle sign?",
+      "spoken_text": "Triangle sign?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-F1EA5794D5B6D93891C9AB0F",
+  "text": "Biển hiệu hình tam giác: Star sticker hay Triangle sign?",
+  "asset": "assets/audio/CURRICULUM/f1ea5794d5b6d93891c9ab0f.vi.v1.mp3",
+  "sha256": "408d9c8a5f92adcc3bd7812492fdf11dd85b670f60e66e0d88a1a040e2ccbe8c",
+  "durationSeconds": 5.248753
+}

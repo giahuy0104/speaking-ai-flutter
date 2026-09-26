@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T02-B01\\C35-L1-T02-B01-T02_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T02-B01-T02_VI",
+  "sourceText": "Hai.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Hai.",
+      "generation_key": "3b62095b78a051da"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-8B7D9E1829DDD68974D6B0CA",
+  "text": "Hai.",
+  "asset": "assets/audio/CURRICULUM/8b7d9e1829ddd68974d6b0ca.vi.v1.mp3",
+  "sha256": "f08759bd75002950a15fa3d7ea9479ea91b50df2dc40c01b359bf3206f5fb8c9",
+  "durationSeconds": 0.890771
+}

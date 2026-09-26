@@ -1,0 +1,576 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :gradle
+WARNING: Unsupported Kotlin plugin version.
+The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `2.2.0` that might work differently than in the requested version `2.2.20`.
+
+> Task :gradle:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle:compileKotlin UP-TO-DATE
+> Task :gradle:compileJava NO-SOURCE
+> Task :gradle:compileGroovy NO-SOURCE
+> Task :gradle:pluginDescriptors UP-TO-DATE
+> Task :gradle:processResources UP-TO-DATE
+> Task :gradle:classes UP-TO-DATE
+> Task :gradle:jar UP-TO-DATE
+
+> Configure project :app
+WARNING: The option setting 'android.builtInKotlin=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.newDsl=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+w: Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':app' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :audio_session
+w: Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':audio_session' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :connectivity_plus
+w: Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':connectivity_plus' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :flutter_plugin_android_lifecycle
+w: Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':flutter_plugin_android_lifecycle' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :google_mlkit_commons
+w: Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':google_mlkit_commons' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :google_mlkit_translation
+w: Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':google_mlkit_translation' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :jni
+w: Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':jni' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :jni_flutter
+w: Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':jni_flutter' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :just_audio
+w: Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':just_audio' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :local_auth_android
+w: Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':local_auth_android' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :package_info_plus
+w: Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':package_info_plus' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :record_android
+w: Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':record_android' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :shared_preferences_android
+w: Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':shared_preferences_android' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :url_launcher_android
+w: Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':url_launcher_android' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+Android tasks
+-------------
+signingReport - Displays the signing info for the base and test modules
+
+Build tasks
+-----------
+assemble - Assemble main outputs for all the variants.
+assembleAndroidTest - Assembles all the Test applications.
+assembleUnitTest - Assembles all the unit test applications.
+build - Assembles and tests this project.
+buildDependents - Assembles and tests this project and all projects that depend on it.
+buildKotlinToolingMetadata - Build metadata json file containing information about the used Kotlin tooling
+buildNeeded - Assembles and tests this project and all projects it depends on.
+bundle - Assemble bundles for all the variants.
+clean - Deletes the build directory.
+compileDebugAndroidTestSources
+compileDebugSources
+compileDebugUnitTestSources
+compileProfileSources
+compileReleaseSources
+
+Help tasks
+----------
+artifactTransforms - Displays the Artifact Transforms that can be executed in project ':app'.
+buildEnvironment - Displays all buildscript dependencies declared in project ':app'.
+dependencies - Displays all dependencies declared in project ':app'.
+dependencyInsight - Displays the insight into a specific dependency in project ':app'.
+help - Displays a help message.
+javaToolchains - Displays the detected java toolchains.
+kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions.
+outgoingVariants - Displays the outgoing variants of project ':app'.
+projects - Displays the sub-projects of project ':app'.
+properties - Displays the properties of project ':app'.
+resolvableConfigurations - Displays the configurations that can be resolved in project ':app'.
+tasks - Displays the tasks runnable from project ':app'.
+
+Install tasks
+-------------
+installDebug - Installs the Debug build.
+installDebugAndroidTest - Installs the android (on device) tests for the Debug build.
+installProfile - Installs the Profile build.
+installRelease - Installs the Release build.
+uninstallAll - Uninstall all applications.
+uninstallDebug - Uninstalls the Debug build.
+uninstallDebugAndroidTest - Uninstalls the android (on device) tests for the Debug build.
+uninstallProfile - Uninstalls the Profile build.
+uninstallRelease - Uninstalls the Release build.
+
+Verification tasks
+------------------
+check - Runs all checks.
+checkJetifier - Checks whether Jetifier is needed for the current project
+checkKotlinAbi - Checks that the public Application Binary Interface (ABI) of the current project code matchesthe reference dump file
+checkKotlinGradlePluginConfigurationErrors - Checks that Kotlin Gradle Plugin hasn't reported project configuration errors, failing otherwise. This task always runs before compileKotlin* or similar tasks.
+connectedAndroidTest - Installs and runs instrumentation tests for all flavors on connected devices.
+connectedCheck - Runs all device checks on currently connected devices.
+connectedDebugAndroidTest - Installs and runs the tests for debug on connected devices.
+deviceAndroidTest - Installs and runs instrumentation tests using all Device Providers.
+deviceCheck - Runs all device checks using Device Providers and Test Servers.
+lint - Runs lint on the default variant.
+lintDebug - Print text output from the corresponding lint report task
+lintFix - Runs lint on the default variant and applies any safe suggestions to the source code.
+lintProfile - Print text output from the corresponding lint report task
+lintRelease - Print text output from the corresponding lint report task
+lintVitalRelease - Print text output from the corresponding lint report task
+test - Run unit tests for all variants.
+testDebugUnitTest - Run unit tests for the debug build.
+updateKotlinAbi - Writes the public Application Binary Interface (ABI) of the current code to the reference dump file.
+updateLintBaseline - Updates the lint baseline using the default variant.
+
+Other tasks
+-----------
+analyzeDebugAndroidTestDependencies
+analyzeDebugDependencies
+analyzeDebugUnitTestDependencies
+analyzeProfileDependencies
+analyzeReleaseDependencies
+assembleDebug - Assembles main output for variant debug
+assembleDebugAndroidTest - Assembles main output for variant debugAndroidTest
+assembleDebugUnitTest - Assembles main output for variant debugUnitTest
+assembleProfile - Assembles main output for variant profile
+assembleRelease - Assembles main output for variant release
+buildCMakeDebug
+buildCMakeDebug[arm64-v8a]
+buildCMakeDebug[armeabi-v7a]
+buildCMakeDebug[x86_64]
+buildCMakeProfile
+buildCMakeProfile[arm64-v8a]
+buildCMakeProfile[armeabi-v7a]
+buildCMakeProfile[x86_64]
+buildCMakeRelease
+buildCMakeRelease[arm64-v8a]
+buildCMakeRelease[armeabi-v7a]
+buildCMakeRelease[x86_64]
+buildDebugPreBundle
+buildProfilePreBundle
+buildReleasePreBundle
+bundleDebug - Assembles bundle for variant debug
+bundleDebugClassesToCompileJar
+bundleDebugClassesToRuntimeJar
+bundleDebugResources
+bundleProfile - Assembles bundle for variant profile
+bundleProfileClassesToCompileJar
+bundleProfileClassesToRuntimeJar
+bundleProfileResources
+bundleRelease - Assembles bundle for variant release
+bundleReleaseClassesToCompileJar
+bundleReleaseClassesToRuntimeJar
+bundleReleaseResources
+checkDebugAarMetadata
+checkDebugAndroidTestAarMetadata
+checkDebugAndroidTestDuplicateClasses
+checkDebugDuplicateClasses
+checkDebugManifest
+checkLegacyAbi
+checkProfileAarMetadata
+checkProfileDuplicateClasses
+checkProfileManifest
+checkReleaseAarMetadata
+checkReleaseDuplicateClasses
+checkReleaseManifest
+collectReleaseDependencies
+compileDebugAndroidTestJavaWithJavac
+compileDebugAndroidTestKotlin - Compiles the debugAndroidTest kotlin.
+compileDebugAndroidTestNavigationResources
+compileDebugArtProfile
+compileDebugJavaWithJavac
+compileDebugKotlin - Compiles the debug kotlin.
+compileDebugNavigationResources
+compileDebugUnitTestJavaWithJavac
+compileDebugUnitTestKotlin - Compiles the debugUnitTest kotlin.
+compileFlutterBuildDebug
+compileFlutterBuildProfile
+compileFlutterBuildRelease
+compileLint
+compileLintChecks
+compileProfileArtProfile
+compileProfileJavaWithJavac
+compileProfileKotlin - Compiles the profile kotlin.
+compileProfileNavigationResources
+compileReleaseArtProfile
+compileReleaseJavaWithJavac
+compileReleaseKotlin - Compiles the release kotlin.
+compileReleaseNavigationResources
+compressDebugAndroidTestAssets
+compressDebugAssets
+compressProfileAssets
+compressReleaseAssets
+configureCMakeDebug
+configureCMakeDebug[arm64-v8a]
+configureCMakeDebug[armeabi-v7a]
+configureCMakeDebug[x86_64]
+configureCMakeProfile
+configureCMakeProfile[arm64-v8a]
+configureCMakeProfile[armeabi-v7a]
+configureCMakeProfile[x86_64]
+configureCMakeRelease
+configureCMakeRelease[arm64-v8a]
+configureCMakeRelease[armeabi-v7a]
+configureCMakeRelease[x86_64]
+configureReleaseDependencies
+consumeConfigAttr
+convertLinkedResourcesToBinaryRelease
+convertShrunkResourcesToBinaryRelease
+copyFlutterAssetsDebug
+copyFlutterAssetsProfile
+copyFlutterAssetsRelease
+copyJniLibsflutterBuildDebug
+copyJniLibsflutterBuildProfile
+copyJniLibsflutterBuildRelease
+createDebugAndroidTestApkListingFileRedirect
+createDebugApkListingFileRedirect
+createDebugApksFromBundleListingFileRedirect
+createDebugBundleListingFileRedirect
+createDebugCompatibleScreenManifests
+createMockableJar
+createProfileApkListingFileRedirect
+createProfileApksFromBundleListingFileRedirect
+createProfileBundleListingFileRedirect
+createProfileCompatibleScreenManifests
+createReleaseApkListingFileRedirect
+createReleaseApksFromBundleListingFileRedirect
+createReleaseBundleListingFileRedirect
+createReleaseCompatibleScreenManifests
+DebugMinSdkCheck
+desugarDebugAndroidTestFileDependencies
+desugarDebugFileDependencies
+desugarProfileFileDependencies
+dexBuilderDebug
+dexBuilderDebugAndroidTest
+dexBuilderProfile
+expandReleaseArtProfileWildcards
+externalNativeBuildCleanDebug
+externalNativeBuildCleanProfile
+externalNativeBuildCleanRelease
+externalNativeBuildDebug
+externalNativeBuildProfile
+externalNativeBuildRelease
+extractApksForDebug
+extractApksForProfile
+extractApksForRelease
+extractApksFromBundleForDebug
+extractApksFromBundleForProfile
+extractApksFromBundleForRelease
+extractDebugNativeDebugMetadata
+extractDebugNativeSymbolTables
+extractDeepLinksDebug
+extractDeepLinksProfile
+extractDeepLinksRelease
+extractProfileNativeDebugMetadata
+extractProfileNativeSymbolTables
+extractProguardFiles
+extractReleaseNativeDebugMetadata
+extractReleaseNativeSymbolTables
+extractReleaseVersionControlInfo
+generateDebugAndroidTestAssets
+generateDebugAndroidTestLintModel
+generateDebugAndroidTestResources
+generateDebugAndroidTestRFile
+generateDebugAndroidTestSources
+generateDebugAssets
+generateDebugFeatureMetadata
+generateDebugFeatureTransitiveDeps
+generateDebugLintModel
+generateDebugLintReportModel
+generateDebugManifestClass
+generateDebugResources
+generateDebugRFile
+generateDebugSources
+generateDebugUnitTestAssets
+generateDebugUnitTestLintModel
+generateDebugUnitTestResources
+generateDebugUnitTestSources
+generateJsonModelDebug
+generateJsonModelProfile
+generateJsonModelRelease
+generateProfileAssets
+generateProfileFeatureMetadata
+generateProfileFeatureTransitiveDeps
+generateProfileLintModel
+generateProfileLintReportModel
+generateProfileManifestClass
+generateProfileResources
+generateProfileRFile
+generateProfileSources
+generateReleaseAssets
+generateReleaseFeatureMetadata
+generateReleaseFeatureTransitiveDeps
+generateReleaseLintModel
+generateReleaseLintReportModel
+generateReleaseLintVitalReportModel
+generateReleaseManifestClass
+generateReleaseResources
+generateReleaseRFile
+generateReleaseSources
+internalDumpKotlinAbi - Dumps the public Application Binary Interface (ABI) into files in the build directory.
+javaPreCompileDebug
+javaPreCompileDebugAndroidTest
+javaPreCompileDebugUnitTest
+javaPreCompileProfile
+javaPreCompileRelease
+javaVersion - Print the current java version used by gradle. see: https://docs.gradle.org/current/javadoc/org/gradle/api/JavaVersion.html
+kgpVersion - Print the current kgp version used by the project.
+lintAnalyzeDebug - Run lint analysis on the debug component
+lintAnalyzeDebugAndroidTest - Run lint analysis on the debugAndroidTest component
+lintAnalyzeDebugUnitTest - Run lint analysis on the debugUnitTest component
+lintAnalyzeProfile - Run lint analysis on the profile component
+lintAnalyzeRelease - Run lint analysis on the release component
+lintFixDebug - Fix lint on the debug variant
+lintFixProfile - Fix lint on the profile variant
+lintFixRelease - Fix lint on the release variant
+lintReportDebug - Run lint on the debug variant
+lintReportProfile - Run lint on the profile variant
+lintReportRelease - Run lint on the release variant
+lintVitalAnalyzeRelease - Run lint analysis with only the fatal issues enabled 
+lintVitalReportRelease - Run lint with only the fatal issues enabled on the release variant
+makeApkFromBundleForDebug
+makeApkFromBundleForProfile
+makeApkFromBundleForRelease
+mapDebugAndroidTestSourceSetPaths
+mapDebugSourceSetPaths
+mapProfileSourceSetPaths
+mapReleaseSourceSetPaths
+mergeDebugAndroidTestAssets
+mergeDebugAndroidTestGeneratedProguardFiles
+mergeDebugAndroidTestGlobalSynthetics
+mergeDebugAndroidTestJavaResource
+mergeDebugAndroidTestJniLibFolders
+mergeDebugAndroidTestNativeLibs
+mergeDebugAndroidTestResources
+mergeDebugArtProfile
+mergeDebugAssets
+mergeDebugGeneratedProguardFiles
+mergeDebugGlobalSynthetics
+mergeDebugJavaResource
+mergeDebugJniLibFolders
+mergeDebugNativeDebugMetadata
+mergeDebugNativeLibs
+mergeDebugResources
+mergeDebugStartupProfile
+mergeExtDexDebug
+mergeExtDexDebugAndroidTest
+mergeExtDexProfile
+mergeLibDexDebug
+mergeLibDexDebugAndroidTest
+mergeLibDexProfile
+mergeProfileArtProfile
+mergeProfileAssets
+mergeProfileGeneratedProguardFiles
+mergeProfileGlobalSynthetics
+mergeProfileJavaResource
+mergeProfileJniLibFolders
+mergeProfileNativeDebugMetadata
+mergeProfileNativeLibs
+mergeProfileResources
+mergeProfileStartupProfile
+mergeProjectDexDebug
+mergeProjectDexDebugAndroidTest
+mergeProjectDexProfile
+mergeReleaseArtProfile
+mergeReleaseAssets
+mergeReleaseGeneratedProguardFiles
+mergeReleaseJavaResource
+mergeReleaseJniLibFolders
+mergeReleaseNativeDebugMetadata
+mergeReleaseNativeLibs
+mergeReleaseResources
+mergeReleaseStartupProfile
+minifyReleaseWithR8
+optimizeReleaseResources
+outputDebugAppLinkSettings
+outputProfileAppLinkSettings
+outputReleaseAppLinkSettings
+packageDebug
+packageDebugAndroidTest
+packageDebugAndroidTestResources
+packageDebugBundle
+packageDebugResources
+packageDebugUniversalApk
+packageProfile
+packageProfileBundle
+packageProfileResources
+packageProfileUniversalApk
+packageRelease
+packageReleaseBundle
+packageReleaseResources
+packageReleaseUniversalApk
+parseDebugAndroidTestLocalResources
+parseDebugIntegrityConfig
+parseDebugLocalResources
+parseProfileIntegrityConfig
+parseProfileLocalResources
+parseReleaseIntegrityConfig
+parseReleaseLocalResources
+preBuild
+preDebugAndroidTestBuild
+preDebugBuild
+preDebugUnitTestBuild
+prepareLintJarForPublish
+preProfileBuild
+preReleaseBuild
+printBuildVariants - Prints out all build variants for this Android project
+processApplicationManifestDebugForBundle
+processApplicationManifestProfileForBundle
+processApplicationManifestReleaseForBundle
+processDebugAndroidTestJavaRes
+processDebugAndroidTestManifest
+processDebugAndroidTestNavigationResources
+processDebugAndroidTestResources
+processDebugJavaRes
+processDebugMainManifest
+processDebugManifest
+processDebugManifestForPackage
+processDebugNavigationResources
+processDebugResources
+processDebugUnitTestJavaRes
+processManifestDebugForFeature
+processManifestProfileForFeature
+processManifestReleaseForFeature
+processProfileJavaRes
+processProfileMainManifest
+processProfileManifest
+processProfileManifestForPackage
+processProfileNavigationResources
+processProfileResources
+processReleaseJavaRes
+processReleaseMainManifest
+processReleaseManifest
+processReleaseManifestForPackage
+processReleaseNavigationResources
+processReleaseResources
+produceDebugBundleIdeListingFile
+produceProfileBundleIdeListingFile
+produceReleaseBundleIdeListingFile
+ProfileMinSdkCheck
+ReleaseMinSdkCheck
+resolveConfigAttr
+sdkReleaseDependencyData
+signDebugBundle
+signingConfigWriterDebug
+signingConfigWriterDebugAndroidTest
+signingConfigWriterProfile
+signingConfigWriterRelease
+signProfileBundle
+signReleaseBundle
+stripDebugAndroidTestDebugSymbols
+stripDebugDebugSymbols
+stripProfileDebugSymbols
+stripReleaseDebugSymbols
+updateLegacyAbi
+updateLintBaselineDebug - Update the lint baseline using the debug variant
+updateLintBaselineProfile - Update the lint baseline using the profile variant
+updateLintBaselineRelease - Update the lint baseline using the release variant
+validateSigningDebug
+validateSigningDebugAndroidTest
+validateSigningProfile
+validateSigningRelease
+writeDebugAndroidTestSigningConfigVersions
+writeDebugApplicationId
+writeDebugAppMetadata
+writeDebugModuleMetadata
+writeDebugSigningConfigVersions
+writeProfileApplicationId
+writeProfileAppMetadata
+writeProfileModuleMetadata
+writeProfileSigningConfigVersions
+writeReleaseApplicationId
+writeReleaseAppMetadata
+writeReleaseModuleMetadata
+writeReleaseSigningConfigVersions
+zipApksForDebug
+zipApksForProfile
+zipApksForRelease
+
+Rules
+-----
+Pattern: clean<TaskName>: Cleans the output files of a task.
+Pattern: build<ConfigurationName>: Assembles the artifacts of a configuration.
+
+[Incubating] Problems report is available at: file:///D:/Documents/ai-speaking-flutter-app/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 55s
+5 actionable tasks: 1 executed, 4 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.1.0/userguide/configuration_cache_enabling.html

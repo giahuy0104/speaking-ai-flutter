@@ -1,0 +1,20 @@
+{
+  "id": "AI-035",
+  "signature": "abd08ec78d54596767c075a22637f3f795adf5b8562a3cdb9e81cc4608f1f292",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bộ sưu tập ngôi sao.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:07:34.943Z",
+  "requestId": "fYPEjhUtzoAzacIzyq8h",
+  "characterCost": "11",
+  "sourceSha256": "9a594c2296799ed0040732a883a03faca7b1f8028d8555cd23dbc412be543ff9"
+}

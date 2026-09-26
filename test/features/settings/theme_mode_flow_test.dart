@@ -1,19 +1,53 @@
-import 'dart:typed_data';
+import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme_mode.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
+import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/data/demo_conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/settings/presentation/settings_sheet.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(_loadGoldenFonts);
+  const offlineSpeechChannel = MethodChannel('homi_offline_speech');
+  const offlineTranslationChannel = MethodChannel(
+    'homi_offline_translation_models',
+  );
+  setUp(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(offlineSpeechChannel, (call) async {
+          if (call.method == 'model.status') {
+            return <String, Object?>{
+              'state': 'installed',
+              'strictOnDeviceAvailable': true,
+              'appManaged': true,
+              'progress': 100,
+            };
+          }
+          return null;
+        });
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          offlineTranslationChannel,
+          (call) async => call.method == 'model.status' ? true : null,
+        );
+  });
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(offlineSpeechChannel, null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(offlineTranslationChannel, null);
+  });
 
   test('theme mode is persisted and restored', () async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -116,6 +150,243 @@ void main() {
     expect(chip.selected, isTrue);
   });
 
+  testWidgets('parent can toggle stopping media outside HOMI', (tester) async {
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      playbackService: const _FakePlaybackService(),
+      repository: const DemoConversationRepository(),
+      childAge: 6,
+    );
+    addTearDown(controller.dispose);
+    var enabled = true;
+
+    await tester.pumpWidget(
+      StatefulBuilder(
+        builder: (context, setState) => MaterialApp(
+          theme: buildAppTheme(),
+          home: Scaffold(
+            body: SettingsSheet(
+              controller: controller,
+              stopMediaWhenBackgrounded: enabled,
+              onStopMediaWhenBackgroundedChanged: (value) {
+                setState(() => enabled = value);
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final toggle = find.byKey(
+      const Key('settings-stop-media-background-switch'),
+    );
+    await tester.scrollUntilVisible(toggle, 300);
+    await tester.tap(toggle);
+    await tester.pump();
+
+    expect(enabled, isFalse);
+    expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
+  });
+
+  testWidgets('Android defaults background media stopping to off', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      playbackService: const _FakePlaybackService(),
+      repository: const DemoConversationRepository(),
+      childAge: 6,
+    );
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: Scaffold(body: SettingsSheet(controller: controller)),
+      ),
+    );
+
+    final toggle = find.byKey(
+      const Key('settings-stop-media-background-switch'),
+    );
+    await tester.scrollUntilVisible(toggle, 300);
+
+    expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('turn settings use the shared HOMI visual system', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      playbackService: const _FakePlaybackService(),
+      repository: const DemoConversationRepository(),
+      childAge: 6,
+    );
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: buildAppTheme(),
+        builder: _disableAnimations,
+        home: Scaffold(body: SettingsSheet(controller: controller)),
+      ),
+    );
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('goldens/settings-turn-controls-390x844.png'),
+    );
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('dark settings keep the shared HOMI visual system', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      playbackService: const _FakePlaybackService(),
+      repository: const DemoConversationRepository(),
+      childAge: 6,
+    );
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: buildAppTheme(),
+        darkTheme: buildDarkAppTheme(),
+        themeMode: ThemeMode.dark,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(disableAnimations: true),
+          child: child!,
+        ),
+        home: Scaffold(body: SettingsSheet(controller: controller)),
+      ),
+    );
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pump();
+
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('goldens/dark-settings-turn-controls-390x844.png'),
+    );
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('H20 settings use one compact shared surface', (tester) async {
+    await _usePhoneSurface(tester);
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      aiv0BleControl: _DiagnosticAiv0BleControl(),
+      playbackService: const _FakePlaybackService(),
+      repository: const DemoConversationRepository(),
+      childAge: 6,
+    );
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: buildAppTheme(),
+        builder: _disableAnimations,
+        home: Scaffold(body: SettingsSheet(controller: controller)),
+      ),
+    );
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+    final settingsScroll = _settingsScrollable();
+    final audioSection = find.byKey(const Key('settings-audio-h20-section'));
+    await tester.scrollUntilVisible(
+      audioSection,
+      260,
+      scrollable: settingsScroll,
+    );
+    await tester.tap(audioSection);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('settings-h20-group')),
+      320,
+      scrollable: settingsScroll,
+    );
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('goldens/settings-h20-390x844.png'),
+    );
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('audio and data settings keep the shared visual rhythm', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      'homi.offline-language-packs-consent.v2': 'allowed',
+    });
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      playbackService: const _FakePlaybackService(),
+      repository: const DemoConversationRepository(),
+      childAge: 6,
+    );
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: buildAppTheme(),
+        builder: _disableAnimations,
+        home: Scaffold(body: SettingsSheet(controller: controller)),
+      ),
+    );
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+    final recognitionSection = find.byKey(
+      const Key('settings-recognition-section'),
+    );
+    await tester.scrollUntilVisible(
+      recognitionSection,
+      320,
+      scrollable: _settingsScrollable(),
+    );
+    await tester.tap(recognitionSection);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('settings-offline-language-packs')),
+      420,
+      scrollable: _settingsScrollable(),
+    );
+    await tester.drag(
+      find.byKey(const Key('settings-scroll-view')),
+      const Offset(0, -470),
+    );
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('goldens/settings-audio-data-390x844.png'),
+    );
+    debugDefaultTargetPlatformOverride = null;
+  });
+
   testWidgets(
     'Android settings separates standard recognition from audio source',
     (tester) async {
@@ -140,17 +411,238 @@ void main() {
         ),
       );
       await tester.scrollUntilVisible(
+        find.byKey(const Key('settings-audio-h20-section')),
+        400,
+      );
+      await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('settings-recognition-section')),
+        400,
+      );
+      await tester.tap(find.byKey(const Key('settings-recognition-section')));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
         find.byKey(const Key('android-standard-recognition')),
         500,
       );
 
-      expect(find.text('Nhận dạng'), findsOneWidget);
+      expect(find.text('Nhận dạng giọng nói'), findsOneWidget);
       expect(find.text('Chế độ tiêu chuẩn'), findsOneWidget);
       expect(find.text('Mic điện thoại'), findsOneWidget);
       expect(find.text('Cloudflare Batch Chunks'), findsNothing);
       expect(find.text('HFP streaming'), findsNothing);
     },
   );
+
+  testWidgets('iOS settings keeps the GATT disconnect cause visible', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final ble = _DiagnosticAiv0BleControl();
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      aiv0BleControl: ble,
+      playbackService: const _FakePlaybackService(),
+      repository: const DemoConversationRepository(),
+      childAge: 6,
+    );
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        builder: _disableAnimations,
+        home: Scaffold(body: SettingsSheet(controller: controller)),
+      ),
+    );
+
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('settings-audio-h20-section')),
+      360,
+      scrollable: _settingsScrollable(),
+    );
+    await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
+    await tester.pumpAndSettle();
+
+    final technicalDetails = find
+        .byKey(const Key('aiv0-technical-details'))
+        .first;
+    final settingsScroll = find
+        .descendant(
+          of: find.byKey(const Key('settings-scroll-view')),
+          matching: find.byType(Scrollable),
+        )
+        .first;
+    await tester.scrollUntilVisible(
+      technicalDetails,
+      360,
+      scrollable: settingsScroll,
+    );
+    await tester.tap(technicalDetails);
+    await tester.pumpAndSettle();
+    final packetDetails = find.byKey(const Key('aiv0-packet-details')).first;
+    await tester.scrollUntilVisible(
+      packetDetails,
+      320,
+      scrollable: settingsScroll,
+    );
+    await tester.tap(packetDetails);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('aiv0-native-diagnostics')), findsOneWidget);
+    expect(find.byKey(const Key('aiv0-ble-hfp-timeline')), findsOneWidget);
+    expect(find.textContaining('BLE_DISCONNECTED'), findsOneWidget);
+    expect(find.textContaining('disconnected'), findsWidgets);
+    expect(find.textContaining('CBErrorDomain:7'), findsOneWidget);
+    expect(find.textContaining('reconnect'), findsWidgets);
+    expect(find.text('MAIN → trợ lý'), findsOneWidget);
+    expect(find.textContaining('0 gói'), findsOneWidget);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets(
+    'Android privacy deletion skips authentication but keeps confirmation',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        playbackService: const _FakePlaybackService(),
+        repository: const DemoConversationRepository(),
+        childAge: 6,
+      );
+      addTearDown(controller.dispose);
+      var revokeCalls = 0;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: Scaffold(
+            body: SettingsSheet(
+              controller: controller,
+              privacyConsentGranted: true,
+              onRevokePrivacyConsent: () async => revokeCalls += 1,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('settings-revoke-privacy-consent')),
+        420,
+        scrollable: _settingsScrollable(),
+      );
+      await tester.tap(
+        find.byKey(const Key('settings-revoke-privacy-consent')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Rút chấp thuận và yêu cầu xóa dữ liệu?'),
+        findsOneWidget,
+      );
+      expect(find.text('Không thể xác thực'), findsNothing);
+      expect(find.byKey(const Key('parental-auth-error-dialog')), findsNothing);
+
+      await tester.tap(find.text('Tiếp tục xóa'));
+      await tester.pumpAndSettle();
+      expect(revokeCalls, 1);
+      debugDefaultTargetPlatformOverride = null;
+    },
+  );
+}
+
+Finder _settingsScrollable() => find
+    .descendant(
+      of: find.byKey(const Key('settings-scroll-view')),
+      matching: find.byType(Scrollable),
+    )
+    .first;
+
+Future<void> _usePhoneSurface(WidgetTester tester) async {
+  await tester.binding.setSurfaceSize(const Size(390, 844));
+  addTearDown(() => tester.binding.setSurfaceSize(null));
+}
+
+Widget _disableAnimations(BuildContext context, Widget? child) => MediaQuery(
+  data: MediaQuery.of(context).copyWith(disableAnimations: true),
+  child: child!,
+);
+
+Future<void> _loadGoldenFonts() async {
+  final roboto = FontLoader('Roboto')
+    ..addFont(rootBundle.load('assets/fonts/Roboto-Regular.ttf'));
+  final materialIcons = FontLoader('MaterialIcons')
+    ..addFont(rootBundle.load('assets/fonts/MaterialIcons-Regular.otf'));
+  await Future.wait<void>(<Future<void>>[roboto.load(), materialIcons.load()]);
+}
+
+class _DiagnosticAiv0BleControl implements Aiv0BleControl {
+  final StreamController<Aiv0BleStatus> _statuses =
+      StreamController<Aiv0BleStatus>.broadcast();
+  final StreamController<Aiv0ButtonEvent> _buttons =
+      StreamController<Aiv0ButtonEvent>.broadcast();
+
+  @override
+  Aiv0BleStatus get status => Aiv0BleStatus.fromMap(<Object?, Object?>{
+    'phase': 'connected',
+    'deviceId': 'H20-BLE',
+    'deviceName': 'H20',
+    'peripheralState': 'disconnected',
+    'mainNotificationState': 'unavailable',
+    'lastDisconnectCode': 'CBErrorDomain:7',
+    'lastDisconnectMessage': 'The specified device has disconnected.',
+    'lastDisconnectEpochMs': 1_787_987_522_081,
+    'lastNotificationRecovery':
+        'reconnect • peripheral=disconnected • notify=unavailable',
+    'deferredRecoveryRepeatCount': 12,
+    'diagnosticTimeline': <Object?>[
+      <Object?, Object?>{
+        'stage': 'BLE_DISCONNECTED',
+        'caller': 'Aiv0BleControlBridge',
+        'eventEpochMs': 1_787_987_522_081,
+        'systemIsReconnecting': false,
+      },
+    ],
+  }, protocolConfirmed: false);
+
+  @override
+  Stream<Aiv0BleStatus> get statusStream => _statuses.stream;
+
+  @override
+  Stream<Aiv0ButtonEvent> get buttonEvents => _buttons.stream;
+
+  @override
+  Future<void> connect(String deviceId) async {}
+
+  @override
+  Future<void> disconnect() async {}
+
+  @override
+  Future<void> markParentDiagnosticsOpened() async {}
+
+  @override
+  Future<void> dispose() async {
+    await _statuses.close();
+    await _buttons.close();
+  }
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<List<Aiv0BleDevice>> scan({Duration timeout = Duration.zero}) async =>
+      const <Aiv0BleDevice>[];
+
+  @override
+  Future<void> sendAppState({
+    required Aiv0AppState state,
+    required Aiv0AppResult result,
+    int sequence = 0,
+  }) async {}
 }
 
 class _FakeStreamingSpeechInput implements StreamingSpeechInput {

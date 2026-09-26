@@ -1,226 +1,916 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/app_theme.dart';
+import '../../../app/device_connection_feedback_overlay.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
 import '../../listening/domain/listening_catalog.dart';
 
-class StartupSetupScreen extends StatelessWidget {
+enum _ParentSetupStep { privacy, profile, permissions }
+
+/// Mandatory parent/teacher setup shown before a child learning session starts.
+class StartupSetupScreen extends StatefulWidget {
   const StartupSetupScreen({
     required this.profileLoading,
     required this.permissionRequestInProgress,
+    required this.privacyConfigurationComplete,
+    required this.privacyConsentGranted,
+    required this.limitedModeSelected,
     required this.microphoneGranted,
     required this.bluetoothRequired,
     required this.bluetoothGranted,
+    required this.h20BleConnected,
+    required this.h20HfpConfigured,
     required this.selectedAge,
+    required this.aiSubprocessors,
+    required this.dataRetentionSummary,
+    required this.onGrantPrivacyConsent,
+    required this.onContinueWithoutVoice,
     required this.onRetryPermissions,
+    required this.onSetupH20,
     required this.onAgeSelected,
-    required this.onConfirmAge,
+    required this.onCompleteSetup,
+    this.allowPhoneMicFallback = false,
+    this.androidOfflineEnglishModelOptionAvailable = false,
+    this.androidOfflineEnglishModelDownloadAllowed = false,
+    this.onAndroidOfflineEnglishModelDownloadChanged,
+    this.onChooseH20Microphone,
+    this.h20DeviceName,
+    this.privacyPolicyUri,
+    this.termsUri,
+    this.supportUri,
     this.permissionError,
     super.key,
   });
 
   final bool profileLoading;
   final bool permissionRequestInProgress;
+  final bool privacyConfigurationComplete;
+  final bool privacyConsentGranted;
+  final bool limitedModeSelected;
   final bool microphoneGranted;
   final bool bluetoothRequired;
   final bool bluetoothGranted;
+  final bool h20BleConnected;
+  final bool h20HfpConfigured;
+  final bool allowPhoneMicFallback;
   final int? selectedAge;
+  final String aiSubprocessors;
+  final String dataRetentionSummary;
+  final String? h20DeviceName;
+  final Uri? privacyPolicyUri;
+  final Uri? termsUri;
+  final Uri? supportUri;
+  final Future<void> Function() onGrantPrivacyConsent;
+  final Future<void> Function() onContinueWithoutVoice;
   final VoidCallback onRetryPermissions;
+  final Future<bool> Function() onSetupH20;
+  final Future<bool> Function()? onChooseH20Microphone;
   final ValueChanged<int> onAgeSelected;
-  final VoidCallback onConfirmAge;
+  final Future<void> Function() onCompleteSetup;
+  final bool androidOfflineEnglishModelOptionAvailable;
+  final bool androidOfflineEnglishModelDownloadAllowed;
+  final Future<void> Function(bool)?
+  onAndroidOfflineEnglishModelDownloadChanged;
   final String? permissionError;
 
-  bool get _permissionsGranted =>
-      microphoneGranted && (!bluetoothRequired || bluetoothGranted);
+  @override
+  State<StartupSetupScreen> createState() => _StartupSetupScreenState();
+}
+
+class _StartupSetupScreenState extends State<StartupSetupScreen> {
+  _ParentSetupStep _step = _ParentSetupStep.privacy;
+  late bool _adultRoleConfirmed;
+  late bool _legalReviewCompleted;
+  late bool _voiceDataAccepted;
+  bool _h20SetupRequested = false;
+  bool _choiceInProgress = false;
+  DeviceConnectionFeedbackStage? _deviceConnectionFeedbackStage;
+
+  bool get _privacyChoiceMade =>
+      widget.privacyConsentGranted || widget.limitedModeSelected;
+
+  bool get _h20Ready => widget.h20BleConnected && widget.h20HfpConfigured;
+
+  bool get _canComplete =>
+      widget.limitedModeSelected ||
+      (widget.microphoneGranted &&
+          (!widget.bluetoothRequired ||
+              (widget.bluetoothGranted &&
+                  (_h20Ready || widget.allowPhoneMicFallback))));
+
+  @override
+  void initState() {
+    super.initState();
+    _adultRoleConfirmed = widget.privacyConsentGranted;
+    _legalReviewCompleted = widget.privacyConsentGranted;
+    _voiceDataAccepted = widget.privacyConsentGranted;
+  }
+
+  @override
+  void didUpdateWidget(StartupSetupScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.privacyConsentGranted && widget.privacyConsentGranted) {
+      _adultRoleConfirmed = true;
+      _legalReviewCompleted = true;
+      _voiceDataAccepted = true;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final stepNumber = _step.index + 1;
+    return Stack(
+      fit: StackFit.expand,
+      children: <Widget>[
+        Scaffold(
+          backgroundColor: Colors.transparent,
+          body: LearningScenery(
+            overlayOpacity: 0.025,
+            child: SafeArea(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 620),
+                  child: Column(
+                    children: <Widget>[
+                      _SetupHeader(
+                        stepNumber: stepNumber,
+                        totalSteps: _ParentSetupStep.values.length,
+                        canGoBack: _step.index > 0,
+                        onBack: _goBack,
+                      ),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.fromLTRB(22, 8, 22, 28),
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 220),
+                            child: KeyedSubtree(
+                              key: ValueKey<_ParentSetupStep>(_step),
+                              child: switch (_step) {
+                                _ParentSetupStep.privacy => _buildPrivacyStep(
+                                  theme,
+                                ),
+                                _ParentSetupStep.profile => _buildProfileStep(
+                                  theme,
+                                ),
+                                _ParentSetupStep.permissions =>
+                                  _buildPermissionsStep(theme),
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (_deviceConnectionFeedbackStage != null)
+          DeviceConnectionFeedbackOverlay(
+            stage: _deviceConnectionFeedbackStage!,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildPrivacyStep(ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: LearningScenery(
-        child: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 560),
+    final headingColor = isDark
+        ? theme.colorScheme.onSurface
+        : AppColors.indigoDark;
+    final accentColor = isDark ? theme.colorScheme.secondary : AppColors.coral;
+    return _SetupStepLayout(
+      key: const ValueKey<String>('startup-privacy-step'),
+      title: 'Xác nhận của phụ huynh',
+      subtitle: 'Phụ huynh hoặc giáo viên thiết lập phiên học tại đây.',
+      panel: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(22),
+            child: CheckboxListTile(
+              key: const Key('startup-confirm-adult-role'),
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              value: _adultRoleConfirmed,
+              onChanged: widget.profileLoading
+                  ? null
+                  : (value) =>
+                        setState(() => _adultRoleConfirmed = value ?? false),
+              activeColor: accentColor,
+              checkColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(22),
+              ),
+              title: Text(
+                'Tôi là phụ huynh, người giám hộ hoặc giáo viên',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: headingColor,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          TextButton.icon(
+            key: const Key('startup-review-legal'),
+            onPressed: _showLegalReview,
+            style: TextButton.styleFrom(
+              alignment: Alignment.centerLeft,
+              foregroundColor: isDark
+                  ? theme.colorScheme.primary
+                  : AppColors.indigoDark,
+              backgroundColor: isDark
+                  ? theme.colorScheme.surfaceContainerHighest
+                  : Colors.white.withValues(alpha: 0.74),
+              minimumSize: const Size.fromHeight(54),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(22),
+              ),
+            ),
+            icon: Icon(
+              _legalReviewCompleted
+                  ? Icons.check_circle_rounded
+                  : Icons.description_outlined,
+              color: _legalReviewCompleted ? AppColors.success : null,
+            ),
+            label: Text(
+              _legalReviewCompleted
+                  ? 'Đã đọc Điều khoản và Chính sách quyền riêng tư'
+                  : 'Đọc Điều khoản và Chính sách quyền riêng tư',
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(22),
+            child: CheckboxListTile(
+              key: const Key('startup-accept-legal'),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 4,
+              ),
+              controlAffinity: ListTileControlAffinity.leading,
+              value: _voiceDataAccepted,
+              onChanged:
+                  !_legalReviewCompleted ||
+                      widget.profileLoading ||
+                      widget.privacyConsentGranted
+                  ? null
+                  : (value) =>
+                        setState(() => _voiceDataAccepted = value ?? false),
+              activeColor: accentColor,
+              checkColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(22),
+              ),
+              title: Text(
+                'Tôi đồng ý để HOMI xử lý dữ liệu giọng nói theo Điều khoản và Chính sách quyền riêng tư đã đọc.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: isDark
+                      ? theme.colorScheme.onSurfaceVariant
+                      : AppColors.indigoDark.withValues(alpha: 0.76),
+                  height: 1.4,
+                ),
+              ),
+              subtitle: !_legalReviewCompleted
+                  ? const Text('Đọc hết nội dung trên để mở lựa chọn này.')
+                  : null,
+            ),
+          ),
+        ],
+      ),
+      footer: <Widget>[
+        if (!widget.privacyConfigurationComplete)
+          const _WarningBox(
+            text:
+                'Bản build chưa cấu hình đầy đủ URL pháp lý, nhà cung cấp hoặc thời hạn lưu. Chế độ giọng nói đang bị khóa.',
+          ),
+        if (!widget.privacyConfigurationComplete) const SizedBox(height: 12),
+        if (widget.privacyConsentGranted)
+          const _GrantedBanner(
+            text: 'Phụ huynh đã đồng ý xử lý, gửi và lưu dữ liệu giọng nói.',
+          )
+        else if (widget.limitedModeSelected)
+          const _GrantedBanner(text: 'Đã chọn chế độ không dùng giọng nói.'),
+        if (_privacyChoiceMade) const SizedBox(height: 14),
+        if (!widget.privacyConsentGranted && !widget.limitedModeSelected)
+          FilledButton.icon(
+            key: const Key('startup-grant-privacy-consent'),
+            onPressed:
+                !_adultRoleConfirmed ||
+                    !_legalReviewCompleted ||
+                    !_voiceDataAccepted ||
+                    widget.profileLoading ||
+                    !widget.privacyConfigurationComplete
+                ? null
+                : _grantConsentAndContinue,
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(54),
+            ),
+            icon: const Icon(Icons.verified_user_outlined),
+            label: const Text('Đồng ý và tiếp tục'),
+          ),
+        if (!_privacyChoiceMade) ...<Widget>[
+          const SizedBox(height: 8),
+          TextButton.icon(
+            key: const Key('startup-continue-without-voice'),
+            onPressed:
+                !_adultRoleConfirmed ||
+                    !_legalReviewCompleted ||
+                    widget.profileLoading
+                ? null
+                : _chooseLimitedMode,
+            icon: const Icon(Icons.mic_off_outlined),
+            label: const Text('Tiếp tục không dùng giọng nói'),
+          ),
+        ] else
+          _PrimaryNextButton(onPressed: _adultRoleConfirmed ? _goNext : null),
+      ],
+    );
+  }
+
+  Widget _buildProfileStep(ThemeData theme) {
+    final compact = MediaQuery.sizeOf(context).height < 780;
+    return _SetupStepLayout(
+      key: const ValueKey<String>('startup-profile-step'),
+      title: 'Chọn hồ sơ học của trẻ',
+      subtitle:
+          'Phụ huynh chọn nhóm tuổi để HOMI chuẩn bị từ vựng, chủ đề và cách hướng dẫn phù hợp.',
+      panel: LayoutBuilder(
+        builder: (context, constraints) {
+          final optionWidth = (constraints.maxWidth - 10) / 2;
+          return Wrap(
+            spacing: 10,
+            runSpacing: 4,
+            children: <Widget>[
+              for (final catalog in listeningCatalogs)
+                SizedBox(
+                  width: optionWidth,
+                  child: _ProfileAgeOption(
+                    key: ValueKey('startup-age-${catalog.id}'),
+                    label: '${catalog.startAge}–${catalog.endAge} tuổi',
+                    selected:
+                        widget.selectedAge != null &&
+                        widget.selectedAge! >= catalog.startAge &&
+                        widget.selectedAge! <= catalog.endAge,
+                    onPressed: () => widget.onAgeSelected(catalog.startAge),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+      footer: <Widget>[
+        const _InfoBox(
+          icon: Icons.lock_outline_rounded,
+          text: 'Nhóm tuổi chỉ được thay đổi trong Cài đặt dành cho phụ huynh.',
+        ),
+        SizedBox(
+          height: compact ? 168 : 216,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 20),
+            child: Align(
+              alignment: Alignment.bottomRight,
+              child: Transform.scale(
+                scale: 1.15,
+                alignment: Alignment.bottomRight,
+                child: Image.asset(
+                  MascotAssets.wave,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+            ),
+          ),
+        ),
+        _PrimaryNextButton(
+          onPressed: widget.selectedAge == null ? null : _goNext,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPermissionsStep(ThemeData theme) {
+    final permissionsGranted =
+        widget.microphoneGranted &&
+        (!widget.bluetoothRequired || widget.bluetoothGranted);
+    return _SetupStepLayout(
+      key: const ValueKey<String>('startup-permissions-step'),
+      title: 'Cấp quyền và kết nối thiết bị',
+      subtitle: widget.limitedModeSelected
+          ? 'Chế độ không giọng nói không cần quyền micro hoặc Bluetooth.'
+          : 'HOMI ưu tiên thiết bị đã kết nối và dùng micro điện thoại khi chưa có thiết bị.',
+      panelPadding: const EdgeInsets.all(12),
+      panel: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          if (widget.limitedModeSelected)
+            const _InfoBox(
+              icon: Icons.mic_off_outlined,
+              text:
+                  'Trẻ vẫn xem/nghe được nội dung không cần micro. Phụ huynh có thể bật giọng nói sau trong Cài đặt.',
+            )
+          else ...<Widget>[
+            _PermissionRow(
+              icon: Icons.mic_rounded,
+              label: 'Micro và nhận dạng giọng nói',
+              granted: widget.microphoneGranted,
+              waiting:
+                  widget.profileLoading || widget.permissionRequestInProgress,
+            ),
+            if (widget.bluetoothRequired) ...<Widget>[
+              const SizedBox(height: 10),
+              _PermissionRow(
+                icon: Icons.bluetooth_rounded,
+                label: 'Bluetooth',
+                granted: widget.bluetoothGranted,
+                waiting:
+                    widget.profileLoading || widget.permissionRequestInProgress,
+              ),
+            ],
+            if (widget.permissionError != null) ...<Widget>[
+              const SizedBox(height: 12),
+              _WarningBox(text: widget.permissionError!),
+            ],
+            if (!permissionsGranted) ...<Widget>[
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                key: const Key('startup-request-permissions'),
+                onPressed: widget.permissionRequestInProgress
+                    ? null
+                    : widget.onRetryPermissions,
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(54),
+                ),
+                icon: widget.permissionRequestInProgress
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.4,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.lock_open_rounded),
+                label: Text(
+                  widget.permissionRequestInProgress
+                      ? 'Đang yêu cầu quyền…'
+                      : 'Tiếp tục',
+                ),
+              ),
+            ],
+            if (widget.androidOfflineEnglishModelOptionAvailable) ...<Widget>[
+              const SizedBox(height: 14),
+              Material(
+                color: Colors.transparent,
+                child: SwitchListTile.adaptive(
+                  // Keep the legacy key so existing automation does not lose
+                  // the control while its scope expands to both platforms.
+                  key: const Key('startup-android-offline-english-model'),
+                  contentPadding: EdgeInsets.zero,
+                  value: widget.androidOfflineEnglishModelDownloadAllowed,
+                  onChanged: _choiceInProgress
+                      ? null
+                      : _setAndroidOfflineEnglishModelDownload,
+                  secondary: const Icon(Icons.download_for_offline_rounded),
+                  title: Text(
+                    !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+                        ? 'Cho phép chuẩn bị giọng nói offline'
+                        : 'Cho phép tải dữ liệu giọng nói và dịch offline',
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
+            _DeviceChoiceCard(
+              key: const Key('startup-h20-choice'),
+              icon: Icons.bluetooth_audio_rounded,
+              title: 'Kết nối thiết bị',
+              description:
+                  'Bật thiết bị và Bluetooth trên điện thoại, sau đó nhấn nút bên dưới. HOMI sẽ tự kiểm tra kết nối.',
+              selected: _h20Ready,
+              status: _h20Ready
+                  ? 'Đã kết nối nút MAIN và micro H20'
+                  : widget.allowPhoneMicFallback && widget.h20BleConnected
+                  ? 'Nút MAIN đã kết nối • đang dùng mic iPhone'
+                  : widget.h20BleConnected || widget.h20HfpConfigured
+                  ? 'Đang hoàn tất kết nối còn lại…'
+                  : _h20SetupRequested
+                  ? 'Chưa kết nối • kiểm tra thiết bị đã bật và ở gần'
+                  : 'Chưa kết nối • có thể thực hiện ngay hoặc để sau',
+              actionKey: const Key('startup-setup-h20'),
+              actionLabel: _h20Ready ? 'Đã kết nối' : 'Kết nối thiết bị',
+              busy: _choiceInProgress,
+              onPressed: _choiceInProgress || _h20Ready ? null : _setupH20,
+            ),
+            if (widget.allowPhoneMicFallback &&
+                !widget.h20HfpConfigured &&
+                widget.onChooseH20Microphone != null) ...<Widget>[
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                key: const Key('startup-choose-h20-microphone'),
+                onPressed: _choiceInProgress ? null : _chooseH20Microphone,
+                icon: const Icon(Icons.headset_mic_rounded),
+                label: const Text('Chọn micro H20'),
+              ),
+            ],
+            if (widget.microphoneGranted && !_h20Ready) ...<Widget>[
+              const SizedBox(height: 12),
+              _InfoBox(
+                icon: Icons.phone_iphone_rounded,
+                text: widget.allowPhoneMicFallback
+                    ? 'Bạn có thể bắt đầu bằng mic iPhone. H20 sẽ tiếp tục kết nối nền và có thể thiết lập lại sau trong Cài đặt.'
+                    : 'Cần kết nối cả nút MAIN qua BLE và micro H20 trước khi bắt đầu phiên học.',
+              ),
+            ],
+          ],
+        ],
+      ),
+      footer: <Widget>[
+        const SizedBox(height: 2),
+        FilledButton.icon(
+          key: const Key('startup-confirm-age'),
+          onPressed: _canComplete && !_choiceInProgress
+              ? widget.onCompleteSetup
+              : null,
+          style: FilledButton.styleFrom(
+            minimumSize: const Size.fromHeight(58),
+            backgroundColor: theme.brightness == Brightness.dark
+                ? theme.colorScheme.primary
+                : AppColors.indigo,
+            foregroundColor: theme.brightness == Brightness.dark
+                ? theme.colorScheme.onPrimary
+                : Colors.white,
+          ),
+          icon: const Icon(Icons.play_circle_outline_rounded),
+          label: const Text('Hoàn tất và bắt đầu phiên học'),
+        ),
+        if (!_canComplete) ...<Widget>[
+          const SizedBox(height: 10),
+          Text(
+            widget.allowPhoneMicFallback && widget.microphoneGranted
+                ? 'Mic iPhone đã sẵn sàng. Có thể thiết lập H20 sau trong Cài đặt dành cho phụ huynh.'
+                : widget.microphoneGranted && widget.bluetoothGranted
+                ? 'Cần kết nối cả nút MAIN và micro H20 để bắt đầu, hoặc quay lại chọn chế độ không dùng giọng nói.'
+                : 'Cần cấp đủ quyền micro và Bluetooth để tiếp tục, hoặc quay lại chọn chế độ không dùng giọng nói.',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Future<void> _grantConsentAndContinue() async {
+    await widget.onGrantPrivacyConsent();
+    if (mounted && widget.privacyConfigurationComplete) {
+      setState(() => _step = _ParentSetupStep.profile);
+    }
+  }
+
+  Future<void> _chooseLimitedMode() async {
+    await widget.onContinueWithoutVoice();
+    if (mounted) {
+      setState(() => _step = _ParentSetupStep.profile);
+    }
+  }
+
+  Future<void> _setupH20() async {
+    setState(() {
+      _choiceInProgress = true;
+      _h20SetupRequested = true;
+      _deviceConnectionFeedbackStage = DeviceConnectionFeedbackStage.connecting;
+    });
+    try {
+      final connected = await widget.onSetupH20().timeout(
+        const Duration(seconds: 12),
+        onTimeout: () => false,
+      );
+      if (!mounted) return;
+      if (connected) {
+        setState(() {
+          _deviceConnectionFeedbackStage =
+              DeviceConnectionFeedbackStage.connected;
+        });
+        await Future<void>.delayed(const Duration(milliseconds: 900));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _choiceInProgress = false;
+          _deviceConnectionFeedbackStage = null;
+        });
+      }
+    }
+  }
+
+  Future<void> _chooseH20Microphone() async {
+    final choose = widget.onChooseH20Microphone;
+    if (choose == null) return;
+    setState(() {
+      _choiceInProgress = true;
+      _h20SetupRequested = true;
+    });
+    try {
+      await choose().timeout(
+        const Duration(seconds: 20),
+        onTimeout: () => false,
+      );
+    } finally {
+      if (mounted) setState(() => _choiceInProgress = false);
+    }
+  }
+
+  Future<void> _setAndroidOfflineEnglishModelDownload(bool enabled) async {
+    final update = widget.onAndroidOfflineEnglishModelDownloadChanged;
+    if (update == null) {
+      return;
+    }
+    setState(() => _choiceInProgress = true);
+    try {
+      await update(enabled);
+    } finally {
+      if (mounted) setState(() => _choiceInProgress = false);
+    }
+  }
+
+  void _goNext() {
+    if (_step.index < _ParentSetupStep.values.length - 1) {
+      setState(() => _step = _ParentSetupStep.values[_step.index + 1]);
+    }
+  }
+
+  void _goBack() {
+    if (_step.index > 0) {
+      setState(() => _step = _ParentSetupStep.values[_step.index - 1]);
+    }
+  }
+
+  Future<void> _showLegalReview() async {
+    final reviewed = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      enableDrag: false,
+      builder: (context) => _LegalReviewSheet(
+        aiSubprocessors: widget.aiSubprocessors,
+        dataRetentionSummary: widget.dataRetentionSummary,
+        privacyPolicyUri: widget.privacyPolicyUri,
+        termsUri: widget.termsUri,
+        supportUri: widget.supportUri,
+        onOpenPrivacyPolicy: () => _openLegalPage(
+          widget.privacyPolicyUri,
+          'Chính sách quyền riêng tư',
+        ),
+        onOpenTerms: () =>
+            _openLegalPage(widget.termsUri, 'Điều khoản sử dụng'),
+        onOpenSupport: () => _openLegalPage(widget.supportUri, 'Hỗ trợ'),
+      ),
+    );
+    if (reviewed == true && mounted) {
+      setState(() => _legalReviewCompleted = true);
+    }
+  }
+
+  Future<void> _openLegalPage(Uri? uri, String label) async {
+    if (uri == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$label chưa được cấu hình cho bản build này.')),
+      );
+      return;
+    }
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
+        mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Không thể mở $label.')));
+    }
+  }
+}
+
+class _LegalReviewSheet extends StatefulWidget {
+  const _LegalReviewSheet({
+    required this.aiSubprocessors,
+    required this.dataRetentionSummary,
+    required this.privacyPolicyUri,
+    required this.termsUri,
+    required this.supportUri,
+    required this.onOpenPrivacyPolicy,
+    required this.onOpenTerms,
+    required this.onOpenSupport,
+  });
+
+  final String aiSubprocessors;
+  final String dataRetentionSummary;
+  final Uri? privacyPolicyUri;
+  final Uri? termsUri;
+  final Uri? supportUri;
+  final VoidCallback onOpenPrivacyPolicy;
+  final VoidCallback onOpenTerms;
+  final VoidCallback onOpenSupport;
+
+  @override
+  State<_LegalReviewSheet> createState() => _LegalReviewSheetState();
+}
+
+class _LegalReviewSheetState extends State<_LegalReviewSheet> {
+  final ScrollController _scrollController = ScrollController();
+  bool _reachedEnd = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_updateReachedEnd);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _updateReachedEnd());
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_updateReachedEnd)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _updateReachedEnd() {
+    if (!_scrollController.hasClients || _reachedEnd) return;
+    final position = _scrollController.position;
+    if (position.maxScrollExtent <= 0 || position.extentAfter <= 20) {
+      setState(() => _reachedEnd = true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final height = MediaQuery.sizeOf(context).height * 0.9;
+    return SizedBox(
+      height: height,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 8, 8),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    'Điều khoản và quyền riêng tư',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  key: const Key('startup-close-legal'),
+                  onPressed: () => Navigator.of(context).pop(false),
+                  tooltip: 'Đóng',
+                  icon: const Icon(Icons.close_rounded),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: Scrollbar(
+              controller: _scrollController,
+              thumbVisibility: true,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(22, 20, 22, 28),
+                key: const Key('startup-legal-scroll'),
+                controller: _scrollController,
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Thông tin phụ huynh cần biết',
+                      style: theme.textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'HOMI chỉ bắt đầu thu, xử lý, gửi và lưu dữ liệu giọng nói sau khi phụ huynh chủ động đồng ý và cấp quyền micro.',
+                    ),
+                    const SizedBox(height: 20),
+                    const _LegalSection(
+                      icon: Icons.graphic_eq_rounded,
+                      title: 'Dữ liệu được xử lý',
+                      text:
+                          'Giọng nói/audio khi dùng tính năng nói; nội dung đã nhận dạng; nhóm tuổi đã chọn; lịch sử tương tác; mã cài đặt và chẩn đoán kỹ thuật cần thiết để vận hành bài học.',
+                    ),
+                    const SizedBox(height: 18),
+                    const _LegalSection(
+                      icon: Icons.school_outlined,
+                      title: 'Mục đích sử dụng',
+                      text:
+                          'Nhận dạng lời nói, dịch nội dung, tạo phản hồi và giọng đọc, lưu bản ghi/lịch sử để phụ huynh xem lại, lưu tiến trình học, khắc phục lỗi và bảo vệ dịch vụ.',
+                    ),
+                    const SizedBox(height: 18),
+                    _LegalSection(
+                      icon: Icons.cloud_outlined,
+                      title: 'Bên thứ ba nhận dữ liệu và mục đích',
+                      text:
+                          'Các nhà cung cấp được cấu hình cho bản này: ${widget.aiSubprocessors}. '
+                          'Railway nhận dữ liệu cần thiết để vận hành backend HOMI và xử lý yêu cầu. '
+                          'Cloudflare Workers AI nhận audio khi cần nhận dạng dự phòng và nhận transcript cần thiết để nhận dạng, dịch hoặc tạo giọng đọc. '
+                          'Cloudinary nhận và lưu bản ghi giọng nói có kiểm soát để phụ huynh nghe lại trong Lịch sử gần đây. '
+                          'Các nhà cung cấp này chỉ được xử lý dữ liệu cho các mục đích HOMI mô tả, phải áp dụng biện pháp bảo vệ dữ liệu tương đương và không được dùng dữ liệu cho quảng cáo hoặc huấn luyện mô hình nếu chưa có chấp thuận riêng.',
+                    ),
+                    const SizedBox(height: 18),
+                    _LegalSection(
+                      icon: Icons.schedule_rounded,
+                      title: 'Lưu trữ, xóa và rút lại chấp thuận',
+                      text:
+                          '${widget.dataRetentionSummary} Phụ huynh có thể rút lại chấp thuận hoặc yêu cầu xóa dữ liệu trong phần Cài đặt/Hỗ trợ.',
+                    ),
+                    const SizedBox(height: 18),
+                    const _LegalSection(
+                      icon: Icons.mic_off_outlined,
+                      title: 'Quyền lựa chọn',
+                      text:
+                          'Có thể tiếp tục ở chế độ không dùng giọng nói. Khi đó HOMI không yêu cầu quyền micro và các tính năng cần nói sẽ không hoạt động.',
+                    ),
+                    const SizedBox(height: 22),
+                    Text('Tài liệu đầy đủ', style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 6),
+                    _LegalDocumentLink(
+                      key: const Key('startup-open-privacy-policy'),
+                      label: 'Chính sách quyền riêng tư',
+                      available: widget.privacyPolicyUri != null,
+                      onPressed: widget.onOpenPrivacyPolicy,
+                    ),
+                    _LegalDocumentLink(
+                      key: const Key('startup-open-terms'),
+                      label: 'Điều khoản sử dụng',
+                      available: widget.termsUri != null,
+                      onPressed: widget.onOpenTerms,
+                    ),
+                    _LegalDocumentLink(
+                      key: const Key('startup-open-support'),
+                      label: 'Hỗ trợ và yêu cầu xóa dữ liệu',
+                      available: widget.supportUri != null,
+                      onPressed: widget.onOpenSupport,
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Bằng việc tiếp tục, phụ huynh xác nhận đã hiểu nội dung trên. Việc đồng ý xử lý dữ liệu giọng nói vẫn được thực hiện bằng một lựa chọn riêng ở màn hình trước.',
+                    ),
+                    const SizedBox(
+                      key: Key('startup-legal-end-marker'),
+                      height: 1,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              border: Border(
+                top: BorderSide(color: theme.colorScheme.outlineVariant),
+              ),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        Container(
-                          width: 68,
-                          height: 68,
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surface,
-                            shape: BoxShape.circle,
-                            boxShadow: <BoxShadow>[
-                              BoxShadow(
-                                color: AppColors.ink.withValues(alpha: 0.12),
-                                blurRadius: 18,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: Image.asset(
-                            MascotAssets.avatar,
-                            fit: BoxFit.contain,
+                    if (!_reachedEnd)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          'Cuộn đến cuối nội dung để xác nhận đã đọc.',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                'Thiết lập cho bé',
-                                style: theme.textTheme.headlineMedium?.copyWith(
-                                  color: isDark
-                                      ? theme.colorScheme.primary
-                                      : AppColors.indigoDark,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Chỉ cần làm một lần trước khi bắt đầu học.',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 26),
-                    _SetupCard(
-                      step: '1',
-                      title: 'Cho phép ứng dụng nghe',
-                      subtitle:
-                          'Cấp quyền ngay khi mở app để nút MAIN và thiết bị BLE luôn sẵn sàng.',
-                      child: Column(
-                        children: <Widget>[
-                          _PermissionRow(
-                            icon: Icons.mic_rounded,
-                            label: 'Micro',
-                            granted: microphoneGranted,
-                            waiting:
-                                profileLoading || permissionRequestInProgress,
-                          ),
-                          if (bluetoothRequired) ...<Widget>[
-                            const SizedBox(height: 10),
-                            _PermissionRow(
-                              icon: Icons.bluetooth_rounded,
-                              label: 'Thiết bị ở gần / Bluetooth',
-                              granted: bluetoothGranted,
-                              waiting:
-                                  profileLoading || permissionRequestInProgress,
-                            ),
-                          ],
-                          if (permissionError != null) ...<Widget>[
-                            const SizedBox(height: 12),
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.errorContainer,
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Text(
-                                permissionError!,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onErrorContainer,
-                                ),
-                              ),
-                            ),
-                          ],
-                          if (!_permissionsGranted &&
-                              !profileLoading) ...<Widget>[
-                            const SizedBox(height: 14),
-                            FilledButton.icon(
-                              key: const Key('startup-request-permissions'),
-                              onPressed: permissionRequestInProgress
-                                  ? null
-                                  : onRetryPermissions,
-                              icon: permissionRequestInProgress
-                                  ? const SizedBox.square(
-                                      dimension: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2.4,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Icon(Icons.lock_open_rounded),
-                              label: Text(
-                                permissionRequestInProgress
-                                    ? 'Đang yêu cầu quyền…'
-                                    : 'Cấp quyền cần thiết',
-                              ),
-                            ),
-                          ],
-                        ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    AnimatedOpacity(
-                      duration: const Duration(milliseconds: 220),
-                      opacity: _permissionsGranted ? 1 : 0.48,
-                      child: IgnorePointer(
-                        ignoring: !_permissionsGranted,
-                        child: _SetupCard(
-                          step: '2',
-                          title: 'Chọn nhóm tuổi của trẻ',
-                          subtitle:
-                              'Trợ lý sẽ tự chọn đúng bộ chủ đề và không hỏi lại tuổi khi trẻ dùng MAIN.',
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: <Widget>[
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: <Widget>[
-                                  for (final catalog in listeningCatalogs)
-                                    ChoiceChip(
-                                      key: ValueKey(
-                                        'startup-age-${catalog.id}',
-                                      ),
-                                      label: Text(
-                                        '${catalog.startAge}–${catalog.endAge} tuổi',
-                                      ),
-                                      selected:
-                                          selectedAge != null &&
-                                          selectedAge! >= catalog.startAge &&
-                                          selectedAge! <= catalog.endAge,
-                                      onSelected: (_) =>
-                                          onAgeSelected(catalog.startAge),
-                                      avatar: const Icon(
-                                        Icons.child_care_rounded,
-                                        size: 19,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              FilledButton.icon(
-                                key: const Key('startup-confirm-age'),
-                                onPressed: selectedAge == null
-                                    ? null
-                                    : onConfirmAge,
-                                style: FilledButton.styleFrom(
-                                  minimumSize: const Size.fromHeight(58),
-                                  backgroundColor: AppColors.indigo,
-                                ),
-                                icon: const Icon(Icons.arrow_forward_rounded),
-                                label: const Text('Bắt đầu sử dụng'),
-                              ),
-                            ],
-                          ),
-                        ),
+                    FilledButton.icon(
+                      key: const Key('startup-legal-reviewed'),
+                      onPressed: _reachedEnd
+                          ? () => Navigator.of(context).pop(true)
+                          : null,
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(52),
+                      ),
+                      icon: const Icon(Icons.check_circle_outline_rounded),
+                      label: Text(
+                        _reachedEnd ? 'Tôi đã đọc hết' : 'Đọc hết để tiếp tục',
                       ),
                     ),
                   ],
@@ -228,73 +918,124 @@ class StartupSetupScreen extends StatelessWidget {
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
 }
 
-class _SetupCard extends StatelessWidget {
-  const _SetupCard({
-    required this.step,
+class _LegalSection extends StatelessWidget {
+  const _LegalSection({
+    required this.icon,
     required this.title,
-    required this.subtitle,
-    required this.child,
+    required this.text,
   });
 
-  final String step;
+  final IconData icon;
   final String title;
-  final String subtitle;
-  final Widget child;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: AppColors.ink.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Icon(icon, size: 23, color: theme.colorScheme.primary),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Container(
-                width: 34,
-                height: 34,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  color: AppColors.indigo,
-                  shape: BoxShape.circle,
-                ),
-                child: Text(
-                  step,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
+              Text(title, style: theme.textTheme.titleSmall),
+              const SizedBox(height: 4),
+              Text(text),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _LegalDocumentLink extends StatelessWidget {
+  const _LegalDocumentLink({
+    required this.label,
+    required this.available,
+    required this.onPressed,
+    super.key,
+  });
+
+  final String label;
+  final bool available;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        alignment: Alignment.centerLeft,
+        minimumSize: const Size.fromHeight(48),
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+      ),
+      child: Text(
+        available ? label : '$label (chưa cấu hình)',
+        style: const TextStyle(decoration: TextDecoration.underline),
+      ),
+    );
+  }
+}
+
+class _SetupHeader extends StatelessWidget {
+  const _SetupHeader({
+    required this.stepNumber,
+    required this.totalSteps,
+    required this.canGoBack,
+    required this.onBack,
+  });
+
+  final int stepNumber;
+  final int totalSteps;
+  final bool canGoBack;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 14, 22, 8),
+      child: Column(
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              SizedBox.square(
+                dimension: 48,
+                child: canGoBack
+                    ? IconButton(
+                        key: const Key('startup-back'),
+                        onPressed: onBack,
+                        tooltip: 'Quay lại',
+                        icon: const Icon(Icons.arrow_back_rounded),
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Image.asset(MascotAssets.avatar),
+                      ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(title, style: theme.textTheme.titleLarge),
-                    const SizedBox(height: 4),
                     Text(
-                      subtitle,
+                      'Thiết lập HOMI',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    Text(
+                      'Bước $stepNumber/$totalSteps • Dành cho phụ huynh',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -304,8 +1045,261 @@ class _SetupCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          child,
+          const SizedBox(height: 10),
+          Row(
+            children: <Widget>[
+              for (var index = 1; index <= totalSteps; index += 1) ...<Widget>[
+                Expanded(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 220),
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: index <= stepNumber
+                          ? (theme.brightness == Brightness.dark
+                                ? theme.colorScheme.secondary
+                                : AppColors.accentPink)
+                          : theme.colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+                if (index != totalSteps) const SizedBox(width: 7),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PrimaryNextButton extends StatelessWidget {
+  const _PrimaryNextButton({required this.onPressed});
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton(
+      key: const Key('startup-next'),
+      onPressed: onPressed,
+      style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text('Tiếp tục'),
+          SizedBox(width: 10),
+          Icon(Icons.arrow_forward_rounded),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileAgeOption extends StatelessWidget {
+  const _ProfileAgeOption({
+    required this.label,
+    required this.selected,
+    required this.onPressed,
+    super.key,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(23),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(23),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 54),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Row(
+                children: <Widget>[
+                  Icon(
+                    selected
+                        ? Icons.radio_button_checked_rounded
+                        : Icons.radio_button_unchecked_rounded,
+                    color: selected
+                        ? (isDark
+                              ? theme.colorScheme.secondary
+                              : AppColors.coral)
+                        : theme.colorScheme.onSurfaceVariant,
+                    size: 27,
+                  ),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SetupStepLayout extends StatelessWidget {
+  const _SetupStepLayout({
+    required this.title,
+    required this.subtitle,
+    required this.panel,
+    required this.footer,
+    this.panelPadding = const EdgeInsets.all(8),
+    super.key,
+  });
+
+  final String title;
+  final String subtitle;
+  final Widget panel;
+  final List<Widget> footer;
+  final EdgeInsetsGeometry panelPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final compact = MediaQuery.sizeOf(context).height < 780;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Text(
+          title,
+          style: theme.textTheme.headlineMedium?.copyWith(
+            color: theme.colorScheme.onSurface,
+            fontSize: compact ? 28 : 32,
+            letterSpacing: -0.7,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          subtitle,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontSize: compact ? 15 : 16,
+          ),
+        ),
+        SizedBox(height: compact ? 16 : 24),
+        Container(
+          padding: panelPadding,
+          decoration: BoxDecoration(
+            color: theme.brightness == Brightness.dark
+                ? theme.colorScheme.surfaceContainer
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: panel,
+        ),
+        SizedBox(height: compact ? 14 : 18),
+        ...footer,
+      ],
+    );
+  }
+}
+
+class _DeviceChoiceCard extends StatelessWidget {
+  const _DeviceChoiceCard({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.selected,
+    required this.status,
+    required this.actionKey,
+    required this.actionLabel,
+    required this.busy,
+    required this.onPressed,
+    super.key,
+  });
+  final IconData icon;
+  final String title;
+  final String description;
+  final bool selected;
+  final String status;
+  final Key actionKey;
+  final String actionLabel;
+  final bool busy;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: selected
+            ? (isDark
+                  ? AppColors.success.withValues(alpha: 0.16)
+                  : AppColors.successSoft)
+            : theme.colorScheme.surface.withValues(alpha: 0.76),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(
+                icon,
+                color: selected
+                    ? (isDark ? theme.colorScheme.tertiary : AppColors.success)
+                    : theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 10),
+              Expanded(child: Text(title, style: theme.textTheme.titleMedium)),
+              if (selected)
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: AppColors.success,
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(description),
+          const SizedBox(height: 8),
+          Text(
+            status,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: selected
+                  ? AppColors.success
+                  : theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              key: actionKey,
+              onPressed: onPressed,
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+              ),
+              icon: busy
+                  ? const SizedBox.square(
+                      dimension: 17,
+                      child: CircularProgressIndicator(strokeWidth: 2.2),
+                    )
+                  : Icon(selected ? Icons.check_rounded : icon),
+              label: Text(actionLabel),
+            ),
+          ),
         ],
       ),
     );
@@ -319,7 +1313,6 @@ class _PermissionRow extends StatelessWidget {
     required this.granted,
     required this.waiting,
   });
-
   final IconData icon;
   final String label;
   final bool granted;
@@ -328,12 +1321,15 @@ class _PermissionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final color = granted ? AppColors.success : theme.colorScheme.primary;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13),
       decoration: BoxDecoration(
         color: granted
-            ? AppColors.successSoft
+            ? (isDark
+                  ? AppColors.success.withValues(alpha: 0.16)
+                  : AppColors.successSoft)
             : theme.colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(16),
       ),
@@ -357,6 +1353,103 @@ class _PermissionRow extends StatelessWidget {
               granted ? Icons.check_circle_rounded : Icons.info_outline_rounded,
               color: color,
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoBox extends StatelessWidget {
+  const _InfoBox({required this.icon, required this.text});
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(13),
+      decoration: BoxDecoration(
+        color: isDark
+            ? theme.colorScheme.tertiaryContainer
+            : AppColors.mintSoft,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Icon(
+            icon,
+            color: isDark
+                ? theme.colorScheme.onTertiaryContainer
+                : AppColors.softNavy,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: isDark
+                    ? theme.colorScheme.onTertiaryContainer
+                    : AppColors.muted,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WarningBox extends StatelessWidget {
+  const _WarningBox({required this.text});
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(13),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(color: theme.colorScheme.onErrorContainer),
+      ),
+    );
+  }
+}
+
+class _GrantedBanner extends StatelessWidget {
+  const _GrantedBanner({required this.text});
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(13),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.success.withValues(alpha: 0.16)
+            : AppColors.successSoft,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: <Widget>[
+          const Icon(Icons.check_circle_rounded, color: AppColors.success),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(color: theme.colorScheme.onSurface),
+            ),
+          ),
         ],
       ),
     );

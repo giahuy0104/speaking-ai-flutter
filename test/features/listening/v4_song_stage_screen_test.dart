@@ -1,0 +1,279 @@
+import 'dart:async';
+
+import 'package:ai_speaking_flutter_app/app/app_theme.dart';
+import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
+import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
+import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
+import 'package:ai_speaking_flutter_app/features/listening/domain/lesson_guide_flow.dart';
+import 'package:ai_speaking_flutter_app/features/listening/presentation/v4_song_stage_screen.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
+import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  testWidgets('announces SONG_START_CUE, shows the title, and can skip', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final prompts = _FakeVoicePromptService();
+    final media = _FakeLessonMediaService();
+    V4SongStageAction? result;
+
+    await tester.pumpWidget(
+      _host(
+        songTitle: 'Count with Me',
+        mediaService: media,
+        voicePromptService: prompts,
+        onResult: (value) => result = value,
+      ),
+    );
+    await tester.tap(find.byKey(const Key('open-v4-song-stage')));
+    await tester.pumpAndSettle();
+
+    expect(v4SongStartCueAudioId, 'SONG_START_CUE');
+    expect(v4SongPrealertAudioId, 'SONG_PREALERT');
+    expect(
+      v4SongPrealert('Count with Me'),
+      'Tiếp theo là một câu thử thách. Xong rồi mình nghe bài hát Count with Me nhé.',
+    );
+    expect(prompts.spoken, <String>['Bây giờ cùng nghe Count with Me nhé.']);
+    expect(find.byKey(const Key('v4-song-stage-screen')), findsOneWidget);
+    expect(find.byKey(const Key('v4-song-stage-title')), findsOneWidget);
+    expect(find.text('Count with Me'), findsOneWidget);
+    expect(find.byKey(const Key('v4-song-stage-play')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('v4-song-stage-skip')));
+    await tester.pumpAndSettle();
+
+    expect(result, V4SongStageAction.skipped);
+    expect(media.stopPlaybackCalls, greaterThanOrEqualTo(1));
+  });
+
+  testWidgets('automatically plays the approved song after SONG_START_CUE', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final prompts = _FakeVoicePromptService();
+    final media = _FakeLessonMediaService();
+    const source = 'https://audio.example/v4/count-with-me.mp3';
+    final songUri = Uri.parse(source);
+    V4SongStageAction? result;
+
+    await tester.pumpWidget(
+      _host(
+        songTitle: 'Count with Me',
+        mediaService: media,
+        voicePromptService: prompts,
+        songAudioId: 'C35-L1-T02-B02_SONG',
+        songAudioUri: songUri,
+        onResult: (value) => result = value,
+      ),
+    );
+    await tester.tap(find.byKey(const Key('open-v4-song-stage')));
+    await tester.pumpAndSettle();
+
+    expect(media.playedToCompletion, <Uri>[songUri]);
+    expect(media.playbackTimeouts, <Duration>[const Duration(minutes: 5)]);
+    expect(result, V4SongStageAction.continued);
+    expect(find.byKey(const Key('v4-song-stage-screen')), findsNothing);
+  });
+
+  testWidgets('skip interrupts an active song and continues without resuming', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final playback = Completer<void>();
+    final prompts = _FakeVoicePromptService();
+    final media = _FakeLessonMediaService(playback: playback);
+    final songUri = Uri.parse('asset:///assets/audio/song.mp3');
+    V4SongStageAction? result;
+
+    await tester.pumpWidget(
+      _host(
+        songTitle: 'Count with Me',
+        mediaService: media,
+        voicePromptService: prompts,
+        songAudioUri: songUri,
+        onResult: (value) => result = value,
+      ),
+    );
+    await tester.tap(find.byKey(const Key('open-v4-song-stage')));
+    await tester.pump();
+    await tester.pump();
+
+    expect(media.playedToCompletion, <Uri>[songUri]);
+    expect(find.byKey(const Key('v4-song-stage-screen')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('v4-song-stage-skip')));
+    await tester.pump();
+    playback.complete();
+    await tester.pumpAndSettle();
+
+    expect(result, V4SongStageAction.skipped);
+    expect(media.stopPlaybackCalls, greaterThanOrEqualTo(1));
+  });
+
+  testWidgets('owns MAIN as SONG and replays from the beginning', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final playback = Completer<void>();
+    final prompts = _FakeVoicePromptService();
+    final media = _FakeLessonMediaService(playback: playback);
+    final registry = ActiveLearningModuleRegistry();
+    final songUri = Uri.parse('asset:///assets/audio/song.mp3');
+    V4SongStageAction? result;
+
+    await tester.pumpWidget(
+      _host(
+        songTitle: 'Count with Me',
+        mediaService: media,
+        voicePromptService: prompts,
+        songAudioUri: songUri,
+        registry: registry,
+        onResult: (value) => result = value,
+      ),
+    );
+    await tester.tap(find.byKey(const Key('open-v4-song-stage')));
+    await tester.pump();
+    await tester.pump();
+
+    final owner = registry.controller;
+    expect(owner, isNotNull);
+    expect(
+      (owner! as ActiveLearningVoiceContext).mainVoiceNode,
+      ActiveLearningVoiceNode.song,
+    );
+    expect(
+      (owner as ActiveLearningVoiceContext).mainVoicePrompt,
+      MasterNavigationContract.songControlPrompt,
+    );
+
+    expect(await registry.pauseForMainAssistant(), isTrue);
+    expect(owner.isPausedForMain, isTrue);
+    expect(media.stopPlaybackCalls, greaterThanOrEqualTo(1));
+
+    final replay = await registry.execute(ActiveLearningCommand.replayCurrent);
+    await tester.pump();
+    expect(replay.wasHandled, isTrue);
+    expect(media.rewindPlaybackCalls, 1);
+    expect(media.playedToCompletion, <Uri>[songUri, songUri]);
+
+    final skipped = await registry.interruptAndExecute(
+      ActiveLearningCommand.nextItem,
+    );
+    await tester.pumpAndSettle();
+    expect(skipped.wasHandled, isTrue);
+    expect(result, V4SongStageAction.skipped);
+    expect(registry.controller, isNull);
+    if (!playback.isCompleted) playback.complete();
+  });
+}
+
+Widget _host({
+  required String songTitle,
+  required LessonMediaService mediaService,
+  required VoicePromptService voicePromptService,
+  required ValueChanged<V4SongStageAction?> onResult,
+  String? songAudioId,
+  Uri? songAudioUri,
+  ActiveLearningModuleRegistry? registry,
+}) {
+  final app = MaterialApp(
+    theme: buildAppTheme(),
+    home: Builder(
+      builder: (context) => Scaffold(
+        body: Center(
+          child: FilledButton(
+            key: const Key('open-v4-song-stage'),
+            onPressed: () async {
+              final result = await Navigator.of(context)
+                  .push<V4SongStageAction>(
+                    MaterialPageRoute<V4SongStageAction>(
+                      builder: (_) => V4SongStageScreen(
+                        language: DisplayLanguage.vietnamese,
+                        songTitle: songTitle,
+                        songAudioId: songAudioId,
+                        songAudioUri: songAudioUri,
+                        mediaService: mediaService,
+                        voicePromptService: voicePromptService,
+                      ),
+                    ),
+                  );
+              onResult(result);
+            },
+            child: const Text('Mở bài hát'),
+          ),
+        ),
+      ),
+    ),
+  );
+  return registry == null
+      ? app
+      : ActiveLearningModuleScope(registry: registry, child: app);
+}
+
+class _FakeVoicePromptService implements VoicePromptService {
+  final List<String> spoken = <String>[];
+
+  @override
+  Future<void> dispose() async {}
+
+  @override
+  Future<void> speak(String text, {String locale = 'vi-VN'}) async {
+    spoken.add(text);
+  }
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) =>
+      speak(text, locale: locale);
+
+  @override
+  Future<void> stop() async {}
+}
+
+class _FakeLessonMediaService extends LessonMediaService {
+  _FakeLessonMediaService({this.playback});
+
+  final Completer<void>? playback;
+  final List<Uri> playedToCompletion = <Uri>[];
+  final List<Duration> playbackTimeouts = <Duration>[];
+  int stopPlaybackCalls = 0;
+  int rewindPlaybackCalls = 0;
+
+  @override
+  Future<void> dispose() async {}
+
+  @override
+  Future<void> prepareSelectedLessonOutput() async {}
+
+  @override
+  Future<bool> rewindPlayback() async {
+    rewindPlaybackCalls += 1;
+    return true;
+  }
+
+  @override
+  Future<void> playToCompletion(
+    Uri uri, {
+    Duration timeout = const Duration(seconds: 45),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
+  }) async {
+    playedToCompletion.add(uri);
+    playbackTimeouts.add(timeout);
+    await playback?.future;
+  }
+
+  @override
+  Future<void> stopPlayback() async {
+    stopPlaybackCalls += 1;
+  }
+}
+
+Future<void> _usePhoneSurface(WidgetTester tester) async {
+  await tester.binding.setSurfaceSize(const Size(390, 844));
+  addTearDown(() => tester.binding.setSurfaceSize(null));
+}

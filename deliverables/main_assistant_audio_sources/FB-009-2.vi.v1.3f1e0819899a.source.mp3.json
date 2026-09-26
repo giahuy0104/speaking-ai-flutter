@@ -1,0 +1,20 @@
+{
+  "id": "FB-009-2",
+  "signature": "3f1e0819899a8b2485b662649612a764e7066ad67ba943500bc95f16a12d0dc0",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn nói “dừng lại” để gọi HOMI nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:11:10.658Z",
+  "requestId": "mV3Ecu8VKWLEO0UQ2EmQ",
+  "characterCost": "19",
+  "sourceSha256": "94e0df39b78d81367ff5a6dede77fd73a09137678551d11faf75550c555797d4"
+}

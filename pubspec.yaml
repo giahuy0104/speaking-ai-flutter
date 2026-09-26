@@ -1,19 +1,23 @@
 name: ai_speaking_flutter_app
-description: INNOTRIK speaking assistant for Android and installable web.
+description: HOMI speaking assistant for Android, iOS, and installable web.
 publish_to: none
-version: 1.0.4+7
+version: 1.0.8+10
 
 environment:
   sdk: ">=3.8.0 <4.0.0"
 
 dependencies:
   audio_session: ^0.2.4
+  connectivity_plus: ^7.0.0
   cupertino_icons: ^1.0.8
   crypto: ^3.0.7
   flutter:
     sdk: flutter
+  google_mlkit_translation:
+    path: third_party/google_mlkit_translation
   http: ^1.6.0
   just_audio: ^0.10.6
+  local_auth: ^3.0.2
   package_info_plus: ^10.2.1
   path_provider: ^2.1.6
   record: ^7.1.1
@@ -31,51 +35,54 @@ flutter:
   uses-material-design: true
   assets:
     - assets/data/listening_lessons.json
-    - assets/audio/A-3-5/GUIDE_RECORD/
-    - assets/audio/A-3-5/GUIDE_PRAISE/
-    - assets/audio/A-3-5/GUIDE_NEXT/
-    - assets/audio/A-3-5/GUIDE_IDLE1/
-    - assets/audio/A-3-5/GUIDE_IDLE2/
-    - assets/audio/A-3-5/GUIDE_SKIP/
-    - assets/audio/A-3-5/GUIDE_ENDING/
-    - assets/audio/A-6-7/GUIDE_RECORD/
-    - assets/audio/A-6-7/GUIDE_PRAISE/
-    - assets/audio/A-6-7/GUIDE_NEXT/
-    - assets/audio/A-6-7/GUIDE_IDLE1/
-    - assets/audio/A-6-7/GUIDE_IDLE2/
-    - assets/audio/A-6-7/GUIDE_SKIP/
-    - assets/audio/A-6-7/GUIDE_ENDING/
+    - assets/data/listening_topic_patch_v42.json
+    - assets/data/listening_ai_lexicon_v4.json
+    - assets/data/homi_ai_fallback_catalog_v1.json
+    - assets/data/vietnamese_speech_corrections_v1.json
+    - assets/data/assistant_core_audio.json
+    - assets/data/homi_gap66_audio.json
+    - assets/data/listening_common_audio.json
+    - assets/data/listening_3_5_audio.json
+    - assets/data/listening_6_7_audio.json
+    - assets/data/listening_8_10_audio.json
+    - assets/data/listening_11_12_audio.json
+    - assets/data/listening_13_15_audio.json
+    - assets/data/challenge_3_5_audio.json
+    - assets/data/challenge_6_7_audio.json
+    - assets/data/challenge_8_10_audio.json
+    - assets/data/challenge_11_12_audio.json
+    - assets/data/challenge_13_15_audio.json
+    - assets/data/vocabulary_common_audio.json
+    - assets/data/vocabulary_built_in_audio.json
+    - assets/data/songs_audio.json
+    - assets/data/system_sfx_audio.json
+    - assets/data/audio_pack_index.json
+    - assets/audio/assistant-core/
+    - assets/audio/MAIN/GAP66/
+    - assets/audio/listening-common/
+    - assets/audio/vocabulary-common/
+    - assets/audio/listening-3-5/
+    - assets/audio/listening-6-7/
+    - assets/audio/listening-8-10/
+    - assets/audio/listening-11-12/
+    - assets/audio/listening-13-15/
+    - assets/audio/challenge-3-5/
+    - assets/audio/challenge-6-7/
+    - assets/audio/challenge-8-10/
+    - assets/audio/challenge-11-12/
+    - assets/audio/challenge-13-15/
     - assets/audio/A-6-7/SONGS/
-    - assets/audio/A-6-7/SONG_INTRO/
-    - assets/audio/A-6-7/LESSON_INTRO/
-    - assets/audio/A-8-10/GUIDE_RECORD/
-    - assets/audio/A-8-10/GUIDE_PRAISE/
-    - assets/audio/A-8-10/GUIDE_NEXT/
-    - assets/audio/A-8-10/GUIDE_IDLE1/
-    - assets/audio/A-8-10/GUIDE_IDLE2/
-    - assets/audio/A-8-10/GUIDE_SKIP/
-    - assets/audio/A-8-10/GUIDE_ENDING/
     - assets/audio/A-8-10/SONGS/
-    - assets/audio/A-8-10/SONG_INTRO/
-    - assets/audio/A-8-10/LESSON_INTRO/
-    - assets/audio/A-11-12/GUIDE_RECORD/
-    - assets/audio/A-11-12/GUIDE_PRAISE/
-    - assets/audio/A-11-12/GUIDE_NEXT/
-    - assets/audio/A-11-12/GUIDE_IDLE1/
-    - assets/audio/A-11-12/GUIDE_IDLE2/
-    - assets/audio/A-11-12/GUIDE_SKIP/
-    - assets/audio/A-11-12/GUIDE_ENDING/
-    - assets/audio/A-13-15/GUIDE_RECORD/
-    - assets/audio/A-13-15/GUIDE_PRAISE/
-    - assets/audio/A-13-15/GUIDE_NEXT/
-    - assets/audio/A-13-15/GUIDE_IDLE1/
-    - assets/audio/A-13-15/GUIDE_IDLE2/
-    - assets/audio/A-13-15/GUIDE_SKIP/
-    - assets/audio/A-13-15/GUIDE_ENDING/
+    - assets/audio/MAIN/SFX_STAR_TING.mp3
+    - assets/audio/A-3-5/GUIDE_RECORD/A035_GUIDE_RECORD_01.mp3
     - assets/images/lesson-intro-stage.webp
     - assets/images/song-karaoke-sunrise.webp
     - assets/images/learning-train-field-background.webp
     - assets/images/learning-minimal-sky-background.png
+    - assets/images/learning-minimal-sky-background-option2.png
+    - assets/images/home-hero-blob.png
+    - assets/images/home-hero-blob-option2.png
+    - assets/images/home-waveform.png
     - assets/images/mascot/
     - assets/images/topics/
     - assets/images/vocabulary/
@@ -94,7 +101,8 @@ flutter:
         
 flutter_launcher_icons:
   android: true
-  ios: false
+  ios: true
+  remove_alpha_ios: true
   image_path: "assets/icon/app_icon.png"
   min_sdk_android: 21
   web:

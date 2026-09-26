@@ -1,11 +1,11 @@
 import 'dart:typed_data';
 
-import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/data/demo_conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_screen.dart';
+import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -25,33 +25,18 @@ void main() {
         MaterialApp(
           home: ConversationScreen(
             controller: controller,
-            config: AppConfig(
-              backendBaseUri: Uri.parse('https://hidden.example.com'),
-              useDemoBackend: true,
-              childAge: 6,
-            ),
+            onOpenHistory: () {},
+            onOpenSettings: () {},
           ),
         ),
       );
 
-      await tester.tap(find.byIcon(Icons.settings_outlined));
+      controller.setDisplayLanguage(DisplayLanguage.simplifiedChinese);
       await tester.pumpAndSettle();
 
-      expect(find.text('Ngôn ngữ hiển thị'), findsOneWidget);
-      expect(find.text('Tiếng Việt'), findsOneWidget);
-      expect(find.text('https://hidden.example.com'), findsNothing);
-      expect(find.text('Backend'), findsNothing);
-
-      await tester.tap(find.text('简体中文'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('显示语言'), findsOneWidget);
-      expect(find.text('Tiếng Việt'), findsOneWidget);
-
-      await tester.tap(find.byIcon(Icons.close_rounded).first);
-      await tester.pumpAndSettle();
-
-      expect(find.text('请说越南语'), findsOneWidget);
+      // The redesigned communication screen intentionally removed the two
+      // instructional heading lines above the waveform.
+      expect(find.text('请说越南语'), findsNothing);
       expect(find.text('开始说话'), findsOneWidget);
       expect(find.text('越南语句子'), findsOneWidget);
       expect(find.text('英语句子'), findsOneWidget);

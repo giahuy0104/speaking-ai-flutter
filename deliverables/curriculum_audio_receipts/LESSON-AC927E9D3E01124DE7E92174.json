@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T03-B02\\C1315-L1-T03-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T03-B02-Q05",
+  "sourceText": "Bạn muốn diễn đạt \"Vì mình thích nó\". Because I enjoy it hay Why?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Vì mình thích nó\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Vì mình thích nó\".",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Because I enjoy it",
+      "spoken_text": "Because I enjoy it",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Why?",
+      "spoken_text": "Why?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-AC927E9D3E01124DE7E92174",
+  "text": "Bạn muốn diễn đạt \"Vì mình thích nó\". Because I enjoy it hay Why?",
+  "asset": "assets/audio/CURRICULUM/ac927e9d3e01124de7e92174.vi.v1.mp3",
+  "sha256": "53ab8038c0bec796ce41663a93aed7f620400b2584d95c76931015e848a5610c",
+  "durationSeconds": 6.555306
+}

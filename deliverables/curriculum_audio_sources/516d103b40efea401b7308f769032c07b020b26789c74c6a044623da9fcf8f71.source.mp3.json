@@ -1,0 +1,20 @@
+{
+  "signature": "516d103b40efea401b7308f769032c07b020b26789c74c6a044623da9fcf8f71",
+  "request": {
+    "text": "Shop Words",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "ba83b5f9090ff71fc93dbc8c8d4a2329cf3938e29f9fe22215fe9125bb266612",
+  "requestId": "YWy2vDDpjqZW4U8fb2zK",
+  "createdAt": "2026-09-15T23:27:02.032Z"
+}

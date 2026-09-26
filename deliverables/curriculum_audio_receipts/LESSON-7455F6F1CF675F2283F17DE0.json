@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T10-B02\\C1315-L3-T10-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T10-B02-Q04",
+  "sourceText": "Mình sẽ tham gia một lớp: I'll ask for advice hay I'll join a class?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình sẽ tham gia một lớp:",
+      "spoken_text": "Mình sẽ tham gia một lớp:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "I'll ask for advice",
+      "spoken_text": "I'll ask for advice",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "I'll join a class?",
+      "spoken_text": "I'll join a class?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7455F6F1CF675F2283F17DE0",
+  "text": "Mình sẽ tham gia một lớp: I'll ask for advice hay I'll join a class?",
+  "asset": "assets/audio/CURRICULUM/7455f6f1cf675f2283f17de0.vi.v1.mp3",
+  "sha256": "b8696c4e88fd71fe7806883857b2188adc6bef38e0bf7594ee9e34091428f449",
+  "durationSeconds": 6.010113
+}

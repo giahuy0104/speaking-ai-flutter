@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07-B01\\C1112-L3-T07-B01-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T07-B01-Q04",
+  "sourceText": "Ở công viên: Meet there hay At the park?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Ở công viên:",
+      "spoken_text": "Ở công viên:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Meet there",
+      "spoken_text": "Meet there",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "At the park?",
+      "spoken_text": "At the park?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-314ED97122C6546060AD9698",
+  "text": "Ở công viên: Meet there hay At the park?",
+  "asset": "assets/audio/CURRICULUM/314ed97122c6546060ad9698.vi.v1.mp3",
+  "sha256": "6f0319d32be8bb56b43f9532532673515124ab5ca22cd110a3e403a10e755d95",
+  "durationSeconds": 4.083628
+}

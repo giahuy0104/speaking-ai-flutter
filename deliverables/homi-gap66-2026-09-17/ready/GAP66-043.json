@@ -1,0 +1,28 @@
+{
+  "id": "GAP66-043",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình chưa hiểu. Bạn muốn học phần Ba mẹ đã thêm hay Luyện lại?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "Xne1k0FXkZ8d7IoWpq9A",
+  "historyItemId": "Dt2uIbP0B0WDcQvfUvbb",
+  "characterCost": "34",
+  "createdAt": "2026-09-17T14:25:52.443Z",
+  "sourceSha256": "4530372aa4314971218ced70748c17addbb9cc9f3504e6af7d6f91287a92be42",
+  "asset": "assets/audio/MAIN/GAP66/GAP66-043.vi.v1.mp3",
+  "finalSha256": "29651568ed4a9de6a3b0c29891f3af8c4068890c55e4cc4bfd9fa9058cc47d0a",
+  "sourceDurationSeconds": 4,
+  "durationSeconds": 4.438095,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 71933
+}

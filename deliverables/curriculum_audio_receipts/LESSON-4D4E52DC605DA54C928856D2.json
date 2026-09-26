@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T10-B02\\C1315-L3-T10-B02-T03_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T10-B02-T03_VI",
+  "sourceText": "Mình sẽ lập kế hoạch.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình sẽ lập kế hoạch.",
+      "generation_key": "60747e14b2d2c19f"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-4D4E52DC605DA54C928856D2",
+  "text": "Mình sẽ lập kế hoạch.",
+  "asset": "assets/audio/CURRICULUM/4d4e52dc605da54c928856d2.vi.v1.mp3",
+  "sha256": "52701e2dc2e5247f657ec44f5ad97bff30e6483fac5a1fb11cd731b1279d9675",
+  "durationSeconds": 1.675034
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T06-B01\\C1315-L2-T06-B01-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T06-B01-Q04",
+  "sourceText": "Vị trí của mình: My account hay My location?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Vị trí của mình:",
+      "spoken_text": "Vị trí của mình:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "My account",
+      "spoken_text": "My account",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "My location?",
+      "spoken_text": "My location?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-112EEDE64B3A3CC17C014639",
+  "text": "Vị trí của mình: My account hay My location?",
+  "asset": "assets/audio/CURRICULUM/112eede64b3a3cc17c014639.vi.v1.mp3",
+  "sha256": "7dfb91d0c4cf694cbc1c9aeb8e1b07ae0c5890a278014deee3d612619712f005",
+  "durationSeconds": 4.563991
+}

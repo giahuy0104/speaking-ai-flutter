@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07-B01\\C1112-L3-T07-B01-T03_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T07-B01-T03_EN",
+  "sourceText": "At three.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "At three.",
+      "generation_key": "9138e21beab060d1"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-78CAA1C374C46C9B6A08135D",
+  "text": "At three.",
+  "asset": "assets/audio/CURRICULUM/78caa1c374c46c9b6a08135d.en.v1.mp3",
+  "sha256": "17411162bdb2c83e3a8d7203bdd82a0942ea4c24b0b110c19dd7ebb86cb7a60b",
+  "durationSeconds": 1.589116
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T01-B02\\C67-L1-T01-B02-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T01-B02-Q07",
+  "sourceText": "Câu đố: Quiz hay Robot?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Câu đố:",
+      "spoken_text": "Câu đố:",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Quiz",
+      "spoken_text": "Quiz",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Robot?",
+      "spoken_text": "Robot?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-FE16026B68811F0FE687EF4E",
+  "text": "Câu đố: Quiz hay Robot?",
+  "asset": "assets/audio/CURRICULUM/fe16026b68811f0fe687ef4e.vi.v1.mp3",
+  "sha256": "5e2045eb174ab57e4aa1f347d9de21d0b8a62f913af5788b7265bc4b4ba378fe",
+  "durationSeconds": 3.670635
+}

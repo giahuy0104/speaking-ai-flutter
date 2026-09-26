@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T02-B02\\C1315-L1-T02-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T02-B02-Q05",
+  "sourceText": "Kiểm tra tiến bộ: Check my progress hay Keep practicing?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Kiểm tra tiến bộ:",
+      "spoken_text": "Kiểm tra tiến bộ:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Check my progress",
+      "spoken_text": "Check my progress",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Keep practicing?",
+      "spoken_text": "Keep practicing?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-CC5B6B7DAD6C6D8CCDDDA7DC",
+  "text": "Kiểm tra tiến bộ: Check my progress hay Keep practicing?",
+  "asset": "assets/audio/CURRICULUM/cc5b6b7dad6c6d8ccddda7dc.vi.v1.mp3",
+  "sha256": "3ebe4b74e465c5036be987372613ea1c9a6aac51d6997acc84e2fc99da7c59cf",
+  "durationSeconds": 4.875964
+}

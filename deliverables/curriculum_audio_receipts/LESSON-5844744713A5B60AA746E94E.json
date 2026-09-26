@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T03-B01\\C1112-L1-T03-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T03-B01-Q08",
+  "sourceText": "Bạn muốn diễn đạt \"Chơi thể thao\". Work in teams hay Play sports?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Chơi thể thao\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Chơi thể thao\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Work in teams",
+      "spoken_text": "Work in teams",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Play sports?",
+      "spoken_text": "Play sports?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-5844744713A5B60AA746E94E",
+  "text": "Bạn muốn diễn đạt \"Chơi thể thao\". Work in teams hay Play sports?",
+  "asset": "assets/audio/CURRICULUM/5844744713a5b60aa746e94e.vi.v1.mp3",
+  "sha256": "22095d3925018dce9a7517d6a7a9bf6317927591fdcdf9d9f69b5776d233e1ee",
+  "durationSeconds": 8.127891
+}

@@ -1,0 +1,20 @@
+{
+  "signature": "8b0a263d1852f0325a1bcdf77e1ae1eb23d299763f5ba8b1b4d386f6319b8ca7",
+  "request": {
+    "text": "Choose One",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "ac2ce86cbdbd1459f217ef2f55481d95c8c2ee1589c315078e35b55e88bb4bbc",
+  "requestId": "NFI2Guo3F2wz6ebyNhQQ",
+  "createdAt": "2026-09-15T23:27:08.507Z"
+}

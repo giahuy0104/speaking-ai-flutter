@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T05\\C1315-L2-M05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-M05",
+  "sourceText": "Bạn cần diễn đạt \"Mình nên làm gì\". What should I do? hay Take a break?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Mình nên làm gì\".",
+      "text": "Bạn cần diễn đạt \"Mình nên làm gì\".",
+      "spoken_text": "Bạn cần diễn đạt \"Mình nên làm gì\".",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "source_text": "What should I do?",
+      "text": "What should I do?",
+      "spoken_text": "What should I do?",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "source_text": "Take a break?",
+      "text": "Take a break?",
+      "spoken_text": "Take a break?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": "219702c133cc719eae6b9b46ba6a289d866fd200d675307066694d3483b8f6d7",
+  "id": "LESSON-F249B44F02A2746B19C86CB2",
+  "text": "Bạn cần diễn đạt \"Mình nên làm gì\". What should I do? hay Take a break?",
+  "asset": "assets/audio/CURRICULUM/f249b44f02a2746b19c86cb2.vi.v1.mp3",
+  "sha256": "219702c133cc719eae6b9b46ba6a289d866fd200d675307066694d3483b8f6d7",
+  "durationSeconds": 5.867415
+}

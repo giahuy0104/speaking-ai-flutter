@@ -1,0 +1,20 @@
+{
+  "signature": "c8803cf40baae6a7e1e498edcecc1a00108c3c804c6d93bfc8a39d749131aa32",
+  "request": {
+    "text": "Plan Words",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "029e537185ae657843017ea74b5b495d6195d32cebbdeb99166f83430cf11aa7",
+  "requestId": "6NXCxyjWhVbf9Zb9obqj",
+  "createdAt": "2026-09-15T23:28:33.513Z"
+}

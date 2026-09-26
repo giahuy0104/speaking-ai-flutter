@@ -1,4 +1,7 @@
-enum MainSpeakingCommand { stop, otherLearning }
+import '../domain/homi_fallback_catalog.dart';
+import '../domain/master_navigation_contract.dart';
+
+enum MainSpeakingCommand { otherLearning, stopTranslation, help }
 
 /// Resolves high-priority commands spoken while the automatic speaking
 /// practice microphone is open. Unmatched sentences stay in the normal
@@ -6,76 +9,66 @@ enum MainSpeakingCommand { stop, otherLearning }
 class MainSpeakingCommandResolver {
   const MainSpeakingCommandResolver();
 
+  // Keep the established child-addressed variants as well as the new workbook
+  // wording, since older installed audio prompts use "con" rather than
+  // "mình".
+  static const Set<String> _legacyOtherLearningPhrases = <String>{
+    'cai gi khac de hoc',
+    'gi khac de hoc',
+    'co gi khac khong',
+    'hoc cai khac',
+    'hoc thu khac',
+    'hoc mon khac',
+    'hoc bai khac',
+    'doi sang hoc khac',
+    'con cai gi khac de hoc khong',
+    'con muon hoc cai khac',
+    'con muon hoc thu khac',
+    'con muon hoc mon khac',
+    'con muon hoc bai khac',
+    'cho con hoc cai khac',
+    'cho con hoc thu khac',
+    'cho con hoc mon khac',
+    'cho con hoc bai khac',
+    'con doi sang hoc khac',
+  };
+
   MainSpeakingCommand? resolve(String recognizedText) {
     final normalized = _normalize(recognizedText);
     if (normalized.isEmpty) {
       return null;
     }
 
-    if (_stopPhrases.contains(normalized)) {
-      return MainSpeakingCommand.stop;
+    if (MasterNavigationContract.isTranslationStop(recognizedText)) {
+      return MainSpeakingCommand.stopTranslation;
     }
-
-    final asksForSomethingElse =
-        _containsPhrase(normalized, 'cai gi khac de hoc') ||
-        _containsPhrase(normalized, 'gi khac de hoc') ||
-        _containsPhrase(normalized, 'co gi khac khong') ||
-        _containsPhrase(normalized, 'hoc cai khac') ||
-        _containsPhrase(normalized, 'hoc thu khac') ||
-        _containsPhrase(normalized, 'hoc mon khac') ||
-        _containsPhrase(normalized, 'hoc bai khac') ||
-        _containsPhrase(normalized, 'doi sang hoc khac');
-    final wantsToLeaveSpeaking =
-        _containsPhrase(normalized, 'khong muon luyen noi nua') ||
-        _containsPhrase(normalized, 'dung luyen noi') ||
-        _containsPhrase(normalized, 'thoat luyen noi');
-    if (asksForSomethingElse || wantsToLeaveSpeaking) {
+    if (MasterNavigationContract.matches('LEAVE_TRANSLATE', recognizedText) ||
+        MasterNavigationContract.matches('OPEN_SUBJECT', recognizedText) ||
+        (normalized != 'tu' &&
+            MasterNavigationContract.matches('OPEN_VOCAB', recognizedText)) ||
+        _matchesIntent(normalized, 'INT-017') ||
+        _legacyOtherLearningPhrases.contains(normalized)) {
       return MainSpeakingCommand.otherLearning;
+    }
+    if (MasterNavigationContract.matches('HELP', recognizedText) ||
+        _matchesIntent(normalized, 'INT-016')) {
+      return MainSpeakingCommand.help;
     }
     return null;
   }
 
-  static const Set<String> _stopPhrases = <String>{
-    'dung',
-    'dung lai',
-    'con muon dung',
-    'con muon dung lai',
-    'dung dich',
-    'dung dich lai',
-    'dung dich lien tuc',
-    'ngung',
-    'ngung lai',
-    'con muon ngung',
-    'con muon ngung lai',
-    'ngung dich',
-    'thoi dung lai',
-    'thoi con dung lai',
-    'khong dich nua',
-    'con khong dich nua',
-    'con khong muon dich nua',
-    'thoat dich',
-  };
-
-  static bool _containsPhrase(String value, String phrase) =>
-      ' $value '.contains(' $phrase ');
-
-  static String _normalize(String value) {
-    var normalized = value.trim().toLowerCase();
-    const replacements = <String, String>{
-      'a': 'àáạảãâầấậẩẫăằắặẳẵ',
-      'e': 'èéẹẻẽêềếệểễ',
-      'i': 'ìíịỉĩ',
-      'o': 'òóọỏõôồốộổỗơờớợởỡ',
-      'u': 'ùúụủũưừứựửữ',
-      'y': 'ỳýỵỷỹ',
-      'd': 'đ',
-    };
-    for (final entry in replacements.entries) {
-      normalized = normalized.replaceAll(RegExp('[${entry.value}]'), entry.key);
-    }
-    return normalized
-        .replaceAll(RegExp(r'[^a-z0-9]+'), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
+  /// This resolver runs only during continuous translation. A whole approved
+  /// utterance is required to avoid treating a sentence to translate as a
+  /// command. Legacy child-addressed variants are listed in their full form.
+  static bool _matchesIntent(String normalized, String intentId) {
+    final phrases = HomiFallbackCatalog.childPhrasesByIntent[intentId];
+    return phrases != null &&
+        phrases.any(
+          (phrase) =>
+              normalized == HomiFallbackCatalog.normalizeVietnamese(phrase),
+        );
   }
+
+  static String _normalize(String value) =>
+      HomiFallbackCatalog.normalizeVietnamese(value);
 }

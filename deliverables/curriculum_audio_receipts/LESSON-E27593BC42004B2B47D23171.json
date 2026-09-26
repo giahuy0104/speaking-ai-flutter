@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T04-B02\\C35-L2-T04-B02-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-T04-B02-Q02",
+  "sourceText": "Nó là hình vuông: It's a triangle hay It's a square?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nó là hình vuông:",
+      "spoken_text": "Nó là hình vuông:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "It's a triangle",
+      "spoken_text": "It's a triangle",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "It's a square?",
+      "spoken_text": "It's a square?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E27593BC42004B2B47D23171",
+  "text": "Nó là hình vuông: It's a triangle hay It's a square?",
+  "asset": "assets/audio/CURRICULUM/e27593bc42004b2b47d23171.vi.v1.mp3",
+  "sha256": "99290d374a666dc7b2afd93a534c74d13d3e1953a3fafcfb67aaa7547c7900dd",
+  "durationSeconds": 4.779592
+}

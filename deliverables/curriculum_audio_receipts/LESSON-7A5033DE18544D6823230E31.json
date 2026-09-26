@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T05-B01\\C67-L2-T05-B01-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T05-B01-Q02",
+  "sourceText": "Sách xanh dương: Green pencil hay Blue book?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Sách xanh dương:",
+      "spoken_text": "Sách xanh dương:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Green pencil",
+      "spoken_text": "Green pencil",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Blue book?",
+      "spoken_text": "Blue book?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7A5033DE18544D6823230E31",
+  "text": "Sách xanh dương: Green pencil hay Blue book?",
+  "asset": "assets/audio/CURRICULUM/7a5033de18544d6823230e31.vi.v1.mp3",
+  "sha256": "5534fbb2dc742805fc66c92d3cbc00d14f30e3038123b82ca38dfa14d6343ff2",
+  "durationSeconds": 5.111066
+}

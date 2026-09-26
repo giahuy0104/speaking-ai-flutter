@@ -1,0 +1,20 @@
+{
+  "id": "REPLY-001",
+  "signature": "976b6b85d8a75dd1d178a888c55c189f5d9afc7264aa1f4469cd38b163ad98cc",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Đã dừng phần thử thách.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:17:59.204Z",
+  "requestId": "n4ex0tCEiAeqnd19f7l0",
+  "characterCost": "13",
+  "sourceSha256": "c2c97785ddc5870433b93420b05c7e154a5f4aaaeb365525f3453d27cd32c278"
+}

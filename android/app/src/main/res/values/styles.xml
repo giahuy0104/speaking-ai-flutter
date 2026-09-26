@@ -6,7 +6,6 @@
         <item name="android:statusBarColor">#EAF4FF</item>
         <item name="android:navigationBarColor">#EAF4FF</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
     </style>
     <style name="NormalTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">#EAF4FF</item>
@@ -14,6 +13,5 @@
         <item name="android:statusBarColor">#EAF4FF</item>
         <item name="android:navigationBarColor">#F8F7FF</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
     </style>
 </resources>

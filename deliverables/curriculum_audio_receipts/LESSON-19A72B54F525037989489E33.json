@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T01-B02\\C810-L1-T01-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T01-B02-Q05",
+  "sourceText": "Ngủ vào buổi tối: Sleep at night hay Wake up at seven?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Ngủ vào buổi tối:",
+      "spoken_text": "Ngủ vào buổi tối:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Sleep at night",
+      "spoken_text": "Sleep at night",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Wake up at seven?",
+      "spoken_text": "Wake up at seven?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-19A72B54F525037989489E33",
+  "text": "Ngủ vào buổi tối: Sleep at night hay Wake up at seven?",
+  "asset": "assets/audio/CURRICULUM/19a72b54f525037989489e33.vi.v1.mp3",
+  "sha256": "65507434ddaff5caff3bd676ff247de716e06b3c5c99aacedef5e3deb564603e",
+  "durationSeconds": 5.380272
+}

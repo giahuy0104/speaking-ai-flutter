@@ -8,10 +8,14 @@ import 'package:ai_speaking_flutter_app/core/audio/offline_intent_recognizer.dar
 import 'package:ai_speaking_flutter_app/core/audio/preferred_audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/realtime_fallback_buffer.dart';
 import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
+import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
+import 'package:ai_speaking_flutter_app/core/device/main_button_coordinator.dart';
+import 'package:ai_speaking_flutter_app/features/conversation/application/offline_language_service.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   test('fallback buffer keeps immutable chunks in order', () {
@@ -42,28 +46,90 @@ void main() {
     expect(buffer.byteLength, 0);
   });
 
-  test('vocabulary translation uses the backend text pipeline', () async {
-    final repository = _FallbackRepository();
-    final controller = ConversationController(
-      audioInput: _FakeChunkedInput(
-        available: true,
-        bluetooth: false,
-        label: 'Phone',
-      ),
-      playbackService: const _FakePlaybackService(),
-      repository: repository,
-      childAge: 6,
-      initialAsrMode: AsrMode.batchChunks,
-    );
+  test(
+    'vocabulary translation uses the zero-token on-device pipeline',
+    () async {
+      final repository = _FallbackRepository();
+      final translator = _FakeOfflineTranslator(translatedText: 'Cat');
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Phone',
+        ),
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        offlineVietnameseEnglishTranslator: translator,
+        childAge: 6,
+        initialAsrMode: AsrMode.batchChunks,
+      );
 
-    final translation = await controller.translateVocabulary('con mèo');
+      final translation = await controller.translateVocabulary('con mèo');
 
-    expect(repository.streamingCapture?.sourceText, 'con mèo');
-    expect(repository.streamingCapture?.asrMode, 'text');
-    expect(translation.vietnameseText, 'Con muốn uống nước');
-    expect(translation.englishText, 'Can I have some water?');
-    controller.dispose();
-  });
+      expect(repository.streamingCapture, isNull);
+      expect(translation.vietnameseText, 'con mèo');
+      expect(translation.englishText, 'Cat');
+      controller.dispose();
+    },
+  );
+
+  test(
+    'English vocabulary sentences translate to Vietnamese on device',
+    () async {
+      final repository = _FallbackRepository();
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Phone',
+        ),
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        offlineEnglishVietnameseTranslator: _FakeEnglishVietnameseTranslator(),
+        childAge: 6,
+        initialAsrMode: AsrMode.batchChunks,
+      );
+
+      final translation = await controller.translateVocabulary(
+        'I like red apples.',
+      );
+
+      expect(repository.streamingCapture, isNull);
+      expect(translation.englishText, 'I like red apples.');
+      expect(translation.vietnameseText, 'Con thích những quả táo đỏ.');
+      controller.dispose();
+    },
+  );
+
+  test(
+    'Vietnamese vocabulary without diacritics translates in the correct direction',
+    () async {
+      final repository = _FallbackRepository();
+      final vietnameseTranslator = _FakeOfflineTranslator(
+        translatedText: 'Cat',
+      );
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Phone',
+        ),
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        offlineVietnameseEnglishTranslator: vietnameseTranslator,
+        offlineEnglishVietnameseTranslator: _FakeEnglishVietnameseTranslator(),
+        childAge: 6,
+        initialAsrMode: AsrMode.batchChunks,
+      );
+
+      final translation = await controller.translateVocabulary('con meo');
+
+      expect(translation.englishText, 'Cat');
+      expect(translation.vietnameseText, 'con meo');
+      expect(vietnameseTranslator.inputs, <String>['con meo']);
+      controller.dispose();
+    },
+  );
 
   test('conversation waits for the navigation recognizer handoff', () async {
     var navigationReleased = false;
@@ -90,6 +156,29 @@ void main() {
 
     expect(streamingInput.startCount, 1);
     expect(controller.phase, ConversationPhase.recording);
+    controller.dispose();
+  });
+
+  test('parental privacy guard blocks every recording start path', () async {
+    final input = _FakeChunkedInput(
+      available: true,
+      bluetooth: false,
+      label: 'Phone',
+    );
+    final controller = ConversationController(
+      audioInput: input,
+      playbackService: const _FakePlaybackService(),
+      repository: _FallbackRepository(),
+      childAge: 6,
+      initialAsrMode: AsrMode.batchChunks,
+      voiceDataProcessingAllowed: () => false,
+    );
+
+    await controller.startRecording();
+
+    expect(input.startCount, 0);
+    expect(controller.errorMessage, contains('Phụ huynh cần đồng ý'));
+    expect(controller.isRecording, isFalse);
     controller.dispose();
   });
 
@@ -165,6 +254,39 @@ void main() {
         playback.playedUris,
         everyElement(Uri.parse('https://api.example.com/audio.mp3')),
       );
+      controller.dispose();
+    },
+  );
+
+  test(
+    'phone playback does not finish the assistant turn before audio ends',
+    () async {
+      final playback = _CompletionControlledPlaybackService();
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Phone',
+        ),
+        playbackService: playback,
+        repository: _FallbackRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.batchChunks,
+      );
+      controller.result = _result(
+        'conversation',
+        audioUri: Uri.parse('https://api.example.com/result.mp3'),
+      );
+
+      var finished = false;
+      final pending = controller.playResult().then((_) => finished = true);
+      await playback.started.future;
+      await Future<void>.delayed(Duration.zero);
+      expect(finished, isFalse);
+
+      playback.complete();
+      await pending;
+      expect(finished, isTrue);
       controller.dispose();
     },
   );
@@ -301,7 +423,10 @@ void main() {
       expect(streaming.startCount, 1);
       expect(repository.realtimeStarted, 0);
       expect(repository.batchStarted, 0);
-      expect(controller.errorMessage, contains('Chế độ tiêu chuẩn'));
+      expect(
+        controller.errorMessage,
+        contains('Android streaming start failed'),
+      );
       controller.dispose();
     },
   );
@@ -381,6 +506,46 @@ void main() {
         ConversationTurnEndReason.commandHandled,
       );
       expect(handledCommand, 'Còn cái gì khác để học không?');
+      controller.dispose();
+    },
+  );
+
+  test(
+    'native alternative command bypasses the conversation request',
+    () async {
+      final input = _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Phone',
+        emitOnStart: <int>[5, 6, 7, 8],
+      );
+      final streaming = _FakeStreamingSpeechInput(
+        sourceText: 'Còn cái gì cắt để học không?',
+        alternatives: const <String>['Còn cái gì khác để học không?'],
+      );
+      final repository = _FallbackRepository();
+      String? handledCommand;
+      final controller = ConversationController(
+        audioInput: input,
+        streamingSpeechInput: streaming,
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        childAge: 6,
+        recognizedSpeechCommandMatcher: (text) => text.contains('khác để học'),
+        onRecognizedSpeechCommand: (text) async => handledCommand = text,
+      );
+
+      await controller.startRecording();
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await controller.stopRecording(manual: true);
+
+      expect(handledCommand, 'Còn cái gì khác để học không?');
+      expect(repository.streamingCapture, isNull);
+      expect(repository.batchStarted, 0);
+      expect(repository.fullFileUploads, 0);
+      expect(repository.streamingTextRequests, 0);
+      expect(controller.result, isNull);
+      expect(controller.phase, ConversationPhase.idle);
       controller.dispose();
     },
   );
@@ -880,7 +1045,7 @@ void main() {
       expect(controller.phase, ConversationPhase.error);
       expect(
         controller.errorMessage,
-        'Mình chưa nghe rõ. Con đưa micro lại gần và nói rõ hơn nhé.',
+        'HOMI chưa nghe thấy bạn nói. Bạn nói lại nhé.',
       );
       controller.dispose();
     },
@@ -1048,7 +1213,7 @@ void main() {
       expect(repository.fullFileUploads, 0);
       expect(controller.result, isNull);
       expect(controller.phase, ConversationPhase.idle);
-      expect(controller.transientMessage, contains('chưa nghe rõ'));
+      expect(controller.transientMessage, contains('chưa nghe thấy'));
       controller.dispose();
     },
   );
@@ -1133,6 +1298,44 @@ void main() {
   );
 
   test(
+    'exact Android rule uses device TTS without remote playback when offline',
+    () async {
+      final repository = _FallbackRepository();
+      final playback = _DirectGesturePlaybackService();
+      final voicePrompt = _RecordingVoicePromptService();
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Phone',
+        ),
+        streamingSpeechInput: _FakeStreamingSpeechInput(),
+        playbackService: playback,
+        repository: repository,
+        voicePromptService: voicePrompt,
+        networkTransportAvailable: () async => false,
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      await controller.startRecording();
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await controller.stopRecording(manual: true);
+
+      expect(controller.phase, ConversationPhase.ready);
+      expect(controller.result?.englishText, 'Can I have some water?');
+      expect(controller.result?.audioUri, isNull);
+      expect(controller.result?.audioSource, 'device_tts');
+      expect(repository.streamingTextRequests, 0);
+      expect(playback.playedUris, isEmpty);
+      expect(voicePrompt.spoken, <String>['en-US|Can I have some water?']);
+      expect(controller.transientMessage, contains('ngoại tuyến'));
+      controller.dispose();
+    },
+  );
+
+  test(
     'unknown Android sentence shows a friendly backend outage message',
     () async {
       final controller = ConversationController(
@@ -1146,7 +1349,7 @@ void main() {
         ),
         playbackService: const _FakePlaybackService(),
         repository: _FallbackRepository(
-          streamingError: const _RetryableBackendFailure(),
+          streamingError: http.ClientException('No network'),
         ),
         childAge: 6,
         initialAsrMode: AsrMode.androidStreaming,
@@ -1165,6 +1368,196 @@ void main() {
       controller.dispose();
     },
   );
+
+  test('a failed new turn clears only the stale presentation result', () async {
+    final repository = _FallbackRepository(
+      streamingOutcomes: <Object>[
+        _result('first-turn', vietnameseText: 'Hôm nay trời đẹp quá'),
+        http.ClientException('No network'),
+      ],
+    );
+    final controller = ConversationController(
+      audioInput: _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Phone',
+      ),
+      streamingSpeechInput: _FakeStreamingSpeechInput(
+        sourceText: 'Hôm nay trời đẹp quá',
+      ),
+      playbackService: const _FakePlaybackService(),
+      repository: repository,
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+    );
+
+    await controller.startRecording();
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await controller.stopRecording(manual: true);
+    expect(controller.result?.conversationId, 'first-turn');
+    expect(controller.phase, ConversationPhase.ready);
+
+    await controller.startRecording();
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await controller.stopRecording(manual: true);
+
+    expect(controller.phase, ConversationPhase.error);
+    expect(controller.result, isNull);
+    expect(repository.clearHistoryCalls, 0);
+    controller.dispose();
+  });
+
+  test(
+    'unknown sentence uses on-device translation only after backend outage',
+    () async {
+      final translator = _FakeOfflineTranslator(
+        translatedText: 'The weather is beautiful today.',
+      );
+      final voicePrompt = _RecordingVoicePromptService();
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Phone',
+        ),
+        streamingSpeechInput: _FakeStreamingSpeechInput(
+          sourceText: 'Hôm nay trời đẹp quá',
+        ),
+        playbackService: const _FakePlaybackService(),
+        repository: _FallbackRepository(
+          streamingError: http.ClientException('No network'),
+        ),
+        voicePromptService: voicePrompt,
+        offlineVietnameseEnglishTranslator: translator,
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+      );
+
+      await controller.startRecording();
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await controller.stopRecording(manual: true);
+
+      expect(controller.phase, ConversationPhase.ready);
+      expect(controller.result?.vietnameseText, 'Hôm nay trời đẹp quá');
+      expect(controller.result?.englishText, 'The weather is beautiful today.');
+      expect(controller.result?.textSource, 'mlkit_on_device_translation');
+      expect(controller.result?.audioUri, isNull);
+      expect(controller.result?.audioSource, 'device_tts');
+      expect(voicePrompt.spoken, <String>[
+        'en-US|The weather is beautiful today.',
+      ]);
+      expect(translator.inputs, <String>['Hôm nay trời đẹp quá']);
+      controller.dispose();
+    },
+  );
+
+  test(
+    'iOS Apple Speech transcript uses on-device translation when offline',
+    () async {
+      final translator = _FakeOfflineTranslator(
+        translatedText: 'The weather is beautiful today.',
+      );
+      final voicePrompt = _RecordingVoicePromptService();
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Mic iPhone',
+        ),
+        streamingSpeechInput: _FakeIOSStreamingSpeechInput(
+          sourceText: 'Hôm nay trời đẹp quá',
+        ),
+        playbackService: const _FakePlaybackService(),
+        repository: _FallbackRepository(
+          streamingError: http.ClientException('No network'),
+        ),
+        voicePromptService: voicePrompt,
+        offlineVietnameseEnglishTranslator: translator,
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+      );
+
+      await controller.startRecording();
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await controller.stopRecording(manual: true);
+
+      expect(controller.phase, ConversationPhase.ready);
+      expect(controller.result?.vietnameseText, 'Hôm nay trời đẹp quá');
+      expect(controller.result?.englishText, 'The weather is beautiful today.');
+      expect(controller.result?.textSource, 'mlkit_on_device_translation');
+      expect(voicePrompt.spoken, <String>[
+        'en-US|The weather is beautiful today.',
+      ]);
+      expect(translator.inputs, <String>['Hôm nay trời đẹp quá']);
+      controller.dispose();
+    },
+  );
+
+  test(
+    'network loss switches to device translation before HTTP starts',
+    () async {
+      final repository = _FallbackRepository();
+      final translator = _FakeOfflineTranslator(
+        translatedText: 'The weather is beautiful today.',
+      );
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Phone',
+        ),
+        streamingSpeechInput: _FakeStreamingSpeechInput(
+          sourceText: 'Hôm nay trời đẹp quá',
+        ),
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        offlineVietnameseEnglishTranslator: translator,
+        networkTransportAvailable: () async => false,
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+      );
+
+      await controller.startRecording();
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await controller.stopRecording(manual: true);
+
+      expect(controller.phase, ConversationPhase.ready);
+      expect(controller.result?.processingMode, 'offline_translation');
+      expect(repository.streamingTextRequests, 0);
+      expect(translator.inputs, <String>['Hôm nay trời đẹp quá']);
+      controller.dispose();
+    },
+  );
+
+  test('successful backend does not invoke on-device translation', () async {
+    final translator = _FakeOfflineTranslator(
+      translatedText: 'This must not be used.',
+    );
+    final controller = ConversationController(
+      audioInput: _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Phone',
+      ),
+      streamingSpeechInput: _FakeStreamingSpeechInput(
+        sourceText: 'Hôm nay trời đẹp quá',
+      ),
+      playbackService: const _FakePlaybackService(),
+      repository: _FallbackRepository(),
+      offlineVietnameseEnglishTranslator: translator,
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+    );
+
+    await controller.startRecording();
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await controller.stopRecording(manual: true);
+
+    expect(controller.phase, ConversationPhase.ready);
+    expect(translator.inputs, isEmpty);
+    expect(controller.result?.textSource, isNot('mlkit_on_device_translation'));
+    controller.dispose();
+  });
 
   test('stop briefly waits for an almost-ready Realtime connection', () async {
     final input = _FakeChunkedInput(
@@ -1384,6 +1777,482 @@ void main() {
     controller.dispose();
   });
 
+  test('native iOS HFP prefers Apple Speech and reports Bluetooth', () async {
+    final input = _FakeChunkedInput(
+      available: true,
+      bluetooth: false,
+      label: 'Mic iPhone',
+    );
+    final hfp = _FakeHfpAudioControl();
+    final repository = _FallbackRepository();
+    final recognizer = _FakeIOSStreamingSpeechInput();
+    final controller = ConversationController(
+      audioInput: input,
+      streamingSpeechInput: recognizer,
+      hfpAudioControl: hfp,
+      playbackService: const _FakePlaybackService(),
+      repository: repository,
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+    );
+
+    await controller.connectHfpDevice(
+      const HfpAudioDevice(
+        id: 'ios-hfp-input',
+        name: 'H20 HFP',
+        isConnected: true,
+      ),
+    );
+    expect(controller.asrMode, AsrMode.androidStreaming);
+
+    await controller.startRecording();
+    expect(hfp.startRouteCount, 1);
+    expect(recognizer.startCount, 1);
+    expect(input.startCount, 0);
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await controller.stopRecording(manual: true);
+
+    expect(hfp.stopRouteCount, 1);
+    expect(repository.batchStarted, 0);
+    expect(repository.streamingCapture?.isBluetoothInput, isTrue);
+    expect(controller.result?.conversationId, 'stream-result');
+    controller.dispose();
+  });
+
+  test(
+    'iOS native HFP capture uses selected media output for playback',
+    () async {
+      final hfp = _FakeHfpAudioControl();
+      final recognizer = _FakeRouteOwningIOSStreamingSpeechInput(hfp);
+      final resultCompleter = Completer<ConversationResult>()
+        ..complete(
+          _result(
+            'stream-result',
+            audioUri: Uri.parse('https://api.example.com/result.mp3'),
+          ),
+        );
+      final repository = _FallbackRepository(
+        streamingResultCompleter: resultCompleter,
+      );
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Mic iPhone',
+        ),
+        streamingSpeechInput: recognizer,
+        hfpAudioControl: hfp,
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+      );
+
+      await controller.connectHfpDevice(
+        const HfpAudioDevice(
+          id: 'ios-hfp-input',
+          name: 'H20 HFP',
+          isConnected: true,
+        ),
+      );
+      await controller.startRecording();
+
+      expect(
+        hfp.startRouteCount,
+        1,
+        reason: 'Only the iOS recognizer opens SCO',
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await controller.stopRecording(manual: true);
+
+      expect(
+        hfp.startRouteCount,
+        1,
+        reason: 'Playback must not reopen SCO after recognition releases it',
+      );
+      expect(hfp.stopRouteCount, 1);
+      expect(repository.streamingCapture?.isBluetoothInput, isTrue);
+      controller.dispose();
+    },
+  );
+
+  test('audio preparation has a finite failure boundary', () async {
+    final playback = _NeverPreparingPlaybackService();
+    final controller = ConversationController(
+      audioInput: _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Phone',
+      ),
+      streamingSpeechInput: _FakeStreamingSpeechInput(
+        sourceText: 'Một câu hoàn toàn mới',
+      ),
+      playbackService: playback,
+      repository: _FallbackRepository(),
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+      audioPreparationTimeout: const Duration(milliseconds: 25),
+    );
+
+    await controller.startRecording();
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await controller
+        .stopRecording(manual: true)
+        .timeout(const Duration(milliseconds: 300));
+
+    expect(controller.phase, ConversationPhase.error);
+    expect(controller.errorMessage, contains('chuẩn bị âm thanh'));
+    controller.dispose();
+  });
+
+  test('MAIN cancellation during HFP start prevents late recording', () async {
+    final hfp = _BlockingStartHfpAudioControl();
+    final recognizer = _FakeIOSStreamingSpeechInput();
+    final controller = ConversationController(
+      audioInput: _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Mic iPhone',
+      ),
+      streamingSpeechInput: recognizer,
+      hfpAudioControl: hfp,
+      playbackService: const _FakePlaybackService(),
+      repository: _FallbackRepository(),
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+    );
+
+    await controller.connectHfpDevice(
+      const HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+    );
+    final starting = controller.startRecording();
+    await hfp.startRequested.future;
+
+    final cancellation = await controller.cancelCurrentMainAction();
+    hfp.completeStart();
+    await starting.timeout(const Duration(milliseconds: 300));
+
+    expect(cancellation, MainButtonActionResult.accepted);
+    expect(recognizer.startCount, 0);
+    expect(controller.phase, ConversationPhase.idle);
+    controller.dispose();
+  });
+
+  test(
+    'pending HFP cancellation remains busy until native start settles',
+    () async {
+      final hfp = _StubbornStartHfpAudioControl();
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Mic iPhone',
+        ),
+        hfpAudioControl: hfp,
+        streamingSpeechInput: _FakeIOSStreamingSpeechInput(),
+        playbackService: const _FakePlaybackService(),
+        repository: _FallbackRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+        cancellationBarrierTimeout: const Duration(milliseconds: 20),
+      );
+
+      await controller.connectHfpDevice(
+        const HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+      );
+      final starting = controller.startRecording();
+      await hfp.startRequested.future;
+
+      final cancellation = await controller.cancelCurrentMainAction();
+
+      expect(cancellation, MainButtonActionResult.busy);
+      expect(controller.isBusy, isTrue);
+
+      hfp.completeStart();
+      await starting.timeout(const Duration(milliseconds: 300));
+      expect(controller.isBusy, isFalse);
+      controller.dispose();
+    },
+  );
+
+  test(
+    'MAIN cancellation during native start prevents late recording',
+    () async {
+      final recognizer = _BlockingStartIOSStreamingSpeechInput();
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Mic iPhone',
+        ),
+        streamingSpeechInput: recognizer,
+        playbackService: const _FakePlaybackService(),
+        repository: _FallbackRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+      );
+
+      final starting = controller.startRecording();
+      await recognizer.startRequested.future;
+      final cancellation = await controller.cancelCurrentMainAction();
+      recognizer.completeStart();
+      await starting.timeout(const Duration(milliseconds: 300));
+
+      expect(cancellation, MainButtonActionResult.accepted);
+      expect(controller.phase, ConversationPhase.idle);
+      controller.dispose();
+    },
+  );
+
+  test('playback start has a finite failure boundary', () async {
+    final playback = _NeverStartingPlaybackService();
+    final resultCompleter = Completer<ConversationResult>()
+      ..complete(
+        _result(
+          'stream-result',
+          audioUri: Uri.parse('https://api.example.com/result.mp3'),
+        ),
+      );
+    final controller = ConversationController(
+      audioInput: _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Phone',
+      ),
+      streamingSpeechInput: _FakeStreamingSpeechInput(
+        sourceText: 'Một câu hoàn toàn mới',
+      ),
+      playbackService: playback,
+      repository: _FallbackRepository(
+        streamingResultCompleter: resultCompleter,
+      ),
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+      audioPreparationTimeout: const Duration(milliseconds: 25),
+    );
+
+    await controller.startRecording();
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await controller
+        .stopRecording(manual: true)
+        .timeout(const Duration(milliseconds: 300));
+
+    expect(controller.phase, ConversationPhase.error);
+    expect(controller.errorMessage, contains('chuẩn bị âm thanh'));
+    expect(controller.result?.conversationId, 'stream-result');
+    expect(playback.stopCount, greaterThan(0));
+    controller.dispose();
+  });
+
+  test('early exact-rule playback cannot prepare forever', () async {
+    final playback = _NeverStartingPlaybackService();
+    final resultCompleter = Completer<ConversationResult>()
+      ..complete(
+        _result(
+          'stream-result',
+          audioUri: Uri.parse('https://api.example.com/result.mp3'),
+        ),
+      );
+    final controller = ConversationController(
+      audioInput: _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Phone',
+      ),
+      streamingSpeechInput: _FakeStreamingSpeechInput(
+        sourceText: 'Con muốn uống nước',
+      ),
+      playbackService: playback,
+      repository: _FallbackRepository(
+        streamingResultCompleter: resultCompleter,
+      ),
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+      audioPreparationTimeout: const Duration(milliseconds: 25),
+    );
+
+    await controller.startRecording();
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await controller
+        .stopRecording(manual: true)
+        .timeout(const Duration(milliseconds: 300));
+
+    expect(controller.phase, ConversationPhase.error);
+    expect(playback.stopCount, greaterThan(0));
+    controller.dispose();
+  });
+
+  test('HFP playback route start has a finite failure boundary', () async {
+    final hfp = _NeverStartingHfpAudioControl();
+    final controller = ConversationController(
+      audioInput: _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Mic iPhone',
+      ),
+      hfpAudioControl: hfp,
+      playbackService: const _FakePlaybackService(),
+      repository: _FallbackRepository(),
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+      audioPreparationTimeout: const Duration(milliseconds: 25),
+    );
+    controller.result = _result(
+      'result',
+      audioUri: Uri.parse('https://api.example.com/result.mp3'),
+    );
+    await controller.connectHfpDevice(
+      const HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+    );
+
+    await expectLater(
+      controller
+          .playResult(reportLatency: true, propagateFailure: true)
+          .timeout(const Duration(milliseconds: 300)),
+      throwsA(isA<PlaybackException>()),
+    );
+
+    expect(controller.transientMessage, contains('H20'));
+    expect(hfp.stopRouteCount, 1);
+    controller.dispose();
+  });
+
+  test('MAIN cancellation blocks a late HFP playback start', () async {
+    final hfp = _BlockingStartHfpAudioControl();
+    final playback = _RecordingPlaybackService();
+    final controller = ConversationController(
+      audioInput: _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Mic iPhone',
+      ),
+      hfpAudioControl: hfp,
+      playbackService: playback,
+      repository: _FallbackRepository(),
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+      cancellationBarrierTimeout: const Duration(milliseconds: 100),
+    );
+    controller.result = _result(
+      'result',
+      audioUri: Uri.parse('https://api.example.com/result.mp3'),
+    );
+    await controller.connectHfpDevice(
+      const HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+    );
+
+    final pendingPlayback = controller.playResult();
+    await hfp.startRequested.future;
+    final cancellation = await controller.cancelCurrentMainAction();
+    await pendingPlayback.timeout(const Duration(milliseconds: 300));
+
+    expect(cancellation, MainButtonActionResult.accepted);
+    expect(playback.playCount, 0);
+    expect(hfp.stopRouteCount, greaterThan(0));
+    expect(controller.phase, ConversationPhase.idle);
+    controller.dispose();
+  });
+
+  test('iOS start failure records with Cloudflare Batch fallback', () async {
+    final input = _FakeChunkedInput(
+      available: true,
+      bluetooth: false,
+      label: 'Mic iPhone',
+    );
+    final repository = _FallbackRepository();
+    final controller = ConversationController(
+      audioInput: input,
+      streamingSpeechInput: _FakeIOSStreamingSpeechInput(failOnStart: true),
+      playbackService: const _FakePlaybackService(),
+      repository: repository,
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+    );
+
+    await controller.startRecording();
+    expect(input.startCount, 1);
+    expect(controller.asrMode, AsrMode.batchChunks);
+    await _emitDetectedSpeech(input);
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await controller.stopRecording(manual: true);
+
+    expect(repository.batchStarted, greaterThanOrEqualTo(1));
+    expect(
+      controller.result?.conversationId,
+      anyOf('file-result', 'batch-result'),
+    );
+    controller.dispose();
+  });
+
+  test('iOS Speech permission denial does not use backend fallback', () async {
+    final input = _FakeChunkedInput(
+      available: true,
+      bluetooth: false,
+      label: 'Mic iPhone',
+    );
+    final repository = _FallbackRepository();
+    final controller = ConversationController(
+      audioInput: input,
+      streamingSpeechInput: _FakeIOSStreamingSpeechInput(
+        startError: const StreamingSpeechInputException(
+          'Hãy bật Nhận dạng giọng nói cho HOMI trong Cài đặt.',
+          code: 'SPEECH_PERMISSION_DENIED',
+        ),
+      ),
+      playbackService: const _FakePlaybackService(),
+      repository: repository,
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+    );
+
+    await controller.startRecording();
+
+    expect(controller.phase, ConversationPhase.error);
+    expect(controller.errorMessage, contains('Nhận dạng giọng nói'));
+    expect(input.startCount, 0);
+    expect(repository.batchStarted, 0);
+    controller.dispose();
+  });
+
+  test('iOS runtime failure uploads only the private fallback WAV', () async {
+    final input = _FakeChunkedInput(
+      available: true,
+      bluetooth: false,
+      label: 'Mic iPhone',
+    );
+    final repository = _FallbackRepository();
+    final fallbackCapture = AudioCapture(
+      filePath: 'ios-native-fallback.wav',
+      mimeType: 'audio/wav',
+      duration: const Duration(seconds: 1),
+      inputLabel: 'Apple Native Speech',
+      isBluetoothInput: false,
+      initialNoiseRms: null,
+    );
+    final controller = ConversationController(
+      audioInput: input,
+      streamingSpeechInput: _FakeIOSStreamingSpeechInput(
+        failOnStop: true,
+        fallbackCapture: fallbackCapture,
+      ),
+      playbackService: const _FakePlaybackService(),
+      repository: repository,
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+    );
+
+    await controller.startRecording();
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await controller.stopRecording(manual: true);
+
+    expect(repository.audioCapture, same(fallbackCapture));
+    expect(repository.streamingCapture, isNull);
+    expect(controller.asrMode, AsrMode.batchChunks);
+    expect(controller.result?.conversationId, 'file-result');
+    controller.dispose();
+  });
+
   test(
     'standard Android ASR prefers direct streaming over recorded-audio injection',
     () async {
@@ -1410,7 +2279,88 @@ void main() {
       expect(recognizer.startCount, 1);
       expect(recognizer.recordedCapture, isNull);
       expect(input.startCount, 0);
+      expect(repository.batchStarted, 0);
+      expect(repository.fullFileUploads, 0);
+      expect(repository.streamingTextRequests, 1);
       expect(repository.streamingCapture?.asrMode, 'android_streaming');
+      controller.dispose();
+    },
+  );
+
+  for (final mode in AsrMode.values) {
+    test('Android coerces legacy ${mode.name} to native ASR', () async {
+      final repository = _FallbackRepository();
+      final streaming = _FakeStreamingSpeechInput();
+      final input = _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Phone',
+      );
+      final controller = ConversationController(
+        audioInput: input,
+        streamingSpeechInput: streaming,
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        childAge: 6,
+        initialAsrMode: mode,
+        hfpAudioControl: _FakeHfpAudioControl(),
+      );
+      await controller.startRecording();
+      expect(streaming.startCount, 1);
+      expect(input.startCount, 0);
+      expect(repository.batchStarted, 0);
+      expect(controller.asrMode, AsrMode.androidStreaming);
+      controller.dispose();
+    });
+  }
+
+  test('Android native path does not divert connected BLE to Batch', () async {
+    final input = _FakeChunkedInput(
+      available: true,
+      bluetooth: true,
+      label: 'BLE',
+    );
+    final streaming = _FakeStreamingSpeechInput();
+    final repository = _FallbackRepository();
+    final controller = ConversationController(
+      audioInput: input,
+      streamingSpeechInput: streaming,
+      playbackService: const _FakePlaybackService(),
+      repository: repository,
+      childAge: 6,
+      preferBleStreaming: true,
+      initialAsrMode: AsrMode.deviceStreaming,
+    );
+    await controller.startRecording();
+    expect(streaming.startCount, 1);
+    expect(input.startCount, 0);
+    expect(repository.batchStarted, 0);
+    expect(controller.asrMode, AsrMode.androidStreaming);
+    controller.dispose();
+  });
+
+  test(
+    'Android failure with local PCM still cannot use cloud fallback',
+    () async {
+      final repository = _FallbackRepository();
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Phone',
+        ),
+        streamingSpeechInput: _AndroidWithFallbackAudio(),
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        childAge: 6,
+      );
+      await controller.startRecording();
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await controller.stopRecording(manual: true);
+      expect(repository.fullFileUploads, 0);
+      expect(repository.batchStarted, 0);
+      expect(controller.phase, ConversationPhase.error);
+      expect(controller.asrMode, AsrMode.androidStreaming);
       controller.dispose();
     },
   );
@@ -1448,7 +2398,7 @@ void main() {
   });
 
   test(
-    'Android injected-audio failure keeps WAV via Cloudflare fallback',
+    'Android injected-audio failure never uploads WAV to Cloudflare',
     () async {
       final input = _FakeChunkedInput(
         available: true,
@@ -1472,9 +2422,12 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 500));
       await controller.stopRecording(manual: true);
 
-      expect(repository.fullFileUploads, 1);
-      expect(repository.audioCapture?.filePath, 'fake.wav');
-      expect(controller.result?.conversationId, 'file-result');
+      expect(repository.fullFileUploads, 0);
+      expect(repository.batchStarted, 0);
+      expect(repository.audioCapture, isNull);
+      expect(controller.result, isNull);
+      expect(controller.asrMode, AsrMode.androidStreaming);
+      expect(controller.errorMessage, contains('Android chưa nhận diện'));
       controller.dispose();
     },
   );
@@ -1560,34 +2513,43 @@ void main() {
     controller.dispose();
   });
 
-  test('older Android keeps audio through Cloudflare Batch Chunks', () async {
-    final input = _FakeChunkedInput(
-      available: true,
-      bluetooth: false,
-      label: 'Phone',
-    );
-    final repository = _FallbackRepository();
-    final controller = ConversationController(
-      audioInput: input,
-      streamingSpeechInput: _FakeRecordedAudioStreamingSpeechInput(
+  test(
+    'online Android without file injection keeps the fast native path',
+    () async {
+      final input = _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Phone',
+      );
+      final repository = _FallbackRepository();
+      final recognizer = _FakeRecordedAudioStreamingSpeechInput(
         supportsRecordedAudio: false,
-      ),
-      playbackService: const _FakePlaybackService(),
-      repository: repository,
-      childAge: 6,
-      initialAsrMode: AsrMode.androidStreaming,
-      recordAndroidAudioForArchive: true,
-    );
+      );
+      final controller = ConversationController(
+        audioInput: input,
+        streamingSpeechInput: recognizer,
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+        recordAndroidAudioForArchive: true,
+      );
 
-    await controller.startRecording();
-    await _emitDetectedSpeech(input);
-    await controller.stopRecording(manual: true);
+      await controller.startRecording();
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await controller.stopRecording(manual: true);
 
-    expect(controller.asrMode, AsrMode.batchChunks);
-    expect(repository.batchSession.finalized, isTrue);
-    expect(controller.result?.conversationId, 'batch-result');
-    controller.dispose();
-  });
+      expect(recognizer.startCount, 1);
+      expect(recognizer.recordedCapture, isNull);
+      expect(input.startCount, 0);
+      expect(repository.batchStarted, 0);
+      expect(repository.fullFileUploads, 0);
+      expect(repository.streamingTextRequests, 1);
+      expect(repository.streamingCapture?.sourceText, 'Con muốn uống nước');
+      expect(controller.result?.conversationId, 'stream-result');
+      controller.dispose();
+    },
+  );
 
   test('Safari Worker result archives the complete Web WAV', () async {
     final input = _FakeChunkedInput(
@@ -1627,14 +2589,18 @@ class _FakeStreamingSpeechInput implements StreamingSpeechInput {
   _FakeStreamingSpeechInput({
     this.failOnStart = false,
     this.failOnStop = false,
+    this.startError,
     this.onStart,
     this.sourceText = 'Con muốn uống nước',
+    this.alternatives = const <String>[],
   });
 
   final bool failOnStart;
   final bool failOnStop;
+  final Object? startError;
   final void Function()? onStart;
   final String sourceText;
+  final List<String> alternatives;
   int startCount = 0;
 
   @override
@@ -1656,6 +2622,10 @@ class _FakeStreamingSpeechInput implements StreamingSpeechInput {
   Future<void> start() async {
     startCount += 1;
     onStart?.call();
+    final error = startError;
+    if (error != null) {
+      throw error;
+    }
     if (failOnStart) {
       throw const StreamingSpeechInputException(
         'Android streaming start failed.',
@@ -1672,6 +2642,7 @@ class _FakeStreamingSpeechInput implements StreamingSpeechInput {
     }
     return StreamingSpeechCapture(
       sourceText: sourceText,
+      alternatives: alternatives,
       duration: Duration(seconds: 1),
       inputLabel: 'ASR Android trực tiếp',
       confidence: 0.9,
@@ -1685,6 +2656,98 @@ class _FakeStreamingSpeechInput implements StreamingSpeechInput {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _AndroidWithFallbackAudio extends _FakeStreamingSpeechInput
+    implements NativeSpeechFallbackAudioProvider {
+  _AndroidWithFallbackAudio() : super(failOnStop: true);
+
+  @override
+  AudioCapture? takeFallbackAudioCapture() => AudioCapture(
+    filePath: 'local-only.wav',
+    mimeType: 'audio/wav',
+    duration: const Duration(seconds: 1),
+    inputLabel: 'Android',
+    isBluetoothInput: false,
+    initialNoiseRms: null,
+  );
+}
+
+class _FakeIOSStreamingSpeechInput extends _FakeStreamingSpeechInput
+    implements
+        BatchFallbackCapableNativeSpeechInput,
+        NativeSpeechFallbackAudioProvider {
+  _FakeIOSStreamingSpeechInput({
+    super.failOnStart,
+    super.failOnStop,
+    super.startError,
+    super.sourceText,
+    this.fallbackCapture,
+  });
+
+  AudioCapture? fallbackCapture;
+
+  @override
+  String get label => 'Apple Native Speech';
+
+  @override
+  AudioCapture? takeFallbackAudioCapture() {
+    final capture = fallbackCapture;
+    fallbackCapture = null;
+    return capture;
+  }
+}
+
+class _BlockingStartIOSStreamingSpeechInput
+    extends _FakeIOSStreamingSpeechInput {
+  final Completer<void> startRequested = Completer<void>();
+  final Completer<void> _startCompleter = Completer<void>();
+
+  void completeStart() {
+    if (!_startCompleter.isCompleted) _startCompleter.complete();
+  }
+
+  @override
+  Future<void> start() async {
+    if (!startRequested.isCompleted) startRequested.complete();
+    await _startCompleter.future;
+    await super.start();
+  }
+
+  @override
+  Future<void> cancel() async {
+    completeStart();
+    await super.cancel();
+  }
+}
+
+class _FakeRouteOwningIOSStreamingSpeechInput
+    extends _FakeIOSStreamingSpeechInput
+    implements HfpRouteOwningStreamingSpeechInput {
+  _FakeRouteOwningIOSStreamingSpeechInput(this.routeControl);
+
+  final HfpAudioControl routeControl;
+
+  @override
+  Future<void> start() async {
+    await routeControl.startAudioRoute();
+    await super.start();
+  }
+
+  @override
+  Future<StreamingSpeechCapture> stop() async {
+    try {
+      return await super.stop();
+    } finally {
+      await routeControl.stopAudioRoute();
+    }
+  }
+
+  @override
+  Future<void> cancel() async {
+    await super.cancel();
+    await routeControl.stopAudioRoute();
+  }
 }
 
 class _ArchivingFallbackRepository extends _FallbackRepository
@@ -1791,6 +2854,60 @@ class _FakeHfpAudioControl implements HfpAudioControl {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _BlockingStartHfpAudioControl extends _FakeHfpAudioControl {
+  final Completer<void> startRequested = Completer<void>();
+  final Completer<void> _startCompleter = Completer<void>();
+
+  void completeStart() {
+    if (!_startCompleter.isCompleted) _startCompleter.complete();
+  }
+
+  @override
+  Future<void> startAudioRoute() async {
+    startRouteCount += 1;
+    if (!startRequested.isCompleted) startRequested.complete();
+    await _startCompleter.future;
+  }
+
+  @override
+  Future<void> stopAudioRoute() async {
+    await super.stopAudioRoute();
+    completeStart();
+  }
+}
+
+class _StubbornStartHfpAudioControl extends _FakeHfpAudioControl {
+  final Completer<void> startRequested = Completer<void>();
+  final Completer<void> _startCompleter = Completer<void>();
+
+  void completeStart() {
+    if (!_startCompleter.isCompleted) _startCompleter.complete();
+  }
+
+  @override
+  Future<void> startAudioRoute() async {
+    startRouteCount += 1;
+    if (!startRequested.isCompleted) startRequested.complete();
+    await _startCompleter.future;
+  }
+}
+
+class _NeverStartingHfpAudioControl extends _FakeHfpAudioControl {
+  final Completer<void> _startCompleter = Completer<void>();
+
+  @override
+  Future<void> startAudioRoute() {
+    startRouteCount += 1;
+    return _startCompleter.future;
+  }
+
+  @override
+  Future<void> stopAudioRoute() async {
+    await super.stopAudioRoute();
+    if (!_startCompleter.isCompleted) _startCompleter.complete();
+  }
 }
 
 class _FakeChunkedInput implements ChunkedAudioInput {
@@ -2065,6 +3182,60 @@ class _RetryableBackendFailure
   bool get isRetryable => true;
 }
 
+class _FakeOfflineTranslator implements OfflineVietnameseEnglishTranslator {
+  _FakeOfflineTranslator({required this.translatedText});
+
+  final String translatedText;
+  final List<String> inputs = <String>[];
+
+  @override
+  Future<bool> modelsReady() async => true;
+
+  @override
+  Future<bool> downloadModels({bool wifiOnly = true}) async => true;
+
+  @override
+  Future<String> translate(String vietnameseText) async {
+    inputs.add(vietnameseText);
+    return translatedText;
+  }
+
+  @override
+  Future<void> close() async {}
+}
+
+class _FakeEnglishVietnameseTranslator
+    implements OfflineEnglishVietnameseTranslator {
+  @override
+  Future<bool> modelsReady() async => true;
+
+  @override
+  Future<String> translate(String englishText) async =>
+      'Con thích những quả táo đỏ.';
+
+  @override
+  Future<void> close() async {}
+}
+
+class _RecordingVoicePromptService implements VoicePromptService {
+  final List<String> spoken = <String>[];
+
+  @override
+  Future<void> speak(String text, {String locale = 'vi-VN'}) async {
+    spoken.add('$locale|$text');
+  }
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) =>
+      speak(text, locale: locale);
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  Future<void> dispose() async {}
+}
+
 class _FallbackRepository
     implements
         ConversationRepository,
@@ -2077,6 +3248,7 @@ class _FallbackRepository
     this.audioResultCompleter,
     this.streamingResultCompleter,
     this.streamingError,
+    this.streamingOutcomes,
     this.failRealtimeConnection = false,
   });
 
@@ -2085,11 +3257,14 @@ class _FallbackRepository
   final Completer<ConversationResult>? audioResultCompleter;
   final Completer<ConversationResult>? streamingResultCompleter;
   final Object? streamingError;
+  final List<Object>? streamingOutcomes;
   final bool failRealtimeConnection;
   final _RecordingBatchSession batchSession = _RecordingBatchSession();
   int realtimeStarted = 0;
   int batchStarted = 0;
   int fullFileUploads = 0;
+  int streamingTextRequests = 0;
+  int clearHistoryCalls = 0;
   String? batchFallbackReason;
   StreamingSpeechCapture? streamingCapture;
   AudioCapture? audioCapture;
@@ -2168,7 +3343,14 @@ class _FallbackRepository
     required int childAge,
     required int vadSilenceMs,
   }) async {
+    streamingTextRequests += 1;
     streamingCapture = capture;
+    final outcomes = streamingOutcomes;
+    if (outcomes != null && outcomes.isNotEmpty) {
+      final outcome = outcomes.removeAt(0);
+      if (outcome is ConversationResult) return outcome;
+      throw outcome;
+    }
     final error = streamingError;
     if (error != null) {
       throw error;
@@ -2223,7 +3405,9 @@ class _FallbackRepository
   Future<void> deleteHistoryItem(String conversationId) async {}
 
   @override
-  Future<void> clearHistory() async {}
+  Future<void> clearHistory() async {
+    clearHistoryCalls += 1;
+  }
 
   @override
   Future<void> dispose() async {}
@@ -2336,6 +3520,88 @@ class _BlockingPlaybackService implements AudioPlaybackService {
   Future<void> dispose() async {}
 }
 
+class _NeverPreparingPlaybackService implements AudioPlaybackService {
+  final Completer<void> _preparation = Completer<void>();
+
+  @override
+  Stream<bool> get playingStream => const Stream<bool>.empty();
+
+  @override
+  Future<void> prepare() => _preparation.future;
+
+  @override
+  Future<void> preload(Uri uri) async {}
+
+  @override
+  Future<PlaybackStartMetrics> play(Uri uri) async =>
+      const PlaybackStartMetrics(
+        audioLoadDuration: Duration.zero,
+        startedAfterRequest: Duration.zero,
+        fromDeviceCache: false,
+      );
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  Future<void> dispose() async {}
+}
+
+class _NeverStartingPlaybackService implements AudioPlaybackService {
+  final Completer<PlaybackStartMetrics> _playback =
+      Completer<PlaybackStartMetrics>();
+  int stopCount = 0;
+
+  @override
+  Stream<bool> get playingStream => const Stream<bool>.empty();
+
+  @override
+  Future<void> prepare() async {}
+
+  @override
+  Future<void> preload(Uri uri) async {}
+
+  @override
+  Future<PlaybackStartMetrics> play(Uri uri) => _playback.future;
+
+  @override
+  Future<void> stop() async {
+    stopCount += 1;
+  }
+
+  @override
+  Future<void> dispose() async {}
+}
+
+class _RecordingPlaybackService implements AudioPlaybackService {
+  int playCount = 0;
+
+  @override
+  Stream<bool> get playingStream => const Stream<bool>.empty();
+
+  @override
+  Future<void> prepare() async {}
+
+  @override
+  Future<void> preload(Uri uri) async {}
+
+  @override
+  Future<PlaybackStartMetrics> play(Uri uri) async {
+    playCount += 1;
+    return const PlaybackStartMetrics(
+      audioLoadDuration: Duration.zero,
+      startedAfterRequest: Duration.zero,
+      fromDeviceCache: false,
+    );
+  }
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  Future<void> dispose() async {}
+}
+
 class _GesturePlaybackService
     implements AudioPlaybackService, UserGestureAudioPlaybackService {
   _GesturePlaybackService(this.events);
@@ -2430,6 +3696,56 @@ class _DirectGesturePlaybackService
 
   @override
   Future<void> dispose() async {}
+}
+
+class _CompletionControlledPlaybackService
+    implements AudioPlaybackService, CompletionAwareAudioPlaybackService {
+  final StreamController<bool> _playing = StreamController<bool>.broadcast(
+    sync: true,
+  );
+  final StreamController<void> _completion = StreamController<void>.broadcast(
+    sync: true,
+  );
+  final Completer<void> started = Completer<void>();
+
+  @override
+  Stream<bool> get playingStream => _playing.stream;
+
+  @override
+  Stream<void> get completionStream => _completion.stream;
+
+  @override
+  Future<void> prepare() async {}
+
+  @override
+  Future<void> preload(Uri uri) async {}
+
+  @override
+  Future<PlaybackStartMetrics> play(Uri uri) async {
+    if (!started.isCompleted) started.complete();
+    _playing.add(true);
+    return const PlaybackStartMetrics(
+      audioLoadDuration: Duration.zero,
+      startedAfterRequest: Duration.zero,
+      fromDeviceCache: false,
+    );
+  }
+
+  void complete() {
+    _completion.add(null);
+    _playing.add(false);
+  }
+
+  @override
+  Future<void> stop() async {
+    _playing.add(false);
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _playing.close();
+    await _completion.close();
+  }
 }
 
 ConversationResult _result(

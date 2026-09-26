@@ -1,0 +1,70 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\MP3\\dynamic\\LEVEL_INTRO\\LEVEL_INTRO_02.mp3",
+      "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\manifest.json",
+      "packAudioId": "LEVEL_INTRO__LEVEL_NO_02",
+      "sourceText": "Bắt đầu Level 2.",
+      "modelId": "eleven_v3",
+      "profiles": {
+        "en": {
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75
+        },
+        "vi": {
+          "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+          "speed": 0.9
+        }
+      },
+      "speedMethod": "FFmpeg atempo applied after synthesis to each segment according to declared AUDIO_PLAN language, preserving pitch",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bắt đầu Level 2.",
+          "generation_key": "8e41a7221f70c802"
+        }
+      ],
+      "sourceSha256": null,
+      "durationSeconds": 1.693968,
+      "sha256": "92c701e1bac53bac00eff76c733bf24b830c46d33918639eb961f2e63b5fc3fe",
+      "bytes": 28047
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\a164707af39f9a984686588f35508c5512e98f0f56cad7848f85415820286504.tempo.mp3",
+      "signature": "a164707af39f9a984686588f35508c5512e98f0f56cad7848f85415820286504",
+      "request": {
+        "text": "Có 3 Chủ đề. Bạn muốn học Chủ đề số mấy?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "8a27d73d9975931d86a48dbbb3d6441452a45b89214666f4055f0072230634f3",
+      "requestId": "eyZuTtqv4M1UNETgQhAI",
+      "createdAt": "2026-09-15T23:24:39.878Z"
+    }
+  ],
+  "id": "LESSON-74FC4557EBAC5EC8AFAF001B",
+  "text": "Bắt đầu Level 2. Có 3 Chủ đề. Bạn muốn học Chủ đề số mấy?",
+  "asset": "assets/audio/CURRICULUM/74fc4557ebac5ec8afaf001b.vi.v1.mp3",
+  "sha256": "8c5288e658618d955d937706be5845f1c9c2aa776c62a7a312ef3d801e5204c4",
+  "durationSeconds": 4.617143,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\b00e71dff4b67f44a0a8b8d2f8e76367aa2a83090c50ef36feec5fead8245284.tempo.mp3",
+      "signature": "b00e71dff4b67f44a0a8b8d2f8e76367aa2a83090c50ef36feec5fead8245284",
+      "request": {
+        "text": "Windy today",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "354fc449f24e60525b8f304acd4d635c8f2d6aa503af8801abe9253da4699114",
+      "requestId": "g4A9SLsoSHkJ1cjj9EpJ",
+      "createdAt": "2026-09-15T23:18:58.146Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732.tempo.mp3",
+      "signature": "bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732",
+      "request": {
+        "text": "hay",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "587b62310066af72f7481443c9fccef371a1ad2d8d537d3d1e9b16ebd3efc8b4",
+      "requestId": "Y8EyPPYGalhB5eNl9yAL",
+      "createdAt": "2026-09-15T23:15:44.925Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\6bee3fa5893c644a43a2cf6af10cccd0ca0b7cf198c252609d596077dc04ca02.tempo.mp3",
+      "signature": "6bee3fa5893c644a43a2cf6af10cccd0ca0b7cf198c252609d596077dc04ca02",
+      "request": {
+        "text": "Hot today?",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "568e4a1909d71de5a7b3989ef0ec155f154f5e0d6182f024db6daac6ab6440cb",
+      "requestId": "bemiBC1eoqmwfSqFdZDJ",
+      "createdAt": "2026-09-15T23:18:59.284Z"
+    }
+  ],
+  "id": "LESSON-E54075280D55C172967D5C3E",
+  "text": "Windy today hay Hot today?",
+  "asset": "assets/audio/CURRICULUM/e54075280d55c172967d5c3e.vi.v1.mp3",
+  "sha256": "ea41cd2c925a732222dae88dcbdad2ef14e39b69e43bdbbd92a77e5b9c5d6efe",
+  "durationSeconds": 3.900816,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

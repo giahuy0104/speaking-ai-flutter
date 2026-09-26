@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T02-B01\\C810-L1-T02-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T02-B01-Q08",
+  "sourceText": "Bạn cần nói \"Môn Khoa học\". Music hay Science?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn cần nói \"Môn Khoa học\".",
+      "spoken_text": "Bạn cần nói \"Môn Khoa học\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Music",
+      "spoken_text": "Music",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Science?",
+      "spoken_text": "Science?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-B8DC5A2EFB2B07B96980CE37",
+  "text": "Bạn cần nói \"Môn Khoa học\". Music hay Science?",
+  "asset": "assets/audio/CURRICULUM/b8dc5a2efb2b07b96980ce37.vi.v1.mp3",
+  "sha256": "e29228598481986253b98ec6054e5e81543545ac2ab6ffdb14119d13380d6451",
+  "durationSeconds": 5.185714
+}

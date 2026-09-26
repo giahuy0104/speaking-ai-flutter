@@ -1,0 +1,20 @@
+{
+  "id": "RUN-081",
+  "signature": "e030edc8e95959354aba35336cef2da3de6340e6a07e2bc2cf175f97f43fd225",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "HOMI chưa nghe rõ. Bạn nói lại nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:14:09.051Z",
+  "requestId": "EmQKR4PvWXa7LO16jwfV",
+  "characterCost": "19",
+  "sourceSha256": "912991dab062aa04b1617703f257e9ac6050b09b245e1ab5acea97e2e1a0fdb4"
+}

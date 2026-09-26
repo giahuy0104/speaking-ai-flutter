@@ -1,20 +1,141 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
+import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../config/app_config.dart';
+import '../../../core/auth/installation_authenticated_client.dart';
+import '../../../core/device/client_identity.dart';
 import '../../../core/network/multipart_audio_file.dart';
+import '../../../core/network/network_availability.dart';
 import '../domain/lesson_guide_flow.dart';
+import '../domain/lesson_recognition.dart';
+import 'lesson_audio_format.dart';
 
-class BackendLessonAttemptEvaluator implements LessonAttemptEvaluator {
-  BackendLessonAttemptEvaluator({AppConfig? config, http.Client? client})
-    : _config = config ?? AppConfig.fromEnvironment(),
-      _client = client ?? http.Client();
+abstract interface class DisposableLessonAttemptEvaluator {
+  void dispose();
+}
 
-  final AppConfig _config;
-  final http.Client _client;
+class LessonRecordedSpeechRecognition {
+  const LessonRecordedSpeechRecognition({
+    required this.transcript,
+    this.alternatives = const <String>[],
+  });
+
+  final String transcript;
+  final List<String> alternatives;
+}
+
+class LessonRecordedSpeechRecognitionException implements Exception {
+  const LessonRecordedSpeechRecognitionException(this.code, this.message);
+
+  final String code;
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
+abstract interface class LessonRecordedSpeechRecognizer {
+  Future<LessonRecordedSpeechRecognition> recognizeFile({
+    required String path,
+    String locale = 'vi-VN',
+    bool preferOnDevice = false,
+    bool requireOnDevice = false,
+  });
+}
+
+class MethodChannelLessonRecordedSpeechRecognizer
+    implements LessonRecordedSpeechRecognizer {
+  const MethodChannelLessonRecordedSpeechRecognizer({
+    MethodChannel channel = const MethodChannel('homi_offline_speech'),
+    Duration timeout = const Duration(seconds: 20),
+  }) : _channel = channel,
+       _timeout = timeout;
+
+  final MethodChannel _channel;
+  final Duration _timeout;
+
+  @override
+  Future<LessonRecordedSpeechRecognition> recognizeFile({
+    required String path,
+    String locale = 'vi-VN',
+    bool preferOnDevice = false,
+    bool requireOnDevice = false,
+  }) async {
+    try {
+      final payload = await _channel
+          .invokeMethod<Object?>('recognizeFile', <String, Object?>{
+            'path': path,
+            'sampleRate': 16000,
+            'locale': locale,
+            'preferOnDevice': preferOnDevice,
+            'requireOnDevice': requireOnDevice,
+          })
+          .timeout(_timeout);
+      if (payload is! Map<Object?, Object?>) {
+        throw const LessonRecordedSpeechRecognitionException(
+          'RECORDED_AUDIO_RESULT_INVALID',
+          'Kết quả nhận diện Android không hợp lệ.',
+        );
+      }
+      final transcript = payload['text'];
+      final alternatives = payload['alternatives'];
+      return LessonRecordedSpeechRecognition(
+        transcript: transcript is String ? transcript.trim() : '',
+        alternatives: alternatives is List<Object?>
+            ? alternatives
+                  .whereType<String>()
+                  .map((value) => value.trim())
+                  .where((value) => value.isNotEmpty)
+                  .toList(growable: false)
+            : const <String>[],
+      );
+    } on TimeoutException {
+      try {
+        await _channel
+            .invokeMethod<void>('cancel')
+            .timeout(const Duration(seconds: 2));
+      } catch (_) {
+        // Native cleanup is best-effort after a bounded recognition timeout.
+      }
+      throw const LessonRecordedSpeechRecognitionException(
+        'SPEECH_TIMEOUT',
+        'Nhận diện bản ghi âm mất quá nhiều thời gian.',
+      );
+    } on MissingPluginException {
+      throw const LessonRecordedSpeechRecognitionException(
+        'ON_DEVICE_SPEECH_UNAVAILABLE',
+        'Thiết bị chưa có bộ nhận diện giọng nói offline.',
+      );
+    } on PlatformException catch (error) {
+      throw LessonRecordedSpeechRecognitionException(
+        error.code,
+        error.message ?? 'Không thể nhận diện bản ghi âm.',
+      );
+    }
+  }
+}
+
+/// Keeps normal online lesson scoring unchanged. Only a backend connectivity
+/// failure activates HOMI's app-owned English model on Android.
+class BackendFirstLessonAttemptEvaluator
+    implements LessonAttemptEvaluator, DisposableLessonAttemptEvaluator {
+  BackendFirstLessonAttemptEvaluator({
+    required LessonAttemptEvaluator backendEvaluator,
+    LessonRecordedSpeechRecognizer recognizer =
+        const MethodChannelLessonRecordedSpeechRecognizer(),
+    Future<bool> Function()? networkTransportAvailable,
+  }) : _backendEvaluator = backendEvaluator,
+       _recognizer = recognizer,
+       _networkTransportAvailable = networkTransportAvailable;
+
+  final LessonAttemptEvaluator _backendEvaluator;
+  final LessonRecordedSpeechRecognizer _recognizer;
+  final Future<bool> Function()? _networkTransportAvailable;
 
   @override
   Future<LessonAttemptOutcome> evaluate({
@@ -25,7 +146,182 @@ class BackendLessonAttemptEvaluator implements LessonAttemptEvaluator {
     required Duration recordingDuration,
     required int attemptNumber,
     required int childAge,
+    Iterable<String> acceptedVariants = const <String>[],
+    bool requireAllExpectedTokens = false,
   }) async {
+    var hasNetworkTransport = true;
+    final checker = _networkTransportAvailable;
+    if (checker != null) {
+      try {
+        hasNetworkTransport = await checker();
+      } catch (_) {
+        // Preserve backend-first behaviour when the optional platform signal
+        // cannot be read.
+      }
+    }
+
+    LessonAttemptEvaluationException backendFailure =
+        const LessonAttemptEvaluationException(
+          'Thiết bị đang ngoại tuyến và chưa thể chấm câu trên máy.',
+          backendUnavailable: true,
+        );
+    if (hasNetworkTransport) {
+      try {
+        return await _backendEvaluator.evaluate(
+          lessonCode: lessonCode,
+          sentenceId: sentenceId,
+          expectedEnglish: expectedEnglish,
+          recordingPath: recordingPath,
+          recordingDuration: recordingDuration,
+          attemptNumber: attemptNumber,
+          childAge: childAge,
+          acceptedVariants: acceptedVariants,
+          requireAllExpectedTokens: requireAllExpectedTokens,
+        );
+      } on LessonAttemptEvaluationException catch (error) {
+        if (!error.backendUnavailable) rethrow;
+        backendFailure = error;
+      } on TimeoutException {
+        backendFailure = const LessonAttemptEvaluationException(
+          'Chưa kết nối được máy chủ. Bạn thử lại sau nhé.',
+          backendUnavailable: true,
+        );
+      } on http.ClientException {
+        backendFailure = const LessonAttemptEvaluationException(
+          'Chưa kết nối được máy chủ. Bạn thử lại sau nhé.',
+          backendUnavailable: true,
+        );
+      }
+    }
+
+    try {
+      final recognition = await _recognizer.recognizeFile(
+        path: recordingPath,
+        locale: 'en-US',
+        preferOnDevice: true,
+        requireOnDevice: true,
+      );
+      final candidates = <String>{
+        recognition.transcript,
+        ...recognition.alternatives,
+      }.where((candidate) => candidate.trim().isNotEmpty);
+      if (candidates.isEmpty) return LessonAttemptOutcome.noResponse;
+      return candidates.any(
+            (candidate) => matchesRecognizedLessonEnglish(
+              expectedEnglish,
+              candidate,
+              acceptedVariants: acceptedVariants,
+              requireAllExpectedTokens: requireAllExpectedTokens,
+            ),
+          )
+          ? LessonAttemptOutcome.good
+          : LessonAttemptOutcome.retry;
+    } on LessonRecordedSpeechRecognitionException catch (error) {
+      if (_isNoResponseRecognitionFailure(error.code)) {
+        return LessonAttemptOutcome.noResponse;
+      }
+      if (_isUnclearRecognitionFailure(error.code)) {
+        return LessonAttemptOutcome.unclear;
+      }
+      throw backendFailure;
+    }
+  }
+
+  bool _isUnclearRecognitionFailure(String code) =>
+      code == 'SPEECH_NO_MATCH' ||
+      code == 'RECORDED_AUDIO_UNCLEAR' ||
+      code == 'RECORDED_AUDIO_RECOGNITION_TIMEOUT';
+
+  bool _isNoResponseRecognitionFailure(String code) =>
+      code == 'SPEECH_TIMEOUT' ||
+      code == 'NO_RESPONSE' ||
+      code == 'AUDIO_TOO_SHORT';
+
+  @override
+  void dispose() {
+    final backendEvaluator = _backendEvaluator;
+    if (backendEvaluator is DisposableLessonAttemptEvaluator) {
+      (backendEvaluator as DisposableLessonAttemptEvaluator).dispose();
+    }
+  }
+}
+
+LessonAttemptEvaluator createDefaultLessonAttemptEvaluator() {
+  final backendEvaluator = BackendLessonAttemptEvaluator();
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    return BackendFirstLessonAttemptEvaluator(
+      backendEvaluator: backendEvaluator,
+      networkTransportAvailable: NetworkAvailability.hasTransport,
+    );
+  }
+  return backendEvaluator;
+}
+
+class BackendLessonAttemptEvaluator
+    implements LessonAttemptEvaluator, DisposableLessonAttemptEvaluator {
+  factory BackendLessonAttemptEvaluator({
+    AppConfig? config,
+    http.Client? client,
+    Future<String> Function()? clientIdProvider,
+    Future<void> Function()? clientIdResetter,
+    Future<void> Function(Duration duration)? retryDelay,
+  }) {
+    final resolvedConfig = config ?? AppConfig.fromEnvironment();
+    // Keep the provider and resetter on the same identity instance. A stale
+    // server registration then rotates both the native id and this object's
+    // cached value before the authenticated client retries the request.
+    final clientIdentity = client == null && clientIdProvider == null
+        ? ClientIdentity()
+        : null;
+    final resolvedClientIdProvider =
+        clientIdProvider ??
+        (clientIdentity?.getClientId ??
+            () async => 'android_test-installation');
+    final resolvedClientIdResetter =
+        clientIdResetter ?? clientIdentity?.resetClientId;
+    return BackendLessonAttemptEvaluator._(
+      config: resolvedConfig,
+      clientIdProvider: resolvedClientIdProvider,
+      client:
+          client ??
+          InstallationAuthenticatedClient(
+            config: resolvedConfig,
+            clientIdProvider: resolvedClientIdProvider,
+            clientIdResetter: resolvedClientIdResetter,
+          ),
+      retryDelay: retryDelay ?? Future<void>.delayed,
+    );
+  }
+
+  BackendLessonAttemptEvaluator._({
+    required AppConfig config,
+    required Future<String> Function() clientIdProvider,
+    required http.Client client,
+    required Future<void> Function(Duration duration) retryDelay,
+  }) : _config = config,
+       _clientIdProvider = clientIdProvider,
+       _client = client,
+       _retryDelay = retryDelay;
+
+  final AppConfig _config;
+  final Future<String> Function() _clientIdProvider;
+  final http.Client _client;
+  final Future<void> Function(Duration duration) _retryDelay;
+
+  @override
+  Future<LessonAttemptOutcome> evaluate({
+    required String lessonCode,
+    required String sentenceId,
+    required String expectedEnglish,
+    required String recordingPath,
+    required Duration recordingDuration,
+    required int attemptNumber,
+    required int childAge,
+    Iterable<String> acceptedVariants = const <String>[],
+    bool requireAllExpectedTokens = false,
+  }) async {
+    await _ensureInstallationAuthenticated();
+    final clientId = await _clientIdProvider();
     Uint8List? webBytes;
     if (recordingPath.startsWith('blob:')) {
       final blobResponse = await _get(Uri.parse(recordingPath));
@@ -45,6 +341,9 @@ class BackendLessonAttemptEvaluator implements LessonAttemptEvaluator {
       recordingDuration: recordingDuration,
       attemptNumber: attemptNumber,
       childAge: childAge,
+      acceptedVariants: acceptedVariants,
+      requireAllExpectedTokens: requireAllExpectedTokens,
+      clientId: clientId,
       webBytes: webBytes,
     );
 
@@ -55,11 +354,19 @@ class BackendLessonAttemptEvaluator implements LessonAttemptEvaluator {
       return _evaluateWithAudioTranslationFallback(
         expectedEnglish: expectedEnglish,
         recordingPath: recordingPath,
+        acceptedVariants: acceptedVariants,
+        requireAllExpectedTokens: requireAllExpectedTokens,
+        clientId: clientId,
         webBytes: webBytes,
       );
     }
 
-    return _parseLessonAttemptResponse(response);
+    return _parseLessonAttemptResponse(
+      response,
+      expectedEnglish: expectedEnglish,
+      acceptedVariants: acceptedVariants,
+      requireAllExpectedTokens: requireAllExpectedTokens,
+    );
   }
 
   Future<http.Response> _postLessonAttempt({
@@ -70,39 +377,57 @@ class BackendLessonAttemptEvaluator implements LessonAttemptEvaluator {
     required Duration recordingDuration,
     required int attemptNumber,
     required int childAge,
+    required Iterable<String> acceptedVariants,
+    required bool requireAllExpectedTokens,
+    required String clientId,
     required Uint8List? webBytes,
-  }) async {
-    final extension = recordingPath.startsWith('blob:') ? 'webm' : 'm4a';
-    final request =
-        http.MultipartRequest(
-            'POST',
-            _config.resolve('/api/listening/evaluate-attempt'),
-          )
-          ..fields['expectedEnglish'] = expectedEnglish
-          ..fields['lessonCode'] = lessonCode
-          ..fields['sentenceId'] = sentenceId
-          ..fields['attemptNumber'] = '$attemptNumber'
-          ..fields['childAge'] = '$childAge'
-          ..fields['recordingDurationMs'] =
-              '${recordingDuration.inMilliseconds}';
-    request.files.add(
-      await createAudioMultipartFile(
-        field: 'audio',
-        path: recordingPath,
-        filename: 'lesson-attempt.$extension',
-        bytes: webBytes,
-      ),
-    );
-    return http.Response.fromStream(await _send(request));
-  }
+  }) => _sendScoringRequest(
+    endpoint: '/api/listening/evaluate-attempt',
+    requestFactory: () async {
+      final extension = lessonAudioExtensionForPath(recordingPath);
+      final request =
+          http.MultipartRequest(
+              'POST',
+              _config.resolve('/api/listening/evaluate-attempt'),
+            )
+            ..fields['expectedEnglish'] = expectedEnglish
+            ..fields['acceptedVariants'] = jsonEncode(acceptedVariants.toList())
+            ..fields['requireAllExpectedTokens'] = requireAllExpectedTokens
+                .toString()
+            ..fields['lessonCode'] = lessonCode
+            ..fields['sentenceId'] = sentenceId
+            ..fields['attemptNumber'] = '$attemptNumber'
+            ..fields['childAge'] = '$childAge'
+            ..fields['clientId'] = clientId
+            ..fields['recordingDurationMs'] =
+                '${recordingDuration.inMilliseconds}';
+      request.files.add(
+        await createAudioMultipartFile(
+          field: 'audio',
+          path: recordingPath,
+          filename: 'lesson-attempt.$extension',
+          bytes: webBytes,
+        ),
+      );
+      return http.Response.fromStream(await _send(request));
+    },
+  );
 
-  LessonAttemptOutcome _parseLessonAttemptResponse(http.Response response) {
+  LessonAttemptOutcome _parseLessonAttemptResponse(
+    http.Response response, {
+    required String expectedEnglish,
+    required Iterable<String> acceptedVariants,
+    required bool requireAllExpectedTokens,
+  }) {
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      _throwIfScoringServiceFailed(response.statusCode);
+    }
     Object? decoded;
     try {
       decoded = jsonDecode(response.body);
     } on FormatException {
       throw const LessonAttemptEvaluationException(
-        'Máy chủ chưa xử lý được câu nói. Con thử lại sau nhé.',
+        'Máy chủ chưa xử lý được câu nói. Bạn thử lại sau nhé.',
       );
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -112,9 +437,12 @@ class BackendLessonAttemptEvaluator implements LessonAttemptEvaluator {
       final code = errorPayload is Map<String, dynamic>
           ? errorPayload['code']
           : null;
-      if (code == 'ASR_LOW_CONFIDENCE' ||
-          code == 'AUDIO_TOO_SHORT' ||
-          code == 'ASR_FAILED') {
+      if (code == 'AUDIO_TOO_SHORT' ||
+          code == 'NO_RESPONSE' ||
+          code == 'SPEECH_TIMEOUT') {
+        return LessonAttemptOutcome.noResponse;
+      }
+      if (code == 'ASR_LOW_CONFIDENCE' || code == 'ASR_FAILED') {
         return LessonAttemptOutcome.unclear;
       }
       final message = errorPayload is Map<String, dynamic>
@@ -123,45 +451,108 @@ class BackendLessonAttemptEvaluator implements LessonAttemptEvaluator {
       throw LessonAttemptEvaluationException(
         message is String && message.trim().isNotEmpty
             ? message
-            : 'Chưa kiểm tra được câu nói của con. Con thử lại sau nhé.',
+            : 'Chưa kiểm tra được câu nói của bạn. Bạn thử lại sau nhé.',
       );
     }
 
     final matched = decoded is Map<String, dynamic> ? decoded['matched'] : null;
     if (matched is! bool) {
       throw const LessonAttemptEvaluationException(
-        'Kết quả kiểm tra câu nói không hợp lệ. Con thử lại sau nhé.',
+        'Kết quả kiểm tra câu nói không hợp lệ. Bạn thử lại sau nhé.',
       );
     }
-    return matched ? LessonAttemptOutcome.good : LessonAttemptOutcome.retry;
+    final transcript = _recognizedEnglishFrom(decoded);
+    if (matched) {
+      // A few deployed evaluators only return a loose semantic match. When a
+      // transcript is available, keep the client-side minimum-word contract
+      // so a fragment such as "School starts eight" cannot pass the authored
+      // four-word target. Older deployments without a transcript remain
+      // compatible and keep their server verdict.
+      if (transcript == null) {
+        return LessonAttemptOutcome.good;
+      }
+      return matchesRecognizedLessonEnglish(
+            expectedEnglish,
+            transcript,
+            acceptedVariants: acceptedVariants,
+            requireAllExpectedTokens: requireAllExpectedTokens,
+          )
+          ? LessonAttemptOutcome.good
+          : LessonAttemptOutcome.retry;
+    }
+
+    // Some deployed evaluators use a stricter server-side matcher than the V4
+    // authored recognition inventory. When they already return an English
+    // transcript, apply that inventory locally before telling a child they are
+    // wrong. This does not accept arbitrary audio: every expected token and
+    // authored variant is still checked by the lesson matcher.
+    if (transcript != null &&
+        matchesRecognizedLessonEnglish(
+          expectedEnglish,
+          transcript,
+          acceptedVariants: acceptedVariants,
+          requireAllExpectedTokens: requireAllExpectedTokens,
+        )) {
+      return LessonAttemptOutcome.good;
+    }
+    return LessonAttemptOutcome.retry;
+  }
+
+  String? _recognizedEnglishFrom(Object? decoded) {
+    if (decoded is! Map<String, dynamic>) return null;
+    for (final field in const <String>[
+      'englishText',
+      'transcript',
+      'recognizedText',
+      'text',
+    ]) {
+      final value = decoded[field];
+      if (value is String && value.trim().isNotEmpty) {
+        return value.trim();
+      }
+    }
+    return null;
   }
 
   Future<LessonAttemptOutcome> _evaluateWithAudioTranslationFallback({
     required String expectedEnglish,
     required String recordingPath,
+    required Iterable<String> acceptedVariants,
+    required bool requireAllExpectedTokens,
+    required String clientId,
     required Uint8List? webBytes,
   }) async {
-    final extension = recordingPath.startsWith('blob:') ? 'webm' : 'm4a';
-    final request = http.MultipartRequest(
-      'POST',
-      _config.resolve('/api/audio/translate'),
-    )..fields['sourceLanguage'] = 'en';
-    request.files.add(
-      await createAudioMultipartFile(
-        field: 'audio',
-        path: recordingPath,
-        filename: 'lesson-attempt.$extension',
-        bytes: webBytes,
-      ),
+    final response = await _sendScoringRequest(
+      endpoint: '/api/audio/translate',
+      requestFactory: () async {
+        final extension = lessonAudioExtensionForPath(recordingPath);
+        final request =
+            http.MultipartRequest(
+                'POST',
+                _config.resolve('/api/audio/translate'),
+              )
+              ..fields['sourceLanguage'] = 'en'
+              ..fields['clientId'] = clientId;
+        request.files.add(
+          await createAudioMultipartFile(
+            field: 'audio',
+            path: recordingPath,
+            filename: 'lesson-attempt.$extension',
+            bytes: webBytes,
+          ),
+        );
+        return http.Response.fromStream(await _send(request));
+      },
     );
-
-    final response = await http.Response.fromStream(await _send(request));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      _throwIfScoringServiceFailed(response.statusCode);
+    }
     Object? decoded;
     try {
       decoded = jsonDecode(response.body);
     } on FormatException {
       throw const LessonAttemptEvaluationException(
-        'Máy chủ chưa xử lý được câu nói. Con thử lại sau nhé.',
+        'Máy chủ chưa xử lý được câu nói. Bạn thử lại sau nhé.',
       );
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -171,9 +562,12 @@ class BackendLessonAttemptEvaluator implements LessonAttemptEvaluator {
       final code = errorPayload is Map<String, dynamic>
           ? errorPayload['code']
           : null;
-      if (code == 'ASR_LOW_CONFIDENCE' ||
-          code == 'AUDIO_TOO_SHORT' ||
-          code == 'ASR_FAILED') {
+      if (code == 'AUDIO_TOO_SHORT' ||
+          code == 'NO_RESPONSE' ||
+          code == 'SPEECH_TIMEOUT') {
+        return LessonAttemptOutcome.noResponse;
+      }
+      if (code == 'ASR_LOW_CONFIDENCE' || code == 'ASR_FAILED') {
         return LessonAttemptOutcome.unclear;
       }
       final message = errorPayload is Map<String, dynamic>
@@ -182,7 +576,7 @@ class BackendLessonAttemptEvaluator implements LessonAttemptEvaluator {
       throw LessonAttemptEvaluationException(
         message is String && message.trim().isNotEmpty
             ? message
-            : 'Chưa kiểm tra được câu nói của con. Con thử lại sau nhé.',
+            : 'Chưa kiểm tra được câu nói của bạn. Bạn thử lại sau nhé.',
       );
     }
 
@@ -190,25 +584,131 @@ class BackendLessonAttemptEvaluator implements LessonAttemptEvaluator {
         ? decoded['englishText']
         : null;
     if (transcript is! String || transcript.trim().isEmpty) {
-      return LessonAttemptOutcome.unclear;
+      return LessonAttemptOutcome.noResponse;
     }
-    return _matchesLessonEnglish(expectedEnglish, transcript)
+    return matchesRecognizedLessonEnglish(
+          expectedEnglish,
+          transcript,
+          acceptedVariants: acceptedVariants,
+          requireAllExpectedTokens: requireAllExpectedTokens,
+        )
         ? LessonAttemptOutcome.good
         : LessonAttemptOutcome.retry;
   }
 
+  @override
   void dispose() => _client.close();
+
+  void _throwIfScoringServiceFailed(int statusCode) {
+    if (statusCode == 429 || statusCode >= 500) {
+      // An upstream outage is not evidence that the child spoke unclearly.
+      // Keep this separate from connectivity failures: online API failures
+      // must not silently switch scoring to the offline recognizer.
+      throw const LessonAttemptEvaluationException(
+        'Dịch vụ chấm điểm đang bận. Bạn thử lại sau nhé.',
+      );
+    }
+  }
+
+  Future<http.Response> _sendScoringRequest({
+    required String endpoint,
+    required Future<http.Response> Function() requestFactory,
+  }) async {
+    var retryIndex = 0;
+    while (true) {
+      final response = await requestFactory();
+      final maximumRetries = _maximumScoringRetries(response.statusCode);
+      final requestId = _responseHeader(response, const <String>[
+        'x-request-id',
+        'cf-ray',
+        'x-railway-request-id',
+      ]);
+      debugPrint(
+        jsonEncode(<String, Object?>{
+          'event': 'lesson_scoring_response',
+          'endpoint': endpoint,
+          'status': response.statusCode,
+          'retryIndex': retryIndex,
+          'requestId': requestId,
+        }),
+      );
+      if (retryIndex >= maximumRetries) return response;
+      final delay = _scoringRetryDelay(response, retryIndex);
+      debugPrint(
+        jsonEncode(<String, Object?>{
+          'event': 'lesson_scoring_retry',
+          'endpoint': endpoint,
+          'status': response.statusCode,
+          'nextRetryIndex': retryIndex + 1,
+          'delayMs': delay.inMilliseconds,
+          'requestId': requestId,
+        }),
+      );
+      retryIndex += 1;
+      await _retryDelay(delay);
+    }
+  }
+
+  int _maximumScoringRetries(int statusCode) => switch (statusCode) {
+    429 || 502 || 503 || 504 => 3,
+    500 => 1,
+    _ => 0,
+  };
+
+  Duration _scoringRetryDelay(http.Response response, int retryIndex) {
+    final rawRetryAfter = _responseHeader(response, const <String>[
+      'retry-after',
+    ]);
+    if (rawRetryAfter != null) {
+      final seconds = int.tryParse(rawRetryAfter.trim());
+      if (seconds != null && seconds >= 0) {
+        return Duration(seconds: math.min(seconds, 5));
+      }
+      final retryAt = DateTime.tryParse(rawRetryAfter)?.toUtc();
+      if (retryAt != null) {
+        final remaining = retryAt.difference(DateTime.now().toUtc());
+        if (remaining > Duration.zero) {
+          return Duration(
+            milliseconds: math.min(remaining.inMilliseconds, 5000),
+          );
+        }
+      }
+    }
+    return switch (retryIndex) {
+      0 => const Duration(milliseconds: 400),
+      1 => const Duration(milliseconds: 1200),
+      _ => const Duration(milliseconds: 2500),
+    };
+  }
+
+  String? _responseHeader(http.Response response, List<String> candidates) {
+    for (final candidate in candidates) {
+      for (final entry in response.headers.entries) {
+        if (entry.key.toLowerCase() == candidate) return entry.value;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _ensureInstallationAuthenticated() async {
+    final client = _client;
+    if (client is InstallationAuthenticatedClient) {
+      await client.ensureAuthenticated();
+    }
+  }
 
   Future<http.Response> _get(Uri uri) async {
     try {
       return await _client.get(uri).timeout(const Duration(seconds: 15));
     } on TimeoutException {
       throw const LessonAttemptEvaluationException(
-        'Chưa kết nối được máy chủ. Con thử lại sau nhé.',
+        'Chưa kết nối được máy chủ. Bạn thử lại sau nhé.',
+        backendUnavailable: true,
       );
     } on http.ClientException {
       throw const LessonAttemptEvaluationException(
-        'Chưa kết nối được máy chủ. Con thử lại sau nhé.',
+        'Chưa kết nối được máy chủ. Bạn thử lại sau nhé.',
+        backendUnavailable: true,
       );
     }
   }
@@ -218,11 +718,13 @@ class BackendLessonAttemptEvaluator implements LessonAttemptEvaluator {
       return await _client.send(request).timeout(const Duration(seconds: 15));
     } on TimeoutException {
       throw const LessonAttemptEvaluationException(
-        'Chưa kết nối được máy chủ. Con thử lại sau nhé.',
+        'Chưa kết nối được máy chủ. Bạn thử lại sau nhé.',
+        backendUnavailable: true,
       );
     } on http.ClientException {
       throw const LessonAttemptEvaluationException(
-        'Chưa kết nối được máy chủ. Con thử lại sau nhé.',
+        'Chưa kết nối được máy chủ. Bạn thử lại sau nhé.',
+        backendUnavailable: true,
       );
     }
   }
@@ -265,9 +767,174 @@ String _normalizeLessonEnglish(String value) {
       .join(' ');
 }
 
-bool _matchesLessonEnglish(String expectedEnglish, String transcript) {
-  final expected = _normalizeLessonEnglish(expectedEnglish);
-  return expected.isNotEmpty && expected == _normalizeLessonEnglish(transcript);
+/// Shared on-device scoring for Core, Challenge and vocabulary practice.
+/// Silence is not an incorrect answer and must not consume an answer retry.
+LessonAttemptOutcome evaluateNativeLessonTranscripts({
+  required String expectedEnglish,
+  required Iterable<String> transcripts,
+  Iterable<String> acceptedVariants = const <String>[],
+  bool requireAllExpectedTokens = false,
+}) {
+  final candidates = transcripts
+      .map((text) => text.trim())
+      .where((text) => text.isNotEmpty)
+      .toSet();
+  if (candidates.isEmpty) return LessonAttemptOutcome.noResponse;
+  return candidates.any(
+        (candidate) => matchesRecognizedLessonEnglish(
+          expectedEnglish,
+          candidate,
+          acceptedVariants: acceptedVariants,
+          requireAllExpectedTokens: requireAllExpectedTokens,
+        ),
+      )
+      ? LessonAttemptOutcome.good
+      : LessonAttemptOutcome.retry;
+}
+
+LessonAttemptOutcome nativeLessonRecognitionFailureOutcome(String? code) =>
+    switch (code) {
+      'NO_SPEECH' ||
+      'NO_RESPONSE' ||
+      'SPEECH_TIMEOUT' ||
+      'AUDIO_TOO_SHORT' => LessonAttemptOutcome.noResponse,
+      _ => LessonAttemptOutcome.unclear,
+    };
+
+/// Performs the encouraging local pass/fail check used after an on-device
+/// recognizer produces an English transcript for a listening lesson.
+///
+/// Authored targets which explicitly require every token (notably
+/// Alphabet/ABC) stay strict. Normal speaking exercises accept a small ASR or
+/// pronunciation/ASR substitution so children are encouraged to continue,
+/// while silence, omitted words and clearly different answers still fail.
+bool matchesRecognizedLessonEnglish(
+  String expectedEnglish,
+  String transcript, {
+  Iterable<String> acceptedVariants = const <String>[],
+  bool requireAllExpectedTokens = false,
+}) {
+  final strictMatch = const LessonRecognitionMatcher().matches(
+    expectedEnglish: expectedEnglish,
+    transcript: transcript,
+    acceptedVariants: acceptedVariants,
+    requireAllExpectedTokens: requireAllExpectedTokens,
+  );
+  if (strictMatch || requireAllExpectedTokens) {
+    return strictMatch;
+  }
+
+  final actual = _normalizeLessonEnglish(transcript);
+  if (actual.isEmpty) {
+    return false;
+  }
+  final targets = <String>{expectedEnglish, ...acceptedVariants};
+  return targets.any((target) {
+    final expected = _normalizeLessonEnglish(target);
+    return _matchesEncouragingLessonEnglish(expected, actual);
+  });
+}
+
+bool _matchesEncouragingLessonEnglish(String expected, String actual) {
+  if (expected.isEmpty || actual.isEmpty) {
+    return false;
+  }
+  if (expected == actual) {
+    return true;
+  }
+
+  final expectedWords = expected.split(' ');
+  final actualWords = actual.split(' ');
+
+  // A short isolated word can change meaning completely (left/right,
+  // shirt/short), so only authored exact variants may pass one-word targets.
+  if (expectedWords.length == 1) {
+    return false;
+  }
+
+  // The authored content requires the child to say the complete sentence.
+  // Extra recognizer filler is harmless, but omitting even one target word is
+  // not: two spoken words must never pass a three-word target.
+  if (actualWords.length < expectedWords.length ||
+      actualWords.length > expectedWords.length + 2) {
+    return false;
+  }
+
+  if (_containsContiguousWords(actualWords, expectedWords)) {
+    return true;
+  }
+
+  final longest = math.max(expected.length, actual.length);
+  final similarity = 1 - (_levenshteinDistance(expected, actual) / longest);
+  final exactWordsInOrder = _longestCommonWordSubsequence(
+    expectedWords,
+    actualWords,
+  );
+
+  if (expectedWords.length == 2 && actualWords.length == expectedWords.length) {
+    return exactWordsInOrder >= 1 && similarity >= 0.78;
+  }
+
+  // For normal phrases, tolerate one mistranscribed word only when the
+  // recognizer returned at least the complete target word count. The
+  // similarity floor prevents common filler words from producing a pass.
+  return actualWords.length == expectedWords.length &&
+      exactWordsInOrder >= expectedWords.length - 1 &&
+      similarity >= 0.66;
+}
+
+int _longestCommonWordSubsequence(List<String> left, List<String> right) {
+  var previous = List<int>.filled(right.length + 1, 0);
+  for (var leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+    final current = List<int>.filled(right.length + 1, 0);
+    for (var rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      if (left[leftIndex - 1] == right[rightIndex - 1]) {
+        current[rightIndex] = previous[rightIndex - 1] + 1;
+      } else {
+        current[rightIndex] = math.max(
+          current[rightIndex - 1],
+          previous[rightIndex],
+        );
+      }
+    }
+    previous = current;
+  }
+  return previous.last;
+}
+
+bool _containsContiguousWords(List<String> source, List<String> expected) {
+  if (expected.length > source.length) return false;
+  for (var start = 0; start <= source.length - expected.length; start += 1) {
+    var matches = true;
+    for (var index = 0; index < expected.length; index += 1) {
+      if (source[start + index] != expected[index]) {
+        matches = false;
+        break;
+      }
+    }
+    if (matches) return true;
+  }
+  return false;
+}
+
+int _levenshteinDistance(String left, String right) {
+  var previous = List<int>.generate(right.length + 1, (index) => index);
+  for (var leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+    final current = List<int>.filled(right.length + 1, 0);
+    current[0] = leftIndex;
+    for (var rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      final substitution =
+          left.codeUnitAt(leftIndex - 1) == right.codeUnitAt(rightIndex - 1)
+          ? 0
+          : 1;
+      current[rightIndex] = math.min(
+        math.min(current[rightIndex - 1] + 1, previous[rightIndex] + 1),
+        previous[rightIndex - 1] + substitution,
+      );
+    }
+    previous = current;
+  }
+  return previous.last;
 }
 
 extension on String {
@@ -275,9 +942,13 @@ extension on String {
 }
 
 class LessonAttemptEvaluationException implements Exception {
-  const LessonAttemptEvaluationException(this.message);
+  const LessonAttemptEvaluationException(
+    this.message, {
+    this.backendUnavailable = false,
+  });
 
   final String message;
+  final bool backendUnavailable;
 
   @override
   String toString() => message;

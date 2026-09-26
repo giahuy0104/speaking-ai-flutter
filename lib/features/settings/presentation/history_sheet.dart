@@ -3,16 +3,18 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
+import '../../../app/homi_ui.dart';
+import '../../../app/mascot_assets.dart';
 import '../../../l10n/display_language.dart';
+import '../../conversation/application/conversation_settings_port.dart';
 import '../../conversation/domain/conversation_models.dart';
-import '../../conversation/presentation/conversation_controller.dart';
 
 enum _HistoryFilter { all, approved, rejected, pending }
 
 class HistorySheet extends StatefulWidget {
   const HistorySheet({required this.controller, super.key});
 
-  final ConversationController controller;
+  final ConversationHistoryPort controller;
 
   @override
   State<HistorySheet> createState() => _HistorySheetState();
@@ -51,7 +53,9 @@ class _HistorySheetState extends State<HistorySheet> {
     }
 
     try {
-      final items = await widget.controller.loadHistory();
+      final items = List<ConversationHistoryItem>.of(
+        await widget.controller.loadHistory(),
+      );
       if (!mounted) {
         return;
       }
@@ -101,6 +105,10 @@ class _HistorySheetState extends State<HistorySheet> {
       760.0,
     );
     final visibleItems = _visibleItems;
+    final recentUserAudioItems = _items
+        .where((item) => item.hasUserAudio)
+        .take(3)
+        .toList(growable: false);
 
     return DisplayLanguageScope(
       language: widget.controller.displayLanguage,
@@ -143,12 +151,6 @@ class _HistorySheetState extends State<HistorySheet> {
                                 '清除搜索内容',
                               ),
                             ),
-                      filled: true,
-                      fillColor: AppColors.lavenderSoft,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(18),
-                        borderSide: BorderSide.none,
-                      ),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -173,6 +175,46 @@ class _HistorySheetState extends State<HistorySheet> {
                     ),
                   ),
                   const SizedBox(height: 10),
+                  if (!_loading && recentUserAudioItems.isNotEmpty) ...<Widget>[
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        context.tr('3 bản ghi âm gần nhất', '最近 3 条录音'),
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: recentUserAudioItems
+                            .map(
+                              (item) => Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: OutlinedButton.icon(
+                                  key: ValueKey<String>(
+                                    'user-audio-${item.conversationId}',
+                                  ),
+                                  onPressed:
+                                      _busyItems.contains(item.conversationId)
+                                      ? null
+                                      : () => _playUserAudioItem(item),
+                                  icon: const Icon(
+                                    Icons.graphic_eq_rounded,
+                                    size: 18,
+                                  ),
+                                  label: Text(
+                                    '${_formatTime(item.createdAt)} · ${item.vietnameseText}',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(growable: false),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
                   Expanded(
                     child: _HistoryBody(
                       loading: _loading,
@@ -202,6 +244,22 @@ class _HistorySheetState extends State<HistorySheet> {
     setState(() => _busyItems.add(item.conversationId));
     try {
       await widget.controller.playHistoryItem(item);
+    } catch (error) {
+      _showMessage(_friendlyError(error), isError: true);
+    } finally {
+      if (mounted) {
+        setState(() => _busyItems.remove(item.conversationId));
+      }
+    }
+  }
+
+  Future<void> _playUserAudioItem(ConversationHistoryItem item) async {
+    if (_busyItems.contains(item.conversationId)) {
+      return;
+    }
+    setState(() => _busyItems.add(item.conversationId));
+    try {
+      await widget.controller.playHistoryUserAudio(item);
     } catch (error) {
       _showMessage(_friendlyError(error), isError: true);
     } finally {
@@ -269,7 +327,7 @@ class _HistorySheetState extends State<HistorySheet> {
         title: Text(_t('Xóa lượt nói này?', '删除这条记录？')),
         content: Text(
           _t(
-            '“${item.vietnameseText}” sẽ bị xóa khỏi lịch sử.',
+            'HOMI sẽ yêu cầu máy chủ xóa “${item.vietnameseText}” cùng transcript và audio liên quan. Thao tác chỉ hoàn tất khi máy chủ xác nhận.',
             '“${item.vietnameseText}”将从历史记录中删除。',
           ),
         ),
@@ -305,7 +363,9 @@ class _HistorySheetState extends State<HistorySheet> {
             )
             .toList(growable: false);
       });
-      _showMessage(_t('Đã xóa lượt nói.', '已删除这条记录。'));
+      _showMessage(
+        _t('Máy chủ đã xác nhận yêu cầu xóa lượt nói.', '服务器已确认删除这条记录。'),
+      );
     } catch (error) {
       _showMessage(_friendlyError(error), isError: true);
     } finally {
@@ -322,7 +382,7 @@ class _HistorySheetState extends State<HistorySheet> {
         title: Text(_t('Xóa toàn bộ lịch sử?', '清除全部历史记录？')),
         content: Text(
           _t(
-            'Thao tác này sẽ xóa tất cả lượt nói đã lưu và không thể hoàn tác.',
+            'HOMI sẽ yêu cầu máy chủ xóa toàn bộ history, transcript và audio liên quan. Thao tác chỉ hoàn tất khi máy chủ xác nhận và không thể hoàn tác.',
             '此操作将删除所有已保存的对话记录，且无法撤销。',
           ),
         ),
@@ -355,7 +415,12 @@ class _HistorySheetState extends State<HistorySheet> {
         _items = const <ConversationHistoryItem>[];
         _loading = false;
       });
-      _showMessage(_t('Đã xóa toàn bộ lịch sử.', '已清除全部历史记录。'));
+      _showMessage(
+        _t(
+          'Máy chủ đã xác nhận yêu cầu xóa toàn bộ dữ liệu lịch sử.',
+          '服务器已确认删除全部历史数据。',
+        ),
+      );
     } catch (error) {
       if (mounted) {
         setState(() => _loading = false);
@@ -377,7 +442,7 @@ class _HistorySheetState extends State<HistorySheet> {
           ),
           backgroundColor: isError
               ? Theme.of(context).colorScheme.error
-              : AppColors.ink,
+              : Theme.of(context).colorScheme.inverseSurface,
         ),
       );
   }
@@ -405,6 +470,7 @@ class _HistoryHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Row(
       children: <Widget>[
         Expanded(
@@ -417,9 +483,9 @@ class _HistoryHeader extends StatelessWidget {
               ),
               Text(
                 context.tr('$count lượt đã lưu', '已保存 $count 条'),
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: AppColors.muted),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -472,7 +538,14 @@ class _HistoryBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: HomiWaveform(
+          active: true,
+          width: 136,
+          height: 38,
+          semanticLabel: 'Đang tải lịch sử',
+        ),
+      );
     }
     if (error != null) {
       return _HistoryMessage(
@@ -485,9 +558,16 @@ class _HistoryBody extends StatelessWidget {
     if (items.isEmpty) {
       return _HistoryMessage(
         icon: hasAnyItems ? Icons.search_off_rounded : Icons.history_rounded,
+        assetPath: hasAnyItems ? null : MascotAssets.wave,
         text: hasAnyItems
             ? context.tr('Không tìm thấy lượt nói phù hợp.', '没有找到符合条件的记录。')
             : context.tr('Chưa có lượt nói nào.', '还没有对话记录。'),
+        subtitle: hasAnyItems
+            ? null
+            : context.tr(
+                'Lịch sử sẽ xuất hiện sau lần luyện đầu tiên.',
+                '完成第一次练习后，记录会显示在这里。',
+              ),
       );
     }
 
@@ -503,7 +583,7 @@ class _HistoryBody extends StatelessWidget {
             child: Text(
               context.trKnown(_dayLabel(item.createdAt)),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppColors.muted,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 14,
               ),
             ),
@@ -544,6 +624,8 @@ class _HistoryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final status = _statusPresentation(item.reviewStatus);
     final localizedStatus = context.trKnown(status.label);
 
@@ -552,28 +634,26 @@ class _HistoryRow extends StatelessWidget {
       label:
           '$localizedStatus. ${item.vietnameseText}. ${item.englishText}. '
           '${_formatTime(item.createdAt)}.',
-      child: Container(
+      child: HomiSurface(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.lavenderBorder),
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: status.background,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(status.icon, color: status.color, size: 22),
+                HomiIconBadge(
+                  icon: status.icon,
+                  foregroundColor: status.color,
+                  backgroundColor: isDark
+                      ? Color.alphaBlend(
+                          status.color.withValues(alpha: 0.14),
+                          theme.colorScheme.surfaceContainerHighest,
+                        )
+                      : status.background,
+                  size: 40,
+                  iconSize: 22,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -585,8 +665,8 @@ class _HistoryRow extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   _formatTime(item.createdAt),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.muted,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                     fontSize: 12,
                   ),
                 ),
@@ -597,9 +677,9 @@ class _HistoryRow extends StatelessWidget {
               padding: const EdgeInsets.only(left: 50),
               child: Text(
                 item.englishText,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(color: AppColors.indigo),
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
               ),
             ),
             const SizedBox(height: 10),
@@ -628,30 +708,10 @@ class _HistoryRow extends StatelessWidget {
               children: <Widget>[
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: status.background,
-                      borderRadius: BorderRadius.circular(99),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Icon(status.icon, color: status.color, size: 17),
-                        const SizedBox(width: 5),
-                        Text(
-                          localizedStatus,
-                          style: TextStyle(
-                            color: status.color,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: HomiStatusPill(
+                    label: localizedStatus,
+                    color: status.color,
+                    icon: status.icon,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -674,14 +734,15 @@ class _HistoryRow extends StatelessWidget {
                       icon: const Icon(Icons.sentiment_satisfied_alt_rounded),
                       tooltip: context.tr('Đánh dấu Đúng ý', '标记为符合原意'),
                       style: IconButton.styleFrom(
-                        backgroundColor:
-                            item.reviewStatus == HistoryReviewStatus.approved
+                        backgroundColor: isDark
+                            ? theme.colorScheme.surfaceContainerHighest
+                            : item.reviewStatus == HistoryReviewStatus.approved
                             ? AppColors.successSoft
                             : AppColors.lavender,
                         foregroundColor:
                             item.reviewStatus == HistoryReviewStatus.approved
                             ? AppColors.success
-                            : AppColors.indigoDark,
+                            : theme.colorScheme.primary,
                       ),
                     ),
                     IconButton(
@@ -689,14 +750,15 @@ class _HistoryRow extends StatelessWidget {
                       icon: const Icon(Icons.sentiment_dissatisfied_rounded),
                       tooltip: context.tr('Đánh dấu Sai ý', '标记为不符合原意'),
                       style: IconButton.styleFrom(
-                        backgroundColor:
-                            item.reviewStatus == HistoryReviewStatus.rejected
+                        backgroundColor: isDark
+                            ? theme.colorScheme.surfaceContainerHighest
+                            : item.reviewStatus == HistoryReviewStatus.rejected
                             ? AppColors.coralSoft
                             : AppColors.lavender,
                         foregroundColor:
                             item.reviewStatus == HistoryReviewStatus.rejected
                             ? Theme.of(context).colorScheme.error
-                            : AppColors.indigoDark,
+                            : theme.colorScheme.primary,
                       ),
                     ),
                     IconButton(
@@ -722,16 +784,20 @@ class _MetadataChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.lavenderSoft,
+        color: isDark
+            ? theme.colorScheme.surfaceContainerHighest
+            : AppColors.lavenderSoft,
         borderRadius: BorderRadius.circular(99),
       ),
       child: Text(
         label,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: AppColors.muted,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
           fontSize: 11,
           fontWeight: FontWeight.w600,
         ),
@@ -748,11 +814,18 @@ class _LearningChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final presentation = _learningPresentation(item);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: presentation.background,
+        color: isDark
+            ? Color.alphaBlend(
+                presentation.color.withValues(alpha: 0.12),
+                theme.colorScheme.surfaceContainerHighest,
+              )
+            : presentation.background,
         borderRadius: BorderRadius.circular(99),
       ),
       child: Row(
@@ -778,26 +851,48 @@ class _HistoryMessage extends StatelessWidget {
   const _HistoryMessage({
     required this.icon,
     required this.text,
+    this.assetPath,
+    this.subtitle,
     this.actionLabel,
     this.onAction,
   });
 
   final IconData icon;
   final String text;
+  final String? assetPath;
+  final String? subtitle;
   final String? actionLabel;
   final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 36),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(icon, color: AppColors.muted, size: 38),
+            if (assetPath != null)
+              Image.asset(assetPath!, height: 116, fit: BoxFit.contain)
+            else
+              Icon(icon, color: theme.colorScheme.onSurfaceVariant, size: 38),
             const SizedBox(height: 10),
-            Text(text, textAlign: TextAlign.center),
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            if (subtitle != null) ...<Widget>[
+              const SizedBox(height: 6),
+              Text(
+                subtitle!,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
             if (actionLabel != null && onAction != null) ...<Widget>[
               const SizedBox(height: 12),
               OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),

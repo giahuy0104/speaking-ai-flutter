@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T04-B03\\C810-L2-T04-B03-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T04-B03-Q08",
+  "sourceText": "Bạn cần nói \"Xin lỗi\". Go straight hay Excuse me?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn cần nói \"Xin lỗi\".",
+      "spoken_text": "Bạn cần nói \"Xin lỗi\".",
+      "input_index": 46
+    },
+    {
+      "language": "en",
+      "text": "Go straight",
+      "spoken_text": "Go straight",
+      "input_index": 47
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 48
+    },
+    {
+      "language": "en",
+      "text": "Excuse me?",
+      "spoken_text": "Excuse me?",
+      "input_index": 49
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7C0A7F36EE2BE87E52249D9A",
+  "text": "Bạn cần nói \"Xin lỗi\". Go straight hay Excuse me?",
+  "asset": "assets/audio/CURRICULUM/7c0a7f36ee2be87e52249d9a.vi.v1.mp3",
+  "sha256": "83d879f0c41e321648d166875c751813df330af16ecc086ad1ba44877b391121",
+  "durationSeconds": 5.147438
+}

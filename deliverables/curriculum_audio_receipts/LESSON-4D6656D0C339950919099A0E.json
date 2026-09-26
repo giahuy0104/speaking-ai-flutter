@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T09-B02\\C810-L3-T09-B02-T05_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T09-B02-T05_EN",
+  "sourceText": "I fell down.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "I fell down.",
+      "generation_key": "7d563336c0bbadf9"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-4D6656D0C339950919099A0E",
+  "text": "I fell down.",
+  "asset": "assets/audio/CURRICULUM/4d6656d0c339950919099a0e.en.v1.mp3",
+  "sha256": "0a49d86bf57550165a9be5d8a7b631d00ab124e722635a54b6d0f16cc912ec9a",
+  "durationSeconds": 2.007075
+}

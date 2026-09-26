@@ -1,0 +1,57 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T08-B02\\C1315-L3-T08-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T08-B02-Q06",
+  "sourceText": "HOMI nói: Anything to drink? Water, please hay That's all, thanks?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Anything to drink?",
+      "spoken_text": "Anything to drink?",
+      "input_index": 31
+    },
+    {
+      "language": "en",
+      "text": "Water, please",
+      "spoken_text": "Water, please",
+      "input_index": 32
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 33
+    },
+    {
+      "language": "en",
+      "text": "That's all, thanks?",
+      "spoken_text": "That's all, thanks?",
+      "input_index": 34
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7B77576AA83EF1B3FE7EB1B3",
+  "text": "HOMI nói: Anything to drink? Water, please hay That's all, thanks?",
+  "asset": "assets/audio/CURRICULUM/7b77576aa83ef1b3fe7eb1b3.vi.v1.mp3",
+  "sha256": "9e5ef51fdb7e47e727ecd65fe5d6d6d193e5399209f59e564427c38da28ed1ee",
+  "durationSeconds": 6.552313
+}

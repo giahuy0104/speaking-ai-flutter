@@ -5,15 +5,15 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-  <meta name="description" content="Trợ lý giao tiếp và luyện nghe tiếng Anh INNOTRIK.">
+  <meta name="description" content="Trợ lý giao tiếp và luyện nghe tiếng Anh HOMI.">
   <meta name="theme-color" content="#EAF4FF">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="INNOTRIK">
+  <meta name="apple-mobile-web-app-title" content="HOMI">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
   <link rel="icon" type="image/png" href="favicon.png">
-  <title>INNOTRIK - Trợ lý giao tiếp</title>
+  <title>HOMI - Trợ lý giao tiếp</title>
   <link rel="manifest" href="manifest.json">
   <style>
     :root { color-scheme: light; background: #eaf4ff; }
@@ -29,7 +29,37 @@
 </head>
 <body>
   <script>
+    let authoredPrompt = null;
+    function stopAuthoredPrompt() {
+      if (authoredPrompt) authoredPrompt.finish(null, 'cancelled');
+    }
+    window.innotrikAuthoredPromptPlayAndWait = function (bytes) {
+      window.innotrikVoicePromptStop();
+      return new Promise(function (resolve, reject) {
+        const url = URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' }));
+        const player = new Audio(url);
+        const state = { player, finish: null };
+        let finished = false;
+        state.finish = function (error, status) {
+          if (finished) return;
+          finished = true;
+          player.onended = null;
+          player.onerror = null;
+          player.pause();
+          player.removeAttribute('src');
+          URL.revokeObjectURL(url);
+          if (authoredPrompt === state) authoredPrompt = null;
+          if (error) reject(error); else resolve(status || 'completed');
+        };
+        authoredPrompt = state;
+        player.playbackRate = 1; // Requested tempo is already baked into MP3.
+        player.onended = function () { state.finish(null); };
+        player.onerror = function () { state.finish(new Error('Authored audio failed')); };
+        player.play().catch(function (error) { state.finish(error); });
+      });
+    };
     window.innotrikVoicePromptSpeak = function (text, locale) {
+      stopAuthoredPrompt();
       if (!('speechSynthesis' in window) || !text) return;
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
@@ -40,6 +70,7 @@
       window.speechSynthesis.speak(utterance);
     };
     window.innotrikVoicePromptSpeakAndWait = function (text, locale) {
+      stopAuthoredPrompt();
       return new Promise(function (resolve) {
         if (!('speechSynthesis' in window) || !text) {
           resolve('skipped');
@@ -70,6 +101,7 @@
       });
     };
     window.innotrikVoicePromptStop = function () {
+      stopAuthoredPrompt();
       if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     };
     window.innotrikSpeechReadyCue = function () {

@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T05-B01\\C67-L2-T05-B01-T02_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T05-B01-T02_VI",
+  "sourceText": "Sách xanh dương.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Sách xanh dương.",
+      "generation_key": "d7c983fb6b002d50"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-103898AE02473EFC6C8ABC19",
+  "text": "Sách xanh dương.",
+  "asset": "assets/audio/CURRICULUM/103898ae02473efc6c8abc19.vi.v1.mp3",
+  "sha256": "6d91b3356a41c31009fb553b4bb7acd2ed79b356aa3ac01f88bfc4a42dc367e2",
+  "durationSeconds": 1.499728
+}

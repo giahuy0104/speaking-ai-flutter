@@ -1,0 +1,20 @@
+{
+  "signature": "cfa0b672c4b1d30d7de48749ea153ef77b570f6554466ae103b818b8878a53b0",
+  "request": {
+    "text": "Elephant",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "864990f26de53aac1c1a4eef33566d0c35c1d157fd5b381cee21f1f6f7eb06b2",
+  "requestId": "yeqTYmaNrIrd74B4KzVj",
+  "createdAt": "2026-09-15T23:17:32.964Z"
+}

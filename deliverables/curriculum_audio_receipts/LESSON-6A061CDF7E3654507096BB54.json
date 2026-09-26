@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T04-B02\\C810-L2-T04-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T04-B02-Q04",
+  "sourceText": "Gần công viên: Next to school hay Near the park?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Gần công viên:",
+      "spoken_text": "Gần công viên:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Next to school",
+      "spoken_text": "Next to school",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Near the park?",
+      "spoken_text": "Near the park?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-6A061CDF7E3654507096BB54",
+  "text": "Gần công viên: Next to school hay Near the park?",
+  "asset": "assets/audio/CURRICULUM/6a061cdf7e3654507096bb54.vi.v1.mp3",
+  "sha256": "e4414909eb6698600075721ceaedd1f082f57625fdfe15b7236b847e5ca9dd4f",
+  "durationSeconds": 4.557619
+}

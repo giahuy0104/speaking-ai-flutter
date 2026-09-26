@@ -1,0 +1,33 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T01-B03\\C67-L1-T01-B03-Q04_CHOICE_2_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T01-B03-Q04",
+  "sourceText": "Window.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Window.",
+      "spoken_text": "Window.",
+      "input_index": 23
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-5806E9FFA8CCA561CD5C29DE",
+  "text": "Window.",
+  "asset": "assets/audio/CURRICULUM/5806e9ffa8cca561cd5c29de.en.v1.mp3",
+  "sha256": "67f17ba6578ff22280e889a2d0b0bbb00ababdbb54a988bc9ed4407ecc1dbec3",
+  "durationSeconds": 1.282925
+}

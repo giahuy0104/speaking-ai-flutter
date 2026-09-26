@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T03-B02\\C1112-L1-T03-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T03-B02-Q04",
+  "sourceText": "Mình giỏi nhớ từ: I work well in teams hay I'm good at remembering words?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình giỏi nhớ từ:",
+      "spoken_text": "Mình giỏi nhớ từ:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "I work well in teams",
+      "spoken_text": "I work well in teams",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "I'm good at remembering words?",
+      "spoken_text": "I'm good at remembering words?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9EC3850D40E91309350348D7",
+  "text": "Mình giỏi nhớ từ: I work well in teams hay I'm good at remembering words?",
+  "asset": "assets/audio/CURRICULUM/9ec3850d40e91309350348d7.vi.v1.mp3",
+  "sha256": "a6618a2ad2595b7d901cf6d2986590d52d1ccfaef7261b40b70e094b37b589a4",
+  "durationSeconds": 8.908821
+}

@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T06\\C1315-L2-M10_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-M10",
+  "sourceText": "Bạn cần diễn đạt \"Không đăng địa chỉ\". Don't post your address hay Keep your account private?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Không đăng địa chỉ\".",
+      "text": "Bạn cần diễn đạt \"Không đăng địa chỉ\".",
+      "spoken_text": "Bạn cần diễn đạt \"Không đăng địa chỉ\".",
+      "input_index": 55
+    },
+    {
+      "language": "en",
+      "source_text": "Don't post your address",
+      "text": "Don't post your address",
+      "spoken_text": "Don't post your address",
+      "input_index": 56
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 57
+    },
+    {
+      "language": "en",
+      "source_text": "Keep your account private?",
+      "text": "Keep your account private?",
+      "spoken_text": "Keep your account private?",
+      "input_index": 58
+    }
+  ],
+  "sourceSha256": "f1b59ee4abe9ef92970793e88cce36a095be467a2b83b141c5d231dfd942130d",
+  "id": "LESSON-83FCD2B28A63967250E98DC8",
+  "text": "Bạn cần diễn đạt \"Không đăng địa chỉ\". Don't post your address hay Keep your account private?",
+  "asset": "assets/audio/CURRICULUM/83fcd2b28a63967250e98dc8.vi.v1.mp3",
+  "sha256": "f1b59ee4abe9ef92970793e88cce36a095be467a2b83b141c5d231dfd942130d",
+  "durationSeconds": 7.446508
+}

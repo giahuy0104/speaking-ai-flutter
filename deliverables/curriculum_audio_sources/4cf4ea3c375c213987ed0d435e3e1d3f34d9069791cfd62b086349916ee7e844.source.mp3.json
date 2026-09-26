@@ -1,0 +1,20 @@
+{
+  "signature": "4cf4ea3c375c213987ed0d435e3e1d3f34d9069791cfd62b086349916ee7e844",
+  "request": {
+    "text": "Five claps",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "5c6e85073ba32a3282e1788fc32ce69604f041da1e52ee8d7d3ecc03a3ef711c",
+  "requestId": "9Cl6O1GLPHjvMGtdUJ89",
+  "createdAt": "2026-09-15T23:15:47.560Z"
+}

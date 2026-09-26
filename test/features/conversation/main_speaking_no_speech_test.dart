@@ -7,17 +7,39 @@ import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/main_button_coordinator.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/data/demo_conversation_repository.dart';
+import 'package:ai_speaking_flutter_app/features/conversation/application/vietnamese_transcript_corrector.dart';
+import 'package:ai_speaking_flutter_app/features/conversation/application/conversation_recording_endpoint_policy.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('translation quiet window adapts to short versus long speech', () {
+    for (final item in <(String, int)>[
+      ('apple', 400),
+      ('Con muốn uống nước', 500),
+      ('Con muốn đi chơi ở công viên cùng với ba mẹ', 700),
+    ]) {
+      expect(
+        ConversationRecordingEndpointPolicy.quietWindow(
+          item.$1,
+          baseSilenceMs: 700,
+        ),
+        Duration(milliseconds: item.$2),
+      );
+    }
+    expect(ConversationController.translatedSpeechPlaybackRate, 0.8);
+  });
+
   test(
     'Main speaking turn waits for its configured no-speech timeout',
     () async {
-      final promptService = _FakeVoicePromptService();
+      final audioInput = _SilentAudioInput();
+      final promptService = _FakeVoicePromptService(
+        onReadyCue: () => expect(audioInput.startCount, greaterThan(0)),
+      );
       final controller = ConversationController(
-        audioInput: _SilentAudioInput(),
+        audioInput: audioInput,
         playbackService: const _FakePlaybackService(),
         voicePromptService: promptService,
         repository: const DemoConversationRepository(),
@@ -102,7 +124,7 @@ void main() {
       expect(controller.phase, ConversationPhase.idle);
       expect(controller.lastTurnEndReason, ConversationTurnEndReason.noSpeech);
       expect(promptService.spokenTexts, <String>[
-        'Cô chưa nghe thấy con nói. Con nói lại nhé.',
+        'HOMI chưa nghe thấy bạn nói. Bạn nói lại nhé.',
       ]);
     },
   );
@@ -160,10 +182,230 @@ void main() {
     expect(controller.phase, ConversationPhase.idle);
     expect(controller.result, isNull);
   });
+
+  test(
+    'native transcript is corrected before online conversation translation',
+    () async {
+      final repository = _CapturingStreamingRepository();
+      final controller = ConversationController(
+        audioInput: _SilentAudioInput(),
+        streamingSpeechInput: const _CorrectableStreamingSpeechInput(),
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        vietnameseTranscriptCorrector: MapVietnameseTranscriptCorrector(
+          const <String, String>{
+            'Con ngửa tay xong rồi': 'Con rửa tay xong rồi',
+          },
+        ),
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+        webRuntimeOverride: false,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(seconds: 5),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await controller.stopRecording(manual: true);
+
+      expect(repository.capture?.sourceText, 'Con rửa tay xong rồi');
+      expect(
+        repository.capture?.extraBenchmark?['transcriptCorrectionApplied'],
+        isTrue,
+      );
+      expect(controller.result?.vietnameseText, 'Con rửa tay xong rồi');
+    },
+  );
+
+  test(
+    'Android partial transcript ends the turn after a quiet window even without further RMS events',
+    () async {
+      final speechInput = _PartialOnlyStreamingSpeechInput();
+      final controller = ConversationController(
+        audioInput: _SilentAudioInput(),
+        streamingSpeechInput: speechInput,
+        playbackService: const _FakePlaybackService(),
+        repository: const DemoConversationRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+        webRuntimeOverride: false,
+      );
+      addTearDown(controller.dispose);
+      controller.setVadSilence(400);
+
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(seconds: 5),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      speechInput.emitPartial('Con muốn đi công viên');
+      await Future<void>.delayed(const Duration(milliseconds: 550));
+
+      expect(speechInput.stopCount, 1);
+      expect(controller.isRecording, isFalse);
+    },
+  );
+
+  test('one-word Android partial also ends after the quiet window', () async {
+    final speechInput = _PartialOnlyStreamingSpeechInput();
+    final controller = ConversationController(
+      audioInput: _SilentAudioInput(),
+      streamingSpeechInput: speechInput,
+      playbackService: const _FakePlaybackService(),
+      repository: const DemoConversationRepository(),
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+      webRuntimeOverride: false,
+    );
+    addTearDown(controller.dispose);
+    controller.setVadSilence(400);
+
+    await controller.startRecording(
+      noSpeechTimeout: const Duration(seconds: 5),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    speechInput.emitPartial('apple');
+    await Future<void>.delayed(const Duration(milliseconds: 550));
+
+    expect(speechInput.stopCount, 1);
+    expect(controller.isRecording, isFalse);
+  });
+
+  test(
+    'Android native end-of-speech ends translation while RMS noise stays high',
+    () async {
+      final speechInput = _EndpointStreamingSpeechInput();
+      final controller = ConversationController(
+        audioInput: _SilentAudioInput(),
+        streamingSpeechInput: speechInput,
+        playbackService: const _FakePlaybackService(),
+        repository: const DemoConversationRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+        webRuntimeOverride: false,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(speechInput.dispose);
+      controller.setVadSilence(400);
+
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(seconds: 5),
+      );
+      // Quiet calibration, then steady background noise that the RMS VAD
+      // keeps classifying as voice after the partial confirms speech.
+      for (var i = 0; i < 4; i += 1) {
+        speechInput.emitAmplitude(-60);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      speechInput.emitPartial('Con muốn đi công viên');
+      for (var i = 0; i < 10; i += 1) {
+        speechInput.emitAmplitude(-20);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      expect(speechInput.stopCount, 0, reason: 'RMS noise defers endpoint');
+
+      speechInput.emitSpeechEnded('Con muốn đi công viên');
+      speechInput.emitAmplitude(-20);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(speechInput.stopCount, 1);
+      expect(controller.isRecording, isFalse);
+    },
+  );
+
+  test(
+    'late Android partials do not push back the RMS quiet endpoint',
+    () async {
+      final speechInput = _EndpointStreamingSpeechInput();
+      final controller = ConversationController(
+        audioInput: _SilentAudioInput(),
+        streamingSpeechInput: speechInput,
+        playbackService: const _FakePlaybackService(),
+        repository: const DemoConversationRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+        webRuntimeOverride: false,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(speechInput.dispose);
+      controller.setVadSilence(400);
+
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(seconds: 5),
+      );
+      for (var i = 0; i < 4; i += 1) {
+        speechInput.emitAmplitude(-60);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      speechInput.emitPartial('Con muốn');
+      for (final level in <double>[-20, -26, -20, -24, -20]) {
+        speechInput.emitAmplitude(level);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      // The child stopped speaking; Android keeps publishing the words it
+      // heard earlier for roughly another second.
+      for (var i = 0; i < 5; i += 1) {
+        if (i == 2) speechInput.emitPartial('Con muốn đi');
+        if (i == 4) speechInput.emitPartial('Con muốn đi công viên');
+        speechInput.emitAmplitude(-60);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(speechInput.stopCount, 1);
+      expect(controller.isRecording, isFalse);
+    },
+  );
+
+  test(
+    'RMS quiet endpoint keeps the configured silence for a short phrase',
+    () async {
+      final speechInput = _EndpointStreamingSpeechInput();
+      final controller = ConversationController(
+        audioInput: _SilentAudioInput(),
+        streamingSpeechInput: speechInput,
+        playbackService: const _FakePlaybackService(),
+        repository: const DemoConversationRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+        webRuntimeOverride: false,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(speechInput.dispose);
+      controller.setVadSilence(700);
+
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(seconds: 5),
+      );
+      for (var i = 0; i < 4; i += 1) {
+        speechInput.emitAmplitude(-60);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      speechInput.emitPartial('Con muốn');
+      for (final level in <double>[-20, -26, -20]) {
+        speechInput.emitAmplitude(level);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      // A child hesitating mid-sentence: the word-count window for two words
+      // would already have ended the turn.
+      for (var i = 0; i < 5; i += 1) {
+        speechInput.emitAmplitude(-60);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      expect(speechInput.stopCount, 0);
+
+      for (var i = 0; i < 4; i += 1) {
+        speechInput.emitAmplitude(-60);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      expect(speechInput.stopCount, 1);
+    },
+  );
 }
 
 class _SilentAudioInput implements ChunkedAudioInput {
   int cancelCount = 0;
+  int startCount = 0;
 
   @override
   String get label => 'Mic kiểm thử';
@@ -181,10 +423,14 @@ class _SilentAudioInput implements ChunkedAudioInput {
   Stream<Uint8List> get audioChunks => const Stream<Uint8List>.empty();
 
   @override
-  Future<void> start() async {}
+  Future<void> start() async {
+    startCount += 1;
+  }
 
   @override
-  Future<void> startChunked() async {}
+  Future<void> startChunked() async {
+    startCount += 1;
+  }
 
   @override
   Future<AudioCapture> stop() async => const AudioCapture(
@@ -271,11 +517,14 @@ class _ControllablePlaybackService implements AudioPlaybackService {
 
 class _FakeVoicePromptService
     implements VoicePromptService, SpeechReadyCuePlayer {
+  _FakeVoicePromptService({this.onReadyCue});
+  final void Function()? onReadyCue;
   final List<String> spokenTexts = <String>[];
   int readyCueCount = 0;
 
   @override
   Future<void> playSpeechReadyCue() async {
+    onReadyCue?.call();
     readyCueCount += 1;
   }
 
@@ -333,6 +582,115 @@ class _ImmediateStreamingSpeechInput implements StreamingSpeechInput {
   Future<void> dispose() async {}
 }
 
+class _PartialOnlyStreamingSpeechInput implements StreamingSpeechInput {
+  final StreamController<String> _partials = StreamController<String>.broadcast(
+    sync: true,
+  );
+  int stopCount = 0;
+
+  void emitPartial(String text) => _partials.add(text);
+
+  @override
+  String get label => 'ASR Android partial-only';
+
+  @override
+  Stream<double> get amplitudeDbfs => const Stream<double>.empty();
+
+  @override
+  Stream<void> get completed => const Stream<void>.empty();
+
+  @override
+  Stream<String> get partialText => _partials.stream;
+
+  @override
+  Future<bool> checkAvailability() async => true;
+
+  @override
+  Future<void> start() async {}
+
+  @override
+  Future<StreamingSpeechCapture> stop() async {
+    stopCount += 1;
+    return const StreamingSpeechCapture(
+      sourceText: 'Con muốn đi công viên',
+      duration: Duration(seconds: 1),
+      inputLabel: 'ASR Android partial-only',
+      confidence: 0.9,
+      firstResultMs: 100,
+      finalAfterStopMs: 20,
+    );
+  }
+
+  @override
+  Future<void> cancel() async {}
+
+  @override
+  Future<void> dispose() => _partials.close();
+}
+
+class _EndpointStreamingSpeechInput
+    implements StreamingSpeechInput, SpeechEndpointInput {
+  final StreamController<double> _amplitude =
+      StreamController<double>.broadcast(sync: true);
+  final StreamController<String> _partials = StreamController<String>.broadcast(
+    sync: true,
+  );
+  final StreamController<String> _speechEnded =
+      StreamController<String>.broadcast(sync: true);
+  int stopCount = 0;
+
+  void emitAmplitude(double dbfs) => _amplitude.add(dbfs);
+
+  void emitPartial(String text) => _partials.add(text);
+
+  void emitSpeechEnded(String text) => _speechEnded.add(text);
+
+  @override
+  String get label => 'ASR Android endpoint';
+
+  @override
+  Stream<double> get amplitudeDbfs => _amplitude.stream;
+
+  @override
+  Stream<void> get completed => const Stream<void>.empty();
+
+  @override
+  Stream<String> get partialText => _partials.stream;
+
+  @override
+  Stream<String> get speechEnded => _speechEnded.stream;
+
+  @override
+  Future<bool> checkAvailability() async => true;
+
+  @override
+  Future<void> start() async {}
+
+  @override
+  Future<StreamingSpeechCapture> stop() async {
+    stopCount += 1;
+    return const StreamingSpeechCapture(
+      sourceText: 'Con muốn đi công viên',
+      duration: Duration(seconds: 1),
+      inputLabel: 'ASR Android endpoint',
+      confidence: 0.9,
+      firstResultMs: 100,
+      finalAfterStopMs: 20,
+    );
+  }
+
+  @override
+  Future<void> cancel() async {}
+
+  @override
+  Future<void> dispose() async {
+    if (_amplitude.isClosed) return;
+    await _amplitude.close();
+    await _partials.close();
+    await _speechEnded.close();
+  }
+}
+
 class _NoSpeechStreamingSpeechInput implements StreamingSpeechInput {
   const _NoSpeechStreamingSpeechInput();
 
@@ -367,4 +725,74 @@ class _NoSpeechStreamingSpeechInput implements StreamingSpeechInput {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _CorrectableStreamingSpeechInput implements StreamingSpeechInput {
+  const _CorrectableStreamingSpeechInput();
+
+  @override
+  String get label => 'ASR cần sửa câu';
+
+  @override
+  Stream<double> get amplitudeDbfs => const Stream<double>.empty();
+
+  @override
+  Stream<void> get completed => const Stream<void>.empty();
+
+  @override
+  Stream<String> get partialText => const Stream<String>.empty();
+
+  @override
+  Future<bool> checkAvailability() async => true;
+
+  @override
+  Future<void> start() async {}
+
+  @override
+  Future<StreamingSpeechCapture> stop() async => const StreamingSpeechCapture(
+    sourceText: 'Con ngửa tay xong rồi',
+    duration: Duration(seconds: 1),
+    inputLabel: 'ASR cần sửa câu',
+    confidence: 0.7,
+    firstResultMs: 100,
+    finalAfterStopMs: 20,
+  );
+
+  @override
+  Future<void> cancel() async {}
+
+  @override
+  Future<void> dispose() async {}
+}
+
+class _CapturingStreamingRepository extends DemoConversationRepository {
+  StreamingSpeechCapture? capture;
+
+  @override
+  Future<ConversationResult> processStreamingText({
+    required StreamingSpeechCapture capture,
+    required PracticeContext context,
+    required int childAge,
+    required int vadSilenceMs,
+  }) async {
+    this.capture = capture;
+    return ConversationResult(
+      conversationId: 'corrected-turn',
+      sessionId: 'corrected-session',
+      context: context,
+      vietnameseText: capture.sourceText,
+      englishText: 'I have washed my hands.',
+      audioUri: null,
+      processingMode: 'streaming',
+      textSource: 'native_speech',
+      audioSource: 'none',
+      asrMode: capture.asrMode,
+      latency: const ConversationLatency(
+        asrMs: 1,
+        llmMs: 1,
+        ttsMs: 0,
+        timeToFirstAudioMs: 0,
+      ),
+    );
+  }
 }

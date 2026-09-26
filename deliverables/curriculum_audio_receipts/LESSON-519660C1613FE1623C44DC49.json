@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T03\\C810-L1-M12_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-M12",
+  "sourceText": "Bạn muốn nói 'Mình có thể chơi cờ.' Hoàn thành câu: I can play... chess hay soccer?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn muốn nói 'Mình có thể chơi cờ.' Hoàn thành câu:",
+      "text": "Bạn muốn nói 'Mình có thể chơi cờ.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mình có thể chơi cờ.' Hoàn thành câu:",
+      "input_index": 68
+    },
+    {
+      "language": "en",
+      "source_text": "I can play... chess",
+      "text": "I can play... chess",
+      "spoken_text": "I can play... chess",
+      "input_index": 69
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 70
+    },
+    {
+      "language": "en",
+      "source_text": "soccer?",
+      "text": "soccer?",
+      "spoken_text": "soccer?",
+      "input_index": 71
+    }
+  ],
+  "sourceSha256": "bebf2eda09d34b19a8f7362b62af66548048db754e0c03c9dd282e149702847b",
+  "id": "LESSON-519660C1613FE1623C44DC49",
+  "text": "Bạn muốn nói 'Mình có thể chơi cờ.' Hoàn thành câu: I can play... chess hay soccer?",
+  "asset": "assets/audio/CURRICULUM/519660c1613fe1623c44dc49.vi.v1.mp3",
+  "sha256": "bebf2eda09d34b19a8f7362b62af66548048db754e0c03c9dd282e149702847b",
+  "durationSeconds": 8.696848
+}

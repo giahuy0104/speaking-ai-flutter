@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T01-B03\\C67-L1-T01-B03-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T01-B03-Q06",
+  "sourceText": "Ảnh X-quang: X-ray hay Yogurt?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Ảnh X-quang:",
+      "spoken_text": "Ảnh X-quang:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "X-ray",
+      "spoken_text": "X-ray",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Yogurt?",
+      "spoken_text": "Yogurt?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7EB42048A6FAF8C4B8C1DB5A",
+  "text": "Ảnh X-quang: X-ray hay Yogurt?",
+  "asset": "assets/audio/CURRICULUM/7eb42048a6faf8c4b8c1db5a.vi.v1.mp3",
+  "sha256": "d6213bdb0a80e4672d0281d408fde65cbf5a1c82d44b8d449998de4cf92e5bd3",
+  "durationSeconds": 4.009819
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T04-B03\\C1112-L2-T04-B03-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T04-B03-Q03",
+  "sourceText": "Xe buýt nhanh hơn: The bus is faster hay Walking is cheaper?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Xe buýt nhanh hơn:",
+      "spoken_text": "Xe buýt nhanh hơn:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "The bus is faster",
+      "spoken_text": "The bus is faster",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Walking is cheaper?",
+      "spoken_text": "Walking is cheaper?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9CDBB9774EF919938D56AED2",
+  "text": "Xe buýt nhanh hơn: The bus is faster hay Walking is cheaper?",
+  "asset": "assets/audio/CURRICULUM/9cdbb9774ef919938d56aed2.vi.v1.mp3",
+  "sha256": "3a92177be9eafedac877cf5cead89a13b19d743e531c4b066f82715ba5580adc",
+  "durationSeconds": 6.22127
+}

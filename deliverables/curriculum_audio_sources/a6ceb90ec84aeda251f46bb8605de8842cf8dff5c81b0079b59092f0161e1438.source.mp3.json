@@ -1,0 +1,20 @@
+{
+  "signature": "a6ceb90ec84aeda251f46bb8605de8842cf8dff5c81b0079b59092f0161e1438",
+  "request": {
+    "text": "Weekend Fun",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "d0c87f760a8f0787a8282cf09ca65868f0da85984ab83c694c1da6855ac00b14",
+  "requestId": "mCKHdXrzdDwSCfzFmBCH",
+  "createdAt": "2026-09-15T23:26:09.657Z"
+}

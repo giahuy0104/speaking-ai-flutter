@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T05-B01\\C67-L2-T05-B01-T01_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T05-B01-T01_VI",
+  "sourceText": "Túi đỏ.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Túi đỏ.",
+      "generation_key": "015e1d9186ddfacc"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-2A5C4A75D3FA658348B72A5F",
+  "text": "Túi đỏ.",
+  "asset": "assets/audio/CURRICULUM/2a5c4a75d3fa658348b72a5f.vi.v1.mp3",
+  "sha256": "9469e2cb21203007e979f9acf6937336b476d94dc1f970d49949f70a01a5efe7",
+  "durationSeconds": 1.23907
+}

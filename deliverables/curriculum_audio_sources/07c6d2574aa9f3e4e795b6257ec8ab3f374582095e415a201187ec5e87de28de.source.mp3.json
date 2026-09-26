@@ -1,0 +1,20 @@
+{
+  "signature": "07c6d2574aa9f3e4e795b6257ec8ab3f374582095e415a201187ec5e87de28de",
+  "request": {
+    "text": "Đến giờ vào lớp rồi.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "79ad1d755c0fb603a1c68d0598b4b8e33e045ac77f9949ef9d6e3d4624cc754f",
+  "requestId": "xVq4vwXQs5ENGzF4HS2I",
+  "createdAt": "2026-09-15T23:18:05.038Z"
+}
