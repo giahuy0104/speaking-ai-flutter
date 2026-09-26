@@ -11,6 +11,7 @@ const double androidAssistantSpeechBoostDb = androidSpeechBoostDb;
 const double androidMaxPlaybackGainDb = 28.0;
 
 /// Fallback for a child recording when Android cannot finish source metering.
-/// Measurable recordings still use the common gated level target, so attempts
-/// captured at different microphone levels play back consistently.
-const double lessonRecordingPlaybackGainDb = 28.0;
+/// Android lesson WAVs are already raised to the speech target when saved
+/// (`normalizeLessonWavLoudness`), so an unmeasured replay plays them as saved.
+/// Measurable recordings still use the common gated level target.
+const double lessonRecordingPlaybackGainDb = 0.0;

@@ -8,12 +8,9 @@ void main() {
       expect(androidAssistantSpeechBoostDb, androidSpeechBoostDb);
       expect(androidSpeechBoostDb, inInclusiveRange(0.0, 8.0));
       expect(androidSpeechBoostDb, lessThanOrEqualTo(androidMaxPlaybackGainDb));
-      expect(lessonRecordingPlaybackGainDb, greaterThan(androidSpeechBoostDb));
-      expect(
-        lessonRecordingPlaybackGainDb,
-        lessThanOrEqualTo(androidMaxPlaybackGainDb),
-      );
-      expect(lessonRecordingPlaybackGainDb, 28.0);
+      // Android lesson WAVs are loudness-normalized when saved, so an
+      // unmeasured replay must not add the full H20 boost on top.
+      expect(lessonRecordingPlaybackGainDb, 0.0);
       expect(androidMaxPlaybackGainDb, 28.0);
     },
   );
