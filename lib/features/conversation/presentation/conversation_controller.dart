@@ -2644,7 +2644,10 @@ class ConversationController extends ChangeNotifier
     });
   }
 
-  void _registerSpeechDetection({bool confirmDetector = false}) {
+  void _registerSpeechDetection({
+    bool confirmDetector = false,
+    bool keepSilenceTimer = false,
+  }) {
     if (confirmDetector) {
       _voiceActivityDetector.confirmSpeech();
     }
@@ -2654,8 +2657,10 @@ class ConversationController extends ChangeNotifier
     _adaptiveWebUpload?.markSpeculativeSpeechDetected();
     _noSpeechTimer?.cancel();
     _noSpeechTimer = null;
-    _silenceTimer?.cancel();
-    _silenceTimer = null;
+    if (!keepSilenceTimer) {
+      _silenceTimer?.cancel();
+      _silenceTimer = null;
+    }
     if (firstSpeechFrame) {
       _scheduleOfflineFallback();
     }
@@ -2692,8 +2697,13 @@ class ConversationController extends ChangeNotifier
           _silenceTimer == null) {
         _batchSpeechGate?.markVoiceInactive();
         _adaptiveWebUpload?.markSpeculativeVoiceInactive();
+        // RMS marks the real end of speech, so it waits the full configured
+        // silence; the word-count window only offsets lagging partials.
+        final quietWindow = _usingStreamingSpeech
+            ? Duration(milliseconds: vadSilenceMs)
+            : _translationQuietWindow();
         _silenceTimer = Timer(
-          _translationQuietWindow(),
+          quietWindow,
           () => unawaited(stopRecording(manual: false)),
         );
       }
@@ -2715,7 +2725,12 @@ class ConversationController extends ChangeNotifier
     // one word (for example "apple"). Some Android recognizers stop emitting
     // RMS updates before they publish a delayed final result, so arm the quiet
     // endpoint before applying the stricter preview threshold below.
-    _registerSpeechDetection(confirmDetector: true);
+    // Partials trail the audio by about a second, so once RMS has tracked this
+    // voice a late partial must not restart RMS's quiet window.
+    _registerSpeechDetection(
+      confirmDetector: true,
+      keepSilenceTimer: _lastVoiceActiveAt != null,
+    );
     _schedulePartialSpeechEndpoint();
     if (normalized.length < 5 || normalized.split(' ').length < 2) {
       return;
@@ -2756,7 +2771,7 @@ class ConversationController extends ChangeNotifier
     final quietWindow = _translationQuietWindow();
     _partialSpeechEndpointTimer = Timer(
       quietWindow,
-      () => _finishStablePartialAfterQuietWindow(quietWindow),
+      _finishStablePartialAfterQuietWindow,
     );
   }
 
@@ -2768,7 +2783,7 @@ class ConversationController extends ChangeNotifier
         )
       : Duration(milliseconds: (vadSilenceMs - 150).clamp(400, 700).toInt());
 
-  void _finishStablePartialAfterQuietWindow(Duration quietWindow) {
+  void _finishStablePartialAfterQuietWindow() {
     _partialSpeechEndpointTimer = null;
     if (phase != ConversationPhase.recording ||
         !_usingStreamingSpeech ||
@@ -2779,11 +2794,13 @@ class ConversationController extends ChangeNotifier
     }
     final lastVoiceActiveAt = _lastVoiceActiveAt;
     if (lastVoiceActiveAt != null) {
+      // Same silence as the RMS endpoint, so a hesitation is not cut here.
+      final requiredQuiet = Duration(milliseconds: vadSilenceMs);
       final quietFor = DateTime.now().difference(lastVoiceActiveAt);
-      if (quietFor < quietWindow) {
+      if (quietFor < requiredQuiet) {
         _partialSpeechEndpointTimer = Timer(
-          quietWindow - quietFor,
-          () => _finishStablePartialAfterQuietWindow(quietWindow),
+          requiredQuiet - quietFor,
+          _finishStablePartialAfterQuietWindow,
         );
         return;
       }

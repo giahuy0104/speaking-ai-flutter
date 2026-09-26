@@ -312,6 +312,95 @@ void main() {
       expect(controller.isRecording, isFalse);
     },
   );
+
+  test(
+    'late Android partials do not push back the RMS quiet endpoint',
+    () async {
+      final speechInput = _EndpointStreamingSpeechInput();
+      final controller = ConversationController(
+        audioInput: _SilentAudioInput(),
+        streamingSpeechInput: speechInput,
+        playbackService: const _FakePlaybackService(),
+        repository: const DemoConversationRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+        webRuntimeOverride: false,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(speechInput.dispose);
+      controller.setVadSilence(400);
+
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(seconds: 5),
+      );
+      for (var i = 0; i < 4; i += 1) {
+        speechInput.emitAmplitude(-60);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      speechInput.emitPartial('Con muốn');
+      for (final level in <double>[-20, -26, -20, -24, -20]) {
+        speechInput.emitAmplitude(level);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      // The child stopped speaking; Android keeps publishing the words it
+      // heard earlier for roughly another second.
+      for (var i = 0; i < 5; i += 1) {
+        if (i == 2) speechInput.emitPartial('Con muốn đi');
+        if (i == 4) speechInput.emitPartial('Con muốn đi công viên');
+        speechInput.emitAmplitude(-60);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(speechInput.stopCount, 1);
+      expect(controller.isRecording, isFalse);
+    },
+  );
+
+  test(
+    'RMS quiet endpoint keeps the configured silence for a short phrase',
+    () async {
+      final speechInput = _EndpointStreamingSpeechInput();
+      final controller = ConversationController(
+        audioInput: _SilentAudioInput(),
+        streamingSpeechInput: speechInput,
+        playbackService: const _FakePlaybackService(),
+        repository: const DemoConversationRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+        webRuntimeOverride: false,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(speechInput.dispose);
+      controller.setVadSilence(700);
+
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(seconds: 5),
+      );
+      for (var i = 0; i < 4; i += 1) {
+        speechInput.emitAmplitude(-60);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      speechInput.emitPartial('Con muốn');
+      for (final level in <double>[-20, -26, -20]) {
+        speechInput.emitAmplitude(level);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      // A child hesitating mid-sentence: the word-count window for two words
+      // would already have ended the turn.
+      for (var i = 0; i < 5; i += 1) {
+        speechInput.emitAmplitude(-60);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      expect(speechInput.stopCount, 0);
+
+      for (var i = 0; i < 4; i += 1) {
+        speechInput.emitAmplitude(-60);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      expect(speechInput.stopCount, 1);
+    },
+  );
 }
 
 class _SilentAudioInput implements ChunkedAudioInput {
