@@ -512,6 +512,58 @@ void main() {
     },
   );
 
+  test(
+    'iOS continuous session re-arms an H20 route that dropped back to ready',
+    () async {
+      const methodChannel = MethodChannel('test_ios_continuous_route_blip');
+      final events = StreamController<dynamic>.broadcast();
+      final route = _FakeHfpAudioControl();
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(methodChannel, (call) async {
+        switch (call.method) {
+          case 'speech.isAvailable':
+            return true;
+          case 'speech.start':
+            scheduleMicrotask(() {
+              events.add(<String, dynamic>{
+                'type': 'speech.ready',
+                'engine': 'sf_speech_recognizer',
+                'audioRoute': 'in=[BluetoothHFP:H20]',
+              });
+            });
+            return true;
+          case 'speech.cancel':
+            return true;
+        }
+        return null;
+      });
+      addTearDown(() async {
+        messenger.setMockMethodCallHandler(methodChannel, null);
+        await events.close();
+        await route.dispose();
+      });
+
+      final input = IOSStreamingSpeechInput(
+        methodChannel: methodChannel,
+        eventStream: events.stream,
+        audioRouteControl: route,
+      );
+      addTearDown(input.dispose);
+
+      await input.beginContinuousHfpSession();
+      // A short H20 route blip: native reports the route again, but as
+      // "ready" rather than "recording".
+      route.markActiveRouteReady();
+      await input.startCommandRecognition();
+
+      expect(route.startRouteCount, 2);
+      expect(route.status.phase, BluetoothAudioConnectionPhase.recording);
+      await input.cancel();
+      await input.endContinuousHfpSession();
+    },
+  );
+
   test('iOS re-arms an active H20 route left ready by another flow', () async {
     const methodChannel = MethodChannel('test_ios_hfp_route_rearm');
     final events = StreamController<dynamic>.broadcast();
@@ -871,6 +923,56 @@ void main() {
       ),
     );
     expect(cancelCount, 1);
+  });
+
+  testWidgets('iOS waits for a native speech.ready that takes 7 seconds', (
+    tester,
+  ) async {
+    const methodChannel = MethodChannel('test_ios_slow_native_ready');
+    final events = StreamController<dynamic>.broadcast();
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(methodChannel, (call) async {
+      switch (call.method) {
+        case 'speech.isAvailable':
+          return true;
+        case 'speech.start':
+          // Route polling, engine retry and the first buffer can together
+          // take several seconds on an H20 HFP route.
+          Timer(const Duration(seconds: 7), () {
+            events.add(<String, dynamic>{
+              'type': 'speech.ready',
+              'engine': 'sf_speech_recognizer',
+            });
+          });
+          return true;
+        case 'speech.cancel':
+          return true;
+      }
+      return null;
+    });
+    final input = IOSStreamingSpeechInput(
+      methodChannel: methodChannel,
+      eventStream: events.stream,
+    );
+    addTearDown(() async {
+      messenger.setMockMethodCallHandler(methodChannel, null);
+      await input.dispose();
+      await events.close();
+    });
+
+    Object? startError;
+    var started = false;
+    unawaited(
+      input.startCommandRecognition().then(
+        (_) => started = true,
+        onError: (Object error) => startError = error,
+      ),
+    );
+    await tester.pump(const Duration(seconds: 8));
+
+    expect(startError, isNull);
+    expect(started, isTrue);
   });
 
   test('MAIN uses Batch only when Apple native cannot start', () async {

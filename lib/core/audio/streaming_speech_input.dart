@@ -1323,8 +1323,10 @@ class IOSStreamingSpeechInput extends AndroidStreamingSpeechInput
          failOnRuntimeError: true,
          // Route confirmation may legitimately take about two seconds after
          // iOS changes from HFP to the built-in microphone. Do not let Dart
-         // cancel the native start while AVAudioSession is still settling.
-         readyTimeout: const Duration(seconds: 6),
+         // cancel the native start while AVAudioSession is still settling:
+         // on H20 the native route polls, one engine retry and the first
+         // buffer wait can add up to about 7.8 s.
+         readyTimeout: const Duration(seconds: 9),
        );
 
   final HfpAudioControl? _audioRouteControl;
@@ -1459,6 +1461,13 @@ class IOSStreamingSpeechInput extends AndroidStreamingSpeechInput
             _pendingAudioRouteGeneration = null;
           }
           _activeAudioRouteGeneration = routeGeneration;
+        } else if (!routeControl.status.routeActive ||
+            routeControl.status.phase !=
+                BluetoothAudioConnectionPhase.recording) {
+          // After a short H20 route blip native reports the route as "ready"
+          // again, never "recording". The session still owns the route, so
+          // re-confirm it instead of failing every later turn.
+          await routeControl.startAudioRoute();
         }
         if (!routeControl.status.routeActive ||
             routeControl.status.phase !=
