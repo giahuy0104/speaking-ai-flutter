@@ -381,6 +381,36 @@ void main() {
     },
   );
 
+  test(
+    'root bundle repositories share parsed packs but not installs',
+    () async {
+      final bytes = Uint8List.fromList(utf8.encode('remote only'));
+      final client = MockClient((_) async => http.Response.bytes(bytes, 200));
+      AudioPackRepository create() => AudioPackRepository(
+        bundledManifestAssets: const ['assets/data/assistant_core_audio.json'],
+        cache: MemoryAudioPackCache(),
+        httpClient: client,
+        allowedCdnHosts: const {'cdn.example.com'},
+      );
+      final first = create();
+      final second = create();
+
+      expect(await first.activeManifests(), isNotEmpty);
+      expect(
+        (await second.activeManifests()).map((manifest) => manifest.pack),
+        (await first.activeManifests()).map((manifest) => manifest.pack),
+      );
+
+      await first.installManifest(
+        _remoteManifest(key, locale, 'v1', bytes, 'v1.mp3'),
+      );
+
+      expect(await first.find(AudioPromptKey(key), locale), isNotNull);
+      expect(await second.find(AudioPromptKey(key), locale), isNull);
+      expect(await create().find(AudioPromptKey(key), locale), isNull);
+    },
+  );
+
   test('rejects HTTP and non-allowlisted CDN URLs', () {
     expect(
       () => AudioPackPrompt(

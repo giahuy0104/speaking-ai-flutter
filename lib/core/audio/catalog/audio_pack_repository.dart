@@ -45,6 +45,11 @@ final class AudioPackRepository {
   final http.Client _httpClient;
   final bool _ownsHttpClient;
 
+  // Screens create a prompt service per visit. Bundled assets never change at
+  // runtime, so parse and index them once per app run instead of on every
+  // screen's first prompt (~1.6 MB of JSON on the UI isolate).
+  static final Map<String, Future<AudioPackIndex>> _rootBundleIndexes = {};
+
   AudioPackIndex _index = AudioPackIndex();
   Future<void>? _loading;
   final Map<String, AudioPackManifest?> _rollbackManifests = {};
@@ -251,6 +256,17 @@ final class AudioPackRepository {
   }
 
   Future<void> _loadBundledManifests() async {
+    final loaded = identical(bundle, rootBundle)
+        ? _rootBundleIndexes.putIfAbsent(
+            '$currentAppVersion|${bundledManifestAssets.join('|')}',
+            _buildBundledIndex,
+          )
+        : _buildBundledIndex();
+    // AudioPackIndex is mutable; keep the shared one out of this repository.
+    _index = AudioPackIndex.copy(await loaded);
+  }
+
+  Future<AudioPackIndex> _buildBundledIndex() async {
     final next = AudioPackIndex();
     for (final asset in bundledManifestAssets) {
       try {
@@ -270,7 +286,7 @@ final class AudioPackRepository {
         });
       }
     }
-    _index = next;
+    return next;
   }
 
   bool _isImmutableRemote(AudioPackPrompt prompt) {
