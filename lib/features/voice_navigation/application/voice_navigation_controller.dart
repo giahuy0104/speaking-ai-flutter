@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../../../core/audio/adaptive_voice_activity_detector.dart';
 import '../../../core/audio/streaming_speech_input.dart';
 import '../../../core/audio/audio_diagnostics.dart';
 import '../../../core/audio/voice_prompt_service.dart';
@@ -41,6 +42,7 @@ class VoiceNavigationController extends ChangeNotifier {
     Duration microphoneStartTimeout = const Duration(seconds: 15),
     Duration microphoneStartRetryDelay = const Duration(seconds: 2),
     Duration pauseDrainTimeout = const Duration(seconds: 2),
+    Duration commandSilenceEndpoint = const Duration(milliseconds: 700),
     ActiveLearningCommandHandler? activeLearningCommandHandler,
     SelectedOutputPreparation? prepareSelectedOutput,
     this.wakeWordEnabled = true,
@@ -57,6 +59,7 @@ class VoiceNavigationController extends ChangeNotifier {
        _microphoneStartTimeout = microphoneStartTimeout,
        _microphoneStartRetryDelay = microphoneStartRetryDelay,
        _pauseDrainTimeout = pauseDrainTimeout,
+       _commandSilenceEndpoint = commandSilenceEndpoint,
        _activeLearningCommandHandler = activeLearningCommandHandler,
        _prepareSelectedOutput = prepareSelectedOutput {
     _completedSubscription = _speechInput.completed.listen((_) {
@@ -109,6 +112,7 @@ class VoiceNavigationController extends ChangeNotifier {
   final Duration _microphoneStartTimeout;
   final Duration _microphoneStartRetryDelay;
   final Duration _pauseDrainTimeout;
+  final Duration _commandSilenceEndpoint;
   final ActiveLearningCommandHandler? _activeLearningCommandHandler;
   final SelectedOutputPreparation? _prepareSelectedOutput;
   final bool wakeWordEnabled;
@@ -124,6 +128,13 @@ class VoiceNavigationController extends ChangeNotifier {
   Timer? _maximumSessionTimer;
   Timer? _partialIntentTimer;
   Timer? _commandWindowTimer;
+  Timer? _commandSilenceTimer;
+  final AdaptiveVoiceActivityDetector _commandVoiceActivity =
+      AdaptiveVoiceActivityDetector();
+  final Stopwatch _listeningClock = Stopwatch();
+  bool _commandVoiceSeen = false;
+  bool _commandSilenceElapsed = false;
+  bool _commandAnswerComplete = false;
   VoiceNavigationIntentHandler? _intentHandler;
   Future<void>? _pauseInProgress;
   Future<void>? _startInProgress;
@@ -1042,6 +1053,10 @@ class VoiceNavigationController extends ChangeNotifier {
       _listening = true;
       _speechDetected = false;
       _speechActivitySamples = 0;
+      _resetCommandSilence();
+      _listeningClock
+        ..reset()
+        ..start();
       _lastError = null;
       diagnostics?.reportNativeSpeechStage('microphone_listening');
       // The prompt may have finished well before iOS finishes preparing the
@@ -1234,6 +1249,9 @@ class VoiceNavigationController extends ChangeNotifier {
       return;
     }
     _markSpeechActivity();
+    if (_awaitingCommand && _buttonCommandSession) {
+      _trackCommandAnswer(text);
+    }
 
     // A wake phrase can react from a partial result. MAIN's approved corpus
     // contains broad child-friendly wording, so its routes deliberately wait
@@ -1257,6 +1275,9 @@ class VoiceNavigationController extends ChangeNotifier {
 
   void _handleAmplitude(double dbfs) {
     if (!_listening) return;
+    if (_awaitingCommand && _buttonCommandSession) {
+      _trackCommandVoice(dbfs);
+    }
     if (dbfs <= -42) {
       _speechActivitySamples = 0;
       return;
@@ -1268,6 +1289,64 @@ class VoiceNavigationController extends ChangeNotifier {
     if (_speechActivitySamples >= 2) {
       _markSpeechActivity();
     }
+  }
+
+  // A complete number answer ends the turn once the child has been quiet for
+  // _commandSilenceEndpoint. Otherwise Android waits for Google's command
+  // endpoint and iOS for Apple Speech or the command window, seconds later.
+  void _trackCommandVoice(double dbfs) {
+    final activity = _commandVoiceActivity.addSample(
+      dbfs,
+      elapsed: _listeningClock.elapsed,
+    );
+    if (activity.voiceActive) {
+      _commandVoiceSeen = true;
+      _commandSilenceElapsed = false;
+      _commandSilenceTimer?.cancel();
+      _commandSilenceTimer = null;
+    } else if (_commandVoiceSeen &&
+        !_commandSilenceElapsed &&
+        _commandSilenceTimer == null) {
+      _startCommandSilenceTimer();
+    }
+  }
+
+  void _trackCommandAnswer(String text) {
+    _commandAnswerComplete = _mainAssistantFlow.canEndOnSilence(text);
+    if (_commandVoiceSeen) {
+      // The level already marks the end of speech. Partials trail the audio,
+      // so a late one must not restart the quiet window.
+      if (_commandAnswerComplete && _commandSilenceElapsed) {
+        unawaited(_finishSession(_generation));
+      }
+      return;
+    }
+    // Without a usable level signal, count the quiet window from the partial.
+    _commandSilenceTimer?.cancel();
+    _commandSilenceTimer = null;
+    _commandSilenceElapsed = false;
+    if (_commandAnswerComplete) _startCommandSilenceTimer();
+  }
+
+  void _startCommandSilenceTimer() {
+    final generation = _generation;
+    _commandSilenceTimer = Timer(_commandSilenceEndpoint, () {
+      _commandSilenceTimer = null;
+      if (_disposed || generation != _generation || !_listening) return;
+      _commandSilenceElapsed = true;
+      if (_commandAnswerComplete) {
+        unawaited(_finishSession(generation));
+      }
+    });
+  }
+
+  void _resetCommandSilence() {
+    _commandSilenceTimer?.cancel();
+    _commandSilenceTimer = null;
+    _commandVoiceActivity.reset();
+    _commandVoiceSeen = false;
+    _commandSilenceElapsed = false;
+    _commandAnswerComplete = false;
   }
 
   void _markSpeechActivity() {
@@ -1516,6 +1595,8 @@ class VoiceNavigationController extends ChangeNotifier {
   void _cancelSessionTimers() {
     _partialIntentTimer?.cancel();
     _partialIntentTimer = null;
+    _commandSilenceTimer?.cancel();
+    _commandSilenceTimer = null;
     _noSpeechTimer?.cancel();
     _noSpeechTimer = null;
     _maximumSessionTimer?.cancel();

@@ -400,6 +400,27 @@ class MainVoiceAssistantFlow {
         (_stage != MainVoiceAssistantStage.idle && _isHelpChoice(normalized));
   }
 
+  /// Whether [recognizedText] is already a complete topic, lesson or Level
+  /// number, so the turn may end after a short silence instead of waiting for
+  /// the recognizer's own endpoint. The final transcript is still what gets
+  /// handled.
+  bool canEndOnSilence(String recognizedText) {
+    final numberStage = switch (_stage) {
+      MainVoiceAssistantStage.chooseTopic ||
+      MainVoiceAssistantStage.chooseTopicAfterCompletion ||
+      MainVoiceAssistantStage.chooseCourseRelearnLevel ||
+      MainVoiceAssistantStage.chooseLesson => true,
+      _ => false,
+    };
+    if (!numberStage) return false;
+    final normalized = _normalize(recognizedText);
+    final number = _extractSpokenNumber(normalized);
+    // "Mười" can still become "mười một" after a pause.
+    return number != null &&
+        number != 10 &&
+        _hasStageSpecificIntent(normalized);
+  }
+
   /// Returns true only for a complete, unambiguous local command. The 500
   /// fallback phrases are resolved on-device once Android produces a stable
   /// partial transcript; number choices and broad phrases still wait for the

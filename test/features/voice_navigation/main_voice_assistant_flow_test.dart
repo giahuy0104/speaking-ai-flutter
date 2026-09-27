@@ -9,6 +9,29 @@ import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_en
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('only a complete topic number may end MAIN on silence', () {
+    final flow = MainVoiceAssistantFlow(
+      contentLoader: _loadContent,
+      childAge: 6,
+    );
+    expect(flow.canEndOnSilence('Chủ đề số 2'), isFalse);
+
+    flow.beginLevelTopicSelection(
+      childAge: 6,
+      levelNumber: 1,
+      topicNumbers: const <int>[1, 2, 3],
+      completedTopicNumbers: const <int>[],
+      announceLevel: false,
+    );
+    expect(flow.canEndOnSilence('Chủ đề số 2'), isTrue);
+    expect(flow.canEndOnSilence('số hai'), isTrue);
+    expect(flow.canEndOnSilence('Chủ đề'), isFalse);
+    expect(flow.canEndOnSilence('Chủ đề số'), isFalse);
+    expect(flow.canEndOnSilence('Chủ đề số mười'), isFalse);
+    expect(flow.canEndOnSilence('Chủ đề 10'), isFalse);
+    expect(flow.canEndOnSilence('Bạn chọn Chủ đề số mấy'), isFalse);
+  });
+
   test('Topic dynamic prompts resolve to authored audio keys', () async {
     final flow = MainVoiceAssistantFlow(
       contentLoader: _loadContent,

@@ -50,7 +50,7 @@ void main() {
       expect(speech.stopCalls, 0);
       expect(controller.isListening, isTrue);
 
-      // Even a complete number remains provisional until native end-of-speech.
+      // A complete number still waits for end-of-speech or a short silence.
       speech.emitPartial('Chủ đề 2');
       await Future<void>.delayed(const Duration(milliseconds: 180));
       expect(speech.stopCalls, 0);
@@ -62,6 +62,87 @@ void main() {
         3,
         reason: 'final ASR correction wins',
       );
+      await controller.pause();
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  test('a complete topic number ends MAIN after a short silence', () async {
+    final speech = _FakeNavigationSpeechInput(stopText: 'Chủ đề 3');
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: _FakeVoicePromptService(),
+      mainAssistantFlow: MainVoiceAssistantFlow(
+        contentLoader: _loadMainAssistantContent,
+      ),
+      commandSilenceEndpoint: const Duration(milliseconds: 60),
+    );
+    final intents = <VoiceNavigationIntent>[];
+    controller.setIntentHandler(intents.add);
+    await controller.activateLevelTopicSelection(
+      childAge: 6,
+      levelNumber: 1,
+      topicNumbers: [1, 2, 3],
+      completedTopicNumbers: [],
+      announceLevel: false,
+    );
+
+    // A pause before the number must not end the turn.
+    speech.emitPartial('Chủ đề số');
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+    expect(speech.stopCalls, 0);
+    expect(controller.isListening, isTrue);
+
+    speech.emitPartial('Chủ đề 2');
+    await _waitUntil(() => intents.isNotEmpty);
+    expect(speech.stopCalls, 1);
+    expect(intents.single.topicNumber, 3, reason: 'final ASR correction wins');
+    await controller.pause();
+    controller.dispose();
+    await speech.dispose();
+  });
+
+  test(
+    'level silence ends MAIN when a late partial completes the number',
+    () async {
+      final speech = _FakeNavigationSpeechInput(stopText: 'Chủ đề 3');
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: _FakeVoicePromptService(),
+        mainAssistantFlow: MainVoiceAssistantFlow(
+          contentLoader: _loadMainAssistantContent,
+        ),
+        commandSilenceEndpoint: const Duration(milliseconds: 100),
+      );
+      final intents = <VoiceNavigationIntent>[];
+      controller.setIntentHandler(intents.add);
+      await controller.activateLevelTopicSelection(
+        childAge: 6,
+        levelNumber: 1,
+        topicNumbers: [1, 2, 3],
+        completedTopicNumbers: [],
+        announceLevel: false,
+      );
+
+      // Room level for calibration, then speech, then silence.
+      for (var i = 0; i < 8; i++) {
+        speech.emitAmplitude(-58);
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      }
+      for (var i = 0; i < 6; i++) {
+        speech.emitAmplitude(i.isEven ? -22 : -16);
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      }
+      speech.emitAmplitude(-58);
+      await Future<void>.delayed(const Duration(milliseconds: 160));
+      expect(speech.stopCalls, 0, reason: 'no complete answer yet');
+
+      // The partial trails the audio; the silence has already elapsed.
+      speech.emitPartial('Chủ đề 2');
+      await _waitUntil(() => intents.isNotEmpty);
+      expect(speech.stopCalls, 1);
+      expect(intents.single.topicNumber, 3);
       await controller.pause();
       controller.dispose();
       await speech.dispose();
@@ -2007,6 +2088,7 @@ class _FakeNavigationSpeechInput
   NativeSpeechDiagnostic? _nativeDiagnostic;
 
   void emitPartial(String text) => _partialTextController.add(text);
+  void emitAmplitude(double dbfs) => _amplitudeController.add(dbfs);
   void emitCommandEndpoint(String text) => _commandEndpointController.add(text);
 
   void emitAlternatives(List<String> alternatives) =>
