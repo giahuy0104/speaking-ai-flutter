@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
@@ -5,6 +7,7 @@ import 'package:ai_speaking_flutter_app/features/listening/data/listening_progre
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_catalog.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
+import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_intro_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_lesson_list_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_listening_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/listening_route_names.dart';
@@ -371,7 +374,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       find.text(
-      'Chủ đề 1 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 1?',
+        'Chủ đề 1 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 1?',
       ),
       findsWidgets,
     );
@@ -416,6 +419,83 @@ void main() {
       prompts.selectedOutputKeys,
       contains(ListeningAudioKeys.topicResume(1)),
     );
+  });
+
+  testWidgets(
+    'an in-progress topic opens its lesson while the resume line plays',
+    (tester) async {
+      final content = await AssetListeningContentRepository().load();
+      final topic = content.topic(startAge: 3, endAge: 5, topicNumber: 1);
+      final progressStore = _LessonIntroProgressStore()..coreStarted = true;
+      await progressStore.saveLesson(topic.lessons.first.id, 1);
+      final prompts = _HeldTopicResumeVoicePromptService();
+
+      await tester.pumpWidget(
+        buildSubject(
+          childAge: 3,
+          contentFuture: Future<ListeningContentCatalog>.value(content),
+          progressStore: progressStore,
+          mediaService: _SelectedOutputMediaService(),
+          voicePromptService: prompts,
+        ),
+      );
+      await tester.pumpAndSettle();
+      prompts.selectedOutputKeys.clear();
+      prompts.selectedOutputPrompts.clear();
+
+      final firstTopic = find.byKey(const ValueKey('topic-action-3-5-0'));
+      await tester.ensureVisible(firstTopic);
+      await tester.tap(firstTopic);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(
+        find.byType(LessonIntroScreen, skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(prompts.selectedOutputPrompts, <String>[
+        'Mình học tiếp Chủ đề 1 nhé.',
+      ]);
+    },
+  );
+
+  testWidgets('the initial lesson intro waits for a lead prompt', (
+    tester,
+  ) async {
+    final content = await AssetListeningContentRepository().load();
+    final topicContent = content.topic(startAge: 3, endAge: 5, topicNumber: 1);
+    final progressStore = _LessonIntroProgressStore()..coreStarted = true;
+    await progressStore.saveLesson(topicContent.lessons.first.id, 1);
+    final prompts = _SelectedOutputVoicePromptService();
+    final leadPrompt = Completer<void>();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TopicLessonListScreen(
+          language: DisplayLanguage.vietnamese,
+          startAge: 3,
+          endAge: 5,
+          topic: listeningCatalogs.first.topics.first,
+          content: topicContent,
+          progressStore: progressStore,
+          mediaService: _SelectedOutputMediaService(),
+          voicePromptService: prompts,
+          initialLessonNumber: topicContent.lessons.first.number,
+          initialLessonLeadPrompt: leadPrompt.future,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.byType(LessonIntroScreen, skipOffstage: false), findsOneWidget);
+    expect(prompts.selectedOutputPrompts, isEmpty);
+
+    leadPrompt.complete();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(prompts.selectedOutputPrompts, isNotEmpty);
   });
 
   testWidgets('completed Course asks MAIN to choose a Level for relearn', (
@@ -826,4 +906,38 @@ class _SelectedOutputVoicePromptService
 
   @override
   Future<void> stop() async {}
+}
+
+class _HeldTopicResumeVoicePromptService
+    extends _SelectedOutputVoicePromptService {
+  final Completer<void> resumeLine = Completer<void>();
+
+  @override
+  Future<void> speakAndWaitOnSelectedMediaOutputWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) async {
+    await super.speakAndWaitOnSelectedMediaOutputWithAudioKey(
+      audioKey,
+      text,
+      locale: locale,
+    );
+    if (audioKey == ListeningAudioKeys.topicResume(1)) {
+      await resumeLine.future;
+    }
+  }
+}
+
+/// Also answers the reads the lesson intro makes before it speaks.
+class _LessonIntroProgressStore extends _MemoryProgressStore {
+  @override
+  Future<int> readCurrentSentence(String lessonId) async => 0;
+
+  @override
+  Future<bool> hasOpenedLearningGuide() async => true;
+
+  @override
+  Future<ListeningResumeStage> readResumeStage(String lessonId) async =>
+      ListeningResumeStage.core;
 }

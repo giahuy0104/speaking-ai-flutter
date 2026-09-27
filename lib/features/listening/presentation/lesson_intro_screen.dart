@@ -38,6 +38,7 @@ class LessonIntroScreen extends StatefulWidget {
     this.levelContent,
     this.guideAudioLibrary,
     this.voicePromptService,
+    this.leadPrompt,
     this.autoAdvance = true,
     this.relearnFromBeginning = false,
     this.relearnTopicSequence = false,
@@ -59,6 +60,9 @@ class LessonIntroScreen extends StatefulWidget {
   final LessonMediaService mediaService;
   final LessonGuideAudioLibrary? guideAudioLibrary;
   final VoicePromptService? voicePromptService;
+
+  /// A prompt that started before this screen; lesson audio waits for it.
+  final Future<void>? leadPrompt;
   final bool autoAdvance;
   final bool relearnFromBeginning;
   final bool relearnTopicSequence;
@@ -128,6 +132,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
     if (_usesGuideV2) {
       await _prepareGuideText();
     }
+    await widget.leadPrompt;
     if (!mounted ||
         _pausedForMainAssistant ||
         request != _introPlaybackRequest) {

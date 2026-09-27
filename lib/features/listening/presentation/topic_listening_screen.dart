@@ -855,6 +855,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
       );
       var lessonNumber = initialLessonNumber;
       var relearnTopicSequence = forceRelearnTopic;
+      Future<void>? resumePrompt;
       if (forceRelearnTopic) {
         await widget.progressStore.resetLessonsForRelearn(
           content.lessons.map((lesson) => lesson.id),
@@ -886,10 +887,15 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           lessonNumber =
               firstIncomplete?.number ?? content.lessons.first.number;
           if (state == ListeningTopicLearningState.inProgress) {
-            await _speakOnSelectedLessonOutput(
-              'Mình học tiếp Chủ đề ${content.number} nhé.',
-              audioKey: ListeningAudioKeys.topicResume(content.number),
-            );
+            // Open the lesson while this line plays; the lesson intro waits
+            // for it, so the two prompts never overlap.
+            resumePrompt =
+                _speakOnSelectedLessonOutput(
+                  'Mình học tiếp Chủ đề ${content.number} nhé.',
+                  audioKey: ListeningAudioKeys.topicResume(content.number),
+                ).catchError((Object error) {
+                  debugPrint('HOMI topic resume prompt failed: $error');
+                });
           }
         }
       }
@@ -916,6 +922,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           progressStore: widget.progressStore,
           voicePromptService: _voicePromptService,
           initialLessonNumber: lessonNumber,
+          initialLessonLeadPrompt: resumePrompt,
           relearnInitialLesson: forceRelearnLesson || relearnTopicSequence,
           relearnTopicSequence: relearnTopicSequence,
           onTopicCompleted: () => topicCompletedDuringVisit = true,

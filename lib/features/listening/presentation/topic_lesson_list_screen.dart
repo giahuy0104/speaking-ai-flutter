@@ -39,6 +39,7 @@ class TopicLessonListScreen extends StatefulWidget {
     this.mediaService,
     this.voicePromptService,
     this.initialLessonNumber,
+    this.initialLessonLeadPrompt,
     this.relearnInitialLesson = false,
     this.relearnTopicSequence = false,
     this.onTopicCompleted,
@@ -62,6 +63,10 @@ class TopicLessonListScreen extends StatefulWidget {
   final LessonMediaService? mediaService;
   final VoicePromptService? voicePromptService;
   final int? initialLessonNumber;
+
+  /// A prompt still playing when the initial lesson opens; its intro waits
+  /// for it instead of the navigation.
+  final Future<void>? initialLessonLeadPrompt;
   final bool relearnInitialLesson;
   final bool relearnTopicSequence;
   final VoidCallback? onTopicCompleted;
@@ -418,12 +423,14 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
     await _startLesson(
       lesson,
       reviewFromBeginning: widget.relearnInitialLesson,
+      leadPrompt: widget.initialLessonLeadPrompt,
     );
   }
 
   Future<void> _startLesson(
     ListeningLessonContent lesson, {
     required bool reviewFromBeginning,
+    Future<void>? leadPrompt,
   }) async {
     final pendingRelearn = await widget.progressStore.hasLessonPendingRelearn(
       lesson.id,
@@ -497,6 +504,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
           progressStore: widget.progressStore,
           mediaService: _mediaService,
           voicePromptService: _voicePromptService,
+          leadPrompt: leadPrompt,
           relearnFromBeginning: startFromBeginning,
           relearnTopicSequence: widget.relearnTopicSequence || pendingRelearn,
           onTopicCompleted: widget.onTopicCompleted,
