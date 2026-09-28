@@ -24,6 +24,7 @@ import '../data/vocabulary_store.dart';
 import '../domain/vocabulary_audio_keys.dart';
 import '../domain/vocabulary_entry.dart';
 import '../domain/vocabulary_flow_v3.dart';
+import 'vocabulary_auto_follow.dart';
 
 const _practiceHomiSceneryAsset =
     'assets/images/vocabulary/practice-homi-background.png';
@@ -114,6 +115,8 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   Timer? _praiseFireworksTimer;
   int _praiseFireworksSequence = 0;
   bool _praiseFireworksVisible = false;
+  bool _userDraggingReview = false;
+  final GlobalKey _reviewEntryKey = GlobalKey();
   late final LessonRecordingEndpointDetector _recordingEndpointDetector;
   ActiveLearningModuleRegistry? _activeRegistry;
   Object? _activeRegistration;
@@ -231,6 +234,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
           ? VocabularyFlowV3.todayIntro
           : 'Bạn nghe kỹ rồi nói lại nhé.';
     });
+    _followCurrentReviewEntry();
     if (widget.autoStart) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -241,6 +245,25 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   }
 
   bool get _isToday => _session.mode == VocabularyPracticeMode.today;
+
+  void _followCurrentReviewEntry() {
+    if (!mounted || !_isReview || _completed || _entries.isEmpty) return;
+    final entryId = _entry.id;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          _paused ||
+          _completed ||
+          _userDraggingReview ||
+          _entries.isEmpty ||
+          _entry.id != entryId) {
+        return;
+      }
+      final entryContext = _reviewEntryKey.currentContext;
+      if (entryContext != null) {
+        unawaited(ensureVocabularyEntryVisible(entryContext));
+      }
+    });
+  }
 
   @override
   ActiveLearningVoiceNode get mainVoiceNode => _completed
@@ -769,6 +792,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       _busy = false;
       _recording = false;
     });
+    _followCurrentReviewEntry();
     await _startCurrent();
   }
 
@@ -855,6 +879,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       _attemptNumber = 1;
       _resumeAnnouncementPending = false;
     });
+    _followCurrentReviewEntry();
     final entryId = _entry.id;
     try {
       _session = _session.copyWith(currentIndex: _index);
@@ -1033,68 +1058,81 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
                         : LayoutBuilder(
                             builder: (context, constraints) {
                               final compactHeight = constraints.maxHeight < 700;
-                              return SingleChildScrollView(
-                                padding: EdgeInsets.fromLTRB(
-                                  18,
-                                  compactHeight ? 8 : 12,
-                                  18,
-                                  20,
-                                ),
-                                child: Center(
-                                  child: ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      maxWidth: 560,
-                                    ),
-                                    child: Column(
-                                      children: <Widget>[
-                                        _buildPracticeHeader(context),
-                                        SizedBox(
-                                          height: compactHeight ? 10 : 14,
-                                        ),
-                                        _buildProgress(context),
-                                        SizedBox(
-                                          height: compactHeight ? 18 : 26,
-                                        ),
-                                        if (!_completed)
-                                          _buildEntryCard(
-                                            context,
-                                            compactHeight: compactHeight,
+                              return NotificationListener<ScrollNotification>(
+                                onNotification: (notification) {
+                                  if (notification is ScrollStartNotification &&
+                                      notification.dragDetails != null) {
+                                    _userDraggingReview = true;
+                                  } else if (notification
+                                      is ScrollEndNotification) {
+                                    _userDraggingReview = false;
+                                  }
+                                  return false;
+                                },
+                                child: SingleChildScrollView(
+                                  padding: EdgeInsets.fromLTRB(
+                                    18,
+                                    compactHeight ? 8 : 12,
+                                    18,
+                                    20,
+                                  ),
+                                  child: Center(
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 560,
+                                      ),
+                                      child: Column(
+                                        children: <Widget>[
+                                          _buildPracticeHeader(context),
+                                          SizedBox(
+                                            height: compactHeight ? 10 : 14,
                                           ),
-                                        SizedBox(
-                                          height: compactHeight ? 14 : 20,
-                                        ),
-                                        Text(
-                                          _message,
-                                          textAlign: TextAlign.center,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleMedium
-                                              ?.copyWith(
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.onSurfaceVariant,
-                                                fontSize: compactHeight
-                                                    ? 16
-                                                    : 17,
-                                                height: 1.25,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                        ),
-                                        SizedBox(
-                                          height: compactHeight ? 14 : 20,
-                                        ),
-                                        if (_completed)
-                                          _buildCompletionActions(context)
-                                        else
-                                          _buildPracticeAction(context),
-                                        SizedBox(
-                                          height: compactHeight ? 12 : 18,
-                                        ),
-                                        _buildHomiCoach(
-                                          context,
-                                          viewportHeight: constraints.maxHeight,
-                                        ),
-                                      ],
+                                          _buildProgress(context),
+                                          SizedBox(
+                                            height: compactHeight ? 18 : 26,
+                                          ),
+                                          if (!_completed)
+                                            _buildEntryCard(
+                                              context,
+                                              compactHeight: compactHeight,
+                                            ),
+                                          SizedBox(
+                                            height: compactHeight ? 14 : 20,
+                                          ),
+                                          Text(
+                                            _message,
+                                            textAlign: TextAlign.center,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleMedium
+                                                ?.copyWith(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                                  fontSize: compactHeight
+                                                      ? 16
+                                                      : 17,
+                                                  height: 1.25,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                          ),
+                                          SizedBox(
+                                            height: compactHeight ? 14 : 20,
+                                          ),
+                                          if (_completed)
+                                            _buildCompletionActions(context)
+                                          else
+                                            _buildPracticeAction(context),
+                                          SizedBox(
+                                            height: compactHeight ? 12 : 18,
+                                          ),
+                                          _buildHomiCoach(
+                                            context,
+                                            viewportHeight:
+                                                constraints.maxHeight,
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -1222,53 +1260,56 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
 
   Widget _buildEntryCard(BuildContext context, {required bool compactHeight}) {
     final theme = Theme.of(context);
-    return Container(
-      key: const Key('vocabulary-practice-entry'),
-      width: double.infinity,
-      constraints: BoxConstraints(
-        maxWidth: 520,
-        minHeight: compactHeight ? 172 : 202,
-      ),
-      padding: EdgeInsets.symmetric(
-        horizontal: 26,
-        vertical: compactHeight ? 28 : 34,
-      ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.96)),
-        boxShadow: const <BoxShadow>[
-          BoxShadow(
-            color: Color(0x24142451),
-            blurRadius: 24,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        children: <Widget>[
-          Text(
-            _entry.word,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.displaySmall?.copyWith(
-              color: AppColors.indigoDark,
-              fontSize: MediaQuery.sizeOf(context).width <= 360 ? 38 : 44,
-              height: 1.08,
-              fontWeight: FontWeight.w800,
+    return KeyedSubtree(
+      key: _reviewEntryKey,
+      child: Container(
+        key: const Key('vocabulary-practice-entry'),
+        width: double.infinity,
+        constraints: BoxConstraints(
+          maxWidth: 520,
+          minHeight: compactHeight ? 172 : 202,
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: 26,
+          vertical: compactHeight ? 28 : 34,
+        ),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface.withValues(alpha: 0.94),
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.96)),
+          boxShadow: const <BoxShadow>[
+            BoxShadow(
+              color: Color(0x24142451),
+              blurRadius: 24,
+              offset: Offset(0, 10),
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _entry.meaning,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.titleLarge?.copyWith(
-              color: theme.colorScheme.onSurface,
-              fontSize: MediaQuery.sizeOf(context).width <= 360 ? 23 : 25,
-              height: 1.18,
-              fontWeight: FontWeight.w700,
+          ],
+        ),
+        child: Column(
+          children: <Widget>[
+            Text(
+              _entry.word,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.displaySmall?.copyWith(
+                color: AppColors.indigoDark,
+                fontSize: MediaQuery.sizeOf(context).width <= 360 ? 38 : 44,
+                height: 1.08,
+                fontWeight: FontWeight.w800,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              _entry.meaning,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: theme.colorScheme.onSurface,
+                fontSize: MediaQuery.sizeOf(context).width <= 360 ? 23 : 25,
+                height: 1.18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

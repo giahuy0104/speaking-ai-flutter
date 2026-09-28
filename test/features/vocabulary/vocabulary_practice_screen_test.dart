@@ -24,6 +24,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  _reviewAutoFollowTests();
   for (final pendingStart in <bool>[true, false]) {
     testWidgets(
       'iOS Review cancels pending ${pendingStart ? "start" : "stop"} without touching a newer turn',
@@ -1117,6 +1118,47 @@ void main() {
       await tester.pumpAndSettle();
     },
   );
+}
+
+// Review presents one active entry at a time; its card must follow the voice
+// turn when the child has scrolled the compact screen away from the card.
+void _reviewAutoFollowTests() {
+  testWidgets('Review follows the next entry after manual scrolling', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 520);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final registry = ActiveLearningModuleRegistry();
+    final media = _FakeLessonMediaService();
+    addTearDown(registry.dispose);
+    addTearDown(media.close);
+    await _mountReview(
+      tester,
+      registry: registry,
+      media: media,
+      voice: _FakeVoicePromptService(),
+    );
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -600),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      (await registry.execute(ActiveLearningCommand.nextItem)).wasHandled,
+      isTrue,
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pump(const Duration(milliseconds: 350));
+    expect(find.text('Banana'), findsOneWidget);
+    final card = tester.getRect(
+      find.byKey(const Key('vocabulary-practice-entry')),
+    );
+    expect(card.top, greaterThanOrEqualTo(0));
+    expect(card.bottom, lessThanOrEqualTo(520));
+  });
 }
 
 Future<void> _mountReview(

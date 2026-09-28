@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -29,6 +28,7 @@ import '../domain/vocabulary_entry.dart';
 import '../domain/vocabulary_flow_v3.dart';
 import '../domain/vocabulary_journey_index.dart';
 import 'vocabulary_practice_screen.dart';
+import 'vocabulary_auto_follow.dart';
 
 const _familyAsset = 'assets/images/topics/my-family.jpg';
 const _starAsset = 'assets/images/vocabulary/golden-star.png';
@@ -1822,25 +1822,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       final entryContext =
           _entryKeys['${journey.name}:${entry.id}']?.currentContext;
       if (entryContext == null) return;
-      final renderObject = entryContext.findRenderObject();
-      final viewport = renderObject == null
-          ? null
-          : RenderAbstractViewport.maybeOf(renderObject);
-      final scrollable = Scrollable.maybeOf(entryContext);
-      if (viewport == null || scrollable == null) return;
-      final aboveViewport =
-          viewport.getOffsetToReveal(renderObject!, 0).offset <
-          scrollable.position.pixels;
-      unawaited(
-        Scrollable.ensureVisible(
-          entryContext,
-          duration: const Duration(milliseconds: 260),
-          curve: Curves.easeOutCubic,
-          alignmentPolicy: aboveViewport
-              ? ScrollPositionAlignmentPolicy.keepVisibleAtStart
-              : ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
-        ),
-      );
+      unawaited(ensureVocabularyEntryVisible(entryContext));
     });
   }
 
