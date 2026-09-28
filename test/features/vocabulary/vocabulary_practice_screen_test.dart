@@ -83,6 +83,60 @@ void main() {
     );
   }
 
+  testWidgets(
+    'iOS star keeps the leveled recording for replay',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final media = _FakeLessonMediaService();
+      final speech = _GatedIosLessonInput();
+      addTearDown(registry.dispose);
+      addTearDown(media.close);
+      addTearDown(speech.dispose);
+      await _mountReview(
+        tester,
+        registry: registry,
+        media: media,
+        voice: _FakeVoicePromptService(),
+        evaluator: null,
+        audioDependencies: _IosLearningDependencies(speech),
+      );
+      final mainAction = find.byKey(
+        const Key('vocabulary-practice-main-action'),
+      );
+      await tester.tap(mainAction);
+      await tester.pumpAndSettle();
+      await tester.tap(mainAction);
+      await tester.pumpAndSettle();
+      speech.stopGate.complete(
+        const StreamingSpeechCapture(
+          sourceText: 'Apple',
+          duration: Duration(seconds: 1),
+          inputLabel: 'Apple Speech',
+          confidence: 1,
+          firstResultMs: 120,
+          finalAfterStopMs: 80,
+          recordedAudio: AudioCapture(
+            filePath: '/recordings/apple.wav',
+            mimeType: 'audio/wav',
+            duration: Duration(seconds: 1),
+            inputLabel: 'Apple Speech',
+            isBluetoothInput: false,
+            initialNoiseRms: null,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final saved = await const VocabularySessionStore().readActive();
+      expect(saved!.correctAudioPaths.values, <String>[
+        '/recordings/apple.normalized.wav',
+      ]);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
   for (final systemBack in <bool>[false, true]) {
     testWidgets(
       'unfinished Today exits with ${systemBack ? "system" : "screen"} Back even if audio stop hangs',
@@ -1004,6 +1058,14 @@ class _FakeLessonMediaService extends LessonMediaService {
   Future<void> cancelRecording() async {
     recording = false;
   }
+
+  @override
+  Future<LessonRecording> finalizeExternalRecording(
+    LessonRecording recording,
+  ) async => LessonRecording(
+    filePath: recording.filePath.replaceFirst('.wav', '.normalized.wav'),
+    duration: recording.duration,
+  );
 
   @override
   Future<void> stopPlayback() async {}

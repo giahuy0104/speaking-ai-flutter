@@ -741,8 +741,9 @@ void main() {
       await tester.tap(find.byKey(const Key('lesson-challenge-record-button')));
       await _pumpChallengeTransition(tester);
       expect(speech.takeRecordingCalls, 1);
+      // The replay uses the leveled copy, like every saved lesson recording.
       expect(media.completedPlaybackUris, <Uri>[
-        Uri.file('/recordings/answer.wav'),
+        Uri.file('/recordings/answer.normalized.wav'),
       ]);
       expect(media.recordingStarts, 0);
       expect(backend.evaluationCalls, 0);
@@ -946,6 +947,14 @@ class _FakeLessonMediaService extends LessonMediaService {
 
   @override
   Future<void> cancelRecording() async {}
+
+  @override
+  Future<LessonRecording> finalizeExternalRecording(
+    LessonRecording recording,
+  ) async => LessonRecording(
+    filePath: recording.filePath.replaceFirst('.wav', '.normalized.wav'),
+    duration: recording.duration,
+  );
 
   @override
   Future<void> dispose() async {}

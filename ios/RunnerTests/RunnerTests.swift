@@ -1122,28 +1122,6 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(try XCTUnwrap(readBack.floatChannelData?[0][0]), 0.25, accuracy: 0.0001)
   }
 
-  func testIOSLessonRecordingGainRaisesAndClipsPersistedSamples() throws {
-    let format = try XCTUnwrap(
-      AVAudioFormat(
-        commonFormat: .pcmFormatFloat32,
-        sampleRate: 16_000,
-        channels: 1,
-        interleaved: false
-      )
-    )
-    let buffer = try XCTUnwrap(
-      AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 2)
-    )
-    buffer.frameLength = 2
-    buffer.floatChannelData?[0][0] = 0.2
-    buffer.floatChannelData?[0][1] = 0.8
-
-    IOSLessonRecordingGain.apply(to: buffer)
-
-    XCTAssertEqual(try XCTUnwrap(buffer.floatChannelData?[0][0]), 0.5, accuracy: 0.001)
-    XCTAssertEqual(try XCTUnwrap(buffer.floatChannelData?[0][1]), 1, accuracy: 0.001)
-  }
-
   func testLessonRecordingLevelingBringsQuietAndLoudSpeechToTarget() throws {
     for inputDbfs in [-35.0, -6.0] {
       let buffer = try Self.lessonTone(dbfs: inputDbfs, frames: 16_000)

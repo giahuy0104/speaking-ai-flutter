@@ -660,6 +660,21 @@ class LessonMediaService {
         }
       });
 
+  /// Levels a native-recognizer capture that is not kept in history, such as a
+  /// Challenge answer, like every saved lesson recording. Falls back to the
+  /// original file when it cannot be leveled.
+  Future<LessonRecording> finalizeExternalRecording(
+    LessonRecording recording,
+  ) async {
+    final resolvedPath = await resolveLessonRecording(
+      recording.filePath,
+      recording.filePath,
+    );
+    return resolvedPath == null || resolvedPath == recording.filePath
+        ? recording
+        : LessonRecording(filePath: resolvedPath, duration: recording.duration);
+  }
+
   /// Adds audio captured by a native speech recognizer to the same local
   /// lesson history used by recordings produced through the record plugin.
   Future<LessonRecording> registerExternalRecording({

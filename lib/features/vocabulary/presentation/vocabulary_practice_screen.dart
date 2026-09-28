@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
+import '../../../core/audio/audio_input.dart';
 import '../../../core/audio/streaming_speech_input.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
@@ -489,12 +490,12 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     required VocabularyEntry entry,
   }) async {
     LessonAttemptOutcome outcome;
-    String? recordingPath;
+    AudioCapture? recordedAudio;
     try {
       final capture = await _iosSpeechInput!.stop();
       if (!_isCurrent(generation, entry.id)) return;
       _capturePending = false;
-      recordingPath = capture.recordedAudio?.filePath;
+      recordedAudio = capture.recordedAudio;
       outcome = evaluateNativeLessonTranscripts(
         expectedEnglish: entry.word,
         transcripts: <String>[capture.sourceText, ...capture.alternatives],
@@ -504,12 +505,26 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       // A stale stop must not consume a newer MAIN/lesson turn's local WAV.
       if (!_isCurrent(generation, entry.id)) return;
       _capturePending = false;
-      recordingPath = _iosSpeechInput!
-          .takeLessonRecordingAudioCapture()
-          ?.filePath;
+      recordedAudio = _iosSpeechInput!.takeLessonRecordingAudioCapture();
       outcome = nativeLessonRecognitionFailureOutcome(error.code);
     }
     if (!_isCurrent(generation, entry.id)) return;
+    var recordingPath = recordedAudio?.filePath;
+    if (outcome == LessonAttemptOutcome.good && recordedAudio != null) {
+      // The star replays this recording later; level it like lesson ones.
+      try {
+        final leveled = await widget.mediaService.finalizeExternalRecording(
+          LessonRecording(
+            filePath: recordedAudio.filePath,
+            duration: recordedAudio.duration,
+          ),
+        );
+        recordingPath = leveled.filePath;
+      } catch (error) {
+        debugPrint('HOMI iOS vocabulary recording leveling failed: $error');
+      }
+      if (!_isCurrent(generation, entry.id)) return;
+    }
     await _applyOutcome(
       outcome,
       generation: generation,

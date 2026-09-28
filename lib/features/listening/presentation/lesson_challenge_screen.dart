@@ -712,7 +712,14 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
           _recording = false;
           _recordingUsesIosSpeech = false;
         });
-        await _playAttemptRecordingToCompletion(completedRecording);
+        var replay = completedRecording;
+        try {
+          replay = await widget.mediaService.finalizeExternalRecording(replay);
+        } catch (error) {
+          debugPrint('HOMI iOS challenge recording leveling failed: $error');
+        }
+        if (!mounted || _pausedForMainAssistant || request != _request) return;
+        await _playAttemptRecordingToCompletion(replay);
         if (!mounted || _pausedForMainAssistant || request != _request) return;
       }
       if (outcome != LessonAttemptOutcome.unclear &&
