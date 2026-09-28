@@ -1751,6 +1751,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     String? inputLabelOverride,
     bool promptAlreadySpoken = false,
     String? noSpeechRetryPrompt,
+    String? noSpeechRetryAudioKey,
     String? noSpeechExitPrompt,
   }) async {
     final voiceController = _voiceNavigationController;
@@ -1787,6 +1788,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
             inputLabelOverride: inputLabelOverride,
             promptAlreadySpoken: promptAlreadySpoken,
             noSpeechRetryPrompt: noSpeechRetryPrompt,
+            noSpeechRetryAudioKey: noSpeechRetryAudioKey,
             noSpeechExitPrompt: noSpeechExitPrompt,
           ),
     );
@@ -2241,11 +2243,13 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
 
   Future<void> _requestVocabularyVoiceChoice({
     String? noSpeechRetryPrompt,
+    String? noSpeechRetryAudioKey,
     String? noSpeechExitPrompt,
   }) async {
     await _activateMainAssistant(
       promptAlreadySpoken: true,
       noSpeechRetryPrompt: noSpeechRetryPrompt,
+      noSpeechRetryAudioKey: noSpeechRetryAudioKey,
       noSpeechExitPrompt: noSpeechExitPrompt,
     );
   }

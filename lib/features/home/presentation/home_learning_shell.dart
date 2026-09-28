@@ -78,6 +78,7 @@ class HomeLearningShell extends StatefulWidget {
   final Future<void> Function()? onScreenMainPressed;
   final Future<void> Function({
     String? noSpeechRetryPrompt,
+    String? noSpeechRetryAudioKey,
     String? noSpeechExitPrompt,
   })?
   onVocabularyVoiceChoiceRequested;

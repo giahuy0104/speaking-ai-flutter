@@ -35,6 +35,11 @@ abstract final class VocabularyAudioKeys {
   static String? fixedPrompt(VocabularyFixedPrompt prompt) =>
       _fixedByState[prompt.stateId];
 
+  static String? fixedPromptForText(String text) {
+    final prompt = VocabularyFlowV3.fixedPromptForText(text);
+    return prompt == null ? null : fixedPrompt(prompt);
+  }
+
   static String? builtInEntry(VocabularyEntry entry, String locale) {
     if (entry.isParentAdded) return null;
     final entryId = entry.sourceSentenceId?.trim();

@@ -1,0 +1,3 @@
+# Audio manifests are content-addressed. Keep their bytes stable on Windows.
+assets/data/*_audio.json text eol=lf
+assets/data/audio_pack_index.json text eol=lf

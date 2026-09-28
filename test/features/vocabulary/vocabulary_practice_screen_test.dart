@@ -182,6 +182,7 @@ void main() {
       final registry = ActiveLearningModuleRegistry();
       addTearDown(registry.dispose);
       String? capturedNoSpeechRetryPrompt;
+      String? capturedNoSpeechRetryAudioKey;
       String? capturedNoSpeechExitPrompt;
 
       await tester.pumpWidget(
@@ -203,9 +204,11 @@ void main() {
               onRequestVoiceChoice:
                   ({
                     String? noSpeechRetryPrompt,
+                    String? noSpeechRetryAudioKey,
                     String? noSpeechExitPrompt,
                   }) async {
                     capturedNoSpeechRetryPrompt = noSpeechRetryPrompt;
+                    capturedNoSpeechRetryAudioKey = noSpeechRetryAudioKey;
                     capturedNoSpeechExitPrompt = noSpeechExitPrompt;
                   },
             ),
@@ -242,6 +245,10 @@ void main() {
       }
       expect(await sessionStore.readActive(), isNull);
       expect(capturedNoSpeechRetryPrompt, VocabularyFlowV3.todayCompletion);
+      expect(
+        capturedNoSpeechRetryAudioKey,
+        'vocabulary.flow.today_completed.vi',
+      );
       expect(capturedNoSpeechExitPrompt, VocabularyFlowV3.pauseAfterNoResponse);
       expect(
         voice.spoken.where((text) => text.startsWith('en-US:')),
@@ -301,6 +308,7 @@ void main() {
               onRequestVoiceChoice:
                   ({
                     String? noSpeechRetryPrompt,
+                    String? noSpeechRetryAudioKey,
                     String? noSpeechExitPrompt,
                   }) async {
                     choiceRequests++;

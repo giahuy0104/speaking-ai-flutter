@@ -76,6 +76,7 @@ class VocabularyPracticeScreen extends StatefulWidget {
   final bool announceResume;
   final Future<void> Function({
     String? noSpeechRetryPrompt,
+    String? noSpeechRetryAudioKey,
     String? noSpeechExitPrompt,
   })?
   onRequestVoiceChoice;
@@ -776,6 +777,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       }
       await widget.onRequestVoiceChoice?.call(
         noSpeechRetryPrompt: _message,
+        noSpeechRetryAudioKey: VocabularyAudioKeys.fixedPromptForText(_message),
         noSpeechExitPrompt: VocabularyFlowV3.pauseAfterNoResponse,
       );
       return;

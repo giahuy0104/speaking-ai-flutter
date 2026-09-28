@@ -1697,6 +1697,7 @@ void main() {
                 onRequestVoiceChoice:
                     ({
                       String? noSpeechRetryPrompt,
+                      String? noSpeechRetryAudioKey,
                       String? noSpeechExitPrompt,
                     }) async {
                       choiceRequests++;

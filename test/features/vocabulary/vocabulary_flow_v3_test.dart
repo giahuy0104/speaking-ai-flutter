@@ -1,8 +1,16 @@
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_flow_v3.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('star completion exposes its authored retry audio key', () {
+    expect(
+      VocabularyAudioKeys.fixedPromptForText(VocabularyFlowV3.starFinished),
+      'vocabulary.flow.star_completed.vi',
+    );
+  });
+
   test('locks the exact V3 child-facing menu and completion copy', () {
     expect(
       VocabularyFlowV3.todayEmptyMenu,

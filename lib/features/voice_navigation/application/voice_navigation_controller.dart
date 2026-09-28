@@ -155,6 +155,7 @@ class VoiceNavigationController extends ChangeNotifier {
   int _mainNoSpeechRetryCount = 0;
   int _mainPrematureCompletionRecoveryCount = 0;
   String? _mainNoSpeechRetryPromptOverride;
+  String? _mainNoSpeechRetryAudioKeyOverride;
   Object? _lastError;
   String? _activeInputLabelOverride;
   String? _nativeMainTurnId;
@@ -217,6 +218,7 @@ class VoiceNavigationController extends ChangeNotifier {
     String? inputLabelOverride,
     bool promptAlreadySpoken = false,
     String? noSpeechRetryPrompt,
+    String? noSpeechRetryAudioKey,
     String? noSpeechExitPrompt,
   }) async {
     final afterTranslationStop =
@@ -238,6 +240,7 @@ class VoiceNavigationController extends ChangeNotifier {
       inputLabelOverride: inputLabelOverride,
       promptAlreadySpoken: promptAlreadySpoken,
       noSpeechRetryPrompt: noSpeechRetryPrompt,
+      noSpeechRetryAudioKey: noSpeechRetryAudioKey,
       noSpeechExitPrompt: noSpeechExitPrompt,
     );
   }
@@ -313,6 +316,7 @@ class VoiceNavigationController extends ChangeNotifier {
     String? inputLabelOverride,
     bool promptAlreadySpoken = false,
     String? noSpeechRetryPrompt,
+    String? noSpeechRetryAudioKey,
     String? noSpeechExitPrompt,
   }) async {
     if (_disposed) {
@@ -335,6 +339,7 @@ class VoiceNavigationController extends ChangeNotifier {
       _mainNoSpeechRetryCount = 0;
       _mainPrematureCompletionRecoveryCount = 0;
       _mainNoSpeechRetryPromptOverride = noSpeechRetryPrompt;
+      _mainNoSpeechRetryAudioKeyOverride = noSpeechRetryAudioKey;
       // The exit prompt is intentionally global. Keep accepting the legacy
       // argument while older feature callbacks migrate, but never let one
       // navigation branch replace the required second-silence pause wording.
@@ -902,7 +907,7 @@ class VoiceNavigationController extends ChangeNotifier {
             _mainAssistantFlow.silenceRetryPrompt,
         promptAudioKey: _mainNoSpeechRetryPromptOverride == null
             ? _mainAssistantFlow.silenceRetryAudioKey
-            : null,
+            : _mainNoSpeechRetryAudioKeyOverride,
       );
       if (prompted && !_disposed && generation == _generation) {
         await _runStartSession(generation);
@@ -934,6 +939,7 @@ class VoiceNavigationController extends ChangeNotifier {
     _mainNoSpeechRetryCount = 0;
     _mainPrematureCompletionRecoveryCount = 0;
     _mainNoSpeechRetryPromptOverride = null;
+    _mainNoSpeechRetryAudioKeyOverride = null;
     _mainAssistantFlow.pauseChoice();
     await _endNativeMainTurn(
       'main_assistant_no_speech_exit',

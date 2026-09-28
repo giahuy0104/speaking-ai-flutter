@@ -140,6 +140,7 @@ class VocabularyHomeScreen extends StatefulWidget {
   final VocabularyHomeNavigationController? navigationController;
   final Future<void> Function({
     String? noSpeechRetryPrompt,
+    String? noSpeechRetryAudioKey,
     String? noSpeechExitPrompt,
   })?
   onRequestVoiceChoice;
@@ -2306,12 +2307,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     if (_playingCollection) setState(() => _playingCollection = false);
     await _requestVoiceChoice(
       noSpeechRetryPrompt: prompt,
+      noSpeechRetryAudioKey: VocabularyAudioKeys.fixedPromptForText(prompt),
       noSpeechExitPrompt: VocabularyFlowV3.pauseAfterNoResponse,
     );
   }
 
   Future<void> _requestVoiceChoice({
     String? noSpeechRetryPrompt,
+    String? noSpeechRetryAudioKey,
     String? noSpeechExitPrompt,
   }) async {
     if (!mounted ||
@@ -2322,6 +2325,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     }
     await widget.onRequestVoiceChoice!.call(
       noSpeechRetryPrompt: noSpeechRetryPrompt,
+      noSpeechRetryAudioKey: noSpeechRetryAudioKey,
       noSpeechExitPrompt: noSpeechExitPrompt,
     );
   }

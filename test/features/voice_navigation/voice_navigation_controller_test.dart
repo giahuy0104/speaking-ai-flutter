@@ -1744,7 +1744,7 @@ void main() {
 
   test('every branch uses the shared second-silence pause prompt', () async {
     final speechInput = _FakeNavigationSpeechInput(stopText: '');
-    final voicePrompt = _FakeMainTurnVoicePromptService();
+    final voicePrompt = _KeyedMainTurnVoicePromptService();
     final controller = VoiceNavigationController(
       speechInput: speechInput,
       voicePromptService: voicePrompt,
@@ -1759,6 +1759,7 @@ void main() {
         promptAlreadySpoken: true,
         noSpeechRetryPrompt:
             'Bạn chọn Ngôi sao mới nhất hoặc nghe lại tất cả nhé.',
+        noSpeechRetryAudioKey: 'vocabulary.flow.star_completed.vi',
         noSpeechExitPrompt: 'Mình dừng ở đây nhé.',
       ),
       isTrue,
@@ -1769,6 +1770,7 @@ void main() {
       'Bạn chọn Ngôi sao mới nhất hoặc nghe lại tất cả nhé.',
       MainVoiceAssistantFlow.noSpeechExitPrompt,
     ]);
+    expect(voicePrompt.audioKeys.first, 'vocabulary.flow.star_completed.vi');
 
     controller.dispose();
     await speechInput.dispose();
@@ -2271,6 +2273,21 @@ class _FakeMainTurnVoicePromptService extends _FakeVoicePromptService
   Future<void> endMainTurn(String reason, {String? turnId}) async {
     endedReasons.add(reason);
     endedTurnIds.add(turnId);
+  }
+}
+
+class _KeyedMainTurnVoicePromptService extends _FakeMainTurnVoicePromptService
+    implements KeyedVoicePromptService {
+  final List<String> audioKeys = <String>[];
+
+  @override
+  Future<void> speakAndWaitWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) async {
+    audioKeys.add(audioKey);
+    await speakAndWait(text, locale: locale);
   }
 }
 
