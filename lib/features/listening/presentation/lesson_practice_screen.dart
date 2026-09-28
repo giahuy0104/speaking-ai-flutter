@@ -1230,6 +1230,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       () => widget.mediaService.play(
         uri,
         playbackGainDb: lessonRecordingPlaybackGainDb,
+        fixedPlaybackGain: true,
       ),
     );
   }
@@ -1250,6 +1251,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         uri,
         timeout: timeout,
         playbackGainDb: lessonRecordingPlaybackGainDb,
+        fixedPlaybackGain: true,
       );
       return true;
     } catch (error) {

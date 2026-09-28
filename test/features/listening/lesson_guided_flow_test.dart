@@ -1132,6 +1132,7 @@ void main() {
       mediaService.lastRecordingPlaybackGainDb,
       lessonRecordingPlaybackGainDb,
     );
+    expect(mediaService.lastRecordingPlaybackGainFixed, isTrue);
   });
 
   testWidgets('V4 does not award a Star when child replay fails', (
@@ -4495,6 +4496,7 @@ class _GuidedMediaService extends LessonMediaService {
   int selectedOutputPreparationCount = 0;
   int phoneOutputPreparationCount = 0;
   double? lastRecordingPlaybackGainDb;
+  bool? lastRecordingPlaybackGainFixed;
 
   @override
   Future<String?> preserveStarRecording(String path) async => path;
@@ -4574,6 +4576,7 @@ class _GuidedMediaService extends LessonMediaService {
     events?.add('media|${uri.path}');
     if (uri.toString().contains('latest.m4a')) {
       lastRecordingPlaybackGainDb = playbackGainDb;
+      lastRecordingPlaybackGainFixed = fixedPlaybackGain;
     }
   }
 
@@ -4769,6 +4772,7 @@ class _BlockingAttemptPlaybackMediaService extends _GuidedMediaService {
       return;
     }
     lastRecordingPlaybackGainDb = playbackGainDb;
+    lastRecordingPlaybackGainFixed = fixedPlaybackGain;
     if (!recordingPlaybackStarted.isCompleted) {
       recordingPlaybackStarted.complete();
     }

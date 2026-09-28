@@ -2018,6 +2018,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       await _mediaService.playToCompletion(
         uri,
         playbackGainDb: lessonRecordingPlaybackGainDb,
+        fixedPlaybackGain: true,
       );
     } catch (error) {
       if (journey == _VocabularyJourney.stars) {

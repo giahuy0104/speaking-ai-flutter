@@ -10,8 +10,8 @@ const double androidAssistantSpeechBoostDb = androidSpeechBoostDb;
 /// it needs the full LoudnessEnhancer range to bring quiet captures to target.
 const double androidMaxPlaybackGainDb = 28.0;
 
-/// Fallback for a child recording when Android cannot finish source metering.
-/// Android lesson WAVs are already raised to the speech target when saved
-/// (`normalizeLessonWavLoudness`), so an unmeasured replay plays them as saved.
-/// Measurable recordings still use the common gated level target.
+/// Fixed gain for replaying a child recording. Lesson recordings are brought
+/// to `lessonRecordingTargetDbfs` when saved (`normalizeLessonWavLoudness`,
+/// the iOS native normalizer), so replays play them as saved: source metering
+/// would pull them back down to the authored-prompt target.
 const double lessonRecordingPlaybackGainDb = 0.0;
