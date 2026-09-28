@@ -859,61 +859,61 @@ class MainVoiceAssistantFlow {
     );
   }
 
+  /// [promptText] is spoken only before translation. Topics and vocabulary
+  /// open at once, as from the Home menu: each speaks its own opening, so
+  /// "Mình đã chuyển sang ..." first only delayed it by ~1.4 s plus the MAIN
+  /// turn teardown.
   MainVoiceAssistantTurn _moduleNavigationTurn({
     required String recognizedText,
     required VoiceNavigationDestination destination,
     required String promptText,
     VoiceVocabularyTarget? vocabularyTarget,
   }) {
-    final transitionAudioKey = vocabularyTarget != null
-        ? null
-        : switch (destination) {
-            VoiceNavigationDestination.topics =>
-              MainAssistantAudioKeys.switchedToListening,
-            VoiceNavigationDestination.vocabulary =>
-              MainAssistantAudioKeys.switchedToVocabulary,
-            _ => MainAssistantAudioKeys.switchedToTranslation,
-          };
-    final turn = MainVoiceAssistantTurn(
-      promptText: promptText,
-      promptAudioKey: transitionAudioKey,
-      // A module transfer starts a new translation session. Keep its authored
-      // introduction in the same awaited prompt sequence as the transition so
-      // the destination cannot open its microphone between the two utterances.
-      // Direct MAIN entry and explicit resume already own their own prompts.
-      promptSequence: destination == VoiceNavigationDestination.conversation
-          ? <MainVoiceAssistantUtterance>[
-              MainVoiceAssistantUtterance(
-                promptText,
-                audioKey: transitionAudioKey,
-              ),
-              const MainVoiceAssistantUtterance(
-                continuousTranslationPrompt,
-                audioKey: MainAssistantAudioKeys.translationStarted,
-              ),
-            ]
-          : const <MainVoiceAssistantUtterance>[],
-      continueListening: false,
-      navigationAfterPrompt: VoiceNavigationIntent(
-        destination: destination,
-        recognizedText: recognizedText.trim(),
-        matchedPhrase: switch (destination) {
-          VoiceNavigationDestination.topics => 'chu de',
-          VoiceNavigationDestination.vocabulary => 'bo tu vung',
-          VoiceNavigationDestination.conversation => 'dich tieng anh',
-          VoiceNavigationDestination.history => 'lich su',
-          VoiceNavigationDestination.settings => 'cai dat',
-        },
-        childAge: destination == VoiceNavigationDestination.topics
-            ? _configuredChildAge
-            : null,
-        enterMainSpeakingMode:
-            destination == VoiceNavigationDestination.conversation,
-        vocabularyTarget: vocabularyTarget,
-      ),
+    final navigation = VoiceNavigationIntent(
+      destination: destination,
+      recognizedText: recognizedText.trim(),
+      matchedPhrase: switch (destination) {
+        VoiceNavigationDestination.topics => 'chu de',
+        VoiceNavigationDestination.vocabulary => 'bo tu vung',
+        VoiceNavigationDestination.conversation => 'dich tieng anh',
+        VoiceNavigationDestination.history => 'lich su',
+        VoiceNavigationDestination.settings => 'cai dat',
+      },
+      childAge: destination == VoiceNavigationDestination.topics
+          ? _configuredChildAge
+          : null,
+      enterMainSpeakingMode:
+          destination == VoiceNavigationDestination.conversation,
+      vocabularyTarget: vocabularyTarget,
     );
     reset();
-    return turn;
+    if (destination != VoiceNavigationDestination.conversation) {
+      return MainVoiceAssistantTurn(
+        promptText: '',
+        continueListening: false,
+        navigationBeforePrompt: navigation,
+      );
+    }
+    // A module transfer starts a new translation session. Keep its authored
+    // introduction in the same awaited prompt sequence as the transition so
+    // the destination cannot open its microphone between the two utterances.
+    // Direct MAIN entry and explicit resume already own their own prompts.
+    return MainVoiceAssistantTurn(
+      promptText: promptText,
+      promptAudioKey: MainAssistantAudioKeys.switchedToTranslation,
+      promptSequence: <MainVoiceAssistantUtterance>[
+        MainVoiceAssistantUtterance(
+          promptText,
+          audioKey: MainAssistantAudioKeys.switchedToTranslation,
+        ),
+        const MainVoiceAssistantUtterance(
+          continuousTranslationPrompt,
+          audioKey: MainAssistantAudioKeys.translationStarted,
+        ),
+      ],
+      continueListening: false,
+      navigationAfterPrompt: navigation,
+    );
   }
 
   Future<MainVoiceAssistantTurn> _handleAlternativeAfterLearning(

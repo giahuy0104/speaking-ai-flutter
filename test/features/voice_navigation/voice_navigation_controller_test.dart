@@ -330,7 +330,7 @@ void main() {
   );
 
   test(
-    'failed iOS-style navigation acknowledgment still opens vocabulary',
+    'vocabulary opens from a lesson without an acknowledgment to fail',
     () async {
       final speech = _FakeNavigationSpeechInput();
       final prompt = _FailingMainTurnPromptService()..failNext = false;
@@ -358,7 +358,7 @@ void main() {
       expect(intents, hasLength(1));
       expect(intents.single.destination, VoiceNavigationDestination.vocabulary);
       expect(controller.isMainButtonSessionActive, isFalse);
-      expect(prompt.endedReasons, ['prompt_failed']);
+      expect(prompt.endedReasons, ['main_assistant_completed']);
 
       controller.dispose();
       await speech.dispose();
@@ -1359,10 +1359,10 @@ void main() {
       await controller.dispatchRecognizedText('Con muốn học từ vựng'),
       isTrue,
     );
-    expect(
-      voicePrompt.spokenTexts.last,
-      MasterNavigationContract.switchedToVocabulary,
-    );
+    // Vocabulary opens at once and speaks its own opening.
+    expect(voicePrompt.spokenTexts, <String>[
+      MainVoiceAssistantFlow.otherLearningPrompt,
+    ]);
     expect(receivedIntent?.destination, VoiceNavigationDestination.vocabulary);
     expect(controller.isMainButtonSessionActive, isFalse);
 

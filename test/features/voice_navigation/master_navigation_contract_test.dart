@@ -264,13 +264,14 @@ void main() {
               intent: 'OPEN_SUBJECT',
               source: ActiveLearningModuleKind.vocabulary,
               destination: VoiceNavigationDestination.topics,
-              confirmation: MasterNavigationContract.switchedToSubject,
+              // Topics and vocabulary open at once and speak their own opening.
+              confirmation: '',
             ),
             (
               intent: 'OPEN_VOCAB',
               source: ActiveLearningModuleKind.listeningLesson,
               destination: VoiceNavigationDestination.vocabulary,
-              confirmation: MasterNavigationContract.switchedToVocabulary,
+              confirmation: '',
             ),
             (
               intent: 'OPEN_TRANSLATE',
@@ -293,7 +294,9 @@ void main() {
           final turn = await flow.handle(text);
           expect(turn.promptText, testCase.confirmation, reason: text);
           expect(
-            turn.navigationAfterPrompt?.destination,
+            testCase.destination == VoiceNavigationDestination.conversation
+                ? turn.navigationAfterPrompt?.destination
+                : turn.navigationBeforePrompt?.destination,
             testCase.destination,
             reason: text,
           );
@@ -685,11 +688,11 @@ void main() {
 
     expect(turn.promptText, isEmpty);
     expect(
-      turn.navigationAfterPrompt?.destination,
+      turn.navigationBeforePrompt?.destination,
       VoiceNavigationDestination.vocabulary,
     );
     expect(
-      turn.navigationAfterPrompt?.vocabularyTarget,
+      turn.navigationBeforePrompt?.vocabularyTarget,
       VoiceVocabularyTarget.star,
     );
   });

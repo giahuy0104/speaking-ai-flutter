@@ -157,7 +157,9 @@ void main() {
             );
             final turn = await flow.handle(phrase);
             expect(
-              turn.navigationAfterPrompt?.destination,
+              entry.value == VoiceNavigationDestination.conversation
+                  ? turn.navigationAfterPrompt?.destination
+                  : turn.navigationBeforePrompt?.destination,
               entry.value,
               reason: '$previousStage: $phrase',
             );
@@ -170,6 +172,8 @@ void main() {
                 MasterNavigationContract.translationIntro,
               ]);
             } else {
+              // Topics and vocabulary open at once and speak their own opening.
+              expect(turn.promptText, isEmpty);
               expect(turn.promptSequence, isEmpty);
             }
           }
@@ -494,13 +498,10 @@ void main() {
       expect(flow.stage, MainVoiceAssistantStage.chooseModuleSwitch);
 
       final vocabularyTurn = await flow.handle('Mình muốn học từ vựng');
-      expect(
-        vocabularyTurn.promptText,
-        MasterNavigationContract.switchedToVocabulary,
-      );
+      expect(vocabularyTurn.promptText, isEmpty);
       expect(vocabularyTurn.continueListening, isFalse);
       expect(
-        vocabularyTurn.navigationAfterPrompt?.destination,
+        vocabularyTurn.navigationBeforePrompt?.destination,
         VoiceNavigationDestination.vocabulary,
       );
       expect(flow.stage, MainVoiceAssistantStage.idle);
@@ -613,23 +614,20 @@ void main() {
       MainVoiceAssistantFlow.otherLearningPrompt,
     );
     final vocabularyTurn = await vocabularyFlow.handle('Mình muốn học từ vựng');
-    expect(
-      vocabularyTurn.promptText,
-      MasterNavigationContract.switchedToVocabulary,
-    );
+    expect(vocabularyTurn.promptText, isEmpty);
     expect(vocabularyTurn.continueListening, isFalse);
     expect(
-      vocabularyTurn.navigationAfterPrompt?.destination,
+      vocabularyTurn.navigationBeforePrompt?.destination,
       VoiceNavigationDestination.vocabulary,
     );
 
     final topicFlow = MainVoiceAssistantFlow(contentLoader: _loadContent);
     topicFlow.beginOtherLearning();
     final topicTurn = await topicFlow.handle('Mình muốn học chủ đề');
-    expect(topicTurn.promptText, MasterNavigationContract.switchedToSubject);
+    expect(topicTurn.promptText, isEmpty);
     expect(topicTurn.continueListening, isFalse);
     expect(
-      topicTurn.navigationAfterPrompt?.destination,
+      topicTurn.navigationBeforePrompt?.destination,
       VoiceNavigationDestination.topics,
     );
     expect(topicFlow.stage, MainVoiceAssistantStage.idle);
