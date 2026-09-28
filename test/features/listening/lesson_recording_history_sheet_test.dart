@@ -21,6 +21,7 @@ void main() {
 
     expect(media.lastUri, Uri.file('/recordings/child.wav'));
     expect(media.lastGainDb, lessonRecordingPlaybackGainDb);
+    expect(media.lastGainFixed, isTrue);
     await tester.pumpWidget(const SizedBox());
   });
 }
@@ -30,6 +31,7 @@ class _RecordingMediaService extends LessonMediaService {
 
   Uri? lastUri;
   double? lastGainDb;
+  bool? lastGainFixed;
 
   @override
   Future<void> play(
@@ -40,6 +42,7 @@ class _RecordingMediaService extends LessonMediaService {
   }) async {
     lastUri = uri;
     lastGainDb = playbackGainDb;
+    lastGainFixed = fixedPlaybackGain;
   }
 
   @override

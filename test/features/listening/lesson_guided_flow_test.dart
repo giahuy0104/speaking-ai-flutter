@@ -968,6 +968,7 @@ void main() {
       mediaService.lastRecordingPlaybackGainDb,
       lessonRecordingPlaybackGainDb,
     );
+    expect(mediaService.lastRecordingPlaybackGainFixed, isTrue);
   });
 
   testWidgets('keeps an injected lesson evaluator caller-owned', (
@@ -3533,6 +3534,7 @@ class _GuidedMediaService extends LessonMediaService {
   int selectedOutputPreparationCount = 0;
   int phoneOutputPreparationCount = 0;
   double? lastRecordingPlaybackGainDb;
+  bool? lastRecordingPlaybackGainFixed;
 
   @override
   Future<void> preparePhoneSpeakerOutput() async {
@@ -3609,6 +3611,7 @@ class _GuidedMediaService extends LessonMediaService {
     events?.add('media|${uri.path}');
     if (uri.toString().contains('latest.m4a')) {
       lastRecordingPlaybackGainDb = playbackGainDb;
+      lastRecordingPlaybackGainFixed = fixedPlaybackGain;
     }
   }
 
@@ -3753,6 +3756,7 @@ class _BlockingAttemptPlaybackMediaService extends _GuidedMediaService {
       return;
     }
     lastRecordingPlaybackGainDb = playbackGainDb;
+    lastRecordingPlaybackGainFixed = fixedPlaybackGain;
     if (!recordingPlaybackStarted.isCompleted) {
       recordingPlaybackStarted.complete();
     }

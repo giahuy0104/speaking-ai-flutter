@@ -1082,6 +1082,7 @@ void main() {
       childReplays.map((clip) => clip.gainDb),
       everyElement(lessonRecordingPlaybackGainDb),
     );
+    expect(childReplays.map((clip) => clip.fixed), everyElement(isTrue));
     expect(
       voice.spokenTexts.where((text) => text == VocabularyFlowV3.starMyVoice),
       hasLength(1),
@@ -1538,7 +1539,7 @@ class _FailingJourneyVoicePromptService extends _RecordingVoicePromptService {
 }
 
 class _ImmediateLessonMediaService extends LessonMediaService {
-  final played = <({Uri uri, double gainDb})>[];
+  final played = <({Uri uri, double gainDb, bool fixed})>[];
 
   @override
   Future<void> prepareSelectedLessonOutput() async {}
@@ -1551,7 +1552,7 @@ class _ImmediateLessonMediaService extends LessonMediaService {
     double playbackGainDb = 8.0,
     bool fixedPlaybackGain = false,
   }) async {
-    played.add((uri: uri, gainDb: playbackGainDb));
+    played.add((uri: uri, gainDb: playbackGainDb, fixed: fixedPlaybackGain));
   }
 
   @override

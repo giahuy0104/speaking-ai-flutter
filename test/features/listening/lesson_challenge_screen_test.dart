@@ -571,6 +571,7 @@ void main() {
       mediaService.completedPlaybackGains,
       everyElement(lessonRecordingPlaybackGainDb),
     );
+    expect(mediaService.completedPlaybackFixedGains, everyElement(isTrue));
   });
 
   testWidgets('pauses directly after the second unusable response', (
@@ -941,6 +942,7 @@ class _FakeLessonMediaService extends LessonMediaService {
   int nativeCaptureHandoffs = 0;
   final List<Uri> completedPlaybackUris = <Uri>[];
   final List<double> completedPlaybackGains = <double>[];
+  final List<bool> completedPlaybackFixedGains = <bool>[];
 
   @override
   Future<void> cancelRecording() async {}
@@ -961,6 +963,7 @@ class _FakeLessonMediaService extends LessonMediaService {
   }) async {
     completedPlaybackUris.add(uri);
     completedPlaybackGains.add(playbackGainDb);
+    completedPlaybackFixedGains.add(fixedPlaybackGain);
   }
 
   @override
