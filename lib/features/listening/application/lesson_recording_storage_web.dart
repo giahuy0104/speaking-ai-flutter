@@ -21,6 +21,8 @@ Future<String?> findLessonRecording(String path) async {
       : null;
 }
 
+Future<String?> retainStarRecording(String path) => findLessonRecording(path);
+
 Future<void> deleteLessonRecording(String path) async {
   _availableRecordingPaths.remove(path);
   if (path.startsWith('blob:')) {

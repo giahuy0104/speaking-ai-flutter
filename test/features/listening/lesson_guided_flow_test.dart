@@ -3535,6 +3535,9 @@ class _GuidedMediaService extends LessonMediaService {
   double? lastRecordingPlaybackGainDb;
 
   @override
+  Future<String?> preserveStarRecording(String path) async => path;
+
+  @override
   Future<void> preparePhoneSpeakerOutput() async {
     phoneOutputPreparationCount += 1;
   }

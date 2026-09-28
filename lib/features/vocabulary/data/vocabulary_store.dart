@@ -786,6 +786,24 @@ class VocabularyStore {
     }
   }
 
+  /// Keeps an earned Star's audio independent of lesson-history eviction.
+  Future<void> updateStarRecordingPath({
+    required String entryId,
+    required String previousPath,
+    required String retainedPath,
+  }) async {
+    final entries = await read();
+    final index = entries.indexWhere(
+      (entry) =>
+          entry.id == entryId &&
+          entry.isStar &&
+          entry.correctAudioPath == previousPath,
+    );
+    if (index < 0) return;
+    entries[index] = entries[index].copyWith(correctAudioPath: retainedPath);
+    await write(entries);
+  }
+
   /// Adds a lesson sentence to a learning collection, or moves the existing
   /// sentence between Review and Stars without creating a duplicate.
   Future<void> upsertLessonSentence({

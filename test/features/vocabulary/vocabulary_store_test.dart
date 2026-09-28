@@ -6,6 +6,42 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  test('retaining Star audio changes only its recording path', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    const store = VocabularyStore();
+    final earnedAt = DateTime(2026, 9, 15);
+    await store.upsertLessonSentence(
+      lessonCode: 'A035_T01_L01',
+      sentenceId: 'S1',
+      english: 'English',
+      vietnamese: 'Tiếng Anh',
+      collection: VocabularyCollection.star,
+      correctAudioPath: '/recordings/original.wav',
+      occurredAt: earnedAt,
+    );
+    final before = (await store.read()).single;
+    await store.updateStarRecordingPath(
+      entryId: before.id,
+      previousPath: '/recordings/original.wav',
+      retainedPath: '/recordings/original.star.wav',
+    );
+    final after = (await store.read()).single;
+    expect(after.id, before.id);
+    expect(after.earnedAt, before.earnedAt);
+    expect(after.word, before.word);
+    expect(after.collection, before.collection);
+    expect(after.correctAudioPath, '/recordings/original.star.wav');
+    await store.updateStarRecordingPath(
+      entryId: before.id,
+      previousPath: '/recordings/original.wav',
+      retainedPath: '/recordings/wrong.wav',
+    );
+    expect(
+      (await store.read()).single.correctAudioPath,
+      '/recordings/original.star.wav',
+    );
+  });
+
   test('starts empty so parents provide the Family vocabulary', () async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
 

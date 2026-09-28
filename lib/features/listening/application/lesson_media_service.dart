@@ -147,6 +147,18 @@ class LessonMediaService {
     }
   }
 
+  Future<String?> preserveStarRecording(String path) async {
+    try {
+      return await retainStarRecording(path);
+    } catch (error) {
+      debugPrint('STAR_RECORDING_RETENTION_FAILED error=$error');
+      return null;
+    }
+  }
+
+  Future<String?> availableRecordingPath(String path) =>
+      findLessonRecording(path);
+
   Future<void> play(
     Uri uri, {
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,

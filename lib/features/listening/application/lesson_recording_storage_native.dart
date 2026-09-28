@@ -36,6 +36,19 @@ Future<String> createLessonRecordingPath(
 Future<String?> findLessonRecording(String path) async =>
     await File(path).exists() ? path : null;
 
+Future<String?> retainStarRecording(String path) async {
+  final source = File(path);
+  if (!await source.exists()) return null;
+  final extensionStart = path.lastIndexOf('.');
+  final retainedPath = extensionStart < 0
+      ? '$path.star'
+      : '${path.substring(0, extensionStart)}.star${path.substring(extensionStart)}';
+  if (path != retainedPath) {
+    await source.copy(retainedPath);
+  }
+  return retainedPath;
+}
+
 Future<void> deleteLessonRecording(String path) async {
   final file = File(path);
   if (await file.exists()) {

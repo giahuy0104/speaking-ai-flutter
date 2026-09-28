@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -169,6 +170,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   bool _startingToday = false;
   bool _todayOffered = false;
   bool _playingCollection = false;
+  String? _activeEntryId;
+  bool _userDraggingEntries = false;
+  final Map<String, GlobalKey> _entryKeys = <String, GlobalKey>{};
   int _playbackGeneration = 0;
   int _audioCommandGeneration = 0;
   Future<void>? _playbackNavigationCleanup;
@@ -294,6 +298,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _pausedForMainAssistant = true;
     _playbackInterrupted = false;
     _playingCollection = false;
+    _activeEntryId = null;
     _waitingForPlaybackContinuation = false;
     _awaitingPlaybackEndChoice = false;
     _playbackQueue = const <VocabularyEntry>[];
@@ -431,7 +436,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _audioCommandGeneration += 1;
     _cancelPendingFixedPrompt();
     _pausedForMainAssistant = true;
-    _playbackInterrupted = _playingCollection;
+    _playbackInterrupted = _playbackInterrupted || _playingCollection;
+    _playbackGeneration += 1;
+    if (mounted) {
+      setState(() {
+        _playingCollection = false;
+        _activeEntryId = null;
+      });
+    }
     await Future.wait<void>(<Future<void>>[
       _voicePromptService.stop().catchError((Object _) {}),
       _mediaService.stopPlayback().catchError((Object _) {}),
@@ -459,6 +471,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
           );
         } else if (_waitingForPlaybackContinuation) {
           unawaited(_runAudioCommand(_continuePlayback));
+        } else if (_playbackQueue.isEmpty &&
+            (_selectedJourney == _VocabularyJourney.family ||
+                _selectedJourney == _VocabularyJourney.stars)) {
+          unawaited(_playJourney(_selectedJourney!));
         }
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.vocabularyParentAdded:
@@ -789,54 +805,65 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       key: ValueKey<_VocabularyJourney>(journey),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 560),
-        child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(
-            horizontalPadding,
-            12,
-            horizontalPadding,
-            110,
-          ),
-          child: Column(
-            children: <Widget>[
-              _JourneyDetailHeader(
-                title: _journeyTitle(context, journey),
-                countLabel: headerCountLabel,
-              ),
-              const SizedBox(height: 18),
-              if (!isFamilyJourney) ...<Widget>[
-                _buildSearchField(context),
-                const SizedBox(height: 18),
-              ],
-              if (isFamilyJourney) ...<Widget>[
-                _buildParentWaitingQueue(context),
-                const SizedBox(height: 16),
-                _buildSearchField(context),
-                const SizedBox(height: 22),
-                Text(
-                  context.tr(
-                    '${visibleEntries.length} nội dung đã lưu',
-                    '已保存 ${visibleEntries.length} 项内容',
-                  ),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: isDark
-                        ? theme.colorScheme.primary
-                        : AppColors.indigoDark,
-                    fontWeight: FontWeight.w800,
-                    shadows: isDark
-                        ? const <Shadow>[
-                            Shadow(color: Colors.black54, blurRadius: 10),
-                          ]
-                        : const <Shadow>[
-                            Shadow(color: Colors.white, blurRadius: 8),
-                          ],
-                  ),
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            if (notification is ScrollStartNotification &&
+                notification.dragDetails != null) {
+              _userDraggingEntries = true;
+            } else if (notification is ScrollEndNotification) {
+              _userDraggingEntries = false;
+            }
+            return false;
+          },
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              horizontalPadding,
+              12,
+              horizontalPadding,
+              110,
+            ),
+            child: Column(
+              children: <Widget>[
+                _JourneyDetailHeader(
+                  title: _journeyTitle(context, journey),
+                  countLabel: headerCountLabel,
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 18),
+                if (!isFamilyJourney) ...<Widget>[
+                  _buildSearchField(context),
+                  const SizedBox(height: 18),
+                ],
+                if (isFamilyJourney) ...<Widget>[
+                  _buildParentWaitingQueue(context),
+                  const SizedBox(height: 16),
+                  _buildSearchField(context),
+                  const SizedBox(height: 22),
+                  Text(
+                    context.tr(
+                      '${visibleEntries.length} nội dung đã lưu',
+                      '已保存 ${visibleEntries.length} 项内容',
+                    ),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: isDark
+                          ? theme.colorScheme.primary
+                          : AppColors.indigoDark,
+                      fontWeight: FontWeight.w800,
+                      shadows: isDark
+                          ? const <Shadow>[
+                              Shadow(color: Colors.black54, blurRadius: 10),
+                            ]
+                          : const <Shadow>[
+                              Shadow(color: Colors.white, blurRadius: 8),
+                            ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                ],
+                _buildJourneyAction(context, journey, visibleEntries),
+                const SizedBox(height: 16),
+                _buildVocabularyCard(context, visibleEntries),
               ],
-              _buildJourneyAction(context, journey, visibleEntries),
-              const SizedBox(height: 16),
-              _buildVocabularyCard(context, visibleEntries),
-            ],
+            ),
           ),
         ),
       ),
@@ -1223,14 +1250,18 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
               ),
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                color: isDark
+                color: _activeEntryId == entries[index].id
+                    ? (isDark ? AppColors.darkPrimary : AppColors.mintSoft)
+                    : isDark
                     ? Theme.of(
                         context,
                       ).colorScheme.surface.withValues(alpha: 0.94)
                     : const Color(0xF7FFFDF9),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isDark
+                  color: _activeEntryId == entries[index].id
+                      ? AppColors.success
+                      : isDark
                       ? Theme.of(
                           context,
                         ).colorScheme.outline.withValues(alpha: 0.55)
@@ -1247,12 +1278,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                 ],
               ),
               child: _VocabularyRow(
+                key: _entryKey(journey, entries[index].id),
                 entry: entries[index],
                 order: index + 1,
                 canPlay:
                     !entries[index].isParentAdded ||
                     entries[index].isLearnedWell,
                 statusLabel: statusLabel,
+                active: _activeEntryId == entries[index].id,
                 onPlay: () => unawaited(_playEntry(entries[index])),
               ),
             ),
@@ -1308,11 +1341,13 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                   index++
                 ) ...<Widget>[
                   _VocabularyRow(
+                    key: _entryKey(journey, entries[index].id),
                     entry: entries[index],
                     order: index + 1,
                     canPlay:
                         !entries[index].isParentAdded ||
                         entries[index].isLearnedWell,
+                    active: _activeEntryId == entries[index].id,
                     onPlay: () => unawaited(_playEntry(entries[index])),
                   ),
                   if (index != entries.length - 1)
@@ -1329,6 +1364,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   void _openJourney(_VocabularyJourney journey) {
     setState(() {
       _selectedJourney = journey;
+      _activeEntryId = null;
       _searchController.clear();
     });
   }
@@ -1337,6 +1373,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _searchFocusNode.unfocus();
     setState(() {
       _selectedJourney = null;
+      _activeEntryId = null;
       _lastVoiceChoicePrompt = VocabularyFlowV3.menu;
       _searchController.clear();
     });
@@ -1747,13 +1784,64 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         <VocabularyEntry>[entry],
         branch: 'single:${entry.id}',
         checkpoint: false,
-        journey: entry.isStar
-            ? _VocabularyJourney.stars
-            : _VocabularyJourney.family,
+        journey:
+            _selectedJourney ??
+            (entry.isStar
+                ? _VocabularyJourney.stars
+                : _VocabularyJourney.family),
       );
       return;
     }
     _showMessage('Nội dung này cần được học xong trước khi nghe lại.');
+  }
+
+  GlobalKey _entryKey(_VocabularyJourney journey, String id) =>
+      _entryKeys.putIfAbsent('${journey.name}:$id', GlobalKey.new);
+
+  void _setActiveEntry(
+    VocabularyEntry entry,
+    _VocabularyJourney journey,
+    int generation,
+  ) {
+    if (!mounted ||
+        _selectedJourney != journey ||
+        generation != _playbackGeneration) {
+      return;
+    }
+    setState(() => _activeEntryId = entry.id);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          !_playingCollection ||
+          _pausedForMainAssistant ||
+          _userDraggingEntries ||
+          generation != _playbackGeneration ||
+          _selectedJourney != journey ||
+          _activeEntryId != entry.id) {
+        return;
+      }
+      final entryContext =
+          _entryKeys['${journey.name}:${entry.id}']?.currentContext;
+      if (entryContext == null) return;
+      final renderObject = entryContext.findRenderObject();
+      final viewport = renderObject == null
+          ? null
+          : RenderAbstractViewport.maybeOf(renderObject);
+      final scrollable = Scrollable.maybeOf(entryContext);
+      if (viewport == null || scrollable == null) return;
+      final aboveViewport =
+          viewport.getOffsetToReveal(renderObject!, 0).offset <
+          scrollable.position.pixels;
+      unawaited(
+        Scrollable.ensureVisible(
+          entryContext,
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeOutCubic,
+          alignmentPolicy: aboveViewport
+              ? ScrollPositionAlignmentPolicy.keepVisibleAtStart
+              : ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+        ),
+      );
+    });
   }
 
   Future<void> _playQueue(
@@ -1795,6 +1883,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
           _playbackInterrupted = true;
           return;
         }
+        _setActiveEntry(entries[index], journey, generation);
         final played = await _speakVocabularyEntry(
           entries[index],
           journey: journey,
@@ -1806,11 +1895,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
           _playbackInterrupted = true;
           return;
         }
+        if (!played) {
+          _playbackInterrupted = true;
+          return;
+        }
         if (checkpoint) {
           await widget.sessionStore.savePlaybackCheckpoint(branch, index + 1);
         }
         _nextPlaybackIndex = index + 1;
-        if (!played) continue;
       }
       _playbackInterrupted = false;
       if (_playbackBlockEndExclusive < entries.length) {
@@ -1847,7 +1939,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       }
     } finally {
       if (mounted && generation == _playbackGeneration) {
-        setState(() => _playingCollection = false);
+        setState(() {
+          _playingCollection = false;
+          _activeEntryId = null;
+        });
       }
     }
   }
@@ -1858,12 +1953,41 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     bool announceStarVoice = false,
     required int generation,
   }) async {
-    final path = journey == _VocabularyJourney.stars
+    var path = journey == _VocabularyJourney.stars
         ? entry.correctAudioPath?.trim()
         : null;
-    if (journey == _VocabularyJourney.stars && (path == null || path.isEmpty)) {
-      debugPrint('VOCABULARY_STAR_AUDIO_MISSING slot=${entry.starSlotId}');
-      return false;
+    if (journey == _VocabularyJourney.stars) {
+      path = path == null || path.isEmpty
+          ? null
+          : await _mediaService.availableRecordingPath(path);
+      if (generation != _playbackGeneration || _pausedForMainAssistant) {
+        return false;
+      }
+      if (path == null) {
+        debugPrint('VOCABULARY_STAR_AUDIO_MISSING slot=${entry.starSlotId}');
+        _showMessage(
+          'Bản ghi Ngôi sao không còn trên thiết bị. Con hãy luyện lại nhé.',
+        );
+        return false;
+      }
+      if (!path.contains('.star.')) {
+        final retained = await _mediaService.preserveStarRecording(path);
+        if (retained != null && retained != path) {
+          try {
+            await widget.store.updateStarRecordingPath(
+              entryId: entry.id,
+              previousPath: path,
+              retainedPath: retained,
+            );
+          } catch (error) {
+            debugPrint('VOCABULARY_STAR_PATH_UPDATE_FAILED error=$error');
+          }
+          path = retained;
+        }
+      }
+      if (generation != _playbackGeneration || _pausedForMainAssistant) {
+        return false;
+      }
     }
     await _mediaService.prepareSelectedLessonOutput();
     if (generation != _playbackGeneration || _pausedForMainAssistant) {
@@ -1897,6 +2021,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         debugPrint(
           'VOCABULARY_STAR_AUDIO_FAILED slot=${entry.starSlotId} error=$error',
         );
+        _showMessage('Chưa phát được bản ghi Ngôi sao. Con hãy thử lại nhé.');
         return false;
       }
       rethrow;
@@ -1905,16 +2030,15 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   }
 
   Future<void> _resumePlayback({bool announceResume = false}) async {
-    await _waitForPlaybackToSettle();
     if (!_playbackInterrupted || _playbackQueue.isEmpty || _playingCollection) {
       return;
     }
+    final generation = _playbackGeneration;
     final queue = _playbackQueue;
     final branch = _playbackBranch ?? 'resume';
-    _playbackInterrupted = false;
     if (announceResume) {
       await _speakOnSelectedOutput(VocabularyFlowV3.resumeStars);
-      if (_pausedForMainAssistant) return;
+      if (_pausedForMainAssistant || generation != _playbackGeneration) return;
     }
     await _playQueue(
       queue,
@@ -2124,6 +2248,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _waitingForPlaybackContinuation = false;
     _awaitingPlaybackEndChoice = false;
     _playingCollection = false;
+    _activeEntryId = null;
     _closeJourney();
     final cleanup = _boundPlaybackNavigationCleanup(
       Future.wait<void>(<Future<void>>[
@@ -3127,11 +3252,13 @@ class _JourneyCopy extends StatelessWidget {
 
 class _VocabularyRow extends StatelessWidget {
   const _VocabularyRow({
+    super.key,
     required this.entry,
     required this.order,
     required this.canPlay,
     required this.onPlay,
     this.statusLabel,
+    this.active = false,
   });
 
   final VocabularyEntry entry;
@@ -3139,13 +3266,21 @@ class _VocabularyRow extends StatelessWidget {
   final bool canPlay;
   final VoidCallback onPlay;
   final String? statusLabel;
+  final bool active;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    return Padding(
+    return Container(
       padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: active && statusLabel == null
+          ? BoxDecoration(
+              color: isDark ? AppColors.darkPrimary : AppColors.mintSoft,
+              border: Border.all(color: AppColors.success),
+              borderRadius: BorderRadius.circular(12),
+            )
+          : null,
       child: Row(
         children: <Widget>[
           Semantics(

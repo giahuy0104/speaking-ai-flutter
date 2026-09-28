@@ -11,6 +11,7 @@ import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_audio_service.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_fixed_prompt_audio_service.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_store.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_session_store.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_dictionary.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_flow_v3.dart';
@@ -1096,6 +1097,456 @@ void main() {
   });
 
   testWidgets(
+    'missing Star recording stops before speech and keeps checkpoint',
+    (tester) async {
+      final voice = _RecordingVoicePromptService();
+      final media = _MissingRecordingMediaService();
+      final store = _MemoryVocabularyStore(<VocabularyEntry>[
+        VocabularyEntry(
+          id: 'missing-star',
+          word: 'English',
+          meaning: 'Tiếng Anh',
+          addedAt: DateTime(2026, 9, 15),
+          collection: VocabularyCollection.star,
+          source: VocabularySource.topicCore,
+          correctAudioPath: '/missing/star.wav',
+        ),
+      ]);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: DisplayLanguageScope(
+            language: DisplayLanguage.vietnamese,
+            child: VocabularyHomeScreen(
+              isReady: true,
+              store: store,
+              mediaService: media,
+              voicePromptService: voice,
+              fixedPromptAudioService:
+                  const _UnavailableFixedPromptAudioService(),
+              onReturnToConversation: () {},
+              onHistory: () {},
+              onSettings: () {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-stars-card')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-stars-action')));
+      await tester.pumpAndSettle();
+
+      expect(voice.spokenTexts, isNot(contains('English')));
+      expect(voice.spokenTexts, isNot(contains('Tiếng Anh')));
+      expect(media.played, isEmpty);
+      expect(find.textContaining('không còn trên thiết bị'), findsOneWidget);
+      expect(
+        await const VocabularySessionStore().readPlaybackCheckpoint(
+          'stars:ordered',
+        ),
+        0,
+      );
+    },
+  );
+
+  testWidgets('existing Star recording is retained before it plays', (
+    tester,
+  ) async {
+    final media = _RetainingRecordingMediaService();
+    final earnedAt = DateTime(2026, 9, 15);
+    final store = _MemoryVocabularyStore(<VocabularyEntry>[
+      VocabularyEntry(
+        id: 'existing-star',
+        word: 'English',
+        meaning: 'Tiếng Anh',
+        addedAt: earnedAt,
+        earnedAt: earnedAt,
+        collection: VocabularyCollection.star,
+        source: VocabularySource.topicCore,
+        correctAudioPath: '/recordings/old.wav',
+      ),
+    ]);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: DisplayLanguageScope(
+          language: DisplayLanguage.vietnamese,
+          child: VocabularyHomeScreen(
+            isReady: true,
+            store: store,
+            mediaService: media,
+            voicePromptService: const _FakeVoicePromptService(),
+            fixedPromptAudioService:
+                const _UnavailableFixedPromptAudioService(),
+            onReturnToConversation: () {},
+            onHistory: () {},
+            onSettings: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-stars-card')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-stars-action')));
+    await tester.pumpAndSettle();
+
+    expect(store.entries.single.correctAudioPath, '/recordings/old.star.wav');
+    expect(store.entries.single.earnedAt, earnedAt);
+    expect(media.played.single.uri.path, '/recordings/old.star.wav');
+  });
+
+  testWidgets('Parent Added follows the active entry below a small viewport', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 520);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final audio = _HoldFifthVocabularyAudioService();
+    addTearDown(audio.release);
+    final store = _MemoryVocabularyStore(<VocabularyEntry>[
+      for (var index = 0; index < 5; index++)
+        VocabularyEntry(
+          id: 'word-$index',
+          word: 'Word $index',
+          meaning: 'Từ $index',
+          addedAt: DateTime(2026, 9, 15).add(Duration(minutes: index)),
+          source: VocabularySource.parent,
+          status: VocabularyLearningStatus.learnedWell,
+          parentState: ParentVocabularyState.unlocked,
+        ),
+    ]);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: DisplayLanguageScope(
+          language: DisplayLanguage.vietnamese,
+          child: VocabularyHomeScreen(
+            isReady: true,
+            store: store,
+            mediaService: _ImmediateLessonMediaService(),
+            voicePromptService: const _FakeVoicePromptService(),
+            fixedPromptAudioService:
+                const _UnavailableFixedPromptAudioService(),
+            vocabularyAudioService: audio,
+            onReturnToConversation: () {},
+            onHistory: () {},
+            onSettings: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+    await tester.pumpAndSettle();
+    final action = find.byKey(const Key('vocabulary-family-action'));
+    await tester.ensureVisible(action);
+    await tester.tap(action);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(audio.spoken, contains('en-US:Word 4'));
+    final active = find.byKey(
+      const ValueKey<String>('vocabulary-order-word-4'),
+    );
+    expect(tester.getBottomLeft(active).dy, lessThan(520));
+    expect(tester.getTopLeft(active).dy, greaterThan(0));
+    audio.release();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('manual drag defers follow until the next spoken entry', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 520);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final audio = _HoldFifthVocabularyAudioService(holdFirst: true);
+    addTearDown(audio.release);
+    final store = _MemoryVocabularyStore(<VocabularyEntry>[
+      for (var index = 0; index < 5; index++)
+        VocabularyEntry(
+          id: 'drag-word-$index',
+          word: 'Word $index',
+          meaning: 'Từ $index',
+          addedAt: DateTime(2026, 9, 15).add(Duration(minutes: index)),
+          source: VocabularySource.parent,
+          status: VocabularyLearningStatus.learnedWell,
+          parentState: ParentVocabularyState.unlocked,
+        ),
+    ]);
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: MaterialApp(
+          theme: buildAppTheme(),
+          home: DisplayLanguageScope(
+            language: DisplayLanguage.vietnamese,
+            child: VocabularyHomeScreen(
+              isReady: true,
+              isActive: true,
+              store: store,
+              mediaService: _ImmediateLessonMediaService(),
+              voicePromptService: const _FakeVoicePromptService(),
+              fixedPromptAudioService:
+                  const _UnavailableFixedPromptAudioService(),
+              vocabularyAudioService: audio,
+              onReturnToConversation: () {},
+              onHistory: () {},
+              onSettings: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+    await tester.pumpAndSettle();
+    final drag = await tester.startGesture(const Offset(190, 340));
+    await drag.moveBy(const Offset(0, -45));
+    await tester.pump();
+    final first = find.byKey(
+      const ValueKey<String>('vocabulary-order-drag-word-0'),
+    );
+    final duringDrag = tester.getTopLeft(first).dy;
+    expect(
+      (await registry.execute(
+        ActiveLearningCommand.vocabularyParentAdded,
+      )).wasHandled,
+      isTrue,
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    expect(audio.spoken, contains('en-US:Word 0'));
+    expect(tester.getTopLeft(first).dy, closeTo(duringDrag, 1));
+
+    await drag.up();
+    audio.releaseFirst();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pump(const Duration(milliseconds: 350));
+    final fifth = find.byKey(
+      const ValueKey<String>('vocabulary-order-drag-word-4'),
+    );
+    expect(audio.spoken, contains('en-US:Word 4'));
+    expect(tester.getBottomLeft(fifth).dy, lessThan(520));
+    audio.release();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('active entry above viewport scrolls back into view', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 520);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final audio = _HoldFifthVocabularyAudioService(holdFirst: true);
+    addTearDown(audio.release);
+    final store = _MemoryVocabularyStore(<VocabularyEntry>[
+      for (var index = 0; index < 10; index++)
+        VocabularyEntry(
+          id: 'up-word-$index',
+          word: 'Word $index',
+          meaning: 'Từ $index',
+          addedAt: DateTime(2026, 9, 15).add(Duration(minutes: index)),
+          source: VocabularySource.parent,
+          status: VocabularyLearningStatus.learnedWell,
+          parentState: ParentVocabularyState.unlocked,
+        ),
+    ]);
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: MaterialApp(
+          theme: buildAppTheme(),
+          home: DisplayLanguageScope(
+            language: DisplayLanguage.vietnamese,
+            child: VocabularyHomeScreen(
+              isReady: true,
+              isActive: true,
+              store: store,
+              mediaService: _ImmediateLessonMediaService(),
+              voicePromptService: const _FakeVoicePromptService(),
+              fixedPromptAudioService:
+                  const _UnavailableFixedPromptAudioService(),
+              vocabularyAudioService: audio,
+              onReturnToConversation: () {},
+              onHistory: () {},
+              onSettings: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+    await tester.pumpAndSettle();
+    await tester.drag(
+      find.byType(SingleChildScrollView).last,
+      const Offset(0, -650),
+    );
+    await tester.pumpAndSettle();
+    final first = find.byKey(
+      const ValueKey<String>('vocabulary-order-up-word-0'),
+    );
+    expect(tester.getBottomLeft(first).dy, lessThan(0));
+    expect(
+      (await registry.execute(
+        ActiveLearningCommand.vocabularyParentAdded,
+      )).wasHandled,
+      isTrue,
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pump(const Duration(milliseconds: 350));
+    expect(audio.spoken, contains('en-US:Word 0'));
+    expect(tester.getTopLeft(first).dy, greaterThan(0));
+    audio.release();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('MAIN resume starts a fresh turn when old speech is stuck', (
+    tester,
+  ) async {
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final audio = _StuckFirstVocabularyAudioService();
+    addTearDown(audio.release);
+    final store = _MemoryVocabularyStore(<VocabularyEntry>[
+      VocabularyEntry(
+        id: 'resume-word',
+        word: 'Resume word',
+        meaning: 'Từ tiếp tục',
+        addedAt: DateTime(2026, 9, 15),
+        source: VocabularySource.parent,
+        status: VocabularyLearningStatus.learnedWell,
+        parentState: ParentVocabularyState.unlocked,
+      ),
+    ]);
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: MaterialApp(
+          theme: buildAppTheme(),
+          home: DisplayLanguageScope(
+            language: DisplayLanguage.vietnamese,
+            child: VocabularyHomeScreen(
+              isReady: true,
+              isActive: true,
+              store: store,
+              mediaService: _ImmediateLessonMediaService(),
+              voicePromptService: const _FakeVoicePromptService(),
+              fixedPromptAudioService:
+                  const _UnavailableFixedPromptAudioService(),
+              vocabularyAudioService: audio,
+              onReturnToConversation: () {},
+              onHistory: () {},
+              onSettings: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-family-action')));
+    await tester.pump();
+    expect(
+      audio.spoken.where((text) => text == 'en-US:Resume word'),
+      hasLength(1),
+    );
+
+    expect(await registry.pauseForMainAssistant(), isTrue);
+    expect(
+      (await registry.execute(ActiveLearningCommand.resume)).wasHandled,
+      isTrue,
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(
+      audio.spoken.where((text) => text == 'en-US:Resume word'),
+      hasLength(2),
+    );
+    audio.release();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets(
+    'MAIN resume restarts a collection interrupted during its intro',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final prompt = _InterruptibleVoicePromptService();
+      addTearDown(prompt.complete);
+      final audio = _RecordingVocabularyAudioService();
+      final store = _MemoryVocabularyStore(<VocabularyEntry>[
+        VocabularyEntry(
+          id: 'intro-word',
+          word: 'Intro word',
+          meaning: 'Từ mở đầu',
+          addedAt: DateTime(2026, 9, 15),
+          source: VocabularySource.parent,
+          status: VocabularyLearningStatus.learnedWell,
+          parentState: ParentVocabularyState.unlocked,
+        ),
+      ]);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: MaterialApp(
+            theme: buildAppTheme(),
+            home: DisplayLanguageScope(
+              language: DisplayLanguage.vietnamese,
+              child: VocabularyHomeScreen(
+                isReady: true,
+                isActive: true,
+                store: store,
+                mediaService: _ImmediateLessonMediaService(),
+                voicePromptService: prompt,
+                fixedPromptAudioService:
+                    const _UnavailableFixedPromptAudioService(),
+                vocabularyAudioService: audio,
+                onReturnToConversation: () {},
+                onHistory: () {},
+                onSettings: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        (await registry.execute(
+          ActiveLearningCommand.vocabularyParentAdded,
+        )).wasHandled,
+        isTrue,
+      );
+      await tester.pump();
+      expect(prompt.started, isTrue);
+      expect(audio.spoken, isEmpty);
+
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect(
+        (await registry.execute(ActiveLearningCommand.resume)).wasHandled,
+        isTrue,
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(audio.spoken, contains('en-US:Intro word'));
+    },
+  );
+
+  testWidgets(
     'keeps a newly added parent entry silent until it has been learned',
     (tester) async {
       final store = _MemoryVocabularyStore();
@@ -1444,6 +1895,7 @@ class _FakeVocabularyDictionaryProvider
 class _RecordingVocabularyAudioService
     implements VocabularyContentAudioService {
   final List<String> prefetched = <String>[];
+  final List<String> spoken = <String>[];
 
   @override
   Future<void> prefetch(String text, {required String locale}) async {
@@ -1454,7 +1906,10 @@ class _RecordingVocabularyAudioService
   Future<VocabularyAudioSource> speakAndWait(
     String text, {
     required String locale,
-  }) async => VocabularyAudioSource.nativeTts;
+  }) async {
+    spoken.add('$locale:$text');
+    return VocabularyAudioSource.nativeTts;
+  }
 
   @override
   Future<void> stop() async {}
@@ -1541,6 +1996,12 @@ class _ImmediateLessonMediaService extends LessonMediaService {
   final played = <({Uri uri, double gainDb})>[];
 
   @override
+  Future<String?> availableRecordingPath(String path) async => path;
+
+  @override
+  Future<String?> preserveStarRecording(String path) async => null;
+
+  @override
   Future<void> prepareSelectedLessonOutput() async {}
 
   @override
@@ -1556,4 +2017,85 @@ class _ImmediateLessonMediaService extends LessonMediaService {
 
   @override
   Future<void> stopPlayback() async {}
+}
+
+class _MissingRecordingMediaService extends _ImmediateLessonMediaService {
+  @override
+  Future<String?> availableRecordingPath(String path) async => null;
+}
+
+class _RetainingRecordingMediaService extends _ImmediateLessonMediaService {
+  @override
+  Future<String?> preserveStarRecording(String path) async =>
+      path.replaceFirst('.wav', '.star.wav');
+}
+
+class _HoldFifthVocabularyAudioService
+    implements VocabularyContentAudioService {
+  _HoldFifthVocabularyAudioService({this.holdFirst = false});
+
+  final bool holdFirst;
+  final spoken = <String>[];
+  final Completer<void> _first = Completer<void>();
+  final Completer<void> _fifth = Completer<void>();
+
+  void releaseFirst() {
+    if (!_first.isCompleted) _first.complete();
+  }
+
+  void release() {
+    releaseFirst();
+    if (!_fifth.isCompleted) _fifth.complete();
+  }
+
+  @override
+  Future<void> prefetch(String text, {required String locale}) async {}
+
+  @override
+  Future<VocabularyAudioSource> speakAndWait(
+    String text, {
+    required String locale,
+  }) async {
+    spoken.add('$locale:$text');
+    if (holdFirst && locale == 'en-US' && text == 'Word 0') {
+      await _first.future;
+    }
+    if (locale == 'en-US' && text == 'Word 4') await _fifth.future;
+    return VocabularyAudioSource.nativeTts;
+  }
+
+  @override
+  Future<void> stop() async => release();
+
+  @override
+  void dispose() => release();
+}
+
+class _StuckFirstVocabularyAudioService
+    implements VocabularyContentAudioService {
+  final spoken = <String>[];
+  final Completer<void> _first = Completer<void>();
+
+  void release() {
+    if (!_first.isCompleted) _first.complete();
+  }
+
+  @override
+  Future<void> prefetch(String text, {required String locale}) async {}
+
+  @override
+  Future<VocabularyAudioSource> speakAndWait(
+    String text, {
+    required String locale,
+  }) async {
+    spoken.add('$locale:$text');
+    if (spoken.length == 1) await _first.future;
+    return VocabularyAudioSource.nativeTts;
+  }
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  void dispose() => release();
 }

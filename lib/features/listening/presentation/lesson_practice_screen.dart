@@ -1939,6 +1939,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     required ListeningSentenceContent sentence,
   }) async {
     try {
+      final starRecordingPath =
+          collection == VocabularyCollection.star && _recordingPath != null
+          ? await widget.mediaService.preserveStarRecording(_recordingPath!)
+          : null;
       await widget.vocabularyStore.upsertLessonSentence(
         lessonCode: widget.lesson.code,
         sentenceId: sentence.id,
@@ -1950,7 +1954,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             ? '${widget.lesson.code}:core:${sentence.id}'
             : null,
         correctAudioPath: collection == VocabularyCollection.star
-            ? _recordingPath
+            ? starRecordingPath ?? _recordingPath
             : null,
       );
     } catch (_) {
@@ -2015,6 +2019,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     required String vocabularyId,
     String? correctAudioPath,
   }) async {
+    final recordingPath = correctAudioPath ?? _recordingPath;
+    final starRecordingPath = recordingPath == null
+        ? null
+        : await widget.mediaService.preserveStarRecording(recordingPath);
     final lessonStarsBefore = await widget.progressStore.readEarnedStars(
       widget.lesson.id,
     );
@@ -2030,7 +2038,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       collection: VocabularyCollection.star,
       source: _vocabularySourceForStar(starId),
       starSlotId: '${widget.lesson.code}:$starId',
-      correctAudioPath: correctAudioPath ?? _recordingPath,
+      correctAudioPath: starRecordingPath ?? recordingPath,
     );
     if (!isNew) return false;
     await _playFirstStarSoundEffect();
