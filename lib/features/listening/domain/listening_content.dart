@@ -153,6 +153,54 @@ class ListeningTopicContent {
 
   int get songLineCount =>
       songs.fold<int>(0, (count, song) => count + song.sentences.length);
+
+  /// Returns the existing lesson objects that can be opened as songs.
+  ///
+  /// V4 song milestones stay attached to their lesson and take precedence over
+  /// legacy standalone songs. Legacy songs retain their existing age gate.
+  List<ListeningLessonContent> availableSongsForAge(int startAge) {
+    final result = <ListeningLessonContent>[];
+    final identities = <String>{};
+
+    void addIfUnique(ListeningLessonContent lesson) {
+      final aliases = _songIdentityAliases(lesson);
+      if (aliases.any(identities.contains)) return;
+      result.add(lesson);
+      identities.addAll(aliases);
+    }
+
+    for (final lesson in lessons.where((item) => item.hasV4SongStage)) {
+      addIfUnique(lesson);
+    }
+    if (startAge >= 6) {
+      for (final song in songs) {
+        addIfUnique(song);
+      }
+    }
+    return List<ListeningLessonContent>.unmodifiable(result);
+  }
+}
+
+Set<String> _songIdentityAliases(ListeningLessonContent lesson) {
+  final aliases = <String>{};
+
+  void add(String prefix, String? value, {bool audio = false}) {
+    if (value == null) return;
+    var normalized = value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '');
+    if (audio && normalized.endsWith('song')) {
+      normalized = normalized.substring(0, normalized.length - 4);
+    }
+    if (normalized.isNotEmpty) aliases.add('$prefix:$normalized');
+  }
+
+  add('id', lesson.id);
+  add('audio', lesson.songAudioId, audio: true);
+  add('audio', lesson.fullAudioId, audio: true);
+  add('audio', lesson.songAudioUri?.path, audio: true);
+  add('audio', lesson.fullAudioUri?.path, audio: true);
+  add('title', lesson.songTitle);
+  add('title', lesson.titleEn);
+  return aliases;
 }
 
 enum ListeningLessonType {

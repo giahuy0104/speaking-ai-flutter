@@ -289,7 +289,9 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
                       englishTitleFor: _topicEnglishTitle,
                       progressFor: _topicProgress,
                       lockedFor: _topicLocked,
+                      hasSongsFor: _topicHasSongs,
                       onTopicPressed: _openTopic,
+                      onSongsPressed: _openTopicSongs,
                     ),
                   ),
                 ),
@@ -579,6 +581,22 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     }
   }
 
+  bool _topicHasSongs(int topicIndex) {
+    try {
+      return _contentCatalog
+              ?.topic(
+                startAge: _catalog.startAge,
+                endAge: _catalog.endAge,
+                topicNumber: topicIndex + 1,
+              )
+              .availableSongsForAge(_catalog.startAge)
+              .isNotEmpty ??
+          false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   bool _topicLocked(int topicIndex) {
     final catalog = _contentCatalog;
     if (catalog == null) return false;
@@ -792,6 +810,106 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     );
   }
 
+  Future<void> _openTopicSongs(ListeningTopic topic, int topicIndex) async {
+    try {
+      final catalog = await _contentFuture;
+      if (!mounted) return;
+      final selectedAgeCatalog = _catalog;
+      final content = catalog.topic(
+        startAge: selectedAgeCatalog.startAge,
+        endAge: selectedAgeCatalog.endAge,
+        topicNumber: topicIndex + 1,
+      );
+      if (content.availableSongsForAge(selectedAgeCatalog.startAge).isEmpty) {
+        return;
+      }
+      final contentGroup = catalog.groups.firstWhere(
+        (group) =>
+            group.startAge == selectedAgeCatalog.startAge &&
+            group.endAge == selectedAgeCatalog.endAge,
+      );
+      final level = contentGroup.level(content.levelNumber);
+      if (!await _ensureLevelUnlocked(contentGroup, level)) return;
+      if (!mounted) return;
+      widget.onTopicSelected?.call(topicIndex);
+      var topicCompletedDuringVisit = false;
+      await pushForActiveLearning<void>(
+        context,
+        (_) => TopicLessonListScreen(
+          language: widget.language,
+          startAge: selectedAgeCatalog.startAge,
+          endAge: selectedAgeCatalog.endAge,
+          topic: topic,
+          content: content,
+          contentGroup: contentGroup,
+          levelContent: level,
+          controller: widget.controller,
+          onMainPressed: widget.onMainPressed,
+          onVocabularyRequested: widget.onVocabularyRequested,
+          onVoiceNavigationPause: widget.onVoiceNavigationPause,
+          onVoiceNavigationResume: widget.onVoiceNavigationResume,
+          progressStore: widget.progressStore,
+          voicePromptService: _voicePromptService,
+          songsOnly: true,
+          onTopicCompleted: () => topicCompletedDuringVisit = true,
+          onCommunicationRequested: widget.onCommunicationRequested,
+        ),
+        settings: const RouteSettings(name: ListeningRouteNames.topicLessons),
+      );
+      await _reloadProgress();
+      if (topicCompletedDuringVisit && level != null && mounted) {
+        await _startLevelTopicSelection(
+          contentGroup,
+          levelNumber: level.number,
+          announceLevel: false,
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr(
+              'Chưa tải được nội dung bài hát. Vui lòng thử lại.',
+              '暂时无法加载歌曲内容，请重试。',
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<bool> _ensureLevelUnlocked(
+    ListeningContentAgeGroup contentGroup,
+    ListeningLevelContent? level,
+  ) async {
+    if (level == null ||
+        ListeningCurriculumFlow.levelUnlocked(
+          contentGroup,
+          level,
+          _lessonProgress,
+          _completedV4LessonActivities,
+        )) {
+      return true;
+    }
+    final current = ListeningCurriculumFlow.currentUnlockedLevelNumber(
+      contentGroup,
+      _lessonProgress,
+      _completedV4LessonActivities,
+    );
+    final message = 'Bạn cần hoàn thành Level $current trước nhé.';
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    }
+    await _speakOnSelectedLessonOutput(
+      message,
+      audioKey: ListeningAudioKeys.lockedLevel(current),
+    );
+    return false;
+  }
+
   Future<void> _openTopic(
     ListeningTopic topic,
     int topicIndex, {
@@ -818,30 +936,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
             group.endAge == selectedAgeCatalog.endAge,
       );
       final level = contentGroup.level(content.levelNumber);
-      if (level != null &&
-          !ListeningCurriculumFlow.levelUnlocked(
-            contentGroup,
-            level,
-            _lessonProgress,
-            _completedV4LessonActivities,
-          )) {
-        final current = ListeningCurriculumFlow.currentUnlockedLevelNumber(
-          contentGroup,
-          _lessonProgress,
-          _completedV4LessonActivities,
-        );
-        final message = 'Bạn cần hoàn thành Level $current trước nhé.';
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(message)));
-        }
-        await _speakOnSelectedLessonOutput(
-          message,
-          audioKey: ListeningAudioKeys.lockedLevel(current),
-        );
-        return;
-      }
+      if (!await _ensureLevelUnlocked(contentGroup, level)) return;
       final progressBefore = _ListeningProgressSnapshot(
         lessonProgress: _lessonProgress,
         completedV4LessonActivities: _completedV4LessonActivities,
@@ -1272,6 +1367,7 @@ class _LessonGroupPickerSheetState extends State<_LessonGroupPickerSheet> {
 
 typedef _TopicProgressResolver = _TopicProgress Function(int index);
 typedef _TopicLockedResolver = bool Function(int index);
+typedef _TopicHasSongsResolver = bool Function(int index);
 typedef _TopicEnglishTitleResolver = String Function(int index);
 typedef _TopicPressed = Future<void> Function(ListeningTopic topic, int index);
 
@@ -1282,7 +1378,9 @@ class _TopicJourney extends StatelessWidget {
     required this.englishTitleFor,
     required this.progressFor,
     required this.lockedFor,
+    required this.hasSongsFor,
     required this.onTopicPressed,
+    required this.onSongsPressed,
   });
 
   final String catalogId;
@@ -1290,7 +1388,9 @@ class _TopicJourney extends StatelessWidget {
   final _TopicEnglishTitleResolver englishTitleFor;
   final _TopicProgressResolver progressFor;
   final _TopicLockedResolver lockedFor;
+  final _TopicHasSongsResolver hasSongsFor;
   final _TopicPressed onTopicPressed;
+  final _TopicPressed onSongsPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -1324,20 +1424,24 @@ class _TopicJourney extends StatelessWidget {
                   final topic = topics[index];
                   final progress = progressFor(index);
                   final locked = lockedFor(index);
+                  final hasSongs = hasSongsFor(index);
                   return SizedBox(
                     height: rowHeight,
                     child: _JourneyTopicStop(
                       topicKey: ValueKey('topic-$catalogId-$index'),
                       actionKey: ValueKey('topic-action-$catalogId-$index'),
+                      songActionKey: ValueKey('topic-songs-$catalogId-$index'),
                       topic: topic,
                       titleEn: englishTitleFor(index),
                       progress: progress,
                       locked: locked,
+                      hasSongs: hasSongs,
                       imageSize: imageSize,
                       sideWidth: sideWidth,
                       checkpointWidth: checkpointWidth,
                       imageOnLeft: index.isEven,
                       onPressed: () => onTopicPressed(topic, index),
+                      onSongsPressed: () => onSongsPressed(topic, index),
                     ),
                   );
                 }),
@@ -1354,28 +1458,34 @@ class _JourneyTopicStop extends StatelessWidget {
   const _JourneyTopicStop({
     required this.topicKey,
     required this.actionKey,
+    required this.songActionKey,
     required this.topic,
     required this.titleEn,
     required this.progress,
     required this.locked,
+    required this.hasSongs,
     required this.imageSize,
     required this.sideWidth,
     required this.checkpointWidth,
     required this.imageOnLeft,
     required this.onPressed,
+    required this.onSongsPressed,
   });
 
   final Key topicKey;
   final Key actionKey;
+  final Key songActionKey;
   final ListeningTopic topic;
   final String titleEn;
   final _TopicProgress progress;
   final bool locked;
+  final bool hasSongs;
   final double imageSize;
   final double sideWidth;
   final double checkpointWidth;
   final bool imageOnLeft;
   final VoidCallback onPressed;
+  final VoidCallback onSongsPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -1383,23 +1493,51 @@ class _JourneyTopicStop extends StatelessWidget {
     final englishTitle = titleEn.trim();
     final image = SizedBox(
       width: sideWidth,
-      child: Align(
-        alignment: imageOnLeft ? Alignment.centerRight : Alignment.centerLeft,
-        child: Stack(
-          alignment: Alignment.center,
-          children: <Widget>[
-            Opacity(
-              opacity: locked ? 0.48 : 1,
-              child: _TopicCircleImage(
-                key: topicKey,
-                topic: topic,
-                size: imageSize,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Align(
+            alignment: imageOnLeft
+                ? Alignment.centerRight
+                : Alignment.centerLeft,
+            child: Stack(
+              alignment: Alignment.center,
+              children: <Widget>[
+                Opacity(
+                  opacity: locked ? 0.48 : 1,
+                  child: _TopicCircleImage(
+                    key: topicKey,
+                    topic: topic,
+                    size: imageSize,
+                  ),
+                ),
+                if (locked)
+                  const Icon(Icons.lock_rounded, color: Colors.white, size: 34),
+              ],
+            ),
+          ),
+          if (hasSongs) ...<Widget>[
+            const SizedBox(height: 5),
+            OutlinedButton.icon(
+              key: songActionKey,
+              onPressed: onSongsPressed,
+              icon: const Icon(Icons.music_note_rounded, size: 18),
+              label: Text(context.tr('Bài hát', '歌曲')),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(0, 42),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                visualDensity: VisualDensity.compact,
+                foregroundColor: AppColors.coral,
+                side: BorderSide(
+                  color: AppColors.coral.withValues(alpha: 0.55),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
-            if (locked)
-              const Icon(Icons.lock_rounded, color: Colors.white, size: 34),
           ],
-        ),
+        ],
       ),
     );
     final checkpoint = SizedBox(

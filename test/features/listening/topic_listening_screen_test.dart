@@ -609,6 +609,226 @@ void main() {
     },
   );
 
+  testWidgets(
+    'topic song action appears only with content and opens the existing V4 lesson',
+    (tester) async {
+      final content = await AssetListeningContentRepository().load();
+      final progressStore = _MemoryProgressStore();
+      final topic = content.topic(startAge: 3, endAge: 5, topicNumber: 2);
+      final songs = topic.availableSongsForAge(3);
+      expect(songs, hasLength(1));
+
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(
+        buildSubject(
+          childAge: 3,
+          contentFuture: Future<ListeningContentCatalog>.value(content),
+          progressStore: progressStore,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('topic-songs-3-5-0')),
+        findsNothing,
+        reason: 'a topic without songs must not expose an empty action',
+      );
+      final songAction = find.byKey(const ValueKey('topic-songs-3-5-1'));
+      await tester.scrollUntilVisible(
+        songAction,
+        180,
+        scrollable: find
+            .descendant(
+              of: find.byKey(const Key('topic-listening-screen')),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.tap(songAction);
+      await tester.pumpAndSettle();
+
+      final songListFinder = find.byType(TopicLessonListScreen);
+      expect(songListFinder, findsOneWidget);
+      final songList = tester.widget<TopicLessonListScreen>(songListFinder);
+      expect(songList.songsOnly, isTrue);
+      expect(songList.content.id, topic.id);
+      expect(
+        find.byKey(ValueKey('song-entry-${songs.single.id}')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(ValueKey('lesson-${songs.single.id}')),
+        findsNothing,
+        reason: 'the V4 lesson must not be rendered a second time',
+      );
+      expect(await progressStore.readAll(), isEmpty);
+      expect(
+        await progressStore.readCompletedV4LessonActivities(),
+        isEmpty,
+        reason: 'opening the song list must not complete any lesson or topic',
+      );
+
+      await tester.tap(find.byTooltip('Quay lại'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('topic-listening-screen')), findsOneWidget);
+      expect(find.byType(TopicLessonListScreen), findsNothing);
+    },
+  );
+
+  testWidgets('legacy content.songs opens through the same topic song list', (
+    tester,
+  ) async {
+    final source = await AssetListeningContentRepository().load();
+    final sourceGroup = source.groups.singleWhere(
+      (group) => group.startAge == 6 && group.endAge == 7,
+    );
+    final sourceTopic = sourceGroup.topics.first;
+    expect(sourceTopic.availableSongsForAge(6), isEmpty);
+    final legacy = _legacySong(
+      id: 'legacy-topic-song',
+      title: 'Hello Song',
+      audioId: 'legacy_hello_song',
+      sentences: sourceTopic.lessons.first.sentences,
+    );
+    final topicWithLegacySong = ListeningTopicContent(
+      id: sourceTopic.id,
+      number: sourceTopic.number,
+      titleVi: sourceTopic.titleVi,
+      titleEn: sourceTopic.titleEn,
+      lessons: sourceTopic.lessons,
+      songs: <ListeningLessonContent>[legacy],
+      levelNumber: sourceTopic.levelNumber,
+    );
+    final content = ListeningContentCatalog(
+      contentVersion: source.contentVersion,
+      groups: source.groups
+          .map(
+            (group) => identical(group, sourceGroup)
+                ? ListeningContentAgeGroup(
+                    startAge: group.startAge,
+                    endAge: group.endAge,
+                    topics: <ListeningTopicContent>[
+                      topicWithLegacySong,
+                      ...group.topics.skip(1),
+                    ],
+                    levels: group.levels,
+                  )
+                : group,
+          )
+          .toList(growable: false),
+    );
+    final progressStore = _MemoryProgressStore();
+
+    await tester.pumpWidget(
+      buildSubject(
+        childAge: 6,
+        contentFuture: Future<ListeningContentCatalog>.value(content),
+        progressStore: progressStore,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final songAction = find.byKey(const ValueKey('topic-songs-6-7-0'));
+    expect(songAction, findsOneWidget);
+    await tester.tap(songAction);
+    await tester.pumpAndSettle();
+
+    final songListFinder = find.byType(TopicLessonListScreen);
+    expect(songListFinder, findsOneWidget);
+    final songList = tester.widget<TopicLessonListScreen>(songListFinder);
+    expect(songList.songsOnly, isTrue);
+    expect(songList.songEntries.map((song) => song.id), <String>[
+      'legacy-topic-song',
+    ]);
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -500));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('song-entry-legacy-topic-song')),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Hello Song'), findsWidgets);
+    expect(await progressStore.readAll(), isEmpty);
+  });
+
+  testWidgets('song action cannot bypass a locked Level', (tester) async {
+    final content = await AssetListeningContentRepository().load();
+    final lockedTopic = content.topic(startAge: 3, endAge: 5, topicNumber: 9);
+    expect(lockedTopic.availableSongsForAge(3), isNotEmpty);
+
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      buildSubject(
+        childAge: 3,
+        contentFuture: Future<ListeningContentCatalog>.value(content),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final songAction = find.byKey(const ValueKey('topic-songs-3-5-8'));
+    await tester.scrollUntilVisible(
+      songAction,
+      180,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('topic-listening-screen')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await Scrollable.ensureVisible(
+      tester.element(songAction),
+      alignment: 0.5,
+      duration: Duration.zero,
+    );
+    await tester.pump();
+    await tester.tap(songAction);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TopicLessonListScreen), findsNothing);
+    expect(find.text('Bạn cần hoàn thành Level 1 trước nhé.'), findsOneWidget);
+  });
+
+  test(
+    'song directory keeps V4 lesson identity and deduplicates legacy audio',
+    () async {
+      final content = await AssetListeningContentRepository().load();
+      final source = content.topic(startAge: 3, endAge: 5, topicNumber: 2);
+      final v4Lesson = source.availableSongsForAge(3).single;
+      final duplicateLegacy = _legacySong(
+        id: 'legacy-duplicate',
+        title: v4Lesson.songTitle!,
+        audioId: v4Lesson.songAudioId!,
+        sentences: v4Lesson.sentences,
+      );
+      final uniqueLegacy = _legacySong(
+        id: 'legacy-unique',
+        title: 'A Different Song',
+        audioId: 'legacy_unique_song',
+        sentences: v4Lesson.sentences,
+      );
+      final mixed = ListeningTopicContent(
+        id: source.id,
+        number: source.number,
+        titleVi: source.titleVi,
+        titleEn: source.titleEn,
+        lessons: <ListeningLessonContent>[v4Lesson],
+        songs: <ListeningLessonContent>[duplicateLegacy, uniqueLegacy],
+      );
+
+      expect(mixed.availableSongsForAge(3), <ListeningLessonContent>[v4Lesson]);
+      final olderSongs = mixed.availableSongsForAge(6);
+      expect(olderSongs, hasLength(2));
+      expect(identical(olderSongs.first, v4Lesson), isTrue);
+      expect(identical(olderSongs.last, uniqueLegacy), isTrue);
+      expect(
+        olderSongs.map((song) => song.id),
+        isNot(contains('legacy-duplicate')),
+      );
+    },
+  );
+
   test(
     'bundled lesson content matches the V4 source-of-truth catalog',
     () async {
@@ -736,6 +956,26 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+}
+
+ListeningLessonContent _legacySong({
+  required String id,
+  required String title,
+  required String audioId,
+  required List<ListeningSentenceContent> sentences,
+}) {
+  return ListeningLessonContent(
+    id: id,
+    number: 1,
+    titleVi: title,
+    titleEn: title,
+    intro: '',
+    outro: '',
+    estimatedMinutes: 2,
+    sentences: sentences,
+    type: ListeningLessonType.song,
+    fullAudioId: audioId,
+  );
 }
 
 class _MemoryProgressStore extends ListeningProgressStore {
