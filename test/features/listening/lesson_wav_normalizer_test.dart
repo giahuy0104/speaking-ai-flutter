@@ -77,9 +77,67 @@ void main() {
     expect(samples[2], isNegative);
   });
 
-  test('does not amplify an already loud mono recording', () {
-    final loud = _wav([0, 26000, -26000, 18000], channels: 1);
-    expect(normalizeLessonWavLoudness(loud), same(loud));
+  test('brings a loud mono recording down to the speech target', () {
+    final loud = _wav(_tone(seconds: 1, dbfs: -6), channels: 1);
+    final samples = _samples(normalizeLessonWavLoudness(loud));
+    expect(_rmsDbfs(samples), closeTo(lessonRecordingTargetDbfs, 0.2));
+  });
+
+  test('one plosive no longer caps the gain of quiet speech', () {
+    final speech = _tone(seconds: 2, dbfs: -35);
+    speech[16000] = 32767;
+    speech[16001] = -32768;
+    final samples = _samples(
+      normalizeLessonWavLoudness(_wav(speech, channels: 1)),
+    );
+    final ceiling = (32768 * pow(10, -1 / 20)).ceil();
+    expect(
+      samples.map((sample) => sample.abs()).reduce(max),
+      lessThanOrEqualTo(ceiling),
+    );
+    // Away from the limited plosive, speech reaches the recording target. The
+    // old peak cap left it at -35 dBFS.
+    expect(
+      _rmsDbfs(samples.sublist(0, 15000)),
+      closeTo(lessonRecordingTargetDbfs, 0.2),
+    );
+    expect(
+      _rmsDbfs(samples.sublist(18000)),
+      closeTo(lessonRecordingTargetDbfs, 0.2),
+    );
+  });
+
+  test('a click far louder than quiet speech does not set the level', () {
+    final speech = _tone(seconds: 2, dbfs: -40);
+    for (var index = 16000; index < 16032; index += 1) {
+      speech[index] = index.isEven ? 32767 : -32768;
+    }
+    final samples = _samples(
+      normalizeLessonWavLoudness(_wav(speech, channels: 1)),
+    );
+    expect(
+      _rmsDbfs(samples.sublist(0, 15000)),
+      closeTo(lessonRecordingTargetDbfs, 0.2),
+    );
+  });
+
+  test('a knock too long to skip never turns the child down', () {
+    final speech = _tone(seconds: 2, dbfs: -40);
+    for (var index = 16000; index < 17280; index += 1) {
+      speech[index] = index.isEven ? 32767 : -32768;
+    }
+    final samples = _samples(
+      normalizeLessonWavLoudness(_wav(speech, channels: 1)),
+    );
+    expect(_rmsDbfs(samples.sublist(0, 15000)), closeTo(-40, 0.1));
+  });
+
+  test('leaves a recording already at the speech target unchanged', () {
+    final atTarget = _wav(
+      _tone(seconds: 1, dbfs: lessonRecordingTargetDbfs),
+      channels: 1,
+    );
+    expect(normalizeLessonWavLoudness(atTarget), same(atTarget));
   });
 
   test('rejects truncated containers and partial stereo frames', () {
@@ -198,6 +256,22 @@ Uint8List _wav(List<int> samples, {int channels = 2, int sampleRate = 16000}) {
     view.setInt16(header.length + index * 2, samples[index], Endian.little);
   }
   return wav;
+}
+
+/// A 16 kHz, 220 Hz sine whose RMS is [dbfs].
+List<int> _tone({required int seconds, required double dbfs}) {
+  final amplitude = 32768 * sqrt2 * pow(10, dbfs / 20);
+  return [
+    for (var index = 0; index < 16000 * seconds; index += 1)
+      (amplitude * sin(2 * pi * 220 * index / 16000)).round(),
+  ];
+}
+
+double _rmsDbfs(List<int> samples) {
+  final power =
+      samples.map((sample) => pow(sample / 32768, 2)).reduce((a, b) => a + b) /
+      samples.length;
+  return 10 * log(power) / ln10;
 }
 
 List<int> _samples(Uint8List wav) {
