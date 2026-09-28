@@ -26,8 +26,8 @@
       "sources": [
         "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
       ],
-      "sha256": "07211ef1abc302eb71681538b33c4d71746422fe78aad12cde666bc7067552bd",
-      "durationSeconds": 3.001406,
+      "sha256": "d7587151153633a9e5fd42c0e366f61f62ab3b09633b5c5fc25cfdda117ae6fe",
+      "durationSeconds": 2.429375,
       "voiceId": "5CVDNcIPiOYgRUQuxXd7",
       "speed": 0.9,
       "speedMethod": "ffmpeg-atempo"
@@ -62,8 +62,8 @@
       "sources": [
         "lib/features/voice_navigation/application/main_voice_assistant_flow.dart"
       ],
-      "sha256": "9ea29fc5191cb509d76958e4bfd99cceb6fc8676dbbc14025163cb8be68b87a2",
-      "durationSeconds": 3.188594,
+      "sha256": "abad0cafa7d4420e2c60c79384834295e8450c56f24633712ef1a763b4ba10eb",
+      "durationSeconds": 2.272625,
       "voiceId": "5CVDNcIPiOYgRUQuxXd7",
       "speed": 0.9,
       "speedMethod": "ffmpeg-atempo"

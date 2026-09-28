@@ -1,0 +1,68 @@
+01. C1112-L1-T01-B01-Q06 | Bạn muốn diễn đạt: “Làm bài tập” / Read books / hay / Do homework? | merged-audio-mp3/listening.challenge.C1112-L1-T01-B01-Q06.prompt.vi.mp3
+02. C1112-L1-T01-B01-Q07 | Bạn muốn diễn đạt: “Chơi thể thao” / Play sports / hay / Help at home? | merged-audio-mp3/listening.challenge.C1112-L1-T01-B01-Q07.prompt.vi.mp3
+03. C1112-L1-T01-B01-Q08 | Bạn muốn diễn đạt: “Đọc sách” / Relax / hay / Read books? | merged-audio-mp3/listening.challenge.C1112-L1-T01-B01-Q08.prompt.vi.mp3
+04. C1112-L1-T01-B02-Q06 | Bạn muốn diễn đạt: “Làm bài sau giờ học” / Reading at night / hay / Homework after school? | merged-audio-mp3/listening.challenge.C1112-L1-T01-B02-Q06.prompt.vi.mp3
+05. C1112-L1-T01-B02-Q07 | Bạn muốn diễn đạt: “Thể thao vào thứ Bảy” / Sports on Saturday / hay / Help at home? | merged-audio-mp3/listening.challenge.C1112-L1-T01-B02-Q07.prompt.vi.mp3
+06. C1112-L1-T01-B02-Q08 | Bạn muốn diễn đạt: “Đọc sách buổi tối” / Relax on Sunday / hay / Reading at night? | merged-audio-mp3/listening.challenge.C1112-L1-T01-B02-Q08.prompt.vi.mp3
+07. C1112-L1-T02-B01-Q06 | Bạn muốn diễn đạt: “Xem lại ghi chú” / Practice English / hay / Review notes? | merged-audio-mp3/listening.challenge.C1112-L1-T02-B01-Q06.prompt.vi.mp3
+08. C1112-L1-T02-B01-Q07 | Bạn muốn diễn đạt: “Lập kế hoạch” / Make a plan / hay / Take breaks? | merged-audio-mp3/listening.challenge.C1112-L1-T02-B01-Q07.prompt.vi.mp3
+09. C1112-L1-T02-B01-Q08 | Bạn muốn diễn đạt: “Luyện tiếng Anh” / Check my work / hay / Practice English? | merged-audio-mp3/listening.challenge.C1112-L1-T02-B01-Q08.prompt.vi.mp3
+10. C1112-L1-T03-B01-Q06 | Bạn muốn diễn đạt: “Vẽ tốt” / Play sports / hay / Draw well? | merged-audio-mp3/listening.challenge.C1112-L1-T03-B01-Q06.prompt.vi.mp3
+11. C1112-L1-T03-B01-Q07 | Bạn muốn diễn đạt: “Giải quyết vấn đề” / Solve problems / hay / Remember words? | merged-audio-mp3/listening.challenge.C1112-L1-T03-B01-Q07.prompt.vi.mp3
+12. C1112-L1-T03-B01-Q08 | Bạn muốn diễn đạt: “Chơi thể thao” / Work in teams / hay / Play sports? | merged-audio-mp3/listening.challenge.C1112-L1-T03-B01-Q08.prompt.vi.mp3
+13. C1112-L2-T04-B01-Q06 | Bạn muốn diễn đạt: “Xe buýt” / Taxi / hay / Bus? | merged-audio-mp3/listening.challenge.C1112-L2-T04-B01-Q06.prompt.vi.mp3
+14. C1112-L2-T04-B01-Q07 | Bạn muốn diễn đạt: “Xe đạp” / Bike / hay / Train? | merged-audio-mp3/listening.challenge.C1112-L2-T04-B01-Q07.prompt.vi.mp3
+15. C1112-L2-T04-B01-Q08 | Bạn muốn diễn đạt: “Taxi” / Walk / hay / Taxi? | merged-audio-mp3/listening.challenge.C1112-L2-T04-B01-Q08.prompt.vi.mp3
+16. C1112-L2-T05-B01-Q06 | Bạn muốn diễn đạt: “Uống nước” / Sleep early / hay / Drink water? | merged-audio-mp3/listening.challenge.C1112-L2-T05-B01-Q06.prompt.vi.mp3
+17. C1112-L2-T05-B01-Q07 | Bạn muốn diễn đạt: “Ăn sáng” / Eat breakfast / hay / Exercise daily? | merged-audio-mp3/listening.challenge.C1112-L2-T05-B01-Q07.prompt.vi.mp3
+18. C1112-L2-T05-B01-Q08 | Bạn muốn diễn đạt: “Ngủ sớm” / Take breaks / hay / Sleep early? | merged-audio-mp3/listening.challenge.C1112-L2-T05-B01-Q08.prompt.vi.mp3
+19. C1112-L2-T06-B01-Q06 | Bạn muốn diễn đạt: “Mật khẩu” / Message / hay / Password? | merged-audio-mp3/listening.challenge.C1112-L2-T06-B01-Q06.prompt.vi.mp3
+20. C1112-L2-T06-B01-Q07 | Bạn muốn diễn đạt: “Đường dẫn” / Link / hay / Photo? | merged-audio-mp3/listening.challenge.C1112-L2-T06-B01-Q07.prompt.vi.mp3
+21. C1112-L2-T06-B01-Q08 | Bạn muốn diễn đạt: “Tin nhắn” / Stranger / hay / Message? | merged-audio-mp3/listening.challenge.C1112-L2-T06-B01-Q08.prompt.vi.mp3
+22. C1112-L3-T07-B01-Q07 | Bạn muốn diễn đạt: “Rảnh thứ Bảy” / Free Saturday / hay / At three? | merged-audio-mp3/listening.challenge.C1112-L3-T07-B01-Q07.prompt.vi.mp3
+23. C1112-L3-T07-B01-Q08 | Bạn muốn diễn đạt: “Bận Chủ nhật” / At the park / hay / Busy Sunday? | merged-audio-mp3/listening.challenge.C1112-L3-T07-B01-Q08.prompt.vi.mp3
+24. C1112-L3-T07-B03-Q08 | Bạn muốn diễn đạt: “Nghe được đó” / Sorry, I'm busy / hay / Sounds good? | merged-audio-mp3/listening.challenge.C1112-L3-T07-B03-Q08.prompt.vi.mp3
+25. C1112-L3-T08-B01-Q06 | Bạn muốn diễn đạt: “Áo” / Price / hay / Shirt? | merged-audio-mp3/listening.challenge.C1112-L3-T08-B01-Q06.prompt.vi.mp3
+26. C1112-L3-T08-B01-Q07 | Bạn muốn diễn đạt: “Giày” / Shoes / hay / Cheap? | merged-audio-mp3/listening.challenge.C1112-L3-T08-B01-Q07.prompt.vi.mp3
+27. C1112-L3-T08-B01-Q08 | Bạn muốn diễn đạt: “Giá” / Expensive / hay / Price? | merged-audio-mp3/listening.challenge.C1112-L3-T08-B01-Q08.prompt.vi.mp3
+28. C1112-L3-T08-B03-Q07 | Bạn muốn diễn đạt: “Cái này rẻ hơn” / This one is cheaper / hay / I like this one? | merged-audio-mp3/listening.challenge.C1112-L3-T08-B03-Q07.prompt.vi.mp3
+29. C1112-L3-T08-B03-Q08 | Bạn muốn diễn đạt: “Cái kia rẻ hơn” / I want this one / hay / That one is cheaper? | merged-audio-mp3/listening.challenge.C1112-L3-T08-B03-Q08.prompt.vi.mp3
+30. C1112-L3-T09-B01-Q08 | Bạn muốn diễn đạt: “Mình làm mất chìa khóa” / I missed the bus / hay / I lost my key? | merged-audio-mp3/listening.challenge.C1112-L3-T09-B01-Q08.prompt.vi.mp3
+31. C1112-L3-T09-B02-Q07 | Bạn muốn diễn đạt: “Bạn có thể giúp mình không” / Can you help me? / hay / Please call my Dad? | merged-audio-mp3/listening.challenge.C1112-L3-T09-B02-Q07.prompt.vi.mp3
+32. C1112-L3-T09-B02-Q08 | Bạn muốn diễn đạt: “Cho mình mượn sạc nhé” / Please wait here / hay / A charger, please? | merged-audio-mp3/listening.challenge.C1112-L3-T09-B02-Q08.prompt.vi.mp3
+33. C1112-L3-T10-B01-Q07 | Bạn muốn diễn đạt: “Tắt đèn” / Turn off the lights / hay / Use less paper? | merged-audio-mp3/listening.challenge.C1112-L3-T10-B01-Q07.prompt.vi.mp3
+34. C1112-L3-T10-B01-Q08 | Bạn muốn diễn đạt: “Tiết kiệm nước” / Close the tap / hay / Save water? | merged-audio-mp3/listening.challenge.C1112-L3-T10-B01-Q08.prompt.vi.mp3
+35. C1112-L3-T10-B02-Q06 | Bạn muốn diễn đạt: “Tái sử dụng túi” / Pick up litter / hay / Reuse your bag? | merged-audio-mp3/listening.challenge.C1112-L3-T10-B02-Q06.prompt.vi.mp3
+36. C1112-L3-T10-B02-Q07 | Bạn muốn diễn đạt: “Tái chế giấy” / Recycle paper / hay / Walk short distances? | merged-audio-mp3/listening.challenge.C1112-L3-T10-B02-Q07.prompt.vi.mp3
+37. C1112-L3-T10-B02-Q08 | Bạn muốn diễn đạt: “Nhặt rác” / Plant a tree / hay / Pick up litter? | merged-audio-mp3/listening.challenge.C1112-L3-T10-B02-Q08.prompt.vi.mp3
+38. C1315-L1-T01-B01-Q07 | Bạn muốn diễn đạt: “Trước giờ học” / Before school / hay / Before dinner? | merged-audio-mp3/listening.challenge.C1315-L1-T01-B01-Q07.prompt.vi.mp3
+39. C1315-L1-T01-B01-Q08 | Bạn muốn diễn đạt: “Vào cuối tuần” / On weekends / hay / Before school? | merged-audio-mp3/listening.challenge.C1315-L1-T01-B01-Q08.prompt.vi.mp3
+40. C1315-L1-T01-B02-Q03 | Bạn muốn diễn đạt: “Mình lên kế hoạch vào Chủ nhật” / I plan on Sundays / hay / I study after school? | merged-audio-mp3/listening.challenge.C1315-L1-T01-B02-Q03.prompt.vi.mp3
+41. C1315-L1-T02-B01-Q06 | Bạn muốn diễn đạt: “Cải thiện tiếng Anh” / Read more books / hay / Improve my English? | merged-audio-mp3/listening.challenge.C1315-L1-T02-B01-Q06.prompt.vi.mp3
+42. C1315-L1-T02-B01-Q07 | Bạn muốn diễn đạt: “Đạt điểm tốt hơn” / Get better grades / hay / Speak more confidently? | merged-audio-mp3/listening.challenge.C1315-L1-T02-B01-Q07.prompt.vi.mp3
+43. C1315-L1-T02-B01-Q08 | Bạn muốn diễn đạt: “Hoàn thành bài sớm hơn” / Finish homework earlier / hay / Improve my English? | merged-audio-mp3/listening.challenge.C1315-L1-T02-B01-Q08.prompt.vi.mp3
+44. C1315-L1-T02-B02-Q03 | Bạn muốn diễn đạt: “Tiếp tục luyện tập” / Keep practicing / hay / Practice every day? | merged-audio-mp3/listening.challenge.C1315-L1-T02-B02-Q03.prompt.vi.mp3
+45. C1315-L1-T03-B02-Q05 | Bạn muốn diễn đạt: “Vì mình thích nó” / Because I enjoy it / hay / Why? | merged-audio-mp3/listening.challenge.C1315-L1-T03-B02-Q05.prompt.vi.mp3
+46. C1315-L2-T04-B01-Q06 | Bạn muốn diễn đạt: “Giá tiền” / Good price / hay / The price? | merged-audio-mp3/listening.challenge.C1315-L2-T04-B01-Q06.prompt.vi.mp3
+47. C1315-L2-T04-B01-Q07 | Bạn muốn diễn đạt: “Ngân sách của mình” / My budget / hay / Too expensive? | merged-audio-mp3/listening.challenge.C1315-L2-T04-B01-Q07.prompt.vi.mp3
+48. C1315-L2-T04-B01-Q08 | Bạn muốn diễn đạt: “Tiêu tiền” / Spend money / hay / The price? | merged-audio-mp3/listening.challenge.C1315-L2-T04-B01-Q08.prompt.vi.mp3
+49. C1315-L2-T04-B02-Q07 | Bạn muốn diễn đạt: “Nó có đáng không” / Is it worth it? / hay / It fits my budget? | merged-audio-mp3/listening.challenge.C1315-L2-T04-B02-Q07.prompt.vi.mp3
+50. C1315-L2-T04-B02-Q08 | Bạn muốn diễn đạt: “Mình sẽ suy nghĩ thêm” / I'll think about it / hay / Is it worth it? | merged-audio-mp3/listening.challenge.C1315-L2-T04-B02-Q08.prompt.vi.mp3
+51. C1315-L2-T05-B01-Q04 | Bạn muốn diễn đạt: “Mình cần ngủ thêm” / I need more sleep / hay / I'm tired? | merged-audio-mp3/listening.challenge.C1315-L2-T05-B01-Q04.prompt.vi.mp3
+52. C1315-L2-T05-B02-Q08 | Bạn muốn diễn đạt: “Cất điện thoại đi” / Put your phone away / hay / What should I do? | merged-audio-mp3/listening.challenge.C1315-L2-T05-B02-Q08.prompt.vi.mp3
+53. C1315-L2-T06-B01-Q07 | Bạn muốn diễn đạt: “Mật khẩu” / Password / hay / Home address? | merged-audio-mp3/listening.challenge.C1315-L2-T06-B01-Q07.prompt.vi.mp3
+54. C1315-L2-T06-B01-Q08 | Bạn muốn diễn đạt: “Ảnh cá nhân” / Personal photos / hay / Password? | merged-audio-mp3/listening.challenge.C1315-L2-T06-B01-Q08.prompt.vi.mp3
+55. C1315-L2-T06-B02-Q04 | Bạn muốn diễn đạt: “Chặn người dùng lạ” / Block unknown users / hay / Keep passwords private? | merged-audio-mp3/listening.challenge.C1315-L2-T06-B02-Q04.prompt.vi.mp3
+56. C1315-L3-T07-B01-Q06 | Bạn muốn diễn đạt: “Vé” / Platform / hay / Ticket? | merged-audio-mp3/listening.challenge.C1315-L3-T07-B01-Q06.prompt.vi.mp3
+57. C1315-L3-T07-B01-Q07 | Bạn muốn diễn đạt: “Tàu” / Train / hay / Station? | merged-audio-mp3/listening.challenge.C1315-L3-T07-B01-Q07.prompt.vi.mp3
+58. C1315-L3-T07-B01-Q08 | Bạn muốn diễn đạt: “Khởi hành” / Departure / hay / Ticket? | merged-audio-mp3/listening.challenge.C1315-L3-T07-B01-Q08.prompt.vi.mp3
+59. C1315-L3-T07-B02-Q08 | Bạn muốn diễn đạt: “Lối ra ở đâu” / Where's the exit? / hay / One ticket, please? | merged-audio-mp3/listening.challenge.C1315-L3-T07-B02-Q08.prompt.vi.mp3
+60. C1315-L3-T08-B01-Q06 | Bạn muốn diễn đạt: “Thực đơn” / Main dish / hay / Menu? | merged-audio-mp3/listening.challenge.C1315-L3-T08-B01-Q06.prompt.vi.mp3
+61. C1315-L3-T08-B01-Q07 | Bạn muốn diễn đạt: “Đồ uống” / Drink / hay / Side dish? | merged-audio-mp3/listening.challenge.C1315-L3-T08-B01-Q07.prompt.vi.mp3
+62. C1315-L3-T08-B01-Q08 | Bạn muốn diễn đạt: “Hóa đơn” / Bill / hay / Menu? | merged-audio-mp3/listening.challenge.C1315-L3-T08-B01-Q08.prompt.vi.mp3
+63. C1315-L3-T09-B01-Q06 | Bạn muốn diễn đạt: “Rẻ hơn” / Easier / hay / Cheaper? | merged-audio-mp3/listening.challenge.C1315-L3-T09-B01-Q06.prompt.vi.mp3
+64. C1315-L3-T09-B01-Q07 | Bạn muốn diễn đạt: “Nhanh hơn” / Faster / hay / Safer? | merged-audio-mp3/listening.challenge.C1315-L3-T09-B01-Q07.prompt.vi.mp3
+65. C1315-L3-T09-B01-Q08 | Bạn muốn diễn đạt: “Hữu ích hơn” / More useful / hay / Cheaper? | merged-audio-mp3/listening.challenge.C1315-L3-T09-B01-Q08.prompt.vi.mp3
+66. C1315-L3-T09-B02-Q08 | Bạn muốn diễn đạt: “Mình sẽ chọn cái này” / I'll choose this one / hay / Which one do you prefer? | merged-audio-mp3/listening.challenge.C1315-L3-T09-B02-Q08.prompt.vi.mp3
+67. C1315-L3-T10-B01-Q03 | Bạn muốn diễn đạt: “Mình muốn tiết kiệm tiền” / I want to save money / hay / I plan to study more? | merged-audio-mp3/listening.challenge.C1315-L3-T10-B01-Q03.prompt.vi.mp3
+68. C1315-L3-T10-B02-Q03 | Bạn muốn diễn đạt: “Mình sẽ luyện tập mỗi ngày” / I'll practice every day / hay / What's your next step? | merged-audio-mp3/listening.challenge.C1315-L3-T10-B02-Q03.prompt.vi.mp3

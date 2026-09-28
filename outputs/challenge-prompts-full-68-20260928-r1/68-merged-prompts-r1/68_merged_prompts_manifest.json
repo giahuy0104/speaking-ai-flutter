@@ -1,0 +1,3227 @@
+{
+  "schemaVersion": 1,
+  "stage": "mixed-challenge-prompts-from-full-vietnamese-source",
+  "inputList": "C:\\Users\\DELL\\Downloads\\68-cau-audio-bi-rut-gon.txt",
+  "vietnameseSourceDirectory": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3",
+  "vietnameseSourceManifest": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\68_vi_review_manifest.json",
+  "connectorSource": "C:\\Users\\DELL\\Downloads\\0926.mp4",
+  "connectorSha256": "b5e1527a3e2ff16693df123a220897a54c3056a5dfeb97ec1cb463a86e4caa61",
+  "connectorTrimmedTailSeconds": 0.064,
+  "pauseProfile": {
+    "afterVietnameseSeconds": 0.38,
+    "beforeConnectorSeconds": 0.24,
+    "afterConnectorSeconds": 0.24
+  },
+  "outputProfile": {
+    "format": "mp3",
+    "sampleRate": 44100,
+    "channels": 1,
+    "bitRate": 128000
+  },
+  "promptCount": 68,
+  "ageGroupCounts": {
+    "11-12": 37,
+    "13-15": 31
+  },
+  "englishUniqueSegmentCount": 128,
+  "generatedAt": "2026-09-28T07:11:04.6746825Z",
+  "qaFailureCount": 0,
+  "prompts": [
+    {
+      "order": 1,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L1-T01-B01-Q06",
+      "key": "listening.challenge.C1112-L1-T01-B01-Q06.prompt.vi",
+      "target": "Làm bài tập",
+      "vietnameseText": "Bạn muốn diễn đạt: “Làm bài tập”",
+      "englishFirst": "Read books",
+      "connectorText": "hay",
+      "englishSecond": "Do homework?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L1-T01-B01-Q06.prompt.vi.mp3",
+      "durationSeconds": 5.41,
+      "sha256": "30060041c055f20f15bf04c6d5554cacf4f0ac64452e9d83a9a3d225fafb9695",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L1-T01-B01-Q06.mp3",
+      "vietnameseSourceSha256": "85399b68c4fc91b2f534357768d62e9558d8169b6f9c0914223f704143893cc3",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Làm bài tập”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Read books",
+          "segmentId": "C1112-EN-001",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Do homework?",
+          "segmentId": "C1112-EN-002",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 2,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L1-T01-B01-Q07",
+      "key": "listening.challenge.C1112-L1-T01-B01-Q07.prompt.vi",
+      "target": "Chơi thể thao",
+      "vietnameseText": "Bạn muốn diễn đạt: “Chơi thể thao”",
+      "englishFirst": "Play sports",
+      "connectorText": "hay",
+      "englishSecond": "Help at home?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L1-T01-B01-Q07.prompt.vi.mp3",
+      "durationSeconds": 5.556,
+      "sha256": "d5ea6683ffc860358c69d426c571643cf91862462a86d32df1aac476a355515b",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L1-T01-B01-Q07.mp3",
+      "vietnameseSourceSha256": "7711a45f46c0ade319b6aa4f9f388599cd6fcaefa68fd68fc6f7f80415acbc9e",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Chơi thể thao”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Play sports",
+          "segmentId": "C1112-EN-003",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Help at home?",
+          "segmentId": "C1112-EN-004",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 3,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L1-T01-B01-Q08",
+      "key": "listening.challenge.C1112-L1-T01-B01-Q08.prompt.vi",
+      "target": "Đọc sách",
+      "vietnameseText": "Bạn muốn diễn đạt: “Đọc sách”",
+      "englishFirst": "Relax",
+      "connectorText": "hay",
+      "englishSecond": "Read books?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L1-T01-B01-Q08.prompt.vi.mp3",
+      "durationSeconds": 4.882,
+      "sha256": "b4a950a9c46d9ed16c07e6dc6fc0c2769906c7cd23a231b2930414482ec78b09",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L1-T01-B01-Q08.mp3",
+      "vietnameseSourceSha256": "4c1020af7ebc3e96af2095563086293f537daf0d95cd11a35f452f2b11aaa3f2",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Đọc sách”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Relax",
+          "segmentId": "C1112-EN-005",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Read books?",
+          "segmentId": "C1112-EN-006",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 4,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L1-T01-B02-Q06",
+      "key": "listening.challenge.C1112-L1-T01-B02-Q06.prompt.vi",
+      "target": "Làm bài sau giờ học",
+      "vietnameseText": "Bạn muốn diễn đạt: “Làm bài sau giờ học”",
+      "englishFirst": "Reading at night",
+      "connectorText": "hay",
+      "englishSecond": "Homework after school?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L1-T01-B02-Q06.prompt.vi.mp3",
+      "durationSeconds": 6.434,
+      "sha256": "dc38cdfe1bec2e8b30aa1f89894dc34826e44b0a5cf13e4af39b64a0b6118e34",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L1-T01-B02-Q06.mp3",
+      "vietnameseSourceSha256": "2f76f64ae5ded4d1f8273b27ce47d7d4eac89bedbe32176761f73747d1e13fb6",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Làm bài sau giờ học”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Reading at night",
+          "segmentId": "C1112-EN-007",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Homework after school?",
+          "segmentId": "C1112-EN-008",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 5,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L1-T01-B02-Q07",
+      "key": "listening.challenge.C1112-L1-T01-B02-Q07.prompt.vi",
+      "target": "Thể thao vào thứ Bảy",
+      "vietnameseText": "Bạn muốn diễn đạt: “Thể thao vào thứ Bảy”",
+      "englishFirst": "Sports on Saturday",
+      "connectorText": "hay",
+      "englishSecond": "Help at home?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L1-T01-B02-Q07.prompt.vi.mp3",
+      "durationSeconds": 6.286,
+      "sha256": "67e1209ae428f5f8f0ae2dc5c1a592afe2720d270bb95d9d1583796c195de48f",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L1-T01-B02-Q07.mp3",
+      "vietnameseSourceSha256": "15ffb0e5a0fa76fd481be76762614d5e1240f4325ab2c8913e1197d0b776f637",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Thể thao vào thứ Bảy”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Sports on Saturday",
+          "segmentId": "C1112-EN-009",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Help at home?",
+          "segmentId": "C1112-EN-004",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 6,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L1-T01-B02-Q08",
+      "key": "listening.challenge.C1112-L1-T01-B02-Q08.prompt.vi",
+      "target": "Đọc sách buổi tối",
+      "vietnameseText": "Bạn muốn diễn đạt: “Đọc sách buổi tối”",
+      "englishFirst": "Relax on Sunday",
+      "connectorText": "hay",
+      "englishSecond": "Reading at night?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L1-T01-B02-Q08.prompt.vi.mp3",
+      "durationSeconds": 6.409,
+      "sha256": "cad7215ef7b4357c2235615b569ce40a457e428994b36c41fd3e0996fdbc6b5c",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L1-T01-B02-Q08.mp3",
+      "vietnameseSourceSha256": "ec53c35150fb04af88e52531dcb681ec0791780753d7815121593b36015d12f9",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Đọc sách buổi tối”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Relax on Sunday",
+          "segmentId": "C1112-EN-010",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Reading at night?",
+          "segmentId": "C1112-EN-011",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 7,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L1-T02-B01-Q06",
+      "key": "listening.challenge.C1112-L1-T02-B01-Q06.prompt.vi",
+      "target": "Xem lại ghi chú",
+      "vietnameseText": "Bạn muốn diễn đạt: “Xem lại ghi chú”",
+      "englishFirst": "Practice English",
+      "connectorText": "hay",
+      "englishSecond": "Review notes?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L1-T02-B01-Q06.prompt.vi.mp3",
+      "durationSeconds": 6.016,
+      "sha256": "f6445ec6cdcf901a29404c2f5ed5b1012dd2697aaf10efd0b03bdf38bf6ecc94",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L1-T02-B01-Q06.mp3",
+      "vietnameseSourceSha256": "61ae6b5a76f9bb1ddb83a909f19838ce20170663a46a74d63c616ae45c1d694c",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Xem lại ghi chú”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Practice English",
+          "segmentId": "C1112-EN-012",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Review notes?",
+          "segmentId": "C1112-EN-013",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 8,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L1-T02-B01-Q07",
+      "key": "listening.challenge.C1112-L1-T02-B01-Q07.prompt.vi",
+      "target": "Lập kế hoạch",
+      "vietnameseText": "Bạn muốn diễn đạt: “Lập kế hoạch”",
+      "englishFirst": "Make a plan",
+      "connectorText": "hay",
+      "englishSecond": "Take breaks?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L1-T02-B01-Q07.prompt.vi.mp3",
+      "durationSeconds": 5.319,
+      "sha256": "159acfe2f52faf1f261522c2080a0f6f174e272dacee03b77921dadb9a7a707f",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L1-T02-B01-Q07.mp3",
+      "vietnameseSourceSha256": "fd134ca214fd89975851d6da3f83f4316543a86ba10bc3c3a73a4849167dde69",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Lập kế hoạch”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Make a plan",
+          "segmentId": "C1112-EN-014",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Take breaks?",
+          "segmentId": "C1112-EN-015",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 9,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L1-T02-B01-Q08",
+      "key": "listening.challenge.C1112-L1-T02-B01-Q08.prompt.vi",
+      "target": "Luyện tiếng Anh",
+      "vietnameseText": "Bạn muốn diễn đạt: “Luyện tiếng Anh”",
+      "englishFirst": "Check my work",
+      "connectorText": "hay",
+      "englishSecond": "Practice English?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L1-T02-B01-Q08.prompt.vi.mp3",
+      "durationSeconds": 6.03,
+      "sha256": "51dd72135c983fb5cd1bfc01b4d7d83d6ae8d034d9f168da5c48e46b9baa9b8a",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L1-T02-B01-Q08.mp3",
+      "vietnameseSourceSha256": "13dc5a82e437c57690d5695b636e60874fdb88b4ac4bf177d8ddcf0712fd464a",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Luyện tiếng Anh”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Check my work",
+          "segmentId": "C1112-EN-016",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Practice English?",
+          "segmentId": "C1112-EN-017",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 10,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L1-T03-B01-Q06",
+      "key": "listening.challenge.C1112-L1-T03-B01-Q06.prompt.vi",
+      "target": "Vẽ tốt",
+      "vietnameseText": "Bạn muốn diễn đạt: “Vẽ tốt”",
+      "englishFirst": "Play sports",
+      "connectorText": "hay",
+      "englishSecond": "Draw well?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L1-T03-B01-Q06.prompt.vi.mp3",
+      "durationSeconds": 5.181,
+      "sha256": "b9b1678ea255d9a5e74dc77e04a652ae079eba6fb713a5e180534a1409cf5e59",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L1-T03-B01-Q06.mp3",
+      "vietnameseSourceSha256": "d59235cfcd5e9ce190bd4d127a07c3d553225abdf4c684b647a89f1b7e6ed0b6",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Vẽ tốt”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Play sports",
+          "segmentId": "C1112-EN-003",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Draw well?",
+          "segmentId": "C1112-EN-024",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 11,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L1-T03-B01-Q07",
+      "key": "listening.challenge.C1112-L1-T03-B01-Q07.prompt.vi",
+      "target": "Giải quyết vấn đề",
+      "vietnameseText": "Bạn muốn diễn đạt: “Giải quyết vấn đề”",
+      "englishFirst": "Solve problems",
+      "connectorText": "hay",
+      "englishSecond": "Remember words?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L1-T03-B01-Q07.prompt.vi.mp3",
+      "durationSeconds": 6.694,
+      "sha256": "d28058de686777ce600b1ddcb5be88f5c0ca8faf2c4ca8adfde8c662e8d0f8dd",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L1-T03-B01-Q07.mp3",
+      "vietnameseSourceSha256": "dc948c20af52c53b9a5a1df4e5b27266cfe31a65dce95071dd5cbe689b54f504",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Giải quyết vấn đề”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Solve problems",
+          "segmentId": "C1112-EN-025",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Remember words?",
+          "segmentId": "C1112-EN-026",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 12,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L1-T03-B01-Q08",
+      "key": "listening.challenge.C1112-L1-T03-B01-Q08.prompt.vi",
+      "target": "Chơi thể thao",
+      "vietnameseText": "Bạn muốn diễn đạt: “Chơi thể thao”",
+      "englishFirst": "Work in teams",
+      "connectorText": "hay",
+      "englishSecond": "Play sports?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L1-T03-B01-Q08.prompt.vi.mp3",
+      "durationSeconds": 5.874,
+      "sha256": "3fb27c68fea623e1043b87cedf5d551115a6b63f0c7d73af6c287edcbc9d5e1a",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L1-T03-B01-Q08.mp3",
+      "vietnameseSourceSha256": "411b5d083784e89c6d1165fb4316b984b58d77ea99c977879ef39045ea98f9c6",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Chơi thể thao”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Work in teams",
+          "segmentId": "C1112-EN-027",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Play sports?",
+          "segmentId": "C1112-EN-028",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 13,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L2-T04-B01-Q06",
+      "key": "listening.challenge.C1112-L2-T04-B01-Q06.prompt.vi",
+      "target": "Xe buýt",
+      "vietnameseText": "Bạn muốn diễn đạt: “Xe buýt”",
+      "englishFirst": "Taxi",
+      "connectorText": "hay",
+      "englishSecond": "Bus?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L2-T04-B01-Q06.prompt.vi.mp3",
+      "durationSeconds": 4.686,
+      "sha256": "2651cb73d1ba01de433b065fc66fc3e3f2a73e8d32e12a1e3d048899efcc372c",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L2-T04-B01-Q06.mp3",
+      "vietnameseSourceSha256": "e85448aa8116f0b215c19b1ae42a3cafc41e7ea78416c52e6347a57690366cb8",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Xe buýt”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Taxi",
+          "segmentId": "C1112-EN-035",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Bus?",
+          "segmentId": "C1112-EN-036",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 14,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L2-T04-B01-Q07",
+      "key": "listening.challenge.C1112-L2-T04-B01-Q07.prompt.vi",
+      "target": "Xe đạp",
+      "vietnameseText": "Bạn muốn diễn đạt: “Xe đạp”",
+      "englishFirst": "Bike",
+      "connectorText": "hay",
+      "englishSecond": "Train?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L2-T04-B01-Q07.prompt.vi.mp3",
+      "durationSeconds": 4.583,
+      "sha256": "06386ba4e407ddc3dd24af1305fca104dd266b5c74034db867eab0900f5e76b7",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L2-T04-B01-Q07.mp3",
+      "vietnameseSourceSha256": "8bb1282fcc1370459ea0923ef2f942a760f6101cd33d90525e9eb1cf151e7e21",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Xe đạp”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Bike",
+          "segmentId": "C1112-EN-037",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Train?",
+          "segmentId": "C1112-EN-038",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 15,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L2-T04-B01-Q08",
+      "key": "listening.challenge.C1112-L2-T04-B01-Q08.prompt.vi",
+      "target": "Taxi",
+      "vietnameseText": "Bạn muốn diễn đạt: “Taxi”",
+      "englishFirst": "Walk",
+      "connectorText": "hay",
+      "englishSecond": "Taxi?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L2-T04-B01-Q08.prompt.vi.mp3",
+      "durationSeconds": 4.793,
+      "sha256": "d77ec8a4cebd2b4c9a32a765979b4e492357fa579b05687097795044eab0b2e0",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L2-T04-B01-Q08.mp3",
+      "vietnameseSourceSha256": "490bcc0a7ee940e8adf3a6074ce2b81137779f5d045f7a39f5c3698aa3c3c3c1",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Taxi”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Walk",
+          "segmentId": "C1112-EN-039",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Taxi?",
+          "segmentId": "C1112-EN-040",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 16,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L2-T05-B01-Q06",
+      "key": "listening.challenge.C1112-L2-T05-B01-Q06.prompt.vi",
+      "target": "Uống nước",
+      "vietnameseText": "Bạn muốn diễn đạt: “Uống nước”",
+      "englishFirst": "Sleep early",
+      "connectorText": "hay",
+      "englishSecond": "Drink water?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L2-T05-B01-Q06.prompt.vi.mp3",
+      "durationSeconds": 5.165,
+      "sha256": "ee8ca2d4ad398aca2131440a777121b46373a5fe449fe1b688f0e5c2c6af8a16",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L2-T05-B01-Q06.mp3",
+      "vietnameseSourceSha256": "be38a6b8ec604dc1a6869f4f62655a356bd4f65b34d1d7d25407858dc4c6265d",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Uống nước”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Sleep early",
+          "segmentId": "C1112-EN-054",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Drink water?",
+          "segmentId": "C1112-EN-055",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 17,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L2-T05-B01-Q07",
+      "key": "listening.challenge.C1112-L2-T05-B01-Q07.prompt.vi",
+      "target": "Ăn sáng",
+      "vietnameseText": "Bạn muốn diễn đạt: “Ăn sáng”",
+      "englishFirst": "Eat breakfast",
+      "connectorText": "hay",
+      "englishSecond": "Exercise daily?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L2-T05-B01-Q07.prompt.vi.mp3",
+      "durationSeconds": 5.721,
+      "sha256": "68f3723dd10e8aa48520cb228fa70a3425d45ac6ff9c3374994c5d50282dea13",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L2-T05-B01-Q07.mp3",
+      "vietnameseSourceSha256": "8a6a2ca796442d5f3df7e3455ccd0b58879ed097162b39b40a8d0be3ed86b5ce",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Ăn sáng”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Eat breakfast",
+          "segmentId": "C1112-EN-056",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Exercise daily?",
+          "segmentId": "C1112-EN-057",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 18,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L2-T05-B01-Q08",
+      "key": "listening.challenge.C1112-L2-T05-B01-Q08.prompt.vi",
+      "target": "Ngủ sớm",
+      "vietnameseText": "Bạn muốn diễn đạt: “Ngủ sớm”",
+      "englishFirst": "Take breaks",
+      "connectorText": "hay",
+      "englishSecond": "Sleep early?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L2-T05-B01-Q08.prompt.vi.mp3",
+      "durationSeconds": 5.226,
+      "sha256": "2bd99f17e6b51e03eed24cc8034d99e4c56457d8b9b6a5694b4097b80af4c690",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L2-T05-B01-Q08.mp3",
+      "vietnameseSourceSha256": "a97cfa5647205f420c957146da3423b8a89dd3a23d514303746737a2917fd111",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Ngủ sớm”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Take breaks",
+          "segmentId": "C1112-EN-058",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Sleep early?",
+          "segmentId": "C1112-EN-059",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 19,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L2-T06-B01-Q06",
+      "key": "listening.challenge.C1112-L2-T06-B01-Q06.prompt.vi",
+      "target": "Mật khẩu",
+      "vietnameseText": "Bạn muốn diễn đạt: “Mật khẩu”",
+      "englishFirst": "Message",
+      "connectorText": "hay",
+      "englishSecond": "Password?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L2-T06-B01-Q06.prompt.vi.mp3",
+      "durationSeconds": 4.83,
+      "sha256": "48d013d38905b74ec32f82d66bb0fd6aa6c54cf6788c48ef418bfe06c0c40279",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L2-T06-B01-Q06.mp3",
+      "vietnameseSourceSha256": "b3a36e605e707cf1663d24d04c2213d0aaea15c8c5a594d6c8286bc28587f470",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Mật khẩu”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Message",
+          "segmentId": "C1112-EN-066",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Password?",
+          "segmentId": "C1112-EN-067",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 20,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L2-T06-B01-Q07",
+      "key": "listening.challenge.C1112-L2-T06-B01-Q07.prompt.vi",
+      "target": "Đường dẫn",
+      "vietnameseText": "Bạn muốn diễn đạt: “Đường dẫn”",
+      "englishFirst": "Link",
+      "connectorText": "hay",
+      "englishSecond": "Photo?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L2-T06-B01-Q07.prompt.vi.mp3",
+      "durationSeconds": 4.514,
+      "sha256": "301c068b7ff0f9776d540fd7e5426e05ed828b6f73926c72df0a11ae3248f4de",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L2-T06-B01-Q07.mp3",
+      "vietnameseSourceSha256": "2961776c3770cb8dc9db62bb71ab0c7e114dda8442d7233058cd40aafd85a884",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Đường dẫn”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Link",
+          "segmentId": "C1112-EN-068",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Photo?",
+          "segmentId": "C1112-EN-069",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 21,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L2-T06-B01-Q08",
+      "key": "listening.challenge.C1112-L2-T06-B01-Q08.prompt.vi",
+      "target": "Tin nhắn",
+      "vietnameseText": "Bạn muốn diễn đạt: “Tin nhắn”",
+      "englishFirst": "Stranger",
+      "connectorText": "hay",
+      "englishSecond": "Message?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L2-T06-B01-Q08.prompt.vi.mp3",
+      "durationSeconds": 4.748,
+      "sha256": "e0c0500f5447a1b476818f84c6e0421ef37c7bc7b9a3d01b58b60d59af639938",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L2-T06-B01-Q08.mp3",
+      "vietnameseSourceSha256": "f5fad169d055b2ee42238926f00ba2a9d75cd72e8ba468dbe6e9c4585e540bbf",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Tin nhắn”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Stranger",
+          "segmentId": "C1112-EN-070",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Message?",
+          "segmentId": "C1112-EN-071",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 22,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L3-T07-B01-Q07",
+      "key": "listening.challenge.C1112-L3-T07-B01-Q07.prompt.vi",
+      "target": "Rảnh thứ Bảy",
+      "vietnameseText": "Bạn muốn diễn đạt: “Rảnh thứ Bảy”",
+      "englishFirst": "Free Saturday",
+      "connectorText": "hay",
+      "englishSecond": "At three?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L3-T07-B01-Q07.prompt.vi.mp3",
+      "durationSeconds": 5.65,
+      "sha256": "e69a60569bf38cc609bfc49d2c96e9d54d47372c5312146274396b2a3958fb3c",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L3-T07-B01-Q07.mp3",
+      "vietnameseSourceSha256": "3e009f5919ee000dcc3fc3f42a5fdd3897a5671f420f28fa8746dc5a5e368490",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Rảnh thứ Bảy”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Free Saturday",
+          "segmentId": "C1112-EN-084",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "At three?",
+          "segmentId": "C1112-EN-085",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 23,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L3-T07-B01-Q08",
+      "key": "listening.challenge.C1112-L3-T07-B01-Q08.prompt.vi",
+      "target": "Bận Chủ nhật",
+      "vietnameseText": "Bạn muốn diễn đạt: “Bận Chủ nhật”",
+      "englishFirst": "At the park",
+      "connectorText": "hay",
+      "englishSecond": "Busy Sunday?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L3-T07-B01-Q08.prompt.vi.mp3",
+      "durationSeconds": 5.572,
+      "sha256": "3e7747dd081610b7ab47db0eb4e73e3416c778f6122bf700845e97f1698e2403",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L3-T07-B01-Q08.mp3",
+      "vietnameseSourceSha256": "238ebcf8b19bd66c719c7470dfc3fe9ab8f06e0bce9c54fcc51354d52c1f64e3",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Bận Chủ nhật”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "At the park",
+          "segmentId": "C1112-EN-086",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Busy Sunday?",
+          "segmentId": "C1112-EN-087",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 24,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L3-T07-B03-Q08",
+      "key": "listening.challenge.C1112-L3-T07-B03-Q08.prompt.vi",
+      "target": "Nghe được đó",
+      "vietnameseText": "Bạn muốn diễn đạt: “Nghe được đó”",
+      "englishFirst": "Sorry, I'm busy",
+      "connectorText": "hay",
+      "englishSecond": "Sounds good?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L3-T07-B03-Q08.prompt.vi.mp3",
+      "durationSeconds": 5.216,
+      "sha256": "797bfe7c6568ecdd1f40c0b073ddc373cc6433765e5644d143130f91d42d6ca0",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L3-T07-B03-Q08.mp3",
+      "vietnameseSourceSha256": "c718a6cabdb5523f4ce3f6ea6c7c491a0397ba45c4d91ec41352d642f2241df4",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Nghe được đó”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Sorry, I'm busy",
+          "segmentId": "C1112-EN-099",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Sounds good?",
+          "segmentId": "C1112-EN-100",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 25,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L3-T08-B01-Q06",
+      "key": "listening.challenge.C1112-L3-T08-B01-Q06.prompt.vi",
+      "target": "Áo",
+      "vietnameseText": "Bạn muốn diễn đạt: “Áo”",
+      "englishFirst": "Price",
+      "connectorText": "hay",
+      "englishSecond": "Shirt?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L3-T08-B01-Q06.prompt.vi.mp3",
+      "durationSeconds": 4.396,
+      "sha256": "7d48b3c4f269b1542aab1009ddae3ff6c1b365480a78a4ba8244b45eda76ef72",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L3-T08-B01-Q06.mp3",
+      "vietnameseSourceSha256": "1a7d5f1c2d51132c573f71d8e34bcdb22fe452a7394ee92105737f202f464173",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Áo”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Price",
+          "segmentId": "C1112-EN-105",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Shirt?",
+          "segmentId": "C1112-EN-106",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 26,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L3-T08-B01-Q07",
+      "key": "listening.challenge.C1112-L3-T08-B01-Q07.prompt.vi",
+      "target": "Giày",
+      "vietnameseText": "Bạn muốn diễn đạt: “Giày”",
+      "englishFirst": "Shoes",
+      "connectorText": "hay",
+      "englishSecond": "Cheap?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L3-T08-B01-Q07.prompt.vi.mp3",
+      "durationSeconds": 4.364,
+      "sha256": "14a8e0788845b1ba99787aa027e33111e5e92502fcffc9465b998edc254b3528",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L3-T08-B01-Q07.mp3",
+      "vietnameseSourceSha256": "72db5cbb8570a78bfd38eb9d0e5b6b80c4a074c490dec4092a12626391f31b59",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Giày”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Shoes",
+          "segmentId": "C1112-EN-107",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Cheap?",
+          "segmentId": "C1112-EN-108",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 27,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L3-T08-B01-Q08",
+      "key": "listening.challenge.C1112-L3-T08-B01-Q08.prompt.vi",
+      "target": "Giá",
+      "vietnameseText": "Bạn muốn diễn đạt: “Giá”",
+      "englishFirst": "Expensive",
+      "connectorText": "hay",
+      "englishSecond": "Price?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L3-T08-B01-Q08.prompt.vi.mp3",
+      "durationSeconds": 4.842,
+      "sha256": "31b282bbf8ab35c53d2a35daa433f884f2b6862868248538063beaf3bbdf9f93",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L3-T08-B01-Q08.mp3",
+      "vietnameseSourceSha256": "e1ec33a52c246b8d034c2d45db1eb2693d480cdfe81fbdce79fe4d984386a587",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Giá”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Expensive",
+          "segmentId": "C1112-EN-109",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Price?",
+          "segmentId": "C1112-EN-110",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 28,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L3-T08-B03-Q07",
+      "key": "listening.challenge.C1112-L3-T08-B03-Q07.prompt.vi",
+      "target": "Cái này rẻ hơn",
+      "vietnameseText": "Bạn muốn diễn đạt: “Cái này rẻ hơn”",
+      "englishFirst": "This one is cheaper",
+      "connectorText": "hay",
+      "englishSecond": "I like this one?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L3-T08-B03-Q07.prompt.vi.mp3",
+      "durationSeconds": 6.516,
+      "sha256": "8a878b66a60bb852ac6d3a863d9de07186ea113659c893b35a780a931c4430db",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L3-T08-B03-Q07.mp3",
+      "vietnameseSourceSha256": "6b21f00f99ac458dee1ba5812e73785062b9dc570cfe8ed8445be12a6818f9ae",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Cái này rẻ hơn”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "This one is cheaper",
+          "segmentId": "C1112-EN-119",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "I like this one?",
+          "segmentId": "C1112-EN-120",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 29,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L3-T08-B03-Q08",
+      "key": "listening.challenge.C1112-L3-T08-B03-Q08.prompt.vi",
+      "target": "Cái kia rẻ hơn",
+      "vietnameseText": "Bạn muốn diễn đạt: “Cái kia rẻ hơn”",
+      "englishFirst": "I want this one",
+      "connectorText": "hay",
+      "englishSecond": "That one is cheaper?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L3-T08-B03-Q08.prompt.vi.mp3",
+      "durationSeconds": 6.047,
+      "sha256": "ccdf0e500dd35b57fb9928842175ac764913d312bdb1ddcb9c767f6737bda378",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L3-T08-B03-Q08.mp3",
+      "vietnameseSourceSha256": "21030b2b888638fc30b265d4b72efb3d2dc7ceb1bf26c8367f86b9310fa0cdb5",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Cái kia rẻ hơn”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "I want this one",
+          "segmentId": "C1112-EN-121",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "That one is cheaper?",
+          "segmentId": "C1112-EN-122",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 30,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L3-T09-B01-Q08",
+      "key": "listening.challenge.C1112-L3-T09-B01-Q08.prompt.vi",
+      "target": "Mình làm mất chìa khóa",
+      "vietnameseText": "Bạn muốn diễn đạt: “Mình làm mất chìa khóa”",
+      "englishFirst": "I missed the bus",
+      "connectorText": "hay",
+      "englishSecond": "I lost my key?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L3-T09-B01-Q08.prompt.vi.mp3",
+      "durationSeconds": 7.449,
+      "sha256": "9b96a19a070fe4c79fab6276585ddbeb337f61b7102ad866d4407fb5f1897fa5",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L3-T09-B01-Q08.mp3",
+      "vietnameseSourceSha256": "8f29ee3958b570f83c84a2be918a24d8c7b144ae69d4cd820dbdf1720945b344",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Mình làm mất chìa khóa”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "I missed the bus",
+          "segmentId": "C1112-EN-127",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "I lost my key?",
+          "segmentId": "C1112-EN-128",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 31,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L3-T09-B02-Q07",
+      "key": "listening.challenge.C1112-L3-T09-B02-Q07.prompt.vi",
+      "target": "Bạn có thể giúp mình không",
+      "vietnameseText": "Bạn muốn diễn đạt: “Bạn có thể giúp mình không”",
+      "englishFirst": "Can you help me?",
+      "connectorText": "hay",
+      "englishSecond": "Please call my Dad?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L3-T09-B02-Q07.prompt.vi.mp3",
+      "durationSeconds": 6.662,
+      "sha256": "4c62be0cf7d9e8650fc0c7b94474a1885c69840cea1369cfed406bda65a07a0c",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L3-T09-B02-Q07.mp3",
+      "vietnameseSourceSha256": "1a45d4878ec1800eb5df751ec5a9bc1e3fe769a84b2dcd33ef993eba5d9ef41a",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Bạn có thể giúp mình không”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Can you help me?",
+          "segmentId": "C1112-EN-132",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Please call my Dad?",
+          "segmentId": "C1112-EN-133",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 32,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L3-T09-B02-Q08",
+      "key": "listening.challenge.C1112-L3-T09-B02-Q08.prompt.vi",
+      "target": "Cho mình mượn sạc nhé",
+      "vietnameseText": "Bạn muốn diễn đạt: “Cho mình mượn sạc nhé”",
+      "englishFirst": "Please wait here",
+      "connectorText": "hay",
+      "englishSecond": "A charger, please?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L3-T09-B02-Q08.prompt.vi.mp3",
+      "durationSeconds": 6.463,
+      "sha256": "e401024ecc1b2064cc001804d9932cde24e6ba59cf1cb30ed0b34d7669b53355",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L3-T09-B02-Q08.mp3",
+      "vietnameseSourceSha256": "6e6ce8054d6c55d3a1bbeb6ba8344e227ce7df47596c7444d6c72dab7e769d49",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Cho mình mượn sạc nhé”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Please wait here",
+          "segmentId": "C1112-EN-134",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "A charger, please?",
+          "segmentId": "C1112-EN-135",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 33,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L3-T10-B01-Q07",
+      "key": "listening.challenge.C1112-L3-T10-B01-Q07.prompt.vi",
+      "target": "Tắt đèn",
+      "vietnameseText": "Bạn muốn diễn đạt: “Tắt đèn”",
+      "englishFirst": "Turn off the lights",
+      "connectorText": "hay",
+      "englishSecond": "Use less paper?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L3-T10-B01-Q07.prompt.vi.mp3",
+      "durationSeconds": 5.801,
+      "sha256": "586bb3abcb7f41c29dc6c7bea64728eda2749731755907dbbfa479b44647eeaf",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L3-T10-B01-Q07.mp3",
+      "vietnameseSourceSha256": "33d10bdc6998fb6c8efa7c4805627cc5d4b12a5e20f66bd39197d74c8e630f24",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Tắt đèn”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Turn off the lights",
+          "segmentId": "C1112-EN-151",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Use less paper?",
+          "segmentId": "C1112-EN-152",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 34,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L3-T10-B01-Q08",
+      "key": "listening.challenge.C1112-L3-T10-B01-Q08.prompt.vi",
+      "target": "Tiết kiệm nước",
+      "vietnameseText": "Bạn muốn diễn đạt: “Tiết kiệm nước”",
+      "englishFirst": "Close the tap",
+      "connectorText": "hay",
+      "englishSecond": "Save water?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L3-T10-B01-Q08.prompt.vi.mp3",
+      "durationSeconds": 5.07,
+      "sha256": "f3346d1f8cf15a25f45ca396d7275efd7dde11d0601fd1f55e6abdf4844ff230",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L3-T10-B01-Q08.mp3",
+      "vietnameseSourceSha256": "ab94a3f584a4fdb71e553eead0ec998eece1b78868a2a20c2216d237dfaca4b9",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Tiết kiệm nước”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Close the tap",
+          "segmentId": "C1112-EN-153",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Save water?",
+          "segmentId": "C1112-EN-154",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 35,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L3-T10-B02-Q06",
+      "key": "listening.challenge.C1112-L3-T10-B02-Q06.prompt.vi",
+      "target": "Tái sử dụng túi",
+      "vietnameseText": "Bạn muốn diễn đạt: “Tái sử dụng túi”",
+      "englishFirst": "Pick up litter",
+      "connectorText": "hay",
+      "englishSecond": "Reuse your bag?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L3-T10-B02-Q06.prompt.vi.mp3",
+      "durationSeconds": 5.88,
+      "sha256": "5f5035fa5b18837fe060d33f3d1ab68fd68333f6e622057cff0f7526f04798f2",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L3-T10-B02-Q06.mp3",
+      "vietnameseSourceSha256": "9eac30e5eef071a9268f879cf64e9111e102f70cf6304c4c5ebf3aad02b3f0ab",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Tái sử dụng túi”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Pick up litter",
+          "segmentId": "C1112-EN-159",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Reuse your bag?",
+          "segmentId": "C1112-EN-160",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 36,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L3-T10-B02-Q07",
+      "key": "listening.challenge.C1112-L3-T10-B02-Q07.prompt.vi",
+      "target": "Tái chế giấy",
+      "vietnameseText": "Bạn muốn diễn đạt: “Tái chế giấy”",
+      "englishFirst": "Recycle paper",
+      "connectorText": "hay",
+      "englishSecond": "Walk short distances?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L3-T10-B02-Q07.prompt.vi.mp3",
+      "durationSeconds": 6.596,
+      "sha256": "34e7dfc2be203a469607d337784c8ca42b5851699d1fd8242ab29aa4ef7f4c0e",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L3-T10-B02-Q07.mp3",
+      "vietnameseSourceSha256": "c834216cc06d498e2a78a004bc6724b1370fa8092ad90f1ecb368dc6da33181d",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Tái chế giấy”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Recycle paper",
+          "segmentId": "C1112-EN-161",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Walk short distances?",
+          "segmentId": "C1112-EN-162",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 37,
+      "ageGroup": "11-12",
+      "questionId": "C1112-L3-T10-B02-Q08",
+      "key": "listening.challenge.C1112-L3-T10-B02-Q08.prompt.vi",
+      "target": "Nhặt rác",
+      "vietnameseText": "Bạn muốn diễn đạt: “Nhặt rác”",
+      "englishFirst": "Plant a tree",
+      "connectorText": "hay",
+      "englishSecond": "Pick up litter?",
+      "asset": "merged-audio-mp3/listening.challenge.C1112-L3-T10-B02-Q08.prompt.vi.mp3",
+      "durationSeconds": 5.506,
+      "sha256": "4b4549d8383023a3337dd9e561e629a002d2718e8f8e9e13647e739dfe37182b",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1112-L3-T10-B02-Q08.mp3",
+      "vietnameseSourceSha256": "0f6257033d45d6aaf7defc15d94f3bdb7258619a975a16b8247e8866908943d0",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Nhặt rác”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Plant a tree",
+          "segmentId": "C1112-EN-163",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Pick up litter?",
+          "segmentId": "C1112-EN-164",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 38,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L1-T01-B01-Q07",
+      "key": "listening.challenge.C1315-L1-T01-B01-Q07.prompt.vi",
+      "target": "Trước giờ học",
+      "vietnameseText": "Bạn muốn diễn đạt: “Trước giờ học”",
+      "englishFirst": "Before school",
+      "connectorText": "hay",
+      "englishSecond": "Before dinner?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L1-T01-B01-Q07.prompt.vi.mp3",
+      "durationSeconds": 5.632,
+      "sha256": "2996bb0fe11036113fc732885b35afa9737e82539a0630632f17e21c5efb723a",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L1-T01-B01-Q07.mp3",
+      "vietnameseSourceSha256": "d6473a9465b20fa03a3cee08f68e6739bfa83e7e2d2c795c4252411e47cf1ffa",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Trước giờ học”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Before school",
+          "segmentId": "C1315-EN-001",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Before dinner?",
+          "segmentId": "C1315-EN-002",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 39,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L1-T01-B01-Q08",
+      "key": "listening.challenge.C1315-L1-T01-B01-Q08.prompt.vi",
+      "target": "Vào cuối tuần",
+      "vietnameseText": "Bạn muốn diễn đạt: “Vào cuối tuần”",
+      "englishFirst": "On weekends",
+      "connectorText": "hay",
+      "englishSecond": "Before school?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L1-T01-B01-Q08.prompt.vi.mp3",
+      "durationSeconds": 6.174,
+      "sha256": "cb4abfe99381d0db695c4406ce2735cb29411b3f86b0b86685f3f517a872c5af",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L1-T01-B01-Q08.mp3",
+      "vietnameseSourceSha256": "910e5c9b2a8232c06102653f07354070724f442f464179a079833fca70c8b5e4",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Vào cuối tuần”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "On weekends",
+          "segmentId": "C1315-EN-008",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Before school?",
+          "segmentId": "C1315-EN-009",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 40,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L1-T01-B02-Q03",
+      "key": "listening.challenge.C1315-L1-T01-B02-Q03.prompt.vi",
+      "target": "Mình lên kế hoạch vào Chủ nhật",
+      "vietnameseText": "Bạn muốn diễn đạt: “Mình lên kế hoạch vào Chủ nhật”",
+      "englishFirst": "I plan on Sundays",
+      "connectorText": "hay",
+      "englishSecond": "I study after school?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L1-T01-B02-Q03.prompt.vi.mp3",
+      "durationSeconds": 8.12,
+      "sha256": "4e56b6bc274150f833e608eee54e9e6ff339937161a308e8bf456b414d5487c5",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L1-T01-B02-Q03.mp3",
+      "vietnameseSourceSha256": "de350df1d94c2fc5f4c02eae5eb20bedb98a9d44f2c68e5052cb95fefa82d74e",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Mình lên kế hoạch vào Chủ nhật”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "I plan on Sundays",
+          "segmentId": "C1315-EN-016",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "I study after school?",
+          "segmentId": "C1315-EN-017",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 41,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L1-T02-B01-Q06",
+      "key": "listening.challenge.C1315-L1-T02-B01-Q06.prompt.vi",
+      "target": "Cải thiện tiếng Anh",
+      "vietnameseText": "Bạn muốn diễn đạt: “Cải thiện tiếng Anh”",
+      "englishFirst": "Read more books",
+      "connectorText": "hay",
+      "englishSecond": "Improve my English?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L1-T02-B01-Q06.prompt.vi.mp3",
+      "durationSeconds": 6.672,
+      "sha256": "31ea2b52b86fe007affc1d337ad2f3df0a889296465cf5dbbbdd88a6ca1e2864",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L1-T02-B01-Q06.mp3",
+      "vietnameseSourceSha256": "d21034205dc2e8218491d542a18183bd3e0c594577b8808e35824c8660ed60cd",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Cải thiện tiếng Anh”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Read more books",
+          "segmentId": "C1315-EN-018",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Improve my English?",
+          "segmentId": "C1315-EN-019",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 42,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L1-T02-B01-Q07",
+      "key": "listening.challenge.C1315-L1-T02-B01-Q07.prompt.vi",
+      "target": "Đạt điểm tốt hơn",
+      "vietnameseText": "Bạn muốn diễn đạt: “Đạt điểm tốt hơn”",
+      "englishFirst": "Get better grades",
+      "connectorText": "hay",
+      "englishSecond": "Speak more confidently?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L1-T02-B01-Q07.prompt.vi.mp3",
+      "durationSeconds": 6.352,
+      "sha256": "cb5843f3276c2a1d7e46874a34b551888b661fb94132febacce47b07afccb10e",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L1-T02-B01-Q07.mp3",
+      "vietnameseSourceSha256": "c1ca07e6283f674c4891fec2b18c9ff42f4f044720a866dceb166db97f291971",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Đạt điểm tốt hơn”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Get better grades",
+          "segmentId": "C1315-EN-020",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Speak more confidently?",
+          "segmentId": "C1315-EN-021",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 43,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L1-T02-B01-Q08",
+      "key": "listening.challenge.C1315-L1-T02-B01-Q08.prompt.vi",
+      "target": "Hoàn thành bài sớm hơn",
+      "vietnameseText": "Bạn muốn diễn đạt: “Hoàn thành bài sớm hơn”",
+      "englishFirst": "Finish homework earlier",
+      "connectorText": "hay",
+      "englishSecond": "Improve my English?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L1-T02-B01-Q08.prompt.vi.mp3",
+      "durationSeconds": 7.252,
+      "sha256": "6533e26045d01493a1d0fefb2a5a5b567982d0e5f6dc7905128e58ac33e5c5f0",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L1-T02-B01-Q08.mp3",
+      "vietnameseSourceSha256": "540fa2f8888d8f0beb7567867527ab48d2fd72ac9cea87d3b96879abd5e1b9db",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Hoàn thành bài sớm hơn”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Finish homework earlier",
+          "segmentId": "C1315-EN-024",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Improve my English?",
+          "segmentId": "C1315-EN-019",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 44,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L1-T02-B02-Q03",
+      "key": "listening.challenge.C1315-L1-T02-B02-Q03.prompt.vi",
+      "target": "Tiếp tục luyện tập",
+      "vietnameseText": "Bạn muốn diễn đạt: “Tiếp tục luyện tập”",
+      "englishFirst": "Keep practicing",
+      "connectorText": "hay",
+      "englishSecond": "Practice every day?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L1-T02-B02-Q03.prompt.vi.mp3",
+      "durationSeconds": 6.586,
+      "sha256": "5cb64fc2a0a0b66fd3a5314078be0e60670ffb3c7405afda995f1a0ff35ac36e",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L1-T02-B02-Q03.mp3",
+      "vietnameseSourceSha256": "37991a27ae9e310ca9dbcd8738a1a00d0e587d1de6790d8a509c1a10286609dd",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Tiếp tục luyện tập”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Keep practicing",
+          "segmentId": "C1315-EN-034",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Practice every day?",
+          "segmentId": "C1315-EN-035",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 45,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L1-T03-B02-Q05",
+      "key": "listening.challenge.C1315-L1-T03-B02-Q05.prompt.vi",
+      "target": "Vì mình thích nó",
+      "vietnameseText": "Bạn muốn diễn đạt: “Vì mình thích nó”",
+      "englishFirst": "Because I enjoy it",
+      "connectorText": "hay",
+      "englishSecond": "Why?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L1-T03-B02-Q05.prompt.vi.mp3",
+      "durationSeconds": 5.73,
+      "sha256": "b7395c8abe118074b52845453b7248fd8701cafa8209d9c24cdcb87c92d0e7ff",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L1-T03-B02-Q05.mp3",
+      "vietnameseSourceSha256": "a14ef4ef34e3059ba35f13b45bf35cb3ae677155fa766fac57037434eb6581b1",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Vì mình thích nó”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Because I enjoy it",
+          "segmentId": "C1315-EN-050",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Why?",
+          "segmentId": "C1315-EN-045",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 46,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L2-T04-B01-Q06",
+      "key": "listening.challenge.C1315-L2-T04-B01-Q06.prompt.vi",
+      "target": "Giá tiền",
+      "vietnameseText": "Bạn muốn diễn đạt: “Giá tiền”",
+      "englishFirst": "Good price",
+      "connectorText": "hay",
+      "englishSecond": "The price?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L2-T04-B01-Q06.prompt.vi.mp3",
+      "durationSeconds": 5.087,
+      "sha256": "3c91156161d896ce69950d3431a861e9d9280467454bf3ddbc5f8b8872c1ee3d",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L2-T04-B01-Q06.mp3",
+      "vietnameseSourceSha256": "3a5239b78824dbebe78be7751a7d7267413b229813d46f4b0ad6504f60e55d79",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Giá tiền”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Good price",
+          "segmentId": "C1315-EN-051",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "The price?",
+          "segmentId": "C1315-EN-052",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 47,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L2-T04-B01-Q07",
+      "key": "listening.challenge.C1315-L2-T04-B01-Q07.prompt.vi",
+      "target": "Ngân sách của mình",
+      "vietnameseText": "Bạn muốn diễn đạt: “Ngân sách của mình”",
+      "englishFirst": "My budget",
+      "connectorText": "hay",
+      "englishSecond": "Too expensive?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L2-T04-B01-Q07.prompt.vi.mp3",
+      "durationSeconds": 5.333,
+      "sha256": "00400d6f0a899206633d24dbe91dea3ec65969de23cb152fcff21fd7dc682ef8",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L2-T04-B01-Q07.mp3",
+      "vietnameseSourceSha256": "d377d1167afcc7f30ff79a8248fab73d8e03f9c2fdec026ce7eb736d14bb701f",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Ngân sách của mình”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "My budget",
+          "segmentId": "C1315-EN-053",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Too expensive?",
+          "segmentId": "C1315-EN-054",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 48,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L2-T04-B01-Q08",
+      "key": "listening.challenge.C1315-L2-T04-B01-Q08.prompt.vi",
+      "target": "Tiêu tiền",
+      "vietnameseText": "Bạn muốn diễn đạt: “Tiêu tiền”",
+      "englishFirst": "Spend money",
+      "connectorText": "hay",
+      "englishSecond": "The price?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L2-T04-B01-Q08.prompt.vi.mp3",
+      "durationSeconds": 5.064,
+      "sha256": "79b535e861460e2a3d95c6a5eb2e0a4e9276111a8fc0a963719b9fb4656f835b",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L2-T04-B01-Q08.mp3",
+      "vietnameseSourceSha256": "f6d1a4b3d225199d8dc000ea7562540d0c35d3e806ade67de556184fbc80063d",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Tiêu tiền”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Spend money",
+          "segmentId": "C1315-EN-057",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "The price?",
+          "segmentId": "C1315-EN-052",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 49,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L2-T04-B02-Q07",
+      "key": "listening.challenge.C1315-L2-T04-B02-Q07.prompt.vi",
+      "target": "Nó có đáng không",
+      "vietnameseText": "Bạn muốn diễn đạt: “Nó có đáng không”",
+      "englishFirst": "Is it worth it?",
+      "connectorText": "hay",
+      "englishSecond": "It fits my budget?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L2-T04-B02-Q07.prompt.vi.mp3",
+      "durationSeconds": 6.048,
+      "sha256": "8377a231512666d9f05d64c51a56921a5718386c44b1f0ad7375bce0d6ac75b2",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L2-T04-B02-Q07.mp3",
+      "vietnameseSourceSha256": "728951d9f450bba300a14ce479eae39ee6ea9b01bca24864360b29b013623dcd",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Nó có đáng không”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Is it worth it?",
+          "segmentId": "C1315-EN-058",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "It fits my budget?",
+          "segmentId": "C1315-EN-059",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 50,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L2-T04-B02-Q08",
+      "key": "listening.challenge.C1315-L2-T04-B02-Q08.prompt.vi",
+      "target": "Mình sẽ suy nghĩ thêm",
+      "vietnameseText": "Bạn muốn diễn đạt: “Mình sẽ suy nghĩ thêm”",
+      "englishFirst": "I'll think about it",
+      "connectorText": "hay",
+      "englishSecond": "Is it worth it?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L2-T04-B02-Q08.prompt.vi.mp3",
+      "durationSeconds": 6.394,
+      "sha256": "4a0059818d9d3c9741d09d2cd0999011a02296f3f9dd7e91ff26375a059f0032",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L2-T04-B02-Q08.mp3",
+      "vietnameseSourceSha256": "abac8a65f52ec5a66eed23ba97cba06f5499ec22f3c5dac20036e0a383abcdc3",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Mình sẽ suy nghĩ thêm”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "I'll think about it",
+          "segmentId": "C1315-EN-065",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Is it worth it?",
+          "segmentId": "C1315-EN-058",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 51,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L2-T05-B01-Q04",
+      "key": "listening.challenge.C1315-L2-T05-B01-Q04.prompt.vi",
+      "target": "Mình cần ngủ thêm",
+      "vietnameseText": "Bạn muốn diễn đạt: “Mình cần ngủ thêm”",
+      "englishFirst": "I need more sleep",
+      "connectorText": "hay",
+      "englishSecond": "I'm tired?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L2-T05-B01-Q04.prompt.vi.mp3",
+      "durationSeconds": 6.65,
+      "sha256": "c4c12b354cb8fb64db7d94ec8218a71799ff8c153b3bd0f4c8639ade3f503a2a",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L2-T05-B01-Q04.mp3",
+      "vietnameseSourceSha256": "4f77844a34b47bc1f3c4809fa9368db40117c1e7f77602364f2a01dce2e418c7",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Mình cần ngủ thêm”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "I need more sleep",
+          "segmentId": "C1315-EN-074",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "I'm tired?",
+          "segmentId": "C1315-EN-075",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 52,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L2-T05-B02-Q08",
+      "key": "listening.challenge.C1315-L2-T05-B02-Q08.prompt.vi",
+      "target": "Cất điện thoại đi",
+      "vietnameseText": "Bạn muốn diễn đạt: “Cất điện thoại đi”",
+      "englishFirst": "Put your phone away",
+      "connectorText": "hay",
+      "englishSecond": "What should I do?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L2-T05-B02-Q08.prompt.vi.mp3",
+      "durationSeconds": 6.112,
+      "sha256": "dd595031787bf233c5f3dfa5caaa4c112c8a6828b1d7b2830c4844645984c4d3",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L2-T05-B02-Q08.mp3",
+      "vietnameseSourceSha256": "a8b6b91cadce782bccb7564d0a34b0345144282a302f9cac7a150db010bff25b",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Cất điện thoại đi”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Put your phone away",
+          "segmentId": "C1315-EN-086",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "What should I do?",
+          "segmentId": "C1315-EN-076",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 53,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L2-T06-B01-Q07",
+      "key": "listening.challenge.C1315-L2-T06-B01-Q07.prompt.vi",
+      "target": "Mật khẩu",
+      "vietnameseText": "Bạn muốn diễn đạt: “Mật khẩu”",
+      "englishFirst": "Password",
+      "connectorText": "hay",
+      "englishSecond": "Home address?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L2-T06-B01-Q07.prompt.vi.mp3",
+      "durationSeconds": 4.72,
+      "sha256": "b489afa93e0d4a64b83cabe487f614719db29f09ef3b1ad73d7b504e2210d075",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L2-T06-B01-Q07.mp3",
+      "vietnameseSourceSha256": "46aee5dabc1f2e2d22f2df028931470ede2dd73d1c7b0bdeee4dbcf1a2dd53ce",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Mật khẩu”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Password",
+          "segmentId": "C1315-EN-087",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Home address?",
+          "segmentId": "C1315-EN-088",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 54,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L2-T06-B01-Q08",
+      "key": "listening.challenge.C1315-L2-T06-B01-Q08.prompt.vi",
+      "target": "Ảnh cá nhân",
+      "vietnameseText": "Bạn muốn diễn đạt: “Ảnh cá nhân”",
+      "englishFirst": "Personal photos",
+      "connectorText": "hay",
+      "englishSecond": "Password?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L2-T06-B01-Q08.prompt.vi.mp3",
+      "durationSeconds": 5.397,
+      "sha256": "e682bd0fdf21f09a53449b737847de9144a41e9e11e5584f497861b8c07de1b4",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L2-T06-B01-Q08.mp3",
+      "vietnameseSourceSha256": "05089b254627d7d6eaf88cb03d44dd20299cb196b36a12aaa5476376c9b42f65",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Ảnh cá nhân”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Personal photos",
+          "segmentId": "C1315-EN-094",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Password?",
+          "segmentId": "C1315-EN-095",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 55,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L2-T06-B02-Q04",
+      "key": "listening.challenge.C1315-L2-T06-B02-Q04.prompt.vi",
+      "target": "Chặn người dùng lạ",
+      "vietnameseText": "Bạn muốn diễn đạt: “Chặn người dùng lạ”",
+      "englishFirst": "Block unknown users",
+      "connectorText": "hay",
+      "englishSecond": "Keep passwords private?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L2-T06-B02-Q04.prompt.vi.mp3",
+      "durationSeconds": 7.392,
+      "sha256": "f0d7620d540fe518123f083c88ac87c721ffc1cdf9cc23fdaec110f4e2ae4c0e",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L2-T06-B02-Q04.mp3",
+      "vietnameseSourceSha256": "320e264095c3f0fe030556f25a49748420baf79501886e956105ac63b71903c1",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Chặn người dùng lạ”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Block unknown users",
+          "segmentId": "C1315-EN-108",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Keep passwords private?",
+          "segmentId": "C1315-EN-100",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 56,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L3-T07-B01-Q06",
+      "key": "listening.challenge.C1315-L3-T07-B01-Q06.prompt.vi",
+      "target": "Vé",
+      "vietnameseText": "Bạn muốn diễn đạt: “Vé”",
+      "englishFirst": "Platform",
+      "connectorText": "hay",
+      "englishSecond": "Ticket?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L3-T07-B01-Q06.prompt.vi.mp3",
+      "durationSeconds": 4.368,
+      "sha256": "71f0a6506f63980ee09a469aa542a2bc61e1abff9ba76e643073a42b2775a545",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L3-T07-B01-Q06.mp3",
+      "vietnameseSourceSha256": "08d2362a50fac4ea34b9fae8c0414e8654ae21e788b113c1bacada294c6931fe",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Vé”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Platform",
+          "segmentId": "C1315-EN-109",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Ticket?",
+          "segmentId": "C1315-EN-110",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 57,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L3-T07-B01-Q07",
+      "key": "listening.challenge.C1315-L3-T07-B01-Q07.prompt.vi",
+      "target": "Tàu",
+      "vietnameseText": "Bạn muốn diễn đạt: “Tàu”",
+      "englishFirst": "Train",
+      "connectorText": "hay",
+      "englishSecond": "Station?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L3-T07-B01-Q07.prompt.vi.mp3",
+      "durationSeconds": 4.42,
+      "sha256": "0ac26588f508dfb59b48e5dcdbc3f749c40d72073231bf89ac7f3a132320e8a3",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L3-T07-B01-Q07.mp3",
+      "vietnameseSourceSha256": "f6d57e98083bd5b191c0a65067254865278831e3ff81706c611ae08f1a2ee8b7",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Tàu”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Train",
+          "segmentId": "C1315-EN-111",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Station?",
+          "segmentId": "C1315-EN-112",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 58,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L3-T07-B01-Q08",
+      "key": "listening.challenge.C1315-L3-T07-B01-Q08.prompt.vi",
+      "target": "Khởi hành",
+      "vietnameseText": "Bạn muốn diễn đạt: “Khởi hành”",
+      "englishFirst": "Departure",
+      "connectorText": "hay",
+      "englishSecond": "Ticket?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L3-T07-B01-Q08.prompt.vi.mp3",
+      "durationSeconds": 4.646,
+      "sha256": "c0b61d31d9c72f37baf8df00bd1cf2f34b476d46060cf65fc1dd8c70c00414c7",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L3-T07-B01-Q08.mp3",
+      "vietnameseSourceSha256": "675c6654f8dce1fa5078e6ba312ad6660be602897461abd8ee27e7241d98723c",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Khởi hành”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Departure",
+          "segmentId": "C1315-EN-115",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Ticket?",
+          "segmentId": "C1315-EN-110",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 59,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L3-T07-B02-Q08",
+      "key": "listening.challenge.C1315-L3-T07-B02-Q08.prompt.vi",
+      "target": "Lối ra ở đâu",
+      "vietnameseText": "Bạn muốn diễn đạt: “Lối ra ở đâu”",
+      "englishFirst": "Where's the exit?",
+      "connectorText": "hay",
+      "englishSecond": "One ticket, please?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L3-T07-B02-Q08.prompt.vi.mp3",
+      "durationSeconds": 6.264,
+      "sha256": "e964f5afd1d036d90391d700ddb19c5d449215eee0ac8a2e9a91728a86442c65",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L3-T07-B02-Q08.mp3",
+      "vietnameseSourceSha256": "95f034b703f2ba0d32a99aacec948d28b95a5e02d03f4b6d9df5d8b9d6d0e3bc",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Lối ra ở đâu”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Where's the exit?",
+          "segmentId": "C1315-EN-123",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "One ticket, please?",
+          "segmentId": "C1315-EN-124",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 60,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L3-T08-B01-Q06",
+      "key": "listening.challenge.C1315-L3-T08-B01-Q06.prompt.vi",
+      "target": "Thực đơn",
+      "vietnameseText": "Bạn muốn diễn đạt: “Thực đơn”",
+      "englishFirst": "Main dish",
+      "connectorText": "hay",
+      "englishSecond": "Menu?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L3-T08-B01-Q06.prompt.vi.mp3",
+      "durationSeconds": 5.033,
+      "sha256": "53d1a464415928d304bf25dd0404886c6c74206743bc52bda6cfe934ad5a0506",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L3-T08-B01-Q06.mp3",
+      "vietnameseSourceSha256": "bec788b46f344ba9b901a684029151fc4e2f774082a41fd89b0d71e5f867700c",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Thực đơn”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Main dish",
+          "segmentId": "C1315-EN-125",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Menu?",
+          "segmentId": "C1315-EN-126",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 61,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L3-T08-B01-Q07",
+      "key": "listening.challenge.C1315-L3-T08-B01-Q07.prompt.vi",
+      "target": "Đồ uống",
+      "vietnameseText": "Bạn muốn diễn đạt: “Đồ uống”",
+      "englishFirst": "Drink",
+      "connectorText": "hay",
+      "englishSecond": "Side dish?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L3-T08-B01-Q07.prompt.vi.mp3",
+      "durationSeconds": 4.813,
+      "sha256": "5a35a0f56c5b1e45312137949e9321e4bb965e55d276c97d4b62c22d7781fcb1",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L3-T08-B01-Q07.mp3",
+      "vietnameseSourceSha256": "8d5fac8327f26c25eb9772c9d2afc6a8d1d24bf2b614c40b8db0a0db1b68c635",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Đồ uống”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Drink",
+          "segmentId": "C1315-EN-127",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Side dish?",
+          "segmentId": "C1315-EN-128",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 62,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L3-T08-B01-Q08",
+      "key": "listening.challenge.C1315-L3-T08-B01-Q08.prompt.vi",
+      "target": "Hóa đơn",
+      "vietnameseText": "Bạn muốn diễn đạt: “Hóa đơn”",
+      "englishFirst": "Bill",
+      "connectorText": "hay",
+      "englishSecond": "Menu?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L3-T08-B01-Q08.prompt.vi.mp3",
+      "durationSeconds": 4.28,
+      "sha256": "e73c2b6fa48340ef1b650d2620c5e3968ed8aca208c82457b1d078c09d0fea3e",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L3-T08-B01-Q08.mp3",
+      "vietnameseSourceSha256": "c32c2e012b3b79a21048d87b97e1c795509cb08faec8a692b1fb525b7ba0939c",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Hóa đơn”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Bill",
+          "segmentId": "C1315-EN-131",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Menu?",
+          "segmentId": "C1315-EN-126",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 63,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L3-T09-B01-Q06",
+      "key": "listening.challenge.C1315-L3-T09-B01-Q06.prompt.vi",
+      "target": "Rẻ hơn",
+      "vietnameseText": "Bạn muốn diễn đạt: “Rẻ hơn”",
+      "englishFirst": "Easier",
+      "connectorText": "hay",
+      "englishSecond": "Cheaper?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L3-T09-B01-Q06.prompt.vi.mp3",
+      "durationSeconds": 4.403,
+      "sha256": "b7380facd2a8fadd91a7c34b497f1f95acb1ab2447c5d88dfbdca16f0e3c6164",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L3-T09-B01-Q06.mp3",
+      "vietnameseSourceSha256": "a04500180a5c1e2190a63823161dd621f9786bce316ef3f3fff08762c36ec36c",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Rẻ hơn”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Easier",
+          "segmentId": "C1315-EN-140",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Cheaper?",
+          "segmentId": "C1315-EN-141",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 64,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L3-T09-B01-Q07",
+      "key": "listening.challenge.C1315-L3-T09-B01-Q07.prompt.vi",
+      "target": "Nhanh hơn",
+      "vietnameseText": "Bạn muốn diễn đạt: “Nhanh hơn”",
+      "englishFirst": "Faster",
+      "connectorText": "hay",
+      "englishSecond": "Safer?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L3-T09-B01-Q07.prompt.vi.mp3",
+      "durationSeconds": 4.593,
+      "sha256": "3b710d3eccdf225de3d889df4ab881c08b21b148da983611d4284e31369f4d60",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L3-T09-B01-Q07.mp3",
+      "vietnameseSourceSha256": "4d27b4e65452e71efdc79db234da9704ad65f77204148680ea7eb26012f461b2",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Nhanh hơn”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "Faster",
+          "segmentId": "C1315-EN-142",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Safer?",
+          "segmentId": "C1315-EN-143",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 65,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L3-T09-B01-Q08",
+      "key": "listening.challenge.C1315-L3-T09-B01-Q08.prompt.vi",
+      "target": "Hữu ích hơn",
+      "vietnameseText": "Bạn muốn diễn đạt: “Hữu ích hơn”",
+      "englishFirst": "More useful",
+      "connectorText": "hay",
+      "englishSecond": "Cheaper?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L3-T09-B01-Q08.prompt.vi.mp3",
+      "durationSeconds": 5.174,
+      "sha256": "96cb0e7873e3c7ba1d49735ad554f891617858cdc7117153b6a7e3ce80527ac5",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L3-T09-B01-Q08.mp3",
+      "vietnameseSourceSha256": "db67ad79059cba19d0be551767d8ed563a0502c9850faf8cfb476af222b6e7ec",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Hữu ích hơn”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "More useful",
+          "segmentId": "C1315-EN-146",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Cheaper?",
+          "segmentId": "C1315-EN-141",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 66,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L3-T09-B02-Q08",
+      "key": "listening.challenge.C1315-L3-T09-B02-Q08.prompt.vi",
+      "target": "Mình sẽ chọn cái này",
+      "vietnameseText": "Bạn muốn diễn đạt: “Mình sẽ chọn cái này”",
+      "englishFirst": "I'll choose this one",
+      "connectorText": "hay",
+      "englishSecond": "Which one do you prefer?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L3-T09-B02-Q08.prompt.vi.mp3",
+      "durationSeconds": 7.145,
+      "sha256": "8104d458b023acd1f9523a832f4806f96ec7202138ad50440ff54c976e3873ff",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L3-T09-B02-Q08.mp3",
+      "vietnameseSourceSha256": "6076a95c2b2e7f3543a5e4012dc47de0fe2a2aa8ff8d38b3b9a731d94e8d58d7",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Mình sẽ chọn cái này”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "I'll choose this one",
+          "segmentId": "C1315-EN-153",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "Which one do you prefer?",
+          "segmentId": "C1315-EN-147",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 67,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L3-T10-B01-Q03",
+      "key": "listening.challenge.C1315-L3-T10-B01-Q03.prompt.vi",
+      "target": "Mình muốn tiết kiệm tiền",
+      "vietnameseText": "Bạn muốn diễn đạt: “Mình muốn tiết kiệm tiền”",
+      "englishFirst": "I want to save money",
+      "connectorText": "hay",
+      "englishSecond": "I plan to study more?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L3-T10-B01-Q03.prompt.vi.mp3",
+      "durationSeconds": 7.09,
+      "sha256": "8406598c076c3a9d8d10ec1e128204355eca09bd1071fc3831e8ac55c5ca4b7f",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L3-T10-B01-Q03.mp3",
+      "vietnameseSourceSha256": "cf5f581144eb98614d95c0dd6cc99461ae653edad2ca96223554dcdecf9a5a71",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Mình muốn tiết kiệm tiền”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "I want to save money",
+          "segmentId": "C1315-EN-160",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "I plan to study more?",
+          "segmentId": "C1315-EN-161",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    },
+    {
+      "order": 68,
+      "ageGroup": "13-15",
+      "questionId": "C1315-L3-T10-B02-Q03",
+      "key": "listening.challenge.C1315-L3-T10-B02-Q03.prompt.vi",
+      "target": "Mình sẽ luyện tập mỗi ngày",
+      "vietnameseText": "Bạn muốn diễn đạt: “Mình sẽ luyện tập mỗi ngày”",
+      "englishFirst": "I'll practice every day",
+      "connectorText": "hay",
+      "englishSecond": "What's your next step?",
+      "asset": "merged-audio-mp3/listening.challenge.C1315-L3-T10-B02-Q03.prompt.vi.mp3",
+      "durationSeconds": 7.57,
+      "sha256": "30b56f877fdeff4bb83a7f3bd5d31447f6617300d8f3203e204bfad6f700da72",
+      "vietnameseSource": "D:\\Code\\HuaMei\\App_noi\\flutter\\23_23th9\\speaking-ai-flutter\\outputs\\challenge-vi-full-68-20260928-r1\\68-full-vi-review-r1\\by-question-id-mp3\\C1315-L3-T10-B02-Q03.mp3",
+      "vietnameseSourceSha256": "474fbb0f86968676e68706c9e2c001c1e41709ae55e2bde418f4926e12f31132",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bạn muốn diễn đạt: “Mình sẽ luyện tập mỗi ngày”",
+          "source": "provided-full-vi-directory",
+          "pauseAfterSeconds": 0.38
+        },
+        {
+          "language": "en",
+          "text": "I'll practice every day",
+          "segmentId": "C1315-EN-170",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "vi",
+          "text": "hay",
+          "source": "provided-0926.mp4",
+          "pauseAfterSeconds": 0.24
+        },
+        {
+          "language": "en",
+          "text": "What's your next step?",
+          "segmentId": "C1315-EN-162",
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75,
+          "pauseAfterSeconds": 0.0
+        }
+      ],
+      "qaFlags": []
+    }
+  ]
+}

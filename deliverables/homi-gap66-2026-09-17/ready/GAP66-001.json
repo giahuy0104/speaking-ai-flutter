@@ -19,10 +19,10 @@
   "createdAt": "2026-09-17T14:24:01.348Z",
   "sourceSha256": "4542537120518c8640d853099523fa22e397453202e6a41996bf8658c02fc93f",
   "asset": "assets/audio/MAIN/GAP66/GAP66-001.vi.v1.mp3",
-  "finalSha256": "07211ef1abc302eb71681538b33c4d71746422fe78aad12cde666bc7067552bd",
-  "sourceDurationSeconds": 2.72,
-  "durationSeconds": 3.001406,
+  "finalSha256": "d7587151153633a9e5fd42c0e366f61f62ab3b09633b5c5fc25cfdda117ae6fe",
+  "sourceDurationSeconds": 2.1864375,
+  "durationSeconds": 2.429375,
   "speed": 0.9,
   "speedMethod": "ffmpeg-atempo",
-  "bytes": 48945
+  "bytes": 55518
 }
