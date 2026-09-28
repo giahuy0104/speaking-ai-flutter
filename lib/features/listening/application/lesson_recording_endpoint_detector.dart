@@ -50,6 +50,7 @@ class LessonRecordingEndpointDetector {
   DateTime? _startedAt;
   void Function(LessonRecordingEndpointReason reason)? _onEndpoint;
   bool _speechDetected = false;
+  bool _levelHeardSpeech = false;
   bool _endpointSent = false;
   int _generation = 0;
   DateTime? _sustainedVoiceStartedAt;
@@ -77,6 +78,7 @@ class LessonRecordingEndpointDetector {
     _startedAt = _now();
     _onEndpoint = onEndpoint;
     _speechDetected = false;
+    _levelHeardSpeech = false;
     _endpointSent = false;
     _sustainedVoiceStartedAt = null;
     _earlyVoiceStartedAt = null;
@@ -113,12 +115,16 @@ class LessonRecordingEndpointDetector {
   }
 
   /// A live ASR transcript is stronger evidence than the volume threshold.
-  /// Refresh the quiet window for partial results even if RMS events stop.
+  /// Without a level signal that has heard the child, each partial refreshes
+  /// the quiet window. Once the level has heard them, it alone times the
+  /// window: Android partials land ~0.75-1.2 s after the words they carry, so
+  /// restarting on them ended the answer that much later.
   void confirmSpeech() {
     if (_endpointSent) return;
     _voiceActivityDetector.confirmSpeech();
     _speechDetected = true;
     _sustainedVoiceStartedAt = null;
+    if (_levelHeardSpeech) return;
     _silenceTimer?.cancel();
     _silenceTimer = null;
     _scheduleSilenceEndpoint(_generation);
@@ -152,6 +158,7 @@ class LessonRecordingEndpointDetector {
 
     if (activity.voiceActive ||
         (_speechDetected && dbfs >= activity.stopThresholdDbfs)) {
+      _levelHeardSpeech = true;
       _silenceTimer?.cancel();
       _silenceTimer = null;
       return;

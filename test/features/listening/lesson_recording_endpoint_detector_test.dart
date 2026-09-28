@@ -74,6 +74,39 @@ void main() {
     ]);
   });
 
+  testWidgets('a late partial does not push back a level-timed endpoint', (
+    tester,
+  ) async {
+    final amplitudes = StreamController<double>.broadcast(sync: true);
+    addTearDown(amplitudes.close);
+    var now = DateTime(2026);
+    final reasons = <LessonRecordingEndpointReason>[];
+    final detector = LessonRecordingEndpointDetector(
+      voiceActivityDetector: _immediateVoiceDetector(),
+      now: () => now,
+    );
+    detector.start(amplitudeDbfs: amplitudes.stream, onEndpoint: reasons.add);
+
+    amplitudes
+      ..add(-60)
+      ..add(-60)
+      ..add(-60);
+    now = now.add(const Duration(milliseconds: 100));
+    amplitudes.add(-20);
+    now = now.add(const Duration(milliseconds: 100));
+    amplitudes.add(-60);
+    // Android's partial for the last words arrives after the child stopped.
+    await tester.pump(const Duration(milliseconds: 500));
+    detector.confirmSpeech();
+    await tester.pump(const Duration(milliseconds: 199));
+    expect(reasons, isEmpty);
+
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(reasons, <LessonRecordingEndpointReason>[
+      LessonRecordingEndpointReason.silence,
+    ]);
+  });
+
   testWidgets('voice activity cancels a pending silence endpoint', (
     tester,
   ) async {
