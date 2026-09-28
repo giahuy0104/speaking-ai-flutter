@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T03-B02\\C1112-L1-T03-B02-T02_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T03-B02-T02_EN",
+  "sourceText": "I'm good at solving problems.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "I'm good at solving problems.",
+      "generation_key": "0a4102a261b65709"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-31A2310AD04B215B6AD55BAD",
+  "text": "I'm good at solving problems.",
+  "asset": "assets/audio/CURRICULUM/31a2310ad04b215b6ad55bad.en.v1.mp3",
+  "sha256": "c660dd806c9789ec43d7bab40743f993bca56ec9f96f838692c1b988758364cc",
+  "durationSeconds": 2.982313
+}

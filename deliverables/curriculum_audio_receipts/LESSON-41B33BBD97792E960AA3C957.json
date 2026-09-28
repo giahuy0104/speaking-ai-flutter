@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\MP3\\C1112-L1-T03\\C1112-L1-T03-B01_MICRO_OBJECTIVE.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T03-B01",
+  "sourceText": "Mình luyện cách nói về điểm mạnh.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "VI speech atempo 0.9 after synthesis, preserving pitch; sound effects retain original timing",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình luyện cách nói về điểm mạnh.",
+      "generation_key": "4643e937d1d4dfb1"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-41B33BBD97792E960AA3C957",
+  "text": "Mình luyện cách nói về điểm mạnh.",
+  "asset": "assets/audio/CURRICULUM/41b33bbd97792e960aa3c957.vi.v1.mp3",
+  "sha256": "22c8cd5cd1c5e31b36a142a3463e8e3b9435799e4a722af54fabc5686d6dc84d",
+  "durationSeconds": 2.312426
+}

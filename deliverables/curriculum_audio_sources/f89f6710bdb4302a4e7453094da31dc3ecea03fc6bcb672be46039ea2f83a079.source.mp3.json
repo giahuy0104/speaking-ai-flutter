@@ -1,0 +1,20 @@
+{
+  "signature": "f89f6710bdb4302a4e7453094da31dc3ecea03fc6bcb672be46039ea2f83a079",
+  "request": {
+    "text": "Stamp your feet",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "8351021ead99c3a12b91c0c4b4c7a4a0498bc5599e3c7f7f3d248a2693ca70d3",
+  "requestId": "5WXEG0NKV54Mp96sK2ZS",
+  "createdAt": "2026-09-15T23:17:56.975Z"
+}

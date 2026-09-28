@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T07-B02\\C67-L3-T07-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T07-B02-Q04",
+  "sourceText": "Hãy lắng nghe nhé: Raise your hand hay Listen, please?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Hãy lắng nghe nhé:",
+      "spoken_text": "Hãy lắng nghe nhé:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Raise your hand",
+      "spoken_text": "Raise your hand",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Listen, please?",
+      "spoken_text": "Listen, please?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-55CD32BEF8B5115B52FA5F3B",
+  "text": "Hãy lắng nghe nhé: Raise your hand hay Listen, please?",
+  "asset": "assets/audio/CURRICULUM/55cd32bef8b5115b52fa5f3b.vi.v1.mp3",
+  "sha256": "c02c21ffaade8ca1a79084cd9b68e012791342a1145d540c74c9922cdaeb619e",
+  "durationSeconds": 5.265646
+}

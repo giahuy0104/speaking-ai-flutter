@@ -1,0 +1,20 @@
+{
+  "signature": "77f5433bd101af2ec67b2c961f748b5793dfbaad63e60463c5a0aa076c2f8636",
+  "request": {
+    "text": "Ask the Price",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "80738af0b925e839e02bce8e9b594751ffaedee5c7872be570caa2b2227306f7",
+  "requestId": "2V33jagok5txJFRoFr0g",
+  "createdAt": "2026-09-15T23:28:41.203Z"
+}

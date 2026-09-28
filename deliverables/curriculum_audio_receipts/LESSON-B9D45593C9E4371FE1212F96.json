@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T10-B02\\C1315-L3-T10-B02-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T10-B02-Q08",
+  "sourceText": "Bạn muốn nói 'Mình sẽ bắt đầu tuần này.' Hoàn thành câu: I'll... make a plan hay start this week?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Mình sẽ bắt đầu tuần này.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mình sẽ bắt đầu tuần này.' Hoàn thành câu:",
+      "input_index": 46
+    },
+    {
+      "language": "en",
+      "text": "I'll... make a plan",
+      "spoken_text": "I'll... make a plan",
+      "input_index": 47
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 48
+    },
+    {
+      "language": "en",
+      "text": "start this week?",
+      "spoken_text": "start this week?",
+      "input_index": 49
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-B9D45593C9E4371FE1212F96",
+  "text": "Bạn muốn nói 'Mình sẽ bắt đầu tuần này.' Hoàn thành câu: I'll... make a plan hay start this week?",
+  "asset": "assets/audio/CURRICULUM/b9d45593c9e4371fe1212f96.vi.v1.mp3",
+  "sha256": "6a77bcc75ff2bd91744e1767fc3aa4df3f8338ae4e1397e8e58c29914520bff5",
+  "durationSeconds": 9.376145
+}

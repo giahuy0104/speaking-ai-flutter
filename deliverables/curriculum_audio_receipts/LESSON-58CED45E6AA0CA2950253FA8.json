@@ -1,0 +1,33 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T01-B02\\C35-L1-T01-B02-Q05_CHOICE_2_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T01-B02-Q05",
+  "sourceText": "Pig.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Pig.",
+      "spoken_text": "Pig.",
+      "input_index": 29
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-58CED45E6AA0CA2950253FA8",
+  "text": "Pig.",
+  "asset": "assets/audio/CURRICULUM/58ced45e6aa0ca2950253fa8.en.v1.mp3",
+  "sha256": "71af3e7c146353c6be341b218d2a8a52e8e652dda50c9bc5f3da956f03f5d31d",
+  "durationSeconds": 1.148277
+}

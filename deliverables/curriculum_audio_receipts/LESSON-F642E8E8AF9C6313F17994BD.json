@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T02-B01\\C1315-L1-T02-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T02-B01-Q07",
+  "sourceText": "Bạn muốn diễn đạt \"Đạt điểm tốt hơn\". Get better grades hay Speak more confidently?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Đạt điểm tốt hơn\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Đạt điểm tốt hơn\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Get better grades",
+      "spoken_text": "Get better grades",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Speak more confidently?",
+      "spoken_text": "Speak more confidently?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-F642E8E8AF9C6313F17994BD",
+  "text": "Bạn muốn diễn đạt \"Đạt điểm tốt hơn\". Get better grades hay Speak more confidently?",
+  "asset": "assets/audio/CURRICULUM/f642e8e8af9c6313f17994bd.vi.v1.mp3",
+  "sha256": "3d8d4f634e3f230306dd5c66276f3530cd88e28f91cc632af028009179e06ddd",
+  "durationSeconds": 8.13839
+}

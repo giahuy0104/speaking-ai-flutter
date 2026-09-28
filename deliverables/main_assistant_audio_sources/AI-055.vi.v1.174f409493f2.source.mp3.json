@@ -1,0 +1,20 @@
+{
+  "id": "AI-055",
+  "signature": "174f409493f25746d993a38f427590b425fe95a0daa844e9bc02fa8a259da311",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình qua câu khác nha!",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:09:55.679Z",
+  "requestId": "FRAm4aZjKN1Aq45vCY0p",
+  "characterCost": "12",
+  "sourceSha256": "291f9c78050aaf0a1ea66a75689e0bfff3e0d2355f440b398f0b676ff98098e8"
+}

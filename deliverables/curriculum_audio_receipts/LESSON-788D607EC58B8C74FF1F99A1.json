@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T07-B02\\C810-L3-T07-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T07-B02-Q05",
+  "sourceText": "Nó đắt: It's expensive hay How much?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nó đắt:",
+      "spoken_text": "Nó đắt:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "It's expensive",
+      "spoken_text": "It's expensive",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "How much?",
+      "spoken_text": "How much?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-788D607EC58B8C74FF1F99A1",
+  "text": "Nó đắt: It's expensive hay How much?",
+  "asset": "assets/audio/CURRICULUM/788d607ec58b8c74ff1f99a1.vi.v1.mp3",
+  "sha256": "514df75f80861d691a4c3b1a8f01d36fba577647ab92a5f86f6f5465e302d5e7",
+  "durationSeconds": 4.264218
+}

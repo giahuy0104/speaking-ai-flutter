@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T09\\C810-L3-M07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-M07",
+  "sourceText": "Bạn muốn nói 'Mình đã chơi bóng đá.' Hoàn thành câu: I... played soccer hay watched TV?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn muốn nói 'Mình đã chơi bóng đá.' Hoàn thành câu:",
+      "text": "Bạn muốn nói 'Mình đã chơi bóng đá.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mình đã chơi bóng đá.' Hoàn thành câu:",
+      "input_index": 40
+    },
+    {
+      "language": "en",
+      "source_text": "I... played soccer",
+      "text": "I... played soccer",
+      "spoken_text": "I... played soccer",
+      "input_index": 41
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "source_text": "watched TV?",
+      "text": "watched TV?",
+      "spoken_text": "watched TV?",
+      "input_index": 43
+    }
+  ],
+  "sourceSha256": "8f434d5da931372b4abd34f941f3adfac328f41520e24e8cc7e20d1342822def",
+  "id": "LESSON-A3F9F6A6BFB1FA6911DBE009",
+  "text": "Bạn muốn nói 'Mình đã chơi bóng đá.' Hoàn thành câu: I... played soccer hay watched TV?",
+  "asset": "assets/audio/CURRICULUM/a3f9f6a6bfb1fa6911dbe009.vi.v1.mp3",
+  "sha256": "8f434d5da931372b4abd34f941f3adfac328f41520e24e8cc7e20d1342822def",
+  "durationSeconds": 9.398163
+}

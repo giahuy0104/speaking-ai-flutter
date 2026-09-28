@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T10-B02\\C810-L3-T10-B02-T02_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T10-B02-T02_VI",
+  "sourceText": "Đi bộ tới đó.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đi bộ tới đó.",
+      "generation_key": "25b75a7da1e130bc"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-B263E16AFAC27AF1753049C7",
+  "text": "Đi bộ tới đó.",
+  "asset": "assets/audio/CURRICULUM/b263e16afac27af1753049c7.vi.v1.mp3",
+  "sha256": "45a205d42f4fe6a17c8109e676743cae782c36f42af144d25d01fd3cebe53bb0",
+  "durationSeconds": 1.412063
+}

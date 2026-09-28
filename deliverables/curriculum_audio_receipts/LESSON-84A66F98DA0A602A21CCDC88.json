@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B03\\C1112-L3-T09-B03-T04_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B03-T04_EN",
+  "sourceText": "Charge your phone.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Charge your phone.",
+      "generation_key": "cac3c473b8a90100"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-84A66F98DA0A602A21CCDC88",
+  "text": "Charge your phone.",
+  "asset": "assets/audio/CURRICULUM/84a66f98da0a602a21ccdc88.en.v1.mp3",
+  "sha256": "768c9fe110c884561a19de7bf44138db364401b4cf19af66e854aa77b29856d7",
+  "durationSeconds": 1.589116
+}

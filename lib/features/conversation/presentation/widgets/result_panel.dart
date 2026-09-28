@@ -21,26 +21,13 @@ class ResultPanel extends StatelessWidget {
           ? Duration.zero
           : const Duration(milliseconds: 260),
       width: double.infinity,
-      constraints: const BoxConstraints(minHeight: 198),
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 11),
+      constraints: const BoxConstraints(minHeight: 164),
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
       decoration: BoxDecoration(
         color: isDark
-            ? colorScheme.surface.withValues(alpha: 0.96)
-            : const Color(0xF8FFFDF9),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: isDark
-              ? colorScheme.outline.withValues(alpha: 0.65)
-              : const Color(0xCCFFFFFF),
-          width: 1.4,
-        ),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: isDark ? Colors.black38 : const Color(0x120D1B4C),
-            blurRadius: 24,
-            offset: Offset(0, 10),
-          ),
-        ],
+            ? colorScheme.surface.withValues(alpha: 0.28)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -49,7 +36,7 @@ class ResultPanel extends StatelessWidget {
             icon: Icons.chat_bubble_rounded,
             label: context.tr('Câu tiếng Việt', '越南语句子'),
             text: currentResult?.vietnameseText,
-            placeholder: context.tr('Câu con nói sẽ hiện ở đây', '你说的句子会显示在这里'),
+            placeholder: context.tr('Câu bạn nói sẽ hiện ở đây', '你说的句子会显示在这里'),
           ),
           const _TranslationConnector(),
           _TranslationSection(
@@ -60,7 +47,7 @@ class ResultPanel extends StatelessWidget {
               'Câu tiếng Anh sẽ hiện ở đây',
               '英语句子会显示在这里',
             ),
-            trailing: currentResult == null
+            trailing: currentResult?.audioUri == null
                 ? null
                 : Semantics(
                     button: true,
@@ -78,6 +65,20 @@ class ResultPanel extends StatelessWidget {
                     ),
                   ),
           ),
+          if (currentResult?.textSource ==
+              'mlkit_on_device_translation') ...<Widget>[
+            const SizedBox(height: 7),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                'Bản dịch tự động • Powered by Google Translate',
+                key: const Key('google-translate-attribution'),
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -142,12 +143,16 @@ class _TranslationSection extends StatelessWidget {
         Container(
           width: double.infinity,
           constraints: const BoxConstraints(minHeight: 44),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          padding: const EdgeInsets.fromLTRB(42, 7, 10, 9),
           decoration: BoxDecoration(
-            color: isDark
-                ? colorScheme.surfaceContainer
-                : AppColors.lavenderSoft,
-            borderRadius: BorderRadius.circular(18),
+            color: Colors.transparent,
+            border: Border(
+              bottom: BorderSide(
+                color: isDark
+                    ? colorScheme.outlineVariant
+                    : const Color(0xFFD7DCE8),
+              ),
+            ),
           ),
           child: Align(
             alignment: Alignment.centerLeft,

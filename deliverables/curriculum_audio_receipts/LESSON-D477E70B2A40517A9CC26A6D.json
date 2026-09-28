@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T03-B02\\C35-L1-T03-B02-Q09_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T03-B02-Q09",
+  "sourceText": "Nó màu vàng: It's yellow hay It's green?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nó màu vàng:",
+      "spoken_text": "Nó màu vàng:",
+      "input_index": 48
+    },
+    {
+      "language": "en",
+      "text": "It's yellow",
+      "spoken_text": "It's yellow",
+      "input_index": 49
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 50
+    },
+    {
+      "language": "en",
+      "text": "It's green?",
+      "spoken_text": "It's green?",
+      "input_index": 51
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-D477E70B2A40517A9CC26A6D",
+  "text": "Nó màu vàng: It's yellow hay It's green?",
+  "asset": "assets/audio/CURRICULUM/d477e70b2a40517a9cc26a6d.vi.v1.mp3",
+  "sha256": "31edebaa25f6793c9686b7659af8f8240e57f0f106ff37cb5a2de077e0aef09e",
+  "durationSeconds": 4.325442
+}

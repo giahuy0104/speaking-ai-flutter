@@ -1,0 +1,22 @@
+{
+  "id": "VOCAB50-013",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn đã nghe hết rồi. Bạn muốn học nội dung khác hay học lại?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "AUv9VmskWkfGgqmOl0qn",
+  "historyItemId": "n5Hrp0kyRAkoPwcpDj0l",
+  "characterCost": "33",
+  "createdAt": "2026-09-16T03:20:15.330Z",
+  "sourceSha256": "3c392c47d4a749e09bcc902066ba9c2c1735790f3241920a04c6ebfa694cff33"
+}

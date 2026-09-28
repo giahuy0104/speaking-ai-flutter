@@ -1,0 +1,20 @@
+{
+  "id": "RUN-125",
+  "signature": "0769afd2c60492ac3a08ac8cc38e64f6e7c718009694fcaa27c798fdc65a2832",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn nói lại nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:14:50.001Z",
+  "requestId": "wtchbaZZEwlARTR6FsrV",
+  "characterCost": "9",
+  "sourceSha256": "cf588a0d8f6a872cba2154c4da80cd8f92f8c74186f058339ef8beb4ff6ce595"
+}

@@ -1,0 +1,20 @@
+{
+  "id": "RUN-042",
+  "signature": "c7c738ed9bdfe3b5aee3ef5b108f816eff1b2b8d89e21848bb86f13cbb29ea89",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn muốn học lại chủ đề này không? Nói “có” hoặc “không”.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:12:29.019Z",
+  "requestId": "AeC1oKeOhxdJN9SyX6v9",
+  "characterCost": "31",
+  "sourceSha256": "2313e9d584b3e8cddd4b8ec7e4219a9a0e3d846686bf8a8e691142f0690754ff"
+}

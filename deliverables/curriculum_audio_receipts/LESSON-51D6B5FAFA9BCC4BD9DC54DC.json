@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T10-B01\\C1112-L3-T10-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T10-B01-Q05",
+  "sourceText": "Dùng cả hai mặt: Use both sides hay Turn off the lights?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Dùng cả hai mặt:",
+      "spoken_text": "Dùng cả hai mặt:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Use both sides",
+      "spoken_text": "Use both sides",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Turn off the lights?",
+      "spoken_text": "Turn off the lights?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-51D6B5FAFA9BCC4BD9DC54DC",
+  "text": "Dùng cả hai mặt: Use both sides hay Turn off the lights?",
+  "asset": "assets/audio/CURRICULUM/51d6b5fafa9bcc4bd9dc54dc.vi.v1.mp3",
+  "sha256": "0b640b7dbf09aa54424cdc317593ac7300ceb43e0000c8490b186cad1854cca5",
+  "durationSeconds": 5.454785
+}

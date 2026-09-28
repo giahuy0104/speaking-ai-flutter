@@ -1,0 +1,20 @@
+{
+  "signature": "39d0d03fb921e154aa424ec54dde25d10ba7f56ddb594418a984b1e45b4a2be2",
+  "request": {
+    "text": "Town Places",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "62d33cc76e33219b6b484ebd4b6d9493af9eabc8718a0ac5d08ba2bd4a621703",
+  "requestId": "C31A2ix6y3vMQYzfxNva",
+  "createdAt": "2026-09-15T23:26:38.985Z"
+}

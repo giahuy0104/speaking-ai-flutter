@@ -1,0 +1,20 @@
+{
+  "signature": "21e39feb68d7c181912e6213d2863be385b24da832fe29cc2960d6db7c71c9ed",
+  "request": {
+    "text": "My Devices",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "8bd1c06597409be45840308bc62cd2459b5723e3e9200dc51ceae569f09b58f1",
+  "requestId": "nB98AXvjtddVceYx1Dnx",
+  "createdAt": "2026-09-15T23:26:55.351Z"
+}

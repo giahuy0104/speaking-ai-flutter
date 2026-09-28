@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T03-B02\\C1315-L1-T03-B02-T04_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T03-B02-T04_VI",
+  "sourceText": "Vì nó nhanh hơn.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Vì nó nhanh hơn.",
+      "generation_key": "6136ca6ec3f95d6d"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-EB01D8EE30308641A16CBB4B",
+  "text": "Vì nó nhanh hơn.",
+  "asset": "assets/audio/CURRICULUM/eb01d8ee30308641a16cbb4b.vi.v1.mp3",
+  "sha256": "2e397d61d6cb801bf7f3492cfc0b17ccda60917417dba1b6229600278e70627f",
+  "durationSeconds": 1.791134
+}

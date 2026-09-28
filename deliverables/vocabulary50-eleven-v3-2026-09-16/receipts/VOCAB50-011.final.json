@@ -1,0 +1,22 @@
+{
+  "number": 11,
+  "id": "VOCAB50-011",
+  "text": "Chưa có nội dung ở phần này. Bạn muốn học Ngôi sao hay Luyện lại?",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-011.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "8f80894c3558223089247975e2feae129bb9db378ae81c637a552b382b59c243",
+  "bytes": 77784,
+  "sourceDurationSeconds": 4.32,
+  "durationSeconds": 4.793084,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "2VjhY7SHNbBmpAwKOBSS",
+  "characterCost": "36",
+  "createdAt": "2026-09-16T03:20:07.336Z"
+}

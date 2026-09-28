@@ -1,0 +1,20 @@
+{
+  "signature": "3f54d0aaf7d9d9dc2278dbb2389c1c97be1639067e01e2f095ddd4aa40865d9c",
+  "request": {
+    "text": "Next Step.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "3ec31638b110f7a0d9c41cbd33e4fd6526af044af5ac6db801c543c89d724a6a",
+  "requestId": "VHUU12q9tNR14kRC5NyS",
+  "createdAt": "2026-09-15T23:31:14.983Z"
+}

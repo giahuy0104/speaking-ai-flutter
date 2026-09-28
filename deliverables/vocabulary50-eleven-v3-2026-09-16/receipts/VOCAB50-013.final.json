@@ -1,0 +1,22 @@
+{
+  "number": 13,
+  "id": "VOCAB50-013",
+  "text": "Bạn đã nghe hết rồi. Bạn muốn học nội dung khác hay học lại?",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-013.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "27bd417b38fb733d432dbe8fc1ecbb6b3b315cee132684d10a2478faea4172f7",
+  "bytes": 67753,
+  "sourceDurationSeconds": 3.76,
+  "durationSeconds": 4.171587,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "AUv9VmskWkfGgqmOl0qn",
+  "characterCost": "33",
+  "createdAt": "2026-09-16T03:20:15.452Z"
+}

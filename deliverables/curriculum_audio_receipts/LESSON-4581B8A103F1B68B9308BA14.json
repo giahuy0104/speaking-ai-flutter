@@ -1,0 +1,33 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T01-B03\\C35-L1-T01-B03-Q05_CHOICE_2_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T01-B03-Q05",
+  "sourceText": "X-ray.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "en",
+      "text": "X-ray.",
+      "spoken_text": "X-ray.",
+      "input_index": 29
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-4581B8A103F1B68B9308BA14",
+  "text": "X-ray.",
+  "asset": "assets/audio/CURRICULUM/4581b8a103f1b68b9308ba14.en.v1.mp3",
+  "sha256": "843bab25860ae0f575b6341a089501fbaae817e7ca731b3fd3d75b7dec074488",
+  "durationSeconds": 1.176576
+}

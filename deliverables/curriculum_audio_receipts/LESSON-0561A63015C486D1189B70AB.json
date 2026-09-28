@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07-B02\\C1112-L3-T07-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T07-B02-Q04",
+  "sourceText": "Chủ nhật thì sao: See you there hay How about Sunday?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Chủ nhật thì sao:",
+      "spoken_text": "Chủ nhật thì sao:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "See you there",
+      "spoken_text": "See you there",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "How about Sunday?",
+      "spoken_text": "How about Sunday?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-0561A63015C486D1189B70AB",
+  "text": "Chủ nhật thì sao: See you there hay How about Sunday?",
+  "asset": "assets/audio/CURRICULUM/0561a63015c486d1189b70ab.vi.v1.mp3",
+  "sha256": "d363962e31d58c8da73f90416491e076f6949473a0dfec43143333348c5e6406",
+  "durationSeconds": 4.81059
+}

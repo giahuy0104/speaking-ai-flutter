@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T08-B03\\C1112-L3-T08-B03-T05_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T08-B03-T05_EN",
+  "sourceText": "I'll take this one.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "I'll take this one.",
+      "generation_key": "589131815e51b1db"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-4BFD1D25C0A64664B8107BDA",
+  "text": "I'll take this one.",
+  "asset": "assets/audio/CURRICULUM/4bfd1d25c0a64664b8107bda.en.v1.mp3",
+  "sha256": "19b22870a0fb86fd1862a92a9674a5ad50f083faa8f3c328ec806cf5b9ed5ce8",
+  "durationSeconds": 1.690703
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T08-B01\\C35-L3-T08-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T08-B01-Q03",
+  "sourceText": "Anh/em trai: Brother hay Sister?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Anh/em trai:",
+      "spoken_text": "Anh hoặc em trai:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Brother",
+      "spoken_text": "Brother",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Sister?",
+      "spoken_text": "Sister?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-D11A1A4CB156035E968B9305",
+  "text": "Anh/em trai: Brother hay Sister?",
+  "asset": "assets/audio/CURRICULUM/d11a1a4cb156035e968b9305.vi.v1.mp3",
+  "sha256": "ffcef4b965d3f861bc4a84c9b17b927c3e5ecb9f8cad8b0b09712056ddee7583",
+  "durationSeconds": 4.387642
+}

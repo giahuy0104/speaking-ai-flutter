@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T09-B02\\C67-L3-T09-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T09-B02-Q04",
+  "sourceText": "Ở thư viện: At the playground hay At the library?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Ở thư viện:",
+      "spoken_text": "Ở thư viện:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "At the playground",
+      "spoken_text": "At the playground",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "At the library?",
+      "spoken_text": "At the library?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E19D29D774A001199DCA46C4",
+  "text": "Ở thư viện: At the playground hay At the library?",
+  "asset": "assets/audio/CURRICULUM/e19d29d774a001199dca46c4.vi.v1.mp3",
+  "sha256": "af8ae0c653bd726622bbec5cf1255b9a1d85ca49a547b95b40ce939d88a55412",
+  "durationSeconds": 4.930703
+}

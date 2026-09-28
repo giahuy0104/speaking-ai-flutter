@@ -1,0 +1,20 @@
+{
+  "signature": "d0c1bebee3d6b6b6de805761a863c82f458472a1363ffc5e3bf2e163bcd9e824",
+  "request": {
+    "text": "My Feelings.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "1be858cc1882bf68b554ce46978f53543f03b5f038a8099184f012578a87b58d",
+  "requestId": "eOHRbTM8WhFG2UsiBmEV",
+  "createdAt": "2026-09-15T23:27:10.186Z"
+}

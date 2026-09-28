@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T10-B02\\C1112-L3-T10-B02-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T10-B02-Q08",
+  "sourceText": "Bạn muốn diễn đạt \"Nhặt rác\". Plant a tree hay Pick up litter?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Nhặt rác\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Nhặt rác\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Plant a tree",
+      "spoken_text": "Plant a tree",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Pick up litter?",
+      "spoken_text": "Pick up litter?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-AB222D28E750EB776ECD6F11",
+  "text": "Bạn muốn diễn đạt \"Nhặt rác\". Plant a tree hay Pick up litter?",
+  "asset": "assets/audio/CURRICULUM/ab222d28e750eb776ecd6f11.vi.v1.mp3",
+  "sha256": "584c1d1341ec08e571e7976a2bc763d2a0f2bbe7bcbf470daacf90ae1cdb63f2",
+  "durationSeconds": 5.686213
+}

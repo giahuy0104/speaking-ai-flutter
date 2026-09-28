@@ -1,0 +1,22 @@
+{
+  "number": 28,
+  "id": "VOCAB50-028",
+  "text": "Bạn nói tiếng Anh nhé.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-028.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "fecbb96e553c9687eea7829cf6dce8423ccff9154aa125c1f8b09fe60ced9a93",
+  "bytes": 22195,
+  "sourceDurationSeconds": 1.2,
+  "durationSeconds": 1.318027,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "idihwyeERjFsS9CUNxnc",
+  "characterCost": "12",
+  "createdAt": "2026-09-16T03:20:53.358Z"
+}

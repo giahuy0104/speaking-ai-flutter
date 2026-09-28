@@ -1,0 +1,22 @@
+{
+  "id": "VOCAB50-006",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình học xong lượt này trước nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "5HUZfMuGa0VClXWhXUFD",
+  "historyItemId": "HocpsJaU3TFNAXHM9qyx",
+  "characterCost": "18",
+  "createdAt": "2026-09-16T03:19:44.681Z",
+  "sourceSha256": "3cc41a85f5ed580c627cbc6b3d7be7ce90bce6e92483c05020f3242ed654477c"
+}

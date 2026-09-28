@@ -1,0 +1,57 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T06-B02\\C1315-L2-T06-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T06-B02-Q06",
+  "sourceText": "HOMI nói: My location. Don't share your location hay Keep passwords private?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "My location.",
+      "spoken_text": "My location.",
+      "input_index": 31
+    },
+    {
+      "language": "en",
+      "text": "Don't share your location",
+      "spoken_text": "Don't share your location",
+      "input_index": 32
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 33
+    },
+    {
+      "language": "en",
+      "text": "Keep passwords private?",
+      "spoken_text": "Keep passwords private?",
+      "input_index": 34
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-B6FCECFB0BAB8A621308F226",
+  "text": "HOMI nói: My location. Don't share your location hay Keep passwords private?",
+  "asset": "assets/audio/CURRICULUM/b6fcecfb0bab8a621308f226.vi.v1.mp3",
+  "sha256": "7f93f9cf8aae087233f0ccf354d3da949c3ac1d791c6af66dff30394432f9944",
+  "durationSeconds": 9.937302
+}

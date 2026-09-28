@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T08-B02\\C35-L3-T08-B02-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T08-B02-Q08",
+  "sourceText": "Bạn muốn nói 'Anh/em trai của mình.' Hoàn thành câu: My... sister hay brother?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Anh/em trai của mình.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Anh hoặc em trai của mình.' Hoàn thành câu:",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "My... sister",
+      "spoken_text": "My... sister",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "brother?",
+      "spoken_text": "brother?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E0BC3F6A3499C706FA64B9D8",
+  "text": "Bạn muốn nói 'Anh/em trai của mình.' Hoàn thành câu: My... sister hay brother?",
+  "asset": "assets/audio/CURRICULUM/e0bc3f6a3499c706fa64b9d8.vi.v1.mp3",
+  "sha256": "884ae2c448ba90130c3410c29ce60ac1b363cdee0e66d9972440022a8d6f239b",
+  "durationSeconds": 8.364014
+}

@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T02-B01\\C810-L1-T02-B01-T02_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T02-B01-T02_VI",
+  "sourceText": "Môn tiếng Anh.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Môn tiếng Anh.",
+      "generation_key": "3936d256f4e086c8"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-33235FC097BD1509F273CD1A",
+  "text": "Môn tiếng Anh.",
+  "asset": "assets/audio/CURRICULUM/33235fc097bd1509f273cd1a.vi.v1.mp3",
+  "sha256": "1d516f34d19c27571b190c0b0a767799840f9f62c09432fc3c56995d64aa4605",
+  "durationSeconds": 1.23907
+}

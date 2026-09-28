@@ -1,0 +1,20 @@
+{
+  "id": "AI-069",
+  "signature": "a3f95788ef3af08831c3e458b44d9e1376527eacdb7adab818ef6879a4c8b7c2",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "HOMI nghe đây.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:10:15.531Z",
+  "requestId": "pjh1OZwJFavYIdtwemnD",
+  "characterCost": "8",
+  "sourceSha256": "bfc0edfbd71c0d4b6b6829a44b770bccbad2aeeb0f8c799cbaa400aea3c95f89"
+}

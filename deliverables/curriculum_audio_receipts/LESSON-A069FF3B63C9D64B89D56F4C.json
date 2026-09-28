@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T03-B02\\C1315-L1-T03-B02-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T03-B02-Q07",
+  "sourceText": "Bạn muốn nói 'Vì nó dễ hơn.' Hoàn thành câu: Because it's... easier hay cheaper?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Vì nó dễ hơn.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Vì nó dễ hơn.' Hoàn thành câu:",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Because it's... easier",
+      "spoken_text": "Because it's... easier",
+      "input_index": 39
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 40
+    },
+    {
+      "language": "en",
+      "text": "cheaper?",
+      "spoken_text": "cheaper?",
+      "input_index": 41
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-A069FF3B63C9D64B89D56F4C",
+  "text": "Bạn muốn nói 'Vì nó dễ hơn.' Hoàn thành câu: Because it's... easier hay cheaper?",
+  "asset": "assets/audio/CURRICULUM/a069ff3b63c9d64b89d56f4c.vi.v1.mp3",
+  "sha256": "f6451802290b75e442c0edb270e56823340b558701fd3b64ecaa554d303d310a",
+  "durationSeconds": 9.083968
+}

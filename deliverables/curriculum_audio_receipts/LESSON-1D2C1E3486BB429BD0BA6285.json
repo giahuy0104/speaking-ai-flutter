@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T03-B01\\C810-L1-T03-B01-T02_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T03-B01-T02_VI",
+  "sourceText": "Vẽ tranh.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Vẽ tranh.",
+      "generation_key": "bf2c2867d4464136"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-1D2C1E3486BB429BD0BA6285",
+  "text": "Vẽ tranh.",
+  "asset": "assets/audio/CURRICULUM/1d2c1e3486bb429bd0ba6285.vi.v1.mp3",
+  "sha256": "786b691161fe9234faaa9c0abf03d18765f9c371436331b67e463eda11895bdf",
+  "durationSeconds": 1.063764
+}

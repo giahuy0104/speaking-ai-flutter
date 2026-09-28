@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\MP3\\ROLEPLAY_08\\ROLEPLAY_08_TURN_03_CHILD_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "ROLEPLAY_08_TURN_03_VI",
+  "sourceText": "Mấy giờ tàu chạy?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75, VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mấy giờ tàu chạy?",
+      "generation_key": "b1a8a2886e97f8fd"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9AA001D5BA61CD346783CEE6",
+  "text": "Mấy giờ tàu chạy?",
+  "asset": "assets/audio/CURRICULUM/9aa001d5ba61cd346783cee6.vi.v1.mp3",
+  "sha256": "f1233d14be661c545b02f7a166b1ef3bff82a5446a75a1eebac049a43c94efb5",
+  "durationSeconds": 1.675034
+}

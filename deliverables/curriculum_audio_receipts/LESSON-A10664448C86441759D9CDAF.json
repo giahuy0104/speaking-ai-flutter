@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T06\\C810-L2-M11_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-M11",
+  "sourceText": "Bạn cần nói \"Máy tính bảng\". Tablet hay Computer?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần nói \"Máy tính bảng\".",
+      "text": "Bạn cần nói \"Máy tính bảng\".",
+      "spoken_text": "Bạn cần nói \"Máy tính bảng\".",
+      "input_index": 68
+    },
+    {
+      "language": "en",
+      "source_text": "Tablet",
+      "text": "Tablet",
+      "spoken_text": "Tablet",
+      "input_index": 69
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 70
+    },
+    {
+      "language": "en",
+      "source_text": "Computer?",
+      "text": "Computer?",
+      "spoken_text": "Computer?",
+      "input_index": 71
+    }
+  ],
+  "sourceSha256": "1a483b0efa5161138beb9250a36360fd5126bbd2e4dff8e7ab2b2a98fd6212b6",
+  "id": "LESSON-A10664448C86441759D9CDAF",
+  "text": "Bạn cần nói \"Máy tính bảng\". Tablet hay Computer?",
+  "asset": "assets/audio/CURRICULUM/a10664448c86441759d9cdaf.vi.v1.mp3",
+  "sha256": "1a483b0efa5161138beb9250a36360fd5126bbd2e4dff8e7ab2b2a98fd6212b6",
+  "durationSeconds": 4.849138
+}

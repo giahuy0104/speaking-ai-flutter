@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T03\\C67-L1-M11_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-M11",
+  "sourceText": "Con chuột: Mouse hay Bird?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Con chuột:",
+      "text": "Con chuột:",
+      "spoken_text": "Con chuột:",
+      "input_index": 60
+    },
+    {
+      "language": "en",
+      "source_text": "Mouse",
+      "text": "Mouse",
+      "spoken_text": "Mouse",
+      "input_index": 61
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 62
+    },
+    {
+      "language": "en",
+      "source_text": "Bird?",
+      "text": "Bird?",
+      "spoken_text": "Bird?",
+      "input_index": 63
+    }
+  ],
+  "sourceSha256": "0296b2e94de68f3217a4986bb07046892357e3366af2e40ac95c9751d486f53c",
+  "id": "LESSON-001A73E841208EC3E69451FB",
+  "text": "Con chuột: Mouse hay Bird?",
+  "asset": "assets/audio/CURRICULUM/001a73e841208ec3e69451fb.vi.v1.mp3",
+  "sha256": "0296b2e94de68f3217a4986bb07046892357e3366af2e40ac95c9751d486f53c",
+  "durationSeconds": 3.386168
+}

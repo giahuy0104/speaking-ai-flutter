@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T05-B02\\C1315-L2-T05-B02-T03_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T05-B02-T03_VI",
+  "sourceText": "Ngủ thêm.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Ngủ thêm.",
+      "generation_key": "458b44e3f973d4b1"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-EF1AAEB623B9CDA58BBBBE95",
+  "text": "Ngủ thêm.",
+  "asset": "assets/audio/CURRICULUM/ef1aaeb623b9cda58bbbbe95.vi.v1.mp3",
+  "sha256": "89717740869e24f25ab44ba5d82df982699f391b88b6ebfaefc0a78a46fc525b",
+  "durationSeconds": 0.978435
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T02-B01\\C1315-L1-T02-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T02-B01-Q03",
+  "sourceText": "Đọc nhiều sách hơn: Read more books hay Speak more confidently?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đọc nhiều sách hơn:",
+      "spoken_text": "Đọc nhiều sách hơn:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Read more books",
+      "spoken_text": "Read more books",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Speak more confidently?",
+      "spoken_text": "Speak more confidently?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-B6A8EE94F35EC4EE9F945AD1",
+  "text": "Đọc nhiều sách hơn: Read more books hay Speak more confidently?",
+  "asset": "assets/audio/CURRICULUM/b6a8ee94f35ec4ee9f945ad1.vi.v1.mp3",
+  "sha256": "6a693b71e1cbfc20ec3cbaf0f36fc63cf0d140f46aa6c7362baebdf2306c02ce",
+  "durationSeconds": 5.765782
+}

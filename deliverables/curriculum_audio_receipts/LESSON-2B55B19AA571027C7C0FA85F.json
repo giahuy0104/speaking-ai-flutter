@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T09-B02\\C1315-L3-T09-B02-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T09-B02-Q03",
+  "sourceText": "Tại sao: Why? hay It's more useful?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Tại sao:",
+      "spoken_text": "Tại sao:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Why?",
+      "spoken_text": "Why?",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "It's more useful?",
+      "spoken_text": "It's more useful?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-2B55B19AA571027C7C0FA85F",
+  "text": "Tại sao: Why? hay It's more useful?",
+  "asset": "assets/audio/CURRICULUM/2b55b19aa571027c7c0fa85f.vi.v1.mp3",
+  "sha256": "a1fae54970719b0813203b7c7fccaacf7c542c751941d67c6e48d5f434d08a36",
+  "durationSeconds": 3.995646
+}

@@ -1,0 +1,348 @@
+Resolving dependencies...
+Downloading packages...
+  archive 4.0.9 (4.3.0 available)
+  cli_util 0.4.2 (0.6.0 available)
+  clock 1.1.2 (1.1.3 available)
+  code_assets 1.2.1 (2.1.0 available)
+  dbus 0.7.15 (0.8.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  image 4.9.1 (4.10.1 available)
+  jni 1.0.0 (1.0.3 available)
+  jni_flutter 1.0.1 (1.0.3 available)
+  local_auth_android 2.0.9 (2.2.0 available)
+  local_auth_darwin 2.0.3 (2.0.4 available)
+  local_auth_windows 2.0.1 (2.0.2 available)
+  matcher 0.12.19 (0.12.20 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.0 (1.19.0 available)
+  objective_c 9.4.1 (9.6.0 available)
+  package_config 2.2.0 (3.0.0 available)
+  platform 3.1.6 (3.2.0 available)
+  posix 6.5.0 (6.5.2 available)
+  pub_semver 2.2.0 (2.2.1 available)
+  record_android 2.1.2 (2.2.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  record_web 2.1.1 (2.1.3 available)
+  record_windows 2.2.2 (2.3.0 available)
+  shared_preferences_android 2.4.27 (2.4.28 available)
+  shared_preferences_foundation 2.5.6 (2.5.7 available)
+  stack_trace 1.12.1 (1.12.2 available)
+  synchronized 3.4.1 (3.4.2 available)
+  test_api 0.7.11 (0.7.14 available)
+  url_launcher_android 6.3.32 (6.3.33 available)
+  url_launcher_ios 6.4.1 (6.4.2 available)
+  url_launcher_linux 3.2.2 (3.2.3 available)
+  url_launcher_macos 3.2.5 (3.2.6 available)
+  url_launcher_windows 3.1.5 (3.1.6 available)
+  vector_math 2.2.0 (2.4.2 available)
+  vm_service 15.2.0 (15.3.0 available)
+  win32 6.3.0 (6.4.0 available)
+  yaml 3.1.3 (3.1.4 available)
+Got dependencies!
+38 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_routing_test.dart
+00:00 +0: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_routing_test.dart: stop removes a queued play before its H20 route can be released
+Audio source ready for file:///second.wav after 13 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:00 +1: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_routing_test.dart: late cache result cannot restart a stopped clip or release a newer turn
+Audio source ready for file:///second.wav after 1 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:00 +2: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_routing_test.dart: stop during native source loading prevents late play and permits next clip
+Audio source ready for file:///second.wav after 1 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+Audio source ready for file:///second.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:00 +3: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_routing_test.dart: stop immediately before native play keeps the phone silent
+Audio source ready for file:///first.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+Audio playback failed: Lượt phát âm thanh đã dừng.
+00:00 +4: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_routing_test.dart: dispose cancels pending cache work without reviving the player
+00:00 +5: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_routing_test.dart: each Android player keeps its selected output when another session prepares media
+Audio source ready for file:///first.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+Audio source ready for file:///second.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+Audio source ready for file:///second.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:00 +6: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_completion_test.dart: recognizes the iOS insufficient-priority audio session error
+00:00 +6: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_routing_test.dart: late cancelled preparation cannot overwrite the next output
+Audio source ready for file:///second.wav after 1 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:00 +7: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_completion_test.dart: recognizes the iOS insufficient-priority audio session error
+00:00 +8: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_routing_test.dart: iOS playback does not receive Android attribute overrides
+Audio source ready for file:///first.wav after 2 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:00 +9: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_completion_test.dart: does not accept a stale completed state before the source end
+00:00 +10: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_completion_test.dart: does not accept old end position immediately after a new start
+00:00 +11: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_completion_test.dart: accepts completion when the current source reaches its end
+00:00 +12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_completion_test.dart: armed listener replaces the previous source duration
+00:00 +13: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_completion_test.dart: stale completed state cannot finish an armed listener
+00:00 +14: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_completion_test.dart: accepts completed before the final position event arrives
+00:00 +15: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: fallback buffer keeps immutable chunks in order
+00:00 +16: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: fallback buffer refuses a partial replay after its limit
+00:00 +17: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: vocabulary translation uses the zero-token on-device pipeline
+00:00 +18: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: English vocabulary sentences translate to Vietnamese on device
+00:00 +19: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Vietnamese vocabulary without diacritics translates in the correct direction
+00:00 +20: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: conversation waits for the navigation recognizer handoff
+00:00 +21: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: parental privacy guard blocks every recording start path
+00:00 +22: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: unlocks browser audio before stopping previous playback
+00:00 +23: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: manual Play can use the direct browser gesture path repeatedly
+00:00 +24: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: first manual Play recovers after Safari blocks autoplay
+00:00 +25: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: preferred audio input safely uses phone when BLE is unavailable
+00:00 +26: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: defaults to Cloudflare Batch Chunks without Android streaming
+00:01 +27: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Android streaming start failure does not upload audio to Cloudflare
+00:01 +28: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:01 +29: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:01 +30: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:01 +31: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:01 +32: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:01 +33: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:02 +34: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +35: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +36: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +37: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +38: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +39: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +40: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +41: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +42: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +43: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +44: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +45: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +46: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +47: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +48: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +49: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +50: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +51: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +52: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +53: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +54: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +55: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +56: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +57: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +58: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +59: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +60: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +61: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +62: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +63: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +64: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +65: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +65: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_wav_normalizer_test.dart: new lesson recording finalization Android returns same finalized path with normalized audio
+Lesson WAV normalized: sampleRate=16000 channels=2->1 sourceBytes=52 outputBytes=48
+00:02 +66: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +67: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +68: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +69: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +70: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +71: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +72: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +73: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +74: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +75: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +76: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +77: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:02 +78: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:03 +79: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:03 +80: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:03 +81: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:03 +82: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: route loss clears capture and its release cannot stop a stale mic
+00:03 +83: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +84: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +85: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +86: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +87: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +88: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +89: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +90: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +91: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +92: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +93: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +94: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +94: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/conversation/h20_hardware_diagnostics_test.dart: confirmed MAIN toggles offline recording and duplicate is ignored
+H20 MAIN: received • seq=1 • actionable
+H20 MAIN: dispatching • shortPress • seq=1
+H20 MAIN: accepted • seq=1
+H20 MAIN: received • seq=1 • duplicate
+H20 MAIN: duplicate ignored • seq=1
+H20 MAIN: received • seq=2 • actionable
+H20 MAIN: dispatching • shortPress • seq=2
+H20 MAIN: accepted • seq=2
+00:03 +95: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +95: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/conversation/h20_hardware_diagnostics_test.dart: observed raw MAIN toggles capture without APP State writes
+H20 MAIN: received • seq=16 • actionable
+H20 MAIN: dispatching • shortPress • seq=16
+H20 MAIN: accepted • seq=16
+00:03 +96: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +97: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +98: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +98: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/conversation/h20_hardware_diagnostics_test.dart: BLE long press stops once and release does not restart capture
+H20 MAIN: received • seq=1 • actionable
+H20 MAIN: dispatching • shortPress • seq=1
+H20 MAIN: accepted • seq=1
+H20 MAIN: received • seq=2 • actionable
+H20 MAIN: dispatching • longPress • seq=2
+H20 MAIN: accepted • seq=2
+H20 MAIN: received • seq=2 • actionable
+H20 MAIN: dispatching • release • seq=2
+H20 MAIN: accepted • seq=2
+00:03 +99: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +100: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +101: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +102: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +103: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:03 +104: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:04 +105: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: BLE without offline ASR falls back directly to Cloudflare Batch Chunks
+00:04 +106: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: BLE without offline ASR falls back directly to Cloudflare Batch Chunks
+00:04 +107: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: BLE without offline ASR falls back directly to Cloudflare Batch Chunks
+00:04 +108: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: BLE without offline ASR falls back directly to Cloudflare Batch Chunks
+00:04 +109: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: BLE without offline ASR falls back directly to Cloudflare Batch Chunks
+00:04 +110: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: BLE without offline ASR falls back directly to Cloudflare Batch Chunks
+00:04 +111: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: BLE without offline ASR falls back directly to Cloudflare Batch Chunks
+00:04 +112: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: BLE without offline ASR falls back directly to Cloudflare Batch Chunks
+00:04 +113: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/conversation/h20_hardware_diagnostics_test.dart: completed turn stays blocked until its microphone cleanup finishes
+00:04 +114: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/conversation/h20_hardware_diagnostics_test.dart: completed turn stays blocked until its microphone cleanup finishes
+00:04 +115: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/conversation/h20_hardware_diagnostics_test.dart: completed turn stays blocked until its microphone cleanup finishes
+00:04 +116: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: uncertain BLE intent uses buffered Cloudflare Batch Chunks
+00:04 +117: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: uncertain BLE intent uses buffered Cloudflare Batch Chunks
+00:04 +118: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: uncertain BLE intent uses buffered Cloudflare Batch Chunks
+00:04 +119: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: uncertain BLE intent uses buffered Cloudflare Batch Chunks
+00:04 +120: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: Android end-of-lesson "(Học lại, 1, true)" opens the selected learning flow
+00:04 +121: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: virtual lesson buttons interrupt the current recording and change sentence
+00:04 +122: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Realtime failure replays buffered audio through Batch Chunks
+00:05 +123: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Realtime failure replays buffered audio through Batch Chunks
+Legacy Realtime finalize failed; preparing Batch Chunks fallback: Instance of '_ExpectedRealtimeFailure'
+00:05 +124: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: previous sentence starts a fresh guided attempt despite an old recording
+00:05 +125: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: Android completion arms command ASR before ting, not Core mic
+00:05 +126: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: recording starts before a slow Realtime connection and preserves order
+00:05 +127: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: recording starts before a slow Realtime connection and preserves order
+00:05 +128: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: recording starts before a slow Realtime connection and preserves order
+00:05 +129: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: recording starts before a slow Realtime connection and preserves order
+00:06 +129: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 falls back to local TTS when authored EN-VI audio fails
+HOMI English authored audio unavailable; using local TTS: Bad state: Authored audio unavailable.
+HOMI Vietnamese authored audio unavailable; using local TTS: Bad state: Authored audio unavailable.
+00:06 +130: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: recording starts before a slow Realtime connection and preserves order
+00:06 +131: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: recording starts before a slow Realtime connection and preserves order
+00:06 +132: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V2 automatically stops a child recording after six seconds
+00:06 +133: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: MAIN previous command replays the previous sentence flow
+00:06 +134: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Batch recording starts before a slow upload session is created
+00:06 +135: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Batch recording starts before a slow upload session is created
+00:06 +136: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Batch recording starts before a slow upload session is created
+00:06 +137: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 MAIN resumes sentence 1 without lesson title
+00:06 +138: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 MAIN resumes sentence 1 without lesson title
+00:06 +139: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: short Web utterance promotes buffered audio to Batch at stop
+00:07 +140: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: short Web utterance promotes buffered audio to Batch at stop
+00:07 +141: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: V4 marks the lesson complete only after its authored challenge finishes
+00:07 +142: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: V4 marks the lesson complete only after its authored challenge finishes
+00:07 +143: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: long Web utterance uploads buffered and live chunks in parallel
+00:07 +144: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: long Web utterance uploads buffered and live chunks in parallel
+00:07 +145: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: long Web utterance uploads buffered and live chunks in parallel
+00:07 +146: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: long Web utterance uploads buffered and live chunks in parallel
+00:07 +147: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: long Web utterance uploads buffered and live chunks in parallel
+00:07 +148: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: keeps an injected lesson evaluator caller-owned
+00:07 +149: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion remains usable on a compact phone
+00:08 +150: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Web PCM silence requests terminal preview before recorder stop
+00:08 +151: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Web PCM silence requests terminal preview before recorder stop
+00:08 +152: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Web PCM silence requests terminal preview before recorder stop
+00:08 +153: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Web PCM silence requests terminal preview before recorder stop
+00:08 +154: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Web PCM silence requests terminal preview before recorder stop
+00:08 +155: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Web PCM silence requests terminal preview before recorder stop
+00:08 +156: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Web PCM silence requests terminal preview before recorder stop
+00:08 +157: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V2 still reopens recording when unclear feedback playback fails
+HOMI unclear feedback playback failed: Bad state: Unclear feedback playback failed.
+00:08 +158: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: short PCM noise after silence does not cancel early terminal preview
+00:08 +159: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: short PCM noise after silence does not cancel early terminal preview
+00:09 +160: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: short PCM noise after silence does not cancel early terminal preview
+00:09 +161: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: short PCM noise after silence does not cancel early terminal preview
+00:09 +162: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: short PCM noise after silence does not cancel early terminal preview
+00:09 +163: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V2 asks the child to repeat an unclear completion choice
+00:09 +164: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: confirmed PCM speech resume cancels the stale terminal timer
+00:09 +165: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: confirmed PCM speech resume cancels the stale terminal timer
+00:10 +166: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: confirmed PCM speech resume cancels the stale terminal timer
+00:10 +167: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: successful recording shows non-blocking fireworks and four actions
+00:10 +168: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Web low-confidence Batch result does not upload the WAV a second time
+00:10 +169: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Web low-confidence Batch result does not upload the WAV a second time
+00:10 +170: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Web low-confidence Batch result does not upload the WAV a second time
+Batch chunk request was rejected permanently; skipping WAV fallback.
+00:10 +171: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: learned review opens the next lesson in the same topic
+00:10 +172: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Web technical Batch failure retains the WAV fallback
+00:11 +173: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Web technical Batch failure retains the WAV fallback
+00:11 +174: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Web technical Batch failure retains the WAV fallback
+00:11 +175: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Web technical Batch failure retains the WAV fallback
+Batch chunk finalize failed; uploading WAV fallback: Bad state: network failed
+00:11 +176: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: dialogue and song lessons expose age-appropriate practice cues
+00:11 +177: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Batch PCM metadata mismatch falls back to the complete WAV
+00:11 +178: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Batch PCM metadata mismatch falls back to the complete WAV
+00:11 +179: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Batch PCM metadata mismatch falls back to the complete WAV
+00:11 +180: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Batch PCM metadata mismatch falls back to the complete WAV
+00:11 +181: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Batch PCM metadata mismatch falls back to the complete WAV
+Batch chunk finalize failed; uploading WAV fallback: Instance of '_PcmMetadataFailure'
+00:11 +182: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 entry speaks its complete guide before practice
+00:12 +183: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: processing status advances through ASR, translation, and audio
+00:12 +184: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: processing status advances through ASR, translation, and audio
+00:12 +185: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: processing status advances through ASR, translation, and audio
+00:12 +186: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: processing status advances through ASR, translation, and audio
+00:12 +187: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: processing status advances through ASR, translation, and audio
+00:12 +188: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: processing status advances through ASR, translation, and audio
+00:12 +188: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: lesson intro does not auto advance when playback fails
+Lesson intro playback failed for guided-flow (https://example.test/broken-intro.mp3): Bad state: Playback failed.
+#0      _FailingIntroMediaService.playToCompletion (file:///D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart:2886:5)
+#1      _LessonIntroScreenState._beginIntro (package:ai_speaking_flutter_app/features/listening/presentation/lesson_intro_screen.dart:164:35)
+#2      _LessonIntroScreenState.initState.<anonymous closure> (package:ai_speaking_flutter_app/features/listening/presentation/lesson_intro_screen.dart:102:57)
+#3      SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1430:15)
+#4      SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1357:11)
+#5      AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:2260:9)
+#8      TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#9      AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:2249:27)
+#10     WidgetTester.pumpWidget.<anonymous closure> (package:flutter_test/src/widget_tester.dart:598:22)
+#13     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#14     WidgetTester.pumpWidget (package:flutter_test/src/widget_tester.dart:595:27)
+#15     main.<anonymous closure> (file:///D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart:2245:18)
+<asynchronous suspension>
+#16     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#17     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 5 frames from dart:async and package:stack_trace)
+00:12 +189: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: processing status advances through ASR, translation, and audio
+00:12 +190: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: processing status advances through ASR, translation, and audio
+{"event":"playback_latency_client","conversationId":"file-result","audioStartedAfterStopMs":772,"audioLoadMs":0,"audioFromDeviceCache":false,"responseToPlaybackMs":0,"audioPreloadLoadedData":false,"audioPreloadCanPlay":false,"audioPreloadLoadedDataMs":null,"audioPreloadCanPlayMs":null}
+00:13 +191: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Web starts Batch immediately then discards it without detected speech
+00:13 +192: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: exact Android rule starts cached audio before backend finishes
+{"event":"playback_latency_client","conversationId":"stream-result","audioStartedAfterStopMs":0,"audioLoadMs":0,"audioFromDeviceCache":false,"responseToPlaybackMs":0,"audioPreloadLoadedData":false,"audioPreloadCanPlay":false,"audioPreloadLoadedDataMs":null,"audioPreloadCanPlayMs":null}
+00:14 +193: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: exact Android rule remains usable while backend is unavailable
+Using on-device exact conversation rule: Instance of '_RetryableBackendFailure'
+{"event":"playback_latency_client","conversationId":"","audioStartedAfterStopMs":0,"audioLoadMs":0,"audioFromDeviceCache":false,"responseToPlaybackMs":0,"audioPreloadLoadedData":false,"audioPreloadCanPlay":false,"audioPreloadLoadedDataMs":null,"audioPreloadCanPlayMs":null}
+00:14 +194: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: unknown Android sentence shows a friendly backend outage message
+00:15 +195: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: unknown sentence uses on-device translation only after backend outage
+Using on-device conversation translation: ClientException: No network
+00:15 +196: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: iOS Apple Speech transcript uses on-device translation when offline
+Using on-device conversation translation: ClientException: No network
+00:16 +197: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: network loss switches to device translation before HTTP starts
+Using on-device conversation translation: network_transport_unavailable
+00:16 +198: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: successful backend does not invoke on-device translation
+00:17 +199: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: stop briefly waits for an almost-ready Realtime connection
+00:17 +200: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Realtime connection failure uses buffered Batch Chunks at stop
+Legacy Realtime background connection failed: Bad state: Realtime connection failed
+00:18 +201: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: stop falls back after the bounded Realtime connection wait
+{"event":"openai_realtime_stop_wait_timeout","waitMs":502}
+00:19 +202: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: preferred audio input falls back when BLE fails during start
+00:19 +203: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: explicit BLE capture never silently uses the phone microphone
+00:19 +204: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: high-confidence BLE intent skips paid Realtime ASR
+00:19 +205: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: HFP source uses standard Android ASR and reports Bluetooth
+00:20 +206: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: native iOS HFP prefers Apple Speech and reports Bluetooth
+00:20 +207: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: iOS native HFP capture uses selected media output for playback
+{"event":"playback_latency_client","conversationId":"stream-result","audioStartedAfterStopMs":0,"audioLoadMs":0,"audioFromDeviceCache":false,"responseToPlaybackMs":0,"audioPreloadLoadedData":false,"audioPreloadCanPlay":false,"audioPreloadLoadedDataMs":null,"audioPreloadCanPlayMs":null}
+00:21 +208: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: audio preparation has a finite failure boundary
+00:22 +209: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: MAIN cancellation during HFP start prevents late recording
+00:22 +210: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: pending HFP cancellation remains busy until native start settles
+00:22 +211: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: MAIN cancellation during native start prevents late recording
+00:22 +212: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: playback start has a finite failure boundary
+00:22 +213: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:23 +214: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: HFP playback route start has a finite failure boundary
+00:23 +215: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: MAIN cancellation blocks a late HFP playback start
+00:23 +216: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: iOS start failure records with Cloudflare Batch fallback
+00:24 +217: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: iOS Speech permission denial does not use backend fallback
+00:24 +218: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: iOS runtime failure uploads only the private fallback WAV
+00:24 +219: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: standard Android ASR prefers direct streaming over recorded-audio injection
+00:25 +220: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: recorded Android audio archive remains an explicit opt-in
+00:25 +221: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Android injected-audio failure keeps WAV via Cloudflare fallback
+Recorded Android recognition fell back: Injected audio is unsupported.
+00:26 +222: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: automatic Android no-match after VAD noise exits as no speech
+00:26 +223: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: browser HFP records with the selected Bluetooth web input
+00:27 +224: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: online Android without file injection keeps the fast native path
+00:28 +225: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_streaming_fallback_test.dart: Safari Worker result archives the complete Web WAV
+00:28 +226: All tests passed!

@@ -1,0 +1,22 @@
+{
+  "id": "VOCAB50-001",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "vw6IVGHZWJCjdm74asqx",
+  "historyItemId": "Ps1LJnz7ipcwMP08Yzrf",
+  "characterCost": "31",
+  "createdAt": "2026-09-16T03:19:22.834Z",
+  "sourceSha256": "777b35740bed997bc39fcc8f4a81635d950c8d114fdbdd2734c1206672444892"
+}

@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T09-B01\\C810-L3-T09-B01-T01_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T09-B01-T01_VI",
+  "sourceText": "Đã chơi bóng đá.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đã chơi bóng đá.",
+      "generation_key": "beff64811d99771c"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7F0B0F8A02D3B4F2EFEE02E3",
+  "text": "Đã chơi bóng đá.",
+  "asset": "assets/audio/CURRICULUM/7f0b0f8a02d3b4f2efee02e3.vi.v1.mp3",
+  "sha256": "8b3acbef38765f2d1cb03ded18e95a47f696ec4cd273ba2eb90c5800e7691e17",
+  "durationSeconds": 1.499728
+}

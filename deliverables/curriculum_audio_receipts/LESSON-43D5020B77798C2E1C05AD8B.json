@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T02\\C1112-L1-M05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-M05",
+  "sourceText": "Bạn muốn nói 'Mình xem lại ghi chú.' Hoàn thành câu: I... review my notes hay make a study plan?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn muốn nói 'Mình xem lại ghi chú.' Hoàn thành câu:",
+      "text": "Bạn muốn nói 'Mình xem lại ghi chú.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mình xem lại ghi chú.' Hoàn thành câu:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "source_text": "I... review my notes",
+      "text": "I... review my notes",
+      "spoken_text": "I... review my notes",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "source_text": "make a study plan?",
+      "text": "make a study plan?",
+      "spoken_text": "make a study plan?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": "5178741906f5f5e740777f89770ab3445bfadd741fd4667e41bafac50ea8b29f",
+  "id": "LESSON-43D5020B77798C2E1C05AD8B",
+  "text": "Bạn muốn nói 'Mình xem lại ghi chú.' Hoàn thành câu: I... review my notes hay make a study plan?",
+  "asset": "assets/audio/CURRICULUM/43d5020b77798c2e1c05ad8b.vi.v1.mp3",
+  "sha256": "5178741906f5f5e740777f89770ab3445bfadd741fd4667e41bafac50ea8b29f",
+  "durationSeconds": 10.388005
+}

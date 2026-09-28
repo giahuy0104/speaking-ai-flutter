@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T05-B02\\C810-L2-T05-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T05-B02-Q06",
+  "sourceText": "HOMI nói: Rainy today. Bạn chọn việc phù hợp. Stay inside hay Fly a kite?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Rainy today.",
+      "spoken_text": "Rainy today.",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "Bạn chọn việc phù hợp.",
+      "spoken_text": "Bạn chọn việc phù hợp.",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Stay inside",
+      "spoken_text": "Stay inside",
+      "input_index": 33
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 34
+    },
+    {
+      "language": "en",
+      "text": "Fly a kite?",
+      "spoken_text": "Fly a kite?",
+      "input_index": 35
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-54587D57598BD1B0ACF98016",
+  "text": "HOMI nói: Rainy today. Bạn chọn việc phù hợp. Stay inside hay Fly a kite?",
+  "asset": "assets/audio/CURRICULUM/54587d57598bd1b0acf98016.vi.v1.mp3",
+  "sha256": "66cb26f6a86740e0e8c2a67c1175aadde07c8514a2b49b19ca5d093f65b9bfee",
+  "durationSeconds": 8.51771
+}

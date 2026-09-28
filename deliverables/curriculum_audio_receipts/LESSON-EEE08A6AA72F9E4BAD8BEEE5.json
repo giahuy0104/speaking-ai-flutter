@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T04-B01\\C1112-L2-T04-B01-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T04-B01-Q02",
+  "sourceText": "Xe đạp: Taxi hay Bike?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Xe đạp:",
+      "spoken_text": "Xe đạp:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Taxi",
+      "spoken_text": "Taxi",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Bike?",
+      "spoken_text": "Bike?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-EEE08A6AA72F9E4BAD8BEEE5",
+  "text": "Xe đạp: Taxi hay Bike?",
+  "asset": "assets/audio/CURRICULUM/eee08a6aa72f9e4bad8beee5.vi.v1.mp3",
+  "sha256": "94f0ed00c1e2e0f97010d08fba050c6432f9fc3d9e73aa16435cd84e085e2f8c",
+  "durationSeconds": 3.582154
+}

@@ -1,0 +1,20 @@
+{
+  "id": "RUN-069",
+  "signature": "29ea85d4c2cb0918c110820dc0c5ddbf103f2ac32e5b764ab2b96f262738ad01",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn đã nghe hết Ngôi sao rồi. Bạn muốn học nội dung khác hay học lại?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:13:44.024Z",
+  "requestId": "UWiVxeBWWgBES7o0MwGs",
+  "characterCost": "38",
+  "sourceSha256": "a1c5e1961deea783154bfe5dbb6f6418732bde4e0ca5c616a8171f3ff83bbe23"
+}

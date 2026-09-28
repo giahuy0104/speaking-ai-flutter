@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T05-B01\\C1315-L2-T05-B01-T02_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T05-B01-T02_EN",
+  "sourceText": "I'm stressed.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "I'm stressed.",
+      "generation_key": "d380c665a8830cf5"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-142FE952DEAE5AB35A5537BE",
+  "text": "I'm stressed.",
+  "asset": "assets/audio/CURRICULUM/142fe952deae5ab35a5537be.en.v1.mp3",
+  "sha256": "f60a29cec731554a13daccf88acb6e2b5c49d9b5899ad19229b92404c5150617",
+  "durationSeconds": 2.007075
+}

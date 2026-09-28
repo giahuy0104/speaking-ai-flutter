@@ -1,0 +1,20 @@
+{
+  "id": "AI-005",
+  "signature": "1d8f61512b6aec5a514c6ecfcf11d08de4335e9a94e3befc315e647b06430d3f",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn muốn nghe lại, học câu tiếp theo, học câu trước, hay dừng lại?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:06:35.020Z",
+  "requestId": "YhWzIjid3rM5SF7HzOwo",
+  "characterCost": "36",
+  "sourceSha256": "5eb2ffe6bcbc0bf7eedb2c786263d93ef9974784842d2181afaf299953b6276c"
+}

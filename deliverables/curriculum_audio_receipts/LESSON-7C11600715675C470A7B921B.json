@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T08-B02\\C810-L3-T08-B02-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T08-B02-Q08",
+  "sourceText": "HOMI hỏi: Can I help? Bạn đồng ý. Yes, please hay Thank you?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI hỏi:",
+      "spoken_text": "HOMI hỏi:",
+      "input_index": 46
+    },
+    {
+      "language": "en",
+      "text": "Can I help?",
+      "spoken_text": "Can I help?",
+      "input_index": 47
+    },
+    {
+      "language": "vi",
+      "text": "Bạn đồng ý.",
+      "spoken_text": "Bạn đồng ý.",
+      "input_index": 48
+    },
+    {
+      "language": "en",
+      "text": "Yes, please",
+      "spoken_text": "Yes, please",
+      "input_index": 49
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 50
+    },
+    {
+      "language": "en",
+      "text": "Thank you?",
+      "spoken_text": "Thank you?",
+      "input_index": 51
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7C11600715675C470A7B921B",
+  "text": "HOMI hỏi: Can I help? Bạn đồng ý. Yes, please hay Thank you?",
+  "asset": "assets/audio/CURRICULUM/7c11600715675c470a7b921b.vi.v1.mp3",
+  "sha256": "bbfc95d8ae929e2cd155167eb04863c92661d3e46654535ca37d0b301a436439",
+  "durationSeconds": 8.55907
+}

@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07-B03\\C1112-L3-T07-B03-T03_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T07-B03-T03_EN",
+  "sourceText": "Sorry, I'm busy.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Sorry, I'm busy.",
+      "generation_key": "49cd504fc0905e2c"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-A2663F38697DADE3662DCA10",
+  "text": "Sorry, I'm busy.",
+  "asset": "assets/audio/CURRICULUM/a2663f38697dade3662dca10.en.v1.mp3",
+  "sha256": "fe1e6bd76061e5133b3daf39254f1d62c6b6535c50a93643b577f8419cd02e99",
+  "durationSeconds": 1.899683
+}

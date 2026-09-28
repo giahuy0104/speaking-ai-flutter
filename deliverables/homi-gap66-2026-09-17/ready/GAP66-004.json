@@ -1,0 +1,28 @@
+{
+  "id": "GAP66-004",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn muốn nghe lại, nghe câu trước, câu tiếp theo hay dừng lại?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "VjpWcuBSZ0eDQ4YEur2o",
+  "historyItemId": "QykCruxcEd6Ovj24bRsi",
+  "characterCost": "34",
+  "createdAt": "2026-09-17T14:24:08.401Z",
+  "sourceSha256": "cd9ed5520de62a48fc4bc42a08939c4028378ac5152f1ecc2796fd06d08b3579",
+  "asset": "assets/audio/MAIN/GAP66/GAP66-004.vi.v1.mp3",
+  "finalSha256": "0b6725703136cf0ef600590c9e5ecc6b8c81bfee1a72904e29391dc36e2ec9f2",
+  "sourceDurationSeconds": 3.84,
+  "durationSeconds": 4.252041,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 69007
+}

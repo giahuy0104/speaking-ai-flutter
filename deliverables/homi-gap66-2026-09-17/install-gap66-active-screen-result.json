@@ -1,0 +1,118 @@
+{
+  "at": "2026-09-17T14:27:17.448Z",
+  "count": 4,
+  "receipts": [
+    {
+      "id": "GAP66-001",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Bạn chọn một trong các lựa chọn trên màn hình nhé.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "SYE8kIcnG8rM4Lj0e8JZ",
+      "historyItemId": "gDs5YH8wsp0IVhqUxZer",
+      "characterCost": "28",
+      "createdAt": "2026-09-17T14:24:01.348Z",
+      "sourceSha256": "4542537120518c8640d853099523fa22e397453202e6a41996bf8658c02fc93f",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-001.vi.v1.mp3",
+      "finalSha256": "07211ef1abc302eb71681538b33c4d71746422fe78aad12cde666bc7067552bd",
+      "sourceDurationSeconds": 2.72,
+      "durationSeconds": 3.001406,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 48945
+    },
+    {
+      "id": "GAP66-002",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Bạn muốn nghe lại, học câu tiếp theo, học câu trước hay dừng lại?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "GV8tTNofBOe6rryTFFga",
+      "historyItemId": "omRa7CtrPow8f553Py3Z",
+      "characterCost": "36",
+      "createdAt": "2026-09-17T14:24:04.006Z",
+      "sourceSha256": "f81a37c544ee60bfe2706e4013892807165e57d41473442b75b122061e973124",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-002.vi.v1.mp3",
+      "finalSha256": "5acc994928f9771b7ef15390798e07ae8170410f546d7032deb065121fd0d14e",
+      "sourceDurationSeconds": 4,
+      "durationSeconds": 4.423787,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 71933
+    },
+    {
+      "id": "GAP66-003",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Bạn muốn nghe lại, nghe câu trước hay dừng lại?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "XfFXXoj6xdm1ohPW1Cag",
+      "historyItemId": "vxvHINJOqtM2gaHdEfRE",
+      "characterCost": "26",
+      "createdAt": "2026-09-17T14:24:05.945Z",
+      "sourceSha256": "6726534e74577b1fa52e6b2eaedf29734777317bd81d7dc3e7c93043b70cb676",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-003.vi.v1.mp3",
+      "finalSha256": "9ea29fc5191cb509d76958e4bfd99cceb6fc8676dbbc14025163cb8be68b87a2",
+      "sourceDurationSeconds": 2.88,
+      "durationSeconds": 3.188594,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 52288
+    },
+    {
+      "id": "GAP66-004",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Bạn muốn nghe lại, nghe câu trước, câu tiếp theo hay dừng lại?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "VjpWcuBSZ0eDQ4YEur2o",
+      "historyItemId": "QykCruxcEd6Ovj24bRsi",
+      "characterCost": "34",
+      "createdAt": "2026-09-17T14:24:08.401Z",
+      "sourceSha256": "cd9ed5520de62a48fc4bc42a08939c4028378ac5152f1ecc2796fd06d08b3579",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-004.vi.v1.mp3",
+      "finalSha256": "0b6725703136cf0ef600590c9e5ecc6b8c81bfee1a72904e29391dc36e2ec9f2",
+      "sourceDurationSeconds": 3.84,
+      "durationSeconds": 4.252041,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 69007
+    }
+  ]
+}

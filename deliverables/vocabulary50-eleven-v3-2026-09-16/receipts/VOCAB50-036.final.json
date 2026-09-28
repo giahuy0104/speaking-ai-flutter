@@ -1,0 +1,22 @@
+{
+  "number": 36,
+  "id": "VOCAB50-036",
+  "text": "Thử lại nhé.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-036.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "f8171db7176a2a5355ea823b12d2c317a4c0d9299270c12646d16ade2fb20059",
+  "bytes": 12582,
+  "sourceDurationSeconds": 0.64,
+  "durationSeconds": 0.707007,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "3w7LxctZbnCwTB2x4Sh7",
+  "characterCost": "7",
+  "createdAt": "2026-09-16T03:21:04.278Z"
+}

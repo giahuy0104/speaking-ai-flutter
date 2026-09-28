@@ -1,0 +1,22 @@
+{
+  "id": "VOCAB50-043",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Tốt lắm!",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "exxNDwQYHoKuJMI3u3vt",
+  "historyItemId": "6ZfPs2oWyERhWaqIKiV4",
+  "characterCost": "4",
+  "createdAt": "2026-09-16T03:21:20.995Z",
+  "sourceSha256": "d3fb8bc328d44486dbd7eaae7fd28e064331c69beebb1828cda660ae0a0a128b"
+}

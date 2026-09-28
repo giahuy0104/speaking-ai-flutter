@@ -1,0 +1,190 @@
+Resolving dependencies...
+Downloading packages...
+  archive 4.0.9 (4.3.0 available)
+  cli_util 0.4.2 (0.6.0 available)
+  clock 1.1.2 (1.1.3 available)
+  code_assets 1.2.1 (2.1.0 available)
+  dbus 0.7.15 (0.8.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  image 4.9.1 (4.10.1 available)
+  jni 1.0.0 (1.0.3 available)
+  jni_flutter 1.0.1 (1.0.3 available)
+  local_auth_android 2.0.9 (2.2.0 available)
+  local_auth_darwin 2.0.3 (2.0.4 available)
+  local_auth_windows 2.0.1 (2.0.2 available)
+  matcher 0.12.19 (0.12.20 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.0 (1.19.0 available)
+  objective_c 9.4.1 (9.6.0 available)
+  package_config 2.2.0 (3.0.0 available)
+  platform 3.1.6 (3.2.0 available)
+  posix 6.5.0 (6.5.2 available)
+  pub_semver 2.2.0 (2.2.1 available)
+  record_android 2.1.2 (2.2.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  record_web 2.1.1 (2.1.3 available)
+  record_windows 2.2.2 (2.3.0 available)
+  shared_preferences_android 2.4.27 (2.4.28 available)
+  shared_preferences_foundation 2.5.6 (2.5.7 available)
+  stack_trace 1.12.1 (1.12.2 available)
+  synchronized 3.4.1 (3.4.2 available)
+  test_api 0.7.11 (0.7.14 available)
+  url_launcher_android 6.3.32 (6.3.33 available)
+  url_launcher_ios 6.4.1 (6.4.2 available)
+  url_launcher_linux 3.2.2 (3.2.3 available)
+  url_launcher_macos 3.2.5 (3.2.6 available)
+  url_launcher_windows 3.1.5 (3.1.6 available)
+  vector_math 2.2.0 (2.4.2 available)
+  vm_service 15.2.0 (15.3.0 available)
+  win32 6.3.0 (6.4.0 available)
+  yaml 3.1.3 (3.1.4 available)
+Got dependencies!
+38 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_routing_test.dart
+00:00 +0: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_routing_test.dart: stop removes a queued play before its H20 route can be released
+Audio source ready for file:///second.wav after 10 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:00 +1: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_routing_test.dart: late cache result cannot restart a stopped clip or release a newer turn
+Audio source ready for file:///second.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:00 +2: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_routing_test.dart: stop during native source loading prevents late play and permits next clip
+Audio source ready for file:///second.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+Audio source ready for file:///second.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:00 +3: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_routing_test.dart: stop immediately before native play keeps the phone silent
+Audio source ready for file:///first.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+Audio playback failed: Lượt phát âm thanh đã dừng.
+00:00 +4: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_routing_test.dart: dispose cancels pending cache work without reviving the player
+00:00 +5: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_routing_test.dart: each Android player keeps its selected output when another session prepares media
+Audio source ready for file:///first.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+Audio source ready for file:///second.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+Audio source ready for file:///second.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:00 +6: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_routing_test.dart: late cancelled preparation cannot overwrite the next output
+Audio source ready for file:///second.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:00 +7: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_playback_routing_test.dart: iOS playback does not receive Android attribute overrides
+Audio source ready for file:///first.wav after 1 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:00 +8: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_coordinated_voice_prompt_service_test.dart: selected HFP output confirms before speech and stays until completion
+00:00 +9: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_coordinated_voice_prompt_service_test.dart: cancelling pending HFP confirmation never starts the stale prompt
+00:00 +10: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_coordinated_voice_prompt_service_test.dart: failed selected route does not fall back to phone audio
+00:00 +11: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_coordinated_voice_prompt_service_test.dart: route loss stops an in-flight prompt instead of continuing on phone
+00:00 +12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_coordinated_voice_prompt_service_test.dart: no selected Bluetooth leaves ordinary phone output unchanged
+00:00 +13: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_coordinated_voice_prompt_service_test.dart: explicit phone-speaker prompt does not acquire selected HFP
+00:00 +14: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_coordinated_voice_prompt_service_test.dart: serializes prompts from different feature owners
+00:00 +15: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_coordinated_voice_prompt_service_test.dart: stopping an old prompt cannot stop the next owner
+00:00 +16: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_coordinated_voice_prompt_service_test.dart: forwards selected-output and ready-cue capabilities
+00:00 +17: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: optional curriculum pack plays locally with its duration budget
+00:00 +18: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: an missing optional curriculum pack preserves MAIN and fallback
+00:00 +19: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: an invalid optional curriculum pack preserves MAIN and fallback
+00:00 +20: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: an disabled optional curriculum pack preserves MAIN and fallback
+00:00 +21: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: dispose cancels pending manifest timer immediately
+00:00 +22: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: dispose cancels pending manifest timer immediately
+00:00 +23: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: dispose cancels pending manifest timer immediately
+00:00 +24: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: dispose cancels pending manifest timer immediately
+00:00 +25: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: dispose cancels pending manifest timer immediately
+00:00 +26: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: dispose cancels pending manifest timer immediately
+00:00 +27: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: dispose cancels pending manifest timer immediately
+00:00 +28: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: dispose cancels pending manifest timer immediately
+00:00 +29: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: dispose cancels pending manifest timer immediately
+00:01 +30: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: dispose cancels pending asset timer immediately
+00:01 +31: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: dispose cancels pending playback timer immediately
+00:01 +32: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: authored timeout budget is duration aware; unknown text keeps default
+00:01 +33: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: English feedback can match the explicit legacy Vietnamese lookup locale
+00:01 +34: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: real pilot matches runtime text, voices, speeds, checksum and watchdog
+00:01 +35: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: plays only exact text and locale, waiting for audio completion
+00:01 +36: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: connect applies the authoritative HFP snapshot immediately
+00:01 +37: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: connect applies the authoritative HFP snapshot immediately
+00:01 +38: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: connect applies the authoritative HFP snapshot immediately
+00:01 +39: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: connect applies the authoritative HFP snapshot immediately
+00:01 +40: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: connect applies the authoritative HFP snapshot immediately
+00:01 +41: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: HFP_ROUTE_LOST propagates without replaying TTS on phone output
+00:01 +42: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +43: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +44: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +45: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +46: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +47: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +48: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +49: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +50: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +51: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +52: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +53: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +54: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +55: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +56: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +57: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +58: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +59: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +60: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:01 +61: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: factory serves only allowlisted assistant text across feature owners
+00:01 +62: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: factory serves only allowlisted assistant text across feature owners
+00:01 +63: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: factory serves only allowlisted assistant text across feature owners
+00:01 +64: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: factory serves only allowlisted assistant text across feature owners
+00:01 +65: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: factory serves only allowlisted assistant text across feature owners
+00:01 +66: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: factory serves only allowlisted assistant text across feature owners
+00:01 +67: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: factory serves only allowlisted assistant text across feature owners
+00:01 +68: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: retries a transient Android HFP route failure
+00:01 +69: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: rejects a route snapshot without both selected H20 endpoints
+00:01 +70: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +71: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +72: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +73: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +74: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +75: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +76: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +77: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +78: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +79: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +80: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +81: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +82: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +83: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +84: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +85: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +86: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +87: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +88: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +89: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +90: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +91: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:01 +92: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:02 +93: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: authored prompt longer than eight seconds finishes before command window opens
+00:02 +94: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: forced pause stops assistant audio when HOMI leaves foreground
+00:02 +95: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: MAIN-only configuration never starts or acknowledges voice wake
+00:02 +96: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: two silent active-module windows dispatch STOP rather than resume
+00:02 +97: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: silent topic selection resumes the same Level when MAIN is pressed again
+00:02 +98: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: navigation transcript is handled without entering conversation
+00:02 +99: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main button speaks the menu then starts the speaking flow
+00:03 +100: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: MAIN handles an unambiguous fallback phrase from a stable partial
+00:03 +101: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS MAIN prompts use the selected H20 media output
+00:03 +102: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Android MAIN prompts use the selected H20 HFP output
+00:03 +103: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main opens the microphone when the native ready cue never completes
+00:03 +104: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:04 +105: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main prompt reopens the mic immediately after final recognition
+00:04 +106: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: HFP speech activity extends MAIN command window before transcript
+00:04 +107: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main exposes its first microphone start failure without retrying
+00:04 +108: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main pauses its command deadline while a premature completion recovers
+00:04 +109: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Android MAIN recovers a transient recognizer timeout without showing a mic error
+00:04 +110: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: repeated Android timeouts use the normal spoken no-speech retry
+00:04 +111: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main stops automatic retries and exposes the microphone error
+00:04 +112: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main activation never exposes a transient inactive session
+00:04 +113: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main delegates missing profile age to the topic screen
+00:04 +114: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: saved age lets MAIN open Level selection without the legacy total
+00:04 +115: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: completed topic prompt continues through topic and lesson
+00:04 +116: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: completed Course Level choice is handled by the MAIN microphone
+00:04 +117: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: speaking command opens the other-learning voice menu
+00:04 +118: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: translation STOP keeps both menus and mic closed until explicit MAIN
+00:04 +119: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main opens today practice when parent vocabulary is pending
+00:04 +120: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: active lesson Main next answer advances through the module bridge
+00:04 +121: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: active lesson Main previous answer moves back through the module bridge
+00:04 +122: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: active lesson Main dispatches the remaining D07 and D08 commands
+00:04 +123: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: active lesson exit choice keeps listening then opens vocabulary
+00:04 +124: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: MAIN finalizes buffered iOS transcript when its command window ends
+00:04 +125: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main asks once after silence then exits on the second timeout
+00:04 +126: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: vocabulary star branch uses its exact silence prompts
+00:04 +127: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: pauses navigation recognizer before conversation can reuse it
+00:04 +128: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: handles an explicit command from a stable partial result
+00:04 +129: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: hears the wake phrase from a secondary Android transcript
+00:05 +130: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: uses final Android alternatives when the primary text misses
+00:05 +131: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: wake-word MAIN exits after its two silent command windows
+00:05 +132: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: does not reopen the microphone until the wake reply finishes
+00:05 +133: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: pause waits for a pending navigation start to release the mic
+00:05 +134: All tests passed!

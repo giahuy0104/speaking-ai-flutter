@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T05-B02\\C1315-L2-T05-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T05-B02-Q05",
+  "sourceText": "Nói chuyện với ai đó: Talk to someone hay Put your phone away?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nói chuyện với ai đó:",
+      "spoken_text": "Nói chuyện với ai đó:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Talk to someone",
+      "spoken_text": "Talk to someone",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Put your phone away?",
+      "spoken_text": "Put your phone away?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-DB0A287D92020839C948EA50",
+  "text": "Nói chuyện với ai đó: Talk to someone hay Put your phone away?",
+  "asset": "assets/audio/CURRICULUM/db0a287d92020839c948ea50.vi.v1.mp3",
+  "sha256": "2dc7918157e4bb84ad9ed808786c6c4c539c1a98a681a402422569282761e544",
+  "durationSeconds": 5.422676
+}

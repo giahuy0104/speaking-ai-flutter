@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T03-B02\\C810-L1-T03-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T03-B02-Q06",
+  "sourceText": "Bạn muốn nói 'Mình có thể chơi bóng đá.' Hoàn thành câu: I can... draw hay play soccer?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Mình có thể chơi bóng đá.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mình có thể chơi bóng đá.' Hoàn thành câu:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "I can... draw",
+      "spoken_text": "I can... draw",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "play soccer?",
+      "spoken_text": "play soccer?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E660B5A325EFDDB05355EC67",
+  "text": "Bạn muốn nói 'Mình có thể chơi bóng đá.' Hoàn thành câu: I can... draw hay play soccer?",
+  "asset": "assets/audio/CURRICULUM/e660b5a325efddb05355ec67.vi.v1.mp3",
+  "sha256": "b1cea9f9ab4d51104f7061c7020ac0fc60d7e6e8974661053414f52ea9bb9d14",
+  "durationSeconds": 10.880907
+}

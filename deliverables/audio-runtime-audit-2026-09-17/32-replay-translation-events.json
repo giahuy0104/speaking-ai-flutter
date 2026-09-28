@@ -1,0 +1,1254 @@
+[
+  {
+    "at": "2026-09-17T20:59:01.051695",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/app_flutter/lesson_recordings/c35-l1-t01-b02-sentence-1-1789653533894646.wav?"
+    ],
+    "sequence": 20,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:59:01.106382",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/app_flutter/lesson_recordings/c35-l1-t01-b02-sentence-1-1789653533894646.wav?"
+    ],
+    "sequence": 20,
+    "event": "response",
+    "elapsedMs": 54,
+    "responseBytes": 22
+  },
+  {
+    "at": "2026-09-17T20:59:08.167161",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "1a23029427837149ccfabfc5edec03b88a27d03f2bdcf7925953018ddcd12c97",
+    "bytes": 18016,
+    "sequence": 21,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:59:09.737447",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "1a23029427837149ccfabfc5edec03b88a27d03f2bdcf7925953018ddcd12c97",
+    "bytes": 18016,
+    "sequence": 21,
+    "event": "response",
+    "elapsedMs": 1570,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T20:59:09.742326",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/-5d5fb238299d5ec7.mp3?"
+    ],
+    "sequence": 22,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:59:09.789749",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/-5d5fb238299d5ec7.mp3?"
+    ],
+    "sequence": 22,
+    "event": "response",
+    "elapsedMs": 47,
+    "responseBytes": 22
+  },
+  {
+    "at": "2026-09-17T20:59:14.141044",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/-1e94a789e2b39902.mp3?"
+    ],
+    "sequence": 23,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:59:14.199404",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/-1e94a789e2b39902.mp3?"
+    ],
+    "sequence": 23,
+    "event": "response",
+    "elapsedMs": 58,
+    "responseBytes": 22
+  },
+  {
+    "at": "2026-09-17T20:59:16.371314",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "04387baa38b392218eecca807c222e79ade1fc24148c28facab63ff02c798eab",
+    "bytes": 18016,
+    "sequence": 24,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:59:17.906984",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "04387baa38b392218eecca807c222e79ade1fc24148c28facab63ff02c798eab",
+    "bytes": 18016,
+    "sequence": 24,
+    "event": "response",
+    "elapsedMs": 1535,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T20:59:18.349964",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 25,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:59:18.691503",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 25,
+    "event": "response",
+    "elapsedMs": 341,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T20:59:22.889631",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/app_flutter/lesson_recordings/c35-l1-t01-b02-sentence-1-1789653557917752.wav?"
+    ],
+    "sequence": 26,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:59:22.942696",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/app_flutter/lesson_recordings/c35-l1-t01-b02-sentence-1-1789653557917752.wav?"
+    ],
+    "sequence": 26,
+    "event": "response",
+    "elapsedMs": 53,
+    "responseBytes": 22
+  },
+  {
+    "at": "2026-09-17T20:59:27.985225",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "0d62b86d7b22f66dc200352caccf4fcfbd99319bcb2c8992e3577d71305a58a4",
+    "bytes": 20942,
+    "sequence": 27,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:59:29.726849",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "0d62b86d7b22f66dc200352caccf4fcfbd99319bcb2c8992e3577d71305a58a4",
+    "bytes": 20942,
+    "sequence": 27,
+    "event": "response",
+    "elapsedMs": 1741,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T20:59:29.730590",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/-5d5fb238299d5ec7.mp3?"
+    ],
+    "sequence": 28,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:59:29.777098",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/-5d5fb238299d5ec7.mp3?"
+    ],
+    "sequence": 28,
+    "event": "response",
+    "elapsedMs": 46,
+    "responseBytes": 22
+  },
+  {
+    "at": "2026-09-17T20:59:34.121126",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/-1e94a789e2b39902.mp3?"
+    ],
+    "sequence": 29,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:59:34.187958",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/-1e94a789e2b39902.mp3?"
+    ],
+    "sequence": 29,
+    "event": "response",
+    "elapsedMs": 66,
+    "responseBytes": 22
+  },
+  {
+    "at": "2026-09-17T20:59:36.624920",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "04387baa38b392218eecca807c222e79ade1fc24148c28facab63ff02c798eab",
+    "bytes": 18016,
+    "sequence": 30,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:59:38.167491",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "04387baa38b392218eecca807c222e79ade1fc24148c28facab63ff02c798eab",
+    "bytes": 18016,
+    "sequence": 30,
+    "event": "response",
+    "elapsedMs": 1542,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T20:59:38.626995",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 31,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:59:38.979875",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 31,
+    "event": "response",
+    "elapsedMs": 352,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T20:59:42.520406",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/app_flutter/lesson_recordings/c35-l1-t01-b02-sentence-1-1789653578174514.wav?"
+    ],
+    "sequence": 32,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:59:42.571590",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/app_flutter/lesson_recordings/c35-l1-t01-b02-sentence-1-1789653578174514.wav?"
+    ],
+    "sequence": 32,
+    "event": "response",
+    "elapsedMs": 51,
+    "responseBytes": 22
+  },
+  {
+    "at": "2026-09-17T20:59:46.660509",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "2c96c6dc49daa13cc2a72c1704c0482c7c933803cc14479357a5bda3406bb9e6",
+    "bytes": 20942,
+    "sequence": 33,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:59:48.377195",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "2c96c6dc49daa13cc2a72c1704c0482c7c933803cc14479357a5bda3406bb9e6",
+    "bytes": 20942,
+    "sequence": 33,
+    "event": "response",
+    "elapsedMs": 1716,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T20:59:48.389056",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/-5d5fb238299d5ec7.mp3?"
+    ],
+    "sequence": 34,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:59:48.432497",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/-5d5fb238299d5ec7.mp3?"
+    ],
+    "sequence": 34,
+    "event": "response",
+    "elapsedMs": 43,
+    "responseBytes": 22
+  },
+  {
+    "at": "2026-09-17T20:59:52.790568",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/-1e94a789e2b39902.mp3?"
+    ],
+    "sequence": 35,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:59:52.875732",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/-1e94a789e2b39902.mp3?"
+    ],
+    "sequence": 35,
+    "event": "response",
+    "elapsedMs": 85,
+    "responseBytes": 22
+  },
+  {
+    "at": "2026-09-17T20:59:55.037658",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "04387baa38b392218eecca807c222e79ade1fc24148c28facab63ff02c798eab",
+    "bytes": 18016,
+    "sequence": 36,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:59:56.552249",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "04387baa38b392218eecca807c222e79ade1fc24148c28facab63ff02c798eab",
+    "bytes": 18016,
+    "sequence": 36,
+    "event": "response",
+    "elapsedMs": 1514,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T20:59:57.019283",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 37,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:59:57.350043",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 37,
+    "event": "response",
+    "elapsedMs": 330,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:00:00.409473",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/app_flutter/lesson_recordings/c35-l1-t01-b02-sentence-1-1789653596556419.wav?"
+    ],
+    "sequence": 38,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:00:00.594645",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/app_flutter/lesson_recordings/c35-l1-t01-b02-sentence-1-1789653596556419.wav?"
+    ],
+    "sequence": 38,
+    "event": "response",
+    "elapsedMs": 185,
+    "responseBytes": 22
+  },
+  {
+    "at": "2026-09-17T21:00:06.026243",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "6f3218e91de2622eaed35ec3c746fc9f93273196a781d20d767b5ea42f972a23",
+    "bytes": 42257,
+    "sequence": 39,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:00:09.010184",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "6f3218e91de2622eaed35ec3c746fc9f93273196a781d20d767b5ea42f972a23",
+    "bytes": 42257,
+    "sequence": 39,
+    "event": "response",
+    "elapsedMs": 2983,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:00:09.835204",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 40,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:00:10.165551",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 40,
+    "event": "response",
+    "elapsedMs": 330,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:00:11.749349",
+    "channel": "ailingo_voice_prompt",
+    "method": "beginMainTurn",
+    "sequence": 41,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:00:11.776568",
+    "channel": "ailingo_voice_prompt",
+    "method": "beginMainTurn",
+    "sequence": 41,
+    "event": "response",
+    "elapsedMs": 27,
+    "responseBytes": null
+  },
+  {
+    "at": "2026-09-17T21:00:11.778793",
+    "channel": "ailingo_voice_prompt",
+    "method": "speakAndWait",
+    "source": "native_tts",
+    "text": "Bạn muốn nghe lại, học câu tiếp theo, học câu trước hay dừng lại?",
+    "locale": "vi-VN",
+    "speechRate": null,
+    "sequence": 42,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:00:17.203317",
+    "channel": "ailingo_voice_prompt",
+    "method": "speakAndWait",
+    "source": "native_tts",
+    "text": "Bạn muốn nghe lại, học câu tiếp theo, học câu trước hay dừng lại?",
+    "locale": "vi-VN",
+    "speechRate": null,
+    "sequence": 42,
+    "event": "response",
+    "elapsedMs": 5424,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:00:17.312560",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 43,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:00:17.646912",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 43,
+    "event": "response",
+    "elapsedMs": 334,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:00:21.281586",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "a1ecaf068317772a5ea8a20aceaa8c1ee158afd2e76ad755383137658b08d32c",
+    "bytes": 25121,
+    "sequence": 44,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:00:23.258284",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "a1ecaf068317772a5ea8a20aceaa8c1ee158afd2e76ad755383137658b08d32c",
+    "bytes": 25121,
+    "sequence": 44,
+    "event": "response",
+    "elapsedMs": 1976,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:00:23.258695",
+    "channel": "ailingo_voice_prompt",
+    "method": "endMainTurn",
+    "sequence": 45,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:00:23.259482",
+    "channel": "ailingo_voice_prompt",
+    "method": "endMainTurn",
+    "sequence": 45,
+    "event": "response",
+    "elapsedMs": 0,
+    "responseBytes": null
+  },
+  {
+    "at": "2026-09-17T21:00:23.265144",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/-5d5fb238299d5ec7.mp3?"
+    ],
+    "sequence": 46,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:00:23.312954",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/-5d5fb238299d5ec7.mp3?"
+    ],
+    "sequence": 46,
+    "event": "response",
+    "elapsedMs": 47,
+    "responseBytes": 22
+  },
+  {
+    "at": "2026-09-17T21:00:26.977219",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549562/homi/audio/CURRICULUM/18a89eaa9b142f1a65fc9a79.en.v1.mp3?"
+    ],
+    "sequence": 47,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:00:27.742483",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549562/homi/audio/CURRICULUM/18a89eaa9b142f1a65fc9a79.en.v1.mp3?"
+    ],
+    "sequence": 47,
+    "event": "response",
+    "elapsedMs": 765,
+    "responseBytes": 22
+  },
+  {
+    "at": "2026-09-17T21:00:32.663632",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549622/homi/audio/CURRICULUM/2db418d8db0fcb9535a20d91.vi.v1.mp3?"
+    ],
+    "sequence": 48,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:00:33.275609",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549622/homi/audio/CURRICULUM/2db418d8db0fcb9535a20d91.vi.v1.mp3?"
+    ],
+    "sequence": 48,
+    "event": "response",
+    "elapsedMs": 611,
+    "responseBytes": 22
+  },
+  {
+    "at": "2026-09-17T21:00:34.962751",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "0ec0d7660ec0a58b0d0f89b3fcbbd3683f33bb19096f8558dc0704d9917e19fe",
+    "bytes": 18016,
+    "sequence": 49,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:00:36.466120",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "0ec0d7660ec0a58b0d0f89b3fcbbd3683f33bb19096f8558dc0704d9917e19fe",
+    "bytes": 18016,
+    "sequence": 49,
+    "event": "response",
+    "elapsedMs": 1503,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:00:36.953033",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 50,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:00:37.310150",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 50,
+    "event": "response",
+    "elapsedMs": 357,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:00:43.598960",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/app_flutter/lesson_recordings/c35-l1-t01-b02-sentence-2-1789653636474696.wav?"
+    ],
+    "sequence": 51,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:00:43.641188",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/app_flutter/lesson_recordings/c35-l1-t01-b02-sentence-2-1789653636474696.wav?"
+    ],
+    "sequence": 51,
+    "event": "response",
+    "elapsedMs": 42,
+    "responseBytes": 22
+  },
+  {
+    "at": "2026-09-17T21:01:01.176099",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "a0a30e0068f4e49c6c8d4487ac3b78097dced4100f7b4b135bd6a0214e648319",
+    "bytes": 67753,
+    "sequence": 52,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:01:05.631014",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "a0a30e0068f4e49c6c8d4487ac3b78097dced4100f7b4b135bd6a0214e648319",
+    "bytes": 67753,
+    "sequence": 52,
+    "event": "response",
+    "elapsedMs": 4454,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:01:05.724612",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/-6a4813372defe3d5.mp3?"
+    ],
+    "sequence": 53,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:01:05.781499",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/-6a4813372defe3d5.mp3?"
+    ],
+    "sequence": 53,
+    "event": "response",
+    "elapsedMs": 56,
+    "responseBytes": 22
+  },
+  {
+    "at": "2026-09-17T21:01:10.714446",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/00302c47b694a252.mp3?"
+    ],
+    "sequence": 54,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:01:10.784314",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/00302c47b694a252.mp3?"
+    ],
+    "sequence": 54,
+    "event": "response",
+    "elapsedMs": 69,
+    "responseBytes": 22
+  },
+  {
+    "at": "2026-09-17T21:01:12.819575",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "04387baa38b392218eecca807c222e79ade1fc24148c28facab63ff02c798eab",
+    "bytes": 18016,
+    "sequence": 55,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:01:14.331773",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "04387baa38b392218eecca807c222e79ade1fc24148c28facab63ff02c798eab",
+    "bytes": 18016,
+    "sequence": 55,
+    "event": "response",
+    "elapsedMs": 1512,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:01:14.791868",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 56,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:01:15.129430",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 56,
+    "event": "response",
+    "elapsedMs": 337,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:01:21.379812",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/app_flutter/lesson_recordings/c35-l1-t01-b01-sentence-1-1789653674334111.wav?"
+    ],
+    "sequence": 57,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:01:21.419404",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/app_flutter/lesson_recordings/c35-l1-t01-b01-sentence-1-1789653674334111.wav?"
+    ],
+    "sequence": 57,
+    "event": "response",
+    "elapsedMs": 39,
+    "responseBytes": 22
+  },
+  {
+    "at": "2026-09-17T21:01:37.683427",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "4d89b6b32113574de1519966b332038968d915c856a1c36e83d43db09b238da6",
+    "bytes": 74858,
+    "sequence": 58,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:01:42.576877",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "4d89b6b32113574de1519966b332038968d915c856a1c36e83d43db09b238da6",
+    "bytes": 74858,
+    "sequence": 58,
+    "event": "response",
+    "elapsedMs": 4893,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:01:42.578634",
+    "channel": "ailingo_voice_prompt",
+    "method": "beginMainTurn",
+    "sequence": 59,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:01:42.580684",
+    "channel": "ailingo_voice_prompt",
+    "method": "beginMainTurn",
+    "sequence": 59,
+    "event": "response",
+    "elapsedMs": 2,
+    "responseBytes": null
+  },
+  {
+    "at": "2026-09-17T21:01:42.708658",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 60,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:01:43.048904",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 60,
+    "event": "response",
+    "elapsedMs": 340,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:01:51.348483",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "4d89b6b32113574de1519966b332038968d915c856a1c36e83d43db09b238da6",
+    "bytes": 74858,
+    "sequence": 61,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:01:56.484711",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "4d89b6b32113574de1519966b332038968d915c856a1c36e83d43db09b238da6",
+    "bytes": 74858,
+    "sequence": 61,
+    "event": "response",
+    "elapsedMs": 5136,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:01:56.596150",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 62,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:01:56.924338",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 62,
+    "event": "response",
+    "elapsedMs": 328,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:02:05.153779",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "1d08f6207e7a037815eb520d46d198eebc0f33186cedaa89cff07ebdecade097",
+    "bytes": 19270,
+    "sequence": 63,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:02:06.776548",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "1d08f6207e7a037815eb520d46d198eebc0f33186cedaa89cff07ebdecade097",
+    "bytes": 19270,
+    "sequence": 63,
+    "event": "response",
+    "elapsedMs": 1622,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:02:06.777656",
+    "channel": "ailingo_voice_prompt",
+    "method": "endMainTurn",
+    "sequence": 64,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:02:06.778432",
+    "channel": "ailingo_voice_prompt",
+    "method": "endMainTurn",
+    "sequence": 64,
+    "event": "response",
+    "elapsedMs": 0,
+    "responseBytes": null
+  },
+  {
+    "at": "2026-09-17T21:02:42.115964",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "7d0a58cae1c6cd6fb1a69184f75e2e5c079ab5431a5ba2ed5a0f2012afca6af2",
+    "bytes": 12582,
+    "sequence": 65,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:02:43.063745",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "7d0a58cae1c6cd6fb1a69184f75e2e5c079ab5431a5ba2ed5a0f2012afca6af2",
+    "bytes": 12582,
+    "sequence": 65,
+    "event": "response",
+    "elapsedMs": 947,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:07:08.589578",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "bc1a14b2e751ec77692562a4f704ddbf9972371bf5288b55e0abe1aa2b0487ac",
+    "bytes": 43511,
+    "sequence": 66,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:07:11.456599",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "bc1a14b2e751ec77692562a4f704ddbf9972371bf5288b55e0abe1aa2b0487ac",
+    "bytes": 43511,
+    "sequence": 66,
+    "event": "response",
+    "elapsedMs": 2867,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:07:11.644336",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "8f8babb80f242ef434419d0b91f5d533ded76f5f2abc36a2f773c4eed6ffae14",
+    "bytes": 37242,
+    "sequence": 67,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:07:14.280099",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "8f8babb80f242ef434419d0b91f5d533ded76f5f2abc36a2f773c4eed6ffae14",
+    "bytes": 37242,
+    "sequence": 67,
+    "event": "response",
+    "elapsedMs": 2635,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:07:16.457142",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "e841bdbcd5a0fae0c94d0c4f8d05cf58d7383365ef3c6be8f904a01f132441e4",
+    "bytes": 22195,
+    "sequence": 68,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:07:18.205182",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "e841bdbcd5a0fae0c94d0c4f8d05cf58d7383365ef3c6be8f904a01f132441e4",
+    "bytes": 22195,
+    "sequence": 68,
+    "event": "response",
+    "elapsedMs": 1748,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:07:18.361387",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "04387baa38b392218eecca807c222e79ade1fc24148c28facab63ff02c798eab",
+    "bytes": 18016,
+    "sequence": 69,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:07:19.773336",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "04387baa38b392218eecca807c222e79ade1fc24148c28facab63ff02c798eab",
+    "bytes": 18016,
+    "sequence": 69,
+    "event": "response",
+    "elapsedMs": 1411,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:07:20.289415",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 70,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:07:20.639231",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 70,
+    "event": "response",
+    "elapsedMs": 349,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:07:30.326698",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "6f3218e91de2622eaed35ec3c746fc9f93273196a781d20d767b5ea42f972a23",
+    "bytes": 42257,
+    "sequence": 71,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:07:33.116052",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "6f3218e91de2622eaed35ec3c746fc9f93273196a781d20d767b5ea42f972a23",
+    "bytes": 42257,
+    "sequence": 71,
+    "event": "response",
+    "elapsedMs": 2789,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:07:33.545369",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 72,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:07:33.847382",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 72,
+    "event": "response",
+    "elapsedMs": 302,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:07:42.605128",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "1d08f6207e7a037815eb520d46d198eebc0f33186cedaa89cff07ebdecade097",
+    "bytes": 19270,
+    "sequence": 73,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:07:44.106553",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "1d08f6207e7a037815eb520d46d198eebc0f33186cedaa89cff07ebdecade097",
+    "bytes": 19270,
+    "sequence": 73,
+    "event": "response",
+    "elapsedMs": 1501,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:11:04.182466",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 74,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:11:04.363632",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 74,
+    "event": "response",
+    "elapsedMs": 181,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:11:10.458891",
+    "channel": "flutter/assets",
+    "asset": "assets/audio/MAIN/RUNTIME-CONVERSATION-RECOVERY-001.vi.v1.mp3",
+    "sequence": 75,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:11:10.459397",
+    "channel": "flutter/assets",
+    "asset": "assets/audio/MAIN/RUNTIME-CONVERSATION-RECOVERY-001.vi.v1.mp3",
+    "sequence": 75,
+    "event": "response",
+    "elapsedMs": 0,
+    "responseBytes": 49363
+  },
+  {
+    "at": "2026-09-17T21:11:10.461498",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "705eb9c2a6809537a126d1b217102d901f1057a5f327138be5f3f3653d95f513",
+    "bytes": 49363,
+    "sequence": 76,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:11:13.926225",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "705eb9c2a6809537a126d1b217102d901f1057a5f327138be5f3f3653d95f513",
+    "bytes": 49363,
+    "sequence": 76,
+    "event": "response",
+    "elapsedMs": 3464,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:11:13.926424",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 77,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:11:14.299273",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 77,
+    "event": "response",
+    "elapsedMs": 372,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T21:11:19.198160",
+    "channel": "com.ryanheise.just_audio.methods.53a6c522-9208-47b4-a122-d7759fda5242",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "https://speaking-ai-nextjs-backend-production-e43d.up.railway.app/api/audio/stream?"
+    ],
+    "sequence": 78,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:11:21.625668",
+    "channel": "com.ryanheise.just_audio.methods.53a6c522-9208-47b4-a122-d7759fda5242",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "https://speaking-ai-nextjs-backend-production-e43d.up.railway.app/api/audio/stream?"
+    ],
+    "sequence": 78,
+    "event": "response",
+    "elapsedMs": 2427,
+    "responseBytes": 14
+  },
+  {
+    "at": "2026-09-17T21:12:35.584899",
+    "channel": "com.ryanheise.just_audio.methods.53a6c522-9208-47b4-a122-d7759fda5242",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/042b071c9ebdc792.mp3?"
+    ],
+    "sequence": 79,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T21:12:35.611377",
+    "channel": "com.ryanheise.just_audio.methods.53a6c522-9208-47b4-a122-d7759fda5242",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/042b071c9ebdc792.mp3?"
+    ],
+    "sequence": 79,
+    "event": "response",
+    "elapsedMs": 26,
+    "responseBytes": 22
+  }
+]

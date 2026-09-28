@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T09\\C35-L3-M09_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-M09",
+  "sourceText": "Trời mưa: Rainy hay Hot?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Trời mưa:",
+      "text": "Trời mưa:",
+      "spoken_text": "Trời mưa:",
+      "input_index": 48
+    },
+    {
+      "language": "en",
+      "source_text": "Rainy",
+      "text": "Rainy",
+      "spoken_text": "Rainy",
+      "input_index": 49
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 50
+    },
+    {
+      "language": "en",
+      "source_text": "Hot?",
+      "text": "Hot?",
+      "spoken_text": "Hot?",
+      "input_index": 51
+    }
+  ],
+  "sourceSha256": "29d957322134552dd5575ed4356b18ec001c4190d7e9c13a5ad3eaf615ad39de",
+  "id": "LESSON-8A5DC2919B50B5C0197CBE30",
+  "text": "Trời mưa: Rainy hay Hot?",
+  "asset": "assets/audio/CURRICULUM/8a5dc2919b50b5c0197cbe30.vi.v1.mp3",
+  "sha256": "29d957322134552dd5575ed4356b18ec001c4190d7e9c13a5ad3eaf615ad39de",
+  "durationSeconds": 3.286304
+}

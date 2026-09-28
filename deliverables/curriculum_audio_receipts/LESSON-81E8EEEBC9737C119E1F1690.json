@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\d901c6906268a20c34acad5d9af91fc7ff3f04d23c108e8f5f947205770ed154.tempo.mp3",
+      "signature": "d901c6906268a20c34acad5d9af91fc7ff3f04d23c108e8f5f947205770ed154",
+      "request": {
+        "text": "It's a cow",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "4cebfa2533d49f1d7e94d280ae0d325dc537e1475bc757085325bda8b92c874a",
+      "requestId": "pW0UWPHvEXgtc9YUHUvI",
+      "createdAt": "2026-09-15T23:16:28.514Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732.tempo.mp3",
+      "signature": "bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732",
+      "request": {
+        "text": "hay",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "587b62310066af72f7481443c9fccef371a1ad2d8d537d3d1e9b16ebd3efc8b4",
+      "requestId": "Y8EyPPYGalhB5eNl9yAL",
+      "createdAt": "2026-09-15T23:15:44.925Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\5c2d38881a6797bced77ab02c79c7a7f396b8f721bfb772d098d585fa70c6583.tempo.mp3",
+      "signature": "5c2d38881a6797bced77ab02c79c7a7f396b8f721bfb772d098d585fa70c6583",
+      "request": {
+        "text": "It's a duck?",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "5d53df16776ab92d72ae25973400b34c96946ceff978a7b08bd0fc7882ee02e6",
+      "requestId": "ZGnBQmLelCXudnlhAelp",
+      "createdAt": "2026-09-15T23:16:34.384Z"
+    }
+  ],
+  "id": "LESSON-81E8EEEBC9737C119E1F1690",
+  "text": "It's a cow hay It's a duck?",
+  "asset": "assets/audio/CURRICULUM/81e8eeebc9737c119e1f1690.vi.v1.mp3",
+  "sha256": "fb883eb12eba259aa7bdb61bdc92fcf4e5d21ad329838511f67d163c8a993cd3",
+  "durationSeconds": 4.755351,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

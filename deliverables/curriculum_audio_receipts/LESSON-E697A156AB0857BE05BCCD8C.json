@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T03-B02\\C1315-L1-T03-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T03-B02-Q04",
+  "sourceText": "Vì nó nhanh hơn: Because it's safer hay Because it's faster?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Vì nó nhanh hơn:",
+      "spoken_text": "Vì nó nhanh hơn:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Because it's safer",
+      "spoken_text": "Because it's safer",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Because it's faster?",
+      "spoken_text": "Because it's faster?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E697A156AB0857BE05BCCD8C",
+  "text": "Vì nó nhanh hơn: Because it's safer hay Because it's faster?",
+  "asset": "assets/audio/CURRICULUM/e697a156ab0857be05bccd8c.vi.v1.mp3",
+  "sha256": "b06ec89c4a06c2c908a0124f91721ae13cc0e59463c4bee458d98bdf0b473ce8",
+  "durationSeconds": 6.271723
+}

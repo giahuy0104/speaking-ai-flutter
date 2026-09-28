@@ -1,0 +1,20 @@
+{
+  "signature": "65b2aecb8b0e3d874473fa6ccdd4d2b36bff9ee7d8a044a1cf8775dad12fbe30",
+  "request": {
+    "text": "Duck?",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "db1fb69fa45aacc3ae1f8386e61ea9addfc91201ec2e55290972493d75bed4aa",
+  "requestId": "M7k30yVxGXiWHITt5cHE",
+  "createdAt": "2026-09-15T23:16:14.483Z"
+}

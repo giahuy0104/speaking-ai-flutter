@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T08-B01\\C1315-L3-T08-B01-T04_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T08-B01-T04_VI",
+  "sourceText": "Món ăn kèm.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Món ăn kèm.",
+      "generation_key": "76dc5e96d1abfd09"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-978BDF21B7EB0B3A3B8BD0C7",
+  "text": "Món ăn kèm.",
+  "asset": "assets/audio/CURRICULUM/978bdf21b7eb0b3a3b8bd0c7.vi.v1.mp3",
+  "sha256": "b8b0020d0b9d7e50b14d7765b8f9d2bb2d39df20301bf689277d2cb79be81fd5",
+  "durationSeconds": 1.326735
+}

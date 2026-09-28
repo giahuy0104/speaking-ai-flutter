@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T02\\C810-L1-M05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-M05",
+  "sourceText": "Bạn cần nói \"Mình vào lớp được không\". Can I come in? hay Yes, come in?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần nói \"Mình vào lớp được không\".",
+      "text": "Bạn cần nói \"Mình vào lớp được không\".",
+      "spoken_text": "Bạn cần nói \"Mình vào lớp được không\".",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "source_text": "Can I come in?",
+      "text": "Can I come in?",
+      "spoken_text": "Can I come in?",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "source_text": "Yes, come in?",
+      "text": "Yes, come in?",
+      "spoken_text": "Yes, come in?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": "cf954fd51c2e6c54fc2a4a3ad8590626dbd16fe189ccd55c5efe3dbbdc6ef5aa",
+  "id": "LESSON-150312A651BC0A5D36D17DBF",
+  "text": "Bạn cần nói \"Mình vào lớp được không\". Can I come in? hay Yes, come in?",
+  "asset": "assets/audio/CURRICULUM/150312a651bc0a5d36d17dbf.vi.v1.mp3",
+  "sha256": "cf954fd51c2e6c54fc2a4a3ad8590626dbd16fe189ccd55c5efe3dbbdc6ef5aa",
+  "durationSeconds": 6.245964
+}

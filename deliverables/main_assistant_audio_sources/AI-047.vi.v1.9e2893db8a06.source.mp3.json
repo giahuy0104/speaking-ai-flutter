@@ -1,0 +1,20 @@
+{
+  "id": "AI-047",
+  "signature": "9e2893db8a06e900c51644dc3fc5758825db7e463ab7a63f9f3e1bd2dc2779fe",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Nghe HOMI trước, rồi bạn nói lại sau nha.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:09:36.715Z",
+  "requestId": "u2nLbWNR8RCCtX1mKCvs",
+  "characterCost": "23",
+  "sourceSha256": "2124ccd46751874e01e82c9c2e47f5204af2a464a1e5d8a3f6bb571ee69ee630"
+}

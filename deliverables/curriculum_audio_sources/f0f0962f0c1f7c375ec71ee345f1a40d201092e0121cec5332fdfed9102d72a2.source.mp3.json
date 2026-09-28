@@ -1,0 +1,20 @@
+{
+  "signature": "f0f0962f0c1f7c375ec71ee345f1a40d201092e0121cec5332fdfed9102d72a2",
+  "request": {
+    "text": "Bây giờ cùng nghe",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "f80fef06e7cf19c24583f4afaa6759b29a3840395a84c450670afcbc2c5db524",
+  "requestId": "sWGQWQKIZVEbQtZF9I6J",
+  "createdAt": "2026-09-15T23:23:26.431Z"
+}

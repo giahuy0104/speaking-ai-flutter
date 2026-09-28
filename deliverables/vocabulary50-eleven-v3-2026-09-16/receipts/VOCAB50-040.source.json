@@ -1,0 +1,22 @@
+{
+  "id": "VOCAB50-040",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+  "request": {
+    "text": "Try again.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "0TUSNjX8ZBwbnQlxmKHB",
+  "historyItemId": "gCYOiDnMhcuI5ECJrhZ0",
+  "characterCost": "6",
+  "createdAt": "2026-09-16T03:21:13.133Z",
+  "sourceSha256": "cb9a3dfaf3343029fe774b6db835f3d77e00280146649a9b9967ac3bdce7b0b4"
+}

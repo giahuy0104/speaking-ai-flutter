@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T03-B02\\C67-L1-T03-B02-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T03-B02-Q08",
+  "sourceText": "Bạn muốn nói \"Khỉ có thể leo trèo\". Elephants can walk hay Monkeys can climb?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Khỉ có thể leo trèo\".",
+      "spoken_text": "Bạn muốn nói \"Khỉ có thể leo trèo\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Elephants can walk",
+      "spoken_text": "Elephants can walk",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Monkeys can climb?",
+      "spoken_text": "Monkeys can climb?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-6374202F74D0AFBD1A61F154",
+  "text": "Bạn muốn nói \"Khỉ có thể leo trèo\". Elephants can walk hay Monkeys can climb?",
+  "asset": "assets/audio/CURRICULUM/6374202f74d0afbd1a61f154.vi.v1.mp3",
+  "sha256": "030e82fd201ea52d84b31da900f8769c640f0126f6dbcf0a46f7fb9f4a0792e6",
+  "durationSeconds": 7.693197
+}

@@ -1,0 +1,20 @@
+{
+  "id": "RUN-027",
+  "signature": "82136d2fb02b79ba684ba204ff5975faac82357515408e03f390316421e186e6",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình chuyển sang bài tiếp theo nhé",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:11:53.737Z",
+  "requestId": "5fJ9WXx39NJ45NQunNzr",
+  "characterCost": "19",
+  "sourceSha256": "750adc292aedf1d03ed07a6ff24e701df4446f7fb054e2519b962d695a0845b2"
+}

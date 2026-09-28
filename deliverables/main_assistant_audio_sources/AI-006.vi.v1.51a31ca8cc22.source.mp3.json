@@ -1,0 +1,20 @@
+{
+  "id": "AI-006",
+  "signature": "51a31ca8cc228d7aa9dfcd68e33dade345d1cdc63e026039598e62dd5bbc1a24",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn muốn dịch sang tiếng Anh hay học bộ từ vựng?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:06:41.283Z",
+  "requestId": "uc234gGGhBu3WbwRGjor",
+  "characterCost": "26",
+  "sourceSha256": "e78ce3a28a527d5db3ca9014824ebdffa4c1f581eef9a44afb0317aa0a4b37f7"
+}

@@ -1,0 +1,20 @@
+{
+  "id": "AI-054",
+  "signature": "e09e7bd437d789c7f54ec66003bf2481f1939d0590a1393f2b85fdac846abb95",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn tập trung nhé. Mình quay lại câu đang học nào.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:09:52.664Z",
+  "requestId": "6KBMr0mSScrOV2q9jY6Q",
+  "characterCost": "28",
+  "sourceSha256": "1b5b97d6a35532eaddc9f81f9b91426635dca80d25264b439449f6aebf80133d"
+}

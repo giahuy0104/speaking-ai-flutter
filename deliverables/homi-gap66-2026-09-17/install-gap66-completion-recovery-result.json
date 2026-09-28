@@ -1,0 +1,454 @@
+{
+  "at": "2026-09-17T14:27:19.803Z",
+  "count": 16,
+  "receipts": [
+    {
+      "id": "GAP66-021",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn còn một Chủ đề chưa học. Bạn muốn học tiếp hay học lại?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "EMC9k3OWBNFDmk1PddEO",
+      "historyItemId": "hf61mI9KKXLi94u00jM2",
+      "characterCost": "41",
+      "createdAt": "2026-09-17T14:25:01.342Z",
+      "sourceSha256": "baedd9f46acd9a6be8c2f08850de450d5b360cd0bc901722f2638a24120690dc",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-021.vi.v1.mp3",
+      "finalSha256": "6aab0efc7f6d5decb716da6e5a5c2c34b1ffacd78962fdfe335aa32e86b3d4ba",
+      "sourceDurationSeconds": 4.88,
+      "durationSeconds": 5.410023,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 87815
+    },
+    {
+      "id": "GAP66-022",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "YLF0NcX8KaDzZ74R0tS7",
+      "historyItemId": "P1y29vE3QTzQv5oCCMvZ",
+      "characterCost": "43",
+      "createdAt": "2026-09-17T14:25:03.918Z",
+      "sourceSha256": "c8c9dc08cd345621d15deb6cb913bde810abe3d01f0282e9b5213ba1e5061d8f",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-022.vi.v1.mp3",
+      "finalSha256": "3360ebefc8cf7d26e844dba6bd041a6ad5ace64e2253cf884d8e19087e83b6dc",
+      "sourceDurationSeconds": 5.12,
+      "durationSeconds": 5.678821,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 91995
+    },
+    {
+      "id": "GAP66-025",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn bắt đầu Level 2 hay dừng lại?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "aoBn1E6EbxVY5RaGDhTM",
+      "historyItemId": "ZsHeBgMgAq403NQ6OhKy",
+      "characterCost": "30",
+      "createdAt": "2026-09-17T14:25:11.826Z",
+      "sourceSha256": "bc48b15a8b9e5b681336be6c5d50e50b180713f04c141603b9b0dfbb0542ca90",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-025.vi.v1.mp3",
+      "finalSha256": "ca64b8dff007d93df9fba89791154e7e1d6f7828f61fb6b70660d68c8fbb926c",
+      "sourceDurationSeconds": 3.28,
+      "durationSeconds": 3.629274,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 58976
+    },
+    {
+      "id": "GAP66-026",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn bắt đầu Level 3 hay dừng lại?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "AzVqpMCNFovkEzHrfCEX",
+      "historyItemId": "n4T10gG76WhDaHLQqGLx",
+      "characterCost": "30",
+      "createdAt": "2026-09-17T14:25:13.827Z",
+      "sourceSha256": "76a585a81e684e8f8fb06bd51da14e1976b38a254212a94834d92137e5fd6946",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-026.vi.v1.mp3",
+      "finalSha256": "12f900b9780c136ee2e615b41a04e6f1e272e22665507842c3e1575fda370134",
+      "sourceDurationSeconds": 3.36,
+      "durationSeconds": 3.717007,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 60648
+    },
+    {
+      "id": "GAP66-027",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 1?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "58qi8pG0GOBZGSGzwZp4",
+      "historyItemId": "u19QY759TZPb0F78uhTX",
+      "characterCost": "35",
+      "createdAt": "2026-09-17T14:25:15.898Z",
+      "sourceSha256": "b7a0faecdbb17748814619e990bca059791d1271bde72b56621ecebb572dacf9",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-027.vi.v1.mp3",
+      "finalSha256": "0ae73ac69403df01ce61fa6ac6ccb8db5d82efe6d9a40f3d24cb327fc59cd2f6",
+      "sourceDurationSeconds": 3.92,
+      "durationSeconds": 4.347914,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 70679
+    },
+    {
+      "id": "GAP66-028",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 10?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "MUeYdWdX2t2aELOZg03l",
+      "historyItemId": "tPfSt4HNivZPZEhQCU1X",
+      "characterCost": "35",
+      "createdAt": "2026-09-17T14:25:17.997Z",
+      "sourceSha256": "31d1889a07f4aaca736df2cbce01c9827237ff273a8c4224bf15889cb85749f4",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-028.vi.v1.mp3",
+      "finalSha256": "c4365b2b0bec76f0e5c2c16fa11eb592f2e22e2229a25af92640b87f895059ca",
+      "sourceDurationSeconds": 4,
+      "durationSeconds": 4.433084,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 71933
+    },
+    {
+      "id": "GAP66-029",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 2?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "z6g6TjAmQvONFA4sopxH",
+      "historyItemId": "cAQTdIHX0ibqblS4zstF",
+      "characterCost": "35",
+      "createdAt": "2026-09-17T14:25:20.445Z",
+      "sourceSha256": "ece2833e114d9189a0fc7e3200a0e85c3c1e02b80e3a659e9ee13cc40cf8eeaa",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-029.vi.v1.mp3",
+      "finalSha256": "4ad58e301aae72c00d2ae0ad6d5ed94342fafd34739e5bc45a56533b8b48a57e",
+      "sourceDurationSeconds": 4,
+      "durationSeconds": 4.429161,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 71933
+    },
+    {
+      "id": "GAP66-030",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 3?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "wB9MReWrDfqSW2ccaYqO",
+      "historyItemId": "ybNiGOaG4TKI1wnSe5Ps",
+      "characterCost": "35",
+      "createdAt": "2026-09-17T14:25:22.977Z",
+      "sourceSha256": "3e7532dc31f71c404892bab535d8af142fdc9eae985cac461fde63b2cc11b168",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-030.vi.v1.mp3",
+      "finalSha256": "957732513020622ef4a3d1f74057bcc297cc4c5ada1d54d33bb0d8cd4e8b7976",
+      "sourceDurationSeconds": 4,
+      "durationSeconds": 4.434762,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 71933
+    },
+    {
+      "id": "GAP66-031",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 4?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "pEAwerxDkPejisaXKzjf",
+      "historyItemId": "3V2fkpEnF9jeW2qHAYES",
+      "characterCost": "35",
+      "createdAt": "2026-09-17T14:25:25.156Z",
+      "sourceSha256": "02a1e95c4617fa8609ef38638dac795e2f231ddd4269c3b7d5ba4560be98e681",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-031.vi.v1.mp3",
+      "finalSha256": "4341d92bdab4ed4f0e8e3c075c593dca65c7f11f69a9edcd5e8cafb459410a57",
+      "sourceDurationSeconds": 3.92,
+      "durationSeconds": 4.341995,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 70679
+    },
+    {
+      "id": "GAP66-032",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 5?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "yhdw5BHvaYX2QxQgbfKF",
+      "historyItemId": "EdTBmlDMW1xzM8WYufjl",
+      "characterCost": "35",
+      "createdAt": "2026-09-17T14:25:27.591Z",
+      "sourceSha256": "179283e622b0333b777546ab56e151634c7f4aa12a725be91a13f205e9c23f71",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-032.vi.v1.mp3",
+      "finalSha256": "bea8672051ae47d9505e09425fc0d8254f4db624cfef9c06515c74053b03019e",
+      "sourceDurationSeconds": 4,
+      "durationSeconds": 4.435714,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 71933
+    },
+    {
+      "id": "GAP66-033",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 6?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "bSDT6zr1IbyT5THAVanB",
+      "historyItemId": "j75tOE5qUnOzqb2zbId4",
+      "characterCost": "35",
+      "createdAt": "2026-09-17T14:25:30.086Z",
+      "sourceSha256": "859cbc7855f6468acc26645fc263067fa4f83fafc773f9e151f9cefe4492769d",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-033.vi.v1.mp3",
+      "finalSha256": "7c241ec5195ad1251b2fb4a95b623df71b58e69c5c44e71b2125ed396f253664",
+      "sourceDurationSeconds": 4.16,
+      "durationSeconds": 4.610113,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 74858
+    },
+    {
+      "id": "GAP66-034",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 7?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "uVwrCDQucKN3Dh7xmbex",
+      "historyItemId": "82k0B0g7iwUJeuYG6z5r",
+      "characterCost": "35",
+      "createdAt": "2026-09-17T14:25:32.468Z",
+      "sourceSha256": "c2abcc01fe15b9746643587ab289d4ab9b021045fef96ed4120d94278112629a",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-034.vi.v1.mp3",
+      "finalSha256": "fd879bc6d9df9ed4610f5e1b753c070e7f90864b7183675e6542c1950bad8f47",
+      "sourceDurationSeconds": 4,
+      "durationSeconds": 4.436667,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 71933
+    },
+    {
+      "id": "GAP66-035",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 8?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "tDwB2nuHjHaSIwlv9yl5",
+      "historyItemId": "pz6wLXymFEO3TP7gUqGi",
+      "characterCost": "35",
+      "createdAt": "2026-09-17T14:25:34.454Z",
+      "sourceSha256": "bb732e6cd9977b9f258b0afd620366ee99b63804cfb8863dd468462d47fc5e90",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-035.vi.v1.mp3",
+      "finalSha256": "98033e0049feb435877011cc60e896ff4d95cceecbcde68b041e9e0cd385d1b1",
+      "sourceDurationSeconds": 4,
+      "durationSeconds": 4.440431,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 71933
+    },
+    {
+      "id": "GAP66-036",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 9?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "1lyKUooKxgcQOOmu1OKC",
+      "historyItemId": "i6rv8ezBqpYdYCYKiXJC",
+      "characterCost": "35",
+      "createdAt": "2026-09-17T14:25:36.954Z",
+      "sourceSha256": "67575c6f15d8f1d655e9841d9468161f14fc838875d6bf827d754d431773913d",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-036.vi.v1.mp3",
+      "finalSha256": "06690509f5b3abecbeeaca42c6f740bc263b7c1ad7a84b1698fe146fafe6113f",
+      "sourceDurationSeconds": 4,
+      "durationSeconds": 4.435351,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 71933
+    },
+    {
+      "id": "GAP66-038",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn học Bài 2 hay học lại Bài 1?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "IZCltYuz3HurCq17RXvD",
+      "historyItemId": "L05NUaSkHowflUlYGyne",
+      "characterCost": "29",
+      "createdAt": "2026-09-17T14:25:41.753Z",
+      "sourceSha256": "82560c0c2b5ea22f9d156d7b0248d9a19f7082120775a9952bd26013a47b7639",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-038.vi.v1.mp3",
+      "finalSha256": "4c2170870cd448fec3749d5db3c5f592b2287e90f2e3939bffeed64bbf8956f6",
+      "sourceDurationSeconds": 3.28,
+      "durationSeconds": 3.636281,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 59394
+    },
+    {
+      "id": "GAP66-039",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn học Bài 3 hay học lại Bài 2?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "p4cvrKpJXxUmpQq0Kx7t",
+      "historyItemId": "Dmp5RtzIX1wN8HRWoqYc",
+      "characterCost": "29",
+      "createdAt": "2026-09-17T14:25:43.825Z",
+      "sourceSha256": "a03926efbb5d5b929fff8832c03172dc9621331ef80ffa26dcc653b07ad87386",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-039.vi.v1.mp3",
+      "finalSha256": "de5867a6c2d8c6c951ea7c5f33fe1a86fdd59f740dfebfaac3e3c98ea9b2bab8",
+      "sourceDurationSeconds": 3.28,
+      "durationSeconds": 3.641088,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 59394
+    }
+  ]
+}

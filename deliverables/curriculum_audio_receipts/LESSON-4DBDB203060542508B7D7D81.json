@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T10-B01\\C1315-L3-T10-B01-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T10-B01-Q04",
+  "sourceText": "Mình hy vọng được đi du lịch: I plan to exercise more hay I hope to travel?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình hy vọng được đi du lịch:",
+      "spoken_text": "Mình hy vọng được đi du lịch:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "I plan to exercise more",
+      "spoken_text": "I plan to exercise more",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "I hope to travel?",
+      "spoken_text": "I hope to travel?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-4DBDB203060542508B7D7D81",
+  "text": "Mình hy vọng được đi du lịch: I plan to exercise more hay I hope to travel?",
+  "asset": "assets/audio/CURRICULUM/4dbdb203060542508b7d7d81.vi.v1.mp3",
+  "sha256": "e717aa252e48a833103bafa0c08f2707a792c079b76635aa2589cb95789708cf",
+  "durationSeconds": 6.584921
+}

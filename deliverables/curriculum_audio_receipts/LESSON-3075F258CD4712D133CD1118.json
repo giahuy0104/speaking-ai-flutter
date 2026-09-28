@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T01-B02\\C1315-L1-T01-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T01-B02-Q05",
+  "sourceText": "Mình ngủ trước 11 giờ: I sleep before eleven hay I plan on Sundays?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình ngủ trước 11 giờ:",
+      "spoken_text": "Mình ngủ trước mười một giờ:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "I sleep before eleven",
+      "spoken_text": "I sleep before eleven",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "I plan on Sundays?",
+      "spoken_text": "I plan on Sundays?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-3075F258CD4712D133CD1118",
+  "text": "Mình ngủ trước 11 giờ: I sleep before eleven hay I plan on Sundays?",
+  "asset": "assets/audio/CURRICULUM/3075f258cd4712d133cd1118.vi.v1.mp3",
+  "sha256": "31d72c0e64ba3d3b5a47a89e0acc4d09bc50df8a4d6ff2d0b209a50545346f16",
+  "durationSeconds": 9.413288
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T10-B01\\C67-L3-T10-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T10-B01-Q08",
+  "sourceText": "Bạn muốn nói \"Hoạt hình\". Park hay Cartoons?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Hoạt hình\".",
+      "spoken_text": "Bạn muốn nói \"Hoạt hình\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Park",
+      "spoken_text": "Park",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Cartoons?",
+      "spoken_text": "Cartoons?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-98D88A04D7E923903905FD93",
+  "text": "Bạn muốn nói \"Hoạt hình\". Park hay Cartoons?",
+  "asset": "assets/audio/CURRICULUM/98d88a04d7e923903905fd93.vi.v1.mp3",
+  "sha256": "1e907ac1d8d10e5098bdcda6df5832586d54397517c315671dc5c7796cb81155",
+  "durationSeconds": 5.353741
+}

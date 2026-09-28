@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T07-B01\\C67-L3-T07-B01-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T07-B01-Q06",
+  "sourceText": "Bạn muốn nói \"Sách\". Desk hay Book?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Sách\".",
+      "spoken_text": "Bạn muốn nói \"Sách\".",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Desk",
+      "spoken_text": "Desk",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Book?",
+      "spoken_text": "Book?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-3DA18BB6CD8BB2DCC8E522B8",
+  "text": "Bạn muốn nói \"Sách\". Desk hay Book?",
+  "asset": "assets/audio/CURRICULUM/3da18bb6cd8bb2dcc8e522b8.vi.v1.mp3",
+  "sha256": "2df8338494a0921143d4b2fe4b0ab58a574df3db8a401a0538bbf5bd1ac8db99",
+  "durationSeconds": 4.334762
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T07-B01\\C35-L3-T07-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T07-B01-Q03",
+  "sourceText": "Cơm: Rice hay Milk?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Cơm:",
+      "spoken_text": "Cơm:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Rice",
+      "spoken_text": "Rice",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Milk?",
+      "spoken_text": "Milk?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-1BEBBCEF2653773E50BF585A",
+  "text": "Cơm: Rice hay Milk?",
+  "asset": "assets/audio/CURRICULUM/1bebbcef2653773e50bf585a.vi.v1.mp3",
+  "sha256": "fd8986ec1269392e89d031d7ce6984099deb607c34b1dbc67413ed56a207824b",
+  "durationSeconds": 3.463787
+}

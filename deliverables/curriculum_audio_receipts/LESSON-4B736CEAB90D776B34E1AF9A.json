@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T03-B01\\C1315-L1-T03-B01-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T03-B01-Q04",
+  "sourceText": "Mình đồng ý: I don't agree hay I agree?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình đồng ý:",
+      "spoken_text": "Mình đồng ý:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "I don't agree",
+      "spoken_text": "I don't agree",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "I agree?",
+      "spoken_text": "I agree?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-4B736CEAB90D776B34E1AF9A",
+  "text": "Mình đồng ý: I don't agree hay I agree?",
+  "asset": "assets/audio/CURRICULUM/4b736ceab90d776b34e1af9a.vi.v1.mp3",
+  "sha256": "d085e2301533c3949e89224905a48d30058034e40db447b2b66276f8a3a826cb",
+  "durationSeconds": 4.49229
+}

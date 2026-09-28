@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T03-B01\\C810-L1-T03-B01-T02_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T03-B01-T02_EN",
+  "sourceText": "Draw pictures.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Draw pictures.",
+      "generation_key": "4e833c8e666e9e31"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-0E6DA045910B2F4E6F7B8572",
+  "text": "Draw pictures.",
+  "asset": "assets/audio/CURRICULUM/0e6da045910b2f4e6f7b8572.en.v1.mp3",
+  "sha256": "ab83846d5c4a0f9938b924ced4c63100ba5996450b9a19874b4dd814b807616a",
+  "durationSeconds": 1.690703
+}

@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T09-B01\\C35-L3-T09-B01-T04_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T09-B01-T04_VI",
+  "sourceText": "Lạnh.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Lạnh.",
+      "generation_key": "95d48ee1309a2f7d"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-B05F41D971719A1DB81382C8",
+  "text": "Lạnh.",
+  "asset": "assets/audio/CURRICULUM/b05f41d971719a1db81382c8.vi.v1.mp3",
+  "sha256": "68388cc6579a36f148330035de162fe8fbc7d6fbf22247bcf9571747fb6ebf89",
+  "durationSeconds": 1.23907
+}

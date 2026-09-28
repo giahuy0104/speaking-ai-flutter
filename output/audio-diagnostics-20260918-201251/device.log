@@ -1,0 +1,393 @@
+--------- beginning of main
+         1789737174.263  9557  9595 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+         1789737174.275  9557  9557 I HomiDiag: {"event":"diagnostics.native.ready","utcMs":1789737174275,"elapsedMs":207040848,"build":"audio-diag-v1"}
+         1789737175.391  9557  9557 I flutter : Android device hardware registered.
+         1789737189.659  9557  9557 I flutter : Saved H20 BLE address was unavailable; scanning nearby: PlatformException(AIV0_PROTOCOL_MISMATCH, Kết nối/đọc GATT của H20 quá thời gian 15 giây., {type: status, phase: error, message: Kết nối/đọc GATT của H20 quá thời gian 15 giây., deviceId: 18:71:22:4D:06:3B, deviceName: H20, writeMode: null, batteryPercent: null, firmwareRevision: null, lastRawHex: null, packetCount: 0, invalidPacketCount: 0, duplicatePacketCount: 0, reconnectCount: 0}, null)
+         1789740533.339  1597  2347 I AudioService: setDefaultTimeZoneStatus: mInternationalLocation=true
+         1789740533.339  1597  2347 I AudioService: querySoundSourcesNumber:result=3 RowIndex=0 ColumnIndex=2 mTimeZone=Evening
+         1789740533.339  1597  2347 I AudioService: createActualUriForNatureSound: FilePath=file:///system/media/audio/ui/WaterDropNotificationEvening1.ogg
+         1789740552.482 13720 14168 I AudioManager: Failed to find port id for device with type:0 address:back
+         1789741607.603  9557  9557 I flutter : Saved H20 BLE address was unavailable; scanning nearby: PlatformException(AIV0_PROTOCOL_MISMATCH, Kết nối/đọc GATT của H20 quá thời gian 15 giây., {type: status, phase: error, message: Kết nối/đọc GATT của H20 quá thời gian 15 giây., deviceId: 18:71:22:4D:06:3B, deviceName: H20, writeMode: null, batteryPercent: null, firmwareRevision: null, lastRawHex: null, packetCount: 0, invalidPacketCount: 0, duplicatePacketCount: 0, reconnectCount: 0}, null)
+         1789741668.430  9557  9609 D HfpAudioBridge: Ignoring HFP connection event from a non-selected device
+         1789741668.659  9557  9609 D HfpAudioBridge: Ignoring HFP connection event from a non-selected device
+         1789741681.310  9557  9557 I flutter : H20 BLE Control connected automatically.
+         1789741681.329  9557  9609 I HfpAudioBridge: H20 HFP profile selected and connected
+         1789741681.335  9557  9557 I flutter : Connected Android H20 HFP microphone selected automatically.
+         1789741684.147  9557  9557 I flutter : H20 MAIN: received • seq=2 • actionable
+         1789741684.147  9557  9557 I flutter : H20 MAIN: dispatching • shortPress • seq=2
+         1789741684.160  9557  9609 I HfpAudioBridge: Starting HFP route generation=1
+         1789741685.182  9557  9609 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=8190, name=H20, generation=1
+         1789741685.205  9557  9557 I flutter : HOMI_DIAG {"event":"main.prompt.prepare","utcMs":1789741685205,"elapsedUs":25,"generation":7,"characters":61}
+         1789741685.313  9557  9557 I flutter : HOMI_DIAG {"event":"main.prompt.budget_ready","utcMs":1789741685313,"elapsedUs":107759,"generation":7,"budgetMs":14350}
+         1789741685.313  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741685313,"elapsedUs":107836,"operation":1,"owner":"mainAssistant"}
+         1789741685.313  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741685313,"elapsedUs":107916,"operation":1,"owner":"mainAssistant"}
+         1789741685.313  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.start.request","utcMs":1789741685313,"elapsedUs":107936,"operation":1,"owner":"mainAssistant"}
+         1789741685.313  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.start.completed","utcMs":1789741685313,"elapsedUs":107957,"operation":1,"owner":"mainAssistant"}
+         1789741685.313  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741685313,"elapsedUs":107973,"operation":1,"owner":"mainAssistant"}
+         1789741685.321  9557  9557 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1789741685321,"elapsedMs":211551895,"id":"authored-prompt-1"}
+         1789741685.457  9557  9557 I HomiDiag: {"event":"prompt.native.started","utcMs":1789741685456,"elapsedMs":211552030,"id":"authored-prompt-1","gainMb":1200,"durationMs":4389,"sessionId":40169,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741689.976  9557  9557 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1789741689975,"elapsedMs":211556549,"id":"authored-prompt-1"}
+         1789741690.012  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741690012,"elapsedUs":4806670,"operation":1,"owner":"mainAssistant"}
+         1789741690.012  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741690012,"elapsedUs":4807017,"operation":1,"owner":"mainAssistant"}
+         1789741690.013  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741690013,"elapsedUs":4807369,"operation":1,"owner":"mainAssistant"}
+         1789741690.013  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741690013,"elapsedUs":4807744,"operation":1,"owner":"mainAssistant"}
+         1789741690.013  9557  9557 I flutter : HOMI_DIAG {"event":"main.prompt.completed","utcMs":1789741690013,"elapsedUs":4808088,"generation":7}
+         1789741690.014  9557  9557 I flutter : HOMI_DIAG {"event":"main.microphone.start","utcMs":1789741690014,"elapsedUs":4808323,"generation":7}
+         1789741690.228  9557  9557 I flutter : HOMI_DIAG {"event":"speech.ready","utcMs":1789741690228,"elapsedUs":5022971,"turnId":1,"audioSource":null}
+         1789741690.229  9557  9557 I flutter : HOMI_DIAG {"event":"main.cue.request","utcMs":1789741690229,"elapsedUs":5023285,"generation":7,"caller":"startSession","buttonSession":true}
+         1789741690.229  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741690229,"elapsedUs":5023358,"operation":2,"owner":"mainAssistant"}
+         1789741690.229  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741690229,"elapsedUs":5023499,"operation":2,"owner":"mainAssistant"}
+         1789741690.229  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.start.request","utcMs":1789741690229,"elapsedUs":5023545,"operation":2,"owner":"mainAssistant"}
+         1789741690.229  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.start.completed","utcMs":1789741690229,"elapsedUs":5023598,"operation":2,"owner":"mainAssistant"}
+         1789741690.229  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741690229,"elapsedUs":5023638,"operation":2,"owner":"mainAssistant"}
+         1789741690.229  9557  9557 I flutter : HOMI_DIAG {"event":"cue.delegate","utcMs":1789741690229,"elapsedUs":5023672,"owner":"mainAssistant"}
+         1789741690.229  9557  9557 I flutter : HOMI_DIAG {"event":"cue.channel.request","utcMs":1789741690229,"elapsedUs":5023699}
+         1789741690.309  9557  9557 I HomiDiag: {"event":"cue.native.start","utcMs":1789741690309,"elapsedMs":211556883,"cueId":1,"stream":0,"mode":0,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741690.728  9557  9557 I HomiDiag: {"event":"cue.native.complete","utcMs":1789741690728,"elapsedMs":211557301,"cueId":1,"errorCode":null}
+         1789741690.731  9557  9557 I flutter : HOMI_DIAG {"event":"cue.channel.completed","utcMs":1789741690731,"elapsedUs":5525765}
+         1789741690.731  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741690731,"elapsedUs":5525910,"operation":2,"owner":"mainAssistant"}
+         1789741690.731  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741690731,"elapsedUs":5526042,"operation":2,"owner":"mainAssistant"}
+         1789741690.731  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741690731,"elapsedUs":5526139,"operation":2,"owner":"mainAssistant"}
+         1789741690.732  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741690732,"elapsedUs":5526205,"operation":2,"owner":"mainAssistant"}
+         1789741690.732  9557  9557 I flutter : H20 MAIN: accepted • seq=2
+         1789741699.057  9557  9557 I flutter : HOMI_DIAG {"event":"speech.final","utcMs":1789741699056,"elapsedUs":13851174,"turnId":1}
+         1789741699.077  9557  9557 I flutter : HOMI_DIAG {"event":"main.command.received","utcMs":1789741699077,"elapsedUs":13872051,"generation":7,"characters":6}
+         1789741699.087  9557  9557 I flutter : HOMI_DIAG {"event":"main.command.resolved","utcMs":1789741699087,"elapsedUs":13881288,"generation":7,"destination":"topics"}
+         1789741699.087  9557  9557 I flutter : HOMI_DIAG {"event":"navigation.dispatch","utcMs":1789741699087,"elapsedUs":13881392,"generation":7,"destination":"topics"}
+         1789741699.088  9557  9557 I flutter : HOMI_DIAG {"event":"navigation.handler.completed","utcMs":1789741699088,"elapsedUs":13882892,"generation":7,"destination":"topics"}
+         1789741699.088  9557  9557 I flutter : HOMI_DIAG {"event":"main.handoff.request","utcMs":1789741699088,"elapsedUs":13882954,"generation":7}
+         1789741699.088  9557  9557 I flutter : HOMI_DIAG {"event":"main.handoff.completed","utcMs":1789741699088,"elapsedUs":13882983,"generation":7}
+         1789741699.088  9557  9557 I flutter : HOMI_DIAG {"event":"main.native_end.request","utcMs":1789741699088,"elapsedUs":13883009,"generation":7}
+         1789741699.092  9557  9557 I flutter : HOMI_DIAG {"event":"main.native_end.completed","utcMs":1789741699092,"elapsedUs":13886345,"generation":7}
+         1789741699.093  9557  9609 I HomiDiag: {"event":"hfp.stop.begin","utcMs":1789741699093,"elapsedMs":211565666,"generation":1}
+         1789741699.093  9557  9609 I HfpAudioBridge: Stopping HFP route generation=1 pending=false
+         1789741699.109  9557  9609 I HomiDiag: {"event":"hfp.stop.restore_mode.begin","utcMs":1789741699108,"elapsedMs":211565682}
+         1789741699.113  9557  9557 I flutter : HOMI_DIAG {"event":"screen.topics.init","utcMs":1789741699113,"elapsedUs":13907951}
+         1789741699.125  9557  9609 I HomiDiag: {"event":"hfp.stop.restore_mode.end","utcMs":1789741699124,"elapsedMs":211565698}
+         1789741699.136  9557  9609 I HomiDiag: {"event":"hfp.stop.completed","utcMs":1789741699136,"elapsedMs":211565710,"generation":2}
+         1789741699.141  9557  9557 I flutter : HOMI_DIAG {"event":"screen.topics.first_frame","utcMs":1789741699141,"elapsedUs":13935625}
+         1789741699.154  9557  9557 I flutter : HOMI_DIAG {"event":"main.prompt.prepare","utcMs":1789741699154,"elapsedUs":13948588,"generation":8,"characters":53}
+         1789741699.155  9557  9557 I flutter : HOMI_DIAG {"event":"main.prompt.budget_ready","utcMs":1789741699155,"elapsedUs":13949890,"generation":8,"budgetMs":14704}
+         1789741699.169  9557  9609 I HfpAudioBridge: Starting HFP route generation=3
+         1789741699.745  9557  9609 I HfpAudioBridge: Ignoring SCO disconnect during route negotiation
+         1789741702.183  9557  9609 I HfpAudioBridge: Re-asserting H20 communication route after delayed SCO disconnect generation=3
+         1789741703.044  9557  9609 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=8190, name=H20, generation=3
+         1789741703.068  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741703068,"elapsedUs":17862977,"operation":3,"owner":"mainAssistant"}
+         1789741703.070  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741703070,"elapsedUs":17864320,"operation":3,"owner":"mainAssistant"}
+         1789741703.070  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.start.request","utcMs":1789741703070,"elapsedUs":17864607,"operation":3,"owner":"mainAssistant"}
+         1789741703.071  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.start.completed","utcMs":1789741703070,"elapsedUs":17865147,"operation":3,"owner":"mainAssistant"}
+         1789741703.071  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741703071,"elapsedUs":17865330,"operation":3,"owner":"mainAssistant"}
+         1789741703.107  9557  9557 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1789741703107,"elapsedMs":211569680,"id":"authored-prompt-2"}
+         1789741703.223  9557  9557 I HomiDiag: {"event":"prompt.native.started","utcMs":1789741703223,"elapsedMs":211569796,"id":"authored-prompt-2","gainMb":1200,"durationMs":4754,"sessionId":40209,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741708.275  9557  9557 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1789741708275,"elapsedMs":211574848,"id":"authored-prompt-2"}
+         1789741708.311  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741708310,"elapsedUs":23105128,"operation":3,"owner":"mainAssistant"}
+         1789741708.311  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741708311,"elapsedUs":23105438,"operation":3,"owner":"mainAssistant"}
+         1789741708.311  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741708311,"elapsedUs":23105724,"operation":3,"owner":"mainAssistant"}
+         1789741708.311  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741708311,"elapsedUs":23105897,"operation":3,"owner":"mainAssistant"}
+         1789741708.312  9557  9557 I flutter : HOMI_DIAG {"event":"main.prompt.completed","utcMs":1789741708312,"elapsedUs":23106291,"generation":8}
+         1789741708.312  9557  9557 I flutter : HOMI_DIAG {"event":"main.microphone.start","utcMs":1789741708312,"elapsedUs":23106479,"generation":8}
+         1789741708.431  9557  9557 I flutter : HOMI_DIAG {"event":"speech.ready","utcMs":1789741708431,"elapsedUs":23226016,"turnId":2,"audioSource":null}
+         1789741708.432  9557  9557 I flutter : HOMI_DIAG {"event":"main.cue.request","utcMs":1789741708432,"elapsedUs":23226292,"generation":8,"caller":"startSession","buttonSession":true}
+         1789741708.432  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741708432,"elapsedUs":23226530,"operation":4,"owner":"mainAssistant"}
+         1789741708.432  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741708432,"elapsedUs":23226656,"operation":4,"owner":"mainAssistant"}
+         1789741708.432  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.start.request","utcMs":1789741708432,"elapsedUs":23226707,"operation":4,"owner":"mainAssistant"}
+         1789741708.432  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.start.completed","utcMs":1789741708432,"elapsedUs":23226756,"operation":4,"owner":"mainAssistant"}
+         1789741708.432  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741708432,"elapsedUs":23226789,"operation":4,"owner":"mainAssistant"}
+         1789741708.432  9557  9557 I flutter : HOMI_DIAG {"event":"cue.delegate","utcMs":1789741708432,"elapsedUs":23226820,"owner":"mainAssistant"}
+         1789741708.432  9557  9557 I flutter : HOMI_DIAG {"event":"cue.channel.request","utcMs":1789741708432,"elapsedUs":23226843}
+         1789741708.456  9557  9557 I HomiDiag: {"event":"cue.native.start","utcMs":1789741708456,"elapsedMs":211575029,"cueId":2,"stream":0,"mode":0,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741708.812  9557  9557 I HomiDiag: {"event":"cue.native.complete","utcMs":1789741708812,"elapsedMs":211575386,"cueId":2,"errorCode":null}
+         1789741708.816  9557  9557 I flutter : HOMI_DIAG {"event":"cue.channel.completed","utcMs":1789741708816,"elapsedUs":23610797}
+         1789741708.816  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741708816,"elapsedUs":23611083,"operation":4,"owner":"mainAssistant"}
+         1789741708.817  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741708817,"elapsedUs":23611219,"operation":4,"owner":"mainAssistant"}
+         1789741708.817  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741708817,"elapsedUs":23611404,"operation":4,"owner":"mainAssistant"}
+         1789741708.817  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741708817,"elapsedUs":23611664,"operation":4,"owner":"mainAssistant"}
+         1789741715.009  9557  9557 I flutter : HOMI_DIAG {"event":"speech.final","utcMs":1789741715009,"elapsedUs":29803551,"turnId":2}
+         1789741715.064  9557  9557 I flutter : HOMI_DIAG {"event":"main.command.received","utcMs":1789741715064,"elapsedUs":29858737,"generation":8,"characters":11}
+         1789741715.069  9557  9557 I flutter : HOMI_DIAG {"event":"main.command.resolved","utcMs":1789741715069,"elapsedUs":29863333,"generation":8,"destination":"topics"}
+         1789741715.069  9557  9557 I flutter : HOMI_DIAG {"event":"navigation.dispatch","utcMs":1789741715069,"elapsedUs":29863399,"generation":8,"destination":"topics"}
+         1789741715.071  9557  9557 I flutter : HOMI_DIAG {"event":"navigation.handler.completed","utcMs":1789741715071,"elapsedUs":29865279,"generation":9,"destination":"topics"}
+         1789741715.075  9557  9557 I flutter : HOMI_DIAG {"event":"screen.topics.init","utcMs":1789741715075,"elapsedUs":29869677}
+         1789741715.096  9557  9557 I flutter : HOMI_DIAG {"event":"screen.topics.first_frame","utcMs":1789741715096,"elapsedUs":29890881}
+         1789741715.098  9557  9609 I HomiDiag: {"event":"hfp.stop.begin","utcMs":1789741715098,"elapsedMs":211581672,"generation":3}
+         1789741715.098  9557  9609 I HfpAudioBridge: Stopping HFP route generation=3 pending=false
+         1789741715.113  9557  9609 I HomiDiag: {"event":"hfp.stop.restore_mode.begin","utcMs":1789741715113,"elapsedMs":211581686}
+         1789741715.137  9557  9609 I HomiDiag: {"event":"hfp.stop.restore_mode.end","utcMs":1789741715137,"elapsedMs":211581710}
+         1789741715.147  9557  9609 I HomiDiag: {"event":"hfp.stop.completed","utcMs":1789741715147,"elapsedMs":211581720,"generation":4}
+         1789741715.155  9557  9609 I HfpAudioBridge: Starting HFP route generation=5
+         1789741715.229  9557  9609 I HfpAudioBridge: Ignoring SCO disconnect during route negotiation
+         1789741715.703  9557  9609 I HfpAudioBridge: Re-asserting H20 communication route after delayed SCO disconnect generation=5
+         1789741716.637  9557  9609 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=8190, name=H20, generation=5
+         1789741716.660  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741716660,"elapsedUs":31454809,"operation":5,"owner":"listeningLesson"}
+         1789741716.661  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741716660,"elapsedUs":31455144,"operation":5,"owner":"listeningLesson"}
+         1789741716.661  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741716661,"elapsedUs":31455255,"operation":5,"owner":"listeningLesson"}
+         1789741718.907  9557  9557 I HomiDiag: {"event":"tts.synthesis.request","utcMs":1789741718907,"elapsedMs":211585481,"id":"voice-prompt-3","gainDb":12,"characters":27,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741719.518  9557  9557 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1789741719518,"elapsedMs":211586091,"id":"voice-prompt-3"}
+         1789741719.639  9557  9557 I HomiDiag: {"event":"prompt.native.started","utcMs":1789741719639,"elapsedMs":211586212,"id":"voice-prompt-3","gainMb":1200,"durationMs":1969,"sessionId":40265,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741721.791  9557  9557 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1789741721791,"elapsedMs":211588364,"id":"voice-prompt-3"}
+         1789741721.823  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741721823,"elapsedUs":36617509,"operation":5,"owner":"listeningLesson"}
+         1789741721.823  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741721823,"elapsedUs":36617947,"operation":5,"owner":"listeningLesson"}
+         1789741721.824  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741721823,"elapsedUs":36618115,"operation":5,"owner":"listeningLesson"}
+         1789741721.824  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741721824,"elapsedUs":36618599,"operation":5,"owner":"listeningLesson"}
+         1789741721.990  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741721990,"elapsedUs":36785044,"operation":6,"owner":"listeningLesson"}
+         1789741721.990  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741721990,"elapsedUs":36785160,"operation":6,"owner":"listeningLesson"}
+         1789741721.990  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741721990,"elapsedUs":36785184,"operation":6,"owner":"listeningLesson"}
+         1789741724.056  9557  9557 I HomiDiag: {"event":"tts.synthesis.request","utcMs":1789741724056,"elapsedMs":211590630,"id":"voice-prompt-4","gainDb":12,"characters":97,"mode":0,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741724.515  9557  9557 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1789741724515,"elapsedMs":211591089,"id":"voice-prompt-4"}
+         1789741724.608  9557  9557 I HomiDiag: {"event":"prompt.native.started","utcMs":1789741724608,"elapsedMs":211591181,"id":"voice-prompt-4","gainMb":1200,"durationMs":7129,"sessionId":40273,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741731.827  9557  9557 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1789741731827,"elapsedMs":211598401,"id":"voice-prompt-4"}
+         1789741731.849  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741731849,"elapsedUs":46643245,"operation":6,"owner":"listeningLesson"}
+         1789741731.849  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741731849,"elapsedUs":46643386,"operation":6,"owner":"listeningLesson"}
+         1789741731.849  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741731849,"elapsedUs":46643484,"operation":6,"owner":"listeningLesson"}
+         1789741731.849  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741731849,"elapsedUs":46643541,"operation":6,"owner":"listeningLesson"}
+         1789741731.916  9557  9557 I flutter : HOMI_DIAG {"event":"media.gain.request","utcMs":1789741731916,"elapsedUs":46710336,"owner":"listeningLesson","gainDb":8.0}
+         1789741731.916  9557  9557 I flutter : HOMI_DIAG {"event":"media.play.request","utcMs":1789741731916,"elapsedUs":46710568,"owner":"listeningLesson","communicationRoute":true,"scheme":"https"}
+         1789741732.746  9557  9557 I flutter : HOMI_DIAG {"event":"media.play.started","utcMs":1789741732746,"elapsedUs":47540444,"owner":"listeningLesson","startDelayMs":829}
+         1789741737.048  9557  9609 I HfpAudioBridge: Starting HFP route generation=6
+         1789741737.315  9557  9609 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=8190, name=H20, generation=6
+         1789741737.337  9557  9557 I flutter : HOMI_DIAG {"event":"media.gain.request","utcMs":1789741737337,"elapsedUs":52131827,"owner":"listeningLesson","gainDb":8.0}
+         1789741737.340  9557  9557 I flutter : HOMI_DIAG {"event":"media.play.request","utcMs":1789741737340,"elapsedUs":52134584,"owner":"listeningLesson","communicationRoute":true,"scheme":"https"}
+         1789741737.849  9557  9557 I flutter : HOMI_DIAG {"event":"media.play.started","utcMs":1789741737849,"elapsedUs":52643649,"owner":"listeningLesson","startDelayMs":508}
+         1789741740.111  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741740111,"elapsedUs":54905809,"operation":7,"owner":"listeningLesson"}
+         1789741740.112  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741740112,"elapsedUs":54906338,"operation":7,"owner":"listeningLesson"}
+         1789741740.112  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741740112,"elapsedUs":54906689,"operation":7,"owner":"listeningLesson"}
+         1789741740.358  9557  9557 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1789741740358,"elapsedMs":211606931,"id":"authored-prompt-5"}
+         1789741740.454  9557  9557 I HomiDiag: {"event":"prompt.native.started","utcMs":1789741740454,"elapsedMs":211607027,"id":"authored-prompt-5","gainMb":1200,"durationMs":1097,"sessionId":40289,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741741.605  9557  9557 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1789741741605,"elapsedMs":211608178,"id":"authored-prompt-5"}
+         1789741741.637  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741741637,"elapsedUs":56431543,"operation":7,"owner":"listeningLesson"}
+         1789741741.637  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741741637,"elapsedUs":56431629,"operation":7,"owner":"listeningLesson"}
+         1789741741.637  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741741637,"elapsedUs":56431656,"operation":7,"owner":"listeningLesson"}
+         1789741741.637  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741741637,"elapsedUs":56431675,"operation":7,"owner":"listeningLesson"}
+         1789741741.680  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741741680,"elapsedUs":56474423,"operation":8,"owner":"listeningLesson"}
+         1789741741.680  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741741680,"elapsedUs":56474584,"operation":8,"owner":"listeningLesson"}
+         1789741741.680  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741741680,"elapsedUs":56474628,"operation":8,"owner":"listeningLesson"}
+         1789741741.680  9557  9557 I flutter : HOMI_DIAG {"event":"cue.delegate","utcMs":1789741741680,"elapsedUs":56474662,"owner":"listeningLesson"}
+         1789741741.680  9557  9557 I flutter : HOMI_DIAG {"event":"cue.channel.request","utcMs":1789741741680,"elapsedUs":56474686}
+         1789741741.699  9557  9557 I HomiDiag: {"event":"cue.native.start","utcMs":1789741741699,"elapsedMs":211608272,"cueId":3,"stream":0,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741742.043  9557  9557 I HomiDiag: {"event":"cue.native.complete","utcMs":1789741742043,"elapsedMs":211608616,"cueId":3,"errorCode":null}
+         1789741742.047  9557  9557 I flutter : HOMI_DIAG {"event":"cue.channel.completed","utcMs":1789741742047,"elapsedUs":56841341}
+         1789741742.047  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741742047,"elapsedUs":56841542,"operation":8,"owner":"listeningLesson"}
+         1789741742.047  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741742047,"elapsedUs":56841644,"operation":8,"owner":"listeningLesson"}
+         1789741742.047  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741742047,"elapsedUs":56841712,"operation":8,"owner":"listeningLesson"}
+         1789741742.047  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741742047,"elapsedUs":56841798,"operation":8,"owner":"listeningLesson"}
+         1789741746.406  9557  9557 I flutter : Lesson WAV normalized: sampleRate=16000 channels=2->1 sourceBytes=256044 outputBytes=128044
+         1789741746.465  9557  9609 I HfpAudioBridge: Starting HFP route generation=7
+         1789741746.718  9557  9609 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=8190, name=H20, generation=7
+         1789741746.747  9557  9557 I flutter : HOMI_DIAG {"event":"media.gain.request","utcMs":1789741746747,"elapsedUs":61541281,"owner":"listeningLesson","gainDb":28.5860754566205}
+         1789741746.750  9557  9557 I flutter : HOMI_DIAG {"event":"media.play.request","utcMs":1789741746749,"elapsedUs":61544148,"owner":"listeningLesson","communicationRoute":true,"scheme":"file"}
+         1789741746.818  9557  9557 I flutter : HOMI_DIAG {"event":"media.play.started","utcMs":1789741746818,"elapsedUs":61612373,"owner":"listeningLesson","startDelayMs":67}
+         1789741751.227  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741751227,"elapsedUs":66022088,"operation":9,"owner":"listeningLesson"}
+         1789741751.228  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741751228,"elapsedUs":66022218,"operation":9,"owner":"listeningLesson"}
+         1789741751.228  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741751228,"elapsedUs":66022256,"operation":9,"owner":"listeningLesson"}
+         1789741751.332  9557  9557 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1789741751332,"elapsedMs":211617906,"id":"authored-prompt-6"}
+         1789741751.400  9557  9557 I HomiDiag: {"event":"prompt.native.started","utcMs":1789741751400,"elapsedMs":211617973,"id":"authored-prompt-6","gainMb":1200,"durationMs":1071,"sessionId":40313,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741752.536  9557  9557 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1789741752535,"elapsedMs":211619109,"id":"authored-prompt-6"}
+         1789741752.567  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741752567,"elapsedUs":67362056,"operation":9,"owner":"listeningLesson"}
+         1789741752.567  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741752567,"elapsedUs":67362133,"operation":9,"owner":"listeningLesson"}
+         1789741752.567  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741752567,"elapsedUs":67362153,"operation":9,"owner":"listeningLesson"}
+         1789741752.567  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741752567,"elapsedUs":67362171,"operation":9,"owner":"listeningLesson"}
+         1789741752.607  9557  9609 I HfpAudioBridge: Starting HFP route generation=8
+         1789741752.871  9557  9609 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=8190, name=H20, generation=8
+         1789741752.895  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741752895,"elapsedUs":67689332,"operation":10,"owner":"listeningLesson"}
+         1789741752.895  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741752895,"elapsedUs":67689493,"operation":10,"owner":"listeningLesson"}
+         1789741752.895  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741752895,"elapsedUs":67689536,"operation":10,"owner":"listeningLesson"}
+         1789741753.017  9557  9557 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1789741753017,"elapsedMs":211619591,"id":"authored-prompt-7"}
+         1789741753.106  9557  9557 I HomiDiag: {"event":"prompt.native.started","utcMs":1789741753106,"elapsedMs":211619680,"id":"authored-prompt-7","gainMb":1200,"durationMs":2168,"sessionId":40321,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741755.304  9557  9557 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1789741755304,"elapsedMs":211621877,"id":"authored-prompt-7"}
+         1789741755.335  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741755335,"elapsedUs":70130113,"operation":10,"owner":"listeningLesson"}
+         1789741755.335  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741755335,"elapsedUs":70130177,"operation":10,"owner":"listeningLesson"}
+         1789741755.335  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741755335,"elapsedUs":70130193,"operation":10,"owner":"listeningLesson"}
+         1789741755.336  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741755336,"elapsedUs":70130214,"operation":10,"owner":"listeningLesson"}
+         1789741755.394  9557  9557 I flutter : HOMI_DIAG {"event":"media.gain.request","utcMs":1789741755394,"elapsedUs":70188887,"owner":"listeningLesson","gainDb":8.0}
+         1789741755.397  9557  9557 I flutter : HOMI_DIAG {"event":"media.play.request","utcMs":1789741755396,"elapsedUs":70191166,"owner":"listeningLesson","communicationRoute":true,"scheme":"https"}
+         1789741755.856  9557  9557 I flutter : HOMI_DIAG {"event":"media.play.started","utcMs":1789741755856,"elapsedUs":70650658,"owner":"listeningLesson","startDelayMs":458}
+         1789741760.459  9557  9609 I HfpAudioBridge: Starting HFP route generation=9
+         1789741760.730  9557  9609 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=8190, name=H20, generation=9
+         1789741760.749  9557  9557 I flutter : HOMI_DIAG {"event":"media.gain.request","utcMs":1789741760749,"elapsedUs":75543232,"owner":"listeningLesson","gainDb":8.0}
+         1789741760.762  9557  9557 I flutter : HOMI_DIAG {"event":"media.play.request","utcMs":1789741760762,"elapsedUs":75556926,"owner":"listeningLesson","communicationRoute":true,"scheme":"https"}
+         1789741761.347  9557  9557 I flutter : HOMI_DIAG {"event":"media.play.started","utcMs":1789741761347,"elapsedUs":76141852,"owner":"listeningLesson","startDelayMs":584}
+         1789741763.952  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741763952,"elapsedUs":78746709,"operation":11,"owner":"listeningLesson"}
+         1789741763.952  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741763952,"elapsedUs":78746893,"operation":11,"owner":"listeningLesson"}
+         1789741763.952  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741763952,"elapsedUs":78746951,"operation":11,"owner":"listeningLesson"}
+         1789741764.055  9557  9557 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1789741764055,"elapsedMs":211630628,"id":"authored-prompt-8"}
+         1789741764.133  9557  9557 I HomiDiag: {"event":"prompt.native.started","utcMs":1789741764133,"elapsedMs":211630706,"id":"authored-prompt-8","gainMb":1200,"durationMs":1097,"sessionId":40329,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741765.282  9557  9557 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1789741765282,"elapsedMs":211631856,"id":"authored-prompt-8"}
+         1789741765.312  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741765311,"elapsedUs":80106146,"operation":11,"owner":"listeningLesson"}
+         1789741765.312  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741765312,"elapsedUs":80106336,"operation":11,"owner":"listeningLesson"}
+         1789741765.312  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741765312,"elapsedUs":80106411,"operation":11,"owner":"listeningLesson"}
+         1789741765.312  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741765312,"elapsedUs":80106486,"operation":11,"owner":"listeningLesson"}
+         1789741765.350  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741765350,"elapsedUs":80144831,"operation":12,"owner":"listeningLesson"}
+         1789741765.350  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741765350,"elapsedUs":80145001,"operation":12,"owner":"listeningLesson"}
+         1789741765.350  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741765350,"elapsedUs":80145058,"operation":12,"owner":"listeningLesson"}
+         1789741765.350  9557  9557 I flutter : HOMI_DIAG {"event":"cue.delegate","utcMs":1789741765350,"elapsedUs":80145092,"owner":"listeningLesson"}
+         1789741765.350  9557  9557 I flutter : HOMI_DIAG {"event":"cue.channel.request","utcMs":1789741765350,"elapsedUs":80145124}
+         1789741765.374  9557  9557 I HomiDiag: {"event":"cue.native.start","utcMs":1789741765374,"elapsedMs":211631947,"cueId":4,"stream":0,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741765.706  9557  9557 I HomiDiag: {"event":"cue.native.complete","utcMs":1789741765705,"elapsedMs":211632279,"cueId":4,"errorCode":null}
+         1789741765.712  9557  9557 I flutter : HOMI_DIAG {"event":"cue.channel.completed","utcMs":1789741765712,"elapsedUs":80506369}
+         1789741765.712  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741765712,"elapsedUs":80506574,"operation":12,"owner":"listeningLesson"}
+         1789741765.712  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741765712,"elapsedUs":80506682,"operation":12,"owner":"listeningLesson"}
+         1789741765.712  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741765712,"elapsedUs":80506781,"operation":12,"owner":"listeningLesson"}
+         1789741765.712  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741765712,"elapsedUs":80506858,"operation":12,"owner":"listeningLesson"}
+         1789741771.951  9557  9557 I flutter : Lesson WAV normalized: sampleRate=16000 channels=2->1 sourceBytes=378924 outputBytes=189484
+         1789741771.986  9557  9609 I HfpAudioBridge: Starting HFP route generation=10
+         1789741772.233  9557  9609 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=8190, name=H20, generation=10
+         1789741772.255  9557  9557 I flutter : HOMI_DIAG {"event":"media.gain.request","utcMs":1789741772255,"elapsedUs":87049772,"owner":"listeningLesson","gainDb":28.5860754566205}
+         1789741772.266  9557  9557 I flutter : HOMI_DIAG {"event":"media.play.request","utcMs":1789741772266,"elapsedUs":87060837,"owner":"listeningLesson","communicationRoute":true,"scheme":"file"}
+         1789741772.326  9557  9557 I flutter : HOMI_DIAG {"event":"media.play.started","utcMs":1789741772326,"elapsedUs":87120933,"owner":"listeningLesson","startDelayMs":59}
+         1789741788.662  9557  9609 I HomiDiag: {"event":"hfp.stop.begin","utcMs":1789741788662,"elapsedMs":211655235,"generation":10}
+         1789741788.662  9557  9609 I HfpAudioBridge: Stopping HFP route generation=10 pending=false
+         1789741788.672  9557  9609 I HomiDiag: {"event":"hfp.stop.restore_mode.begin","utcMs":1789741788672,"elapsedMs":211655246}
+         1789741788.681  9557  9609 I HomiDiag: {"event":"hfp.stop.restore_mode.end","utcMs":1789741788681,"elapsedMs":211655254}
+         1789741788.696  9557  9609 I HomiDiag: {"event":"hfp.stop.completed","utcMs":1789741788696,"elapsedMs":211655269,"generation":11}
+         1789741790.071  9557  9557 I flutter : H20 MAIN: received • seq=3 • actionable
+         1789741790.071  9557  9557 I flutter : H20 MAIN: dispatching • shortPress • seq=3
+         1789741790.077  9557  9609 I HfpAudioBridge: Starting HFP route generation=12
+         1789741790.936  9557  9609 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=8190, name=H20, generation=12
+         1789741790.954  9557  9557 I flutter : HOMI_DIAG {"event":"main.prompt.prepare","utcMs":1789741790954,"elapsedUs":105748929,"generation":14,"characters":61}
+         1789741790.957  9557  9557 I flutter : HOMI_DIAG {"event":"main.prompt.budget_ready","utcMs":1789741790957,"elapsedUs":105751539,"generation":14,"budgetMs":14350}
+         1789741790.957  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741790957,"elapsedUs":105751655,"operation":13,"owner":"mainAssistant"}
+         1789741790.957  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741790957,"elapsedUs":105751754,"operation":13,"owner":"mainAssistant"}
+         1789741790.957  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.start.request","utcMs":1789741790957,"elapsedUs":105751793,"operation":13,"owner":"mainAssistant"}
+         1789741790.957  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.start.completed","utcMs":1789741790957,"elapsedUs":105751844,"operation":13,"owner":"mainAssistant"}
+         1789741790.957  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741790957,"elapsedUs":105751884,"operation":13,"owner":"mainAssistant"}
+         1789741790.965  9557  9557 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1789741790965,"elapsedMs":211657539,"id":"authored-prompt-9"}
+         1789741791.065  9557  9557 I HomiDiag: {"event":"prompt.native.started","utcMs":1789741791065,"elapsedMs":211657639,"id":"authored-prompt-9","gainMb":1200,"durationMs":4389,"sessionId":40353,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741795.510  9557  9557 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1789741795510,"elapsedMs":211662084,"id":"authored-prompt-9"}
+         1789741795.547  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741795547,"elapsedUs":110341800,"operation":13,"owner":"mainAssistant"}
+         1789741795.548  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741795547,"elapsedUs":110342155,"operation":13,"owner":"mainAssistant"}
+         1789741795.548  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741795548,"elapsedUs":110342395,"operation":13,"owner":"mainAssistant"}
+         1789741795.548  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741795548,"elapsedUs":110342586,"operation":13,"owner":"mainAssistant"}
+         1789741795.548  9557  9557 I flutter : HOMI_DIAG {"event":"main.prompt.completed","utcMs":1789741795548,"elapsedUs":110342947,"generation":14}
+         1789741795.549  9557  9557 I flutter : HOMI_DIAG {"event":"main.microphone.start","utcMs":1789741795548,"elapsedUs":110343156,"generation":14}
+         1789741795.677  9557  9557 I flutter : HOMI_DIAG {"event":"speech.ready","utcMs":1789741795677,"elapsedUs":110471620,"turnId":4,"audioSource":null}
+         1789741795.677  9557  9557 I flutter : HOMI_DIAG {"event":"main.cue.request","utcMs":1789741795677,"elapsedUs":110471760,"generation":14,"caller":"startSession","buttonSession":true}
+         1789741795.677  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741795677,"elapsedUs":110471786,"operation":14,"owner":"mainAssistant"}
+         1789741795.677  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741795677,"elapsedUs":110471827,"operation":14,"owner":"mainAssistant"}
+         1789741795.677  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.start.request","utcMs":1789741795677,"elapsedUs":110471839,"operation":14,"owner":"mainAssistant"}
+         1789741795.677  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.start.completed","utcMs":1789741795677,"elapsedUs":110471858,"operation":14,"owner":"mainAssistant"}
+         1789741795.677  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741795677,"elapsedUs":110471873,"operation":14,"owner":"mainAssistant"}
+         1789741795.677  9557  9557 I flutter : HOMI_DIAG {"event":"cue.delegate","utcMs":1789741795677,"elapsedUs":110471881,"owner":"mainAssistant"}
+         1789741795.677  9557  9557 I flutter : HOMI_DIAG {"event":"cue.channel.request","utcMs":1789741795677,"elapsedUs":110471891}
+         1789741795.720  9557  9557 I HomiDiag: {"event":"cue.native.start","utcMs":1789741795720,"elapsedMs":211662293,"cueId":5,"stream":0,"mode":0,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741796.145  9557  9557 I HomiDiag: {"event":"cue.native.complete","utcMs":1789741796145,"elapsedMs":211662719,"cueId":5,"errorCode":null}
+         1789741796.147  9557  9557 I flutter : HOMI_DIAG {"event":"cue.channel.completed","utcMs":1789741796147,"elapsedUs":110941545}
+         1789741796.147  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741796147,"elapsedUs":110941613,"operation":14,"owner":"mainAssistant"}
+         1789741796.147  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741796147,"elapsedUs":110941639,"operation":14,"owner":"mainAssistant"}
+         1789741796.147  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741796147,"elapsedUs":110941673,"operation":14,"owner":"mainAssistant"}
+         1789741796.147  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741796147,"elapsedUs":110941689,"operation":14,"owner":"mainAssistant"}
+         1789741796.147  9557  9557 I flutter : H20 MAIN: accepted • seq=3
+         1789741799.137  9557  9557 I flutter : HOMI_DIAG {"event":"main.command.received","utcMs":1789741799137,"elapsedUs":113931233,"generation":14,"characters":10}
+         1789741799.170  9557  9557 I flutter : HOMI_DIAG {"event":"main.command.resolved","utcMs":1789741799170,"elapsedUs":113964247,"generation":14,"destination":"vocabulary"}
+         1789741799.170  9557  9557 I flutter : HOMI_DIAG {"event":"navigation.dispatch","utcMs":1789741799170,"elapsedUs":113964359,"generation":14,"destination":"vocabulary"}
+         1789741799.170  9557  9557 I flutter : HOMI_DIAG {"event":"screen.vocabulary.activate","utcMs":1789741799170,"elapsedUs":113964613}
+         1789741799.170  9557  9557 I flutter : HOMI_DIAG {"event":"navigation.handler.completed","utcMs":1789741799170,"elapsedUs":113964811,"generation":14,"destination":"vocabulary"}
+         1789741799.170  9557  9557 I flutter : HOMI_DIAG {"event":"main.handoff.request","utcMs":1789741799170,"elapsedUs":113964860,"generation":14}
+         1789741799.170  9557  9557 I flutter : HOMI_DIAG {"event":"main.handoff.completed","utcMs":1789741799170,"elapsedUs":113964930,"generation":14}
+         1789741799.170  9557  9557 I flutter : HOMI_DIAG {"event":"main.native_end.request","utcMs":1789741799170,"elapsedUs":113964982,"generation":14}
+         1789741799.194  9557  9557 E SpeechRecognizer: not connected to the recognition service
+         1789741799.195  9557  9557 I flutter : HOMI_DIAG {"event":"main.native_end.completed","utcMs":1789741799195,"elapsedUs":113989679,"generation":14}
+         1789741799.197  9557  9609 I HomiDiag: {"event":"hfp.stop.begin","utcMs":1789741799196,"elapsedMs":211665770,"generation":12}
+         1789741799.197  9557  9609 I HfpAudioBridge: Stopping HFP route generation=12 pending=false
+         1789741799.201  9557  9557 I flutter : HOMI_DIAG {"event":"screen.vocabulary.activation_frame","utcMs":1789741799200,"elapsedUs":113995189}
+         1789741799.227  9557  9609 I HomiDiag: {"event":"hfp.stop.restore_mode.begin","utcMs":1789741799227,"elapsedMs":211665800}
+         1789741799.241  9557  9609 I HomiDiag: {"event":"hfp.stop.restore_mode.end","utcMs":1789741799241,"elapsedMs":211665814}
+         1789741799.253  9557  9609 I HomiDiag: {"event":"hfp.stop.completed","utcMs":1789741799253,"elapsedMs":211665827,"generation":13}
+         1789741799.262  9557  9609 I HfpAudioBridge: Starting HFP route generation=14
+         1789741801.360  9557  9609 I HfpAudioBridge: Ignoring SCO disconnect during route negotiation
+         1789741802.314  9557  9609 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=8190, name=H20, generation=14
+         1789741802.336  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741802336,"elapsedUs":117130817,"operation":15,"owner":"vocabulary"}
+         1789741802.336  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741802336,"elapsedUs":117130981,"operation":15,"owner":"vocabulary"}
+         1789741802.336  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741802336,"elapsedUs":117131021,"operation":15,"owner":"vocabulary"}
+         1789741802.685  9557  9557 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1789741802685,"elapsedMs":211669258,"id":"authored-prompt-10"}
+         1789741802.925  9557  9557 I HomiDiag: {"event":"prompt.native.started","utcMs":1789741802925,"elapsedMs":211669499,"id":"authored-prompt-10","gainMb":1200,"durationMs":4650,"sessionId":40393,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741807.747  9557  9557 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1789741807746,"elapsedMs":211674320,"id":"authored-prompt-10"}
+         1789741807.783  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741807783,"elapsedUs":122577388,"operation":15,"owner":"vocabulary"}
+         1789741807.783  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741807783,"elapsedUs":122577722,"operation":15,"owner":"vocabulary"}
+         1789741807.783  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741807783,"elapsedUs":122577840,"operation":15,"owner":"vocabulary"}
+         1789741807.783  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741807783,"elapsedUs":122577960,"operation":15,"owner":"vocabulary"}
+         1789741807.787  9557  9557 I flutter : HOMI_DIAG {"event":"main.microphone.start","utcMs":1789741807787,"elapsedUs":122581433,"generation":15}
+         1789741807.933  9557  9557 I flutter : HOMI_DIAG {"event":"speech.ready","utcMs":1789741807933,"elapsedUs":122727930,"turnId":6,"audioSource":null}
+         1789741807.933  9557  9557 I flutter : HOMI_DIAG {"event":"main.cue.request","utcMs":1789741807933,"elapsedUs":122728064,"generation":15,"caller":"startSession","buttonSession":true}
+         1789741807.933  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741807933,"elapsedUs":122728089,"operation":16,"owner":"mainAssistant"}
+         1789741807.933  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741807933,"elapsedUs":122728125,"operation":16,"owner":"mainAssistant"}
+         1789741807.933  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.start.request","utcMs":1789741807933,"elapsedUs":122728137,"operation":16,"owner":"mainAssistant"}
+         1789741807.933  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.start.completed","utcMs":1789741807933,"elapsedUs":122728153,"operation":16,"owner":"mainAssistant"}
+         1789741807.933  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741807933,"elapsedUs":122728166,"operation":16,"owner":"mainAssistant"}
+         1789741807.933  9557  9557 I flutter : HOMI_DIAG {"event":"cue.delegate","utcMs":1789741807933,"elapsedUs":122728174,"owner":"mainAssistant"}
+         1789741807.933  9557  9557 I flutter : HOMI_DIAG {"event":"cue.channel.request","utcMs":1789741807933,"elapsedUs":122728182}
+         1789741807.945  9557  9557 I HomiDiag: {"event":"cue.native.start","utcMs":1789741807945,"elapsedMs":211674518,"cueId":6,"stream":0,"mode":0,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741808.293  9557  9557 I HomiDiag: {"event":"cue.native.complete","utcMs":1789741808293,"elapsedMs":211674866,"cueId":6,"errorCode":null}
+         1789741808.295  9557  9557 I flutter : HOMI_DIAG {"event":"cue.channel.completed","utcMs":1789741808295,"elapsedUs":123089240}
+         1789741808.295  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741808295,"elapsedUs":123089324,"operation":16,"owner":"mainAssistant"}
+         1789741808.295  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741808295,"elapsedUs":123089367,"operation":16,"owner":"mainAssistant"}
+         1789741808.295  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741808295,"elapsedUs":123089421,"operation":16,"owner":"mainAssistant"}
+         1789741808.295  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741808295,"elapsedUs":123089448,"operation":16,"owner":"mainAssistant"}
+         1789741812.400  9557  9557 I flutter : HOMI_DIAG {"event":"main.command.received","utcMs":1789741812400,"elapsedUs":127194852,"generation":15,"characters":8}
+         1789741812.441  9557  9557 I flutter : HOMI_DIAG {"event":"main.command.resolved","utcMs":1789741812441,"elapsedUs":127235820,"generation":15,"destination":null}
+         1789741812.441  9557  9557 I flutter : HOMI_DIAG {"event":"main.handoff.request","utcMs":1789741812441,"elapsedUs":127235970,"generation":15}
+         1789741812.441  9557  9557 I flutter : HOMI_DIAG {"event":"main.handoff.completed","utcMs":1789741812441,"elapsedUs":127236038,"generation":15}
+         1789741812.441  9557  9557 I flutter : HOMI_DIAG {"event":"main.native_end.request","utcMs":1789741812441,"elapsedUs":127236082,"generation":15}
+         1789741812.442  9557  9557 E SpeechRecognizer: not connected to the recognition service
+         1789741812.443  9557  9557 I flutter : HOMI_DIAG {"event":"main.native_end.completed","utcMs":1789741812443,"elapsedUs":127237389,"generation":15}
+         1789741812.457  9557  9609 I HomiDiag: {"event":"hfp.stop.begin","utcMs":1789741812457,"elapsedMs":211679030,"generation":14}
+         1789741812.457  9557  9609 I HfpAudioBridge: Stopping HFP route generation=14 pending=false
+         1789741812.476  9557  9609 I HomiDiag: {"event":"hfp.stop.restore_mode.begin","utcMs":1789741812476,"elapsedMs":211679049}
+         1789741812.586  9557  9609 I HomiDiag: {"event":"hfp.stop.restore_mode.end","utcMs":1789741812586,"elapsedMs":211679159}
+         1789741812.604  9557  9609 I HomiDiag: {"event":"hfp.stop.completed","utcMs":1789741812604,"elapsedMs":211679177,"generation":15}
+         1789741812.631  9557  9609 I HfpAudioBridge: Starting HFP route generation=16
+         1789741815.298  9557  9609 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=8190, name=H20, generation=16
+         1789741815.327  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741815327,"elapsedUs":130121472,"operation":17,"owner":"vocabulary"}
+         1789741815.327  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741815327,"elapsedUs":130121780,"operation":17,"owner":"vocabulary"}
+         1789741815.327  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741815327,"elapsedUs":130121888,"operation":17,"owner":"vocabulary"}
+         1789741815.812  9557  9557 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1789741815812,"elapsedMs":211682385,"id":"authored-prompt-11"}
+         1789741815.840  9557  9557 I HomiDiag: {"event":"prompt.native.started","utcMs":1789741815840,"elapsedMs":211682413,"id":"authored-prompt-11","gainMb":1200,"durationMs":758,"sessionId":40433,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741816.594  9557  9557 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1789741816594,"elapsedMs":211683167,"id":"authored-prompt-11"}
+         1789741816.611  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741816611,"elapsedUs":131405508,"operation":17,"owner":"vocabulary"}
+         1789741816.611  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741816611,"elapsedUs":131405550,"operation":17,"owner":"vocabulary"}
+         1789741816.611  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741816611,"elapsedUs":131405569,"operation":17,"owner":"vocabulary"}
+         1789741816.611  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741816611,"elapsedUs":131405582,"operation":17,"owner":"vocabulary"}
+         1789741816.625  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741816625,"elapsedUs":131419569,"operation":18,"owner":"vocabulary"}
+         1789741816.625  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741816625,"elapsedUs":131419623,"operation":18,"owner":"vocabulary"}
+         1789741816.625  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741816625,"elapsedUs":131419634,"operation":18,"owner":"vocabulary"}
+         1789741817.034  9557  9557 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1789741817034,"elapsedMs":211683608,"id":"authored-prompt-12"}
+         1789741817.067  9557  9557 I HomiDiag: {"event":"prompt.native.started","utcMs":1789741817066,"elapsedMs":211683640,"id":"authored-prompt-12","gainMb":1200,"durationMs":1724,"sessionId":40441,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741819.036  9557  9557 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1789741819036,"elapsedMs":211685610,"id":"authored-prompt-12"}
+         1789741819.045  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741819045,"elapsedUs":133839688,"operation":18,"owner":"vocabulary"}
+         1789741819.045  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741819045,"elapsedUs":133839748,"operation":18,"owner":"vocabulary"}
+         1789741819.045  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741819045,"elapsedUs":133839767,"operation":18,"owner":"vocabulary"}
+         1789741819.045  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741819045,"elapsedUs":133839789,"operation":18,"owner":"vocabulary"}
+         1789741819.055  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741819055,"elapsedUs":133849266,"operation":19,"owner":"vocabulary"}
+         1789741819.055  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741819055,"elapsedUs":133849333,"operation":19,"owner":"vocabulary"}
+         1789741819.055  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741819055,"elapsedUs":133849350,"operation":19,"owner":"vocabulary"}
+         1789741819.480  9557  9557 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1789741819480,"elapsedMs":211686053,"id":"authored-prompt-13"}
+         1789741819.514  9557  9557 I HomiDiag: {"event":"prompt.native.started","utcMs":1789741819514,"elapsedMs":211686087,"id":"authored-prompt-13","gainMb":1200,"durationMs":1280,"sessionId":40449,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741821.039  9557  9557 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1789741821038,"elapsedMs":211687612,"id":"authored-prompt-13"}
+         1789741821.052  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741821052,"elapsedUs":135846416,"operation":19,"owner":"vocabulary"}
+         1789741821.052  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741821052,"elapsedUs":135846561,"operation":19,"owner":"vocabulary"}
+         1789741821.052  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741821052,"elapsedUs":135846624,"operation":19,"owner":"vocabulary"}
+         1789741821.052  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741821052,"elapsedUs":135846709,"operation":19,"owner":"vocabulary"}
+         1789741821.058  9557  9609 I HfpAudioBridge: Starting HFP route generation=17
+         1789741821.279  9557  9609 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=8190, name=H20, generation=17
+         1789741821.288  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.request","utcMs":1789741821288,"elapsedUs":136083137,"operation":20,"owner":"vocabulary"}
+         1789741821.289  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.acquired","utcMs":1789741821289,"elapsedUs":136083235,"operation":20,"owner":"vocabulary"}
+         1789741821.289  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.start","utcMs":1789741821289,"elapsedUs":136083254,"operation":20,"owner":"vocabulary"}
+         1789741821.422  9557  9557 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1789741821422,"elapsedMs":211687995,"id":"authored-prompt-14"}
+         1789741821.466  9557  9557 I HomiDiag: {"event":"prompt.native.started","utcMs":1789741821466,"elapsedMs":211688039,"id":"authored-prompt-14","gainMb":1200,"durationMs":1698,"sessionId":40457,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":8190,"mediaVolume":15,"mediaMax":15,"callVolume":11,"callMax":11}
+         1789741823.430  9557  9557 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1789741823430,"elapsedMs":211690003,"id":"authored-prompt-14"}
+         1789741823.438  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.delegate.completed","utcMs":1789741823438,"elapsedUs":138233110,"operation":20,"owner":"vocabulary"}
+         1789741823.439  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.request","utcMs":1789741823439,"elapsedUs":138233205,"operation":20,"owner":"vocabulary"}
+         1789741823.439  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.route.release.completed","utcMs":1789741823439,"elapsedUs":138233229,"operation":20,"owner":"vocabulary"}
+         1789741823.439  9557  9557 I flutter : HOMI_DIAG {"event":"prompt.lease.released","utcMs":1789741823439,"elapsedUs":138233258,"operation":20,"owner":"vocabulary"}
+         1789741823.449  9557  9557 I flutter : HOMI_DIAG {"event":"media.gain.request","utcMs":1789741823449,"elapsedUs":138243718,"owner":"vocabulary","gainDb":28.5860754566205}
+         1789741823.449  9557  9557 I flutter : HOMI_DIAG {"event":"media.play.request","utcMs":1789741823449,"elapsedUs":138243812,"owner":"vocabulary","communicationRoute":true,"scheme":"file"}
+         1789741823.494  9557  9557 I flutter : HOMI_DIAG {"event":"media.play.started","utcMs":1789741823494,"elapsedUs":138289087,"owner":"vocabulary","startDelayMs":45}
+         1789741825.113  9557  9609 W HfpAudioBridge: Selected H20 SCO audio disconnected
+         1789741825.114  9557  9557 I flutter : VOCABULARY_STAR_AUDIO_FAILED slot=C810-L1-T02-B01:core:C810-L1-T02-B01-T02 error=Kết nối âm thanh H20 bị gián đoạn. Bạn bấm nghe lại nhé.
+         1789741825.137  9557  9557 I flutter : Automatic H20 HFP selection was skipped: PlatformException(BLUETOOTH_DISABLED, Hãy bật Bluetooth trên điện thoại., null, null)
+         1789741825.208  9557  9609 W HfpAudioBridge: HFP profile service disconnected
+         1789741825.313  9557  9609 I HomiDiag: {"event":"hfp.stop.begin","utcMs":1789741825313,"elapsedMs":211691886,"generation":19}
+         1789741825.313  9557  9609 I HfpAudioBridge: Stopping HFP route generation=19 pending=false
+         1789741825.372  9557  9609 I HomiDiag: {"event":"hfp.stop.restore_mode.begin","utcMs":1789741825372,"elapsedMs":211691946}
+         1789741825.417  9557  9609 I HomiDiag: {"event":"hfp.stop.restore_mode.end","utcMs":1789741825417,"elapsedMs":211691990}
+         1789741825.421  9557  9609 I HomiDiag: {"event":"hfp.stop.completed","utcMs":1789741825421,"elapsedMs":211691994,"generation":19}
+         1789741827.709   812   826 ? cust_nvram: chipId[0x6895], adieId[0x6637]

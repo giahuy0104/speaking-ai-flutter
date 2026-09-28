@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07-B02\\C1112-L3-T07-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T07-B02-Q05",
+  "sourceText": "Gặp bạn ở đó nhé: See you there hay Are you free Saturday?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Gặp bạn ở đó nhé:",
+      "spoken_text": "Gặp bạn ở đó nhé:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "See you there",
+      "spoken_text": "See you there",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Are you free Saturday?",
+      "spoken_text": "Are you free Saturday?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-A12D760122E6243B4D19335D",
+  "text": "Gặp bạn ở đó nhé: See you there hay Are you free Saturday?",
+  "asset": "assets/audio/CURRICULUM/a12d760122e6243b4d19335d.vi.v1.mp3",
+  "sha256": "94580cbfce0e95fcfac5a5736d9772a45ae912db9a7addc7562a4c08beeb568c",
+  "durationSeconds": 4.807596
+}

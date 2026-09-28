@@ -1,0 +1,20 @@
+{
+  "signature": "aa2a3eb5a5b1705584188ab0f4bfaa6cbb27b71de9153f9ab66dc60805f1f9f1",
+  "request": {
+    "text": "One to Ten",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "dd32ea7d30fd50c3a106bbdd9146afdddc059cd893d8303478808a2c6baa5089",
+  "requestId": "Bg85b0cOu1dpha7j1hmY",
+  "createdAt": "2026-09-15T23:23:15.759Z"
+}

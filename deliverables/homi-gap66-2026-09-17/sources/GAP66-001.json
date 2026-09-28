@@ -1,0 +1,21 @@
+{
+  "id": "GAP66-001",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn chọn một trong các lựa chọn trên màn hình nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "SYE8kIcnG8rM4Lj0e8JZ",
+  "historyItemId": "gDs5YH8wsp0IVhqUxZer",
+  "characterCost": "28",
+  "createdAt": "2026-09-17T14:24:01.348Z",
+  "sourceSha256": "4542537120518c8640d853099523fa22e397453202e6a41996bf8658c02fc93f"
+}

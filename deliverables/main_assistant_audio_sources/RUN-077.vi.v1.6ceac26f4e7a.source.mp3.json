@@ -1,0 +1,20 @@
+{
+  "id": "RUN-077",
+  "signature": "6ceac26f4e7ae9a1cc1194942d8d92e16756f262eca52a5aa9c83e670cb41c53",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "HOMI nói mẫu nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:13:56.916Z",
+  "requestId": "9XSKW666hYuVgX1rA2fU",
+  "characterCost": "9",
+  "sourceSha256": "7c9d5aacc061ef01d236c1b67a53a15e8cf698ba5d8c3d2577dec9d78f4bcc83"
+}

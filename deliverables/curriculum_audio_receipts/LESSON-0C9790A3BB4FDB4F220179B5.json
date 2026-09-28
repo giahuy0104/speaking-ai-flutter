@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07-B01\\C1112-L3-T07-B01-T01_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T07-B01-T01_EN",
+  "sourceText": "Free Saturday.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Free Saturday.",
+      "generation_key": "e0d5717bca1560e2"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-0C9790A3BB4FDB4F220179B5",
+  "text": "Free Saturday.",
+  "asset": "assets/audio/CURRICULUM/0c9790a3bb4fdb4f220179b5.en.v1.mp3",
+  "sha256": "91a55b29c69a13263eae91b1babdea4a6dfb3b2b8f4fdeef7d007aa1b91bb7b3",
+  "durationSeconds": 2.146395
+}

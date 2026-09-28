@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T01-B02\\C35-L1-T01-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T01-B02-Q05",
+  "sourceText": "Quả cam: Orange hay Pig?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Quả cam:",
+      "spoken_text": "Quả cam:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Orange",
+      "spoken_text": "Orange",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Pig?",
+      "spoken_text": "Pig?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-0E1FA8956D614BFA80C7AF9A",
+  "text": "Quả cam: Orange hay Pig?",
+  "asset": "assets/audio/CURRICULUM/0e1fa8956d614bfa80c7af9a.vi.v1.mp3",
+  "sha256": "ddcd4bdc9a5417f04ca95ea27b065b2dfcc337d9057e8afb5e9fb62691265ad6",
+  "durationSeconds": 3.519365
+}

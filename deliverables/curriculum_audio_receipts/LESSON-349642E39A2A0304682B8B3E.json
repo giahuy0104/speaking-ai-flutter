@@ -1,0 +1,41 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\139ac1cd635b6be5b11ae9106be8810e6f85333ece3ae1a5e42c12487cc7e31e.tempo.mp3",
+      "signature": "139ac1cd635b6be5b11ae9106be8810e6f85333ece3ae1a5e42c12487cc7e31e",
+      "request": {
+        "text": "Mình cùng học các chữ cái và từ quen thuộc nhé.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "027256bf7136f30ae0c71bf85f6c30a9955119842a1fa45e05b634511b4d8a93",
+      "requestId": "V3tLYxasZLykMDhnfFFV",
+      "createdAt": "2026-09-15T23:15:21.825Z"
+    }
+  ],
+  "id": "LESSON-349642E39A2A0304682B8B3E",
+  "text": "Mình cùng học các chữ cái và từ quen thuộc nhé.",
+  "asset": "assets/audio/CURRICULUM/349642e39a2a0304682b8b3e.vi.v1.mp3",
+  "sha256": "f6e0b57a3d6955366d4b1585b1c2e910626759d945231f50eda925ba472a00f9",
+  "durationSeconds": 2.826327,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T01\\C1112-L1-M03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-M03",
+  "sourceText": "Bạn cần diễn đạt \"Chơi thể thao\". Play sports hay Read books?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Chơi thể thao\".",
+      "text": "Bạn cần diễn đạt \"Chơi thể thao\".",
+      "spoken_text": "Bạn cần diễn đạt \"Chơi thể thao\".",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "source_text": "Play sports",
+      "text": "Play sports",
+      "spoken_text": "Play sports",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "source_text": "Read books?",
+      "text": "Read books?",
+      "spoken_text": "Read books?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": "376d56452ab8257ed0df0c79ede007653babd45482bf261b7f9c07a3f2240ee5",
+  "id": "LESSON-75BF33AF854E5C93F39140AA",
+  "text": "Bạn cần diễn đạt \"Chơi thể thao\". Play sports hay Read books?",
+  "asset": "assets/audio/CURRICULUM/75bf33af854e5c93f39140aa.vi.v1.mp3",
+  "sha256": "376d56452ab8257ed0df0c79ede007653babd45482bf261b7f9c07a3f2240ee5",
+  "durationSeconds": 6.184717
+}

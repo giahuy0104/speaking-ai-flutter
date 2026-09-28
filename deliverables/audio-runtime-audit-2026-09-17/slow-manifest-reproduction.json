@@ -1,0 +1,1 @@
+{"scenario":"First main manifest load takes 650ms; subsequent storage is fast","runtimeTimeoutMs":500,"methods":["speakAndWait","speakAndWait"],"bothAttemptsUseTts":true}

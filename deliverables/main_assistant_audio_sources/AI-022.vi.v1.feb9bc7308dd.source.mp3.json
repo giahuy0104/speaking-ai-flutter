@@ -1,0 +1,20 @@
+{
+  "id": "AI-022",
+  "signature": "feb9bc7308ddf46911160469fdbefd4d51ad6a5c9a239c508b8d448229209d45",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn cứ nói từng câu. Muốn dừng thì nói “dừng lại”.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:07:06.840Z",
+  "requestId": "6oDoKTrBdNMZBiEB80Dd",
+  "characterCost": "28",
+  "sourceSha256": "f13a543b5d9cbaa4b2e8cb3df1a9512d3b9fed6912061c11b0b9388ecea4146a"
+}

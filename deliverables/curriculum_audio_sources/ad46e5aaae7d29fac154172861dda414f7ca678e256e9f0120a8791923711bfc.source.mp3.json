@@ -1,0 +1,20 @@
+{
+  "signature": "ad46e5aaae7d29fac154172861dda414f7ca678e256e9f0120a8791923711bfc",
+  "request": {
+    "text": "Study Actions",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "d0e5268a662477b854bc85d6d82f31f81c851691d142a9ce56cab7b713061fe7",
+  "requestId": "6fmY4ygjdUTXUqiQav1q",
+  "createdAt": "2026-09-15T23:27:52.141Z"
+}

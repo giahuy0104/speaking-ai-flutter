@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B03\\C1112-L3-T09-B03-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B03-Q04",
+  "sourceText": "Sạc điện thoại đi: Set an alarm hay Charge your phone?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Sạc điện thoại đi:",
+      "spoken_text": "Sạc điện thoại đi:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Set an alarm",
+      "spoken_text": "Set an alarm",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Charge your phone?",
+      "spoken_text": "Charge your phone?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-3AA4C8094B0FDFB31EB0E9E1",
+  "text": "Sạc điện thoại đi: Set an alarm hay Charge your phone?",
+  "asset": "assets/audio/CURRICULUM/3aa4c8094b0fdfb31eb0e9e1.vi.v1.mp3",
+  "sha256": "ea36040bff9657ba009e03786c01695d078f823aedc0313dce38b4f2f3280913",
+  "durationSeconds": 5.2125
+}

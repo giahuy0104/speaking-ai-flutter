@@ -1,0 +1,20 @@
+{
+  "id": "AI-032",
+  "signature": "c363b090b5d70be608973bb76f41257cefd83659239525d396d96ff72bcd9dc7",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình qua phần luyện lại và ngôi sao nha.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:07:29.054Z",
+  "requestId": "CiEZ7CUOphst7vh6SDGT",
+  "characterCost": "22",
+  "sourceSha256": "90b3af5901ef092a8711ae29290fd3d301b8150228897d8a860364a3328f91de"
+}

@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\MP3\\dynamic\\TOPIC_SELECTION\\TOPIC_SELECTION_03.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "TOPIC_SELECTION__TOPIC_COUNT_03",
+  "sourceText": "Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo applied after synthesis to each segment according to declared AUDIO_PLAN language, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
+      "generation_key": "5df7e25b54908427"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-062E0B0017072A5758712772",
+  "text": "Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
+  "asset": "assets/audio/CURRICULUM/062e0b0017072a5758712772.vi.v1.mp3",
+  "sha256": "2da79d0daf6c73ab64e3d7a53758047ccdcdb3acac6c9a3550e643bdd71666fc",
+  "durationSeconds": 3.300431
+}

@@ -1,0 +1,22 @@
+{
+  "number": 18,
+  "id": "VOCAB50-018",
+  "text": "Không có nội dung cần luyện lại. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-018.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "588e93cddeb800cbb56923336d1060cb309b676fc5d5ece62e2317cdc6f2dc14",
+  "bytes": 99100,
+  "sourceDurationSeconds": 5.52,
+  "durationSeconds": 6.115488,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "whSLeXjwc8mRtxfUMtcu",
+  "characterCost": "43",
+  "createdAt": "2026-09-16T03:20:29.239Z"
+}

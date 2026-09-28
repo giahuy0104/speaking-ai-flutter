@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T05-B01\\C1112-L2-T05-B01-T03_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T05-B01-T03_EN",
+  "sourceText": "Sleep early.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Sleep early.",
+      "generation_key": "c5cc19347aea9bd6"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-BEEE05AB1E9C376E49A21115",
+  "text": "Sleep early.",
+  "asset": "assets/audio/CURRICULUM/beee05ab1e9c376e49a21115.en.v1.mp3",
+  "sha256": "004662d736f5b70495737e38852998702d372970cebc8bef0a68a0ef969a5256",
+  "durationSeconds": 1.589116
+}

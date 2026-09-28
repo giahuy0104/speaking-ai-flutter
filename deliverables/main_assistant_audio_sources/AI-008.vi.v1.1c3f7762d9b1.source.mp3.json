@@ -1,0 +1,20 @@
+{
+  "id": "AI-008",
+  "signature": "1c3f7762d9b1d78bef515ff82739dba4d8762ac9416c56c104c38874bb8ff4b0",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn mấy tuổi? Ví dụ bạn nói: 6 tuổi.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:06:48.283Z",
+  "requestId": "9IsAa40qlxmlfTivt5k7",
+  "characterCost": "20",
+  "sourceSha256": "e6e9de0fb7b02b8865279795868c9786d05b013cc40177309846ca386e3c79c3"
+}

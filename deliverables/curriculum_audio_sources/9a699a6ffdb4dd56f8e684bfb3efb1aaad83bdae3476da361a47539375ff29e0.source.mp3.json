@@ -1,0 +1,20 @@
+{
+  "signature": "9a699a6ffdb4dd56f8e684bfb3efb1aaad83bdae3476da361a47539375ff29e0",
+  "request": {
+    "text": "In Class",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "77bca54e9701ac6862b695b5133aa5acf588ee3f9e81845772997bc8561db5d5",
+  "requestId": "7d8cFy6qkcxdkLrvcQ7H",
+  "createdAt": "2026-09-15T23:25:46.888Z"
+}

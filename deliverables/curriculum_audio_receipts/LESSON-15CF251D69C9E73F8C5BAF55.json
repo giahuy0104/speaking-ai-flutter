@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T02-B02\\C1112-L1-T02-B02-T01_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T02-B02-T01_VI",
+  "sourceText": "Mình xem lại ghi chú.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình xem lại ghi chú.",
+      "generation_key": "07dee6d5f724dfef"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-15CF251D69C9E73F8C5BAF55",
+  "text": "Mình xem lại ghi chú.",
+  "asset": "assets/audio/CURRICULUM/15cf251d69c9e73f8c5baf55.vi.v1.mp3",
+  "sha256": "967905bdea92e5fc99aed7669548580b93ec0180c1a4315b8946e259d1c0e1c3",
+  "durationSeconds": 1.939501
+}

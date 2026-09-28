@@ -1,0 +1,20 @@
+{
+  "signature": "f196a21f0494dca5d8fccb7c7e2ff5ca95dd8d74566f3b21638ddb9df0403437",
+  "request": {
+    "text": "Transport Words",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "173de360df68f006c3df79aed4b5e43359880f507762b56556648c07283cfad4",
+  "requestId": "mvzra6GPuvvapNYhQfdg",
+  "createdAt": "2026-09-15T23:28:09.118Z"
+}

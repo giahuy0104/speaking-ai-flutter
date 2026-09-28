@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T02-B02\\C1315-L1-T02-B02-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T02-B02-Q08",
+  "sourceText": "Bạn muốn nói 'Luyện tập mỗi ngày.' Hoàn thành câu: Practice... speaking daily hay every day?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Luyện tập mỗi ngày.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Luyện tập mỗi ngày.' Hoàn thành câu:",
+      "input_index": 46
+    },
+    {
+      "language": "en",
+      "text": "Practice... speaking daily",
+      "spoken_text": "Practice... speaking daily",
+      "input_index": 47
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 48
+    },
+    {
+      "language": "en",
+      "text": "every day?",
+      "spoken_text": "every day?",
+      "input_index": 49
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-4E5D0A858E4FFA4C473A4A5B",
+  "text": "Bạn muốn nói 'Luyện tập mỗi ngày.' Hoàn thành câu: Practice... speaking daily hay every day?",
+  "asset": "assets/audio/CURRICULUM/4e5d0a858e4ffa4c473a4a5b.vi.v1.mp3",
+  "sha256": "d3163f7d1fa2383ff306f1142b3cfc5ce8dbec927e46ea976a6f6bbb2720796b",
+  "durationSeconds": 9.933175
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T05-B02\\C67-L2-T05-B02-Q01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T05-B02-Q01",
+  "sourceText": "Đồng hồ tròn: Round clock hay Round ball?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đồng hồ tròn:",
+      "spoken_text": "Đồng hồ tròn:",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "text": "Round clock",
+      "spoken_text": "Round clock",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "text": "Round ball?",
+      "spoken_text": "Round ball?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-1203F33A8F6CC1722D42CC35",
+  "text": "Đồng hồ tròn: Round clock hay Round ball?",
+  "asset": "assets/audio/CURRICULUM/1203f33a8f6cc1722d42cc35.vi.v1.mp3",
+  "sha256": "ef116369219adbeae05eb3ad1d4dbec4f0e4e3664ff8c84ce0d0e496bcbb7141",
+  "durationSeconds": 4.936417
+}

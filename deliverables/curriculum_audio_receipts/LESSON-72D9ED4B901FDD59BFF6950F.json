@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T07-B01\\C810-L3-T07-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T07-B01-Q08",
+  "sourceText": "Bạn cần nói \"Đồ chơi\". Money hay Toy?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn cần nói \"Đồ chơi\".",
+      "spoken_text": "Bạn cần nói \"Đồ chơi\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Money",
+      "spoken_text": "Money",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Toy?",
+      "spoken_text": "Toy?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-72D9ED4B901FDD59BFF6950F",
+  "text": "Bạn cần nói \"Đồ chơi\". Money hay Toy?",
+  "asset": "assets/audio/CURRICULUM/72d9ed4b901fdd59bff6950f.vi.v1.mp3",
+  "sha256": "9181a7deb07213e4c81529a0c3e3f51e7f7e27e4186d0c756fff6e196a89496e",
+  "durationSeconds": 5.824422
+}

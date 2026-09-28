@@ -1,0 +1,22 @@
+{
+  "number": 35,
+  "id": "VOCAB50-035",
+  "text": "Great!",
+  "language": "en",
+  "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+  "speed": 0.75,
+  "usage": "current",
+  "file": "audio/VOCAB50-035.en.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "45981f3c091baf1e7d4464c1d6fa5e822c957c09776341d2fd78b3dd84d4fe4e",
+  "bytes": 18016,
+  "sourceDurationSeconds": 0.8,
+  "durationSeconds": 1.048073,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "Tl73Z2PbM4HqaeyowP8z",
+  "characterCost": "3",
+  "createdAt": "2026-09-16T03:21:03.277Z"
+}

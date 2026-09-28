@@ -1,0 +1,22 @@
+{
+  "number": 8,
+  "id": "VOCAB50-008",
+  "text": "Mình học tiếp Danh sách hôm nay nhé.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-008.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "a546e9bf6865913461d328fc5cd751e264b4ab34557a48edefd4158a74855770",
+  "bytes": 36406,
+  "sourceDurationSeconds": 2,
+  "durationSeconds": 2.199546,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "731Qpv7VKuE1dQrx2L90",
+  "characterCost": "20",
+  "createdAt": "2026-09-16T03:19:52.912Z"
+}

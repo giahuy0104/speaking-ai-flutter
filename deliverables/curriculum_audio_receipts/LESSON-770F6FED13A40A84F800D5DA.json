@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T10-B02\\C1315-L3-T10-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T10-B02-Q05",
+  "sourceText": "Mình sẽ xin lời khuyên: I'll ask for advice hay I'll practice every day?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình sẽ xin lời khuyên:",
+      "spoken_text": "Mình sẽ xin lời khuyên:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "I'll ask for advice",
+      "spoken_text": "I'll ask for advice",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "I'll practice every day?",
+      "spoken_text": "I'll practice every day?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-770F6FED13A40A84F800D5DA",
+  "text": "Mình sẽ xin lời khuyên: I'll ask for advice hay I'll practice every day?",
+  "asset": "assets/audio/CURRICULUM/770f6fed13a40a84f800d5da.vi.v1.mp3",
+  "sha256": "4d59dcd711f2efc01b5eebc02fe20728060df2c9da72addae4195e407f7b691d",
+  "durationSeconds": 6.445533
+}

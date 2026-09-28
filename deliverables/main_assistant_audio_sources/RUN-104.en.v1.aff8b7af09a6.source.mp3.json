@@ -1,0 +1,20 @@
+{
+  "id": "RUN-104",
+  "signature": "aff8b7af09a6b6792298f7c4d67b3d10658c41c5f53f5187752c7986838a178b",
+  "provider": "elevenlabs",
+  "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+  "request": {
+    "text": "Nice.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:14:30.336Z",
+  "requestId": "HO1H8nAIV6Fz6jlbYD88",
+  "characterCost": "3",
+  "sourceSha256": "969ddb07e1426d9f4a7db14260f46b2d773638783f2b257a6e9d9057bf9e356d"
+}

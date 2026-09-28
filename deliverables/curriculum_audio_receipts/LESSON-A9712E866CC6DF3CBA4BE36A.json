@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T01-B02\\C810-L1-T01-B02-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T01-B02-Q08",
+  "sourceText": "Bạn cần nói \"Ăn trưa vào buổi trưa\". Sleep at night hay Lunch at noon?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn cần nói \"Ăn trưa vào buổi trưa\".",
+      "spoken_text": "Bạn cần nói \"Ăn trưa vào buổi trưa\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Sleep at night",
+      "spoken_text": "Sleep at night",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Lunch at noon?",
+      "spoken_text": "Lunch at noon?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-A9712E866CC6DF3CBA4BE36A",
+  "text": "Bạn cần nói \"Ăn trưa vào buổi trưa\". Sleep at night hay Lunch at noon?",
+  "asset": "assets/audio/CURRICULUM/a9712e866cc6df3cba4be36a.vi.v1.mp3",
+  "sha256": "4440795376dbc48c975476e4a3bebf85ece3672e564cf201561b8d4dead288a4",
+  "durationSeconds": 8.689683
+}

@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T09\\C810-L3-M08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-M08",
+  "sourceText": "Bạn muốn nói 'Mình đã thăm bà.' Hoàn thành câu: I... visited Grandma hay lost my pencil?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn muốn nói 'Mình đã thăm bà.' Hoàn thành câu:",
+      "text": "Bạn muốn nói 'Mình đã thăm bà.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mình đã thăm bà.' Hoàn thành câu:",
+      "input_index": 46
+    },
+    {
+      "language": "en",
+      "source_text": "I... visited Grandma",
+      "text": "I... visited Grandma",
+      "spoken_text": "I... visited Grandma",
+      "input_index": 47
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 48
+    },
+    {
+      "language": "en",
+      "source_text": "lost my pencil?",
+      "text": "lost my pencil?",
+      "spoken_text": "lost my pencil?",
+      "input_index": 49
+    }
+  ],
+  "sourceSha256": "9337655dc15b1423b1ae1a4e8c68b7bb4d510cce964fbf6a7d91d03e45aa6945",
+  "id": "LESSON-E128480FCEC2DA6EDFB0F8D0",
+  "text": "Bạn muốn nói 'Mình đã thăm bà.' Hoàn thành câu: I... visited Grandma hay lost my pencil?",
+  "asset": "assets/audio/CURRICULUM/e128480fcec2da6edfb0f8d0.vi.v1.mp3",
+  "sha256": "9337655dc15b1423b1ae1a4e8c68b7bb4d510cce964fbf6a7d91d03e45aa6945",
+  "durationSeconds": 9.603379
+}

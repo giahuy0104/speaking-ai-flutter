@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T02-B01\\C1112-L1-T02-B01-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T02-B01-Q02",
+  "sourceText": "Lập kế hoạch: Practice English hay Make a plan?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Lập kế hoạch:",
+      "spoken_text": "Lập kế hoạch:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Practice English",
+      "spoken_text": "Practice English",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Make a plan?",
+      "spoken_text": "Make a plan?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-ABB0ABE771B6EEEDD67F3517",
+  "text": "Lập kế hoạch: Practice English hay Make a plan?",
+  "asset": "assets/audio/CURRICULUM/abb0abe771b6eeedd67f3517.vi.v1.mp3",
+  "sha256": "8c796ada321414506e0afdb59bc6bd8292c857ffafeed21fead4724b60f01a2f",
+  "durationSeconds": 5.190181
+}

@@ -1,0 +1,22 @@
+{
+  "number": 3,
+  "id": "VOCAB50-003",
+  "text": "Mình nghe tiếp nhé.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-003.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "82a0d9f5c47090e1b6a6a91e264f7ec19ec2da560fe040778c7c714ee7ce09c4",
+  "bytes": 12582,
+  "sourceDurationSeconds": 0.64,
+  "durationSeconds": 0.707642,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "Bdu7HtNWxlvalksGSp00",
+  "characterCost": "10",
+  "createdAt": "2026-09-16T03:19:39.791Z"
+}

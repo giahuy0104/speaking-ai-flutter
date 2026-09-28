@@ -1,0 +1,22 @@
+{
+  "number": 43,
+  "id": "VOCAB50-043",
+  "text": "Tốt lắm!",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "reserve-variant",
+  "file": "audio/VOCAB50-043.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "331dc7e0cb1db57a92d30392480d7f9fdfe246d1d73e65ea16fa95a075b8b818",
+  "bytes": 16344,
+  "sourceDurationSeconds": 0.88,
+  "durationSeconds": 0.9578,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "exxNDwQYHoKuJMI3u3vt",
+  "characterCost": "4",
+  "createdAt": "2026-09-16T03:21:21.103Z"
+}

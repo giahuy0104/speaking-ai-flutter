@@ -16,6 +16,9 @@ android/local.properties
 android/app/debug/
 android/app/profile/
 android/app/release/
+/android/hs_err_pid*.log
+/android/replay_pid*.log
+*.hprof
 *.jks
 *.keystore
 key.properties
@@ -32,6 +35,7 @@ Thumbs.db
 .env.*
 !.env.example
 dart_defines.local.json
+dart_defines.production.local.json
 
 # Local AI/ASR artifacts
 /.codex-spreadsheet/aiv0-ai-precheck/
@@ -52,5 +56,16 @@ flutter_*.log
 *.aab
 *.ipa
 *.zip
+/assets.rar
 /.codex-tmp/
+/.codex_tmp/
 /test/**/failures/
+
+# Deployed from its own Sites source repository.
+/homi-legal-site/
+
+# Local reports, extracted test videos, and temporary deployment bundles.
+# Keep these on the workstation; they may contain user recordings or logs.
+/artifacts/reports/
+/tmp/
+~$*.docx

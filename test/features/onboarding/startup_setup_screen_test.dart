@@ -4,53 +4,388 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('requires permissions before age and confirms the chosen group', (
+  testWidgets(
+    'requires both BLE MAIN control and H20 microphone before setup can finish',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      var privacyConsentGranted = false;
+      var permissionsGranted = false;
+      var limitedModeSelected = false;
+      var offlineEnglishModelAllowed = false;
+      var bleConnected = false;
+      var hfpConfigured = false;
+      int? selectedAge;
+      var completed = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: StatefulBuilder(
+            builder: (context, setState) => StartupSetupScreen(
+              profileLoading: false,
+              permissionRequestInProgress: false,
+              privacyConfigurationComplete: true,
+              privacyConsentGranted: privacyConsentGranted,
+              limitedModeSelected: limitedModeSelected,
+              microphoneGranted: permissionsGranted,
+              bluetoothRequired: true,
+              bluetoothGranted: permissionsGranted,
+              h20BleConnected: bleConnected,
+              h20HfpConfigured: hfpConfigured,
+              selectedAge: selectedAge,
+              aiSubprocessors: 'HOMI backend trên Railway và Cloudflare',
+              dataRetentionSummary: 'Audio được xóa sau 24 giờ.',
+              privacyPolicyUri: Uri.parse('https://example.com/privacy'),
+              termsUri: Uri.parse('https://example.com/terms'),
+              supportUri: Uri.parse('https://example.com/support'),
+              androidOfflineEnglishModelOptionAvailable: true,
+              androidOfflineEnglishModelDownloadAllowed:
+                  offlineEnglishModelAllowed,
+              onAndroidOfflineEnglishModelDownloadChanged: (enabled) async {
+                setState(() => offlineEnglishModelAllowed = enabled);
+              },
+              onGrantPrivacyConsent: () async {
+                setState(() => privacyConsentGranted = true);
+              },
+              onContinueWithoutVoice: () async {
+                setState(() => limitedModeSelected = true);
+              },
+              onRetryPermissions: () {
+                setState(() => permissionsGranted = true);
+              },
+              onSetupH20: () async {
+                setState(() {
+                  bleConnected = true;
+                  hfpConfigured = true;
+                });
+                return true;
+              },
+              onAgeSelected: (age) => setState(() => selectedAge = age),
+              onCompleteSetup: () async {
+                setState(() => completed = true);
+              },
+            ),
+          ),
+        ),
+      );
+
+      final consentButton = find.byKey(
+        const Key('startup-grant-privacy-consent'),
+      );
+      expect(tester.widget<FilledButton>(consentButton).onPressed, isNull);
+
+      await tester.tap(find.byKey(const Key('startup-confirm-adult-role')));
+      await tester.pump();
+      await tester.ensureVisible(consentButton);
+      expect(tester.widget<FilledButton>(consentButton).onPressed, isNull);
+      expect(
+        find.textContaining(
+          'Tôi đồng ý để HOMI xử lý dữ liệu giọng nói theo Điều khoản',
+        ),
+        findsOneWidget,
+      );
+
+      await _completeLegalReview(tester);
+      final legalCheckbox = find.byKey(const Key('startup-accept-legal'));
+      expect(
+        tester.widget<CheckboxListTile>(legalCheckbox).onChanged,
+        isNotNull,
+      );
+      await tester.tap(legalCheckbox);
+      await tester.pump();
+      await tester.ensureVisible(consentButton);
+      expect(tester.widget<FilledButton>(consentButton).onPressed, isNotNull);
+      await tester.tap(consentButton);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Chọn hồ sơ học của trẻ'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('startup-age-8-10')));
+      await tester.pump();
+      await tester.ensureVisible(find.byKey(const Key('startup-next')));
+      await tester.tap(find.byKey(const Key('startup-next')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cấp quyền và kết nối thiết bị'), findsOneWidget);
+      expect(find.text('Bước 3/3 • Dành cho phụ huynh'), findsOneWidget);
+      expect(find.text('Kết nối thiết bị'), findsNWidgets(2));
+      expect(find.textContaining('H20'), findsNothing);
+      expect(find.textContaining('HFP'), findsNothing);
+      await tester.ensureVisible(
+        find.byKey(const Key('startup-request-permissions')),
+      );
+      expect(find.text('Tiếp tục'), findsOneWidget);
+      expect(find.text('Cấp quyền cần thiết'), findsNothing);
+      await tester.tap(find.byKey(const Key('startup-request-permissions')));
+      await tester.pumpAndSettle();
+
+      final offlineModelSwitch = find.byKey(
+        const Key('startup-android-offline-english-model'),
+      );
+      await tester.ensureVisible(offlineModelSwitch);
+      expect(offlineModelSwitch, findsOneWidget);
+      await tester.tap(offlineModelSwitch);
+      await tester.pumpAndSettle();
+      expect(offlineEnglishModelAllowed, isTrue);
+
+      final completeButton = find.byKey(const Key('startup-confirm-age'));
+      await tester.ensureVisible(completeButton);
+      expect(tester.widget<FilledButton>(completeButton).onPressed, isNull);
+      expect(find.byKey(const Key('startup-use-phone-mic')), findsNothing);
+      expect(
+        find.byKey(const Key('startup-choose-h20-microphone')),
+        findsNothing,
+      );
+      expect(
+        find.textContaining('Cần kết nối cả nút MAIN và micro H20'),
+        findsOneWidget,
+      );
+
+      await tester.ensureVisible(find.byKey(const Key('startup-setup-h20')));
+      await tester.tap(find.byKey(const Key('startup-setup-h20')));
+      await tester.pump();
+      expect(
+        find.byKey(const Key('device-connection-feedback-connected')),
+        findsOneWidget,
+      );
+      await tester.pump(const Duration(milliseconds: 901));
+      expect(
+        find.byKey(const Key('device-connection-feedback-overlay')),
+        findsNothing,
+      );
+      await tester.ensureVisible(completeButton);
+      expect(tester.widget<FilledButton>(completeButton).onPressed, isNotNull);
+      await tester.tap(completeButton);
+
+      expect(selectedAge, 8);
+      expect(completed, isTrue);
+      expect(limitedModeSelected, isFalse);
+    },
+  );
+
+  testWidgets('limited mode can finish without microphone or H20', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
-    var permissionsRequested = 0;
-    int? selectedAge;
-    var confirmed = false;
+    var limited = false;
+    int? age;
+    var completed = false;
 
-    Widget subject({required bool permissionsGranted}) {
-      return MaterialApp(
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: StatefulBuilder(
+          builder: (context, setState) => StartupSetupScreen(
+            profileLoading: false,
+            permissionRequestInProgress: false,
+            privacyConfigurationComplete: true,
+            privacyConsentGranted: false,
+            limitedModeSelected: limited,
+            microphoneGranted: false,
+            bluetoothRequired: true,
+            bluetoothGranted: false,
+            h20BleConnected: false,
+            h20HfpConfigured: false,
+            selectedAge: age,
+            aiSubprocessors: 'Railway và Cloudflare',
+            dataRetentionSummary: 'Theo chính sách công khai.',
+            onGrantPrivacyConsent: () async {},
+            onContinueWithoutVoice: () async {
+              setState(() => limited = true);
+            },
+            onRetryPermissions: () {},
+            onSetupH20: () async => false,
+            onAgeSelected: (value) => setState(() => age = value),
+            onCompleteSetup: () async {
+              setState(() => completed = true);
+            },
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('startup-confirm-adult-role')));
+    await tester.pump();
+    await _completeLegalReview(tester);
+    await tester.ensureVisible(
+      find.byKey(const Key('startup-continue-without-voice')),
+    );
+    await tester.tap(find.byKey(const Key('startup-continue-without-voice')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('startup-age-6-7')));
+    await tester.pump();
+    await tester.ensureVisible(find.byKey(const Key('startup-next')));
+    await tester.tap(find.byKey(const Key('startup-next')));
+    await tester.pumpAndSettle();
+    expect(find.text('Bước 3/3 • Dành cho phụ huynh'), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('startup-confirm-age')));
+    await tester.tap(find.byKey(const Key('startup-confirm-age')));
+
+    expect(limited, isTrue);
+    expect(age, 6);
+    expect(completed, isTrue);
+  });
+
+  testWidgets('iOS phone microphone fallback can finish without H20', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    var completed = false;
+    var microphonePickerOpened = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
         theme: buildAppTheme(),
         home: StartupSetupScreen(
           profileLoading: false,
           permissionRequestInProgress: false,
-          microphoneGranted: permissionsGranted,
+          privacyConfigurationComplete: true,
+          privacyConsentGranted: true,
+          limitedModeSelected: false,
+          microphoneGranted: true,
           bluetoothRequired: true,
-          bluetoothGranted: permissionsGranted,
-          selectedAge: selectedAge,
-          onRetryPermissions: () => permissionsRequested += 1,
-          onAgeSelected: (age) => selectedAge = age,
-          onConfirmAge: () => confirmed = true,
+          bluetoothGranted: true,
+          h20BleConnected: false,
+          h20HfpConfigured: false,
+          allowPhoneMicFallback: true,
+          selectedAge: 8,
+          aiSubprocessors: 'Railway và Cloudflare',
+          dataRetentionSummary: 'Theo chính sách công khai.',
+          onGrantPrivacyConsent: () async {},
+          onContinueWithoutVoice: () async {},
+          onRetryPermissions: () {},
+          onSetupH20: () async => false,
+          onChooseH20Microphone: () async {
+            microphonePickerOpened = true;
+            return false;
+          },
+          onAgeSelected: (_) {},
+          onCompleteSetup: () async => completed = true,
         ),
-      );
-    }
+      ),
+    );
 
-    await tester.pumpWidget(subject(permissionsGranted: false));
-    await tester.tap(find.byKey(const Key('startup-request-permissions')));
-    expect(permissionsRequested, 1);
+    final nextButton = find.byKey(const Key('startup-next'));
+    await tester.ensureVisible(nextButton);
+    await tester.tap(nextButton);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(nextButton);
+    await tester.tap(nextButton);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('Bạn có thể bắt đầu bằng mic iPhone'),
+      findsOneWidget,
+    );
+    final microphonePicker = find.byKey(
+      const Key('startup-choose-h20-microphone'),
+    );
+    await tester.ensureVisible(microphonePicker);
+    expect(microphonePicker, findsOneWidget);
+    await tester.tap(microphonePicker);
+    await tester.pumpAndSettle();
+    expect(microphonePickerOpened, isTrue);
+    final completeButton = find.byKey(const Key('startup-confirm-age'));
+    await tester.ensureVisible(completeButton);
+    expect(tester.widget<FilledButton>(completeButton).onPressed, isNotNull);
+    await tester.tap(completeButton);
+    await tester.pump();
+    expect(completed, isTrue);
+  });
+
+  testWidgets('closing legal review early does not unlock voice consent', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: StartupSetupScreen(
+          profileLoading: false,
+          permissionRequestInProgress: false,
+          privacyConfigurationComplete: true,
+          privacyConsentGranted: false,
+          limitedModeSelected: false,
+          microphoneGranted: false,
+          bluetoothRequired: true,
+          bluetoothGranted: false,
+          h20BleConnected: false,
+          h20HfpConfigured: false,
+          selectedAge: null,
+          aiSubprocessors: 'Railway và Cloudflare',
+          dataRetentionSummary: 'Theo chính sách công khai.',
+          privacyPolicyUri: Uri.parse('https://example.com/privacy'),
+          termsUri: Uri.parse('https://example.com/terms'),
+          supportUri: Uri.parse('https://example.com/support'),
+          onGrantPrivacyConsent: () async {},
+          onContinueWithoutVoice: () async {},
+          onRetryPermissions: () {},
+          onSetupH20: () async => false,
+          onAgeSelected: (_) {},
+          onCompleteSetup: () async {},
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('startup-review-legal')));
+    await tester.pumpAndSettle();
     expect(
       tester
-          .widget<FilledButton>(find.byKey(const Key('startup-confirm-age')))
+          .widget<FilledButton>(find.byKey(const Key('startup-legal-reviewed')))
           .onPressed,
       isNull,
     );
+    await tester.tap(find.byKey(const Key('startup-close-legal')));
+    await tester.pumpAndSettle();
 
-    await tester.pumpWidget(subject(permissionsGranted: true));
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('startup-age-8-10')),
-      300,
+    expect(
+      tester
+          .widget<CheckboxListTile>(
+            find.byKey(const Key('startup-accept-legal')),
+          )
+          .onChanged,
+      isNull,
     );
-    await tester.tap(find.byKey(const ValueKey('startup-age-8-10')));
-    await tester.pumpWidget(subject(permissionsGranted: true));
-    await tester.ensureVisible(find.byKey(const Key('startup-confirm-age')));
-    await tester.tap(find.byKey(const Key('startup-confirm-age')));
-
-    expect(selectedAge, 8);
-    expect(confirmed, isTrue);
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.byKey(const Key('startup-grant-privacy-consent')),
+          )
+          .onPressed,
+      isNull,
+    );
   });
+}
+
+Future<void> _completeLegalReview(WidgetTester tester) async {
+  final legalReviewButton = find.byKey(const Key('startup-review-legal'));
+  await tester.ensureVisible(legalReviewButton);
+  await tester.tap(legalReviewButton);
+  await tester.pumpAndSettle();
+
+  expect(find.text('Bên thứ ba nhận dữ liệu và mục đích'), findsOneWidget);
+  expect(
+    find.textContaining('biện pháp bảo vệ dữ liệu tương đương'),
+    findsOneWidget,
+  );
+
+  final reviewedButton = find.byKey(const Key('startup-legal-reviewed'));
+  expect(tester.widget<FilledButton>(reviewedButton).onPressed, isNull);
+
+  for (var attempt = 0; attempt < 6; attempt += 1) {
+    if (tester.widget<FilledButton>(reviewedButton).onPressed != null) break;
+    await tester.drag(
+      find.byKey(const Key('startup-legal-scroll')),
+      const Offset(0, -480),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  expect(tester.widget<FilledButton>(reviewedButton).onPressed, isNotNull);
+  await tester.tap(reviewedButton);
+  await tester.pumpAndSettle();
 }

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T02-B01\\C35-L1-T02-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T02-B01-Q07",
+  "sourceText": "Bạn muốn nói \"Một\". One hay Three?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Một\".",
+      "spoken_text": "Bạn muốn nói \"Một\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "One",
+      "spoken_text": "One",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Three?",
+      "spoken_text": "Three?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-D0A1C833E89429FB97E3EC5C",
+  "text": "Bạn muốn nói \"Một\". One hay Three?",
+  "asset": "assets/audio/CURRICULUM/d0a1c833e89429fb97e3ec5c.vi.v1.mp3",
+  "sha256": "b31f0f9bbba3a987168e80deb0f1fe231e73eab809f919f1e14fb300f74c1824",
+  "durationSeconds": 4.408345
+}

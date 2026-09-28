@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T01\\C810-L1-M02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-M02",
+  "sourceText": "Bạn cần nói \"Ăn trưa vào buổi trưa\". Lunch at noon hay Play after school?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần nói \"Ăn trưa vào buổi trưa\".",
+      "text": "Bạn cần nói \"Ăn trưa vào buổi trưa\".",
+      "spoken_text": "Bạn cần nói \"Ăn trưa vào buổi trưa\".",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "source_text": "Lunch at noon",
+      "text": "Lunch at noon",
+      "spoken_text": "Lunch at noon",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "source_text": "Play after school?",
+      "text": "Play after school?",
+      "spoken_text": "Play after school?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": "211341b2d2b0cedafeb2812ff8c5967ea4552ccd51f2ab30a691adf42ae848ff",
+  "id": "LESSON-B6DBA52D6A45469BCD07FEA1",
+  "text": "Bạn cần nói \"Ăn trưa vào buổi trưa\". Lunch at noon hay Play after school?",
+  "asset": "assets/audio/CURRICULUM/b6dba52d6a45469bcd07fea1.vi.v1.mp3",
+  "sha256": "211341b2d2b0cedafeb2812ff8c5967ea4552ccd51f2ab30a691adf42ae848ff",
+  "durationSeconds": 7.468594
+}

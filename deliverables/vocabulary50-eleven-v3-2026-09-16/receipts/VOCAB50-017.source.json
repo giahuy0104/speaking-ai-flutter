@@ -1,0 +1,22 @@
+{
+  "id": "VOCAB50-017",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình đã luyện xong rồi. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "dVedhUuLYOdNFvTbyvnE",
+  "historyItemId": "NxIc7V6LjB7R4TTYSqsl",
+  "characterCost": "38",
+  "createdAt": "2026-09-16T03:20:24.707Z",
+  "sourceSha256": "357386bffe575fc446bcd781587b056a5c6ecb9d241481b59dfdba021bd1fd75"
+}

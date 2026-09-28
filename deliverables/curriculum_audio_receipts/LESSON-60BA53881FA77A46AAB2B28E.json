@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T10-B02\\C1315-L3-T10-B02-T02_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T10-B02-T02_VI",
+  "sourceText": "Mình sẽ bắt đầu tuần này.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình sẽ bắt đầu tuần này.",
+      "generation_key": "73cd876e5ba4f0dc"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-60BA53881FA77A46AAB2B28E",
+  "text": "Mình sẽ bắt đầu tuần này.",
+  "asset": "assets/audio/CURRICULUM/60ba53881fa77a46aab2b28e.vi.v1.mp3",
+  "sha256": "891453d1879a88afe8cf12d832e07886d647fd1715f82540d87e3d51d8a9486e",
+  "durationSeconds": 1.876463
+}

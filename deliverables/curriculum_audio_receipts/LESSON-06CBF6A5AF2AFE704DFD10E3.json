@@ -1,0 +1,41 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\092506821d55e6fa9209b3f6276ba7f914c9435a9913a7ca5d840aa6bdc69797.tempo.mp3",
+      "signature": "092506821d55e6fa9209b3f6276ba7f914c9435a9913a7ca5d840aa6bdc69797",
+      "request": {
+        "text": "Mình luyện cách nói về lịch trong tuần.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "3dfced0452f062e62ceefd58e55bbc9b9d0a5009ad28db73631375bc1b74a65f",
+      "requestId": "DPsQYpRQX1HDTVrX6KOT",
+      "createdAt": "2026-09-15T23:19:30.250Z"
+    }
+  ],
+  "id": "LESSON-06CBF6A5AF2AFE704DFD10E3",
+  "text": "Mình luyện cách nói về lịch trong tuần.",
+  "asset": "assets/audio/CURRICULUM/06cbf6a5af2afe704dfd10e3.vi.v1.mp3",
+  "sha256": "3a062a212d7f83b9a9431f1e212a4f3a802664a5e0f114a2c024cb56d14898cc",
+  "durationSeconds": 2.646916,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

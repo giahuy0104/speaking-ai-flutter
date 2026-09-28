@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T06-B01\\C67-L2-T06-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T06-B01-Q07",
+  "sourceText": "Bạn muốn nói \"Chạm vào đầu\". Touch your head hay Raise your hands?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Chạm vào đầu\".",
+      "spoken_text": "Bạn muốn nói \"Chạm vào đầu\".",
+      "input_index": 35
+    },
+    {
+      "language": "en",
+      "text": "Touch your head",
+      "spoken_text": "Touch your head",
+      "input_index": 36
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 37
+    },
+    {
+      "language": "en",
+      "text": "Raise your hands?",
+      "spoken_text": "Raise your hands?",
+      "input_index": 38
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-D66540793CA39AC24139DDB8",
+  "text": "Bạn muốn nói \"Chạm vào đầu\". Touch your head hay Raise your hands?",
+  "asset": "assets/audio/CURRICULUM/d66540793ca39ac24139ddb8.vi.v1.mp3",
+  "sha256": "724335d5f84489d92d3440d1f4065004c7fb53fa04e5e3888473a4bf9b5ded3e",
+  "durationSeconds": 6.915261
+}

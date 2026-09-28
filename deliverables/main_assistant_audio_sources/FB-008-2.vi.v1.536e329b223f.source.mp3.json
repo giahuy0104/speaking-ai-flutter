@@ -1,0 +1,20 @@
+{
+  "id": "FB-008-2",
+  "signature": "536e329b223fc6a143d96be17e9bdfad7454378540f84d8a5a449ac72d700313",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình tạm dừng học bộ từ vựng. Khi sẵn sàng, bạn nhấn nút gọi HOMI nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:11:00.779Z",
+  "requestId": "0nBcI2oCmOgVHKe4Qd2h",
+  "characterCost": "39",
+  "sourceSha256": "269467a6698ad8b77392735a368a4ebe9efc3e96350aed189a5016647ef3cc39"
+}

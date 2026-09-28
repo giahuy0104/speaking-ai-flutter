@@ -1,0 +1,20 @@
+{
+  "signature": "d827a0f7ac786486559d2aa67d7e89e338a95d34f456d465cf5d9f1bc342c869",
+  "request": {
+    "text": "Ask the Way.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "feec451225f2b447cd878ae87931365f00cbc6e32c86dc761ccbe350d99d8f5d",
+  "requestId": "3slVuSMazsJdRlbRjzIq",
+  "createdAt": "2026-09-15T23:26:43.681Z"
+}

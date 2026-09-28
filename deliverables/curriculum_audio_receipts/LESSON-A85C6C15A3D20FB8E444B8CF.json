@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T04-B01\\C67-L2-T04-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T04-B01-Q07",
+  "sourceText": "Bạn muốn nói \"Chuối\". Bananas hay Rice?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Chuối\".",
+      "spoken_text": "Bạn muốn nói \"Chuối\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Bananas",
+      "spoken_text": "Bananas",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Rice?",
+      "spoken_text": "Rice?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-A85C6C15A3D20FB8E444B8CF",
+  "text": "Bạn muốn nói \"Chuối\". Bananas hay Rice?",
+  "asset": "assets/audio/CURRICULUM/a85c6c15a3d20fb8e444b8cf.vi.v1.mp3",
+  "sha256": "0d027dcbbc2c120652aef0c0856c71c285ec5a6d7bcc95daef89a1ea064870f1",
+  "durationSeconds": 4.3785
+}

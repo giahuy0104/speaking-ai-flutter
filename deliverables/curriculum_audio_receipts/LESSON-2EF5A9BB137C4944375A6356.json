@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T03-B02\\C67-L1-T03-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T03-B02-Q04",
+  "sourceText": "Thỏ có thể nhảy: Elephants can walk hay Rabbits can jump?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Thỏ có thể nhảy:",
+      "spoken_text": "Thỏ có thể nhảy:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Elephants can walk",
+      "spoken_text": "Elephants can walk",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Rabbits can jump?",
+      "spoken_text": "Rabbits can jump?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-2EF5A9BB137C4944375A6356",
+  "text": "Thỏ có thể nhảy: Elephants can walk hay Rabbits can jump?",
+  "asset": "assets/audio/CURRICULUM/2ef5a9bb137c4944375a6356.vi.v1.mp3",
+  "sha256": "edcdca8845c11f4b607d4a9fe36ec78fb05cc6c9c43c45d5822c6804b9731089",
+  "durationSeconds": 6.291519
+}

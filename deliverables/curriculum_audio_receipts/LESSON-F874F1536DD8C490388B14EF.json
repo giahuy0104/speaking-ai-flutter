@@ -1,0 +1,57 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T07-B02\\C1315-L3-T07-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T07-B02-Q06",
+  "sourceText": "HOMI nói: Which platform? Platform three hay At five thirty?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Which platform?",
+      "spoken_text": "Which platform?",
+      "input_index": 31
+    },
+    {
+      "language": "en",
+      "text": "Platform three",
+      "spoken_text": "Platform three",
+      "input_index": 32
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 33
+    },
+    {
+      "language": "en",
+      "text": "At five thirty?",
+      "spoken_text": "At five thirty?",
+      "input_index": 34
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-F874F1536DD8C490388B14EF",
+  "text": "HOMI nói: Which platform? Platform three hay At five thirty?",
+  "asset": "assets/audio/CURRICULUM/f874f1536dd8c490388b14ef.vi.v1.mp3",
+  "sha256": "47949aa19c441033711ee1bad64540563582bdc3db47310cc859b3eac5622f75",
+  "durationSeconds": 6.664331
+}

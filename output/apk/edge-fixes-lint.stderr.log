@@ -1,0 +1,24 @@
+../../../flutter/third_party/dart/runtime/vm/zone.cc: 96: error: Out of memory.
+../../../flutter/third_party/dart/runtime/vm/virtual_memory_win.cc: 193: error: Failed to commit: 1455
+
+Dart snapshot generator failed with exit code -1073740791
+Dart snapshot generator failed with exit code -1073740791
+Target aot_android_asset_bundle failed: ProcessException: The paging file is too small for this operation to complete (at ../../runtime/bin/process_win.cc:577)
+  Command: C:\Users\Windows\.cache\flutter-sdk\bin\cache\artifacts\engine\windows-x64\impellerc.exe --sksl --runtime-stage-gles --runtime-stage-gles3 --runtime-stage-vulkan --iplr --sl=D:\Documents\ai-speaking-flutter-app\build\app\intermediates\flutter\release\flutter_assets\shaders/stretch_effect.frag --spirv=D:\Documents\ai-speaking-flutter-app\build\app\intermediates\flutter\release\flutter_assets\shaders/stretch_effect.frag.spirv --input=C:\Users\Windows\.cache\flutter-sdk\packages\flutter\lib\src\material\shaders\stretch_effect.frag --input-type=frag --include=C:\Users\Windows\.cache\flutter-sdk\packages\flutter\lib\src\material\shaders --include=C:\Users\Windows\.cache\flutter-sdk\bin\cache\artifacts\engine\windows-x64\shader_lib
+Target android_aot_release_android-arm64 failed: Exception: AOT snapshotter exited with code -1073740791
+Target android_aot_release_android-x64 failed: Exception: AOT snapshotter exited with code -1073740791
+
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileFlutterBuildRelease'.
+> Process 'command 'C:\Users\Windows\.cache\flutter-sdk\bin\flutter.bat'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 2m 16s

@@ -1,0 +1,20 @@
+{
+  "signature": "bd4b140b29ea2fa89ddd8aedf20f6b47124e8581ff0ea19642027c49896ce816",
+  "request": {
+    "text": "Small Steps.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "50a1e6dd1a72379ba1a432a5c232cd0080142016c7870238e944b30a8cf8debb",
+  "requestId": "mlXv7cscnHzQdUyA2vei",
+  "createdAt": "2026-09-15T23:29:33.702Z"
+}

@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T01\\C1112-L1-M02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-M02",
+  "sourceText": "Bạn cần diễn đạt \"Đọc sách buổi tối\". Reading at night hay Help at home?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Đọc sách buổi tối\".",
+      "text": "Bạn cần diễn đạt \"Đọc sách buổi tối\".",
+      "spoken_text": "Bạn cần diễn đạt \"Đọc sách buổi tối\".",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "source_text": "Reading at night",
+      "text": "Reading at night",
+      "spoken_text": "Reading at night",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "source_text": "Help at home?",
+      "text": "Help at home?",
+      "spoken_text": "Help at home?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": "866a74e7ee8db90f72b2a848fce864909404f2758e65409dbb540d8ffbba7efb",
+  "id": "LESSON-E84CA31B27FF5F049C42341B",
+  "text": "Bạn cần diễn đạt \"Đọc sách buổi tối\". Reading at night hay Help at home?",
+  "asset": "assets/audio/CURRICULUM/e84ca31b27ff5f049c42341b.vi.v1.mp3",
+  "sha256": "866a74e7ee8db90f72b2a848fce864909404f2758e65409dbb540d8ffbba7efb",
+  "durationSeconds": 6.566327
+}

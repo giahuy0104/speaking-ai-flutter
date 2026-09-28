@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T05-B01\\C35-L2-T05-B01-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-T05-B01-Q02",
+  "sourceText": "Con chó: Bird hay Dog?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Con chó:",
+      "spoken_text": "Con chó:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Bird",
+      "spoken_text": "Bird",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Dog?",
+      "spoken_text": "Dog?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-FDB38CFF16AE44231126A78C",
+  "text": "Con chó: Bird hay Dog?",
+  "asset": "assets/audio/CURRICULUM/fdb38cff16ae44231126a78c.vi.v1.mp3",
+  "sha256": "3c0e6472eaf0cd43c2434f3cab32565baefa5778bba3549b4a0a10cf071d8e71",
+  "durationSeconds": 3.352494
+}

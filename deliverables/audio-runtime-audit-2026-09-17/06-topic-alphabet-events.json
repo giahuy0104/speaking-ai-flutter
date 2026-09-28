@@ -1,0 +1,272 @@
+[
+  {
+    "at": "2026-09-17T20:57:02.475845",
+    "event": "diagnostic_started"
+  },
+  {
+    "at": "2026-09-17T20:57:02.714924",
+    "channel": "flutter/assets",
+    "asset": "assets/data/listening_lessons.json",
+    "sequence": 1,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:57:02.726726",
+    "channel": "flutter/assets",
+    "asset": "assets/data/listening_lessons.json",
+    "sequence": 1,
+    "event": "response",
+    "elapsedMs": 11,
+    "responseBytes": 954044
+  },
+  {
+    "at": "2026-09-17T20:57:53.007621",
+    "channel": "ailingo_voice_prompt",
+    "method": "beginMainTurn",
+    "sequence": 2,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:57:53.008296",
+    "channel": "ailingo_voice_prompt",
+    "method": "beginMainTurn",
+    "sequence": 2,
+    "event": "response",
+    "elapsedMs": 0,
+    "responseBytes": null
+  },
+  {
+    "at": "2026-09-17T20:57:53.008469",
+    "channel": "flutter/assets",
+    "asset": "assets/data/main_assistant_audio.json",
+    "sequence": 3,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:57:53.009270",
+    "channel": "flutter/assets",
+    "asset": "assets/data/main_assistant_audio.json",
+    "sequence": 3,
+    "event": "response",
+    "elapsedMs": 0,
+    "responseBytes": 177767
+  },
+  {
+    "at": "2026-09-17T20:57:53.013093",
+    "channel": "flutter/assets",
+    "asset": "assets/data/curriculum_audio.json",
+    "sequence": 4,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:57:53.019216",
+    "channel": "flutter/assets",
+    "asset": "assets/data/curriculum_audio.json",
+    "sequence": 4,
+    "event": "response",
+    "elapsedMs": 6,
+    "responseBytes": 1850774
+  },
+  {
+    "at": "2026-09-17T20:57:53.054086",
+    "channel": "ailingo_voice_prompt",
+    "method": "speakAndWait",
+    "source": "native_tts",
+    "text": "Bắt đầu Level 1. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
+    "locale": "vi-VN",
+    "speechRate": null,
+    "sequence": 5,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:57:59.134327",
+    "channel": "ailingo_voice_prompt",
+    "method": "speakAndWait",
+    "source": "native_tts",
+    "text": "Bắt đầu Level 1. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
+    "locale": "vi-VN",
+    "speechRate": null,
+    "sequence": 5,
+    "event": "response",
+    "elapsedMs": 6080,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T20:57:59.288904",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 6,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:57:59.655547",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 6,
+    "event": "response",
+    "elapsedMs": 366,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T20:58:08.078071",
+    "channel": "ailingo_voice_prompt",
+    "method": "speakAndWait",
+    "source": "native_tts",
+    "text": "Mình chưa hiểu. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
+    "locale": "vi-VN",
+    "speechRate": null,
+    "sequence": 7,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:58:13.277160",
+    "channel": "ailingo_voice_prompt",
+    "method": "speakAndWait",
+    "source": "native_tts",
+    "text": "Mình chưa hiểu. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
+    "locale": "vi-VN",
+    "speechRate": null,
+    "sequence": 7,
+    "event": "response",
+    "elapsedMs": 5199,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T20:58:13.411368",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 8,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:58:13.822708",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 8,
+    "event": "response",
+    "elapsedMs": 411,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T20:58:22.884737",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "2da79d0daf6c73ab64e3d7a53758047ccdcdb3acac6c9a3550e643bdd71666fc",
+    "bytes": 53960,
+    "sequence": 9,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:58:26.694437",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "2da79d0daf6c73ab64e3d7a53758047ccdcdb3acac6c9a3550e643bdd71666fc",
+    "bytes": 53960,
+    "sequence": 9,
+    "event": "response",
+    "elapsedMs": 3809,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T20:58:26.825659",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 10,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:58:27.230615",
+    "channel": "ailingo_voice_prompt",
+    "method": "playSpeechReadyCue",
+    "sequence": 10,
+    "event": "response",
+    "elapsedMs": 404,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T20:58:35.621496",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "1d08f6207e7a037815eb520d46d198eebc0f33186cedaa89cff07ebdecade097",
+    "bytes": 19270,
+    "sequence": 11,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:58:37.277019",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "1d08f6207e7a037815eb520d46d198eebc0f33186cedaa89cff07ebdecade097",
+    "bytes": 19270,
+    "sequence": 11,
+    "event": "response",
+    "elapsedMs": 1655,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T20:58:37.278372",
+    "channel": "ailingo_voice_prompt",
+    "method": "endMainTurn",
+    "sequence": 12,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:58:37.280057",
+    "channel": "ailingo_voice_prompt",
+    "method": "endMainTurn",
+    "sequence": 12,
+    "event": "response",
+    "elapsedMs": 1,
+    "responseBytes": null
+  },
+  {
+    "at": "2026-09-17T20:58:39.388878",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "551295144b544d196f69db247dd636a8480d37203e7a8a2560abf45a0dc16c2d",
+    "bytes": 32226,
+    "sequence": 13,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:58:41.588743",
+    "channel": "ailingo_voice_prompt",
+    "method": "playAuthoredAudioAndWait",
+    "source": "authored_mp3",
+    "sha256": "551295144b544d196f69db247dd636a8480d37203e7a8a2560abf45a0dc16c2d",
+    "bytes": 32226,
+    "sequence": 13,
+    "event": "response",
+    "elapsedMs": 2199,
+    "responseBytes": 2
+  },
+  {
+    "at": "2026-09-17T20:58:41.748238",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/40da0e126e33613b.mp3?"
+    ],
+    "sequence": 14,
+    "event": "request"
+  },
+  {
+    "at": "2026-09-17T20:58:41.822220",
+    "channel": "com.ryanheise.just_audio.methods.75f8dca7-b917-4728-89e9-3b601ff49273",
+    "method": "load",
+    "source": "media_uri",
+    "uris": [
+      "file:///data/user/0/com.innotrik.aispeaking/files/rule_audio_cache/40da0e126e33613b.mp3?"
+    ],
+    "sequence": 14,
+    "event": "response",
+    "elapsedMs": 73,
+    "responseBytes": 22
+  }
+]

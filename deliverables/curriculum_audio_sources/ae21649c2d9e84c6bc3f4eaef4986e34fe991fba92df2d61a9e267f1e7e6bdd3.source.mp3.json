@@ -1,0 +1,20 @@
+{
+  "signature": "ae21649c2d9e84c6bc3f4eaef4986e34fe991fba92df2d61a9e267f1e7e6bdd3",
+  "request": {
+    "text": "Nghe thật kỹ nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "e464b5a59fc137e5c0970628d252131f274672728d4c6f3a0987b0528c728c4b",
+  "requestId": "At6KbL7h4mWpTamZKIsP",
+  "createdAt": "2026-09-15T23:15:40.179Z"
+}

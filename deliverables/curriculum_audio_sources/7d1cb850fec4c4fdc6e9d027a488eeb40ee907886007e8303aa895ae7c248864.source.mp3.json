@@ -1,0 +1,20 @@
+{
+  "signature": "7d1cb850fec4c4fdc6e9d027a488eeb40ee907886007e8303aa895ae7c248864",
+  "request": {
+    "text": "Place Words",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "d377e2b3485aa2ebf955da415352438478645effc5e3414b74ce2add4c0567ff",
+  "requestId": "2uyRX2MZtVY9tXtcTQ8y",
+  "createdAt": "2026-09-15T23:25:59.414Z"
+}

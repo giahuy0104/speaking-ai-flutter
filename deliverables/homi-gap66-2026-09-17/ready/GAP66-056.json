@@ -1,0 +1,28 @@
+{
+  "id": "GAP66-056",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình chưa hiểu. Chủ đề 5 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 5?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "4AWqKXh8AdXcgK4C6JtR",
+  "historyItemId": "nj0bC3bFzixSbHAhUESQ",
+  "characterCost": "51",
+  "createdAt": "2026-09-17T14:26:32.305Z",
+  "sourceSha256": "45416cab78ffd4a647963afd1f5569c01d4cef67cce7f1938e363558d9bdab5b",
+  "asset": "assets/audio/MAIN/GAP66/GAP66-056.vi.v1.mp3",
+  "finalSha256": "41ba3176d81daff6a6016a714572fc62c9a796d0fca7e41061ae0fcda30e7f4d",
+  "sourceDurationSeconds": 6.88,
+  "durationSeconds": 7.636236,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 123342
+}

@@ -1,0 +1,57 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T05-B02\\C1315-L2-T05-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T05-B02-Q06",
+  "sourceText": "HOMI nói: I need more sleep. Get some sleep hay Go for a walk?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "I need more sleep.",
+      "spoken_text": "I need more sleep.",
+      "input_index": 31
+    },
+    {
+      "language": "en",
+      "text": "Get some sleep",
+      "spoken_text": "Get some sleep",
+      "input_index": 32
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 33
+    },
+    {
+      "language": "en",
+      "text": "Go for a walk?",
+      "spoken_text": "Go for a walk?",
+      "input_index": 34
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E5E53B0BBF1FC7EC233C4BAE",
+  "text": "HOMI nói: I need more sleep. Get some sleep hay Go for a walk?",
+  "asset": "assets/audio/CURRICULUM/e5e53b0bbf1fc7ec233c4bae.vi.v1.mp3",
+  "sha256": "f944d90880cd6a2ef86f05fab7c27d6028102e7a22ca5b00c32794779657ad05",
+  "durationSeconds": 6.814921
+}

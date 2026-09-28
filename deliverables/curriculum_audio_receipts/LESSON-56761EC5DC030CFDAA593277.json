@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T06-B01\\C1112-L2-T06-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T06-B01-Q08",
+  "sourceText": "Bạn muốn diễn đạt \"Tin nhắn\". Stranger hay Message?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Tin nhắn\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Tin nhắn\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Stranger",
+      "spoken_text": "Stranger",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Message?",
+      "spoken_text": "Message?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-56761EC5DC030CFDAA593277",
+  "text": "Bạn muốn diễn đạt \"Tin nhắn\". Stranger hay Message?",
+  "asset": "assets/audio/CURRICULUM/56761ec5dc030cfdaa593277.vi.v1.mp3",
+  "sha256": "f46f8f4de7f63a96c6fd14d516067a0c4f93e31db6e1e180049898115555b5c7",
+  "durationSeconds": 4.917937
+}

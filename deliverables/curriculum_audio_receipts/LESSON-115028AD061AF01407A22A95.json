@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T09-B01\\C35-L3-T09-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T09-B01-Q03",
+  "sourceText": "Nóng: Hot hay Cold?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nóng:",
+      "spoken_text": "Nóng:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Hot",
+      "spoken_text": "Hot",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Cold?",
+      "spoken_text": "Cold?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-115028AD061AF01407A22A95",
+  "text": "Nóng: Hot hay Cold?",
+  "asset": "assets/audio/CURRICULUM/115028ad061af01407a22a95.vi.v1.mp3",
+  "sha256": "2430b7a358a9dc0ef26af9b722804a24a105d54313138c9423426357ced9894d",
+  "durationSeconds": 3.27873
+}

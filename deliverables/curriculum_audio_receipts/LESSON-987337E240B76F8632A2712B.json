@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T06\\C1315-L2-M09_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-M09",
+  "sourceText": "Bạn cần diễn đạt \"Giữ mật khẩu riêng tư\". Keep passwords private hay Don't share your location?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Giữ mật khẩu riêng tư\".",
+      "text": "Bạn cần diễn đạt \"Giữ mật khẩu riêng tư\".",
+      "spoken_text": "Bạn cần diễn đạt \"Giữ mật khẩu riêng tư\".",
+      "input_index": 49
+    },
+    {
+      "language": "en",
+      "source_text": "Keep passwords private",
+      "text": "Keep passwords private",
+      "spoken_text": "Keep passwords private",
+      "input_index": 50
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 51
+    },
+    {
+      "language": "en",
+      "source_text": "Don't share your location?",
+      "text": "Don't share your location?",
+      "spoken_text": "Don't share your location?",
+      "input_index": 52
+    }
+  ],
+  "sourceSha256": "d2bc6cf80d617c1ff77b5cc229b6466c2f3b1bae58ffd58ab5e842feec8568c0",
+  "id": "LESSON-987337E240B76F8632A2712B",
+  "text": "Bạn cần diễn đạt \"Giữ mật khẩu riêng tư\". Keep passwords private hay Don't share your location?",
+  "asset": "assets/audio/CURRICULUM/987337e240b76f8632a2712b.vi.v1.mp3",
+  "sha256": "d2bc6cf80d617c1ff77b5cc229b6466c2f3b1bae58ffd58ab5e842feec8568c0",
+  "durationSeconds": 8.344082
+}

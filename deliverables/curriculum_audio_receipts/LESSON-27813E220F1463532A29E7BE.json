@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T03\\C35-L1-M10_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-M10",
+  "sourceText": "Bạn muốn nói 'Nó màu vàng.' Hoàn thành câu: It's... yellow hay green?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn muốn nói 'Nó màu vàng.' Hoàn thành câu:",
+      "text": "Bạn muốn nói 'Nó màu vàng.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Nó màu vàng.' Hoàn thành câu:",
+      "input_index": 54
+    },
+    {
+      "language": "en",
+      "source_text": "It's... yellow",
+      "text": "It's... yellow",
+      "spoken_text": "It's... yellow",
+      "input_index": 55
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 56
+    },
+    {
+      "language": "en",
+      "source_text": "green?",
+      "text": "green?",
+      "spoken_text": "green?",
+      "input_index": 57
+    }
+  ],
+  "sourceSha256": "1f37ac19bb1c9084b8e4b34ceb5147edf1cd6d0f95b3adff71e384e50cc45656",
+  "id": "LESSON-27813E220F1463532A29E7BE",
+  "text": "Bạn muốn nói 'Nó màu vàng.' Hoàn thành câu: It's... yellow hay green?",
+  "asset": "assets/audio/CURRICULUM/27813e220f1463532a29e7be.vi.v1.mp3",
+  "sha256": "1f37ac19bb1c9084b8e4b34ceb5147edf1cd6d0f95b3adff71e384e50cc45656",
+  "durationSeconds": 9.164218
+}

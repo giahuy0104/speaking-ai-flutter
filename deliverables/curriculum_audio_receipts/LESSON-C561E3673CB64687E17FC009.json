@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T01-B03\\C67-L1-T01-B03-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T01-B03-Q07",
+  "sourceText": "Sữa chua: Yogurt hay Zoo?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Sữa chua:",
+      "spoken_text": "Sữa chua:",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Yogurt",
+      "spoken_text": "Yogurt",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Zoo?",
+      "spoken_text": "Zoo?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-C561E3673CB64687E17FC009",
+  "text": "Sữa chua: Yogurt hay Zoo?",
+  "asset": "assets/audio/CURRICULUM/c561e3673cb64687e17fc009.vi.v1.mp3",
+  "sha256": "171532b0eae4b51d029b3a2199623cdf0ebccf084cea7a3b257b8090039affe7",
+  "durationSeconds": 3.90381
+}

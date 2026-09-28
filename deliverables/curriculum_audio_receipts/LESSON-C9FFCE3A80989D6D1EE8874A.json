@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T01\\C810-L1-M03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-M03",
+  "sourceText": "Bạn cần nói \"Tám giờ\". Eight o'clock hay At noon?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần nói \"Tám giờ\".",
+      "text": "Bạn cần nói \"Tám giờ\".",
+      "spoken_text": "Bạn cần nói \"Tám giờ\".",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "source_text": "Eight o'clock",
+      "text": "Eight o'clock",
+      "spoken_text": "Eight o'clock",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "source_text": "At noon?",
+      "text": "At noon?",
+      "spoken_text": "At noon?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": "e7bfe789e68e35500a27f34eafb42ce219d310b4a1170c58f5aa313c5561a9d2",
+  "id": "LESSON-C9FFCE3A80989D6D1EE8874A",
+  "text": "Bạn cần nói \"Tám giờ\". Eight o'clock hay At noon?",
+  "asset": "assets/audio/CURRICULUM/c9ffce3a80989d6d1ee8874a.vi.v1.mp3",
+  "sha256": "e7bfe789e68e35500a27f34eafb42ce219d310b4a1170c58f5aa313c5561a9d2",
+  "durationSeconds": 4.751338
+}

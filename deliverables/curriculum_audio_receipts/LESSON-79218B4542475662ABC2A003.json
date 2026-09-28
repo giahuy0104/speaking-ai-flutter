@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T01-B01\\C810-L1-T01-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T01-B01-Q07",
+  "sourceText": "Bạn cần nói \"Bảy giờ\". Seven o'clock hay At noon?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn cần nói \"Bảy giờ\".",
+      "spoken_text": "Bạn cần nói \"Bảy giờ\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Seven o'clock",
+      "spoken_text": "Seven o'clock",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "At noon?",
+      "spoken_text": "At noon?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-79218B4542475662ABC2A003",
+  "text": "Bạn cần nói \"Bảy giờ\". Seven o'clock hay At noon?",
+  "asset": "assets/audio/CURRICULUM/79218b4542475662abc2a003.vi.v1.mp3",
+  "sha256": "c2c231d535d7d4b7dc0f00331a218632a1711d38c9d443b30d15b035ab86d4ad",
+  "durationSeconds": 5.596712
+}

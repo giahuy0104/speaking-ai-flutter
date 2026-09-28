@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T01-B02\\C1315-L1-T01-B02-Q01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T01-B02-Q01",
+  "sourceText": "Mình học sau giờ học: I study after school hay I exercise before dinner?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình học sau giờ học:",
+      "spoken_text": "Mình học sau giờ học:",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "text": "I study after school",
+      "spoken_text": "I study after school",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "text": "I exercise before dinner?",
+      "spoken_text": "I exercise before dinner?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-63D4FD14F2F181B59E9FCC33",
+  "text": "Mình học sau giờ học: I study after school hay I exercise before dinner?",
+  "asset": "assets/audio/CURRICULUM/63d4fd14f2f181b59e9fcc33.vi.v1.mp3",
+  "sha256": "135039acba7e97dd7d18df8154bf88ff55d77017ce0cf5dfcd0478a0a5a05adc",
+  "durationSeconds": 7.467891
+}

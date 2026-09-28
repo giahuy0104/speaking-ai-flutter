@@ -1,0 +1,20 @@
+{
+  "signature": "6f883d31444ba26f93001ea6fa9f06d69d608543da83e2b15e4778128138409f",
+  "request": {
+    "text": "Let's Play Together",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "b63fb9fcbe23cb61ef74c98ecc55070d4a5b5ff8b5e5929d38bbf639f4c806f0",
+  "requestId": "2DWpy6EbGjRDNxLMjQ87",
+  "createdAt": "2026-09-15T23:25:52.316Z"
+}

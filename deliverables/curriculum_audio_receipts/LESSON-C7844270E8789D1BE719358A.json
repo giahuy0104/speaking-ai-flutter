@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T08-B02\\C810-L3-T08-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T08-B02-Q06",
+  "sourceText": "HOMI hỏi: Are you okay? Bạn đang buồn. I'm sad hay Thank you?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI hỏi:",
+      "spoken_text": "HOMI hỏi:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Are you okay?",
+      "spoken_text": "Are you okay?",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "Bạn đang buồn.",
+      "spoken_text": "Bạn đang buồn.",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "I'm sad",
+      "spoken_text": "I'm sad",
+      "input_index": 33
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 34
+    },
+    {
+      "language": "en",
+      "text": "Thank you?",
+      "spoken_text": "Thank you?",
+      "input_index": 35
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-C7844270E8789D1BE719358A",
+  "text": "HOMI hỏi: Are you okay? Bạn đang buồn. I'm sad hay Thank you?",
+  "asset": "assets/audio/CURRICULUM/c7844270e8789d1be719358a.vi.v1.mp3",
+  "sha256": "f699d8b737005e567aa51e9d67172992e4fd0cc97f15bd48357084adc577149a",
+  "durationSeconds": 6.593265
+}

@@ -1,0 +1,20 @@
+{
+  "id": "RUN-044",
+  "signature": "a4fd7550765dfe3c0c4d8f7e7f2cb817cb397fc9a605ec5ac917dbcec06ea306",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Đã có nội dung mới cho bạn. Bắt đầu học thôi!",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:12:37.598Z",
+  "requestId": "wP7xIOZ1wATt5yEi1gnJ",
+  "characterCost": "25",
+  "sourceSha256": "54383b02756d84b46e15336c11f7dba374958da5cbf0121cdc8e04916cddff51"
+}

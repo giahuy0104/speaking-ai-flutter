@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T06-B01\\C1112-L2-T06-B01-T04_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T06-B01-T04_EN",
+  "sourceText": "Photo.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Photo.",
+      "generation_key": "e880e8944ce4a0dc"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7EA0B65859CBFE8F144A8E61",
+  "text": "Photo.",
+  "asset": "assets/audio/CURRICULUM/7ea0b65859cbfe8f144a8e61.en.v1.mp3",
+  "sha256": "fb38d92ac6ef864e1ee34dc1ad828cf26dc0ee91bd92379c78728c24615e71f7",
+  "durationSeconds": 1.171156
+}

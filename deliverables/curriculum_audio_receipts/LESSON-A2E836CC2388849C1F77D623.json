@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T05-B02\\C810-L2-T05-B02-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T05-B02-Q03",
+  "sourceText": "Thả diều: Fly a kite hay Drink water?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Thả diều:",
+      "spoken_text": "Thả diều:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Fly a kite",
+      "spoken_text": "Fly a kite",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Drink water?",
+      "spoken_text": "Drink water?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-A2E836CC2388849C1F77D623",
+  "text": "Thả diều: Fly a kite hay Drink water?",
+  "asset": "assets/audio/CURRICULUM/a2e836cc2388849c1f77d623.vi.v1.mp3",
+  "sha256": "9f62de93efb0cc0ee7fc4d6bb5518a7eeea8bd9240366a2962a685d0a193aaf5",
+  "durationSeconds": 4.668231
+}

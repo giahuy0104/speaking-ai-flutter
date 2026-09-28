@@ -1,0 +1,20 @@
+{
+  "signature": "db753ef88edaef4eba9afec7ee670d90d466bf6b8b967eecabfb0b9ef37a2d81",
+  "request": {
+    "text": "Numbers in Life.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "6932399a42e7ae784869f3b62e6c158e571dec7f7ffd92c5d23cc96acdfe5006",
+  "requestId": "vvoCCUQtwJ7ZcAbssiCm",
+  "createdAt": "2026-09-15T23:25:03.870Z"
+}

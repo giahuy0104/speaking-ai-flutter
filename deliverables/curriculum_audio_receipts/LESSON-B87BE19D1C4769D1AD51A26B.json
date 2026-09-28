@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\dcf54fdc0f367a18a224eee9b29c1fae536aee237db112bdeae5320c5fd1d7a9.tempo.mp3",
+      "signature": "dcf54fdc0f367a18a224eee9b29c1fae536aee237db112bdeae5320c5fd1d7a9",
+      "request": {
+        "text": "Mình nghe lại bài hát",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "ee892492586446be6dd0425b7f7463201f10de5711387e8674c5e4c63c1de888",
+      "requestId": "7WmDO7POBGxEKSJtJWcp",
+      "createdAt": "2026-09-15T23:23:23.082Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\fc2739c3bc64b26465d47b739cb59a454c5ecdd32f2c608972f1e4f6db9162b3.tempo.mp3",
+      "signature": "fc2739c3bc64b26465d47b739cb59a454c5ecdd32f2c608972f1e4f6db9162b3",
+      "request": {
+        "text": "What Should I Wear?",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "c478e80baf296e91d886d62ea5b824d2942f1187d084264ce7cdec14e1e5ccda",
+      "requestId": "4gL3UD3ycDVqE8rZvLCT",
+      "createdAt": "2026-09-15T23:24:24.743Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780.tempo.mp3",
+      "signature": "f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780",
+      "request": {
+        "text": "nhé.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "f8a90b46149d734b590160ab12314af597dc9eb203f9f411637ff57d12e7a8d6",
+      "requestId": "1gbfQaGo6f7yeN8SvxDC",
+      "createdAt": "2026-09-15T23:22:32.853Z"
+    }
+  ],
+  "id": "LESSON-B87BE19D1C4769D1AD51A26B",
+  "text": "Mình nghe lại bài hát What Should I Wear? nhé.",
+  "asset": "assets/audio/CURRICULUM/b87be19d1c4769d1ad51a26b.vi.v1.mp3",
+  "sha256": "997b78e4140f4d4d12501e9a8c462f15e7c7d19b9ab5f42920482691a7346d56",
+  "durationSeconds": 3.792517,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

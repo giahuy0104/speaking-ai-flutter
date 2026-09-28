@@ -1,0 +1,20 @@
+{
+  "signature": "4e030461a49ef0a0a99e36e39f42444c5cdb03f2b42c4f312380165a330fae83",
+  "request": {
+    "text": "Simple Directions",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "c8f44eba04df781d1af45a5cad1a7a1398b9d67fe85ce6dfd496c579ef5f573c",
+  "requestId": "TGiS1pHKcVJr7Xxh5clh",
+  "createdAt": "2026-09-15T23:26:42.164Z"
+}

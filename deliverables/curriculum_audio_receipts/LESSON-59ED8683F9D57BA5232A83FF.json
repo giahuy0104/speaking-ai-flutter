@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\MP3\\C810-L3-T10\\C810-L3-T10-B01_HOOK.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T10-B01",
+  "sourceText": "Hôm nay được đi chơi. Chọn gì nhỉ?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "VI speech atempo 0.9 after synthesis, preserving pitch; sound effects retain original timing",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Hôm nay được đi chơi. Chọn gì nhỉ?",
+      "generation_key": "7dba30e3ff6af941"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-59ED8683F9D57BA5232A83FF",
+  "text": "Hôm nay được đi chơi. Chọn gì nhỉ?",
+  "asset": "assets/audio/CURRICULUM/59ed8683f9d57ba5232a83ff.vi.v1.mp3",
+  "sha256": "0b9a18b1ab91c14b7f49db9c5857f1f20e69a1fa02cb8c6a37ce4de074fe1264",
+  "durationSeconds": 3.096667
+}
