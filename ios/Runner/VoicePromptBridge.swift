@@ -410,10 +410,9 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     }
   }
 
-  /// Decodes the child's short lesson capture, lifts only quiet recordings,
-  /// and writes a PCM WAV sibling. Authored prompt assets keep their original
-  /// bytes and use the separate playback matching path. Peak headroom prevents
-  /// clipping while the gated RMS ignores pauses around the spoken sentence.
+  /// Decodes the child's short lesson capture, levels it with
+  /// `levelLessonRecording`, and writes a PCM WAV sibling. Authored prompts
+  /// never pass through this path, so their established loudness is untouched.
   private func normalizeLessonRecording(path: String, result: @escaping FlutterResult) {
     DispatchQueue.global(qos: .userInitiated).async {
       do {
@@ -435,21 +434,14 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
         guard let channels = buffer.floatChannelData else {
           throw LessonRecordingNormalizationError.unsupportedPcm
         }
-        let gainDb = Self.lessonRecordingGainDb(
+        guard Self.levelLessonRecording(
           channels: channels,
           channelCount: Int(format.channelCount),
           frameLength: Int(buffer.frameLength),
           sampleRate: format.sampleRate
-        )
-        guard gainDb > 0.05 else {
+        ) else {
           DispatchQueue.main.async { result(path) }
           return
-        }
-        let multiplier = pow(10.0, gainDb / 20.0)
-        for channel in 0..<Int(format.channelCount) {
-          for frame in 0..<Int(buffer.frameLength) {
-            channels[channel][frame] *= Float(multiplier)
-          }
         }
         let outputURL = sourceURL.deletingPathExtension()
           .appendingPathExtension("normalized.wav")
@@ -483,12 +475,21 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     }
   }
 
-  private static func lessonRecordingGainDb(
+  /// Gated speech level of a saved child recording. Mirrors
+  /// `lessonRecordingTargetDbfs` in lesson_wav_normalizer.dart.
+  static let lessonRecordingTargetDbfs = -17.0
+  private static let lessonRecordingPeakCeilingDbfs = -1.0
+
+  /// Brings a lesson recording, quiet or loud, to one speech level in place.
+  /// Pauses are excluded from the measurement. A look-ahead limiter, linked
+  /// across channels, keeps peaks under -1 dBFS so one plosive does not cap
+  /// the gain of the whole recording. Returns false when nothing changed.
+  static func levelLessonRecording(
     channels: UnsafePointer<UnsafeMutablePointer<Float>>,
     channelCount: Int,
     frameLength: Int,
     sampleRate: Double
-  ) -> Double {
+  ) -> Bool {
     let windowFrames = max(1, Int(sampleRate / 50.0))
     var windowEnergies: [Double] = []
     var peak = 0.0
@@ -507,16 +508,47 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       windowEnergies.append(energy / Double(count))
       start = end
     }
-    guard let strongest = windowEnergies.max(), strongest > 0, peak > 0 else { return 0 }
+    // A click fills at most two 20 ms windows. Leaving the two strongest out
+    // keeps it from setting the gate or the level; the limiter holds its peak.
+    let ranked = windowEnergies.sorted(by: >)
+    let measured = ranked.count > 2 ? Array(ranked.dropFirst(2)) : ranked
+    guard let strongest = measured.first, strongest > 0, peak > 0 else { return false }
     let gate = max(pow(10.0, -50.0 / 10.0), strongest / 1000.0)
-    let active = windowEnergies.filter { $0 >= gate }
-    guard !active.isEmpty else { return 0 }
+    let active = measured.filter { $0 >= gate }
+    guard !active.isEmpty else { return false }
     let rmsPower = active.reduce(0, +) / Double(active.count)
     let measuredDb = 10.0 * log10(rmsPower)
-    let peakDb = 20.0 * log10(peak)
-    let desired = -21.0 - measuredDb
-    let headroom = -1.0 - peakDb
-    return max(0.0, min(28.0, min(desired, headroom)))
+    var gainDb = min(28.0, lessonRecordingTargetDbfs - measuredDb)
+    // Under 100 ms above the gate is a knock, not speech; never turn the child
+    // down to match it.
+    if active.count < 5 { gainDb = max(0, gainDb) }
+    let multiplier = pow(10.0, gainDb / 20.0)
+    let ceiling = pow(10.0, lessonRecordingPeakCeilingDbfs / 20.0)
+    guard abs(gainDb) > 0.05 || peak * multiplier > ceiling else { return false }
+
+    // Ramp the reduction down over 5 ms before a peak and back up over 60 ms,
+    // so limiting does not click or pump.
+    let attackStep = 1.0 / max(1.0, (sampleRate * 0.005).rounded(.down))
+    let releaseStep = 1.0 / max(1.0, (sampleRate * 0.06).rounded(.down))
+    var reduction = [Double](repeating: 1, count: frameLength)
+    var next = 1.0
+    for frame in stride(from: frameLength - 1, through: 0, by: -1) {
+      var level = 0.0
+      for channel in 0..<channelCount {
+        level = max(level, abs(Double(channels[channel][frame])) * multiplier)
+      }
+      next = min(level > ceiling ? ceiling / level : 1.0, next + attackStep)
+      reduction[frame] = next
+    }
+    var previous = 1.0
+    for frame in 0..<frameLength {
+      previous = min(reduction[frame], previous + releaseStep)
+      let gain = Float(multiplier * previous)
+      for channel in 0..<channelCount {
+        channels[channel][frame] *= gain
+      }
+    }
+    return true
   }
 
   private func speak(

@@ -104,9 +104,16 @@ Uint8List normalizeAndroidLessonWav(Uint8List source) {
   return mono;
 }
 
-/// Raises only quiet mono PCM16 lesson captures to a conservative speech
-/// target. Pauses are excluded and peak headroom prevents clipping. Authored
-/// lesson audio never enters this recording-only finalization path.
+/// Gated speech level of every saved child recording, ~4 dB above the level
+/// Android plays authored prompts at, so a replay is clearly audible.
+const double lessonRecordingTargetDbfs = -17.0;
+
+const double _lessonRecordingPeakCeilingDbfs = -1.0;
+
+/// Brings mono PCM16 lesson captures, quiet or loud, to one speech level.
+/// Pauses are excluded from the measurement. A look-ahead limiter keeps peaks
+/// under -1 dBFS, so one plosive no longer caps the gain of a whole recording.
+/// Authored lesson audio never enters this recording-only finalization path.
 Uint8List normalizeLessonWavLoudness(Uint8List source) {
   final data = ByteData.sublistView(source);
   bool hasTag(int offset, String tag) =>
@@ -171,29 +178,72 @@ Uint8List normalizeLessonWavLoudness(Uint8List source) {
     }
     windowPowers.add(energy / (end - start));
   }
-  final strongest = windowPowers.reduce(math.max);
+  // A click fills at most two 20 ms windows. Leaving the two strongest out
+  // keeps it from setting the gate or the level; the limiter holds its peak.
+  final ranked = windowPowers.toList()..sort((a, b) => b.compareTo(a));
+  final measured = ranked.length > 2 ? ranked.sublist(2) : ranked;
+  final strongest = measured.first;
   if (strongest <= 0 || peak <= 0) return source;
   final gate = math.max(math.pow(10, -5).toDouble(), strongest / 1000);
-  final active = windowPowers.where((power) => power >= gate).toList();
+  final active = measured.where((power) => power >= gate).toList();
   if (active.isEmpty) return source;
   final rmsPower = active.reduce((a, b) => a + b) / active.length;
   final measuredDb = 10 * math.log(rmsPower) / math.ln10;
-  final peakDb = 20 * math.log(peak) / math.ln10;
-  final gainDb = math.max(
-    0.0,
-    math.min(28.0, math.min(-21.0 - measuredDb, -1.0 - peakDb)),
-  );
-  if (gainDb <= 0.05) return source;
+  var gainDb = math.min(28.0, lessonRecordingTargetDbfs - measuredDb);
+  // Under 100 ms above the gate is a knock, not speech; never turn the child
+  // down to match it.
+  if (active.length < 5) gainDb = math.max(0, gainDb);
   final multiplier = math.pow(10, gainDb / 20).toDouble();
+  final ceiling = math.pow(10, _lessonRecordingPeakCeilingDbfs / 20);
+  if (gainDb.abs() <= 0.05 && peak * multiplier <= ceiling) return source;
+  final reduction = _limiterGain(
+    data,
+    pcmOffset: pcmOffset,
+    sampleCount: sampleCount,
+    sampleRate: sampleRate,
+    multiplier: multiplier,
+    ceiling: ceiling.toDouble(),
+  );
   final output = Uint8List.fromList(source);
   final outputData = ByteData.sublistView(output);
   for (var index = 0; index < sampleCount; index += 1) {
     final sample = data.getInt16(pcmOffset + index * 2, Endian.little);
     outputData.setInt16(
       pcmOffset + index * 2,
-      (sample * multiplier).round().clamp(-32768, 32767),
+      (sample * multiplier * reduction[index]).round().clamp(-32768, 32767),
       Endian.little,
     );
   }
   return output;
+}
+
+/// Per-sample gain reduction that keeps `sample * multiplier` under
+/// [ceiling]. It ramps down over 5 ms before a peak and recovers over 60 ms,
+/// so limiting a peak does not click or pump.
+Float64List _limiterGain(
+  ByteData data, {
+  required int pcmOffset,
+  required int sampleCount,
+  required int sampleRate,
+  required double multiplier,
+  required double ceiling,
+}) {
+  final reduction = Float64List(sampleCount);
+  final attackStep = 1 / math.max(1, sampleRate * 5 ~/ 1000);
+  final releaseStep = 1 / math.max(1, sampleRate * 60 ~/ 1000);
+  var next = 1.0;
+  for (var index = sampleCount - 1; index >= 0; index -= 1) {
+    final level =
+        (data.getInt16(pcmOffset + index * 2, Endian.little) / 32768.0).abs() *
+        multiplier;
+    final needed = level > ceiling ? ceiling / level : 1.0;
+    next = math.min(needed, next + attackStep);
+    reduction[index] = next;
+  }
+  var previous = 1.0;
+  for (var index = 0; index < sampleCount; index += 1) {
+    previous = math.min(reduction[index], previous + releaseStep);
+    reduction[index] = previous;
+  }
+  return reduction;
 }
