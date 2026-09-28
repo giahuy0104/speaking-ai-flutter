@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
+import '../../../app/praise_fireworks.dart';
 import '../../../core/audio/streaming_speech_input.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
@@ -98,6 +99,8 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   bool _loading = true;
   bool _busy = false;
   bool _recording = false;
+  bool _recordingStartPending = false;
+  bool _recordingProcessing = false;
   bool _capturePending = false;
   bool _paused = false;
   bool _pausedAfterNoResponse = false;
@@ -108,6 +111,9 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   int _invalidResponseCount = 0;
   late bool _resumeAnnouncementPending;
   String _message = '';
+  Timer? _praiseFireworksTimer;
+  int _praiseFireworksSequence = 0;
+  bool _praiseFireworksVisible = false;
   late final LessonRecordingEndpointDetector _recordingEndpointDetector;
   ActiveLearningModuleRegistry? _activeRegistry;
   Object? _activeRegistration;
@@ -172,6 +178,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   @override
   void dispose() {
     _generation += 1;
+    _praiseFireworksTimer?.cancel();
     _recordingEndpointDetector.cancel();
     if (_activeRegistry != null && _activeRegistration != null) {
       _activeRegistry!.unregister(_activeRegistration!);
@@ -345,10 +352,12 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   }) async {
     if (!_isCurrent(generation, entry.id) ||
         _recording ||
+        _recordingStartPending ||
         _pausedAfterNoResponse) {
       return;
     }
     setState(() {
+      _recordingStartPending = true;
       _busy = true;
       _message = 'Đang mở micro…';
     });
@@ -409,6 +418,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       }
       setState(() {
         _recording = true;
+        _recordingStartPending = false;
         _capturePending = false;
         _busy = false;
         _message = 'Đến lượt bạn.';
@@ -428,6 +438,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       if (!_isCurrent(generation, entry.id)) return;
       setState(() {
         _recording = false;
+        _recordingStartPending = false;
         _capturePending = false;
         _busy = false;
         _message = _friendlyError(error);
@@ -444,6 +455,8 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     final entry = _entry;
     setState(() {
       _recording = false;
+      _recordingStartPending = false;
+      _recordingProcessing = true;
       _capturePending = true;
       _busy = true;
       _message = 'HOMI đang nghe lại…';
@@ -477,6 +490,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     } catch (error) {
       if (!_isCurrent(generation, entry.id)) return;
       setState(() {
+        _recordingProcessing = false;
         _capturePending = false;
         _busy = false;
         _message = _friendlyError(error);
@@ -524,6 +538,8 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     required VocabularyEntry entry,
     String? recordingPath,
   }) async {
+    if (!_isCurrent(generation, entry.id)) return;
+    setState(() => _recordingProcessing = false);
     switch (outcome) {
       case LessonAttemptOutcome.good:
         _invalidResponseCount = 0;
@@ -539,6 +555,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         );
         await widget.sessionStore.saveActive(_session);
         if (!_isCurrent(generation, entry.id)) return;
+        if (_isReview) _showPraiseFireworks();
         final feedback = LessonAgeFeedbackLibrary.message(
           age: widget.childAge,
           kind: LessonFeedbackKind.correct,
@@ -777,6 +794,8 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     if (_paused) return;
     _paused = true;
     _generation += 1;
+    _praiseFireworksTimer?.cancel();
+    _praiseFireworksTimer = null;
     final fixedPrompt = widget.fixedPromptAudioService;
     if (fixedPrompt is CancellableVocabularyFixedPromptAudioService) {
       (fixedPrompt as CancellableVocabularyFixedPromptAudioService)
@@ -784,10 +803,13 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     }
     final wasRecording = _recording || _capturePending;
     _recording = false;
+    _recordingStartPending = false;
+    _recordingProcessing = false;
     _capturePending = false;
     _recordingEndpointDetector.cancel();
     if (mounted) {
       setState(() {
+        _praiseFireworksVisible = false;
         _busy = false;
         _message = 'Hoạt động đang tạm dừng.';
       });
@@ -999,70 +1021,105 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         },
         child: Scaffold(
           backgroundColor: Colors.transparent,
-          body: LearningScenery(
-            assetPath: _practiceHomiSceneryAsset,
-            overlayOpacity: 0.08,
-            child: SafeArea(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : LayoutBuilder(
-                      builder: (context, constraints) {
-                        final compactHeight = constraints.maxHeight < 700;
-                        return SingleChildScrollView(
-                          padding: EdgeInsets.fromLTRB(
-                            18,
-                            compactHeight ? 8 : 12,
-                            18,
-                            20,
-                          ),
-                          child: Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 560),
-                              child: Column(
-                                children: <Widget>[
-                                  _buildPracticeHeader(context),
-                                  SizedBox(height: compactHeight ? 10 : 14),
-                                  _buildProgress(context),
-                                  SizedBox(height: compactHeight ? 18 : 26),
-                                  if (!_completed)
-                                    _buildEntryCard(
-                                      context,
-                                      compactHeight: compactHeight,
+          body: Stack(
+            children: <Widget>[
+              Positioned.fill(
+                child: LearningScenery(
+                  assetPath: _practiceHomiSceneryAsset,
+                  overlayOpacity: 0.08,
+                  child: SafeArea(
+                    child: _loading
+                        ? const Center(child: CircularProgressIndicator())
+                        : LayoutBuilder(
+                            builder: (context, constraints) {
+                              final compactHeight = constraints.maxHeight < 700;
+                              return SingleChildScrollView(
+                                padding: EdgeInsets.fromLTRB(
+                                  18,
+                                  compactHeight ? 8 : 12,
+                                  18,
+                                  20,
+                                ),
+                                child: Center(
+                                  child: ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 560,
                                     ),
-                                  SizedBox(height: compactHeight ? 14 : 20),
-                                  Text(
-                                    _message,
-                                    textAlign: TextAlign.center,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant,
-                                          fontSize: compactHeight ? 16 : 17,
-                                          height: 1.25,
-                                          fontWeight: FontWeight.w700,
+                                    child: Column(
+                                      children: <Widget>[
+                                        _buildPracticeHeader(context),
+                                        SizedBox(
+                                          height: compactHeight ? 10 : 14,
                                         ),
+                                        _buildProgress(context),
+                                        SizedBox(
+                                          height: compactHeight ? 18 : 26,
+                                        ),
+                                        if (!_completed)
+                                          _buildEntryCard(
+                                            context,
+                                            compactHeight: compactHeight,
+                                          ),
+                                        SizedBox(
+                                          height: compactHeight ? 14 : 20,
+                                        ),
+                                        Text(
+                                          _message,
+                                          textAlign: TextAlign.center,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium
+                                              ?.copyWith(
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurfaceVariant,
+                                                fontSize: compactHeight
+                                                    ? 16
+                                                    : 17,
+                                                height: 1.25,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                        ),
+                                        SizedBox(
+                                          height: compactHeight ? 14 : 20,
+                                        ),
+                                        if (_completed)
+                                          _buildCompletionActions(context)
+                                        else
+                                          _buildPracticeAction(context),
+                                        SizedBox(
+                                          height: compactHeight ? 12 : 18,
+                                        ),
+                                        _buildHomiCoach(
+                                          context,
+                                          viewportHeight: constraints.maxHeight,
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  SizedBox(height: compactHeight ? 14 : 20),
-                                  if (_completed)
-                                    _buildCompletionActions(context)
-                                  else
-                                    _buildPracticeAction(context),
-                                  SizedBox(height: compactHeight ? 12 : 18),
-                                  _buildHomiCoach(
-                                    context,
-                                    viewportHeight: constraints.maxHeight,
-                                  ),
-                                ],
-                              ),
-                            ),
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    ),
-            ),
+                  ),
+                ),
+              ),
+              Positioned.fill(
+                child: IgnorePointer(
+                  key: const Key('vocabulary-review-fireworks-interaction'),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 180),
+                    reverseDuration: const Duration(milliseconds: 180),
+                    child: _praiseFireworksVisible
+                        ? PraiseFireworks(
+                            key: ValueKey<int>(_praiseFireworksSequence),
+                            keyPrefix: 'vocabulary-review-fireworks',
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1229,7 +1286,13 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         ),
       );
     }
-    final enabled = !_busy && !_paused;
+    final enabled =
+        !_busy &&
+        !_paused &&
+        !_recordingStartPending &&
+        !_recordingProcessing &&
+        !_capturePending;
+    final actionLabel = _practiceActionLabel(context);
     return FilledButton.icon(
       key: const Key('vocabulary-practice-main-action'),
       onPressed: !enabled
@@ -1240,18 +1303,15 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       icon: Icon(
         _isToday
             ? Icons.play_arrow_rounded
+            : _recordingStartPending || _recordingProcessing || _capturePending
+            ? Icons.hourglass_top_rounded
             : _recording
             ? Icons.stop_rounded
             : Icons.mic_rounded,
       ),
       label: Text(
-        _paused
-            ? 'Đang tạm dừng'
-            : _isToday
-            ? 'Bắt đầu nghe'
-            : _recording
-            ? 'Bạn nói xong'
-            : 'Nghe và nói lại',
+        actionLabel,
+        key: const Key('vocabulary-practice-action-label'),
       ),
       style: FilledButton.styleFrom(
         minimumSize: const Size(286, 58),
@@ -1267,6 +1327,20 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         ),
       ),
     );
+  }
+
+  String _practiceActionLabel(BuildContext context) {
+    if (_paused) return context.tr('Đang tạm dừng', '已暂停');
+    if (_isToday) return context.tr('Bắt đầu nghe', '开始聆听');
+    if (_recordingStartPending) {
+      return context.tr('Đang chuẩn bị micro…', '正在准备麦克风…');
+    }
+    if (_recording) {
+      return context.tr('Chạm để kết thúc ghi âm', '点击结束录音');
+    }
+    if (_recordingProcessing) return context.tr('Đang chấm…', '正在评分…');
+    if (_busy) return context.tr('Đang phát nội dung…', '正在播放内容…');
+    return context.tr('Chạm để bắt đầu ghi âm', '点击开始录音');
   }
 
   Widget _buildHomiCoach(
@@ -1404,9 +1478,14 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     }
     _paused = true;
     _generation++;
+    _praiseFireworksTimer?.cancel();
+    _praiseFireworksTimer = null;
+    _praiseFireworksVisible = false;
     _recordingEndpointDetector.cancel();
     final wasRecording = _recording || _capturePending;
     _recording = false;
+    _recordingStartPending = false;
+    _recordingProcessing = false;
     _capturePending = false;
     // Invalidate first, then release each owner independently. Neither native
     // stop nor checkpoint persistence may hold the navigation route hostage.
@@ -1423,6 +1502,20 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     ]) {
       unawaited(Future<void>.sync(operation).catchError((Object _) {}));
     }
+  }
+
+  void _showPraiseFireworks() {
+    _praiseFireworksTimer?.cancel();
+    if (!mounted || !_isReview) return;
+    setState(() {
+      _praiseFireworksSequence += 1;
+      _praiseFireworksVisible = true;
+    });
+    _praiseFireworksTimer = Timer(PraiseFireworks.displayDuration, () {
+      if (!mounted || !_praiseFireworksVisible) return;
+      setState(() => _praiseFireworksVisible = false);
+      _praiseFireworksTimer = null;
+    });
   }
 
   Future<void> _speakAndWait(

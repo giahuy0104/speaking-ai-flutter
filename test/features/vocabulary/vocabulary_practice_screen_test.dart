@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
+import 'package:ai_speaking_flutter_app/app/praise_fireworks.dart';
 import 'package:ai_speaking_flutter_app/core/audio/adaptive_voice_activity_detector.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
@@ -365,7 +366,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Nghe và nói lại'), findsOneWidget);
+      expect(find.text('Chạm để bắt đầu ghi âm'), findsOneWidget);
       expect(find.text('Nghe mẫu'), findsNothing);
       expect(find.text('Giữ để nói'), findsNothing);
       expect(find.text('Về Main'), findsNothing);
@@ -523,6 +524,226 @@ void main() {
       expect(find.text(VocabularyFlowV3.reviewCycleFinished), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'Review recording action exposes idle preparing recording and processing states once',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final media = _FakeLessonMediaService();
+      final voice = _GatedCueVoice(media)..cue = Completer<void>();
+      final evaluator = _GatedAttemptEvaluator();
+      addTearDown(registry.dispose);
+      addTearDown(media.close);
+      await _mountReview(
+        tester,
+        registry: registry,
+        media: media,
+        voice: voice,
+        evaluator: evaluator,
+      );
+
+      expect(find.text('Chạm để bắt đầu ghi âm'), findsOneWidget);
+      final idleButton = tester.widget<FilledButton>(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      idleButton.onPressed!.call();
+      idleButton.onPressed!.call();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Đang chuẩn bị micro…'), findsOneWidget);
+      expect(media.startCalls, 0);
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.byKey(const Key('vocabulary-practice-main-action')),
+            )
+            .onPressed,
+        isNull,
+      );
+
+      voice.cue!.complete();
+      await tester.pumpAndSettle();
+      expect(find.text('Chạm để kết thúc ghi âm'), findsOneWidget);
+      expect(media.startCalls, 1, reason: 'double tap starts one recorder');
+
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Đang chấm…'), findsOneWidget);
+      expect(media.stopCalls, 1);
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.byKey(const Key('vocabulary-practice-main-action')),
+            )
+            .onPressed,
+        isNull,
+      );
+
+      evaluator.complete(LessonAttemptOutcome.retry);
+      await tester.pumpAndSettle();
+      expect(find.text('Chạm để kết thúc ghi âm'), findsOneWidget);
+      expect(media.startCalls, 2);
+      expect(
+        media.stopCalls,
+        1,
+        reason: 'processing stops only the active turn',
+      );
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets('Review localizes tap recording labels in Chinese', (
+    tester,
+  ) async {
+    final registry = ActiveLearningModuleRegistry();
+    final media = _FakeLessonMediaService();
+    final voice = _FakeVoicePromptService();
+    addTearDown(registry.dispose);
+    addTearDown(media.close);
+    await _mountReview(
+      tester,
+      registry: registry,
+      media: media,
+      voice: voice,
+      language: DisplayLanguage.simplifiedChinese,
+    );
+
+    expect(find.text('点击开始录音'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('vocabulary-practice-main-action')));
+    await tester.pumpAndSettle();
+    expect(find.text('点击结束录音'), findsOneWidget);
+  });
+
+  testWidgets(
+    'correct Review answer shows one fireworks overlay across item advance then hides',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final media = _FakeLessonMediaService();
+      final correctFeedback = LessonAgeFeedbackLibrary.message(
+        age: 6,
+        kind: LessonFeedbackKind.correct,
+      );
+      final voice = _CorrectFeedbackGateVoice(correctFeedback);
+      addTearDown(registry.dispose);
+      addTearDown(media.close);
+      await _mountReview(
+        tester,
+        registry: registry,
+        media: media,
+        voice: voice,
+        evaluator: _QueuedAttemptEvaluator([LessonAttemptOutcome.good]),
+      );
+
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await _pumpUntil(tester, () => voice.feedbackStarted);
+
+      expect(
+        find.byKey(const Key('vocabulary-review-fireworks')),
+        findsOneWidget,
+      );
+      expect(find.text('Apple'), findsOneWidget);
+      expect(
+        voice.spoken.where((item) => item == 'vi-VN:$correctFeedback'),
+        hasLength(1),
+      );
+
+      voice.completeFeedback();
+      await _pumpUntil(tester, () => find.text('Banana').evaluate().isNotEmpty);
+      expect(
+        find.byKey(const Key('vocabulary-review-fireworks')),
+        findsOneWidget,
+        reason: 'entry replacement must not remove the screen-level overlay',
+      );
+
+      await tester.pump(PraiseFireworks.displayDuration);
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(
+        find.byKey(const Key('vocabulary-review-fireworks')),
+        findsNothing,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  for (final outcome in <LessonAttemptOutcome>[
+    LessonAttemptOutcome.retry,
+    LessonAttemptOutcome.unclear,
+    LessonAttemptOutcome.noResponse,
+  ]) {
+    testWidgets('Review $outcome never shows praise fireworks', (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final media = _FakeLessonMediaService();
+      final voice = _FakeVoicePromptService();
+      addTearDown(registry.dispose);
+      addTearDown(media.close);
+      await _mountReview(
+        tester,
+        registry: registry,
+        media: media,
+        voice: voice,
+        evaluator: _QueuedAttemptEvaluator([outcome]),
+      );
+
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('vocabulary-review-fireworks')),
+        findsNothing,
+      );
+    });
+  }
+
+  testWidgets('Back disposes active Review fireworks without a late setState', (
+    tester,
+  ) async {
+    final registry = ActiveLearningModuleRegistry();
+    final media = _FakeLessonMediaService();
+    final correctFeedback = LessonAgeFeedbackLibrary.message(
+      age: 6,
+      kind: LessonFeedbackKind.correct,
+    );
+    final voice = _CorrectFeedbackGateVoice(correctFeedback);
+    addTearDown(registry.dispose);
+    addTearDown(media.close);
+    await _mountReview(
+      tester,
+      registry: registry,
+      media: media,
+      voice: voice,
+      evaluator: _QueuedAttemptEvaluator([LessonAttemptOutcome.good]),
+    );
+
+    await tester.tap(find.byKey(const Key('vocabulary-practice-main-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-practice-main-action')));
+    await _pumpUntil(tester, () => voice.feedbackStarted);
+    expect(
+      find.byKey(const Key('vocabulary-review-fireworks')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+    await tester.pumpAndSettle();
+    await tester.pump(PraiseFireworks.displayDuration);
+
+    expect(find.byType(VocabularyPracticeScreen), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets(
     'completed block lets MAIN route directly to Stars after interruption',
@@ -905,6 +1126,7 @@ Future<void> _mountReview(
   required VoicePromptService voice,
   LessonAttemptEvaluator? evaluator = const RecordedAttemptEvaluator(),
   LearningAudioDependencies? audioDependencies,
+  DisplayLanguage language = DisplayLanguage.vietnamese,
 }) async {
   SharedPreferences.setMockInitialValues(<String, Object>{});
   const store = VocabularyStore();
@@ -934,7 +1156,7 @@ Future<void> _mountReview(
       child: MaterialApp(
         theme: buildAppTheme(),
         home: VocabularyPracticeScreen(
-          language: DisplayLanguage.vietnamese,
+          language: language,
           childAge: 6,
           session: session,
           store: store,
@@ -950,6 +1172,14 @@ Future<void> _mountReview(
     ),
   );
   await tester.pumpAndSettle();
+}
+
+Future<void> _pumpUntil(WidgetTester tester, bool Function() condition) async {
+  for (var attempt = 0; attempt < 100; attempt += 1) {
+    if (condition()) return;
+    await tester.pump(const Duration(milliseconds: 10));
+  }
+  fail('Condition did not become true in time.');
 }
 
 class _FakeLessonMediaService extends LessonMediaService {
@@ -1100,6 +1330,26 @@ class _QueuedAttemptEvaluator implements LessonAttemptEvaluator {
   }
 }
 
+class _GatedAttemptEvaluator implements LessonAttemptEvaluator {
+  final Completer<LessonAttemptOutcome> _result =
+      Completer<LessonAttemptOutcome>();
+
+  void complete(LessonAttemptOutcome outcome) => _result.complete(outcome);
+
+  @override
+  Future<LessonAttemptOutcome> evaluate({
+    required String lessonCode,
+    required String sentenceId,
+    required String expectedEnglish,
+    required String recordingPath,
+    required Duration recordingDuration,
+    required int attemptNumber,
+    required int childAge,
+    Iterable<String> acceptedVariants = const <String>[],
+    bool requireAllExpectedTokens = false,
+  }) => _result.future;
+}
+
 class _FakeVoicePromptService implements VoicePromptService {
   final List<String> spoken = <String>[];
 
@@ -1117,6 +1367,30 @@ class _FakeVoicePromptService implements VoicePromptService {
 
   @override
   Future<void> stop() async {}
+}
+
+class _CorrectFeedbackGateVoice extends _FakeVoicePromptService {
+  _CorrectFeedbackGateVoice(this.correctFeedback);
+
+  final String correctFeedback;
+  final Completer<void> _feedback = Completer<void>();
+  bool feedbackStarted = false;
+
+  void completeFeedback() {
+    if (!_feedback.isCompleted) _feedback.complete();
+  }
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    spoken.add('$locale:$text');
+    if (text == correctFeedback) {
+      feedbackStarted = true;
+      await _feedback.future;
+    }
+  }
+
+  @override
+  Future<void> stop() async => completeFeedback();
 }
 
 class _CompletionBlockingVoice extends _FakeVoicePromptService {
