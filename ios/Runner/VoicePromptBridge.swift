@@ -49,6 +49,26 @@ enum IOSPromptProsody {
   }
 }
 
+/// Turns a clip's measured playback gain into an `AVAudioPlayer` volume.
+///
+/// The authored catalogue is measured at build time and shipped as a manifest,
+/// because Android re-measured every clip before playing it while iOS played
+/// whatever level the clip was rendered at — and the catalogue spans about
+/// 18 dB, so a Vietnamese lead was audibly louder than the English sentence
+/// that followed.
+///
+/// `AVAudioPlayer.volume` can only attenuate, but that is all this needs:
+/// almost every authored clip sits above the shared target, so the measured
+/// gain is negative. A clip that would need a boost is left at full volume
+/// rather than silently ignored — raising it would take an audio engine this
+/// path does not have.
+enum IOSPromptPlaybackLevel {
+  static func volume(forGainDb gainDb: Double?) -> Float {
+    guard let gainDb, gainDb.isFinite, gainDb < 0 else { return 1.0 }
+    return Float(min(1.0, pow(10.0, gainDb / 20.0)))
+  }
+}
+
 final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDelegate {
   private let channel: FlutterMethodChannel
   private let audioSessionCoordinator: IOSAudioSessionCoordinator
@@ -126,6 +146,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
         bytes.data,
         forcePhoneSpeaker: arguments?["forcePhoneSpeaker"] as? Bool ?? false,
         forceMediaPlayback: arguments?["forceMediaPlayback"] as? Bool ?? false,
+        gainDb: (arguments?["gainDb"] as? NSNumber)?.doubleValue,
         result: result
       )
     case "speak", "speakAndWait":
@@ -406,6 +427,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     _ data: Data,
     forcePhoneSpeaker: Bool,
     forceMediaPlayback: Bool,
+    gainDb: Double?,
     result: @escaping FlutterResult
   ) {
     stop()
@@ -423,7 +445,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       let player = try AVAudioPlayer(data: data)
       authoredPromptPlayer = player
       player.delegate = self
-      player.volume = 1.0
+      player.volume = IOSPromptPlaybackLevel.volume(forGainDb: gainDb)
       player.numberOfLoops = 0
       player.prepareToPlay()
       // Speed was applied once during offline generation; playback stays at 1x.

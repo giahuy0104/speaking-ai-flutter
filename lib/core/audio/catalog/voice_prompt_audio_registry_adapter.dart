@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
+import '../audio_loudness_manifest.dart';
 import '../hfp_audio_control.dart';
 import '../voice_prompt_service_base.dart';
 import 'audio_pack_cache.dart';
@@ -30,6 +31,7 @@ final class VoicePromptAudioRegistryAdapter
     http.Client? httpClient,
     Set<String> allowedCdnHosts = const {'res.cloudinary.com'},
   }) : _delegate = delegate,
+       _bundle = bundle,
        repository = AudioPackRepository(
          bundledManifestAssets: manifestAssets,
          bundle: bundle,
@@ -48,6 +50,7 @@ final class VoicePromptAudioRegistryAdapter
   }
 
   final VoicePromptService _delegate;
+  final AssetBundle? _bundle;
   final AudioPackRepository repository;
   late final AudioPromptResolver resolver;
   late final AudioPromptService service;
@@ -172,14 +175,19 @@ final class VoicePromptAudioRegistryAdapter
 
   Future<void> _playAuthored(
     Uint8List bytes,
-    AudioPromptRequest request,
-  ) async {
+    AudioPromptRequest request, {
+    String? assetKey,
+  }) async {
     final delegate = _delegate;
     if (delegate is! AuthoredAudioVoicePromptService) {
       throw const FormatException(
         'Native authored-audio playback unavailable.',
       );
     }
+    // Nearly every authored prompt a child hears reaches playback through this
+    // registry, not through the MAIN service behind it, so the measured level
+    // has to be applied here or the catalogue's spread survives untouched.
+    final loudness = await AudioLoudnessManifest.load(bundle: _bundle);
     await (delegate as AuthoredAudioVoicePromptService)
         .playAuthoredAudioAndWait(
           bytes,
@@ -187,6 +195,7 @@ final class VoicePromptAudioRegistryAdapter
               request.outputRoute == AudioOutputRoute.phoneSpeaker,
           forceMediaPlayback:
               request.outputRoute == AudioOutputRoute.selectedMediaOutput,
+          gainDb: assetKey == null ? null : loudness.gainDbForAsset(assetKey),
         );
   }
 

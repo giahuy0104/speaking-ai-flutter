@@ -6,7 +6,11 @@ import 'audio_prompt_request.dart';
 import 'audio_prompt_resolver.dart';
 
 typedef AuthoredAudioPlayer =
-    Future<void> Function(Uint8List bytes, AudioPromptRequest request);
+    Future<void> Function(
+      Uint8List bytes,
+      AudioPromptRequest request, {
+      String? assetKey,
+    });
 typedef TtsPromptPlayer = Future<void> Function(AudioPromptRequest request);
 typedef AudioStopper = Future<void> Function();
 typedef RouteLossClassifier = bool Function(Object error);
@@ -78,7 +82,11 @@ final class AudioPromptService {
       if (resolution.bytes != null) {
         try {
           await _untilCancelled(
-            _playAuthored(resolution.bytes!, request),
+            _playAuthored(
+              resolution.bytes!,
+              request,
+              assetKey: resolution.prompt?.asset,
+            ),
             cancellation,
             _authoredPlaybackTimeout(request, resolution),
           );

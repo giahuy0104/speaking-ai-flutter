@@ -28,9 +28,10 @@ class MethodChannelVoicePromptService
     Uint8List bytes, {
     bool forcePhoneSpeaker = false,
     bool forceMediaPlayback = false,
+    double? gainDb,
   }) => _channel.invokeMethod<void>('playAuthoredAudioAndWait', {
     'bytes': bytes,
-    'gainDb': androidAssistantSpeechBoostDb,
+    'gainDb': gainDb ?? androidAssistantSpeechBoostDb,
     'forcePhoneSpeaker': forcePhoneSpeaker,
     'forceMediaPlayback': forceMediaPlayback,
   });

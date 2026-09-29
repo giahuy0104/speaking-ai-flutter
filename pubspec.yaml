@@ -34,6 +34,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/data/audio_loudness.json
     - assets/data/listening_lessons.json
     - assets/data/listening_topic_patch_v42.json
     - assets/data/listening_ai_lexicon_v4.json

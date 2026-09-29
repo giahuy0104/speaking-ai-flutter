@@ -37,11 +37,17 @@ abstract interface class KeyedSelectedMediaOutputVoicePromptService {
 
 /// Optional native playback on the same route/lifecycle as TTS. Bytes have
 /// already been verified by the caller; speed is baked into the file.
+///
+/// [gainDb] is the clip's measured playback gain when the caller knows which
+/// bundled asset these bytes came from. Without it each platform falls back to
+/// its own default, which on iOS meant playing the catalogue's ~18 dB spread
+/// untouched.
 abstract interface class AuthoredAudioVoicePromptService {
   Future<void> playAuthoredAudioAndWait(
     Uint8List bytes, {
     bool forcePhoneSpeaker = false,
     bool forceMediaPlayback = false,
+    double? gainDb,
   });
 }
 

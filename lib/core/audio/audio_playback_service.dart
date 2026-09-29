@@ -6,8 +6,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 
-import 'audio_gain.dart';
 import 'audio_diagnostics.dart';
+import 'audio_gain.dart';
+import 'audio_loudness_manifest.dart';
 import 'audio_turn_coordinator.dart';
 import 'browser_audio_playback.dart';
 import 'browser_audio_playback_factory.dart';
@@ -305,16 +306,32 @@ class JustAudioPlaybackService
     }
   }
 
+  /// The build-time gain for a bundled clip, or null for anything else.
+  ///
+  /// This is what lets iOS match Android without decoding a clip before it
+  /// plays: the manifest is a lookup, not a measurement.
+  Future<double?> _manifestGain(Uri uri) async {
+    if (!uri.isScheme('asset')) return null;
+    final manifest = await AudioLoudnessManifest.load();
+    return manifest.gainDbForAsset(uri.path.replaceFirst(RegExp(r'^/'), ''));
+  }
+
   Future<void> _applySourceLevel(Uri uri, _PlaybackRequest request) async {
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+    if (kIsWeb) return;
     // Metering does not mutate the player. Cancelling this wait lets the next
     // queued source start immediately; a late meter response cannot apply gain.
     final fixedGain = _fixedGainDb;
-    final measuredGain = fixedGain == null
+    final manifestGain = fixedGain == null
+        ? await request.wait(_manifestGain(uri))
+        : null;
+    _requireCurrentPlayback(request);
+    // Only a clip the manifest does not cover pays for a decode, and only where
+    // a platform can measure one.
+    final measuredGain = fixedGain == null && manifestGain == null
         ? await request.wait(_measurePlaybackGain(uri))
         : null;
     _requireCurrentPlayback(request);
-    final gain = fixedGain ?? measuredGain ?? _fallbackGainDb;
+    final gain = fixedGain ?? manifestGain ?? measuredGain ?? _fallbackGainDb;
     // Reset attenuation even if this source cannot be measured, including
     // injected players without an Android effect pipeline.
     await _player.setVolume(
@@ -326,6 +343,7 @@ class JustAudioPlaybackService
     AudioDiagnostics.event('media.level.applied', {
       'owner': _audioTurnOwner.name,
       'gainDb': gain,
+      'manifest': manifestGain != null,
       'measured': measuredGain != null,
       'fixed': fixedGain != null,
     });

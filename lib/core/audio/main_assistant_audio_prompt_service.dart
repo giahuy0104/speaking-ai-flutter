@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import 'audio_diagnostics.dart';
+import 'audio_loudness_manifest.dart';
 import 'voice_prompt_service_base.dart';
 
 /// Allowlisted fixed assistant prompts. It is wrapped INSIDE the existing
@@ -356,12 +357,17 @@ class MainAssistantAudioPromptService
               'loadMs': loadingWatch.elapsedMilliseconds,
             });
             startedAudio = true;
+            // Without this the child hears MAIN's navigation lines at whatever
+            // level each clip happened to be rendered at, which across the
+            // catalogue spans about 18 dB.
+            final loudness = await AudioLoudnessManifest.load(bundle: _bundle);
             await _bounded(
               (player as AuthoredAudioVoicePromptService)
                   .playAuthoredAudioAndWait(
                     bytes,
                     forcePhoneSpeaker: forcePhoneSpeaker,
                     forceMediaPlayback: forceMediaPlayback,
+                    gainDb: loudness.gainDbForAsset(asset),
                   ),
               Duration(milliseconds: (seconds * 1000).ceil() + 3000),
             );
@@ -561,6 +567,7 @@ class MainAssistantAudioPromptService
     Uint8List audioBytes, {
     bool forcePhoneSpeaker = false,
     bool forceMediaPlayback = false,
+    double? gainDb,
   }) {
     final delegate = _delegate;
     if (delegate is! AuthoredAudioVoicePromptService) {
@@ -573,6 +580,7 @@ class MainAssistantAudioPromptService
           audioBytes,
           forcePhoneSpeaker: forcePhoneSpeaker,
           forceMediaPlayback: forceMediaPlayback,
+          gainDb: gainDb,
         );
   }
 
