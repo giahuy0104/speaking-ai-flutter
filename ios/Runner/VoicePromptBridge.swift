@@ -20,6 +20,35 @@ struct IOSPromptOperationLeaseState {
 /// Native iOS prompt output for the fixed MAIN assistant. Keeping prompts in
 /// AVSpeechSynthesizer or verified bundled audio avoids a network round trip
 /// before command recognition. Both use the existing MAIN audio-session owner.
+/// Android multiplies the platform default rate and clamps 0.5...1.5 for rate
+/// and 0.8...1.2 for pitch. AVSpeechUtterance.rate is an absolute 0...1 scale,
+/// so the multiplier is applied to AVSpeechUtteranceDefaultSpeechRate and then
+/// clamped to the range AVSpeechSynthesizer accepts.
+enum IOSPromptProsody {
+  /// Unity keeps a prompt that sends no rate at exactly the platform default,
+  /// so adding prosody support does not silently slow every existing prompt.
+  static let defaultSpeechRate: Double = 1.0
+  static let defaultPitch: Double = 1.0
+
+  static func speechRate(from value: Any?) -> Double {
+    guard let number = value as? NSNumber else { return defaultSpeechRate }
+    return min(1.5, max(0.5, number.doubleValue))
+  }
+
+  static func pitch(from value: Any?) -> Double {
+    guard let number = value as? NSNumber else { return defaultPitch }
+    return min(1.2, max(0.8, number.doubleValue))
+  }
+
+  static func utteranceRate(for speechRate: Double) -> Float {
+    let scaled = Float(speechRate) * AVSpeechUtteranceDefaultSpeechRate
+    return min(
+      AVSpeechUtteranceMaximumSpeechRate,
+      max(AVSpeechUtteranceMinimumSpeechRate, scaled)
+    )
+  }
+}
+
 final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDelegate {
   private let channel: FlutterMethodChannel
   private let audioSessionCoordinator: IOSAudioSessionCoordinator
@@ -106,12 +135,19 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       let locale = arguments?["locale"] as? String ?? "vi-VN"
       let forcePhoneSpeaker = arguments?["forcePhoneSpeaker"] as? Bool ?? false
       let forceMediaPlayback = arguments?["forceMediaPlayback"] as? Bool ?? false
+      let waitForCompletion = call.method == "speakAndWait"
       speak(
         text,
         locale: locale,
+        speechRate: waitForCompletion
+          ? IOSPromptProsody.speechRate(from: arguments?["speechRate"])
+          : IOSPromptProsody.defaultSpeechRate,
+        pitch: waitForCompletion
+          ? IOSPromptProsody.pitch(from: arguments?["pitch"])
+          : IOSPromptProsody.defaultPitch,
         forcePhoneSpeaker: forcePhoneSpeaker,
         forceMediaPlayback: forceMediaPlayback,
-        waitForCompletion: call.method == "speakAndWait",
+        waitForCompletion: waitForCompletion,
         result: result
       )
     case "playSpeechReadyCue":
@@ -142,7 +178,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
         let input = try AVAudioFile(forReading: sourceURL)
         let format = input.processingFormat
         guard input.length > 0,
-              input.length <= AVAudioFramePosition(format.sampleRate * 12)
+              input.length <= AVAudioFramePosition(format.sampleRate * 60)
         else {
           throw LessonRecordingNormalizationError.invalidRecording
         }
@@ -243,6 +279,8 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
   private func speak(
     _ text: String,
     locale: String,
+    speechRate: Double = IOSPromptProsody.defaultSpeechRate,
+    pitch: Double = IOSPromptProsody.defaultPitch,
     forcePhoneSpeaker: Bool,
     forceMediaPlayback: Bool,
     waitForCompletion: Bool,
@@ -268,7 +306,8 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     let utterance = AVSpeechUtterance(string: text)
     utterance.voice = AVSpeechSynthesisVoice(language: locale)
       ?? AVSpeechSynthesisVoice(language: "vi-VN")
-    utterance.rate = AVSpeechUtteranceDefaultSpeechRate
+    utterance.rate = IOSPromptProsody.utteranceRate(for: speechRate)
+    utterance.pitchMultiplier = Float(pitch)
     utterance.volume = 1.0
     activeUtterance = utterance
     activeUtteranceAudioToken = audioToken

@@ -128,8 +128,39 @@ struct IOSLessonRecordingFormat {
 /// Raises only the persisted child recording (about +8 dB). Recognition still
 /// receives the untouched microphone buffer, so matching accuracy and voice
 /// activity thresholds are unchanged.
+/// Mirrors `SpeechRecognitionTurnGate` on Android: the id Dart sent with
+/// `speech.start` is stamped on every lifecycle event so Dart can drop the
+/// events of a turn it has already replaced.
+///
+/// The id is never cleared on cancel. A cleared id let the audio session's own
+/// *string* turn id survive into the payload, and Dart's numeric guard cannot
+/// match a string — so a cancelled turn's events were accepted as current.
+struct IOSSpeechTurnStamp {
+  private(set) var turnId: Int?
+
+  mutating func beginTurn(_ turnId: Int?) {
+    self.turnId = turnId
+  }
+
+  func stamp(_ payload: [String: Any]) -> [String: Any] {
+    guard let turnId else { return payload }
+    var stamped = payload
+    stamped["turnId"] = turnId
+    return stamped
+  }
+}
+
 struct IOSLessonRecordingGain {
   static let defaultLinearGain: Double = 2.5
+
+  static func linearGain(for source: IOSNativeSpeechAudioSource) -> Double {
+    switch source {
+    case .hfp:
+      return defaultLinearGain
+    case .builtInMic:
+      return 1
+    }
+  }
 
   static func apply(
     to buffer: AVAudioPCMBuffer,
@@ -311,7 +342,32 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
   private var lastDiagnosticStage = "idle"
   private var firstAnalyzerInputGeneration: Int?
   private var activeRecordingPath: String?
+  private var turnStamp = IOSSpeechTurnStamp()
+  private var recordingWriteFailed = false
+  /// Mirrors `recordingFile != nil` for the audio tap thread. `recordingFile`
+  /// itself is owned by `recordingWriteQueue`, so a late tap enqueue finds it
+  /// already nil and writes nothing after the file was closed and measured.
+  private var recordingIsCapturing = false
+  private var recordingGain: Double = 1
   private var recordingFile: AVAudioFile?
+  private let recordingWriteQueue = DispatchQueue(
+    label: "com.innotrik.aispeaking.lesson-recording-write",
+    qos: .userInitiated
+  )
+
+  private func noteRecordingWriteFailure(_ error: Error) {
+    guard !recordingWriteFailed else { return }
+    recordingWriteFailed = true
+    let nsError = error as NSError
+    DispatchQueue.main.async { [weak self] in
+      self?.audioSessionCoordinator.trace(
+        stage: "lesson_recording_write_failed",
+        caller: "IOSSpeechRecognizerBridge.recordingWriteQueue",
+        code: "\(nsError.domain):\(nsError.code)",
+        message: error.localizedDescription
+      )
+    }
+  }
   private var recordingSampleRate = 0
   private var recordingUsesBluetoothInput = false
   private var completedRecordingMetadata: [String: Any] = [:]
@@ -357,6 +413,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       prepare(locale: Self.locale(from: arguments?["locale"]), result: result)
     case "speech.start":
       let arguments = call.arguments as? [String: Any]
+      let turnId = (arguments?["turnId"] as? NSNumber)?.intValue
       let commandMode = arguments?["commandMode"] as? Bool ?? false
       let audioSource = IOSNativeSpeechAudioSource.fromChannelValue(
         arguments?["audioSource"]
@@ -365,6 +422,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       let recordingPath = (arguments?["recordingPath"] as? String)?
         .trimmingCharacters(in: .whitespacesAndNewlines)
       start(
+        turnId: turnId,
         commandMode: commandMode,
         audioSource: audioSource,
         locale: locale,
@@ -414,6 +472,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
   }
 
   private func start(
+    turnId: Int?,
     commandMode: Bool,
     audioSource: IOSNativeSpeechAudioSource,
     locale: Locale,
@@ -430,6 +489,9 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
         caller: "IOSSpeechRecognizerBridge.start.replaceActive"
       )
     }
+    // Must come after the replace-active cancel: cancelCurrent clears the id,
+    // so assigning before it wipes the turn this call is starting.
+    turnStamp.beginTurn(turnId)
     ensureSpeechAuthorization { [weak self] authorization in
       guard let self else { return }
       guard self.isCurrentStartRequest(requestGeneration) else {
@@ -605,7 +667,8 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     latestAlternatives = []
     latestConfidence = -1
     activeRecordingPath = recordingPath
-    recordingFile = nil
+    recordingIsCapturing = false
+    recordingWriteQueue.sync { recordingFile = nil }
     recordingSampleRate = 0
     recordingUsesBluetoothInput = audioSource == .hfp
     completedRecordingMetadata = [:]
@@ -746,10 +809,20 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       guard let self, self.active, self.audioBufferGateOpen else { return }
       let activeGeneration = self.generation
       do {
-        if self.recordingFile != nil {
+        if self.recordingIsCapturing {
           let recordingBuffer = try self.copyForSpeechAnalyzer(buffer)
-          IOSLessonRecordingGain.apply(to: recordingBuffer)
-          try self.recordingFile?.write(from: recordingBuffer)
+          IOSLessonRecordingGain.apply(
+            to: recordingBuffer,
+            linearGain: self.recordingGain
+          )
+          self.recordingWriteQueue.async { [weak self] in
+            guard let self, let file = self.recordingFile else { return }
+            do {
+              try file.write(from: recordingBuffer)
+            } catch {
+              self.noteRecordingWriteFailure(error)
+            }
+          }
         }
         let analyzerInputCount: Int
         if #available(iOS 26.0, *),
@@ -789,7 +862,9 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
   }
 
   private func prepareActiveRecordingFile() throws {
-    recordingFile = nil
+    recordingIsCapturing = false
+    recordingWriteQueue.sync { recordingFile = nil }
+    recordingWriteFailed = false
     recordingSampleRate = 0
     guard let path = activeRecordingPath else { return }
     guard let format = inputTapFormat else {
@@ -803,13 +878,16 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     if FileManager.default.fileExists(atPath: path) {
       try FileManager.default.removeItem(at: url)
     }
-    recordingFile = try AVAudioFile(
+    let file = try AVAudioFile(
       forWriting: url,
       settings: IOSLessonRecordingFormat.settings(for: format),
       commonFormat: format.commonFormat,
       interleaved: format.isInterleaved
     )
+    recordingWriteQueue.sync { recordingFile = file }
     recordingSampleRate = Int(format.sampleRate.rounded())
+    recordingGain = IOSLessonRecordingGain.linearGain(for: requestedAudioSource)
+    recordingIsCapturing = true
   }
 
   func armBackgroundAudioHandoff(
@@ -1161,7 +1239,8 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       inputTapInstalled = false
     }
     inputTapFormat = nil
-    recordingFile = nil
+    recordingIsCapturing = false
+    recordingWriteQueue.sync { recordingFile = nil }
     recordingSampleRate = 0
     audioEngine.reset()
   }
@@ -1437,8 +1516,12 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
 
   private func finalizeActiveRecording() {
     let path = activeRecordingPath
-    let recordedFrameCount = recordingFile?.length ?? 0
-    recordingFile = nil
+    recordingIsCapturing = false
+    let recordedFrameCount = recordingWriteQueue.sync { () -> AVAudioFramePosition in
+      let length = recordingFile?.length ?? 0
+      recordingFile = nil
+      return length
+    }
     activeRecordingPath = nil
     guard let path else { return }
     // A WAV container can contain a header/padding larger than 44 bytes even
@@ -1464,6 +1547,9 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     audioSessionCoordinator.trace(stage: "speech.cancel_internal", caller: caller)
     generation += 1
     cancelled = true
+    // Keep the id of the turn that produced any late event. Clearing it let
+    // `metadata()`'s string turn id survive into the payload, which Dart's
+    // numeric guard cannot match and therefore accepts as current.
     let cancelledRecordingPath = deleteRecording ? activeRecordingPath : nil
     stopAudioCapture()
     if let cancelledRecordingPath {
@@ -1665,8 +1751,14 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     guard !disposed else { return }
     var payload = metadata()
     payload["type"] = type
+    payload = turnStamp.stamp(payload)
     payload.merge(values) { _, new in new }
-    eventSink?(payload)
+    let sink = eventSink
+    if Thread.isMainThread {
+      sink?(payload)
+    } else {
+      DispatchQueue.main.async { sink?(payload) }
+    }
   }
 
   private func emitStage(

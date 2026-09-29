@@ -214,7 +214,8 @@ class MlKitOfflineVietnameseEnglishTranslator
           }
         }
       }
-      return modelsReady();
+      // Awaited so the catches below actually cover this future's errors.
+      return await modelsReady();
     } on MissingPluginException {
       return false;
     } on PlatformException catch (error) {

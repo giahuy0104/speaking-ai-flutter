@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../../core/audio/audio_diagnostics.dart';
+
 import 'lesson_wav_normalizer.dart';
 
 const MethodChannel _iosLessonRecordingChannel = MethodChannel(
@@ -102,7 +104,10 @@ Future<String?> resolveLessonRecording(
       // Unit tests and older native shells do not expose the normalizer. Keep
       // the valid original recording instead of making capture unusable.
     } on PlatformException catch (error) {
-      debugPrint('iOS lesson recording normalization skipped: $error');
+      AudioDiagnostics.event('lesson_recording.normalization.skipped', {
+        'code': error.code,
+        'details': '${error.details ?? ''}',
+      });
     }
   }
   return path;

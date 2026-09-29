@@ -1144,6 +1144,133 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(try XCTUnwrap(buffer.floatChannelData?[0][1]), 1, accuracy: 0.001)
   }
 
+  func testIOSLessonRecordingGainBoostsOnlyTheQuietH20Source() {
+    XCTAssertEqual(
+      IOSLessonRecordingGain.linearGain(for: .hfp),
+      IOSLessonRecordingGain.defaultLinearGain,
+      accuracy: 0.0001
+    )
+    XCTAssertEqual(
+      IOSLessonRecordingGain.linearGain(for: .builtInMic),
+      1,
+      accuracy: 0.0001
+    )
+  }
+
+  func testIOSLessonRecordingKeepsBuiltInMicPeaksUnclipped() throws {
+    let format = try XCTUnwrap(
+      AVAudioFormat(
+        commonFormat: .pcmFormatFloat32,
+        sampleRate: 48_000,
+        channels: 1,
+        interleaved: false
+      )
+    )
+    let buffer = try XCTUnwrap(
+      AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 3)
+    )
+    buffer.frameLength = 3
+    buffer.floatChannelData?[0][0] = 0.45
+    buffer.floatChannelData?[0][1] = 0.8
+    buffer.floatChannelData?[0][2] = -0.9
+
+    IOSLessonRecordingGain.apply(
+      to: buffer,
+      linearGain: IOSLessonRecordingGain.linearGain(for: .builtInMic)
+    )
+
+    XCTAssertEqual(try XCTUnwrap(buffer.floatChannelData?[0][0]), 0.45, accuracy: 0.0001)
+    XCTAssertEqual(try XCTUnwrap(buffer.floatChannelData?[0][1]), 0.8, accuracy: 0.0001)
+    XCTAssertEqual(try XCTUnwrap(buffer.floatChannelData?[0][2]), -0.9, accuracy: 0.0001)
+  }
+
+  func testIOSPromptProsodyMatchesAndroidClampsAndDefaults() {
+    XCTAssertEqual(IOSPromptProsody.speechRate(from: nil), 1.0, accuracy: 0.0001)
+    XCTAssertEqual(
+      IOSPromptProsody.utteranceRate(for: IOSPromptProsody.defaultSpeechRate),
+      AVSpeechUtteranceDefaultSpeechRate,
+      accuracy: 0.0001
+    )
+    XCTAssertEqual(IOSPromptProsody.pitch(from: nil), 1.0, accuracy: 0.0001)
+    XCTAssertEqual(
+      IOSPromptProsody.speechRate(from: NSNumber(value: 0.1)),
+      0.5,
+      accuracy: 0.0001
+    )
+    XCTAssertEqual(
+      IOSPromptProsody.speechRate(from: NSNumber(value: 9.0)),
+      1.5,
+      accuracy: 0.0001
+    )
+    XCTAssertEqual(
+      IOSPromptProsody.pitch(from: NSNumber(value: 0.1)),
+      0.8,
+      accuracy: 0.0001
+    )
+    XCTAssertEqual(
+      IOSPromptProsody.pitch(from: NSNumber(value: 9.0)),
+      1.2,
+      accuracy: 0.0001
+    )
+  }
+
+  func testIOSPromptProsodyScalesTheUtteranceRateWithinSupportedBounds() {
+    XCTAssertEqual(
+      IOSPromptProsody.utteranceRate(for: 1.0),
+      AVSpeechUtteranceDefaultSpeechRate,
+      accuracy: 0.0001
+    )
+    XCTAssertLessThan(
+      IOSPromptProsody.utteranceRate(for: 0.5),
+      AVSpeechUtteranceDefaultSpeechRate
+    )
+    XCTAssertGreaterThan(
+      IOSPromptProsody.utteranceRate(for: 1.5),
+      AVSpeechUtteranceDefaultSpeechRate
+    )
+    XCTAssertGreaterThanOrEqual(
+      IOSPromptProsody.utteranceRate(for: 0.5),
+      AVSpeechUtteranceMinimumSpeechRate
+    )
+    XCTAssertLessThanOrEqual(
+      IOSPromptProsody.utteranceRate(for: 1.5),
+      AVSpeechUtteranceMaximumSpeechRate
+    )
+  }
+
+  func testIOSSpeechTurnStampOverridesTheAudioSessionStringTurnId() {
+    var stamp = IOSSpeechTurnStamp()
+    stamp.beginTurn(7)
+
+    // metadata() merges the audio session's own string turn id first.
+    let stamped = stamp.stamp([
+      "type": "speech.ready",
+      "turnId": "ios-main-1790653450000-a3f9c1",
+    ])
+
+    XCTAssertEqual(stamped["turnId"] as? Int, 7)
+    XCTAssertNil(stamped["turnId"] as? String)
+  }
+
+  func testIOSSpeechTurnStampKeepsTheReplacedTurnIdUntilTheNextStart() {
+    var stamp = IOSSpeechTurnStamp()
+    stamp.beginTurn(7)
+    XCTAssertEqual(stamp.turnId, 7)
+
+    // A replace-active cancel must not clear the id: a late event still
+    // belongs to turn 7 and Dart drops it by number.
+    XCTAssertEqual(stamp.stamp([:])["turnId"] as? Int, 7)
+
+    stamp.beginTurn(8)
+    XCTAssertEqual(stamp.stamp([:])["turnId"] as? Int, 8)
+  }
+
+  func testIOSSpeechTurnStampLeavesPayloadUntouchedBeforeAnyTurn() {
+    let stamp = IOSSpeechTurnStamp()
+    let payload = stamp.stamp(["turnId": "ios-main-1-abc"])
+    XCTAssertEqual(payload["turnId"] as? String, "ios-main-1-abc")
+  }
+
   func testIOSBuiltInMicPolicyExcludesBluetoothOptions() {
     let options = IOSNativeSpeechAudioRoutePolicy.categoryOptions(
       for: .builtInMic

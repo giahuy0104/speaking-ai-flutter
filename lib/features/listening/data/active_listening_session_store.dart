@@ -100,7 +100,7 @@ class ActiveListeningSessionStore {
       }
       // A newer navigation may have saved its checkpoint while assets/progress
       // were loading. Never overwrite that current route with an old pointer.
-      if (preferences.getString(_preferenceKey) != raw) return read();
+      if (preferences.getString(_preferenceKey) != raw) return await read();
       if (destination == null ||
           checkpoint.childAge < destination.startAge ||
           checkpoint.childAge > destination.endAge) {

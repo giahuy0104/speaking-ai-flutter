@@ -59,6 +59,7 @@ class MainAssistantAudioPromptService
   final http.Client _httpClient;
   final bool _ownsHttpClient;
   Future<Map<String, dynamic>>? _manifest;
+  bool _manifestPackMissing = false;
   final Set<void Function()> _pendingWaits = {};
   // Reuse only checksum-verified, immutable audio. Repeated MAIN turns should
   // not download the same short prompt again while holding the headset route.
@@ -191,7 +192,32 @@ class MainAssistantAudioPromptService
     return result.future;
   }
 
-  Future<Map<String, dynamic>> _loadManifest() => _manifest ??= () async {
+  Future<Map<String, dynamic>> _loadManifest() {
+    final pending = _manifest;
+    if (pending != null) return pending;
+    _manifestPackMissing = false;
+    final load = _readManifest();
+    _manifest = load;
+    unawaited(
+      load.then<void>(
+        (_) {
+          // An incomplete load is usable now but must be retried next time.
+          if (_manifestPackMissing && identical(_manifest, load)) {
+            _manifest = null;
+          }
+        },
+        onError: (Object error, StackTrace _) {
+          if (identical(_manifest, load)) _manifest = null;
+          AudioDiagnostics.event('main_prompt.manifest.failed', {
+            'error': error.runtimeType.toString(),
+          });
+        },
+      ),
+    );
+    return load;
+  }
+
+  Future<Map<String, dynamic>> _readManifest() => () async {
     final text = await _bounded(
       _bundle.loadString(manifestAsset),
       assetLoadTimeout,
@@ -211,8 +237,16 @@ class MainAssistantAudioPromptService
         if (extra['schemaVersion'] == 1 && extra['enabled'] == true) {
           prompts.addAll(extra['prompts'] as List<dynamic>);
         }
-      } catch (_) {
-        // A missing optional curriculum pack must not disable MAIN or TTS.
+      } catch (error) {
+        // A missing optional curriculum pack must not disable MAIN or TTS, but
+        // it must not be memoised either: a single slow cold start would
+        // otherwise pin a manifest without that pack for the whole process and
+        // silently degrade its prompts to TTS.
+        _manifestPackMissing = true;
+        AudioDiagnostics.event('main_prompt.manifest.pack_missing', {
+          'asset': asset,
+          'error': error.runtimeType.toString(),
+        });
       }
     }
     manifest['prompts'] = prompts;

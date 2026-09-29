@@ -151,6 +151,164 @@ void main() {
       'wait:Dùng TTS:vi-VN',
     ]);
   });
+
+  test('a failed manifest load is retried on the next prompt', () async {
+    final bytes = Uint8List.fromList(<int>[1, 2, 3, 4]);
+    final bundle = _FlakyManifestBundle(bytes, failuresBeforeSuccess: 1);
+    final delegate = _Delegate();
+    final service = MainAssistantAudioPromptService(
+      delegate: delegate,
+      bundle: bundle,
+      enabled: true,
+      preferBundledAudio: true,
+    );
+    addTearDown(service.dispose);
+
+    await service.speakAndWaitWithAudioKey(
+      'assistant.main.open_menu.vi',
+      'Nội dung chuẩn',
+    );
+    await service.speakAndWaitWithAudioKey(
+      'assistant.main.open_menu.vi',
+      'Nội dung chuẩn',
+    );
+
+    expect(bundle.manifestLoads, 2);
+    expect(delegate.events, ['wait:Nội dung chuẩn:vi-VN', 'authored']);
+  });
+
+  test('concurrent prompts share one successful manifest load', () async {
+    final bytes = Uint8List.fromList(<int>[1, 2, 3, 4]);
+    final bundle = _FlakyManifestBundle(bytes, failuresBeforeSuccess: 0);
+    final delegate = _Delegate();
+    final service = MainAssistantAudioPromptService(
+      delegate: delegate,
+      bundle: bundle,
+      enabled: true,
+      preferBundledAudio: true,
+    );
+    addTearDown(service.dispose);
+
+    await Future.wait(<Future<void>>[
+      service.speakAndWaitWithAudioKey(
+        'assistant.main.open_menu.vi',
+        'Nội dung chuẩn',
+      ),
+      service.speakAndWaitWithAudioKey(
+        'assistant.main.open_menu.vi',
+        'Nội dung chuẩn',
+      ),
+    ]);
+
+    expect(bundle.manifestLoads, 1);
+    expect(delegate.events, ['authored', 'authored']);
+  });
+
+  test('a manifest that lost an optional pack is not memoised', () async {
+    final bytes = Uint8List.fromList(<int>[1, 2, 3, 4]);
+    const extra = 'assets/data/optional_pack.json';
+    final bundle = _FlakyManifestBundle(
+      bytes,
+      failuresBeforeSuccess: 0,
+      failingExtraAsset: extra,
+    );
+    final delegate = _Delegate();
+    final service = MainAssistantAudioPromptService(
+      delegate: delegate,
+      bundle: bundle,
+      enabled: true,
+      preferBundledAudio: true,
+      additionalManifestAssets: const <String>[extra],
+    );
+    addTearDown(service.dispose);
+
+    await service.speakAndWaitWithAudioKey(
+      'assistant.main.open_menu.vi',
+      'Nội dung chuẩn',
+    );
+    await service.speakAndWaitWithAudioKey(
+      'assistant.main.open_menu.vi',
+      'Nội dung chuẩn',
+    );
+
+    expect(bundle.extraLoads, 2, reason: 'the missing pack must be retried');
+    expect(bundle.manifestLoads, 2);
+    expect(delegate.events, ['authored', 'authored']);
+  });
+
+  test('a load cancelled by stop does not poison the next prompt', () async {
+    final bytes = Uint8List.fromList(<int>[1, 2, 3, 4]);
+    final bundle = _FlakyManifestBundle(bytes, failuresBeforeSuccess: 1);
+    final delegate = _Delegate();
+    final service = MainAssistantAudioPromptService(
+      delegate: delegate,
+      bundle: bundle,
+      enabled: true,
+      preferBundledAudio: true,
+    );
+    addTearDown(service.dispose);
+
+    final first = service.speakAndWaitWithAudioKey(
+      'assistant.main.open_menu.vi',
+      'Nội dung chuẩn',
+    );
+    await service.stop();
+    await first;
+
+    await service.speakAndWaitWithAudioKey(
+      'assistant.main.open_menu.vi',
+      'Nội dung chuẩn',
+    );
+
+    expect(bundle.manifestLoads, 2);
+    expect(delegate.events.last, 'authored');
+  });
+}
+
+class _FlakyManifestBundle extends CachingAssetBundle {
+  _FlakyManifestBundle(
+    this.bytes, {
+    required this.failuresBeforeSuccess,
+    this.failingExtraAsset,
+  });
+
+  final Uint8List bytes;
+  final int failuresBeforeSuccess;
+  final String? failingExtraAsset;
+  int manifestLoads = 0;
+  int extraLoads = 0;
+
+  @override
+  Future<ByteData> load(String key) async => ByteData.sublistView(bytes);
+
+  @override
+  Future<String> loadString(String key, {bool cache = true}) async {
+    if (key == failingExtraAsset) {
+      extraLoads++;
+      throw StateError('Optional pack unavailable');
+    }
+    manifestLoads++;
+    if (manifestLoads <= failuresBeforeSuccess) {
+      throw StateError('Manifest unavailable');
+    }
+    return jsonEncode({
+      'schemaVersion': 1,
+      'enabled': true,
+      'prompts': [
+        {
+          'key': 'assistant.main.open_menu.vi',
+          'enabled': true,
+          'locale': 'vi-VN',
+          'asset':
+              'assets/audio/assistant-core/assistant.main.open_menu.vi.mp3',
+          'durationSeconds': 1.0,
+          'sha256': sha256.convert(bytes).toString(),
+          'text': 'Nội dung chuẩn',
+          'textHash': sha256.convert(utf8.encode('Nội dung chuẩn')).toString(),
+        },
+      ],
+    });
+  }
 }
 
 class _KeyedBundle extends CachingAssetBundle {

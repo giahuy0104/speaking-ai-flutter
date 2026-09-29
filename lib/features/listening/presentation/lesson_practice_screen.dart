@@ -1212,7 +1212,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     setState(() {
       _mediaBusy = true;
       _recordingStartPending = true;
-      _message = null;
+      _message = context.tr(
+        'Chờ một chút, micro đang bật…',
+        '请稍等，正在开启麦克风…',
+      );
     });
     try {
       final readyCuePlayer = _voicePromptService;
@@ -1282,6 +1285,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           _recording = true;
           _mediaBusy = false;
           _recordingStartPending = false;
+          _message = null;
         });
         if (_usesGuideV2) {
           _recordingAutoStopTimer?.cancel();
@@ -1329,11 +1333,18 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     _recordingEndpointDetector.cancel();
     if (_recordingStartPending && !_recording) {
       _lessonSession.invalidateRecordingStart();
-      _recordingStartPending = false;
       await _boundedMainPauseCleanup(_cancelLessonAttemptCapture());
       await widget.mediaService.stopPlayback();
       if (mounted) {
-        setState(() => _mediaBusy = false);
+        setState(() {
+          _recordingStartPending = false;
+          _mediaBusy = false;
+          // Releasing before the mic opened abandons the attempt; the
+          // "micro is starting" copy must not outlive it.
+          _message = null;
+        });
+      } else {
+        _recordingStartPending = false;
       }
       return;
     }
@@ -3386,6 +3397,8 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         _recording = false;
         _recordingStartPending = false;
         _mediaBusy = false;
+        // Cancelling the choice capture abandons any pending mic warm-up.
+        _message = null;
       });
     }
     if (shouldCancel && !wasStopping) {

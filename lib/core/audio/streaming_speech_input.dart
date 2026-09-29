@@ -467,9 +467,14 @@ class AndroidStreamingSpeechInput
     _nativeDiagnosticsController.add(diagnostic);
     if (_platformName == 'iOS') {
       debugPrint(
-        'HOMI Apple Speech [$stage] source=${diagnostic.audioSource ?? '-'} '
+        // `message` carries the child's transcript on the *_transcript stages.
+        // debugPrint is not stripped in release, so it would reach os_log and
+        // sysdiagnose bundles on a shipped device: only include it when audio
+        // diagnostics were explicitly enabled for a debugging build.
+        'HOMI Apple Speech [$stage] +${diagnostic.elapsedMs ?? '-'}ms '
+        'source=${diagnostic.audioSource ?? '-'} '
         'route=${diagnostic.audioRoute ?? '-'} code=${code ?? '-'} '
-        '${message ?? ''}',
+        '${AudioDiagnostics.enabled ? (message ?? '') : ''}',
       );
     }
   }
@@ -992,7 +997,10 @@ class AndroidStreamingSpeechInput
       return;
     }
     final eventTurn = event['turnId'];
-    if (eventTurn is num && eventTurn.toInt() != _recognitionTurn) return;
+    final eventTurnNumber = eventTurn is num
+        ? eventTurn.toInt()
+        : int.tryParse('$eventTurn');
+    if (eventTurnNumber != null && eventTurnNumber != _recognitionTurn) return;
 
     final type = event['type'];
     if (type == 'speech.stage') {
@@ -1002,7 +1010,7 @@ class AndroidStreamingSpeechInput
         audioRoute: event['audioRoute'] as String?,
         code: event['code'] as String?,
         message: event['message'] as String?,
-        turnId: event['turnId'] as String?,
+        turnId: event['turnId']?.toString(),
         sequence: (event['sequence'] as num?)?.toInt(),
         elapsedMs: (event['elapsedMs'] as num?)?.toInt(),
         caller: event['caller'] as String?,

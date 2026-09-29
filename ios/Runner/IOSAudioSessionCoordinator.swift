@@ -430,7 +430,12 @@ final class IOSAudioSessionCoordinator: NSObject {
     if traceBuffer.count > 200 {
       traceBuffer.removeFirst(traceBuffer.count - 200)
     }
-    traceSink?(payload)
+    let sink = traceSink
+    if Thread.isMainThread {
+      sink?(payload)
+    } else {
+      DispatchQueue.main.async { sink?(payload) }
+    }
     return payload
   }
 
