@@ -20,6 +20,7 @@ import '../domain/lesson_star_flow.dart';
 import '../domain/lesson_guide_flow.dart';
 import '../domain/listening_audio_keys.dart';
 import '../../../core/navigation/active_learning_navigation.dart';
+import '../../voice_navigation/domain/master_navigation_contract.dart';
 import 'lesson_practice_screen.dart';
 import 'song_karaoke_screen.dart';
 
@@ -75,7 +76,7 @@ class LessonIntroScreen extends StatefulWidget {
 
 class _LessonIntroScreenState extends State<LessonIntroScreen>
     with SingleTickerProviderStateMixin
-    implements ActiveLearningModuleController {
+    implements ActiveLearningModuleController, ActiveLearningVoiceContext {
   late final AnimationController _animationController;
   bool _introPlaybackFailed = false;
   bool _movingForward = false;
@@ -93,6 +94,12 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
   @override
   ActiveLearningModuleKind get moduleKind =>
       ActiveLearningModuleKind.listeningLesson;
+
+  @override
+  ActiveLearningVoiceNode get mainVoiceNode => ActiveLearningVoiceNode.intro;
+
+  @override
+  String get mainVoicePrompt => MasterNavigationContract.introControlPrompt;
 
   @override
   bool get isPausedForMain => _pausedForMainAssistant;

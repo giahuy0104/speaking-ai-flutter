@@ -23,6 +23,7 @@ abstract final class MasterNavigationContract {
   static const switchedToTranslation = 'Mình đã chuyển sang Dịch tiếng Anh.';
   static const continueSubject = 'Mình tiếp tục Chủ đề nhé.';
   static const continueVocabulary = 'Mình tiếp tục Bộ từ vựng nhé.';
+  static const introControlPrompt = 'Bạn muốn nghe lại, tiếp tục hay dừng lại?';
   static const coreControlPrompt = 'Bạn muốn nghe lại, câu trước, hay câu sau?';
   static const nextItemPrompt = 'Mình chuyển sang câu sau nhé.';
   static const challengeControlPrompt = 'Bạn muốn nghe lại hay dừng lại?';
@@ -68,7 +69,15 @@ abstract final class MasterNavigationContract {
     'REPLAY_LIST': ['PARENT_END', 'STAR_END'],
     'OTHER_TOPIC': ['TOPIC_DONE'],
     'RELEARN_TOPIC': ['TOPIC_DONE'],
-    'LISTEN_AGAIN': ['CORE', 'CHALLENGE', 'REVIEW', 'TODAY', 'PARENT', 'STAR'],
+    'LISTEN_AGAIN': [
+      'LESSON_INTRO',
+      'CORE',
+      'CHALLENGE',
+      'REVIEW',
+      'TODAY',
+      'PARENT',
+      'STAR',
+    ],
     'PREVIOUS_ITEM': ['CORE', 'VOCAB_REVIEW', 'TODAY', 'PARENT', 'STAR'],
     'NEXT_ITEM': [
       'CORE',

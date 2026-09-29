@@ -30,6 +30,7 @@ enum ActiveLearningModuleKind { listeningLesson, vocabulary }
 /// Read-only navigation context published by a learning owner. MAIN consumes
 /// this snapshot; playback, attempts and persistence remain in that owner.
 enum ActiveLearningVoiceNode {
+  intro,
   core,
   song,
   challenge,

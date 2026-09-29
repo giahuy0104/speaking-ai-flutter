@@ -21,6 +21,7 @@ import 'package:ai_speaking_flutter_app/features/listening/presentation/listenin
 import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_store.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/main_assistant_audio_keys.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -2973,6 +2974,12 @@ void main() {
     await tester.pump();
 
     expect(registry.hasActiveModule, isTrue);
+    final voiceContext = registry.controller as ActiveLearningVoiceContext;
+    expect(voiceContext.mainVoiceNode, ActiveLearningVoiceNode.intro);
+    expect(
+      voiceContext.mainVoicePrompt,
+      MasterNavigationContract.introControlPrompt,
+    );
     expect(mediaService.playedUri, introUri);
     expect(await registry.pauseForMainAssistant(), isTrue);
     await tester.pump();
@@ -2982,6 +2989,53 @@ void main() {
     expect(find.text('Bài học đang tạm dừng.'), findsOneWidget);
 
     await tester.pump(const Duration(seconds: 20));
+    expect(find.byType(LessonIntroScreen), findsOneWidget);
+    expect(find.byType(LessonPracticeScreen), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('MAIN resume and replay restart Intro without advancing', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final mediaService = _ControlledLessonAudioMediaService();
+    final introUri = Uri.parse('https://example.test/replay-intro.mp3');
+
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: MaterialApp(
+          theme: buildAppTheme(),
+          home: LessonIntroScreen(
+            language: DisplayLanguage.vietnamese,
+            startAge: 3,
+            endAge: 5,
+            topic: listeningCatalogs.first.topics.first,
+            lesson: _lesson(code: 'A067_T01_L01', introAudioUri: introUri),
+            progressStore: _MemoryProgressStore(),
+            mediaService: mediaService,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(mediaService.playedUris, <Uri>[introUri]);
+
+    for (final command in [
+      ActiveLearningCommand.resume,
+      ActiveLearningCommand.replayCurrent,
+    ]) {
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect((await registry.execute(command)).wasHandled, isTrue);
+      await tester.pump();
+    }
+
+    expect(mediaService.playedUris, <Uri>[introUri, introUri, introUri]);
     expect(find.byType(LessonIntroScreen), findsOneWidget);
     expect(find.byType(LessonPracticeScreen), findsNothing);
 

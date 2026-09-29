@@ -1264,12 +1264,13 @@ class MainVoiceAssistantFlow {
     final promptText = switch (command) {
       ActiveLearningCommand.resume =>
         isVocabulary ||
+                _activeVoiceNode == ActiveLearningVoiceNode.intro ||
                 _activeVoiceNode == ActiveLearningVoiceNode.core ||
                 _activeVoiceNode == ActiveLearningVoiceNode.challenge
             ? ''
             : 'Cùng học tiếp nhé',
       ActiveLearningCommand.replayCurrent =>
-        isVocabulary
+        isVocabulary || _activeVoiceNode == ActiveLearningVoiceNode.intro
             ? ''
             : _activeVoiceNode == ActiveLearningVoiceNode.song
             ? MasterNavigationContract.songReplay

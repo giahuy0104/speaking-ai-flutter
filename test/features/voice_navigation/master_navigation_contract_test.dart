@@ -9,6 +9,52 @@ import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/control
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test(
+    'MAIN at Intro asks about Intro and resumes without a lead reply',
+    () async {
+      for (final text in ['Tiếp tục', 'Nghe lại']) {
+        final flow = MainVoiceAssistantFlow()
+          ..beginActiveLearning(
+            kind: ActiveLearningModuleKind.listeningLesson,
+            voiceContext: const _VoiceContext(
+              ActiveLearningVoiceNode.intro,
+              MasterNavigationContract.introControlPrompt,
+            ),
+          );
+        expect(
+          flow.silenceRetryPrompt,
+          MasterNavigationContract.introControlPrompt,
+        );
+        final turn = await flow.handle(text);
+        expect(turn.promptText, isEmpty, reason: text);
+        expect(
+          turn.activeLearningCommand,
+          text == 'Tiếp tục'
+              ? ActiveLearningCommand.resume
+              : ActiveLearningCommand.replayCurrent,
+        );
+      }
+    },
+  );
+
+  test('MAIN at Intro still accepts a global module switch', () async {
+    final flow = MainVoiceAssistantFlow()
+      ..beginActiveLearning(
+        kind: ActiveLearningModuleKind.listeningLesson,
+        voiceContext: const _VoiceContext(
+          ActiveLearningVoiceNode.intro,
+          MasterNavigationContract.introControlPrompt,
+        ),
+      );
+
+    final turn = await flow.handle('Bộ từ vựng');
+    expect(
+      turn.navigationAfterPrompt?.destination,
+      VoiceNavigationDestination.vocabulary,
+    );
+    expect(turn.activeLearningCommand, isNull);
+  });
+
   test('Core and Challenge use the approved MAIN questions', () {
     expect(
       MasterNavigationContract.coreControlPrompt,

@@ -140,6 +140,10 @@ class ActiveLearningCommandResolver {
       return ActiveLearningCommand.resume;
     }
     final choices = switch (node) {
+      ActiveLearningVoiceNode.intro => <String, ActiveLearningCommand>{
+        'LISTEN_AGAIN': ActiveLearningCommand.replayCurrent,
+        'RESUME_ACTIVITY': ActiveLearningCommand.resume,
+      },
       ActiveLearningVoiceNode.vocabularyMenu => <String, ActiveLearningCommand>{
         'OPEN_PARENT': ActiveLearningCommand.vocabularyParentAdded,
         'OPEN_STAR': ActiveLearningCommand.vocabularyStars,
