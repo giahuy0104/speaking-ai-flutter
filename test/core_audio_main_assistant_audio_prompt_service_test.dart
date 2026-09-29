@@ -289,6 +289,70 @@ void main() {
     expect(bundle.manifestLoads, 2);
     expect(delegate.events.last, 'authored');
   });
+
+  test('a manifest that keeps failing stops costing a wait per prompt', () async {
+    // A broken manifest was retried on every single prompt, so the child waited
+    // out assetLoadTimeout before each line fell back to TTS.
+    final bundle = _FlakyManifestBundle(
+      Uint8List.fromList(<int>[1, 2, 3, 4]),
+      failuresBeforeSuccess: 99,
+    );
+    final delegate = _Delegate();
+    final service = MainAssistantAudioPromptService(
+      delegate: delegate,
+      bundle: bundle,
+      enabled: true,
+      preferBundledAudio: true,
+    );
+    addTearDown(service.dispose);
+
+    for (var attempt = 0; attempt < 4; attempt++) {
+      await service.speakAndWaitWithAudioKey(
+        'assistant.main.open_menu.vi',
+        'Nội dung chuẩn',
+      );
+    }
+
+    // The first failure is still retried immediately; after that the prompt
+    // goes straight to TTS instead of waiting again.
+    expect(bundle.manifestLoads, 2);
+    expect(delegate.events.length, 4);
+    expect(delegate.events.every((event) => event.startsWith('wait:')), isTrue);
+  });
+
+  test('a cancelled load never counts towards the retry cooldown', () async {
+    // Leaving a screen cancels the pending wait. That is navigation working,
+    // not the manifest failing, and it must not push the loader into its
+    // cooldown or a child who browsed around loses authored audio entirely.
+    final bundle = _FlakyManifestBundle(
+      Uint8List.fromList(<int>[1, 2, 3, 4]),
+      failuresBeforeSuccess: 0,
+    );
+    final delegate = _Delegate();
+    final service = MainAssistantAudioPromptService(
+      delegate: delegate,
+      bundle: bundle,
+      enabled: true,
+      preferBundledAudio: true,
+    );
+    addTearDown(service.dispose);
+
+    for (var attempt = 0; attempt < 3; attempt++) {
+      final pending = service.speakAndWaitWithAudioKey(
+        'assistant.main.open_menu.vi',
+        'Nội dung chuẩn',
+      );
+      await service.stop();
+      await pending;
+    }
+
+    await service.speakAndWaitWithAudioKey(
+      'assistant.main.open_menu.vi',
+      'Nội dung chuẩn',
+    );
+
+    expect(delegate.events.last, 'authored');
+  });
 }
 
 class _FlakyManifestBundle extends CachingAssetBundle {
