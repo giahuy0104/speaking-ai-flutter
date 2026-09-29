@@ -136,12 +136,7 @@ class _CollapsedRailContent extends StatelessWidget {
     final contentColor = isDark
         ? theme.colorScheme.primary
         : AppColors.primaryNavy;
-    final faceRadius = BorderRadius.only(
-      topLeft: isLeft ? Radius.zero : const Radius.elliptical(20, 30),
-      bottomLeft: isLeft ? Radius.zero : const Radius.elliptical(20, 30),
-      topRight: isLeft ? const Radius.elliptical(20, 30) : Radius.zero,
-      bottomRight: isLeft ? const Radius.elliptical(20, 30) : Radius.zero,
-    );
+    final railClipper = _HomeRailTrapezoidClipper(edge);
 
     return SizedBox(
       key: const Key('collapsed-home-mode-rail'),
@@ -153,33 +148,26 @@ class _CollapsedRailContent extends StatelessWidget {
           Positioned(
             top: 0,
             bottom: 0,
-            left: isLeft ? 0 : 15,
-            right: isLeft ? 15 : 0,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
+            left: 0,
+            right: 0,
+            child: ClipPath(
+              clipper: railClipper,
+              child: ColoredBox(
                 color: isDark
                     ? theme.colorScheme.primaryContainer
                     : AppColors.primaryNavy,
-                borderRadius: faceRadius,
-                boxShadow: const <BoxShadow>[
-                  BoxShadow(
-                    color: Color(0x24142451),
-                    blurRadius: 10,
-                    offset: Offset(0, 5),
-                  ),
-                ],
               ),
             ),
           ),
           Positioned(
-            top: 12,
-            bottom: 12,
-            left: isLeft ? 0 : 7,
-            right: isLeft ? 7 : 0,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
+            top: 8,
+            bottom: 8,
+            left: isLeft ? 0 : 4,
+            right: isLeft ? 4 : 0,
+            child: ClipPath(
+              clipper: railClipper,
+              child: ColoredBox(
                 color: isDark ? theme.colorScheme.tertiary : AppColors.mint,
-                borderRadius: faceRadius,
               ),
             ),
           ),
@@ -209,78 +197,65 @@ class _CollapsedRailContent extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 17,
-            bottom: 17,
-            left: isLeft ? 0 : 10,
-            right: isLeft ? 10 : 0,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
+            top: 14,
+            bottom: 14,
+            left: isLeft ? 0 : 8,
+            right: isLeft ? 8 : 0,
+            child: ClipPath(
+              clipper: railClipper,
+              child: ColoredBox(
                 color: faceColor,
-                borderRadius: faceRadius,
-                border: Border.all(
-                  color: isDark
-                      ? theme.colorScheme.tertiary
-                      : const Color(0xFF62D9C5),
-                  width: 1.4,
-                ),
-                boxShadow: const <BoxShadow>[
-                  BoxShadow(
-                    color: Color(0x1A142451),
-                    blurRadius: 8,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Column(
-                  children: <Widget>[
-                    Icon(icon, color: contentColor, size: 22),
-                    const SizedBox(height: 8),
-                    Expanded(
-                      child: Center(
-                        child: MediaQuery.withClampedTextScaling(
-                          maxScaleFactor: 1.15,
-                          child: Text(
-                            _stackedLabel(label),
-                            key: const Key('home-mode-rail-stacked-label'),
-                            textAlign: TextAlign.center,
-                            softWrap: false,
-                            style: TextStyle(
-                              color: contentColor,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                              height: 1.1,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Column(
+                    children: <Widget>[
+                      Icon(icon, color: contentColor, size: 22),
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: Center(
+                          child: MediaQuery.withClampedTextScaling(
+                            maxScaleFactor: 1.15,
+                            child: Text(
+                              _stackedLabel(label.toUpperCase()),
+                              key: const Key('home-mode-rail-stacked-label'),
+                              textAlign: TextAlign.center,
+                              softWrap: false,
+                              style: TextStyle(
+                                color: contentColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                height: 1.1,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    if (badge != null)
-                      Container(
-                        margin: const EdgeInsets.only(top: 6),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? theme.colorScheme.primaryContainer
-                              : AppColors.mintSoft,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          badge!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: contentColor,
-                            fontSize: 8,
-                            fontWeight: FontWeight.w800,
+                      if (badge != null)
+                        Container(
+                          margin: const EdgeInsets.only(top: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? theme.colorScheme.primaryContainer
+                                : AppColors.mintSoft,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            badge!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: contentColor,
+                              fontSize: 8,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -288,7 +263,7 @@ class _CollapsedRailContent extends StatelessWidget {
           Positioned.fill(
             child: Material(
               color: Colors.transparent,
-              child: InkWell(onTap: onPressed, borderRadius: faceRadius),
+              child: InkWell(onTap: onPressed),
             ),
           ),
         ],
@@ -302,4 +277,49 @@ class _CollapsedRailContent extends StatelessWidget {
       .runes
       .map(String.fromCharCode)
       .join('\n');
+}
+
+class _HomeRailTrapezoidClipper extends CustomClipper<Path> {
+  const _HomeRailTrapezoidClipper(this.edge);
+
+  final HomeRailEdge edge;
+
+  @override
+  Path getClip(Size size) {
+    const slope = 13.0;
+    const curve = 5.0;
+    final path = Path();
+    if (edge == HomeRailEdge.left) {
+      path
+        ..moveTo(0, 0)
+        ..lineTo(size.width - curve, slope)
+        ..quadraticBezierTo(size.width, slope + 1, size.width, slope + curve)
+        ..lineTo(size.width, size.height - slope - curve)
+        ..quadraticBezierTo(
+          size.width,
+          size.height - slope - 1,
+          size.width - curve,
+          size.height - slope,
+        )
+        ..lineTo(0, size.height);
+    } else {
+      path
+        ..moveTo(curve, slope)
+        ..quadraticBezierTo(0, slope + 1, 0, slope + curve)
+        ..lineTo(0, size.height - slope - curve)
+        ..quadraticBezierTo(
+          0,
+          size.height - slope - 1,
+          curve,
+          size.height - slope,
+        )
+        ..lineTo(size.width, size.height)
+        ..lineTo(size.width, 0);
+    }
+    return path..close();
+  }
+
+  @override
+  bool shouldReclip(_HomeRailTrapezoidClipper oldClipper) =>
+      oldClipper.edge != edge;
 }

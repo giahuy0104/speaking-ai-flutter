@@ -404,7 +404,10 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
         context: context,
         isScrollControlled: true,
         useSafeArea: true,
-        showDragHandle: true,
+        showDragHandle: false,
+        backgroundColor: Colors.transparent,
+        barrierColor: AppColors.deepNavy.withValues(alpha: 0.48),
+        elevation: 0,
         builder: (_) => _LessonGroupPickerSheet(
           catalogs: listeningCatalogs,
           selectedIndex: _selectedCatalogIndex,
@@ -1161,30 +1164,44 @@ class _CurrentLessonGroupCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
+      key: const Key('current-lesson-group-card'),
       color: isDark
           ? colorScheme.surface.withValues(alpha: 0.96)
-          : const Color(0xECFFFDF9),
+          : Colors.white.withValues(alpha: 0.96),
+      elevation: isDark ? 0 : 4,
+      shadowColor: AppColors.mint.withValues(alpha: 0.18),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(24),
         side: BorderSide(
           color: isDark
               ? colorScheme.outline.withValues(alpha: 0.7)
-              : const Color(0x99FFFFFF),
-          width: 1.2,
+              : AppColors.mintBorder,
+          width: 1.4,
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 13, 10, 13),
+        padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
         child: Row(
           children: <Widget>[
             Container(
-              width: 44,
-              height: 44,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
-                color: AppColors.indigo.withValues(alpha: 0.11),
+                color: isDark
+                    ? colorScheme.tertiaryContainer
+                    : AppColors.mintSoft,
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark
+                      ? colorScheme.tertiary.withValues(alpha: 0.45)
+                      : AppColors.mintBorder,
+                ),
               ),
-              child: const Icon(Icons.school_rounded, color: AppColors.indigo),
+              child: Icon(
+                Icons.school_rounded,
+                color: isDark ? colorScheme.tertiary : AppColors.indigo,
+                size: 27,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -1196,29 +1213,62 @@ class _CurrentLessonGroupCard extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: isDark ? colorScheme.primary : AppColors.indigo,
                       fontWeight: FontWeight.w700,
+                      height: 1.15,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Text(
                     context.tr(
                       '${catalog.startAge}–${catalog.endAge} tuổi',
                       '${catalog.startAge}–${catalog.endAge} 岁',
                     ),
-                    style: Theme.of(context).textTheme.titleMedium,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: isDark
+                          ? colorScheme.onSurface
+                          : AppColors.deepNavy,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ],
               ),
+            ),
+            Container(
+              width: 1,
+              height: 38,
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              color: isDark ? colorScheme.outlineVariant : AppColors.mintBorder,
             ),
             Semantics(
               button: true,
               enabled: canChange,
               label: context.tr('Phụ huynh thay đổi nhóm bài học', '家长更改课程组'),
-              child: TextButton.icon(
+              child: OutlinedButton.icon(
                 key: const Key('topic-age-selector'),
                 onPressed: canChange ? onChange : null,
-                style: TextButton.styleFrom(
-                  minimumSize: const Size(48, 48),
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(76, 46),
+                  padding: const EdgeInsets.symmetric(horizontal: 11),
+                  foregroundColor: isDark
+                      ? colorScheme.primary
+                      : AppColors.indigo,
+                  disabledForegroundColor: colorScheme.onSurfaceVariant,
+                  backgroundColor: isDark
+                      ? colorScheme.surfaceContainerHighest
+                      : AppColors.mintWash,
+                  side: BorderSide(
+                    color: canChange
+                        ? (isDark
+                              ? colorScheme.primary.withValues(alpha: 0.55)
+                              : AppColors.mint.withValues(alpha: 0.55))
+                        : colorScheme.outlineVariant,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  textStyle: const TextStyle(
+                    fontFamily: 'Roboto',
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 icon: const Icon(Icons.lock_outline_rounded, size: 20),
                 label: Text(context.tr('Đổi', '更改')),
@@ -1250,115 +1300,253 @@ class _LessonGroupPickerSheetState extends State<_LessonGroupPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 680),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          20,
-          4,
-          20,
-          20 + MediaQuery.viewPaddingOf(context).bottom,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Text(
-              context.tr('Chọn nhóm bài học', '选择课程组'),
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              context.tr(
-                'Phụ huynh chọn nội dung phù hợp với khả năng hiện tại của trẻ. Lựa chọn này sẽ áp dụng cho Chủ đề và trợ lý MAIN.',
-                '家长请选择适合孩子当前能力的内容。此选择将同时应用于主题课程和 MAIN 助手。',
-              ),
-            ),
-            const SizedBox(height: 14),
-            Flexible(
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: widget.catalogs.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 8),
-                itemBuilder: (context, index) {
-                  final catalog = widget.catalogs[index];
-                  final selected = index == _selectedIndex;
-                  return Material(
-                    color: selected
-                        ? Theme.of(
-                            context,
-                          ).colorScheme.primaryContainer.withValues(alpha: 0.7)
-                        : Theme.of(context).colorScheme.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(16),
-                    child: InkWell(
-                      key: ValueKey(
-                        'age-${catalog.startAge}-${catalog.endAge}',
-                      ),
-                      onTap: () => setState(() => _selectedIndex = index),
-                      borderRadius: BorderRadius.circular(16),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                        child: Row(
-                          children: <Widget>[
-                            Icon(
-                              selected
-                                  ? Icons.radio_button_checked_rounded
-                                  : Icons.radio_button_unchecked_rounded,
-                              color: selected
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                context.tr(
-                                  '${catalog.startAge}–${catalog.endAge} tuổi',
-                                  '${catalog.startAge}–${catalog.endAge} 岁',
-                                ),
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                            ),
-                            Text(
-                              context.tr(
-                                '${catalog.topics.length} chủ đề',
-                                '${catalog.topics.length} 个主题',
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 14),
-            Row(
-              children: <Widget>[
-                const Icon(Icons.verified_user_outlined, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    context.tr('Đã xác thực khu vực phụ huynh', '已验证家长区域'),
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    return Material(
+      key: const Key('lesson-group-picker-sheet'),
+      color: isDark ? AppColors.darkSurfaceRaised : Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 680),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            20,
+            10,
+            20,
+            20 + MediaQuery.viewPaddingOf(context).bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Center(
+                child: Container(
+                  width: 48,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(99),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            FilledButton(
-              key: const Key('apply-topic-age'),
-              onPressed: () => Navigator.of(context).pop(_selectedIndex),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
               ),
-              child: Text(context.tr('Áp dụng', '应用')),
-            ),
-          ],
+              const SizedBox(height: 18),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      context.tr('Chọn nhóm bài học', '选择课程组'),
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: isDark
+                            ? colorScheme.onSurface
+                            : AppColors.deepNavy,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.sunshine.withValues(alpha: 0.18)
+                          : AppColors.sunshineSoft,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.auto_awesome_rounded,
+                      color: AppColors.sunshine,
+                      size: 21,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 7),
+              Text(
+                context.tr(
+                  'Phụ huynh chọn nội dung phù hợp với khả năng hiện tại của trẻ. Lựa chọn này sẽ áp dụng cho Chủ đề và trợ lý MAIN.',
+                  '家长请选择适合孩子当前能力的内容。此选择将同时应用于主题课程和 MAIN 助手。',
+                ),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  padding: EdgeInsets.zero,
+                  itemCount: widget.catalogs.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final catalog = widget.catalogs[index];
+                    final selected = index == _selectedIndex;
+                    return Material(
+                      color: selected
+                          ? (isDark
+                                ? colorScheme.tertiaryContainer
+                                : AppColors.mintSoft)
+                          : (isDark
+                                ? colorScheme.surfaceContainer
+                                : AppColors.mintWash),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                          color: selected
+                              ? (isDark ? colorScheme.tertiary : AppColors.mint)
+                              : (isDark
+                                    ? colorScheme.outlineVariant
+                                    : AppColors.mintBorder),
+                          width: selected ? 1.5 : 1,
+                        ),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        key: ValueKey(
+                          'age-${catalog.startAge}-${catalog.endAge}',
+                        ),
+                        onTap: () => setState(() => _selectedIndex = index),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 13,
+                          ),
+                          child: Row(
+                            children: <Widget>[
+                              _LessonGroupRadio(selected: selected),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  context.tr(
+                                    '${catalog.startAge}–${catalog.endAge} tuổi',
+                                    '${catalog.startAge}–${catalog.endAge} 岁',
+                                  ),
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: isDark
+                                        ? colorScheme.onSurface
+                                        : AppColors.deepNavy,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                context.tr(
+                                  '${catalog.topics.length} chủ đề',
+                                  '${catalog.topics.length} 个主题',
+                                ),
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                  fontWeight: selected
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: <Widget>[
+                  Icon(
+                    Icons.verified_user_outlined,
+                    size: 22,
+                    color: isDark ? colorScheme.tertiary : AppColors.mint,
+                  ),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Text(
+                      context.tr('Đã xác thực khu vực phụ huynh', '已验证家长区域'),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: <BoxShadow>[
+                    BoxShadow(
+                      color: AppColors.mint.withValues(alpha: 0.28),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: FilledButton(
+                  key: const Key('apply-topic-age'),
+                  onPressed: () => Navigator.of(context).pop(_selectedIndex),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(54),
+                    backgroundColor: isDark
+                        ? colorScheme.primary
+                        : AppColors.primaryNavy,
+                    foregroundColor: colorScheme.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    textStyle: const TextStyle(
+                      fontFamily: 'Roboto',
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  child: Text(context.tr('Áp dụng', '应用')),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LessonGroupRadio extends StatelessWidget {
+  const _LessonGroupRadio({required this.selected});
+
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      width: 25,
+      height: 25,
+      decoration: BoxDecoration(
+        color: selected ? AppColors.primaryNavy : Colors.transparent,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: selected
+              ? AppColors.primaryNavy
+              : colorScheme.onSurfaceVariant,
+          width: 2,
+        ),
+      ),
+      alignment: Alignment.center,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        width: selected ? 9 : 0,
+        height: selected ? 9 : 0,
+        decoration: const BoxDecoration(
+          color: AppColors.sunshine,
+          shape: BoxShape.circle,
         ),
       ),
     );

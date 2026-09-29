@@ -15,6 +15,8 @@ abstract final class AppColors {
   static const mintSoft = Color(0xFFEBFCF6);
   static const mintWash = Color(0xFFF5FDFA);
   static const mintBorder = Color(0xFFD4F2E9);
+  static const sunshine = Color(0xFFFFC83D);
+  static const sunshineSoft = Color(0xFFFFF7D9);
   static const success = Color(0xFF129B68);
   static const successSoft = Color(0xFFEAF8F1);
   static const surface = Color(0xFFFFFEFD);

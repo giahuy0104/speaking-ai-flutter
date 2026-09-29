@@ -102,14 +102,14 @@ void main() {
       expect(
         find.descendant(
           of: find.byKey(const Key('vocabulary-edge-tab')),
-          matching: find.text('T\nừ\nv\nự\nn\ng'),
+          matching: find.text('T\nỪ\nV\nỰ\nN\nG'),
         ),
         findsOneWidget,
       );
       expect(
         find.descendant(
           of: find.byKey(const Key('topic-listening-edge-tab')),
-          matching: find.text('C\nh\nủ\nđ\nề'),
+          matching: find.text('C\nH\nỦ\nĐ\nỀ'),
         ),
         findsOneWidget,
       );
@@ -119,6 +119,20 @@ void main() {
           matching: find.byType(RotatedBox),
         ),
         findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('vocabulary-edge-tab')),
+          matching: find.byType(ClipPath),
+        ),
+        findsNWidgets(3),
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('topic-listening-edge-tab')),
+          matching: find.byType(ClipPath),
+        ),
+        findsNWidgets(3),
       );
       expect(topicTabRect.top, closeTo(vocabularyTabRect.top, 0.01));
       expect(vocabularyTabRect.top, closeTo(844 * 0.27, 0.01));
