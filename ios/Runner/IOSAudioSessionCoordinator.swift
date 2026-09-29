@@ -90,12 +90,21 @@ final class IOSAudioSessionCoordinator: NSObject {
   private var traceSink: (([String: Any]) -> Void)?
   private var traceBuffer: [[String: Any]] = []
   /// `trace` is called from whatever thread produced the event — the audio tap,
-  /// an AVSpeechSynthesizer delegate callback — while `traceBuffer` is a plain
-  /// Swift Array and `sequence` a plain Int. Appending to an Array from two
-  /// threads at once corrupts it, so every touch of that pair goes through
-  /// this lock. Only the pair: payload building reads main-thread state that
-  /// must not be held under a lock a route callback could re-enter.
+  /// an AVSpeechSynthesizer delegate callback — while the state it reads and
+  /// writes is plain Swift values. Appending to an Array, or releasing a
+  /// `String?`/closure, from two threads at once is memory corruption, not a
+  /// lost log line, so every field `trace` touches goes through this lock:
+  /// `sequence`, `traceBuffer`, `traceSink`, and the four turn fields.
+  ///
+  /// Nothing else. `routeDescription()` stays outside it, because a route
+  /// callback could re-enter this object while the lock is held.
   private let traceStateLock = NSLock()
+
+  private func withTraceState<T>(_ body: () -> T) -> T {
+    traceStateLock.lock()
+    defer { traceStateLock.unlock() }
+    return body()
+  }
   private var pendingTurnId: String?
   private var pendingTurnStartedAt: Date?
   private var activeTurnId: String?
@@ -240,9 +249,11 @@ final class IOSAudioSessionCoordinator: NSObject {
     // bridge has already collapsed the firmware notification burst before this
     // method is called, so retaining an older active turn here can only make a
     // second real press inherit stale cleanup from the previous one.
-    pendingTurnId = makeTurnId()
-    pendingTurnStartedAt = Date()
-    sequence = 0
+    withTraceState {
+      pendingTurnId = makeTurnId()
+      pendingTurnStartedAt = Date()
+      sequence = 0
+    }
     trace(
       stage: "MAIN_RAW_RECEIVED",
       caller: source == "ble" ? "Aiv0BleControlBridge" : "H20RemoteMainBridge",
@@ -293,10 +304,12 @@ final class IOSAudioSessionCoordinator: NSObject {
       let previousTurnId = activeTurnId
       turnTimeout?.cancel()
       turnTimeout = nil
-      activeTurnId = pendingTurnId
-      activeTurnStartedAt = pendingTurnStartedAt
-      self.pendingTurnId = nil
-      pendingTurnStartedAt = nil
+      withTraceState {
+        activeTurnId = pendingTurnId
+        activeTurnStartedAt = pendingTurnStartedAt
+        self.pendingTurnId = nil
+        pendingTurnStartedAt = nil
+      }
       isMainTurnActive = true
       if !ownership.contains(.mainTurn) {
         acquireSessionOwner(.mainTurn, caller: source)
@@ -319,12 +332,16 @@ final class IOSAudioSessionCoordinator: NSObject {
 
     if pendingTurnId != nil {
       // Do not let an expired physical packet leak into a later virtual turn.
-      pendingTurnId = nil
-      pendingTurnStartedAt = nil
+      withTraceState {
+        pendingTurnId = nil
+        pendingTurnStartedAt = nil
+      }
     }
-    activeTurnId = makeTurnId()
-    activeTurnStartedAt = now
-    sequence = 0
+    withTraceState {
+      activeTurnId = makeTurnId()
+      activeTurnStartedAt = now
+      sequence = 0
+    }
     isMainTurnActive = true
     if !ownership.contains(.mainTurn) {
       acquireSessionOwner(.mainTurn, caller: source)
@@ -363,9 +380,11 @@ final class IOSAudioSessionCoordinator: NSObject {
     turnTimeout = nil
     isMainTurnActive = false
     releaseSessionOwner(.mainTurn, caller: caller)
-    activeTurnId = nil
-    activeTurnStartedAt = nil
-    sequence = 0
+    withTraceState {
+      activeTurnId = nil
+      activeTurnStartedAt = nil
+      sequence = 0
+    }
     // A prompt, live capture, or persistent HFP route may still own the same
     // AVAudioSession after the logical MAIN turn ends. Deactivation is safe only
     // when the final owner releases it; otherwise iOS renegotiates HFP mid-flow.
@@ -378,15 +397,15 @@ final class IOSAudioSessionCoordinator: NSObject {
   }
 
   func attachTraceSink(_ sink: @escaping ([String: Any]) -> Void) {
-    traceSink = sink
-    traceStateLock.lock()
-    let buffered = traceBuffer
-    traceStateLock.unlock()
+    let buffered = withTraceState { () -> [[String: Any]] in
+      traceSink = sink
+      return traceBuffer
+    }
     buffered.forEach(sink)
   }
 
   func detachTraceSink() {
-    traceSink = nil
+    withTraceState { traceSink = nil }
   }
 
   /// Returns a stable, chronological copy of the native BLE/HFP/audio trace.
@@ -394,9 +413,7 @@ final class IOSAudioSessionCoordinator: NSObject {
   /// opening Parent settings cannot create or erase the evidence it displays.
   func diagnosticTimelineSnapshot(limit: Int = 200) -> [[String: Any]] {
     let boundedLimit = min(max(limit, 1), 200)
-    traceStateLock.lock()
-    defer { traceStateLock.unlock() }
-    return Array(traceBuffer.suffix(boundedLimit))
+    return withTraceState { Array(traceBuffer.suffix(boundedLimit)) }
   }
 
   func eventMetadata() -> [String: Any] {
@@ -421,11 +438,15 @@ final class IOSAudioSessionCoordinator: NSObject {
     values: [String: Any] = [:]
   ) -> [String: Any] {
     let now = Date()
-    traceStateLock.lock()
-    sequence += 1
-    let sequenceNumber = sequence
-    traceStateLock.unlock()
-    let startedAt = activeTurnStartedAt ?? pendingTurnStartedAt ?? now
+    let (sequenceNumber, startedAt, turnId) = withTraceState {
+      () -> (Int, Date, String?) in
+      sequence += 1
+      return (
+        sequence,
+        activeTurnStartedAt ?? pendingTurnStartedAt ?? now,
+        activeTurnId ?? pendingTurnId
+      )
+    }
     var payload: [String: Any] = [
       "type": "speech.stage",
       "stage": stage,
@@ -435,19 +456,19 @@ final class IOSAudioSessionCoordinator: NSObject {
       "eventEpochMs": Int(now.timeIntervalSince1970 * 1_000),
       "audioRoute": routeDescription(),
     ]
-    if let turnId = activeTurnId ?? pendingTurnId {
+    if let turnId {
       payload["turnId"] = turnId
     }
     if let code { payload["code"] = code }
     if let message { payload["message"] = message }
     payload.merge(values) { _, new in new }
-    traceStateLock.lock()
-    traceBuffer.append(payload)
-    if traceBuffer.count > 200 {
-      traceBuffer.removeFirst(traceBuffer.count - 200)
+    let sink = withTraceState { () -> (([String: Any]) -> Void)? in
+      traceBuffer.append(payload)
+      if traceBuffer.count > 200 {
+        traceBuffer.removeFirst(traceBuffer.count - 200)
+      }
+      return traceSink
     }
-    traceStateLock.unlock()
-    let sink = traceSink
     if Thread.isMainThread {
       sink?(payload)
     } else {
@@ -850,7 +871,7 @@ final class IOSAudioSessionCoordinator: NSObject {
       NotificationCenter.default.removeObserver(interruptionToken)
     }
     interruptionToken = nil
-    traceSink = nil
+    withTraceState { traceSink = nil }
     onMainTurnEnded = nil
     onSpeechCaptureStarted = nil
     onSpeechCaptureEnded = nil

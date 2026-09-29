@@ -320,6 +320,37 @@ void main() {
     expect(delegate.events.every((event) => event.startsWith('wait:')), isTrue);
   });
 
+  test('a slow manifest still recovers on a later utterance', () async {
+    // A cold start is when the manifest is slowest, and one utterance asks for
+    // it twice (a budget lookup, then the prompt). Treating those timeouts as
+    // failures armed the cooldown immediately and took authored audio away for
+    // the first 30 seconds of the app's life - worse than the per-prompt wait
+    // the cooldown exists to avoid.
+    final bundle = _SlowManifestBundle(
+      Uint8List.fromList(<int>[1, 2, 3, 4]),
+      slowLoads: 2,
+      delay: const Duration(milliseconds: 120),
+    );
+    final delegate = _Delegate();
+    final service = MainAssistantAudioPromptService(
+      delegate: delegate,
+      bundle: bundle,
+      enabled: true,
+      preferBundledAudio: true,
+      assetLoadTimeout: const Duration(milliseconds: 20),
+    );
+    addTearDown(service.dispose);
+
+    for (var attempt = 0; attempt < 4; attempt++) {
+      await service.speakAndWaitWithAudioKey(
+        'assistant.main.open_menu.vi',
+        'Nội dung chuẩn',
+      );
+    }
+
+    expect(delegate.events.last, 'authored');
+  });
+
   test('a cancelled load never counts towards the retry cooldown', () async {
     // Leaving a screen cancels the pending wait. That is navigation working,
     // not the manifest failing, and it must not push the loader into its
@@ -353,6 +384,49 @@ void main() {
 
     expect(delegate.events.last, 'authored');
   });
+}
+
+/// Answers slowly at first, the way a cold start does, then normally.
+class _SlowManifestBundle extends CachingAssetBundle {
+  _SlowManifestBundle(
+    this.bytes, {
+    required this.slowLoads,
+    required this.delay,
+  });
+
+  final Uint8List bytes;
+  final int slowLoads;
+  final Duration delay;
+  int loads = 0;
+
+  @override
+  Future<ByteData> load(String key) async => ByteData.sublistView(bytes);
+
+  @override
+  Future<String> loadString(String key, {bool cache = true}) async {
+    if (key == AudioLoudnessManifest.assetKey) {
+      return jsonEncode(<String, Object?>{'gainDb': <String, Object?>{}});
+    }
+    loads++;
+    if (loads <= slowLoads) await Future<void>.delayed(delay);
+    return jsonEncode({
+      'schemaVersion': 1,
+      'enabled': true,
+      'prompts': [
+        {
+          'key': 'assistant.main.open_menu.vi',
+          'enabled': true,
+          'locale': 'vi-VN',
+          'asset':
+              'assets/audio/assistant-core/assistant.main.open_menu.vi.mp3',
+          'durationSeconds': 1.0,
+          'sha256': sha256.convert(bytes).toString(),
+          'text': 'Nội dung chuẩn',
+          'textHash': sha256.convert(utf8.encode('Nội dung chuẩn')).toString(),
+        },
+      ],
+    });
+  }
 }
 
 class _FlakyManifestBundle extends CachingAssetBundle {

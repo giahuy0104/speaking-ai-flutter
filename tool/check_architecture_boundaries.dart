@@ -92,6 +92,8 @@ List<ArchitectureViolation> checkArchitectureBoundaries(Directory root) {
 
   _checkProductionComposition(root, violations);
 
+  _checkSwiftDuplicateDeclarations(root, violations);
+
   return violations;
 }
 
@@ -218,6 +220,107 @@ bool _isUnapprovedCrossFeaturePresentationImport(String source, String target) {
   }
 
   return true;
+}
+
+/// Swift is compiled only by CI, on a machine that has Xcode. This repository
+/// is developed on machines that often do not, and `swiftc -parse` accepts a
+/// type that declares the same member twice — it is a semantic error, not a
+/// syntax one. That exact mistake shipped a `RunnerTests` class with one test
+/// declared twice, which stops the whole iOS test target from building and is
+/// only discovered minutes into a CI run.
+///
+/// This is a deliberately narrow check: member declarations that repeat inside
+/// one type, and type names that repeat across the Swift sources. It reads
+/// braces, not Swift, so it stays quiet about anything it cannot place.
+void _checkSwiftDuplicateDeclarations(
+  Directory root,
+  List<ArchitectureViolation> violations,
+) {
+  final memberPattern = RegExp(
+    r'^\s*(?:@\w+\s+)*(?:(?:private|fileprivate|public|internal|open|static|'
+    r'final|class|override|mutating|convenience)\s+)*func\s+(\w+\s*\([^)]*\))',
+  );
+  final typePattern = RegExp(
+    r'^\s*(?:(?:private|fileprivate|public|internal|open|final)\s+)*'
+    r'(?:class|struct|enum|protocol|actor)\s+(\w+)',
+  );
+  final declaredTypes = <String, String>{};
+
+  for (final directory in const ['ios/Runner', 'ios/RunnerTests']) {
+    final swiftDirectory = Directory(_join(root.path, directory));
+    if (!swiftDirectory.existsSync()) continue;
+    final files =
+        swiftDirectory
+            .listSync(recursive: true, followLinks: false)
+            .whereType<File>()
+            .where((file) => file.path.endsWith('.swift'))
+            .toList()
+          ..sort((a, b) => a.path.compareTo(b.path));
+
+    for (final file in files) {
+      final relative = _relativePath(root, file.path);
+      // Enclosing type per brace depth, so a member is attributed to the type
+      // it actually sits in rather than to the file.
+      final openTypes = <int, String>{};
+      final seen = <String, int>{};
+      var depth = 0;
+      var lineNumber = 0;
+
+      for (final line in file.readAsLinesSync()) {
+        lineNumber++;
+        final code = line.split('//').first;
+        final type = typePattern.firstMatch(code);
+        if (type != null && code.contains('{')) {
+          final name = type.group(1)!;
+          openTypes[depth] = name;
+          final previous = declaredTypes[name];
+          if (previous != null && previous != relative) {
+            violations.add(
+              ArchitectureViolation(
+                file: relative,
+                message:
+                    'Swift type `$name` is also declared in $previous; '
+                    'two declarations of one name do not compile',
+              ),
+            );
+          } else {
+            declaredTypes[name] = relative;
+          }
+        } else {
+          final member = memberPattern.firstMatch(code);
+          if (member != null) {
+            final owner = openTypes[depth - 1] ?? '(file scope)';
+            final signature = member
+                .group(1)!
+                .replaceAll(RegExp(r'\s+'), '')
+                .replaceAll(RegExp(r':[^,)]*'), ':');
+            final key = '$owner.$signature';
+            final first = seen[key];
+            if (first != null) {
+              violations.add(
+                ArchitectureViolation(
+                  file: '$relative:$lineNumber',
+                  message:
+                      '`$owner` declares `$signature` twice '
+                      '(first at line $first); this does not compile',
+                ),
+              );
+            } else {
+              seen[key] = lineNumber;
+            }
+          }
+        }
+        for (final rune in code.runes) {
+          if (rune == 0x7B) {
+            depth++;
+          } else if (rune == 0x7D) {
+            openTypes.remove(depth - 1);
+            depth--;
+          }
+        }
+      }
+    }
+  }
 }
 
 String _relativePath(Directory root, String path) {

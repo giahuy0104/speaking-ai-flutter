@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../config/app_config.dart';
 import '../core/auth/installation_auth_session.dart';
+import '../core/audio/audio_loudness_manifest.dart';
 import '../core/audio/audio_playback_service.dart';
 import '../core/audio/audio_turn_coordinator.dart';
 import '../core/audio/browser_hfp_audio_control.dart';
@@ -229,6 +230,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     _createRuntime();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startBackgroundStartup();
+      // Read once here so the first clip does not pay for it. Playback consults
+      // this between preparing a source and starting it, so an unwarmed decode
+      // of the manifest would delay the very first thing the child hears.
+      unawaited(AudioLoudnessManifest.load());
       unawaited(_initializeStartupSetup());
       if (_supportsOfflineLanguagePacks) {
         unawaited(_prepareOfflineLanguageModels());

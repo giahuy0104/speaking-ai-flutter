@@ -9,9 +9,6 @@ import 'audio_diagnostics.dart';
 import 'audio_loudness_manifest.dart';
 import 'voice_prompt_service_base.dart';
 
-/// Allowlisted fixed assistant prompts. It is wrapped INSIDE the existing
-/// audio-turn coordinator, so file playback and TTS share one exclusive lease.
-/// Never recognizes commands or changes learning/session state.
 /// Raised when a pending wait is dropped because the caller left, as opposed to
 /// anything going wrong. Leaving a screen used to be reported as a failed
 /// manifest load, which put a false error in every session's diagnostics.
@@ -22,6 +19,9 @@ class PromptWaitCancelled implements Exception {
   String toString() => 'Authored prompt cancelled.';
 }
 
+/// Allowlisted fixed assistant prompts. It is wrapped INSIDE the existing
+/// audio-turn coordinator, so file playback and TTS share one exclusive lease.
+/// Never recognizes commands or changes learning/session state.
 class MainAssistantAudioPromptService
     implements
         VoicePromptService,
@@ -72,7 +72,7 @@ class MainAssistantAudioPromptService
   Future<Map<String, dynamic>>? _manifest;
   bool _manifestPackMissing = false;
   int _manifestFailures = 0;
-  DateTime? _manifestFailedAt;
+  final Stopwatch _sinceManifestFailure = Stopwatch();
 
   /// How long to stop retrying a manifest that has failed repeatedly.
   ///
@@ -216,10 +216,9 @@ class MainAssistantAudioPromptService
   Future<Map<String, dynamic>> _loadManifest() {
     final pending = _manifest;
     if (pending != null) return pending;
-    final failedAt = _manifestFailedAt;
     if (_manifestFailures > 1 &&
-        failedAt != null &&
-        DateTime.now().difference(failedAt) < manifestRetryCooldown) {
+        _sinceManifestFailure.isRunning &&
+        _sinceManifestFailure.elapsed < manifestRetryCooldown) {
       return Future<Map<String, dynamic>>.error(
         StateError('MAIN audio manifest is unavailable.'),
       );
@@ -230,8 +229,7 @@ class MainAssistantAudioPromptService
     unawaited(
       load.then<void>(
         (_) {
-          _manifestFailures = 0;
-          _manifestFailedAt = null;
+          if (identical(_manifest, load)) _resetManifestFailures();
           // An incomplete load is usable now but must be retried next time.
           if (_manifestPackMissing && identical(_manifest, load)) {
             _manifest = null;
@@ -242,8 +240,16 @@ class MainAssistantAudioPromptService
           // Leaving a screen cancels the wait. That is navigation working, not
           // a manifest that failed, and it must not count towards the cooldown.
           if (error is PromptWaitCancelled) return;
+          // A timeout means the asset is slow, not broken, and a cold start is
+          // exactly when it is slowest. Counting those armed the cooldown from
+          // a single utterance and took authored audio away for the first 30
+          // seconds of the app's life. A manifest that is genuinely missing or
+          // malformed throws immediately, and that is what this counts.
+          if (error is TimeoutException) return;
           _manifestFailures += 1;
-          _manifestFailedAt = DateTime.now();
+          _sinceManifestFailure
+            ..reset()
+            ..start();
           AudioDiagnostics.event('main_prompt.manifest.failed', {
             'error': error.runtimeType.toString(),
           });
@@ -251,6 +257,13 @@ class MainAssistantAudioPromptService
       ),
     );
     return load;
+  }
+
+  void _resetManifestFailures() {
+    _manifestFailures = 0;
+    _sinceManifestFailure
+      ..stop()
+      ..reset();
   }
 
   Future<Map<String, dynamic>> _readManifest() => () async {
@@ -677,6 +690,9 @@ class MainAssistantAudioPromptService
     }
     // A cancelled/failed cached manifest must not poison the next prompt turn.
     _manifest = null;
+    // Leaving a screen is a fresh start: a cooldown armed by an earlier screen
+    // must not carry over and silence the next one.
+    _resetManifestFailures();
     await _delegate.stop();
   }
 
