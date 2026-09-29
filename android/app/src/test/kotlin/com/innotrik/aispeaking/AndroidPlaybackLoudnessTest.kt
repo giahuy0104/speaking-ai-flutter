@@ -62,8 +62,24 @@ class AndroidPlaybackLoudnessTest {
 
     @Test
     fun h20RecordingGainNeverExceedsTwentyEightDb() {
-        val result = sineMeter(-55.0).result()!!
+        // The level has to stay above the absolute -50 dBFS gate, or the clip
+        // is classed as noise and measured at all: this asserted 28 dB against
+        // a -55 dBFS signal and was really reading the no-gain path.
+        // -49.5 dBFS wants 28.5 dB, so the cap is what decides the answer.
+        val result = sineMeter(-49.5).result()!!
         assertEquals(28.0, result.gainDb, 0.001)
+        assertTrue(AndroidPlaybackLoudness.TARGET_RMS_DBFS - result.measuredDb > 28.0)
+    }
+
+    @Test
+    fun aClipBelowTheAbsoluteGateIsLeftAloneRatherThanBoosted() {
+        // The boundary the test above tripped over. An H20 capture sits at most
+        // about 28 dB under the target, near -49 dBFS; anything quieter end to
+        // end is an empty room, and 28 dB of boost would put hiss in a child's
+        // ear rather than recovering a quiet voice.
+        assertEquals(0.0, sineMeter(-50.5).result()!!.gainDb, 0.0)
+        assertEquals(0, sineMeter(-50.5).result()!!.activeWindowCount)
+        assertEquals(0.0, sineMeter(-55.0).result()!!.gainDb, 0.0)
     }
 
     @Test

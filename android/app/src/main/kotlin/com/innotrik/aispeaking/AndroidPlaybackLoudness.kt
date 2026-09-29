@@ -28,6 +28,10 @@ object AndroidPlaybackLoudness {
     // sources and respects sample headroom when choosing the actual gain.
     const val MAX_GAIN_DB = 28.0
     const val FALLBACK_GAIN_DB = 8.0
+    /** -50 dBFS, as mean square. Keeps near-silent noise out of the estimate. */
+    const val ABSOLUTE_GATE_MEAN_SQUARE = 0.00001
+    /** -30 dB below the strongest window: what separates speech from pauses. */
+    const val RELATIVE_GATE_RATIO = 1000.0
     private const val MAX_DURATION_MS = 30_000L
     private const val MAX_DECODE_NS = 350_000_000L
     /** For measurements nobody waits on, e.g. warming a clip's next playback. */
@@ -290,7 +294,14 @@ class PcmPlaybackLevelMeter(private val sampleRate: Int, private val channelCoun
         val maxMeanSquare = complete.maxOf { it.energy / windowSamples }
         // Absolute -50 dBFS gate, plus -30 dB relative to the strongest window.
         // This excludes pauses and very quiet noise from the level estimate.
-        val gate = max(0.00001, maxMeanSquare / 1000)
+        // A clip that is below the absolute gate end to end is treated as noise
+        // and left alone: an H20 capture sits at most ~28 dB under the target,
+        // i.e. near -49 dBFS, so anything quieter is not a quiet child but an
+        // empty room, and boosting it 28 dB would put hiss in the child's ear.
+        val gate = max(
+            AndroidPlaybackLoudness.ABSOLUTE_GATE_MEAN_SQUARE,
+            maxMeanSquare / AndroidPlaybackLoudness.RELATIVE_GATE_RATIO,
+        )
         val active = complete.filter { it.energy / windowSamples >= gate }
         val peakDb = amplitudeDb(peak)
         if (active.isEmpty()) {
