@@ -89,6 +89,13 @@ final class IOSAudioSessionCoordinator: NSObject {
   private var interruptionToken: NSObjectProtocol?
   private var traceSink: (([String: Any]) -> Void)?
   private var traceBuffer: [[String: Any]] = []
+  /// `trace` is called from whatever thread produced the event — the audio tap,
+  /// an AVSpeechSynthesizer delegate callback — while `traceBuffer` is a plain
+  /// Swift Array and `sequence` a plain Int. Appending to an Array from two
+  /// threads at once corrupts it, so every touch of that pair goes through
+  /// this lock. Only the pair: payload building reads main-thread state that
+  /// must not be held under a lock a route callback could re-enter.
+  private let traceStateLock = NSLock()
   private var pendingTurnId: String?
   private var pendingTurnStartedAt: Date?
   private var activeTurnId: String?
@@ -372,7 +379,10 @@ final class IOSAudioSessionCoordinator: NSObject {
 
   func attachTraceSink(_ sink: @escaping ([String: Any]) -> Void) {
     traceSink = sink
-    traceBuffer.forEach(sink)
+    traceStateLock.lock()
+    let buffered = traceBuffer
+    traceStateLock.unlock()
+    buffered.forEach(sink)
   }
 
   func detachTraceSink() {
@@ -384,6 +394,8 @@ final class IOSAudioSessionCoordinator: NSObject {
   /// opening Parent settings cannot create or erase the evidence it displays.
   func diagnosticTimelineSnapshot(limit: Int = 200) -> [[String: Any]] {
     let boundedLimit = min(max(limit, 1), 200)
+    traceStateLock.lock()
+    defer { traceStateLock.unlock() }
     return Array(traceBuffer.suffix(boundedLimit))
   }
 
@@ -409,13 +421,16 @@ final class IOSAudioSessionCoordinator: NSObject {
     values: [String: Any] = [:]
   ) -> [String: Any] {
     let now = Date()
+    traceStateLock.lock()
     sequence += 1
+    let sequenceNumber = sequence
+    traceStateLock.unlock()
     let startedAt = activeTurnStartedAt ?? pendingTurnStartedAt ?? now
     var payload: [String: Any] = [
       "type": "speech.stage",
       "stage": stage,
       "caller": caller,
-      "sequence": sequence,
+      "sequence": sequenceNumber,
       "elapsedMs": max(0, Int(now.timeIntervalSince(startedAt) * 1_000)),
       "eventEpochMs": Int(now.timeIntervalSince1970 * 1_000),
       "audioRoute": routeDescription(),
@@ -426,10 +441,12 @@ final class IOSAudioSessionCoordinator: NSObject {
     if let code { payload["code"] = code }
     if let message { payload["message"] = message }
     payload.merge(values) { _, new in new }
+    traceStateLock.lock()
     traceBuffer.append(payload)
     if traceBuffer.count > 200 {
       traceBuffer.removeFirst(traceBuffer.count - 200)
     }
+    traceStateLock.unlock()
     let sink = traceSink
     if Thread.isMainThread {
       sink?(payload)
