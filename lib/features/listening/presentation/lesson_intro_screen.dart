@@ -332,28 +332,28 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
 
   Future<void> _prepareGuideText() async {
     _introAudioKey = null;
-    final completed = await widget.progressStore.readLesson(widget.lesson.id);
-    final currentSentence = await widget.progressStore.readCurrentSentence(
+    // One decode of the progress file instead of six: entering a lesson used
+    // to re-read and re-parse every lesson the child had ever touched once per
+    // value below, so it slowed down as their progress grew.
+    final entry = await widget.progressStore.readLessonEntrySnapshot(
       widget.lesson.id,
     );
-    final opened = await widget.progressStore.hasOpenedLearningGuide();
+    final completed = entry.completedSentences;
+    final currentSentence = entry.currentSentence;
+    final opened = entry.hasOpenedLearningGuide;
     var resumeStage = ListeningResumeStage.core;
     if (widget.lesson.usesV4Flow) {
-      resumeStage = await widget.progressStore.readResumeStage(
-        widget.lesson.id,
-      );
+      resumeStage = entry.resumeStage;
       if (!widget.relearnFromBeginning &&
           resumeStage == ListeningResumeStage.core &&
           completed >= widget.lesson.sentences.length &&
           widget.lesson.sentences.isNotEmpty &&
-          !await widget.progressStore.hasCompletedV4LessonActivity(
-            widget.lesson.id,
-          )) {
+          !entry.hasCompletedLessonActivity) {
         resumeStage = ListeningResumeStage.challenge;
       }
     }
     final hasStartedCore = widget.lesson.usesV4Flow
-        ? await widget.progressStore.hasStartedLessonCore(widget.lesson.id)
+        ? entry.hasStartedCore
         : currentSentence > 0;
     final isInProgress =
         !widget.relearnFromBeginning &&
@@ -381,6 +381,8 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
       } else if (widget.relearnFromBeginning ||
           (completed >= lesson.sentences.length &&
               lesson.sentences.isNotEmpty)) {
+        // Read on this branch only, as before: it is the one place the guide
+        // text needs star totals.
         final earnedStars = await widget.progressStore.readEarnedStars(
           lesson.id,
         );

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import '../domain/listening_content.dart';
@@ -41,10 +42,74 @@ class ListeningTopicSelectionCheckpoint {
   final bool announceLevel;
 }
 
+/// The values the lesson entry screen needs before it can speak, read from the
+/// progress file once.
+///
+/// Each accessor on [ListeningProgressStore] decodes the whole progress file,
+/// so the entry screen used to decode it six times in a row before it could
+/// speak its first word. The file holds every lesson the child has ever
+/// touched, which made entering a lesson slower the more they had learned.
+class ListeningLessonEntrySnapshot {
+  const ListeningLessonEntrySnapshot({
+    required this.completedSentences,
+    required this.currentSentence,
+    required this.hasOpenedLearningGuide,
+    required this.resumeStage,
+    required this.hasCompletedLessonActivity,
+    required this.hasStartedCore,
+  });
+
+  final int completedSentences;
+  final int currentSentence;
+  final bool hasOpenedLearningGuide;
+  final ListeningResumeStage resumeStage;
+  final bool hasCompletedLessonActivity;
+  final bool hasStartedCore;
+}
+
 class ListeningProgressStore {
   const ListeningProgressStore({this.progressFilePath});
 
   static final Map<String, Future<Map<String, int>>> _patchMigrations = {};
+
+  /// Marks the decoded-file cache that [readLessonEntrySnapshot] installs.
+  ///
+  /// The cache lives in a [Zone] rather than in a static field so it belongs to
+  /// one call: a writer on another future, or a second snapshot running at the
+  /// same time, never sees it. A shared cache would hand a writer the file as
+  /// it looked when the scope opened, and the child's progress would be written
+  /// back on top of whatever landed in between.
+  static const Object _readScopeKey = #listeningProgressReadScope;
+
+  /// What this class last put on, or took off, storage for each progress file.
+  ///
+  /// Every mutator here is a read-modify-write of the whole file, so a run of
+  /// writes kept re-reading and re-parsing from disk exactly what it had just
+  /// written itself. Finishing a lesson does about ten of those in a row, on a
+  /// file that holds every lesson the child has ever touched — which is why the
+  /// end of a lesson got slower the more they had learned.
+  ///
+  /// Writes still reach storage immediately; only the redundant read is
+  /// removed. The map is static because the store is `const`-constructible and
+  /// several instances point at the same file: every write through this class,
+  /// whichever instance made it, refreshes what all of them see.
+  ///
+  /// Only content that really came from or reached storage is kept here. A
+  /// failed read must never be cached, or the next write would persist it over
+  /// the child's real progress.
+  static final Map<String, Map<String, int>> _fileCache = {};
+
+  /// Forgets what this class believes each file holds.
+  ///
+  /// Tests that write a progress file behind the store's back need this: the
+  /// store cannot see a change it did not make.
+  static void debugForgetCachedFiles() => _fileCache.clear();
+
+  static const String _defaultScopeKey = '__default-listening-progress';
+
+  /// How many times the progress file has been read and decoded from storage.
+  /// Tests use it to hold [readLessonEntrySnapshot] to a single decode.
+  static int debugStorageReadCount = 0;
 
   static const String _resumeSuffix = '::current-sentence';
   static const String _skippedMarker = '::skipped-sentence::';
@@ -87,47 +152,73 @@ class ListeningProgressStore {
 
   Future<Map<String, int>> readAll() async {
     final progress = await _readRaw();
-    progress.removeWhere(
-      (key, _) =>
-          key == ListeningTopicPatchMigration.marker ||
-          key.startsWith(ListeningTopicPatchMigration.archivePrefix) ||
-          key.startsWith(ListeningTopicPatchMigration.legacyPrefix) ||
-          key.endsWith(ListeningTopicPatchMigration.retainedRunSuffix) ||
-          key.contains(ListeningTopicPatchMigration.processedCoreMarker) ||
-          key.endsWith(_resumeSuffix) ||
-          key == _learningGuideOpenedKey ||
-          key.contains(_skippedMarker) ||
-          key.contains(_needsPracticeMarker) ||
-          key.endsWith(_levelMissionPassedMarker) ||
-          key.endsWith(_legacyV4LessonActivityPassedMarker) ||
-          key.endsWith(_lessonCompletedMarker) ||
-          key.endsWith(_challengeProcessedMarker) ||
-          key.contains(_sessionResultMarker) ||
-          key.endsWith(_currentChallengeIndexSuffix) ||
-          key.endsWith(_challengeRotationMaskSuffix) ||
-          key.endsWith(_levelCompletionEventSuffix) ||
-          key.endsWith(_resumeStageSuffix) ||
-          key.endsWith(_pendingChoiceStageSuffix) ||
-          key.endsWith(_coreStartedSuffix) ||
-          key.contains(_missionSelectedMarker) ||
-          key.contains(_missionAnswerMarker) ||
-          key.contains(_missionWeakMarker) ||
-          key.endsWith(_missionAttemptSuffix) ||
-          key.contains(_starMarker) ||
-          key.endsWith(_lessonMissionStarSlotsSuffix) ||
-          key.endsWith(_lessonRelearnPendingSuffix) ||
-          key.endsWith(_courseCompletedSuffix) ||
-          key.endsWith(_courseCompletionEventSuffix) ||
-          key.endsWith(_topicSelectionLevelSuffix) ||
-          key.endsWith(_topicSelectionAnnounceSuffix),
-    );
+    progress.removeWhere((key, _) => _isInternalKey(key));
     return progress;
   }
 
+  /// Keys the store owns for its own bookkeeping. [readAll] hides them so a
+  /// caller sees only per-lesson sentence counts.
+  static bool _isInternalKey(String key) =>
+      key == ListeningTopicPatchMigration.marker ||
+      key.startsWith(ListeningTopicPatchMigration.archivePrefix) ||
+      key.startsWith(ListeningTopicPatchMigration.legacyPrefix) ||
+      key.endsWith(ListeningTopicPatchMigration.retainedRunSuffix) ||
+      key.contains(ListeningTopicPatchMigration.processedCoreMarker) ||
+      key.endsWith(_resumeSuffix) ||
+      key == _learningGuideOpenedKey ||
+      key.contains(_skippedMarker) ||
+      key.contains(_needsPracticeMarker) ||
+      key.endsWith(_levelMissionPassedMarker) ||
+      key.endsWith(_legacyV4LessonActivityPassedMarker) ||
+      key.endsWith(_lessonCompletedMarker) ||
+      key.endsWith(_challengeProcessedMarker) ||
+      key.contains(_sessionResultMarker) ||
+      key.endsWith(_currentChallengeIndexSuffix) ||
+      key.endsWith(_challengeRotationMaskSuffix) ||
+      key.endsWith(_levelCompletionEventSuffix) ||
+      key.endsWith(_resumeStageSuffix) ||
+      key.endsWith(_pendingChoiceStageSuffix) ||
+      key.endsWith(_coreStartedSuffix) ||
+      key.contains(_missionSelectedMarker) ||
+      key.contains(_missionAnswerMarker) ||
+      key.contains(_missionWeakMarker) ||
+      key.endsWith(_missionAttemptSuffix) ||
+      key.contains(_starMarker) ||
+      key.endsWith(_lessonMissionStarSlotsSuffix) ||
+      key.endsWith(_lessonRelearnPendingSuffix) ||
+      key.endsWith(_courseCompletedSuffix) ||
+      key.endsWith(_courseCompletionEventSuffix) ||
+      key.endsWith(_topicSelectionLevelSuffix) ||
+      key.endsWith(_topicSelectionAnnounceSuffix);
+
   Future<Map<String, int>> _readRaw() async {
+    final key = progressFilePath ?? _defaultScopeKey;
+    final scope = _currentReadScope;
+    // Callers mutate what they get back before writing it, so hand out a copy.
+    final scoped = scope?[key];
+    if (scoped != null) return Map.of(scoped);
+    final known = _fileCache[key];
+    if (known != null) {
+      if (scope != null) scope[key] = Map.of(known);
+      return Map.of(known);
+    }
+    final progress = await _readRawFromStorage();
+    if (scope != null) scope[key] = Map.of(progress);
+    return progress;
+  }
+
+  Map<String, int> _remember(Map<String, int> progress) {
+    _fileCache[progressFilePath ?? _defaultScopeKey] = Map.of(progress);
+    return progress;
+  }
+
+  static Map<String, Map<String, int>>? get _currentReadScope =>
+      Zone.current[_readScopeKey] as Map<String, Map<String, int>>?;
+
+  Future<Map<String, int>> _readRawFromStorage() async {
     late final Map<String, int> progress;
     try {
-      final raw = await _persistence.read();
+      final raw = await _readPersisted();
       if (raw == null || raw.trim().isEmpty) {
         return <String, int>{ListeningTopicPatchMigration.marker: 42};
       }
@@ -141,28 +232,30 @@ class ListeningProgressStore {
     } catch (_) {
       return <String, int>{ListeningTopicPatchMigration.marker: 42};
     }
-    if (progress[ListeningTopicPatchMigration.marker] == 42) return progress;
+    if (progress[ListeningTopicPatchMigration.marker] == 42) {
+      return _remember(progress);
+    }
     final hasAffectedLessons = progress.keys.any(
       (key) => RegExp(r'^c(?:35|67)-l1-t0[12]-b\d\d(?:::|$)').hasMatch(key),
     );
     if (!hasAffectedLessons) {
       progress[ListeningTopicPatchMigration.marker] = 42;
-      return progress;
+      return _remember(progress);
     }
     // Migration failures must not masquerade as empty progress: a subsequent
     // write could otherwise replace a recoverable V4.1 file with empty data.
-    return Map.of(await _migrateTopicPatch());
+    return _remember(Map.of(await _migrateTopicPatch()));
   }
 
   Future<Map<String, int>> _migrateTopicPatch() {
-    final key = progressFilePath ?? '__default-listening-progress';
+    final key = progressFilePath ?? _defaultScopeKey;
     final pending = _patchMigrations[key];
     if (pending != null) return pending;
     final operation = () async {
       // Re-read after entering the migration gate: another reader may already
       // have migrated the file since this caller first observed V4.1 data.
       final decoded =
-          jsonDecode((await _persistence.read())!) as Map<String, dynamic>;
+          jsonDecode((await _readPersisted())!) as Map<String, dynamic>;
       final original = decoded.map(
         (key, value) => MapEntry(key, value is int ? value : 0),
       );
@@ -181,6 +274,80 @@ class ListeningProgressStore {
     return operation;
   }
 
+  /// Reads every value the lesson entry screen needs while decoding the
+  /// progress file once.
+  ///
+  /// This calls the same public accessors any other caller would, so a
+  /// subclass that overrides one of them stays correct here. The saving comes
+  /// from the zone-scoped cache: for the duration of this call the decoded file
+  /// is reused instead of being read and parsed once per value. Star totals are
+  /// deliberately not included — the entry screen needs them on one branch
+  /// only, and reading them here would make callers touch storage they
+  /// otherwise would not.
+  Future<ListeningLessonEntrySnapshot> readLessonEntrySnapshot(
+    String lessonId,
+  ) async {
+    return runZoned(
+      () async => ListeningLessonEntrySnapshot(
+        completedSentences: await readLesson(lessonId),
+        currentSentence: await readCurrentSentence(lessonId),
+        hasOpenedLearningGuide: await hasOpenedLearningGuide(),
+        resumeStage: await readResumeStage(lessonId),
+        hasCompletedLessonActivity: await hasCompletedV4LessonActivity(
+          lessonId,
+        ),
+        hasStartedCore: await hasStartedLessonCore(lessonId),
+      ),
+      zoneValues: <Object, Object>{_readScopeKey: <String, Map<String, int>>{}},
+    );
+  }
+
+  static int _currentSentenceOf(Map<String, int> progress, String lessonId) =>
+      progress['$lessonId$_resumeSuffix'] ?? progress[lessonId] ?? 0;
+
+  static bool _openedLearningGuide(Map<String, int> progress) =>
+      progress[_learningGuideOpenedKey] == 1;
+
+  static ListeningResumeStage _resumeStageOf(
+    Map<String, int> progress,
+    String lessonId,
+  ) {
+    final value = progress['$lessonId$_resumeStageSuffix'];
+    if (value == null ||
+        value < 0 ||
+        value >= ListeningResumeStage.values.length) {
+      return ListeningResumeStage.core;
+    }
+    final stage = ListeningResumeStage.values[value];
+    return switch (stage) {
+      ListeningResumeStage.mission ||
+      ListeningResumeStage.reinforcement ||
+      ListeningResumeStage.rolePlay => ListeningResumeStage.challenge,
+      _ => stage,
+    };
+  }
+
+  static bool _completedLessonActivity(
+    Map<String, int> progress,
+    String lessonId,
+  ) =>
+      progress['$lessonId$_lessonCompletedMarker'] == 1 ||
+      (progress['$lessonId$_legacyV4LessonActivityPassedMarker'] == 1 &&
+          progress['$lessonId$_resumeStageSuffix'] ==
+              ListeningResumeStage.completed.index);
+
+  static bool _startedLessonCore(Map<String, int> progress, String lessonId) =>
+      progress['$lessonId$_coreStartedSuffix'] == 1;
+
+  static Set<String> _earnedStarsOf(Map<String, int> progress, String scopeId) {
+    final prefix = '$scopeId$_starMarker';
+    return progress.entries
+        .where((entry) => entry.key.startsWith(prefix) && entry.value == 1)
+        .map((entry) => entry.key.substring(prefix.length))
+        .where((id) => id.isNotEmpty)
+        .toSet();
+  }
+
   /// Original affected lesson keys, retained for an old active-route pointer.
   Future<Map<String, int>> readBeforeTopicPatch() async {
     final progress = await _readRaw();
@@ -194,12 +361,13 @@ class ListeningProgressStore {
   }
 
   Future<int> readLesson(String lessonId) async {
+    // Goes through readAll, not the raw map: subclasses override readAll to
+    // serve lesson totals from their own storage.
     return (await readAll())[lessonId] ?? 0;
   }
 
   Future<int> readCurrentSentence(String lessonId) async {
-    final progress = await _readRaw();
-    return progress['$lessonId$_resumeSuffix'] ?? progress[lessonId] ?? 0;
+    return _currentSentenceOf(await _readRaw(), lessonId);
   }
 
   Future<void> saveCurrentSentence(String lessonId, int sentenceIndex) async {
@@ -209,8 +377,7 @@ class ListeningProgressStore {
   }
 
   Future<bool> hasOpenedLearningGuide() async {
-    final progress = await _readRaw();
-    return progress[_learningGuideOpenedKey] == 1;
+    return _openedLearningGuide(await _readRaw());
   }
 
   Future<void> markLearningGuideOpened() async {
@@ -343,11 +510,7 @@ class ListeningProgressStore {
   }
 
   Future<bool> hasCompletedV4LessonActivity(String lessonId) async {
-    final progress = await _readRaw();
-    return progress['$lessonId$_lessonCompletedMarker'] == 1 ||
-        (progress['$lessonId$_legacyV4LessonActivityPassedMarker'] == 1 &&
-            progress['$lessonId$_resumeStageSuffix'] ==
-                ListeningResumeStage.completed.index);
+    return _completedLessonActivity(await _readRaw(), lessonId);
   }
 
   Future<void> markV4LessonActivityCompleted(String lessonId) async {
@@ -522,19 +685,7 @@ class ListeningProgressStore {
   }
 
   Future<ListeningResumeStage> readResumeStage(String lessonId) async {
-    final value = (await _readRaw())['$lessonId$_resumeStageSuffix'];
-    if (value == null ||
-        value < 0 ||
-        value >= ListeningResumeStage.values.length) {
-      return ListeningResumeStage.core;
-    }
-    final stage = ListeningResumeStage.values[value];
-    return switch (stage) {
-      ListeningResumeStage.mission ||
-      ListeningResumeStage.reinforcement ||
-      ListeningResumeStage.rolePlay => ListeningResumeStage.challenge,
-      _ => stage,
-    };
+    return _resumeStageOf(await _readRaw(), lessonId);
   }
 
   Future<void> saveResumeStage(
@@ -581,8 +732,7 @@ class ListeningProgressStore {
   }
 
   Future<bool> hasStartedLessonCore(String lessonId) async {
-    final progress = await _readRaw();
-    return progress['$lessonId$_coreStartedSuffix'] == 1;
+    return _startedLessonCore(await _readRaw(), lessonId);
   }
 
   Future<void> markLessonCoreStarted(String lessonId) async {
@@ -757,13 +907,7 @@ class ListeningProgressStore {
   }
 
   Future<Set<String>> readEarnedStars(String scopeId) async {
-    final progress = await _readRaw();
-    final prefix = '$scopeId$_starMarker';
-    return progress.entries
-        .where((entry) => entry.key.startsWith(prefix) && entry.value == 1)
-        .map((entry) => entry.key.substring(prefix.length))
-        .where((id) => id.isNotEmpty)
-        .toSet();
+    return _earnedStarsOf(await _readRaw(), scopeId);
   }
 
   Future<int> readTotalEarnedStars() async {
@@ -908,7 +1052,19 @@ class ListeningProgressStore {
     await _writeRaw(progress);
   }
 
+  Future<String?> _readPersisted() async {
+    final raw = await _persistence.read();
+    debugStorageReadCount += 1;
+    return raw;
+  }
+
   Future<void> _writeRaw(Map<String, int> progress) async {
+    // A write makes any cached decode of this file stale, including one held by
+    // a read scope this write happens to run inside.
+    _currentReadScope?.remove(progressFilePath ?? _defaultScopeKey);
     await _persistence.write(jsonEncode(progress));
+    // Only after the write lands: a throw must not leave this class believing
+    // storage holds something it does not.
+    _remember(progress);
   }
 }
