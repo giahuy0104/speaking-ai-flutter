@@ -1,5 +1,6 @@
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_audio_keys.dart';
+import 'package:ai_speaking_flutter_app/features/listening/domain/v4_completion_flow.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_voice_assistant_flow.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_intent_resolver.dart';
@@ -478,19 +479,148 @@ void main() {
     }
   });
 
+  test('Học bài khác opens Topic selection, not the next lesson', () async {
+    final flow = MainVoiceAssistantFlow(contentLoader: _loadContent)
+      ..beginActiveLearning(kind: ActiveLearningModuleKind.listeningLesson);
+
+    final turn = await flow.handle('Học bài khác');
+
+    expect(
+      turn.navigationBeforePrompt?.destination,
+      VoiceNavigationDestination.topics,
+    );
+    expect(turn.activeLearningCommand, isNull);
+  });
+
   test(
-    'routes the workbook phrase Học bài khác to the next lesson in an active course',
+    'completion choice keeps global destinations ahead of local choices',
     () async {
-      final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
-      flow.beginActiveLearning(kind: ActiveLearningModuleKind.listeningLesson);
+      for (final phrase in <String>[
+        'Chủ đề khác',
+        'Bài khác',
+        'Học bài khác',
+        'Đổi Level',
+        'Bài số 2',
+      ]) {
+        final stage = phrase == 'Chủ đề khác'
+            ? V4CompletionStage.topicEnd
+            : V4CompletionStage.lessonEnd;
+        final flow = MainVoiceAssistantFlow(childAge: 6)
+          ..beginActiveLearning(
+            kind: ActiveLearningModuleKind.listeningLesson,
+            voiceContext: _CompletionVoiceContext(stage),
+          );
+        expect(flow.canHandle(phrase), isTrue, reason: phrase);
 
-      final turn = await flow.handle('Học bài khác');
+        final turn = await flow.handle(phrase);
+        expect(
+          turn.navigationBeforePrompt?.destination,
+          VoiceNavigationDestination.topics,
+          reason: phrase,
+        );
+        expect(turn.activeLearningCommand, isNull, reason: phrase);
+      }
 
-      expect(turn.activeLearningCommand, ActiveLearningCommand.nextLesson);
-      expect(turn.promptText, 'Mình chuyển sang bài tiếp theo nhé');
-      expect(turn.continueListening, isFalse);
+      for (final entry in <String, VoiceVocabularyTarget>{
+        'Ba mẹ đã thêm': VoiceVocabularyTarget.parent,
+        'Ngôi sao': VoiceVocabularyTarget.star,
+        'Luyện lại': VoiceVocabularyTarget.review,
+      }.entries) {
+        final flow = MainVoiceAssistantFlow()
+          ..beginActiveLearning(
+            kind: ActiveLearningModuleKind.listeningLesson,
+            voiceContext: const _CompletionVoiceContext(
+              V4CompletionStage.lessonEnd,
+            ),
+          );
+        expect(flow.canHandle(entry.key), isTrue, reason: entry.key);
+
+        final turn = await flow.handle(entry.key);
+        expect(
+          turn.navigationAfterPrompt?.destination,
+          VoiceNavigationDestination.vocabulary,
+          reason: entry.key,
+        );
+        expect(
+          turn.navigationAfterPrompt?.vocabularyTarget,
+          entry.value,
+          reason: entry.key,
+        );
+        expect(turn.activeLearningCommand, isNull, reason: entry.key);
+      }
     },
   );
+
+  test(
+    'completion choice repeats its question on Continue and keeps local actions',
+    () async {
+      for (final entry in <String, ActiveLearningCommand>{
+        'Bài tiếp theo': ActiveLearningCommand.nextLesson,
+        'Học lại bài này': ActiveLearningCommand.restart,
+        'Dừng lại': ActiveLearningCommand.stop,
+      }.entries) {
+        final flow = MainVoiceAssistantFlow()
+          ..beginActiveLearning(
+            kind: ActiveLearningModuleKind.listeningLesson,
+            voiceContext: const _CompletionVoiceContext(
+              V4CompletionStage.lessonEnd,
+            ),
+          );
+        final turn = await flow.handle(entry.key);
+        expect(turn.activeLearningCommand, entry.value, reason: entry.key);
+        expect(turn.navigationBeforePrompt, isNull, reason: entry.key);
+        expect(turn.navigationAfterPrompt, isNull, reason: entry.key);
+      }
+
+      final flow = MainVoiceAssistantFlow()
+        ..beginActiveLearning(
+          kind: ActiveLearningModuleKind.listeningLesson,
+          voiceContext: const _CompletionVoiceContext(
+            V4CompletionStage.lessonEnd,
+          ),
+        );
+      final continueTurn = await flow.handle('Tiếp tục');
+      expect(
+        continueTurn.promptText,
+        const _CompletionVoiceContext(
+          V4CompletionStage.lessonEnd,
+        ).mainVoicePrompt,
+      );
+      expect(continueTurn.continueListening, isTrue);
+      expect(continueTurn.activeLearningCommand, isNull);
+    },
+  );
+
+  test('all V4 completion stages retain global MAIN routes', () async {
+    for (final stage in V4CompletionStage.values) {
+      for (final phrase in <String>[
+        'Đổi Level',
+        'Ngôi sao',
+        'Dịch tiếng Anh',
+        'Học Bộ từ vựng',
+      ]) {
+        final flow = MainVoiceAssistantFlow(childAge: 6)
+          ..beginActiveLearning(
+            kind: ActiveLearningModuleKind.listeningLesson,
+            voiceContext: _CompletionVoiceContext(stage),
+          );
+        expect(flow.canHandle(phrase), isTrue, reason: '$stage: $phrase');
+        final turn = await flow.handle(phrase);
+        expect(
+          (turn.navigationBeforePrompt ?? turn.navigationAfterPrompt)
+              ?.destination,
+          switch (phrase) {
+            'Đổi Level' => VoiceNavigationDestination.topics,
+            'Ngôi sao' ||
+            'Học Bộ từ vựng' => VoiceNavigationDestination.vocabulary,
+            _ => VoiceNavigationDestination.conversation,
+          },
+          reason: '$stage: $phrase',
+        );
+        expect(turn.activeLearningCommand, isNull, reason: '$stage: $phrase');
+      }
+    }
+  });
 
   test(
     'asks the final three-module question before leaving an active lesson',
@@ -1095,6 +1225,46 @@ class _TranslationSourceVoiceContext implements ActiveLearningVoiceContext {
 
   @override
   String get mainVoicePrompt => MasterNavigationContract.coreControlPrompt;
+}
+
+class _CompletionVoiceContext
+    implements ActiveLearningVoiceContext, ActiveLearningVoiceSelectionContext {
+  const _CompletionVoiceContext(this.stage);
+
+  final V4CompletionStage stage;
+
+  @override
+  ActiveLearningVoiceNode get mainVoiceNode => ActiveLearningVoiceNode.core;
+
+  @override
+  String get mainVoicePrompt => v4CompletionPrompt(
+    stage,
+    currentLesson: 1,
+    nextLesson: 2,
+    topicNumber: 1,
+    nextLevel: 2,
+  );
+
+  @override
+  bool get isMainVoiceChoice => true;
+
+  @override
+  ActiveLearningCommand? resolveMainVoiceChoice(String transcript) =>
+      switch (const V4CompletionChoiceResolver().resolve(
+        transcript,
+        stage: stage,
+        currentLesson: 1,
+        nextLesson: 2,
+        nextLevel: 2,
+      )) {
+        V4CompletionAction.nextLesson ||
+        V4CompletionAction.nextTopic ||
+        V4CompletionAction.startNextLevel => ActiveLearningCommand.nextLesson,
+        V4CompletionAction.relearnCurrentLesson ||
+        V4CompletionAction.relearnTopic => ActiveLearningCommand.restart,
+        V4CompletionAction.stop => ActiveLearningCommand.stop,
+        _ => null,
+      };
 }
 
 Future<ListeningContentCatalog> _loadContent() async {

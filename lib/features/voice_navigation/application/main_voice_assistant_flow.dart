@@ -523,6 +523,7 @@ class MainVoiceAssistantFlow {
           _isStarVocabularyChoice(normalized),
     MainVoiceAssistantStage.activeLearning =>
       _resolveActiveCommand(normalized) != null ||
+          _vocabularyTarget(normalized) != null ||
           MasterNavigationContract.matches('CONTINUE_GLOBAL', normalized) ||
           (_activeLearningKind == ActiveLearningModuleKind.listeningLesson &&
               MasterNavigationContract.matches(
@@ -1110,6 +1111,10 @@ class MainVoiceAssistantFlow {
         continueListening: true,
       );
     }
+    if (_activeLearningKind == ActiveLearningModuleKind.listeningLesson &&
+        MasterNavigationContract.matches('GO_TO_TOPIC_SELECTION', normalized)) {
+      return _beginConfiguredTopicSelection(recognizedText);
+    }
     // The FINAL contract makes OPEN_SUBJECT / OPEN_VOCAB / OPEN_TRANSLATE
     // global while learning. Resolve those explicit transfers before the
     // local lesson grammar so an overlapping phrase such as "Cho mình học
@@ -1143,13 +1148,9 @@ class MainVoiceAssistantFlow {
       );
     }
     final activeCommand = _resolveActiveCommand(normalized);
-    if (_activeLearningKind == ActiveLearningModuleKind.listeningLesson &&
-        MasterNavigationContract.matches('GO_TO_TOPIC_SELECTION', normalized) &&
-        activeCommand != ActiveLearningCommand.nextLesson) {
-      return _beginConfiguredTopicSelection(recognizedText);
-    }
     if (MasterNavigationContract.matches('CONTINUE_GLOBAL', normalized) &&
-        _isWaitingChoiceNode(_activeVoiceNode)) {
+        (_isWaitingChoiceNode(_activeVoiceNode) ||
+            (_activeVoiceSelection?.isMainVoiceChoice ?? false))) {
       return MainVoiceAssistantTurn(
         promptText: _activeVoicePrompt ?? activeLearningPrompt,
         promptAudioKey: currentPromptAudioKey,
