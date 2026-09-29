@@ -24,6 +24,81 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  testWidgets(
+    'MAIN Vocabulary root closes Review and keeps its checkpoint',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      const store = VocabularyStore();
+      const sessions = VocabularySessionStore();
+      for (final word in ['Apple', 'Banana']) {
+        await store.upsertLessonSentence(
+          lessonCode: 'L01',
+          sentenceId: word,
+          english: word,
+          vietnamese: 'Nghĩa $word',
+          collection: VocabularyCollection.review,
+          source: VocabularySource.topicCore,
+        );
+      }
+      final review = (await sessions.prepareReview(
+        store,
+      ))!.copyWith(currentIndex: 1);
+      await sessions.saveActive(review);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final media = _FakeLessonMediaService();
+      addTearDown(media.close);
+      VocabularyPracticeResult? result;
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: MaterialApp(
+            theme: buildAppTheme(),
+            home: Builder(
+              builder: (context) => FilledButton(
+                onPressed: () async {
+                  result = await Navigator.of(context).push(
+                    MaterialPageRoute<VocabularyPracticeResult>(
+                      builder: (_) => VocabularyPracticeScreen(
+                        language: DisplayLanguage.vietnamese,
+                        childAge: 6,
+                        session: review,
+                        store: store,
+                        sessionStore: sessions,
+                        mediaService: media,
+                        voicePromptService: _FakeVoicePromptService(),
+                        autoStart: false,
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect(
+        (await registry.execute(
+          ActiveLearningCommand.vocabularyRoot,
+        )).wasHandled,
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+
+      expect(result, VocabularyPracticeResult.vocabularyRoot);
+      expect((await sessions.readActive())?.currentIndex, 1);
+      expect((await sessions.readActive())?.id, review.id);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
   _reviewAutoFollowTests();
   for (final pendingStart in <bool>[true, false]) {
     testWidgets(

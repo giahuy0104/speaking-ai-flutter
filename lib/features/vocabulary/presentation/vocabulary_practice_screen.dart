@@ -34,6 +34,7 @@ enum VocabularyPracticeResult {
   otherContent,
   parentAdded,
   stars,
+  vocabularyRoot,
 }
 
 class VocabularyPracticeScreen extends StatefulWidget {
@@ -922,6 +923,15 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     if (_loading || _exiting) {
       return const ActiveLearningCommandResult.busy();
     }
+    if (command == ActiveLearningCommand.vocabularyRoot) {
+      await pauseForMainAssistant();
+      await widget.sessionStore.saveActive(
+        _session.copyWith(currentIndex: _index),
+      );
+      if (!mounted) return const ActiveLearningCommandResult.unavailable();
+      _finish(VocabularyPracticeResult.vocabularyRoot);
+      return const ActiveLearningCommandResult.handled();
+    }
     if (_completed) {
       _paused = false;
       if (_isToday && command == ActiveLearningCommand.resume) {
@@ -1026,6 +1036,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       case ActiveLearningCommand.vocabularyStars:
       case ActiveLearningCommand.vocabularyLatest:
       case ActiveLearningCommand.vocabularyAll:
+      case ActiveLearningCommand.vocabularyRoot:
         return const ActiveLearningCommandResult.unavailable(
           spokenReply: 'Mình học xong lượt này trước nhé.',
         );
@@ -1041,8 +1052,15 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     final screen = DisplayLanguageScope(
       language: widget.language,
       child: PopScope<VocabularyPracticeResult>(
-        onPopInvokedWithResult: (didPop, _) {
-          if (didPop) _commitNavigationExit();
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) {
+            final returnsToRoot =
+                result == VocabularyPracticeResult.vocabularyRoot;
+            _commitNavigationExit(
+              saveCheckpoint: !returnsToRoot,
+              releaseMedia: !returnsToRoot,
+            );
+          }
         },
         child: Scaffold(
           backgroundColor: Colors.transparent,
@@ -1509,7 +1527,10 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     if (mounted) Navigator.of(context).pop();
   }
 
-  void _commitNavigationExit() {
+  void _commitNavigationExit({
+    bool saveCheckpoint = true,
+    bool releaseMedia = true,
+  }) {
     if (_exiting) return;
     _exiting = true;
     final fixedPrompt = widget.fixedPromptAudioService;
@@ -1531,12 +1552,12 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     // Invalidate first, then release each owner independently. Neither native
     // stop nor checkpoint persistence may hold the navigation route hostage.
     for (final operation in <Future<void> Function()>[
-      if (wasRecording) _cancelCapture,
-      widget.mediaService.stopPlayback,
-      _voicePromptService.stop,
-      if (widget.vocabularyAudioService != null)
+      if (releaseMedia && wasRecording) _cancelCapture,
+      if (releaseMedia) widget.mediaService.stopPlayback,
+      if (releaseMedia) _voicePromptService.stop,
+      if (releaseMedia && widget.vocabularyAudioService != null)
         widget.vocabularyAudioService!.stop,
-      if (!_completed && !_loading)
+      if (saveCheckpoint && !_completed && !_loading)
         () => widget.sessionStore.saveActive(
           _session.copyWith(currentIndex: _index),
         ),

@@ -687,6 +687,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       case ActiveLearningCommand.vocabularyStars:
       case ActiveLearningCommand.vocabularyLatest:
       case ActiveLearningCommand.vocabularyAll:
+      case ActiveLearningCommand.vocabularyRoot:
         return const ActiveLearningCommandResult.unavailable();
       case ActiveLearningCommand.exitToHome:
         await pauseForMainAssistant();

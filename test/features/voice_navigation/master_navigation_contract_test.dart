@@ -383,7 +383,7 @@ void main() {
   );
 
   test(
-    'selecting the current module resumes it with the approved wording',
+    'selecting the current Subject resumes, Vocabulary returns to its root',
     () async {
       final subjectFlow = MainVoiceAssistantFlow()
         ..beginActiveLearning(kind: ActiveLearningModuleKind.listeningLesson);
@@ -395,13 +395,10 @@ void main() {
       final vocabularyFlow = MainVoiceAssistantFlow()
         ..beginActiveLearning(kind: ActiveLearningModuleKind.vocabulary);
       final vocabularyTurn = await vocabularyFlow.handle('Bộ từ vựng');
-      expect(
-        vocabularyTurn.promptText,
-        MasterNavigationContract.continueVocabulary,
-      );
+      expect(vocabularyTurn.promptText, isEmpty);
       expect(
         vocabularyTurn.activeLearningCommand,
-        ActiveLearningCommand.resume,
+        ActiveLearningCommand.vocabularyRoot,
       );
       expect(vocabularyTurn.navigationAfterPrompt, isNull);
     },

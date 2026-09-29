@@ -7,6 +7,69 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues(<String, Object>{}));
 
+  test('Today temporarily suspends and restores a Review checkpoint', () async {
+    const store = VocabularyStore();
+    const sessions = VocabularySessionStore();
+    final day = DateTime(2026, 9, 29);
+    await store.write(<VocabularyEntry>[
+      VocabularyEntry(
+        id: 'today-pending',
+        word: 'Apple',
+        meaning: 'Táo',
+        addedAt: day,
+      ),
+      VocabularyEntry(
+        id: 'review-pending',
+        word: 'Banana',
+        meaning: 'Chuối',
+        addedAt: day.subtract(const Duration(days: 1)),
+        status: VocabularyLearningStatus.needsPractice,
+        source: VocabularySource.topicCore,
+      ),
+      VocabularyEntry(
+        id: 'review-second',
+        word: 'Orange',
+        meaning: 'Cam',
+        addedAt: day.subtract(const Duration(hours: 1)),
+        status: VocabularyLearningStatus.needsPractice,
+        source: VocabularySource.topicCore,
+      ),
+    ]);
+    final review = await sessions.prepareReview(store, now: day);
+    expect(review, isNotNull);
+    await sessions.saveActive(review!.copyWith(currentIndex: 1));
+
+    final today = await sessions.prepareToday(store, now: day);
+    expect(today?.mode, VocabularyPracticeMode.today);
+    await sessions.clearActive();
+
+    final resumed = await sessions.prepareReview(store, now: day);
+    expect(resumed?.id, review.id);
+    expect(resumed?.entryIds, review.entryIds);
+    expect(resumed?.currentIndex, 1);
+  });
+
+  test('an empty Today keeps the active Review checkpoint', () async {
+    const store = VocabularyStore();
+    const sessions = VocabularySessionStore();
+    final now = DateTime(2026, 9, 29);
+    await store.write(<VocabularyEntry>[
+      VocabularyEntry(
+        id: 'review-only',
+        word: 'Banana',
+        meaning: 'Chuối',
+        addedAt: now,
+        status: VocabularyLearningStatus.needsPractice,
+        source: VocabularySource.topicCore,
+      ),
+    ]);
+    final review = await sessions.prepareReview(store, now: now);
+    expect(review, isNotNull);
+
+    expect(await sessions.prepareToday(store, now: now), isNull);
+    expect((await sessions.readActive())?.id, review?.id);
+  });
+
   test('TODAY_VIEW is fixed at the five oldest waiting entries', () async {
     const store = VocabularyStore();
     const sessions = VocabularySessionStore();

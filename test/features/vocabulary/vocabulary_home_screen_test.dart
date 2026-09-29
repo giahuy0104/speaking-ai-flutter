@@ -16,6 +16,7 @@ import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_di
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_flow_v3.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_practice_screen.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,6 +27,131 @@ void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
+
+  testWidgets(
+    'MAIN generic Vocabulary returns from Stars to the menu',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final prompts = _RecordingVoicePromptService();
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: MaterialApp(
+            theme: buildAppTheme(),
+            home: DisplayLanguageScope(
+              language: DisplayLanguage.vietnamese,
+              child: VocabularyHomeScreen(
+                isReady: true,
+                isActive: true,
+                store: _MemoryVocabularyStore(),
+                mediaService: _ImmediateLessonMediaService(),
+                voicePromptService: prompts,
+                fixedPromptAudioService:
+                    const _UnavailableFixedPromptAudioService(),
+                onReturnToConversation: () {},
+                onHistory: () {},
+                onSettings: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        (await registry.execute(
+          ActiveLearningCommand.vocabularyStars,
+        )).wasHandled,
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Ngôi sao của bạn'), findsOneWidget);
+
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect(
+        (await registry.execute(
+          ActiveLearningCommand.vocabularyRoot,
+        )).wasHandled,
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey<String>('vocabulary-journey-landing')),
+        findsOneWidget,
+      );
+      expect(prompts.spokenTexts.last, VocabularyFlowV3.menu);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
+    'MAIN generic Vocabulary opens unfinished Today',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final store = _MemoryVocabularyStore(<VocabularyEntry>[
+        VocabularyEntry(
+          id: 'today-word',
+          word: 'Apple',
+          meaning: 'Táo',
+          addedAt: DateTime(2026, 9, 29),
+        ),
+      ]);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: MaterialApp(
+            theme: buildAppTheme(),
+            home: DisplayLanguageScope(
+              language: DisplayLanguage.vietnamese,
+              child: VocabularyHomeScreen(
+                isReady: true,
+                isActive: true,
+                autoStartToday: false,
+                store: store,
+                mediaService: _ImmediateLessonMediaService(),
+                voicePromptService: const _FakeVoicePromptService(),
+                fixedPromptAudioService:
+                    const _UnavailableFixedPromptAudioService(),
+                onReturnToConversation: () {},
+                onHistory: () {},
+                onSettings: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect(
+        (await registry.execute(
+          ActiveLearningCommand.vocabularyRoot,
+        )).wasHandled,
+        isTrue,
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      expect(
+        (await const VocabularySessionStore().readActive())?.mode,
+        VocabularyPracticeMode.today,
+      );
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
 
   testWidgets(
     'touch back changes UI immediately and cancels old audio queue',

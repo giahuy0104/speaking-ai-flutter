@@ -707,6 +707,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
       case ActiveLearningCommand.vocabularyStars:
       case ActiveLearningCommand.vocabularyLatest:
       case ActiveLearningCommand.vocabularyAll:
+      case ActiveLearningCommand.vocabularyRoot:
         return const ActiveLearningCommandResult.unavailable(
           spokenReply: 'Bạn hãy vào bài học trước nhé.',
         );

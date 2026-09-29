@@ -21,6 +21,7 @@ enum ActiveLearningCommand {
   vocabularyStars,
   vocabularyLatest,
   vocabularyAll,
+  vocabularyRoot,
   stop,
   exitToHome,
 }

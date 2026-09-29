@@ -301,6 +301,7 @@ class _V4SongStageScreenState extends State<V4SongStageScreen>
       case ActiveLearningCommand.vocabularyStars:
       case ActiveLearningCommand.vocabularyLatest:
       case ActiveLearningCommand.vocabularyAll:
+      case ActiveLearningCommand.vocabularyRoot:
         return const ActiveLearningCommandResult.unavailable();
     }
   }

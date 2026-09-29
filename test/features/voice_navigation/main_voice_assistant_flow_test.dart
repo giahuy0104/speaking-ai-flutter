@@ -414,6 +414,19 @@ void main() {
     expect(turn.continueListening, isFalse);
   });
 
+  test(
+    'generic Vocabulary command returns to its root instead of resuming',
+    () async {
+      final flow = MainVoiceAssistantFlow()
+        ..beginActiveLearning(kind: ActiveLearningModuleKind.vocabulary);
+
+      final turn = await flow.handle('Học Bộ từ vựng');
+      expect(turn.activeLearningCommand, ActiveLearningCommand.vocabularyRoot);
+      expect(turn.promptText, isEmpty);
+      expect(turn.navigationAfterPrompt, isNull);
+    },
+  );
+
   test('active lesson prompt offers pause and leaving the lesson', () {
     final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
 

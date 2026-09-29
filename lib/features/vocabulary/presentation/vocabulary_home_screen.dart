@@ -499,6 +499,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       case ActiveLearningCommand.vocabularyLatest:
       case ActiveLearningCommand.vocabularyAll:
         return const ActiveLearningCommandResult.unavailable();
+      case ActiveLearningCommand.vocabularyRoot:
+        unawaited(_runAudioCommand(_openVocabularyRoot));
+        return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.replayCurrent:
         if (_playbackQueue.isEmpty ||
             _waitingForPlaybackContinuation ||
@@ -1592,6 +1595,19 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     }
   }
 
+  Future<void> _openVocabularyRoot() async {
+    if (!mounted || !_isEffectivelyActive) return;
+    _pausedForMainAssistant = false;
+    _playbackGeneration += 1;
+    _playingCollection = false;
+    _playbackInterrupted = false;
+    _waitingForPlaybackContinuation = false;
+    _awaitingPlaybackEndChoice = false;
+    _playbackQueue = const <VocabularyEntry>[];
+    _closeJourney();
+    await _maybeStartToday();
+  }
+
   Future<void> _startReview() async {
     if (_openingPractice || !mounted) return;
     _openJourney(_VocabularyJourney.review);
@@ -1651,6 +1667,12 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         await _load();
         if (result == null) {
           return; // Back preserves the active checkpoint silently.
+        }
+        if (result == VocabularyPracticeResult.vocabularyRoot) {
+          scheduleMicrotask(
+            () => unawaited(_runAudioCommand(_openVocabularyRoot)),
+          );
+          return;
         }
         if (result == VocabularyPracticeResult.parentAdded ||
             result == VocabularyPracticeResult.stars) {

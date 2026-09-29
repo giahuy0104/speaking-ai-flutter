@@ -1214,15 +1214,14 @@ class MainVoiceAssistantFlow {
     required String recognizedText,
     required VoiceNavigationDestination destination,
   }) {
+    if (_activeLearningKind == ActiveLearningModuleKind.vocabulary &&
+        destination == VoiceNavigationDestination.vocabulary) {
+      return _activeLearningTurn(ActiveLearningCommand.vocabularyRoot);
+    }
     final sameModule = switch ((_activeLearningKind, destination)) {
       (
         ActiveLearningModuleKind.listeningLesson,
         VoiceNavigationDestination.topics,
-      ) =>
-        true,
-      (
-        ActiveLearningModuleKind.vocabulary,
-        VoiceNavigationDestination.vocabulary,
       ) =>
         true,
       _ => false,
@@ -1295,7 +1294,8 @@ class MainVoiceAssistantFlow {
       ActiveLearningCommand.vocabularyPracticeAgain ||
       ActiveLearningCommand.vocabularyStars ||
       ActiveLearningCommand.vocabularyLatest ||
-      ActiveLearningCommand.vocabularyAll => '',
+      ActiveLearningCommand.vocabularyAll ||
+      ActiveLearningCommand.vocabularyRoot => '',
     };
     return MainVoiceAssistantTurn(
       promptText: (_activeVoiceSelection?.isMainVoiceChoice ?? false)

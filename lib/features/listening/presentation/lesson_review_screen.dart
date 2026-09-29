@@ -531,6 +531,7 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
       case ActiveLearningCommand.vocabularyStars:
       case ActiveLearningCommand.vocabularyLatest:
       case ActiveLearningCommand.vocabularyAll:
+      case ActiveLearningCommand.vocabularyRoot:
         return const ActiveLearningCommandResult.unavailable();
       case ActiveLearningCommand.exitToHome:
         await pauseForMainAssistant();

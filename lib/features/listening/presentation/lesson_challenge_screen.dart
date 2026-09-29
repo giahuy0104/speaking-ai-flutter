@@ -313,6 +313,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       case ActiveLearningCommand.vocabularyStars:
       case ActiveLearningCommand.vocabularyLatest:
       case ActiveLearningCommand.vocabularyAll:
+      case ActiveLearningCommand.vocabularyRoot:
         return const ActiveLearningCommandResult.unavailable(
           spokenReply:
               'Các nút câu trước, câu sau và nghe lại chỉ dùng trong phần luyện câu.',
