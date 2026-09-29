@@ -1318,6 +1318,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     audioSessionCoordinator.releaseCapture(
       caller: "IOSSpeechRecognizerBridge.finishSuccessfully"
     )
+    finalizeActiveRecording()
     finishDeferredBackgroundHandoffDisarmIfNeeded(
       caller: "IOSSpeechRecognizerBridge.finishSuccessfully"
     )
@@ -1369,6 +1370,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     audioSessionCoordinator.releaseCapture(
       caller: "IOSSpeechRecognizerBridge.finishWithError"
     )
+    finalizeActiveRecording()
     finishDeferredBackgroundHandoffDisarmIfNeeded(
       caller: "IOSSpeechRecognizerBridge.finishWithError"
     )
@@ -1481,13 +1483,25 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     )
   }
 
+  /// Tears the capture graph down. It deliberately does NOT close the recording
+  /// file.
+  ///
+  /// Closing it drains `recordingWriteQueue` synchronously, so the caller
+  /// blocks until the last captured buffer reaches disk. Doing that here held
+  /// the AVAudioSession — and any HFP/SCO route on it — for the length of a
+  /// disk write, and a held SCO route keeps the H20 from reconnecting over BLE.
+  /// Every path that ends a turn (`finishSuccessfully`, `finishWithError`,
+  /// `cancelCurrent`, and `dispose` through `cancelCurrent`) calls
+  /// `finalizeActiveRecording()` itself, after it has let the session go.
   private func stopAudioCapture() {
     audioBufferGateOpen = false
+    // Mirrors what `finalizeActiveRecording` used to set here, so a late tap
+    // enqueue stops writing even though the file is closed later.
+    recordingIsCapturing = false
     if audioSessionCoordinator.isBackgroundCaptureArmed,
       audioEngine.isRunning,
       inputTapInstalled
     {
-      finalizeActiveRecording()
       backgroundHandoffPhase = .armed
       audioSessionCoordinator.trace(
         stage: "background_capture_gate_closed",
@@ -1503,7 +1517,6 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       inputTapInstalled = false
     }
     inputTapFormat = nil
-    finalizeActiveRecording()
     audioEngine.reset()
     if audioSessionCoordinator.isBackgroundCaptureArmed {
       backgroundHandoffPhase = .idle
@@ -1552,10 +1565,6 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     // numeric guard cannot match and therefore accepts as current.
     let cancelledRecordingPath = deleteRecording ? activeRecordingPath : nil
     stopAudioCapture()
-    if let cancelledRecordingPath {
-      try? FileManager.default.removeItem(atPath: cancelledRecordingPath)
-      completedRecordingMetadata = [:]
-    }
     recognitionRequest?.endAudio()
     recognitionTask?.cancel()
     recognitionTask = nil
@@ -1567,6 +1576,11 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     active = false
     stopping = false
     audioSessionCoordinator.releaseCapture(caller: caller)
+    finalizeActiveRecording()
+    if let cancelledRecordingPath {
+      try? FileManager.default.removeItem(atPath: cancelledRecordingPath)
+      completedRecordingMetadata = [:]
+    }
     finishDeferredBackgroundHandoffDisarmIfNeeded(caller: caller)
   }
 

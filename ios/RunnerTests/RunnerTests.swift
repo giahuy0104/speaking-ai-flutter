@@ -144,6 +144,20 @@ class RunnerTests: XCTestCase {
     )
   }
 
+  func testIOSPromptVolumeAttenuatesToTheMeasuredLevel() {
+    // The manifest asks for attenuation because the authored catalogue sits
+    // above the shared playback target. -6 dB is half amplitude.
+    XCTAssertEqual(IOSPromptPlaybackLevel.volume(forGainDb: -6.0), 0.501, accuracy: 0.002)
+    XCTAssertEqual(IOSPromptPlaybackLevel.volume(forGainDb: -12.0), 0.251, accuracy: 0.002)
+
+    // An unmeasured clip, and one that would need a boost this path cannot
+    // give, both play as authored instead of being silently altered.
+    XCTAssertEqual(IOSPromptPlaybackLevel.volume(forGainDb: nil), 1.0)
+    XCTAssertEqual(IOSPromptPlaybackLevel.volume(forGainDb: 8.0), 1.0)
+    XCTAssertEqual(IOSPromptPlaybackLevel.volume(forGainDb: 0.0), 1.0)
+    XCTAssertEqual(IOSPromptPlaybackLevel.volume(forGainDb: .nan), 1.0)
+  }
+
   func testAiv0DuplicatePacketFilterUsesAndroidParityWindow() {
     var filter = Aiv0DuplicatePacketFilter()
 
