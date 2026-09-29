@@ -1,74 +1,14 @@
-import '../domain/homi_fallback_catalog.dart';
 import '../domain/master_navigation_contract.dart';
 
-enum MainSpeakingCommand { otherLearning, stopTranslation, help }
+enum MainSpeakingCommand { stopTranslation }
 
-/// Resolves high-priority commands spoken while the automatic speaking
-/// practice microphone is open. Unmatched sentences stay in the normal
-/// translation pipeline.
+/// Only the exact stop phrase interrupts continuous translation. Other speech
+/// remains translation content until the child presses MAIN.
 class MainSpeakingCommandResolver {
   const MainSpeakingCommandResolver();
 
-  // Keep the established child-addressed variants as well as the new workbook
-  // wording, since older installed audio prompts use "con" rather than
-  // "mình".
-  static const Set<String> _legacyOtherLearningPhrases = <String>{
-    'cai gi khac de hoc',
-    'gi khac de hoc',
-    'co gi khac khong',
-    'hoc cai khac',
-    'hoc thu khac',
-    'hoc mon khac',
-    'hoc bai khac',
-    'doi sang hoc khac',
-    'con cai gi khac de hoc khong',
-    'con muon hoc cai khac',
-    'con muon hoc thu khac',
-    'con muon hoc mon khac',
-    'con muon hoc bai khac',
-    'cho con hoc cai khac',
-    'cho con hoc thu khac',
-    'cho con hoc mon khac',
-    'cho con hoc bai khac',
-    'con doi sang hoc khac',
-  };
-
-  MainSpeakingCommand? resolve(String recognizedText) {
-    final normalized = _normalize(recognizedText);
-    if (normalized.isEmpty) {
-      return null;
-    }
-
-    if (MasterNavigationContract.isTranslationStop(recognizedText)) {
-      return MainSpeakingCommand.stopTranslation;
-    }
-    if (MasterNavigationContract.matches('LEAVE_TRANSLATE', recognizedText) ||
-        MasterNavigationContract.matches('OPEN_SUBJECT', recognizedText) ||
-        (normalized != 'tu' &&
-            MasterNavigationContract.matches('OPEN_VOCAB', recognizedText)) ||
-        _matchesIntent(normalized, 'INT-017') ||
-        _legacyOtherLearningPhrases.contains(normalized)) {
-      return MainSpeakingCommand.otherLearning;
-    }
-    if (MasterNavigationContract.matches('HELP', recognizedText) ||
-        _matchesIntent(normalized, 'INT-016')) {
-      return MainSpeakingCommand.help;
-    }
-    return null;
-  }
-
-  /// This resolver runs only during continuous translation. A whole approved
-  /// utterance is required to avoid treating a sentence to translate as a
-  /// command. Legacy child-addressed variants are listed in their full form.
-  static bool _matchesIntent(String normalized, String intentId) {
-    final phrases = HomiFallbackCatalog.childPhrasesByIntent[intentId];
-    return phrases != null &&
-        phrases.any(
-          (phrase) =>
-              normalized == HomiFallbackCatalog.normalizeVietnamese(phrase),
-        );
-  }
-
-  static String _normalize(String value) =>
-      HomiFallbackCatalog.normalizeVietnamese(value);
+  MainSpeakingCommand? resolve(String recognizedText) =>
+      MasterNavigationContract.isTranslationStop(recognizedText)
+      ? MainSpeakingCommand.stopTranslation
+      : null;
 }

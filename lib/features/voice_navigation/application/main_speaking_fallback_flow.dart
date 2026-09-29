@@ -5,11 +5,7 @@ import 'main_speaking_command_resolver.dart';
 /// What the app should do after a recognized command in continuous
 /// translation. Keeping this state outside [ConversationController] prevents
 /// control phrases from reaching the translation backend.
-enum MainSpeakingFallbackAction {
-  resumeTranslation,
-  openOtherLearning,
-  stopTranslation,
-}
+enum MainSpeakingFallbackAction { stopTranslation }
 
 class MainSpeakingFallbackTurn {
   const MainSpeakingFallbackTurn({
@@ -23,7 +19,7 @@ class MainSpeakingFallbackTurn {
   final String? audioKey;
 }
 
-/// FINAL control-only handoff. Menu answers belong to navigation ASR.
+/// The only in-translation control is stop. MAIN opens navigation separately.
 class MainSpeakingFallbackFlow {
   MainSpeakingFallbackFlow({
     MainSpeakingCommandResolver commandResolver =
@@ -43,14 +39,6 @@ class MainSpeakingFallbackFlow {
           action: MainSpeakingFallbackAction.stopTranslation,
           promptText: MasterNavigationContract.translationStopped,
           audioKey: MainAssistantAudioKeys.translationStopped,
-        ),
-        MainSpeakingCommand.otherLearning => const MainSpeakingFallbackTurn(
-          action: MainSpeakingFallbackAction.openOtherLearning,
-        ),
-        MainSpeakingCommand.help => const MainSpeakingFallbackTurn(
-          action: MainSpeakingFallbackAction.resumeTranslation,
-          promptText: MasterNavigationContract.translationIntro,
-          audioKey: MainAssistantAudioKeys.translationStarted,
         ),
         null => null,
       };

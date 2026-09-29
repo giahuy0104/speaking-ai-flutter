@@ -2501,7 +2501,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   }
 
   bool _matchesMainSpeakingCommand(String recognizedText) {
-    // Stop/leave translation belongs only to the automatic continuous session.
+    // Stop translation belongs only to the automatic continuous session.
     // A one-shot Vietnamese sentence may naturally contain the same words and
     // must keep flowing through normal translation.
     return _mainSpeakingSessionController.isActive &&
@@ -2523,76 +2523,16 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       return;
     }
 
-    if (turn.action == MainSpeakingFallbackAction.stopTranslation) {
-      _isHandlingMainSpeakingCommand = true;
-      try {
-        await voiceController.waitForMainAfterTranslationStop();
-        await _finishMainSpeakingMode(
-          sayGoodbye: true,
-          goodbyeText: turn.promptText,
-          goodbyeAudioKey: turn.audioKey,
-        );
-      } finally {
-        _isHandlingMainSpeakingCommand = false;
-      }
-      return;
-    }
-
-    if (turn.action == MainSpeakingFallbackAction.resumeTranslation) {
-      _isHandlingMainSpeakingCommand = true;
-      try {
-        _hasMainSpeakingTurnStarted = false;
-        final promptText = turn.promptText;
-        if (promptText != null) {
-          controller.clearMessage();
-          await controller.speakAssistantPrompt(
-            promptText,
-            audioKey: turn.audioKey,
-          );
-        }
-      } finally {
-        _isHandlingMainSpeakingCommand = false;
-      }
-      if (_mainSpeakingSessionController.isActive &&
-          !_isFinishingMainSpeakingMode) {
-        await _startNextMainSpeakingTurn();
-      }
-      return;
-    }
-
-    _isFinishingMainSpeakingMode = true;
-    _hasMainSpeakingTurnStarted = false;
-    _mainSpeakingFallbackFlow.reset();
-    if (_mainSpeakingSessionController.isActive) {
-      _mainSpeakingSessionController.exit();
-    }
-    if (_usesIosHfpLifecycle) {
-      _invalidateMainSpeakingHfpPreparation();
-    }
-    controller.clearMessage();
-    _mainAssistantSession.setExternalActivation(true);
+    _isHandlingMainSpeakingCommand = true;
     try {
-      // Leave continuous translation before opening the next voice menu. The
-      // command resolver has already consumed the explicit control phrase, so
-      // the child's next words belong only to the navigation microphone.
-      await controller.endContinuousHfpSession();
-      switch (turn.action) {
-        case MainSpeakingFallbackAction.openOtherLearning:
-          if (!await _prepareAndroidMainHfpRoute()) {
-            controller.showH20ConnectionMessage(
-              'Micro H20 chưa sẵn sàng. Hãy kết nối lại thiết bị rồi thử lại.',
-            );
-            return;
-          }
-          await voiceController.activateOtherLearningFromSpeaking();
-        case MainSpeakingFallbackAction.stopTranslation:
-          return;
-        case MainSpeakingFallbackAction.resumeTranslation:
-          return;
-      }
+      await voiceController.waitForMainAfterTranslationStop();
+      await _finishMainSpeakingMode(
+        sayGoodbye: true,
+        goodbyeText: turn.promptText,
+        goodbyeAudioKey: turn.audioKey,
+      );
     } finally {
-      _isFinishingMainSpeakingMode = false;
-      _mainAssistantSession.setExternalActivation(false);
+      _isHandlingMainSpeakingCommand = false;
     }
   }
 

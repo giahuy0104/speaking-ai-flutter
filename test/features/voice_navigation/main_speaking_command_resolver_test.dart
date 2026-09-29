@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   const resolver = MainSpeakingCommandResolver();
 
-  test('detects requests to learn something else', () {
+  test('learning requests remain translation content', () {
     for (final text in <String>[
       'Còn cái gì khác để học không?',
       'Có gì khác không?',
@@ -12,7 +12,7 @@ void main() {
       'Con muốn học thứ khác',
       'Cho con học bài khác',
     ]) {
-      expect(resolver.resolve(text), MainSpeakingCommand.otherLearning);
+      expect(resolver.resolve(text), isNull, reason: text);
     }
   });
 
@@ -34,7 +34,7 @@ void main() {
     }
   });
 
-  test('whole module requests leave translation for the navigation menu', () {
+  test('module requests remain translation content', () {
     for (final text in [
       'Bộ từ vựng',
       'Học Bộ từ vựng',
@@ -44,11 +44,7 @@ void main() {
       'Chuyển sang Chủ đề',
       'Chuyển sang Bộ từ vựng',
     ]) {
-      expect(
-        resolver.resolve(text),
-        MainSpeakingCommand.otherLearning,
-        reason: text,
-      );
+      expect(resolver.resolve(text), isNull, reason: text);
     }
     for (final text in [
       'Từ',
