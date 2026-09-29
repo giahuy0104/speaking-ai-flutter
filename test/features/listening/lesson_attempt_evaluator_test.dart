@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:ai_speaking_flutter_app/config/app_config.dart';
@@ -585,6 +586,63 @@ void main() {
     });
   });
 
+  group('scoring request deadlines', () {
+    test('a response that stalls mid-body stops the spinner', () async {
+      // The deadline used to cover opening the connection only, so a 200
+      // followed by a body that never arrived hung forever.
+      final body = StreamController<List<int>>();
+      addTearDown(body.close);
+      final evaluator = BackendLessonAttemptEvaluator(
+        config: _config,
+        retryDelay: _skipRetryDelay,
+        client: _StalledBodyClient(body),
+        requestTimeout: const Duration(milliseconds: 150),
+      );
+      addTearDown(evaluator.dispose);
+
+      // Bounded here too, so a deadline that stops covering the body fails in
+      // two seconds naming the cause instead of hanging until the runner gives
+      // up on a test that looks like a JSON parsing problem.
+      await expectLater(
+        _bounded(_evaluate(evaluator)),
+        throwsA(
+          isA<LessonAttemptEvaluationException>().having(
+            (error) => error.backendUnavailable,
+            'backendUnavailable',
+            isTrue,
+          ),
+        ),
+      );
+    });
+
+    test('sending and reading the body share one deadline', () async {
+      // A fresh budget for the body would double the worst case per attempt.
+      final body = StreamController<List<int>>();
+      addTearDown(body.close);
+      final evaluator = BackendLessonAttemptEvaluator(
+        config: _config,
+        retryDelay: _skipRetryDelay,
+        client: _StalledBodyClient(
+          body,
+          headerDelay: const Duration(milliseconds: 220),
+        ),
+        requestTimeout: const Duration(milliseconds: 300),
+      );
+      addTearDown(evaluator.dispose);
+
+      final elapsed = Stopwatch()..start();
+      await expectLater(
+        _bounded(_evaluate(evaluator)),
+        throwsA(isA<LessonAttemptEvaluationException>()),
+      );
+      elapsed.stop();
+
+      // Headers took 220ms of the 300ms budget, so the body may only have the
+      // remaining ~80ms. Two separate budgets would reach at least 520ms.
+      expect(elapsed.elapsed, lessThan(const Duration(milliseconds: 450)));
+    });
+  });
+
   group('Android backend-first offline fallback', () {
     test(
       'keeps the normal backend result without calling on-device ASR',
@@ -904,9 +962,40 @@ final AppConfig _config = AppConfig(
 
 Future<void> _skipRetryDelay(Duration _) async {}
 
+/// Fails loudly instead of hanging when a request never finishes.
+Future<T> _bounded<T>(Future<T> future) => future.timeout(
+  const Duration(seconds: 2),
+  onTimeout: () => throw StateError(
+    'evaluate() never returned: the request deadline did not cover the '
+    'response body.',
+  ),
+);
+
 _FakeAttemptEvaluator _offlineBackend() => _FakeAttemptEvaluator.error(
   const LessonAttemptEvaluationException('offline', backendUnavailable: true),
 );
+
+/// Answers the recording fetch normally, then accepts the scoring upload and
+/// hands back a response body the test controls and never completes.
+class _StalledBodyClient extends http.BaseClient {
+  _StalledBodyClient(this.body, {this.headerDelay = Duration.zero});
+
+  final StreamController<List<int>> body;
+  final Duration headerDelay;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    if (request.method == 'GET') {
+      return http.StreamedResponse(
+        Stream<List<int>>.value(<int>[1, 2, 3]),
+        200,
+      );
+    }
+    if (headerDelay > Duration.zero) await Future<void>.delayed(headerDelay);
+    body.add(utf8.encode('{"transcript":'));
+    return http.StreamedResponse(body.stream, 200);
+  }
+}
 
 class _FakeLessonRecordedSpeechRecognizer
     implements LessonRecordedSpeechRecognizer {

@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 import '../../../config/app_config.dart';
+import '../../../core/network/bounded_http.dart';
 import '../../../core/network/multipart_audio_file.dart';
 import 'lesson_audio_format.dart';
 import 'lesson_media_service.dart';
@@ -189,10 +190,7 @@ class BackendLessonCompletionChoiceRecognizer
         bytes: webBytes,
       ),
     );
-    final streamed = await _client
-        .send(request)
-        .timeout(const Duration(seconds: 10));
-    return http.Response.fromStream(streamed);
+    return sendBounded(_client, request, budget: const Duration(seconds: 10));
   }
 
   @override

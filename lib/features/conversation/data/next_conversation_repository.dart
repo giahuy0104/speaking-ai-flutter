@@ -14,6 +14,7 @@ import '../../../core/audio/offline_intent_recognizer.dart';
 import '../../../core/audio/pcm16_speech_trimmer.dart';
 import '../../../core/audio/streaming_speech_input.dart';
 import '../../../core/audio/wav_audio.dart';
+import '../../../core/network/bounded_http.dart';
 import '../../../core/network/multipart_audio_file.dart';
 import '../../../core/network/realtime_socket.dart';
 import '../domain/conversation_models.dart';
@@ -181,10 +182,11 @@ class NextConversationRepository
               bytes: capture.dataBytes,
             ),
           );
-    final streamedResponse = await _client
-        .send(request)
-        .timeout(const Duration(seconds: 25));
-    final response = await http.Response.fromStream(streamedResponse);
+    final response = await sendBounded(
+      _client,
+      request,
+      budget: const Duration(seconds: 25),
+    );
     final json = _decodeResponse(response);
     return ConversationResult.fromJson(
       json,
@@ -485,10 +487,11 @@ class NextConversationRepository
               bytes: capture.dataBytes,
             ),
           );
-    final streamedResponse = await _client
-        .send(request)
-        .timeout(const Duration(seconds: 25));
-    final response = await http.Response.fromStream(streamedResponse);
+    final response = await sendBounded(
+      _client,
+      request,
+      budget: const Duration(seconds: 25),
+    );
     _decodeResponse(response);
   }
 
@@ -924,10 +927,11 @@ class NextConversationRepository
     if (audioSession.uploadToken != null) {
       request.headers['Authorization'] = 'Bearer ${audioSession.uploadToken}';
     }
-    final streamedResponse = await _client
-        .send(request)
-        .timeout(const Duration(seconds: 25));
-    final response = await http.Response.fromStream(streamedResponse);
+    final response = await sendBounded(
+      _client,
+      request,
+      budget: const Duration(seconds: 25),
+    );
     final json = _decodeResponse(response);
     final acknowledgedSha256 = json['sha256'];
     if (acknowledgedSha256 is String &&
@@ -962,10 +966,11 @@ class NextConversationRepository
     if (uploadToken != null) {
       request.headers['Authorization'] = 'Bearer $uploadToken';
     }
-    final streamedResponse = await _client
-        .send(request)
-        .timeout(const Duration(seconds: 10));
-    final response = await http.Response.fromStream(streamedResponse);
+    final response = await sendBounded(
+      _client,
+      request,
+      budget: const Duration(seconds: 10),
+    );
     final json = _decodeResponse(response);
     final acknowledgedSequence = json['sequence'];
     if (acknowledgedSequence is num &&

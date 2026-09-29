@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import '../../../config/app_config.dart';
 import '../../../core/auth/installation_authenticated_client.dart';
 import '../../../core/device/client_identity.dart';
+import '../../../core/network/bounded_http.dart';
 import '../../../core/network/multipart_audio_file.dart';
 import '../../../core/network/network_availability.dart';
 import '../domain/lesson_guide_flow.dart';
@@ -265,6 +266,7 @@ class BackendLessonAttemptEvaluator
     Future<String> Function()? clientIdProvider,
     Future<void> Function()? clientIdResetter,
     Future<void> Function(Duration duration)? retryDelay,
+    Duration requestTimeout = const Duration(seconds: 15),
   }) {
     final resolvedConfig = config ?? AppConfig.fromEnvironment();
     // Keep the provider and resetter on the same identity instance. A stale
@@ -290,6 +292,7 @@ class BackendLessonAttemptEvaluator
             clientIdResetter: resolvedClientIdResetter,
           ),
       retryDelay: retryDelay ?? Future<void>.delayed,
+      requestTimeout: requestTimeout,
     );
   }
 
@@ -298,15 +301,22 @@ class BackendLessonAttemptEvaluator
     required Future<String> Function() clientIdProvider,
     required http.Client client,
     required Future<void> Function(Duration duration) retryDelay,
+    required Duration requestTimeout,
   }) : _config = config,
        _clientIdProvider = clientIdProvider,
        _client = client,
-       _retryDelay = retryDelay;
+       _retryDelay = retryDelay,
+       _requestTimeout = requestTimeout;
 
   final AppConfig _config;
   final Future<String> Function() _clientIdProvider;
   final http.Client _client;
   final Future<void> Function(Duration duration) _retryDelay;
+
+  /// Covers a whole scoring exchange: opening the connection AND reading the
+  /// response body. A server that answers 200 and then stalls mid-body used to
+  /// leave the child watching the spinner forever.
+  final Duration _requestTimeout;
 
   @override
   Future<LessonAttemptOutcome> evaluate({
@@ -409,7 +419,7 @@ class BackendLessonAttemptEvaluator
           bytes: webBytes,
         ),
       );
-      return http.Response.fromStream(await _send(request));
+      return _sendAndRead(request);
     },
   );
 
@@ -541,7 +551,7 @@ class BackendLessonAttemptEvaluator
             bytes: webBytes,
           ),
         );
-        return http.Response.fromStream(await _send(request));
+        return _sendAndRead(request);
       },
     );
     if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -699,7 +709,7 @@ class BackendLessonAttemptEvaluator
 
   Future<http.Response> _get(Uri uri) async {
     try {
-      return await _client.get(uri).timeout(const Duration(seconds: 15));
+      return await _client.get(uri).timeout(_requestTimeout);
     } on TimeoutException {
       throw const LessonAttemptEvaluationException(
         'Chưa kết nối được máy chủ. Bạn thử lại sau nhé.',
@@ -713,9 +723,10 @@ class BackendLessonAttemptEvaluator
     }
   }
 
-  Future<http.StreamedResponse> _send(http.BaseRequest request) async {
+  /// Sends [request] and reads its body under one deadline.
+  Future<http.Response> _sendAndRead(http.BaseRequest request) async {
     try {
-      return await _client.send(request).timeout(const Duration(seconds: 15));
+      return await sendBounded(_client, request, budget: _requestTimeout);
     } on TimeoutException {
       throw const LessonAttemptEvaluationException(
         'Chưa kết nối được máy chủ. Bạn thử lại sau nhé.',
