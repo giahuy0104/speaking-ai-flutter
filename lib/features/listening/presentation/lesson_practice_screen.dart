@@ -176,6 +176,8 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   StreamSubscription<void>? _completionChoiceCompletedSubscription;
   StreamSubscription<String>? _completionChoicePartialSubscription;
   bool _pausedForMainAssistant = false;
+  bool _challengeEntryPending = false;
+  int _challengeEntryRequest = 0;
   bool _exiting = false;
   bool _pausedAfterNoResponse = false;
   int _invalidResponseCount = 0;
@@ -568,6 +570,13 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     if (!mounted) {
       return const ActiveLearningCommandResult.unavailable();
     }
+    if (_challengeEntryPending &&
+        command != ActiveLearningCommand.stop &&
+        command != ActiveLearningCommand.resume &&
+        command != ActiveLearningCommand.replayCurrent) {
+      _challengeEntryPending = false;
+      _challengeEntryRequest += 1;
+    }
     if (_v4CompletionChoiceVisible) {
       if (command == ActiveLearningCommand.resume) {
         _pausedForMainAssistant = false;
@@ -599,13 +608,15 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.replayCurrent:
         _pausedForMainAssistant = false;
-        _guidedSequenceStarted = false;
+        if (!_challengeEntryPending) _guidedSequenceStarted = false;
         unawaited(
           _runNavigationSequence(
-            () => _activateCurrentSentence(
-              autoPlay: true,
-              restoreExistingRecording: false,
-            ),
+            _challengeEntryPending
+                ? () => _openReview(resumeStage: ListeningResumeStage.challenge)
+                : () => _activateCurrentSentence(
+                    autoPlay: true,
+                    restoreExistingRecording: false,
+                  ),
           ),
         );
         return const ActiveLearningCommandResult.handled();
@@ -700,6 +711,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   }
 
   Future<void> _resumeCoreAfterMain() async {
+    if (_challengeEntryPending) {
+      await _openReview(resumeStage: ListeningResumeStage.challenge);
+      return;
+    }
     if (!_usesGuideV2) {
       await _startRecording();
       return;
@@ -2106,11 +2121,19 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     if (_recording || _mediaBusy) {
       return;
     }
+    final enteringV4Challenge =
+        widget.lesson.usesV4Flow &&
+        _sentenceIndex == widget.lesson.sentences.length - 1;
+    final pauseTicket = _lessonSession.mainPauseTicket;
+    if (enteringV4Challenge) _challengeEntryPending = true;
     await _markCurrentSkippedIfPending();
     _cancelIdleReminder();
     _hideCoachPopup();
     await widget.progressStore.saveLesson(widget.lesson.id, _sentenceIndex + 1);
-    if (!mounted) {
+    if (!mounted ||
+        (enteringV4Challenge &&
+            (_pausedForMainAssistant ||
+                !_lessonSession.isCurrentMainPause(pauseTicket)))) {
       return;
     }
     if (_sentenceIndex == widget.lesson.sentences.length - 1) {
@@ -2118,6 +2141,11 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         widget.lesson.id,
         _sentenceIndex,
       );
+      if (enteringV4Challenge &&
+          (_pausedForMainAssistant ||
+              !_lessonSession.isCurrentMainPause(pauseTicket))) {
+        return;
+      }
       // V4 ends the core practice with its authored role-play/challenge
       // activity, not the legacy spoken "restart or next lesson" prompt.
       if (widget.lesson.usesV4Flow) {
@@ -2282,11 +2310,24 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     _cancelIdleReminder();
     _hideCoachPopup();
     if (widget.lesson.usesV4Flow) {
+      final challengeEntryRequest = ++_challengeEntryRequest;
+      final pauseTicket = _lessonSession.mainPauseTicket;
+      bool mayOpenChallenge() =>
+          mounted &&
+          !_pausedForMainAssistant &&
+          _lessonSession.isCurrentMainPause(pauseTicket) &&
+          challengeEntryRequest == _challengeEntryRequest;
+      if (resumeStage != ListeningResumeStage.song) {
+        _challengeEntryPending = true;
+      }
       var challengeProcessed = await widget.progressStore
           .hasProcessedLessonChallenge(widget.lesson.id);
       if (!challengeProcessed && resumeStage != ListeningResumeStage.song) {
+        if (!mayOpenChallenge()) return;
         final selection = await _selectCurrentChallenge();
+        if (!mayOpenChallenge()) return;
         if (selection == null) {
+          _challengeEntryPending = false;
           await _reportInvalidChallengeContent();
           return;
         }
@@ -2294,11 +2335,8 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           widget.lesson.id,
           ListeningResumeStage.challenge,
         );
-        await _speakLessonPrompt(
-          'Tiếp theo là một câu thử thách nhé.',
-          audioKey: ListeningAudioKeys.challengeIntro,
-        );
-        if (!mounted) return;
+        if (!mounted || !mayOpenChallenge()) return;
+        _challengeEntryPending = false;
         bool? challengeCorrect;
         final completed = await pushForActiveLearning<bool>(
           context,
@@ -2308,6 +2346,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             lesson: widget.lesson,
             challenges: <ListeningChallengeContent>[selection.$2],
             mediaService: widget.mediaService,
+            startPaused: _pausedForMainAssistant,
             attemptEvaluator: _attemptEvaluator,
             voicePromptService: _voicePromptService,
             onChallengeResolved: (_, correct) async {
@@ -2333,6 +2372,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         );
         challengeProcessed = true;
       }
+      _challengeEntryPending = false;
 
       final shouldOpenSong =
           challengeProcessed &&

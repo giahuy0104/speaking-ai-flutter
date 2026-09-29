@@ -33,6 +33,7 @@ class LessonChallengeScreen extends StatefulWidget {
     required this.lesson,
     required this.challenges,
     required this.mediaService,
+    this.startPaused = false,
     this.attemptEvaluator,
     this.voicePromptService,
     this.iosSpeechInput,
@@ -49,6 +50,7 @@ class LessonChallengeScreen extends StatefulWidget {
   final ListeningLessonContent lesson;
   final List<ListeningChallengeContent> challenges;
   final LessonMediaService mediaService;
+  final bool startPaused;
   final LessonAttemptEvaluator? attemptEvaluator;
   final VoicePromptService? voicePromptService;
   final LessonEnglishSpeechInput? iosSpeechInput;
@@ -113,6 +115,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   Timer? _promptCompletionTimer;
   Completer<void>? _promptCompletionWaiter;
   bool _pausedForMainAssistant = false;
+  bool _initialPromptPending = true;
   bool _pausedAfterNoResponse = false;
   int _invalidResponseCount = 0;
   String? _activeAttemptAudioPath;
@@ -151,12 +154,16 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     _attemptEvaluator =
         widget.attemptEvaluator ?? createDefaultLessonAttemptEvaluator();
     _voicePromptService = widget.voicePromptService;
+    _pausedForMainAssistant = widget.startPaused;
+    if (widget.startPaused) _message = 'Phần thử thách đang tạm dừng.';
     _recordingErrorSubscription = widget.mediaService.recordingErrors.listen(
       _handleRecordingInterrupted,
     );
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => unawaited(_playCurrentPrompt()),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_pausedForMainAssistant) {
+        unawaited(_playCurrentPrompt(announceIntro: true));
+      }
+    });
   }
 
   void _handleRecordingInterrupted(LessonMediaException error) {
@@ -288,7 +295,12 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
           unawaited(_resumeAfterNoResponse());
           return const ActiveLearningCommandResult.handled();
         }
-        unawaited(_playCurrentPrompt(announceResume: true));
+        unawaited(
+          _playCurrentPrompt(
+            announceIntro: _initialPromptPending,
+            announceResume: !_initialPromptPending,
+          ),
+        );
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.replayCurrent:
         _pausedForMainAssistant = false;
@@ -324,6 +336,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   Future<bool> _playCurrentPrompt({
     bool allowBusy = false,
     bool openMicrophone = true,
+    bool announceIntro = false,
     bool announceResume = false,
   }) async {
     if (_pausedForMainAssistant ||
@@ -344,6 +357,13 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       // automatic microphone opening can be lost during route renegotiation.
       await _prepareSelectedLessonOutputWithRetry(request);
       if (!mounted || request != _request) return false;
+      if (announceIntro) {
+        await _speakPromptAndWait(
+          'Tiếp theo là một câu thử thách nhé.',
+          audioKey: ListeningAudioKeys.challengeIntro,
+        );
+        if (!mounted || request != _request) return false;
+      }
       if (announceResume) {
         await _speakPromptAndWait(
           'Mình tiếp tục câu thử thách nhé.',
@@ -384,6 +404,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         (_busy && !allowBusy)) {
       return false;
     }
+    _initialPromptPending = false;
     if (openMicrophone) await _startRecording();
     return true;
   }
@@ -416,7 +437,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         _recordingUsesIosSpeech = false;
       });
     }
-    await _playCurrentPrompt();
+    await _playCurrentPrompt(announceIntro: true);
   }
 
   Future<void> _speakPromptAndWait(
@@ -1051,7 +1072,8 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
                         ),
                         const SizedBox(width: 12),
                         IconButton(
-                          onPressed: _playingPrompt || _busy
+                          onPressed:
+                              _pausedForMainAssistant || _playingPrompt || _busy
                               ? null
                               : _replayCurrent,
                           icon: const Icon(Icons.volume_up_rounded),
@@ -1104,7 +1126,10 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
                         FilledButton(
                           key: const Key('lesson-challenge-record-button'),
                           onPressed:
-                              _busy || _playingPrompt || _pausedAfterNoResponse
+                              _pausedForMainAssistant ||
+                                  _busy ||
+                                  _playingPrompt ||
+                                  _pausedAfterNoResponse
                               ? null
                               : (_recording ? _stopRecording : _startRecording),
                           style: FilledButton.styleFrom(
@@ -1140,7 +1165,9 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
                             key: const Key(
                               'challenge-resume-after-no-response',
                             ),
-                            onPressed: _resumeAfterNoResponse,
+                            onPressed: _pausedForMainAssistant
+                                ? null
+                                : _resumeAfterNoResponse,
                             icon: const Icon(Icons.mic_rounded),
                             label: const Text('Thử lại mic'),
                           ),

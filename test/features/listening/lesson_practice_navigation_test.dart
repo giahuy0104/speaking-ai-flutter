@@ -695,6 +695,141 @@ void main() {
     },
   );
 
+  testWidgets('Challenge intro is owned once by the pushed challenge route', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final voice = _KeyedRecordingVoicePromptService();
+    await tester.pumpWidget(
+      _subject(
+        _v4Lesson(),
+        _MemoryProgressStore()..completedSentences = 1,
+        const Key('challenge-audio-handoff'),
+        mediaService: _SilentMediaService(),
+        voicePromptService: voice,
+        initialResumeStage: ListeningResumeStage.challenge,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LessonChallengeScreen), findsOneWidget);
+    expect(
+      voice.audioKeys,
+      containsAllInOrder(<String>[
+        ListeningAudioKeys.challengeIntro,
+        ListeningAudioKeys.challengePrompt('v4-challenge-1'),
+        ListeningAudioKeys.challengeAnswerHandoff,
+      ]),
+    );
+    expect(
+      voice.audioKeys.where((key) => key == ListeningAudioKeys.challengeIntro),
+      hasLength(1),
+    );
+  });
+
+  testWidgets('MAIN during Challenge handoff waits for resume before audio', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final store = _GatedChallengeResumeStore()..completedSentences = 1;
+    final media = _SilentMediaService();
+    final voice = _KeyedRecordingVoicePromptService();
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: _subject(
+          _v4Lesson(),
+          store,
+          const Key('challenge-paused-handoff'),
+          mediaService: media,
+          voicePromptService: voice,
+          initialResumeStage: ListeningResumeStage.challenge,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(store.challengeStagePending, isTrue);
+
+    expect(await registry.pauseForMainAssistant(), isTrue);
+    store.releaseChallengeStage();
+    await tester.pumpAndSettle();
+    expect(
+      find.byType(LessonChallengeScreen, skipOffstage: false),
+      findsNothing,
+    );
+    expect(voice.audioKeys, isEmpty);
+    expect(media.startRecordingCount, 0);
+
+    expect(
+      (await registry.execute(ActiveLearningCommand.resume)).wasHandled,
+      isTrue,
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.byType(LessonChallengeScreen, skipOffstage: false),
+      findsOneWidget,
+    );
+    expect(voice.audioKeys, <String>[
+      ListeningAudioKeys.challengeIntro,
+      ListeningAudioKeys.challengePrompt('v4-challenge-1'),
+      ListeningAudioKeys.challengeAnswerHandoff,
+    ]);
+    expect(media.startRecordingCount, 1);
+    expect(media.startedSentenceIds, <String>['v4-challenge-1']);
+  });
+
+  for (final command in <ActiveLearningCommand>[
+    ActiveLearningCommand.resume,
+    ActiveLearningCommand.replayCurrent,
+  ]) {
+    testWidgets('stale Challenge entry after MAIN ${command.name} opens once', (
+      tester,
+    ) async {
+      await _usePhoneSurface(tester);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final store = _GatedChallengeResumeStore()..completedSentences = 1;
+      final media = _SilentMediaService();
+      final voice = _KeyedRecordingVoicePromptService();
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _subject(
+            _v4Lesson(),
+            store,
+            const Key('challenge-pending-main-resume'),
+            mediaService: media,
+            voicePromptService: voice,
+            initialResumeStage: ListeningResumeStage.challenge,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(store.challengeStagePending, isTrue);
+      expect(find.byType(LessonChallengeScreen), findsNothing);
+
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect((await registry.execute(command)).wasHandled, isTrue);
+      await tester.pumpAndSettle();
+      store.releaseChallengeStage();
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byType(LessonChallengeScreen, skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(voice.audioKeys, <String>[
+        ListeningAudioKeys.challengeIntro,
+        ListeningAudioKeys.challengePrompt('v4-challenge-1'),
+        ListeningAudioKeys.challengeAnswerHandoff,
+      ]);
+      expect(media.startRecordingCount, 1);
+      expect(media.startedSentenceIds, <String>['v4-challenge-1']);
+    });
+  }
+
   testWidgets('V4 resumes the exact completion choice after interruption', (
     tester,
   ) async {
@@ -1065,6 +1200,25 @@ ListeningLessonContent _v4Lesson({bool withSong = false, int number = 1}) {
         ? Uri.parse('asset:/assets/audio/Count_with_Me.mp3')
         : null,
   );
+}
+
+class _GatedChallengeResumeStore extends _MemoryProgressStore {
+  final Completer<void> _challengeStageGate = Completer<void>();
+  bool challengeStagePending = false;
+
+  void releaseChallengeStage() => _challengeStageGate.complete();
+
+  @override
+  Future<void> saveResumeStage(
+    String lessonId,
+    ListeningResumeStage stage,
+  ) async {
+    if (stage == ListeningResumeStage.challenge) {
+      challengeStagePending = true;
+      await _challengeStageGate.future;
+    }
+    await super.saveResumeStage(lessonId, stage);
+  }
 }
 
 class _MemoryProgressStore extends ListeningProgressStore {

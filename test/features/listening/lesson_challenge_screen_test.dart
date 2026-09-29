@@ -16,6 +16,185 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('Challenge speaks intro and question again when replayed', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final media = _FakeLessonMediaService();
+    final prompts = _RecordingVoicePromptService();
+    final evaluator = _ControlledAttemptEvaluator();
+    await tester.pumpWidget(
+      _subject(
+        startAge: 7,
+        mediaService: media,
+        voicePromptService: prompts,
+        attemptEvaluator: evaluator,
+      ),
+    );
+    await _pumpChallengeTransition(tester);
+
+    const questionTurn = <String>[
+      'vi-VN|Tiếp theo là một câu thử thách nhé.',
+      'vi-VN|Where is the library?',
+      'vi-VN|Bạn trả lời nhé',
+    ];
+    expect(prompts.spoken, questionTurn);
+    expect(media.recordingStarts, 1);
+    expect(find.text('Go straight.'), findsOneWidget);
+    expect(find.text('It is five dollars.'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Nghe lại'));
+    await _pumpChallengeTransition(tester);
+
+    expect(prompts.spoken, <String>[...questionTurn, ...questionTurn]);
+    expect(media.recordingCancels, 1);
+    expect(media.recordingStarts, 2);
+    expect(evaluator.evaluationCalls, 0);
+    expect(find.text('Dừng và chấm'), findsOneWidget);
+  });
+
+  testWidgets('Challenge replay uses the authored question key again', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final prompts = _KeyedChallengeVoicePromptService();
+    await tester.pumpWidget(_subject(startAge: 7, voicePromptService: prompts));
+    await _pumpChallengeTransition(tester);
+    final firstTurn = List<String>.of(prompts.audioKeys);
+    expect(firstTurn, <String>[
+      'listening.challenge.intro.vi',
+      'listening.challenge.challenge-1.prompt.vi',
+      'listening.challenge.answer_handoff.vi',
+    ]);
+
+    await tester.tap(find.byTooltip('Nghe lại'));
+    await _pumpChallengeTransition(tester);
+
+    expect(prompts.audioKeys, <String>[...firstTurn, ...firstTurn]);
+    expect(find.text('Go straight.'), findsOneWidget);
+    expect(find.text('It is five dollars.'), findsOneWidget);
+  });
+
+  testWidgets('startPaused waits for resume before the first spoken turn', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final media = _FakeLessonMediaService();
+    final prompts = _RecordingVoicePromptService();
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: _subject(
+          startAge: 7,
+          startPaused: true,
+          mediaService: media,
+          voicePromptService: prompts,
+        ),
+      ),
+    );
+    await _pumpChallengeTransition(tester);
+    expect(prompts.spoken, isEmpty);
+    expect(media.recordingStarts, 0);
+    expect(
+      tester
+          .widget<IconButton>(
+            find.ancestor(
+              of: find.byIcon(Icons.volume_up_rounded),
+              matching: find.byType(IconButton),
+            ),
+          )
+          .onPressed,
+      isNull,
+    );
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.byKey(const Key('lesson-challenge-record-button')),
+          )
+          .onPressed,
+      isNull,
+    );
+
+    expect(
+      (await registry.execute(ActiveLearningCommand.resume)).wasHandled,
+      isTrue,
+    );
+    await _pumpChallengeTransition(tester);
+    expect(prompts.spoken, <String>[
+      'vi-VN|Tiếp theo là một câu thử thách nhé.',
+      'vi-VN|Where is the library?',
+      'vi-VN|Bạn trả lời nhé',
+    ]);
+    expect(media.recordingStarts, 1);
+    expect(
+      tester
+          .widget<IconButton>(
+            find.ancestor(
+              of: find.byIcon(Icons.volume_up_rounded),
+              matching: find.byType(IconButton),
+            ),
+          )
+          .onPressed,
+      isNotNull,
+    );
+  });
+
+  testWidgets(
+    'stop cancels pending Challenge speech; resume starts a fresh turn',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final media = _FakeLessonMediaService();
+      final prompts = _GatedInitialChallengePrompt();
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _subject(
+            startAge: 7,
+            mediaService: media,
+            voicePromptService: prompts,
+          ),
+        ),
+      );
+      await _pumpChallengeTransition(tester);
+      expect(prompts.spoken, <String>[
+        'vi-VN|Tiếp theo là một câu thử thách nhé.',
+        'vi-VN|Where is the library?',
+      ]);
+      expect(media.recordingStarts, 0);
+
+      expect(
+        (await registry.execute(ActiveLearningCommand.stop)).wasHandled,
+        isTrue,
+      );
+      prompts.firstQuestion.complete();
+      await _pumpChallengeTransition(tester);
+      expect(prompts.stopCalls, 1);
+      expect(prompts.spoken, <String>[
+        'vi-VN|Tiếp theo là một câu thử thách nhé.',
+        'vi-VN|Where is the library?',
+      ]);
+      expect(media.recordingStarts, 0);
+
+      expect(
+        (await registry.execute(ActiveLearningCommand.resume)).wasHandled,
+        isTrue,
+      );
+      await _pumpChallengeTransition(tester);
+      expect(prompts.spoken, <String>[
+        'vi-VN|Tiếp theo là một câu thử thách nhé.',
+        'vi-VN|Where is the library?',
+        'vi-VN|Tiếp theo là một câu thử thách nhé.',
+        'vi-VN|Where is the library?',
+        'vi-VN|Bạn trả lời nhé',
+      ]);
+      expect(media.recordingStarts, 1);
+    },
+  );
+
   for (final cancel in <bool>[false, true]) {
     testWidgets(
       'Android Challenge waits for ready cue${cancel ? " and MAIN cancels pending capture" : " before recording"}',
@@ -149,6 +328,7 @@ void main() {
     await tester.pump();
 
     expect(prompts.audioKeys, <String>[
+      'listening.challenge.intro.vi',
       'listening.challenge.challenge-1.prompt.vi',
     ]);
     expect(prompts.budgetKeys, prompts.audioKeys);
@@ -343,7 +523,9 @@ void main() {
       addTearDown(() => debugDefaultTargetPlatformOverride = null);
       await _usePhoneSurface(tester);
       final mediaService = _FakeLessonMediaService();
-      final voicePromptService = _MissingSecondFinishVoicePromptService();
+      final voicePromptService = _MissingSecondFinishVoicePromptService(
+        completedCalls: 2,
+      );
       await tester.pumpWidget(
         _subject(
           startAge: 7,
@@ -864,6 +1046,7 @@ void main() {
 
 Widget _subject({
   required int startAge,
+  bool startPaused = false,
   ListeningLessonContent? lesson,
   _FakeLessonMediaService? mediaService,
   List<ListeningChallengeContent>? challenges,
@@ -879,6 +1062,7 @@ Widget _subject({
     home: LessonChallengeScreen(
       language: DisplayLanguage.vietnamese,
       startAge: startAge,
+      startPaused: startPaused,
       lesson: lesson ?? _lesson(),
       challenges:
           challenges ??
@@ -937,13 +1121,16 @@ class _FakeLessonMediaService extends LessonMediaService {
 
   int recordingStarts = 0;
   int recordingStops = 0;
+  int recordingCancels = 0;
   int selectedOutputPreparations = 0;
   int nativeCaptureHandoffs = 0;
   final List<Uri> completedPlaybackUris = <Uri>[];
   final List<double> completedPlaybackGains = <double>[];
 
   @override
-  Future<void> cancelRecording() async {}
+  Future<void> cancelRecording() async {
+    recordingCancels += 1;
+  }
 
   @override
   Future<void> dispose() async {}
@@ -1192,6 +1379,25 @@ class _RecordingVoicePromptService implements VoicePromptService {
   Future<void> stop() async {}
 }
 
+class _GatedInitialChallengePrompt extends _RecordingVoicePromptService {
+  final firstQuestion = Completer<void>();
+  int questionCalls = 0;
+  int stopCalls = 0;
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    await super.speakAndWait(text, locale: locale);
+    if (text == 'Where is the library?' && ++questionCalls == 1) {
+      await firstQuestion.future;
+    }
+  }
+
+  @override
+  Future<void> stop() async {
+    stopCalls += 1;
+  }
+}
+
 class _KeyedChallengeVoicePromptService extends _RecordingVoicePromptService
     implements
         KeyedVoicePromptService,
@@ -1301,6 +1507,9 @@ class _LongAuthoredChallengePrompt extends _RecordingVoicePromptService
 }
 
 class _MissingSecondFinishVoicePromptService implements VoicePromptService {
+  _MissingSecondFinishVoicePromptService({this.completedCalls = 1});
+
+  final int completedCalls;
   int speakCalls = 0;
   int stopCalls = 0;
 
@@ -1313,7 +1522,7 @@ class _MissingSecondFinishVoicePromptService implements VoicePromptService {
   @override
   Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) {
     speakCalls += 1;
-    if (speakCalls == 1) {
+    if (speakCalls <= completedCalls) {
       return Future<void>.value();
     }
     return Completer<void>().future;
