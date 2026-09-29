@@ -25,10 +25,12 @@ class CoordinatedVoicePromptService
     required AudioTurnCoordinator coordinator,
     required AudioTurnOwner owner,
     HfpAudioControl? selectedOutputRoute,
+    bool Function()? useSelectedOutputRoute,
   }) : _delegate = delegate,
        _coordinator = coordinator,
        _owner = owner,
-       _selectedOutputRoute = selectedOutputRoute;
+       _selectedOutputRoute = selectedOutputRoute,
+       _useSelectedOutputRoute = useSelectedOutputRoute;
 
   final VoicePromptService _delegate;
   final AudioTurnCoordinator _coordinator;
@@ -36,6 +38,7 @@ class CoordinatedVoicePromptService
   // A dedicated coordinator scope, supplied for native Android/iOS prompts.
   // A connected HFP-only headset is not a media output until SCO is confirmed.
   final HfpAudioControl? _selectedOutputRoute;
+  final bool Function()? _useSelectedOutputRoute;
   AudioTurnCancellation _pendingCancellation = AudioTurnCancellation();
   AudioTurnLease? _activeLease;
   Future<void> Function()? _releaseActiveRoute;
@@ -214,7 +217,10 @@ class CoordinatedVoicePromptService
     HfpAudioException? routeLoss;
     Future<void>? routeLossStop;
     try {
-      final route = useSelectedRoute ? _selectedOutputRoute : null;
+      final route =
+          useSelectedRoute && (_useSelectedOutputRoute?.call() ?? true)
+          ? _selectedOutputRoute
+          : null;
       if (route != null) {
         await route.initialize();
         if (_disposed || cancellation.isCancelled) return;

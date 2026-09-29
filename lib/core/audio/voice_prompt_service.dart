@@ -18,6 +18,7 @@ VoicePromptService createVoicePromptService({
   AudioTurnOwner owner = AudioTurnOwner.legacy,
   http.Client? httpClient,
   HfpAudioControl? selectedOutputRoute,
+  bool Function()? useSelectedOutputRoute,
 }) {
   final platformService = platform.createPlatformVoicePromptService();
   final usesPromptRegistry =
@@ -79,5 +80,6 @@ VoicePromptService createVoicePromptService({
           coordinator: coordinator,
           owner: owner,
           selectedOutputRoute: selectedOutputRoute,
+          useSelectedOutputRoute: useSelectedOutputRoute,
         );
 }

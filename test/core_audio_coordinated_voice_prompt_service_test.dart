@@ -122,6 +122,29 @@ void main() {
     },
   );
 
+  test(
+    'virtual MAIN phone fallback does not start a stale H20 route',
+    () async {
+      final coordinator = AudioTurnCoordinator();
+      addTearDown(coordinator.dispose);
+      final route = _PromptRoute()..failStart = true;
+      final delegate = _BlockingPromptService()..finish();
+      final service = CoordinatedVoicePromptService(
+        delegate: delegate,
+        coordinator: coordinator,
+        owner: AudioTurnOwner.mainAssistant,
+        selectedOutputRoute: route,
+        useSelectedOutputRoute: () => false,
+      );
+
+      await service.speakAndWaitOnSelectedMediaOutput('MAIN');
+      expect(delegate.startCalls, 1);
+      expect(route.startCalls, 0);
+      expect(route.stopCalls, 0);
+      expect(coordinator.hasActiveTurn, isFalse);
+    },
+  );
+
   test('explicit phone-speaker prompt does not acquire selected HFP', () async {
     final coordinator = AudioTurnCoordinator();
     addTearDown(coordinator.dispose);

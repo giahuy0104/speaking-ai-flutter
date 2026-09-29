@@ -170,6 +170,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   Future<bool>? _androidHfpAutoSelectionFuture;
   Future<bool>? _androidMainHfpRoutePreparation;
   bool _androidMainHfpRouteHeld = false;
+  bool _virtualMainPhoneFallback = false;
   AndroidOfflineSpeechModelConsent _offlineSpeechModelConsent =
       AndroidOfflineSpeechModelConsent.undecided;
   Timer? _offlineSpeechModelTimer;
@@ -1551,6 +1552,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
               selectedOutputRoute: supportsNativeBluetooth
                   ? hfpAudioRouteCoordinator.createScope('main-prompt-output')
                   : null,
+              useSelectedOutputRoute: () => !_virtualMainPhoneFallback,
             ),
             prepareSelectedOutput: _prepareAndroidMainHfpRoute,
             ownsVoicePromptService: true,
@@ -1805,6 +1807,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (!_config.enableAiv0BleControl && !_config.enableHfpAudio) {
       return Future<bool>.value(true);
     }
+    // Temporary tester path: an on-screen MAIN turn may use the handset when
+    // H20 is absent. Physical MAIN and connected H20 keep their existing route.
+    if (_virtualMainPhoneFallback) {
+      return Future<bool>.value(true);
+    }
     if (_androidMainHfpRouteHeld &&
         _controller?.hfpAudioStatus.routeActive == true) {
       return Future<bool>.value(true);
@@ -1896,12 +1903,13 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       );
       return MainButtonActionResult.busy;
     }
-    // The physical H20 MAIN and the on-screen MAIN must be indistinguishable
-    // after gesture decoding. In particular, do not close routes, rescan BLE,
-    // or override the one-shot iOS speech source here. The working screen MAIN
-    // already proves that the selected HFP/phone route and assistant lifecycle
-    // are valid; source-specific preparation used to create a second, racy path
-    // that could return busy before the assistant prompt was started.
+    _virtualMainPhoneFallback =
+        event.source == MainButtonSource.screen &&
+        !kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.android &&
+        controller?.isH20Ready != true;
+    // Both buttons share the assistant lifecycle. Only the temporary Android
+    // tester fallback changes the audio route for on-screen MAIN without H20.
     controller?.recordAiv0MainDiagnostic(
       'MAIN_APP_PATH_SELECTED',
       message: _mainSpeakingSessionController.isActive
@@ -1911,6 +1919,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     final activated = _mainSpeakingSessionController.isActive
         ? await _interruptContinuousTranslationWithMain()
         : await _activateMainAssistant();
+    if (!activated) _virtualMainPhoneFallback = false;
     controller?.recordAiv0MainDiagnostic(
       'MAIN_APP_HANDLER_COMPLETED',
       values: <String, Object?>{'activated': activated},
@@ -2013,6 +2022,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     final voiceController = _voiceNavigationController;
     if (voiceController == null) {
       return;
+    }
+    if (!voiceController.isMainButtonSessionActive &&
+        !_isActivatingMainAssistant) {
+      _virtualMainPhoneFallback = false;
     }
     if (!voiceController.isMainButtonSessionActive &&
         !voiceController.isActive) {
