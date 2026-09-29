@@ -37,6 +37,8 @@ class WebVoicePromptService
     Uint8List bytes, {
     bool forcePhoneSpeaker = false,
     bool forceMediaPlayback = false,
+    // The browser prompt path has no gain stage to apply this to.
+    double? gainDb,
   }) async {
     await _playAuthoredPrompt(bytes.toJS).toDart;
   }

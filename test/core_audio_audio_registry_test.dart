@@ -12,6 +12,7 @@ import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
+import 'package:ai_speaking_flutter_app/core/audio/audio_loudness_manifest.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -175,7 +176,8 @@ void main() {
     var ttsCount = 0;
     final service = AudioPromptService(
       resolver: fixture.resolver,
-      playAuthored: (_, _) async => throw StateError('autoplay denied'),
+      playAuthored: (_, _, {assetKey}) async =>
+          throw StateError('autoplay denied'),
       playTts: (_) async => ttsCount += 1,
       stopPlayback: () async {},
     );
@@ -189,7 +191,8 @@ void main() {
     var ttsCount = 0;
     final service = AudioPromptService(
       resolver: fixture.resolver,
-      playAuthored: (_, _) async => throw const HfpAudioException('route lost'),
+      playAuthored: (_, _, {assetKey}) async =>
+          throw const HfpAudioException('route lost'),
       playTts: (_) async => ttsCount += 1,
       stopPlayback: () async {},
       isRouteLoss: (error) => error is HfpAudioException,
@@ -215,7 +218,7 @@ void main() {
     var stopCount = 0;
     final service = AudioPromptService(
       resolver: fixture.resolver,
-      playAuthored: (_, _) async => authoredCount += 1,
+      playAuthored: (_, _, {assetKey}) async => authoredCount += 1,
       playTts: (_) async => ttsCount += 1,
       stopPlayback: () async => stopCount += 1,
     );
@@ -246,7 +249,7 @@ void main() {
       var playCount = 0;
       final service = AudioPromptService(
         resolver: fixture.resolver,
-        playAuthored: (_, _) async {
+        playAuthored: (_, _, {assetKey}) async {
           playCount += 1;
           activePlayers += 1;
           maximumActivePlayers = activePlayers > maximumActivePlayers
@@ -281,7 +284,7 @@ void main() {
     final events = <String>[];
     final service = AudioPromptService(
       resolver: fixture.resolver,
-      playAuthored: (_, _) async {
+      playAuthored: (_, _, {assetKey}) async {
         events.add('authored');
         throw StateError('decoder failed');
       },
@@ -547,6 +550,46 @@ void main() {
     },
   );
 
+  test('registry playback applies the clip\'s measured level', () async {
+    // Almost every prompt a child hears is resolved by this registry rather
+    // than by the MAIN service behind it, so a level applied only there would
+    // leave the catalogue's spread audible nearly everywhere.
+    AudioLoudnessManifest.resetForTesting();
+    addTearDown(AudioLoudnessManifest.resetForTesting);
+    const manifestAsset = 'assets/data/test_audio.json';
+    const audioAsset = 'assets/audio/test/prompt.mp3';
+    final manifest = _manifestJson(
+      key: key,
+      locale: locale,
+      checksum: _checksum(authored),
+      asset: audioAsset,
+      sizeBytes: authored.length,
+    );
+    final delegate = _RecordingVoicePromptService();
+    final adapter = VoicePromptAudioRegistryAdapter(
+      delegate: delegate,
+      manifestAssets: const [manifestAsset],
+      bundle: _MemoryAssetBundle({
+        manifestAsset: Uint8List.fromList(utf8.encode(jsonEncode(manifest))),
+        audioAsset: authored,
+        AudioLoudnessManifest.assetKey: Uint8List.fromList(
+          utf8.encode(
+            jsonEncode({
+              'gainDb': {audioAsset: -9.5},
+            }),
+          ),
+        ),
+      }),
+      cache: MemoryAudioPackCache(),
+    );
+
+    await adapter.speakAndWaitWithAudioKey(key, 'fallback', locale: locale);
+
+    expect(delegate.authoredPlays, 1);
+    expect(delegate.lastAuthoredGainDb, -9.5);
+    await adapter.dispose();
+  });
+
   test('production factory loads generated packs into the registry', () async {
     final main = createVoicePromptService(owner: AudioTurnOwner.mainAssistant);
     final listening = createVoicePromptService(
@@ -722,6 +765,7 @@ final class _MemoryAssetBundle extends CachingAssetBundle {
 final class _RecordingVoicePromptService
     implements VoicePromptService, AuthoredAudioVoicePromptService {
   int authoredPlays = 0;
+  double? lastAuthoredGainDb;
   int ttsPlays = 0;
 
   @override
@@ -729,8 +773,10 @@ final class _RecordingVoicePromptService
     Uint8List bytes, {
     bool forcePhoneSpeaker = false,
     bool forceMediaPlayback = false,
+    double? gainDb,
   }) async {
     authoredPlays += 1;
+    lastAuthoredGainDb = gainDb;
   }
 
   @override

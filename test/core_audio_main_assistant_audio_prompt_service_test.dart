@@ -4,9 +4,13 @@ import 'package:ai_speaking_flutter_app/core/audio/main_assistant_audio_prompt_s
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
+import 'package:ai_speaking_flutter_app/core/audio/audio_loudness_manifest.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  setUp(AudioLoudnessManifest.resetForTesting);
+  tearDown(AudioLoudnessManifest.resetForTesting);
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('factory uses platform TTS and preserves text and locale', () async {
@@ -120,6 +124,28 @@ void main() {
     },
   );
 
+  test('authored MAIN audio plays at its measured level', () async {
+    // MAIN's navigation lines are the clearest place a child hears the
+    // catalogue's unevenness, because they play between everything else.
+    final bytes = Uint8List.fromList(<int>[1, 2, 3, 4]);
+    final delegate = _Delegate();
+    final service = MainAssistantAudioPromptService(
+      delegate: delegate,
+      bundle: _KeyedBundle(bytes),
+      enabled: true,
+      preferBundledAudio: true,
+    );
+    addTearDown(service.dispose);
+
+    await service.speakAndWaitWithAudioKey(
+      'assistant.main.open_menu.vi',
+      'Nội dung chuẩn',
+    );
+
+    expect(delegate.events, ['authored']);
+    expect(delegate.lastAuthoredGainDb, -7.5);
+  });
+
   test('authored assistant audio requires key and matching text', () async {
     final bytes = Uint8List.fromList(<int>[1, 2, 3, 4]);
     final bundle = _KeyedBundle(bytes);
@@ -163,6 +189,14 @@ class _KeyedBundle extends CachingAssetBundle {
 
   @override
   Future<String> loadString(String key, {bool cache = true}) async {
+    if (key == AudioLoudnessManifest.assetKey) {
+      return jsonEncode({
+        'policy': {'targetRmsDbfs': -21.0},
+        'gainDb': {
+          'assets/audio/assistant-core/assistant.main.open_menu.vi.mp3': -7.5,
+        },
+      });
+    }
     return jsonEncode({
       'schemaVersion': 1,
       'enabled': true,
@@ -194,6 +228,11 @@ class _TrackingBundle extends CachingAssetBundle {
 
   @override
   Future<String> loadString(String key, {bool cache = true}) async {
+    // Counting prompt-manifest loads: the loudness lookup is a different
+    // asset and must not register as one.
+    if (key == AudioLoudnessManifest.assetKey) {
+      return jsonEncode(<String, Object?>{'gainDb': <String, Object?>{}});
+    }
     loadCount++;
     throw StateError('No authored manifest should be loaded: $key');
   }
@@ -208,6 +247,7 @@ class _Delegate
         SelectedMediaOutputVoicePromptService,
         StyledMediaOutputVoicePromptService,
         MainTurnVoicePromptService {
+  double? lastAuthoredGainDb;
   final events = <String>[];
 
   @override
@@ -251,7 +291,9 @@ class _Delegate
     Uint8List bytes, {
     bool forcePhoneSpeaker = false,
     bool forceMediaPlayback = false,
+    double? gainDb,
   }) async {
+    lastAuthoredGainDb = gainDb;
     events.add('authored');
   }
 

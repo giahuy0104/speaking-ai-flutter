@@ -276,8 +276,13 @@ class VoicePromptBridge(
         }
     }
 
+    // Negative values are expected: the authored catalogue is measured at build
+    // time and most clips sit above the shared playback target, so the caller
+    // asks for attenuation. Clamping those away left the first play of every
+    // clip at its authored level.
     private fun requestedGainDb(call: MethodCall): Double =
-        (call.argument<Number>("gainDb")?.toDouble() ?: 8.0).coerceIn(0.0, 12.0)
+        (call.argument<Number>("gainDb")?.toDouble() ?: 8.0)
+            .coerceIn(-AndroidPlaybackLoudness.MAX_GAIN_DB, 12.0)
 
     private fun analyzePlaybackLevel(call: MethodCall, result: MethodChannel.Result) {
         val path = call.argument<String>("path")
@@ -459,7 +464,9 @@ class VoicePromptBridge(
                     if (levelApplied || promptPlayer !== preparedPlayer || promptPlaybackId != utteranceId) return
                     levelApplied = true
                     try {
-                        val gainDb = measured?.gainDb ?: (gainMillibels / 100.0).coerceIn(0.0, 8.0)
+                        val gainDb = measured?.gainDb
+                            ?: (gainMillibels / 100.0)
+                                .coerceIn(-AndroidPlaybackLoudness.MAX_GAIN_DB, 8.0)
                         val volume = 10.0.pow(gainDb.coerceAtMost(0.0) / 20.0).toFloat()
                         preparedPlayer.setVolume(volume, volume)
                         promptLoudnessEnhancer = try {

@@ -234,6 +234,7 @@ class _Delegate implements VoicePromptService, AuthoredAudioVoicePromptService {
     Uint8List bytes, {
     bool forcePhoneSpeaker = false,
     bool forceMediaPlayback = false,
+    double? gainDb,
   }) async {
     events.add('mp3');
     if (failPlayback) throw StateError('Injected playback failure');
