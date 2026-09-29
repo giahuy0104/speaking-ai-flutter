@@ -861,6 +861,30 @@ void main() {
     expect(voicePrompt.regularOutputTexts, isEmpty);
   });
 
+  test(
+    'iOS MAIN can pin a disconnected virtual turn to the phone mic',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final speechInput = _SourceTrackingNavigationSpeechInput();
+      final controller = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: _SelectedMediaVoicePromptService(),
+        mainSpeechAudioSource: () => NativeSpeechAudioSource.builtInMic,
+      );
+      addTearDown(() async {
+        controller.dispose();
+        await speechInput.dispose();
+      });
+
+      expect(await controller.activateFromMainButton(), isTrue);
+      await speechInput.startRequested.future;
+      expect(speechInput.requestedSources, <NativeSpeechAudioSource>[
+        NativeSpeechAudioSource.builtInMic,
+      ]);
+    },
+  );
+
   test('Android MAIN prompts use the selected H20 HFP output', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
@@ -2052,6 +2076,23 @@ Future<ListeningContentCatalog> _loadMainAssistantContent() async {
       ),
     ],
   );
+}
+
+class _SourceTrackingNavigationSpeechInput extends _FakeNavigationSpeechInput
+    implements NativeSpeechAudioSourceControl {
+  final requestedSources = <NativeSpeechAudioSource>[];
+  final startRequested = Completer<void>();
+
+  @override
+  void useNativeSpeechAudioSourceOnce(NativeSpeechAudioSource source) {
+    requestedSources.add(source);
+  }
+
+  @override
+  Future<void> start() async {
+    if (!startRequested.isCompleted) startRequested.complete();
+    await super.start();
+  }
 }
 
 class _FakeNavigationSpeechInput

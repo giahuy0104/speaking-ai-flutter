@@ -45,6 +45,7 @@ class VoiceNavigationController extends ChangeNotifier {
     Duration commandSilenceEndpoint = const Duration(milliseconds: 700),
     ActiveLearningCommandHandler? activeLearningCommandHandler,
     SelectedOutputPreparation? prepareSelectedOutput,
+    NativeSpeechAudioSource? Function()? mainSpeechAudioSource,
     this.wakeWordEnabled = true,
   }) : _speechInput = speechInput,
        _resolver = resolver,
@@ -61,7 +62,8 @@ class VoiceNavigationController extends ChangeNotifier {
        _pauseDrainTimeout = pauseDrainTimeout,
        _commandSilenceEndpoint = commandSilenceEndpoint,
        _activeLearningCommandHandler = activeLearningCommandHandler,
-       _prepareSelectedOutput = prepareSelectedOutput {
+       _prepareSelectedOutput = prepareSelectedOutput,
+       _mainSpeechAudioSource = mainSpeechAudioSource {
     _completedSubscription = _speechInput.completed.listen((_) {
       if (_listening && !_finishing) {
         unawaited(_finishSession(_generation));
@@ -115,6 +117,7 @@ class VoiceNavigationController extends ChangeNotifier {
   final Duration _commandSilenceEndpoint;
   final ActiveLearningCommandHandler? _activeLearningCommandHandler;
   final SelectedOutputPreparation? _prepareSelectedOutput;
+  final NativeSpeechAudioSource? Function()? _mainSpeechAudioSource;
   final bool wakeWordEnabled;
 
   StreamSubscription<void>? _completedSubscription;
@@ -1005,6 +1008,12 @@ class VoiceNavigationController extends ChangeNotifier {
       AudioDiagnostics.event('main.microphone.start', {
         'generation': generation,
       });
+      final audioSource = _mainSpeechAudioSource?.call();
+      if (audioSource != null &&
+          _speechInput is NativeSpeechAudioSourceControl) {
+        (_speechInput as NativeSpeechAudioSourceControl)
+            .useNativeSpeechAudioSourceOnce(audioSource);
+      }
       final startOperation = commandInput != null
           ? commandInput.startCommandRecognition()
           : _speechInput.start();

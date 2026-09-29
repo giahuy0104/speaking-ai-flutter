@@ -1555,6 +1555,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
               useSelectedOutputRoute: () => !_virtualMainPhoneFallback,
             ),
             prepareSelectedOutput: _prepareAndroidMainHfpRoute,
+            mainSpeechAudioSource: () =>
+                _virtualMainPhoneFallback && _usesIosHfpLifecycle
+                ? NativeSpeechAudioSource.builtInMic
+                : null,
             ownsVoicePromptService: true,
             activeLearningCommandHandler: _handleActiveLearningCommand,
           )
@@ -1906,10 +1910,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     _virtualMainPhoneFallback =
         event.source == MainButtonSource.screen &&
         !kIsWeb &&
-        defaultTargetPlatform == TargetPlatform.android &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS) &&
         controller?.isH20Ready != true;
-    // Both buttons share the assistant lifecycle. Only the temporary Android
-    // tester fallback changes the audio route for on-screen MAIN without H20.
+    // Both buttons share the assistant lifecycle. Only the temporary tester
+    // fallback changes the route for on-screen MAIN without H20.
     controller?.recordAiv0MainDiagnostic(
       'MAIN_APP_PATH_SELECTED',
       message: _mainSpeakingSessionController.isActive
