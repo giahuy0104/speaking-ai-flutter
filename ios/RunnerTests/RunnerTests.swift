@@ -1638,7 +1638,7 @@ class RunnerTests: XCTestCase {
 
   func testLessonRecordingLevelingBringsQuietAndLoudSpeechToTarget() throws {
     for inputDbfs in [-35.0, -6.0] {
-      let buffer = try Self.lessonTone(dbfs: inputDbfs, frames: 16_000)
+      let buffer = try Self.lessonSpeech(dbfs: inputDbfs, frames: 16_000)
       let channels = try XCTUnwrap(buffer.floatChannelData)
 
       XCTAssertTrue(
@@ -1651,7 +1651,7 @@ class RunnerTests: XCTestCase {
       )
 
       XCTAssertEqual(
-        Self.rmsDbfs(channels[0], range: 0..<16_000),
+        Self.rmsDbfs(channels[0], range: 0..<3_200),
         VoicePromptBridge.lessonRecordingTargetDbfs,
         accuracy: 0.2
       )
@@ -1659,7 +1659,7 @@ class RunnerTests: XCTestCase {
   }
 
   func testLessonRecordingLevelingLimitsAPlosiveInsteadOfCappingGain() throws {
-    let buffer = try Self.lessonTone(dbfs: -35, frames: 32_000)
+    let buffer = try Self.lessonSpeech(dbfs: -35, frames: 32_000)
     let channels = try XCTUnwrap(buffer.floatChannelData)
     channels[0][16_000] = 1
     channels[0][16_001] = -1
@@ -1678,14 +1678,14 @@ class RunnerTests: XCTestCase {
       XCTAssertLessThanOrEqual(abs(channels[0][frame]), ceiling)
     }
     XCTAssertEqual(
-      Self.rmsDbfs(channels[0], range: 0..<15_000),
+      Self.rmsDbfs(channels[0], range: 19_200..<22_400),
       VoicePromptBridge.lessonRecordingTargetDbfs,
       accuracy: 0.2
     )
   }
 
   func testLessonRecordingLevelingIgnoresAClickFarLouderThanSpeech() throws {
-    let buffer = try Self.lessonTone(dbfs: -40, frames: 32_000)
+    let buffer = try Self.lessonSpeech(dbfs: -35, frames: 32_000)
     let channels = try XCTUnwrap(buffer.floatChannelData)
     for frame in 16_000..<16_032 {
       channels[0][frame] = frame.isMultiple(of: 2) ? 1 : -1
@@ -1701,10 +1701,68 @@ class RunnerTests: XCTestCase {
     )
 
     XCTAssertEqual(
-      Self.rmsDbfs(channels[0], range: 0..<15_000),
+      Self.rmsDbfs(channels[0], range: 0..<3_200),
       VoicePromptBridge.lessonRecordingTargetDbfs,
       accuracy: 0.2
     )
+  }
+
+  func testLessonRecordingLevelingRaisesVeryQuietSpeechByAtMost20Db() throws {
+    let buffer = try Self.lessonSpeech(dbfs: -45, frames: 32_000)
+    let channels = try XCTUnwrap(buffer.floatChannelData)
+
+    XCTAssertTrue(
+      VoicePromptBridge.levelLessonRecording(
+        channels: channels,
+        channelCount: 1,
+        frameLength: Int(buffer.frameLength),
+        sampleRate: 16_000
+      )
+    )
+
+    XCTAssertEqual(Self.rmsDbfs(channels[0], range: 0..<3_200), -25, accuracy: 0.2)
+  }
+
+  func testLessonRecordingLevelingNeverRaisesSteadyBackgroundNoise() throws {
+    let buffer = try Self.lessonTone(dbfs: -200, frames: 32_000)
+    let channels = try XCTUnwrap(buffer.floatChannelData)
+    Self.addNoise(channels[0], frames: 32_000, dbfs: -45)
+
+    XCTAssertFalse(
+      VoicePromptBridge.levelLessonRecording(
+        channels: channels,
+        channelCount: 1,
+        frameLength: Int(buffer.frameLength),
+        sampleRate: 16_000
+      )
+    )
+  }
+
+  func testLessonRecordingLevelingTurnsLongPausesDownButKeepsWordGaps() throws {
+    // Five words over 1.5 s, then 1.5 s of silence, over steady room noise.
+    let buffer = try Self.lessonSpeech(dbfs: -37, frames: 48_000)
+    let channels = try XCTUnwrap(buffer.floatChannelData)
+    for frame in 24_000..<48_000 { channels[0][frame] = 0 }
+    Self.addNoise(channels[0], frames: 48_000, dbfs: -60)
+
+    XCTAssertTrue(
+      VoicePromptBridge.levelLessonRecording(
+        channels: channels,
+        channelCount: 1,
+        frameLength: Int(buffer.frameLength),
+        sampleRate: 16_000
+      )
+    )
+
+    XCTAssertEqual(
+      Self.rmsDbfs(channels[0], range: 0..<3_200),
+      VoicePromptBridge.lessonRecordingTargetDbfs,
+      accuracy: 0.2
+    )
+    // A 100 ms gap between words keeps the full gain: -60 + 20 dB.
+    XCTAssertEqual(Self.rmsDbfs(channels[0], range: 3_200..<4_800), -40, accuracy: 1)
+    // Well after the last word the noise is 10 dB lower.
+    XCTAssertEqual(Self.rmsDbfs(channels[0], range: 35_200..<48_000), -50, accuracy: 1)
   }
 
   func testLessonRecordingLevelingNeverTurnsSpeechDownForALongKnock() throws {
@@ -1743,6 +1801,27 @@ class RunnerTests: XCTestCase {
       channel[frame] = Float(amplitude * sin(2 * Double.pi * 220 * Double(frame) / 16_000))
     }
     return buffer
+  }
+
+  /// `lessonTone` cut into 200 ms words with 100 ms pauses, like speech.
+  private static func lessonSpeech(dbfs: Double, frames: Int) throws -> AVAudioPCMBuffer {
+    let buffer = try lessonTone(dbfs: dbfs, frames: frames)
+    let channel = try XCTUnwrap(buffer.floatChannelData?[0])
+    for frame in 0..<frames where frame % 4_800 >= 3_200 {
+      channel[frame] = 0
+    }
+    return buffer
+  }
+
+  /// Adds seeded white noise whose RMS is `dbfs`.
+  private static func addNoise(_ samples: UnsafeMutablePointer<Float>, frames: Int, dbfs: Double) {
+    let amplitude = sqrt(3.0) * pow(10.0, dbfs / 20.0)
+    var state: UInt64 = 7
+    for frame in 0..<frames {
+      state = state &* 6_364_136_223_846_793_005 &+ 1_442_695_040_888_963_407
+      let unit = Double(state >> 11) / Double(1 << 53)
+      samples[frame] += Float((unit * 2 - 1) * amplitude)
+    }
   }
 
   private static func rmsDbfs(_ samples: UnsafeMutablePointer<Float>, range: Range<Int>) -> Double {

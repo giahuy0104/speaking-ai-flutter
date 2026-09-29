@@ -66,15 +66,16 @@ void main() {
   });
 
   test('lifts quiet mono speech while preserving peak headroom', () {
-    final quiet = _wav([100, 500, -1000, 800, -400], channels: 1);
-    final normalized = normalizeLessonWavLoudness(quiet);
-    final samples = _samples(normalized);
+    final quiet = _speech(seconds: 1, dbfs: -35);
+    final samples = _samples(
+      normalizeLessonWavLoudness(_wav(quiet, channels: 1)),
+    );
     expect(
-      samples.map((sample) => sample.abs()).reduce(max),
-      greaterThan(1000),
+      _rmsDbfs(samples.sublist(0, 3200)),
+      closeTo(lessonRecordingTargetDbfs, 0.2),
     );
     expect(samples.map((sample) => sample.abs()).reduce(max), lessThan(32767));
-    expect(samples[2], isNegative);
+    expect(samples[30].sign, quiet[30].sign);
   });
 
   test('brings a loud mono recording down to the speech target', () {
@@ -84,7 +85,7 @@ void main() {
   });
 
   test('one plosive no longer caps the gain of quiet speech', () {
-    final speech = _tone(seconds: 2, dbfs: -35);
+    final speech = _speech(seconds: 2, dbfs: -35);
     speech[16000] = 32767;
     speech[16001] = -32768;
     final samples = _samples(
@@ -98,17 +99,17 @@ void main() {
     // Away from the limited plosive, speech reaches the recording target. The
     // old peak cap left it at -35 dBFS.
     expect(
-      _rmsDbfs(samples.sublist(0, 15000)),
+      _rmsDbfs(samples.sublist(0, 3200)),
       closeTo(lessonRecordingTargetDbfs, 0.2),
     );
     expect(
-      _rmsDbfs(samples.sublist(18000)),
+      _rmsDbfs(samples.sublist(19200, 22400)),
       closeTo(lessonRecordingTargetDbfs, 0.2),
     );
   });
 
   test('a click far louder than quiet speech does not set the level', () {
-    final speech = _tone(seconds: 2, dbfs: -40);
+    final speech = _speech(seconds: 2, dbfs: -35);
     for (var index = 16000; index < 16032; index += 1) {
       speech[index] = index.isEven ? 32767 : -32768;
     }
@@ -116,9 +117,46 @@ void main() {
       normalizeLessonWavLoudness(_wav(speech, channels: 1)),
     );
     expect(
-      _rmsDbfs(samples.sublist(0, 15000)),
+      _rmsDbfs(samples.sublist(0, 3200)),
       closeTo(lessonRecordingTargetDbfs, 0.2),
     );
+  });
+
+  test('raises very quiet speech by at most 20 dB', () {
+    final samples = _samples(
+      normalizeLessonWavLoudness(
+        _wav(_speech(seconds: 2, dbfs: -45), channels: 1),
+      ),
+    );
+    expect(_rmsDbfs(samples.sublist(0, 3200)), closeTo(-25, 0.2));
+  });
+
+  test('never raises a recording of steady background noise', () {
+    final noise = _wav(_noise(seconds: 2, dbfs: -45), channels: 1);
+    expect(normalizeLessonWavLoudness(noise), same(noise));
+  });
+
+  test('turns long pauses down 10 dB but keeps gaps between words', () {
+    // Five words over 1.5 s, then 1.5 s of silence, over steady room noise.
+    final words = _speech(seconds: 3, dbfs: -37);
+    words.fillRange(24000, words.length, 0);
+    final noise = _noise(seconds: 3, dbfs: -60);
+    final samples = _samples(
+      normalizeLessonWavLoudness(
+        _wav([
+          for (var index = 0; index < words.length; index += 1)
+            words[index] + noise[index],
+        ], channels: 1),
+      ),
+    );
+    expect(
+      _rmsDbfs(samples.sublist(0, 3200)),
+      closeTo(lessonRecordingTargetDbfs, 0.2),
+    );
+    // A 100 ms gap between words keeps the full gain: -60 + 20 dB.
+    expect(_rmsDbfs(samples.sublist(3200, 4800)), closeTo(-40, 1));
+    // Well after the last word the noise is 10 dB lower.
+    expect(_rmsDbfs(samples.sublist(35200)), closeTo(-50, 1));
   });
 
   test('a knock too long to skip never turns the child down', () {
@@ -187,15 +225,22 @@ void main() {
     });
 
     test('Android returns same finalized path with normalized audio', () async {
-      await recording.writeAsBytes(_wav([100, 300, -100, -300]));
+      final speech = _speech(seconds: 1, dbfs: -35);
+      await recording.writeAsBytes(
+        _wav([
+          for (final sample in speech) ...[0, sample],
+        ]),
+      );
       expect(
         await resolveLessonRecording(recording.path, recording.path),
         recording.path,
       );
       final samples = _samples(await recording.readAsBytes());
-      expect(samples.first, isPositive);
-      expect(samples.last, isNegative);
-      expect(samples.first.abs(), greaterThan(300));
+      expect(samples, hasLength(speech.length));
+      expect(
+        _rmsDbfs(samples.sublist(0, 3200)),
+        closeTo(lessonRecordingTargetDbfs, 0.2),
+      );
       expect(await temporary.list().length, 1);
     });
 
@@ -264,6 +309,25 @@ List<int> _tone({required int seconds, required double dbfs}) {
   return [
     for (var index = 0; index < 16000 * seconds; index += 1)
       (amplitude * sin(2 * pi * 220 * index / 16000)).round(),
+  ];
+}
+
+/// [_tone] cut into 200 ms words with 100 ms pauses, like speech.
+List<int> _speech({required int seconds, required double dbfs}) {
+  final tone = _tone(seconds: seconds, dbfs: dbfs);
+  for (var index = 0; index < tone.length; index += 1) {
+    if (index % 4800 >= 3200) tone[index] = 0;
+  }
+  return tone;
+}
+
+/// Seeded white noise whose RMS is [dbfs].
+List<int> _noise({required int seconds, required double dbfs}) {
+  final random = Random(7);
+  final amplitude = 32768 * sqrt(3) * pow(10, dbfs / 20);
+  return [
+    for (var index = 0; index < 16000 * seconds; index += 1)
+      ((random.nextDouble() * 2 - 1) * amplitude).round(),
   ];
 }
 

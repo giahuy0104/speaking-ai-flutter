@@ -110,9 +110,18 @@ const double lessonRecordingTargetDbfs = -17.0;
 
 const double _lessonRecordingPeakCeilingDbfs = -1.0;
 
+/// Most a quiet recording is raised; more mostly raises the room's hiss.
+const double _lessonRecordingMaxGainDb = 20.0;
+
+/// Most the pauses between words are turned down, so a raised recording does
+/// not replay its background noise at speech level.
+const double _lessonRecordingPauseCutDb = 10.0;
+
 /// Brings mono PCM16 lesson captures, quiet or loud, to one speech level.
 /// Pauses are excluded from the measurement. A look-ahead limiter keeps peaks
 /// under -1 dBFS, so one plosive no longer caps the gain of a whole recording.
+/// A recording that is only steady noise is never raised, and pauses are
+/// turned down by up to 10 dB so the raised noise floor does not hiss.
 /// Authored lesson audio never enters this recording-only finalization path.
 Uint8List normalizeLessonWavLoudness(Uint8List source) {
   final data = ByteData.sublistView(source);
@@ -189,10 +198,22 @@ Uint8List normalizeLessonWavLoudness(Uint8List source) {
   if (active.isEmpty) return source;
   final rmsPower = active.reduce((a, b) => a + b) / active.length;
   final measuredDb = 10 * math.log(rmsPower) / math.ln10;
-  var gainDb = math.min(28.0, lessonRecordingTargetDbfs - measuredDb);
+  // The quietest tenth of the recording is its background noise.
+  final floorPower = math.max(
+    1e-10,
+    ranked[ranked.length - 1 - ranked.length ~/ 10],
+  );
+  final separationDb = measuredDb - 10 * math.log(floorPower) / math.ln10;
+  var gainDb = math.min(
+    _lessonRecordingMaxGainDb,
+    lessonRecordingTargetDbfs - measuredDb,
+  );
   // Under 100 ms above the gate is a knock, not speech; never turn the child
   // down to match it.
-  if (active.length < 5) gainDb = math.max(0, gainDb);
+  final knockOnly = active.length < 5;
+  if (knockOnly) gainDb = math.max(0, gainDb);
+  // Nothing rises 6 dB over the noise: raising it would only replay hiss.
+  if (separationDb < 6) gainDb = math.min(0, gainDb);
   final multiplier = math.pow(10, gainDb / 20).toDouble();
   final ceiling = math.pow(10, _lessonRecordingPeakCeilingDbfs / 20);
   if (gainDb.abs() <= 0.05 && peak * multiplier <= ceiling) return source;
@@ -204,13 +225,28 @@ Uint8List normalizeLessonWavLoudness(Uint8List source) {
     multiplier: multiplier,
     ceiling: ceiling.toDouble(),
   );
+  final pauses = _pauseGain(
+    windowPowers,
+    windowSamples: windowSamples,
+    sampleCount: sampleCount,
+    sampleRate: sampleRate,
+    // Halfway, in dB, between the noise floor and the speech level.
+    threshold: math.sqrt(floorPower * rmsPower),
+    // Noisy recordings get a shallower cut, so the gate does not chatter.
+    cutDb: knockOnly
+        ? 0
+        : (separationDb - 6).clamp(0.0, _lessonRecordingPauseCutDb),
+  );
   final output = Uint8List.fromList(source);
   final outputData = ByteData.sublistView(output);
   for (var index = 0; index < sampleCount; index += 1) {
     final sample = data.getInt16(pcmOffset + index * 2, Endian.little);
     outputData.setInt16(
       pcmOffset + index * 2,
-      (sample * multiplier * reduction[index]).round().clamp(-32768, 32767),
+      (sample * multiplier * reduction[index] * pauses[index]).round().clamp(
+        -32768,
+        32767,
+      ),
       Endian.little,
     );
   }
@@ -246,4 +282,42 @@ Float64List _limiterGain(
     reduction[index] = previous;
   }
   return reduction;
+}
+
+/// Per-sample gain that turns 20 ms windows under [threshold] down by
+/// [cutDb]. It stays open 200 ms after speech, opens 20 ms before it and
+/// closes over 100 ms, so word edges and short gaps are never cut.
+Float64List _pauseGain(
+  List<double> windowPowers, {
+  required int windowSamples,
+  required int sampleCount,
+  required int sampleRate,
+  required double threshold,
+  required double cutDb,
+}) {
+  final gain = Float64List(sampleCount)..fillRange(0, sampleCount, 1);
+  if (cutDb <= 0) return gain;
+  final floor = math.pow(10, -cutDb / 20).toDouble();
+  const holdWindows = 10;
+  var sinceSpeech = holdWindows + 1;
+  for (var window = 0; window < windowPowers.length; window += 1) {
+    sinceSpeech = windowPowers[window] >= threshold ? 0 : sinceSpeech + 1;
+    if (sinceSpeech <= holdWindows) continue;
+    final start = window * windowSamples;
+    final end = math.min(sampleCount, start + windowSamples);
+    gain.fillRange(start, end, floor);
+  }
+  final closeStep = (1 - floor) / math.max(1, sampleRate ~/ 10);
+  final openStep = (1 - floor) / math.max(1, sampleRate ~/ 50);
+  var previous = 1.0;
+  for (var index = 0; index < sampleCount; index += 1) {
+    previous = math.max(gain[index], previous - closeStep);
+    gain[index] = previous;
+  }
+  var next = gain[sampleCount - 1];
+  for (var index = sampleCount - 1; index >= 0; index -= 1) {
+    next = math.max(gain[index], next - openStep);
+    gain[index] = next;
+  }
+  return gain;
 }

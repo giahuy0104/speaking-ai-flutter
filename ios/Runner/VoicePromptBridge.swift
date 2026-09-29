@@ -479,11 +479,19 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
   /// `lessonRecordingTargetDbfs` in lesson_wav_normalizer.dart.
   static let lessonRecordingTargetDbfs = -17.0
   private static let lessonRecordingPeakCeilingDbfs = -1.0
+  /// Most a quiet recording is raised; more mostly raises the room's hiss.
+  private static let lessonRecordingMaxGainDb = 20.0
+  /// Most the pauses between words are turned down, so a raised recording
+  /// does not replay its background noise at speech level.
+  private static let lessonRecordingPauseCutDb = 10.0
 
   /// Brings a lesson recording, quiet or loud, to one speech level in place.
   /// Pauses are excluded from the measurement. A look-ahead limiter, linked
   /// across channels, keeps peaks under -1 dBFS so one plosive does not cap
-  /// the gain of the whole recording. Returns false when nothing changed.
+  /// the gain of the whole recording. A recording that is only steady noise
+  /// is never raised, and pauses are turned down by up to 10 dB so the raised
+  /// noise floor does not hiss. Mirrors `normalizeLessonWavLoudness`.
+  /// Returns false when nothing changed.
   static func levelLessonRecording(
     channels: UnsafePointer<UnsafeMutablePointer<Float>>,
     channelCount: Int,
@@ -518,10 +526,16 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     guard !active.isEmpty else { return false }
     let rmsPower = active.reduce(0, +) / Double(active.count)
     let measuredDb = 10.0 * log10(rmsPower)
-    var gainDb = min(28.0, lessonRecordingTargetDbfs - measuredDb)
+    // The quietest tenth of the recording is its background noise.
+    let floorPower = max(1e-10, ranked[ranked.count - 1 - ranked.count / 10])
+    let separationDb = measuredDb - 10.0 * log10(floorPower)
+    var gainDb = min(lessonRecordingMaxGainDb, lessonRecordingTargetDbfs - measuredDb)
     // Under 100 ms above the gate is a knock, not speech; never turn the child
     // down to match it.
-    if active.count < 5 { gainDb = max(0, gainDb) }
+    let knockOnly = active.count < 5
+    if knockOnly { gainDb = max(0, gainDb) }
+    // Nothing rises 6 dB over the noise: raising it would only replay hiss.
+    if separationDb < 6 { gainDb = min(0, gainDb) }
     let multiplier = pow(10.0, gainDb / 20.0)
     let ceiling = pow(10.0, lessonRecordingPeakCeilingDbfs / 20.0)
     guard abs(gainDb) > 0.05 || peak * multiplier > ceiling else { return false }
@@ -540,15 +554,64 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       next = min(level > ceiling ? ceiling / level : 1.0, next + attackStep)
       reduction[frame] = next
     }
+    let pauses = pauseGain(
+      windowEnergies: windowEnergies,
+      windowFrames: windowFrames,
+      frameLength: frameLength,
+      sampleRate: sampleRate,
+      // Halfway, in dB, between the noise floor and the speech level.
+      threshold: (floorPower * rmsPower).squareRoot(),
+      // Noisy recordings get a shallower cut, so the gate does not chatter.
+      cutDb: knockOnly ? 0 : min(max(separationDb - 6, 0), lessonRecordingPauseCutDb)
+    )
     var previous = 1.0
     for frame in 0..<frameLength {
       previous = min(reduction[frame], previous + releaseStep)
-      let gain = Float(multiplier * previous)
+      let gain = Float(multiplier * previous * pauses[frame])
       for channel in 0..<channelCount {
         channels[channel][frame] *= gain
       }
     }
     return true
+  }
+
+  /// Per-frame gain that turns 20 ms windows under `threshold` down by
+  /// `cutDb`. It stays open 200 ms after speech, opens 20 ms before it and
+  /// closes over 100 ms, so word edges and short gaps are never cut.
+  private static func pauseGain(
+    windowEnergies: [Double],
+    windowFrames: Int,
+    frameLength: Int,
+    sampleRate: Double,
+    threshold: Double,
+    cutDb: Double
+  ) -> [Double] {
+    var gain = [Double](repeating: 1, count: frameLength)
+    guard cutDb > 0, frameLength > 0 else { return gain }
+    let floor = pow(10.0, -cutDb / 20.0)
+    let holdWindows = 10
+    var sinceSpeech = holdWindows + 1
+    for (window, energy) in windowEnergies.enumerated() {
+      sinceSpeech = energy >= threshold ? 0 : sinceSpeech + 1
+      guard sinceSpeech > holdWindows else { continue }
+      let start = window * windowFrames
+      for frame in start..<min(frameLength, start + windowFrames) {
+        gain[frame] = floor
+      }
+    }
+    let closeStep = (1 - floor) / max(1.0, (sampleRate / 10).rounded(.down))
+    let openStep = (1 - floor) / max(1.0, (sampleRate / 50).rounded(.down))
+    var previous = 1.0
+    for frame in 0..<frameLength {
+      previous = max(gain[frame], previous - closeStep)
+      gain[frame] = previous
+    }
+    var next = gain[frameLength - 1]
+    for frame in stride(from: frameLength - 1, through: 0, by: -1) {
+      next = max(gain[frame], next - openStep)
+      gain[frame] = next
+    }
+    return gain
   }
 
   private func speak(
