@@ -24,9 +24,7 @@ class HomeModeRail extends StatelessWidget {
   final String? badge;
   final bool expanded;
 
-  // Keep a full cross-platform touch target while the painted rail remains
-  // deliberately slimmer than the tappable area.
-  static const double _collapsedWidth = 48;
+  static const double _collapsedWidth = 52;
   static const double _collapsedHeight = 184;
   static const double _collapsedHeightWithBadge = 198;
   static const double _expandedWidth = 138;
@@ -136,8 +134,6 @@ class _CollapsedRailContent extends StatelessWidget {
     final contentColor = isDark
         ? theme.colorScheme.primary
         : AppColors.primaryNavy;
-    final railClipper = _HomeRailTrapezoidClipper(edge);
-
     return SizedBox(
       key: const Key('collapsed-home-mode-rail'),
       width: HomeModeRail._collapsedWidth,
@@ -145,39 +141,28 @@ class _CollapsedRailContent extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: <Widget>[
-          Positioned(
-            top: 0,
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: ClipPath(
-              clipper: railClipper,
-              child: ColoredBox(
-                color: isDark
+          Positioned.fill(
+            child: CustomPaint(
+              key: const Key('home-rail-silhouette'),
+              painter: _HomeRailPainter(
+                edge: edge,
+                spineColor: isDark
                     ? theme.colorScheme.primaryContainer
                     : AppColors.primaryNavy,
+                borderColor: isDark
+                    ? theme.colorScheme.tertiary
+                    : AppColors.mint,
+                faceColor: faceColor,
               ),
             ),
           ),
           Positioned(
-            top: 8,
-            bottom: 8,
-            left: isLeft ? 0 : 4,
-            right: isLeft ? 4 : 0,
-            child: ClipPath(
-              clipper: railClipper,
-              child: ColoredBox(
-                color: isDark ? theme.colorScheme.tertiary : AppColors.mint,
-              ),
-            ),
-          ),
-          Positioned(
-            top: (railHeight - 30) / 2,
-            left: isLeft ? 38 : null,
-            right: isLeft ? null : 38,
+            top: (railHeight - 24) / 2,
+            left: isLeft ? 46 : null,
+            right: isLeft ? null : 46,
             child: Container(
-              width: 10,
-              height: 30,
+              width: 8,
+              height: 24,
               decoration: BoxDecoration(
                 color: isDark
                     ? theme.colorScheme.secondary
@@ -197,67 +182,60 @@ class _CollapsedRailContent extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 14,
-            bottom: 14,
-            left: isLeft ? 0 : 8,
-            right: isLeft ? 8 : 0,
-            child: ClipPath(
-              clipper: railClipper,
-              child: ColoredBox(
-                color: faceColor,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Column(
-                    children: <Widget>[
-                      Icon(icon, color: contentColor, size: 22),
-                      const SizedBox(height: 8),
-                      Expanded(
-                        child: Center(
-                          child: MediaQuery.withClampedTextScaling(
-                            maxScaleFactor: 1.15,
-                            child: Text(
-                              _stackedLabel(label.toUpperCase()),
-                              key: const Key('home-mode-rail-stacked-label'),
-                              textAlign: TextAlign.center,
-                              softWrap: false,
-                              style: TextStyle(
-                                color: contentColor,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w900,
-                                height: 1.1,
-                              ),
-                            ),
+            top: 36,
+            bottom: 10,
+            left: isLeft ? 12 : 4,
+            right: isLeft ? 4 : 12,
+            child: Column(
+              children: <Widget>[
+                Icon(icon, color: contentColor, size: 22),
+                const SizedBox(height: 9),
+                Expanded(
+                  child: Center(
+                    child: MediaQuery.withClampedTextScaling(
+                      maxScaleFactor: 1.15,
+                      child: Transform.translate(
+                        offset: const Offset(0, -8),
+                        child: Text(
+                          _stackedLabel(label),
+                          key: const Key('home-mode-rail-label'),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: contentColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            height: 1.05,
                           ),
                         ),
                       ),
-                      if (badge != null)
-                        Container(
-                          margin: const EdgeInsets.only(top: 6),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? theme.colorScheme.primaryContainer
-                                : AppColors.mintSoft,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            badge!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: contentColor,
-                              fontSize: 8,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+                if (badge != null)
+                  Container(
+                    margin: const EdgeInsets.only(top: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? theme.colorScheme.primaryContainer
+                          : AppColors.mintSoft,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      badge!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: contentColor,
+                        fontSize: 8,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
           Positioned.fill(
@@ -273,53 +251,72 @@ class _CollapsedRailContent extends StatelessWidget {
 
   String _stackedLabel(String value) => value
       .trim()
+      .toUpperCase()
       .replaceAll(RegExp(r'\s+'), '')
       .runes
       .map(String.fromCharCode)
       .join('\n');
 }
 
-class _HomeRailTrapezoidClipper extends CustomClipper<Path> {
-  const _HomeRailTrapezoidClipper(this.edge);
+class _HomeRailPainter extends CustomPainter {
+  const _HomeRailPainter({
+    required this.edge,
+    required this.spineColor,
+    required this.borderColor,
+    required this.faceColor,
+  });
 
   final HomeRailEdge edge;
+  final Color spineColor;
+  final Color borderColor;
+  final Color faceColor;
 
   @override
-  Path getClip(Size size) {
-    const slope = 13.0;
-    const curve = 5.0;
-    final path = Path();
-    if (edge == HomeRailEdge.left) {
-      path
-        ..moveTo(0, 0)
-        ..lineTo(size.width - curve, slope)
-        ..quadraticBezierTo(size.width, slope + 1, size.width, slope + curve)
-        ..lineTo(size.width, size.height - slope - curve)
-        ..quadraticBezierTo(
-          size.width,
-          size.height - slope - 1,
-          size.width - curve,
-          size.height - slope,
-        )
-        ..lineTo(0, size.height);
-    } else {
-      path
-        ..moveTo(curve, slope)
-        ..quadraticBezierTo(0, slope + 1, 0, slope + curve)
-        ..lineTo(0, size.height - slope - curve)
-        ..quadraticBezierTo(
-          0,
-          size.height - slope - 1,
-          curve,
-          size.height - slope,
-        )
-        ..lineTo(size.width, size.height)
-        ..lineTo(size.width, 0);
+  void paint(Canvas canvas, Size size) {
+    if (edge == HomeRailEdge.right) {
+      canvas
+        ..save()
+        ..translate(size.width, 0)
+        ..scale(-1, 1);
     }
-    return path..close();
+
+    final w = size.width;
+    final h = size.height;
+    final spine = Path()
+      ..moveTo(0, 0)
+      ..cubicTo(12, 0, 18, 5, 22, 13)
+      ..lineTo(22, h - 13)
+      ..cubicTo(18, h - 5, 12, h, 0, h)
+      ..close();
+    final border = Path()
+      ..moveTo(8, 14)
+      ..cubicTo(19, 13, w - 11, 20, w - 4, 28)
+      ..quadraticBezierTo(w, 32, w, 40)
+      ..lineTo(w, h - 40)
+      ..quadraticBezierTo(w, h - 30, w - 5, h - 25)
+      ..cubicTo(w - 15, h - 17, 19, h - 10, 8, h - 7)
+      ..close();
+    final face = Path()
+      ..moveTo(12, 19)
+      ..cubicTo(23, 18, w - 15, 25, w - 9, 32)
+      ..quadraticBezierTo(w - 5, 36, w - 5, 42)
+      ..lineTo(w - 5, h - 42)
+      ..quadraticBezierTo(w - 5, h - 35, w - 10, h - 31)
+      ..cubicTo(w - 19, h - 24, 22, h - 18, 12, h - 15)
+      ..close();
+
+    canvas.drawPath(spine, Paint()..color = spineColor);
+    canvas.drawShadow(border, Colors.black.withValues(alpha: 0.17), 3, true);
+    canvas.drawPath(border, Paint()..color = borderColor);
+    canvas.drawPath(face, Paint()..color = faceColor);
+
+    if (edge == HomeRailEdge.right) canvas.restore();
   }
 
   @override
-  bool shouldReclip(_HomeRailTrapezoidClipper oldClipper) =>
-      oldClipper.edge != edge;
+  bool shouldRepaint(_HomeRailPainter oldDelegate) =>
+      oldDelegate.edge != edge ||
+      oldDelegate.spineColor != spineColor ||
+      oldDelegate.borderColor != borderColor ||
+      oldDelegate.faceColor != faceColor;
 }

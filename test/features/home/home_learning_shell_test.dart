@@ -95,9 +95,9 @@ void main() {
       final topicTabRect = tester.getRect(
         find.byKey(const Key('topic-listening-edge-tab')),
       );
-      expect(vocabularyTabRect.width, closeTo(48, 0.01));
+      expect(vocabularyTabRect.width, closeTo(52, 0.01));
       expect(vocabularyTabRect.height, closeTo(184, 0.01));
-      expect(topicTabRect.width, closeTo(48, 0.01));
+      expect(topicTabRect.width, closeTo(52, 0.01));
       expect(topicTabRect.height, closeTo(184, 0.01));
       expect(
         find.descendant(
@@ -116,23 +116,23 @@ void main() {
       expect(
         find.descendant(
           of: find.byKey(const Key('vocabulary-edge-tab')),
-          matching: find.byType(RotatedBox),
+          matching: find.byKey(const Key('home-mode-rail-label')),
         ),
-        findsNothing,
+        findsOneWidget,
       );
       expect(
         find.descendant(
           of: find.byKey(const Key('vocabulary-edge-tab')),
-          matching: find.byType(ClipPath),
+          matching: find.byKey(const Key('home-rail-silhouette')),
         ),
-        findsNWidgets(3),
+        findsOneWidget,
       );
       expect(
         find.descendant(
           of: find.byKey(const Key('topic-listening-edge-tab')),
-          matching: find.byType(ClipPath),
+          matching: find.byKey(const Key('home-rail-silhouette')),
         ),
-        findsNWidgets(3),
+        findsOneWidget,
       );
       expect(topicTabRect.top, closeTo(vocabularyTabRect.top, 0.01));
       expect(vocabularyTabRect.top, closeTo(844 * 0.27, 0.01));
