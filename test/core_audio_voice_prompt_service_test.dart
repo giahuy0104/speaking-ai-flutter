@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service_native.dart';
+import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -289,4 +290,38 @@ void main() {
       expect(measured['gainDb'], -9.5);
     },
   );
+
+  test('synthesised speech carries the gain its platform can actually apply', () async {
+    // Android measures each utterance and uses this only as a fallback; iOS
+    // applies it directly to AVSpeechUtterance.volume. Sending Android's
+    // positive fallback to iOS attenuated nothing, so every prompt stayed
+    // about 5 dB above the level every authored clip is held to.
+    const channel = MethodChannel('test_assistant_speech_gain');
+    final calls = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          calls.add(call);
+          return null;
+        });
+    addTearDown(() {
+      debugDefaultTargetPlatformOverride = null;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+    const service = MethodChannelVoicePromptService(channel: channel);
+
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    await service.speakAndWait('Xin chào');
+    expect(
+      (calls.last.arguments as Map<Object?, Object?>)['gainDb'],
+      iosAssistantSpeechGainDb,
+    );
+
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    await service.speakAndWait('Xin chào');
+    expect(
+      (calls.last.arguments as Map<Object?, Object?>)['gainDb'],
+      androidAssistantSpeechBoostDb,
+    );
+  });
 }

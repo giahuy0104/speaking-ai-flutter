@@ -8,6 +8,14 @@ import 'voice_prompt_service_base.dart';
 VoicePromptService createPlatformVoicePromptService() =>
     const MethodChannelVoicePromptService();
 
+/// Android measures each utterance and treats its number as a fallback; iOS
+/// applies it directly, so the two platforms need different numbers to land on
+/// the same level.
+double get _assistantSpeechGainDb =>
+    !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+    ? iosAssistantSpeechGainDb
+    : androidAssistantSpeechBoostDb;
+
 class MethodChannelVoicePromptService
     implements
         VoicePromptService,
@@ -116,7 +124,7 @@ class MethodChannelVoicePromptService
       await _channel.invokeMethod<void>(method, <String, dynamic>{
         'text': text.trim(),
         'locale': locale,
-        'gainDb': androidAssistantSpeechBoostDb,
+        'gainDb': _assistantSpeechGainDb,
         'forcePhoneSpeaker': forcePhoneSpeaker,
         'forceMediaPlayback': forceMediaPlayback,
         'speechRate': ?speechRate,
