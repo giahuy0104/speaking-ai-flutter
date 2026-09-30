@@ -215,6 +215,31 @@ void main() {
       },
     );
 
+    test('decodes observed HM-D001 power short for replay', () {
+      const codec = Aiv0DraftProtocolCodec(confirmed: false);
+      final event = codec.decodeButtonEvent(
+        Uint8List.fromList(<int>[
+          1,
+          2,
+          1,
+          0,
+          0x29,
+          0,
+          0x47,
+          0,
+          0xF1,
+          0x60,
+          0x36,
+          0,
+        ]),
+      );
+      expect(event.button, Aiv0Button.power);
+      expect(event.gesture, Aiv0ButtonGesture.shortPress);
+      expect(event.isObservedHmD001Packet, isTrue);
+      expect(event.isActionable, isTrue);
+      expect(event.sequence, 0x29);
+    });
+
     test('does not dispatch unobserved HM-D001 button and gesture codes', () {
       const codec = Aiv0DraftProtocolCodec(confirmed: false);
       for (final raw in <List<int>>[
@@ -315,32 +340,35 @@ void main() {
       expect(event.button, Aiv0Button.unknown);
     });
 
-    test('decodes only draft MAIN after confirmation', () {
-      const codec = Aiv0DraftProtocolCodec(confirmed: true);
-      final main = codec.decodeButtonEvent(
-        Uint8List.fromList(<int>[1, 1, 1, 0, 42, 0, 88, 0, 0xD2, 0x04, 0, 0]),
-      );
-      final replay = codec.decodeButtonEvent(
-        Uint8List.fromList(<int>[1, 2, 1, 0, 43, 0, 87, 0, 0xE8, 0x03, 0, 0]),
-      );
-      final longPress = codec.decodeButtonEvent(
-        Uint8List.fromList(<int>[1, 1, 2, 0, 44, 0, 86, 0, 0xE9, 0x03, 0, 0]),
-      );
-      final release = codec.decodeButtonEvent(
-        Uint8List.fromList(<int>[1, 1, 3, 0, 44, 0, 86, 0, 0xEA, 0x03, 0, 0]),
-      );
+    test(
+      'decodes confirmed HM-D001 power short without changing other draft actions',
+      () {
+        const codec = Aiv0DraftProtocolCodec(confirmed: true);
+        final main = codec.decodeButtonEvent(
+          Uint8List.fromList(<int>[1, 1, 1, 0, 42, 0, 88, 0, 0xD2, 0x04, 0, 0]),
+        );
+        final replay = codec.decodeButtonEvent(
+          Uint8List.fromList(<int>[1, 2, 1, 0, 43, 0, 87, 0, 0xE8, 0x03, 0, 0]),
+        );
+        final longPress = codec.decodeButtonEvent(
+          Uint8List.fromList(<int>[1, 1, 2, 0, 44, 0, 86, 0, 0xE9, 0x03, 0, 0]),
+        );
+        final release = codec.decodeButtonEvent(
+          Uint8List.fromList(<int>[1, 1, 3, 0, 44, 0, 86, 0, 0xEA, 0x03, 0, 0]),
+        );
 
-      expect(main.button, Aiv0Button.main);
-      expect(main.gesture, Aiv0ButtonGesture.shortPress);
-      expect(main.sequence, 42);
-      expect(main.batteryPercent, 88);
-      expect(main.uptimeMilliseconds, 1234);
-      expect(main.isDraftPacket, isTrue);
-      expect(replay.button, Aiv0Button.unknown);
-      expect(replay.sequence, 43);
-      expect(longPress.gesture, Aiv0ButtonGesture.longPress);
-      expect(release.gesture, Aiv0ButtonGesture.release);
-    });
+        expect(main.button, Aiv0Button.main);
+        expect(main.gesture, Aiv0ButtonGesture.shortPress);
+        expect(main.sequence, 42);
+        expect(main.batteryPercent, 88);
+        expect(main.uptimeMilliseconds, 1234);
+        expect(main.isDraftPacket, isTrue);
+        expect(replay.button, Aiv0Button.power);
+        expect(replay.sequence, 43);
+        expect(longPress.gesture, Aiv0ButtonGesture.longPress);
+        expect(release.gesture, Aiv0ButtonGesture.release);
+      },
+    );
 
     test('encodes the draft 8-byte APP State with acknowledged sequence', () {
       const codec = Aiv0DraftProtocolCodec(confirmed: true);

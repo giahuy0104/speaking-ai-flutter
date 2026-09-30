@@ -298,6 +298,7 @@ void main() {
       <int>[1, 3, 2, 0, 0x1F, 0, 79, 0, 0xFC, 0x97, 0x0C, 0],
       <int>[1, 1, 2, 0, 0x20, 0, 79, 0, 0, 0xA0, 0x0C, 0],
       <int>[1, 1, 1, 0, 0x21, 0, 79, 0, 0, 0xB0, 0x0C, 0],
+      <int>[1, 2, 1, 0, 0x29, 0, 0x47, 0, 0xF1, 0x60, 0x36, 0],
     ]) {
       final event = codec.decodeButtonEvent(Uint8List.fromList(raw));
       expect(
@@ -310,6 +311,7 @@ void main() {
       ActiveLearningCommand.previousItem,
       ActiveLearningCommand.stop,
       ActiveLearningCommand.resume,
+      ActiveLearningCommand.replayCurrent,
     ]);
     expect(mainCalls, 0);
   });
