@@ -581,6 +581,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                 false,
           )) &&
       !_voiceNavigationPausedForOverlay &&
+      !_vocabularyActivationController.isActive &&
       !_tutorialActive &&
       !(widget.speakingSessionController?.isActive ?? false) &&
       !widget.controller.isBusy &&
@@ -1089,6 +1090,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       _vocabularyActivationController.activate();
     } else {
       _vocabularyActivationController.deactivate();
+      _scheduleVoiceNavigationListening();
     }
     if (mounted && _page != page) {
       setState(() => _page = page);
