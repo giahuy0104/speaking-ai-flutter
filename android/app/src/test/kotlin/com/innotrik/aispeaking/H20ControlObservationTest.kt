@@ -4,6 +4,22 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class H20ControlObservationTest {
+    @Test fun hmD001PacketsMapOnlyObservedButtons() {
+        val mainShort = byteArrayOf(1, 1, 1, 0, 0x1c, 0, 0x4f, 0, 0, 0, 0, 0)
+        val mainLong = byteArrayOf(1, 1, 2, 0, 0x1d, 0, 0x4f, 0, 0, 0, 0, 0)
+        val downLong = byteArrayOf(1, 4, 2, 0, 0x1e, 0, 0x4f, 0, 0, 0, 0, 0)
+        val upLong = byteArrayOf(1, 3, 2, 0, 0x1f, 0, 0x4f, 0, 0, 0, 0, 0)
+        assertEquals("shortPress", H20ControlObservation.bleMetadata(mainShort)["gesture"])
+        assertEquals("longPress", H20ControlObservation.bleMetadata(mainLong)["gesture"])
+        assertEquals("volumeDown", H20ControlObservation.bleMetadata(downLong)["button"])
+        assertEquals("volumeUp", H20ControlObservation.bleMetadata(upLong)["button"])
+        assertEquals("observedHmD001", H20ControlObservation.bleMetadata(upLong)["protocol"])
+        assertTrue(H20ControlObservation.isObservedMainPacket(mainShort))
+        assertTrue(H20ControlObservation.isObservedMainPacket(mainLong))
+        assertFalse(H20ControlObservation.isObservedMainPacket(downLong))
+        assertEquals(79, H20ControlObservation.batteryPercent(mainLong))
+    }
+
     @Test fun observedMainShortKeepsExactRawBytes() {
         val bytes = byteArrayOf(1, 1, 0x7f, 1, 0, 0, 0, 0, 0, 0, 0, 0xff.toByte())
         val event = H20ControlObservation.bleMetadata(bytes)

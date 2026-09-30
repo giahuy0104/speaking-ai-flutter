@@ -7,6 +7,22 @@ import XCTest
 
 class RunnerTests: XCTestCase {
 
+  func testHmD001ObservedButtonsDoNotChangeLegacyH20Mapping() {
+    let mainShort: [UInt8] = [1, 1, 1, 0, 0x1C, 0, 79, 0, 0, 0, 0, 0]
+    let mainLong: [UInt8] = [1, 1, 2, 0, 0x1D, 0, 79, 0, 0, 0, 0, 0]
+    let downLong: [UInt8] = [1, 4, 2, 0, 0x1E, 0, 79, 0, 0, 0, 0, 0]
+    let upLong: [UInt8] = [1, 3, 2, 0, 0x1F, 0, 79, 0, 0, 0, 0, 0]
+    XCTAssertEqual(H20BleControlObservation.fields(for: mainShort)["gesture"] as? String, "shortPress")
+    XCTAssertEqual(H20BleControlObservation.fields(for: mainLong)["gesture"] as? String, "longPress")
+    XCTAssertEqual(H20BleControlObservation.fields(for: downLong)["button"] as? String, "volumeDown")
+    XCTAssertEqual(H20BleControlObservation.fields(for: upLong)["button"] as? String, "volumeUp")
+    XCTAssertEqual(H20BleControlObservation.batteryPercent(mainLong), 79)
+    XCTAssertFalse(H20BleControlObservation.isObservedMainShort(mainLong))
+    XCTAssertTrue(H20BleControlObservation.isObservedMainShort(
+      [1, 1, 0x10, 1, 0, 0, 79, 0, 0, 0, 0, 0]
+    ))
+  }
+
   func testBackgroundTurnExecutionPolicyOnlyBridgesAnEnabledBackgroundInteraction() {
     XCTAssertTrue(
       IOSBackgroundTurnExecutionPolicy.shouldRetain(

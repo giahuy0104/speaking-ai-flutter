@@ -290,6 +290,29 @@ void main() {
       expect(module.pauseCalls, 2);
     },
   );
+  test('observed HM-D001 packets reach the active lesson commands', () async {
+    registry.register(module);
+    const codec = Aiv0DraftProtocolCodec(confirmed: false);
+    for (final raw in <List<int>>[
+      <int>[1, 4, 2, 0, 0x1E, 0, 79, 0, 0x82, 0x7B, 0x0C, 0],
+      <int>[1, 3, 2, 0, 0x1F, 0, 79, 0, 0xFC, 0x97, 0x0C, 0],
+      <int>[1, 1, 2, 0, 0x20, 0, 79, 0, 0, 0xA0, 0x0C, 0],
+      <int>[1, 1, 1, 0, 0x21, 0, 79, 0, 0, 0xB0, 0x0C, 0],
+    ]) {
+      final event = codec.decodeButtonEvent(Uint8List.fromList(raw));
+      expect(
+        await controls.dispatch(AivoControlInput.fromBle(event)),
+        AivoControlStatus.accepted,
+      );
+    }
+    expect(module.commands, <ActiveLearningCommand>[
+      ActiveLearningCommand.nextItem,
+      ActiveLearningCommand.previousItem,
+      ActiveLearningCommand.stop,
+      ActiveLearningCommand.resume,
+    ]);
+    expect(mainCalls, 0);
+  });
   test(
     'duplicate sequence dispatches once and remains visible in history',
     () async {

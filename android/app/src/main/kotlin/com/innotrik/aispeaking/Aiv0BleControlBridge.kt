@@ -369,7 +369,8 @@ class Aiv0BleControlBridge(
         val likely = advertisesControlService ||
             normalizedName.contains("h20") ||
             normalizedName.contains("aiv0") ||
-            normalizedName.contains("innotrik")
+            normalizedName.contains("innotrik") ||
+            normalizedName == "hm-d001"
         val previous = scanDevices[id]
         if (previous == null || result.rssi > previous.rssi) {
             scanDevices[id] = ScannedDevice(

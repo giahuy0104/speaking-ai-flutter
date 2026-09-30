@@ -2,11 +2,24 @@ package com.innotrik.aispeaking
 
 /** Observations, not a firmware decoder or a lesson-command mapper. */
 internal object H20ControlObservation {
-    fun isObservedMainPacket(bytes: ByteArray): Boolean =
+    private fun isLegacyMainPacket(bytes: ByteArray): Boolean =
         bytes.size == 12 &&
             (bytes[0].toInt() and 0xff) == 1 &&
             (bytes[1].toInt() and 0xff) == 1 &&
             (bytes[3].toInt() and 0xff) == 1
+
+    private fun isHmD001Packet(bytes: ByteArray): Boolean =
+        bytes.size == 12 &&
+            (bytes[0].toInt() and 0xff) == 1 &&
+            (bytes[1].toInt() and 0xff) in setOf(1, 3, 4) &&
+            (bytes[2].toInt() and 0xff) in setOf(1, 2) &&
+            bytes[3].toInt() == 0 &&
+            bytes[7].toInt() == 0 &&
+            (bytes[6].toInt() and 0xff) <= 100
+
+    fun isObservedMainPacket(bytes: ByteArray): Boolean =
+        isLegacyMainPacket(bytes) ||
+            (isHmD001Packet(bytes) && (bytes[1].toInt() and 0xff) == 1)
 
     fun batteryPercent(bytes: ByteArray): Int? {
         if (!isObservedMainPacket(bytes)) return null
@@ -15,13 +28,21 @@ internal object H20ControlObservation {
     }
 
     fun bleMetadata(bytes: ByteArray): Map<String, Any> {
-        val observed = isObservedMainPacket(bytes)
+        val legacy = isLegacyMainPacket(bytes)
+        val hmD001 = isHmD001Packet(bytes)
+        val button = if (hmD001) when (bytes[1].toInt() and 0xff) {
+            1 -> "main"
+            3 -> "volumeUp"
+            else -> "volumeDown"
+        } else if (legacy) "main" else "unknown"
         return mapOf(
             "source" to "ble",
             "platform" to "android",
-            "button" to if (observed) "main" else "unknown",
-            "gesture" to if (observed) "shortPress" else "unknown",
-            "protocol" to if (observed) "observedV1" else "unknown",
+            "button" to button,
+            "gesture" to if (hmD001) {
+                if (bytes[2].toInt() == 1) "shortPress" else "longPress"
+            } else if (legacy) "shortPress" else "unknown",
+            "protocol" to if (hmD001) "observedHmD001" else if (legacy) "observedV1" else "unknown",
             "rawPayload" to bytes.joinToString(" ") {
                 (it.toInt() and 0xff).toString(16).padStart(2, '0').uppercase()
             },
