@@ -53,6 +53,16 @@ void main() {
     );
   });
 
+  test('automatic HFP selection prefers HM-D001 over legacy H20', () {
+    const devices = <HfpAudioDevice>[
+      HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+      HfpAudioDevice(id: 'hm', name: 'HM-D001', isConnected: false),
+    ];
+
+    expect(selectLikelyH20HfpDevice(devices)?.id, 'hm');
+    expect(selectLikelyH20HfpDevice(devices, bleDeviceName: 'H20')?.id, 'h20');
+  });
+
   test(
     'lists, selects, routes and releases a browser HFP microphone',
     () async {

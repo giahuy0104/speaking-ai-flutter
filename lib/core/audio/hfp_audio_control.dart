@@ -27,7 +27,7 @@ class HfpAudioDevice {
   String get displayName => name.isEmpty ? id : name;
 }
 
-/// Selects only an HFP input that can be tied to the connected H20 control
+/// Selects only an HFP input that can be tied to the connected HOMI control
 /// device. iOS may expose unrelated headsets (for example AirPods) at the same
 /// time, so automatic startup must never pick an arbitrary Bluetooth mic.
 HfpAudioDevice? selectLikelyH20HfpDevice(
@@ -54,6 +54,19 @@ HfpAudioDevice? selectLikelyH20HfpDevice(
       .toList(growable: false);
   if (candidates.isEmpty) return null;
   candidates.sort((a, b) {
+    bool matchesBle(HfpAudioDevice device) {
+      final name = _normalizeH20DeviceName(device.displayName);
+      return normalizedBleName.length >= 3 &&
+          (name.contains(normalizedBleName) ||
+              normalizedBleName.contains(name));
+    }
+
+    final aMatchesBle = matchesBle(a);
+    final bMatchesBle = matchesBle(b);
+    if (aMatchesBle != bMatchesBle) return aMatchesBle ? -1 : 1;
+    final aIsHmD001 = _normalizeH20DeviceName(a.displayName) == 'hmd001';
+    final bIsHmD001 = _normalizeH20DeviceName(b.displayName) == 'hmd001';
+    if (aIsHmD001 != bIsHmD001) return aIsHmD001 ? -1 : 1;
     if (a.isConnected != b.isConnected) {
       return a.isConnected ? -1 : 1;
     }

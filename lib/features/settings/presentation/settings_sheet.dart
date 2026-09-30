@@ -190,15 +190,15 @@ class SettingsSheet extends StatelessWidget {
                     _CompactSettingsSection(
                       key: const Key('settings-audio-h20-section'),
                       icon: Icons.headset_mic_rounded,
-                      title: context.tr('Âm thanh & H20', '音频与 H20'),
+                      title: context.tr('Âm thanh & HOMI', '音频与 HOMI'),
                       summary: h20State.isH20Ready
                           ? context.tr(
-                              '${context.trKnown(controller.inputLabel)} • H20 sẵn sàng',
-                              '${context.trKnown(controller.inputLabel)} • H20 已就绪',
+                              '${context.trKnown(controller.inputLabel)} • HOMI sẵn sàng',
+                              '${context.trKnown(controller.inputLabel)} • HOMI 已就绪',
                             )
                           : context.tr(
-                              '${context.trKnown(controller.inputLabel)} • H20 chưa sẵn sàng',
-                              '${context.trKnown(controller.inputLabel)} • H20 未就绪',
+                              '${context.trKnown(controller.inputLabel)} • HOMI chưa sẵn sàng',
+                              '${context.trKnown(controller.inputLabel)} • HOMI 未就绪',
                             ),
                       children: <Widget>[
                         _StatusTile(
@@ -207,19 +207,19 @@ class SettingsSheet extends StatelessWidget {
                           detail: isAndroid
                               ? context.tr(
                                   controller.usesHfpInput
-                                      ? 'H20 qua HFP/SCO • Chế độ tiêu chuẩn'
+                                      ? 'HM-D001 qua HFP/SCO • Chế độ tiêu chuẩn'
                                       : 'Mic điện thoại • Chế độ tiêu chuẩn',
                                   controller.usesHfpInput
-                                      ? 'H20 通过 HFP/SCO • 标准模式'
+                                      ? 'HM-D001 通过 HFP/SCO • 标准模式'
                                       : '手机麦克风 • 标准模式',
                                 )
                               : isIOS
                               ? context.tr(
                                   controller.usesHfpInput
-                                      ? 'Mic H20 qua HFP • Apple Speech ưu tiên'
+                                      ? 'Mic HM-D001 qua HFP • Apple Speech ưu tiên'
                                       : 'Mic iPhone/iPad • Apple Speech ưu tiên',
                                   controller.usesHfpInput
-                                      ? 'H20 HFP 麦克风 • 优先使用 Apple Speech'
+                                      ? 'HM-D001 HFP 麦克风 • 优先使用 Apple Speech'
                                       : 'iPhone/iPad 麦克风 • 优先使用 Apple Speech',
                                 )
                               : switch (controller.asrMode) {
@@ -271,7 +271,7 @@ class SettingsSheet extends StatelessWidget {
                             children: <Widget>[
                               HomiSectionHeading(
                                 icon: Icons.headset_mic_rounded,
-                                title: context.tr('Kết nối H20', '连接 H20'),
+                                title: context.tr('Kết nối HOMI', '连接 HOMI'),
                                 trailing: HomiStatusPill(
                                   label: h20State.isH20Ready
                                       ? context.tr('Sẵn sàng', '已就绪')
@@ -325,7 +325,7 @@ class SettingsSheet extends StatelessWidget {
                                   icon: const Icon(
                                     Icons.settings_remote_outlined,
                                   ),
-                                  label: const Text('Điều khiển thiết bị H20'),
+                                  label: const Text('Điều khiển thiết bị HOMI'),
                                   onPressed: () =>
                                       Navigator.of(context).push<void>(
                                         MaterialPageRoute<void>(
@@ -769,8 +769,8 @@ class SettingsSheet extends StatelessWidget {
           SnackBar(
             content: Text(
               context.tr(
-                'Không tìm thấy H20/AIV0. Hãy bật thiết bị và thử lại.',
-                '未找到 H20/AIV0。请开启设备后重试。',
+                'Không tìm thấy HM-D001. Hãy bật thiết bị và thử lại.',
+                '未找到 HM-D001。请开启设备后重试。',
               ),
             ),
           ),
@@ -1013,12 +1013,12 @@ class SettingsSheet extends StatelessWidget {
             controller.supportsBrowserHfp
                 ? 'Web không thể tự kết nối HFP. Hãy kết nối tai nghe trong Cài đặt Bluetooth, cho phép quyền micro, tải lại trang rồi bấm Chọn mic HFP. Safari trên iPhone có thể chỉ cung cấp mic iPhone.'
                 : isIOS
-                ? 'iOS chỉ cho ứng dụng chọn mic HFP đang kết nối. Hãy kết nối H20 trong Cài đặt Bluetooth, sau đó quay lại bấm Tìm HFP.'
+                ? 'iOS chỉ cho ứng dụng chọn mic HFP đang kết nối. Hãy kết nối HM-D001 trong Cài đặt Bluetooth, sau đó quay lại bấm Tìm HFP.'
                 : 'Hãy ghép đôi tai nghe hoặc thiết bị HFP trong Cài đặt Bluetooth, sau đó quay lại bấm Tìm HFP.',
             controller.supportsBrowserHfp
                 ? '网页无法自行连接 HFP。请先在蓝牙设置中连接耳机、允许麦克风权限、刷新页面，再点击选择 HFP 麦克风。iPhone Safari 可能只提供 iPhone 麦克风。'
                 : isIOS
-                ? 'iOS 只能选择当前已连接的 HFP 麦克风。请先在蓝牙设置中连接 H20，然后返回并点击“查找 HFP”。'
+                ? 'iOS 只能选择当前已连接的 HFP 麦克风。请先在蓝牙设置中连接 HM-D001，然后返回并点击“查找 HFP”。'
                 : '请先在蓝牙设置中配对耳机或 HFP 设备，然后返回并点击“查找 HFP”。',
           ),
         );
@@ -1589,8 +1589,8 @@ class _BackgroundMediaSwitchCard extends StatelessWidget {
         ),
         subtitle: Text(
           context.tr(
-            'Mở ứng dụng khác hoặc khóa màn hình: dừng bài học, trợ lý và loa H20 nhưng vẫn giữ tiến độ.',
-            '打开其他应用或锁屏时：停止课程、助手和 H20 扬声器，同时保留进度。',
+            'Mở ứng dụng khác hoặc khóa màn hình: dừng bài học, trợ lý và loa HOMI nhưng vẫn giữ tiến độ.',
+            '打开其他应用或锁屏时：停止课程、助手和 HOMI 扬声器，同时保留进度。',
           ),
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
@@ -2342,8 +2342,8 @@ class _Aiv0BleControlCard extends StatelessWidget {
         '尚未连接 9E3B0001 服务。',
       ),
       Aiv0BlePhase.scanning => context.tr(
-        'Đang tìm H20/AIV0 ở gần…',
-        '正在搜索附近的 H20/AIV0…',
+        'Đang tìm HM-D001 ở gần…',
+        '正在搜索附近的 HM-D001…',
       ),
       Aiv0BlePhase.connecting => context.tr(
         'Đang xác nhận 9E3B0001/0002/0003…',
@@ -2689,8 +2689,8 @@ class _H20OfflineHardwareTestCard extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       context.tr(
-                        'Kiểm tra phần cứng H20 offline',
-                        'H20 离线硬件测试',
+                        'Kiểm tra phần cứng HOMI offline',
+                        'HOMI 离线硬件测试',
                       ),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
@@ -2773,8 +2773,8 @@ class _H20OfflineHardwareTestCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               context.tr(
-                'Bạn có nghe âm thanh từ loa H20 không?',
-                '您是否从 H20 扬声器听到声音？',
+                'Bạn có nghe âm thanh từ loa HOMI không?',
+                '您是否从 HOMI 扬声器听到声音？',
               ),
               style: Theme.of(context).textTheme.labelMedium,
             ),
@@ -3063,9 +3063,9 @@ class _HfpStatusCard extends StatelessWidget {
       ),
       BluetoothAudioConnectionPhase.ready => context.tr(
         selected
-            ? 'Nguồn đang chọn • H20 qua HFP/SCO'
+            ? 'Nguồn đang chọn • HOMI qua HFP/SCO'
             : 'Đã kết nối • bấm “Dùng mic này” để chọn',
-        selected ? '当前音源 • H20 通过 HFP/SCO' : '已连接 • 点击“使用此麦克风”',
+        selected ? '当前音源 • HOMI 通过 HFP/SCO' : '已连接 • 点击“使用此麦克风”',
       ),
       BluetoothAudioConnectionPhase.recording => context.tr(
         'Đang nhận diện từ mic HFP/SCO',

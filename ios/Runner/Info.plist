@@ -35,9 +35,9 @@
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>HOMI dùng Apple Speech trên iPhone/iPad để nhận dạng lời nói khi điều hướng, luyện nói và dịch. Nội dung gửi tới dịch vụ trực tuyến được giải thích trong phần chấp thuận của phụ huynh.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>HOMI dùng Bluetooth để nhận tín hiệu các nút điều khiển và trạng thái pin từ thiết bị H20, đồng thời chọn micro HFP đã được kết nối trong Cài đặt iOS.</string>
+	<string>HOMI dùng Bluetooth để nhận tín hiệu nút điều khiển và trạng thái pin từ HM-D001, đồng thời chọn micro HFP đã kết nối trong Cài đặt iOS.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>HOMI dùng Bluetooth để nhận tín hiệu các nút điều khiển trên thiết bị H20.</string>
+	<string>HOMI dùng Bluetooth để nhận tín hiệu các nút điều khiển trên thiết bị HM-D001.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
