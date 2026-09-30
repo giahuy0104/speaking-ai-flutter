@@ -914,11 +914,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
     if (devices.isEmpty) {
       const message =
-          'Chưa tìm thấy micro HOMI H20. Hãy bật H20, kết nối thiết bị trong Cài đặt Bluetooth rồi quay lại HOMI.';
+          'Chưa tìm thấy micro HOMI (H20/HM-D001). Hãy kết nối thiết bị trong Cài đặt Bluetooth rồi quay lại HOMI.';
       if (mounted) setState(() => _startupPermissionError = message);
       if (interactive) {
         final openSettings = await _showParentH20GuidanceDialog(
-          title: 'Chưa tìm thấy micro H20',
+          title: 'Chưa tìm thấy micro HOMI',
           message: message,
           primaryLabel: 'Mở Cài đặt',
         );
@@ -966,14 +966,14 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                'Chọn micro HOMI H20',
+                'Chọn micro HOMI',
                 style: Theme.of(sheetContext).textTheme.titleLarge,
               ),
               const SizedBox(height: 8),
               Text(
                 defaultTargetPlatform == TargetPlatform.iOS
-                    ? 'iPhone chỉ hiển thị các micro Bluetooth đang khả dụng. Hãy chọn đúng HOMI H20.'
-                    : 'Hãy chọn HOMI H20 đã ghép đôi. Thiết bị đang kết nối được ưu tiên.',
+                    ? 'iPhone chỉ hiển thị các micro Bluetooth đang khả dụng. Hãy chọn đúng micro HOMI.'
+                    : 'Hãy chọn micro HOMI đã ghép đôi. Thiết bị đang kết nối được ưu tiên.',
                 style: Theme.of(sheetContext).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(sheetContext).colorScheme.onSurfaceVariant,
                 ),

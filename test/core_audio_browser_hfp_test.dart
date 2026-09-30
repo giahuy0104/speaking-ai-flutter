@@ -38,6 +38,21 @@ void main() {
     expect(selectLikelyH20HfpDevice(devices)?.id, 'odm');
   });
 
+  test('automatic HFP selection accepts HM-D001 without a BLE name', () {
+    const devices = <HfpAudioDevice>[
+      HfpAudioDevice(id: 'airpods', name: 'AirPods Pro', isConnected: true),
+      HfpAudioDevice(id: 'hm', name: 'HM-D001', isConnected: true),
+    ];
+
+    expect(selectLikelyH20HfpDevice(devices)?.id, 'hm');
+    expect(
+      selectLikelyH20HfpDevice(const <HfpAudioDevice>[
+        HfpAudioDevice(id: 'other', name: 'HM-D001-OTHER', isConnected: true),
+      ]),
+      isNull,
+    );
+  });
+
   test(
     'lists, selects, routes and releases a browser HFP microphone',
     () async {
