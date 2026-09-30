@@ -150,8 +150,86 @@ struct IOSSpeechTurnStamp {
   }
 }
 
+/// The two values the audio tap thread needs from the platform thread, plus a
+/// bound on how far the write queue may fall behind.
+///
+/// `recordingFile` is owned by `recordingWriteQueue`, but the tap must not
+/// block on that queue: it would then wait behind a disk write on a real-time
+/// thread. So the tap reads its capture flag and gain through this lock
+/// instead of racing two plain properties.
+///
+/// The same lock bounds the backlog. Every buffer the tap hands over is a deep
+/// copy, so a stalled disk used to let a whole turn's audio pile up in memory
+/// unbounded. Past the cap a buffer is dropped rather than queued: a take that
+/// has fallen this far behind is already unusable, and being killed for memory
+/// costs the child the whole lesson rather than one sentence.
+final class IOSLessonRecordingTapState {
+  /// About ten seconds of 48 kHz mono Float32 capture.
+  static let maximumPendingBytes = 2 * 1024 * 1024
+
+  private let lock = NSLock()
+  private var capturing = false
+  private var gain: Double = 1
+  private var pendingBytes = 0
+  private var droppedBuffers = 0
+
+  /// The gain to write this buffer at, or nil when it must not be written —
+  /// capture is off, or the queue is already at the cap.
+  ///
+  /// A non-nil result reserves `byteCount`; the writer must release it.
+  func acquireWriteSlot(byteCount: Int) -> Double? {
+    lock.lock()
+    defer { lock.unlock() }
+    guard capturing else { return nil }
+    guard pendingBytes + byteCount <= Self.maximumPendingBytes else {
+      droppedBuffers += 1
+      return nil
+    }
+    pendingBytes += byteCount
+    return gain
+  }
+
+  func releaseWriteSlot(byteCount: Int) {
+    lock.lock()
+    pendingBytes = max(0, pendingBytes - byteCount)
+    lock.unlock()
+  }
+
+  func beginCapture(gain: Double) {
+    lock.lock()
+    capturing = true
+    self.gain = gain
+    droppedBuffers = 0
+    // A new turn starts with an empty backlog. Writes still in flight from the
+    // previous one release against `max(0,)`, so the worst case is a slightly
+    // generous cap for one turn — far better than a leaked reservation
+    // surviving for the life of the app and silencing every later recording.
+    pendingBytes = 0
+    lock.unlock()
+  }
+
+  func endCapture() {
+    lock.lock()
+    capturing = false
+    lock.unlock()
+  }
+
+  /// Buffers dropped since the current capture began.
+  var droppedBufferCount: Int {
+    lock.lock()
+    defer { lock.unlock() }
+    return droppedBuffers
+  }
+}
+
 struct IOSLessonRecordingGain {
   static let defaultLinearGain: Double = 2.5
+
+  /// Total bytes a captured buffer occupies, across every channel buffer.
+  static func byteCount(of buffer: AVAudioPCMBuffer) -> Int {
+    UnsafeMutableAudioBufferListPointer(buffer.mutableAudioBufferList)
+      .reduce(0) { $0 + Int($1.mDataByteSize) }
+  }
 
   static func linearGain(for source: IOSNativeSpeechAudioSource) -> Double {
     switch source {
@@ -344,11 +422,11 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
   private var activeRecordingPath: String?
   private var turnStamp = IOSSpeechTurnStamp()
   private var recordingWriteFailed = false
-  /// Mirrors `recordingFile != nil` for the audio tap thread. `recordingFile`
-  /// itself is owned by `recordingWriteQueue`, so a late tap enqueue finds it
-  /// already nil and writes nothing after the file was closed and measured.
-  private var recordingIsCapturing = false
-  private var recordingGain: Double = 1
+  /// Capture flag, gain and queue backlog for the audio tap thread.
+  /// `recordingFile` itself stays owned by `recordingWriteQueue`, so a late tap
+  /// enqueue finds it already nil and writes nothing after the file was closed
+  /// and measured.
+  private let recordingTap = IOSLessonRecordingTapState()
   private var recordingFile: AVAudioFile?
   private let recordingWriteQueue = DispatchQueue(
     label: "com.innotrik.aispeaking.lesson-recording-write",
@@ -667,7 +745,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     latestAlternatives = []
     latestConfidence = -1
     activeRecordingPath = recordingPath
-    recordingIsCapturing = false
+    recordingTap.endCapture()
     recordingWriteQueue.sync { recordingFile = nil }
     recordingSampleRate = 0
     recordingUsesBluetoothInput = audioSource == .hfp
@@ -809,14 +887,33 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       guard let self, self.active, self.audioBufferGateOpen else { return }
       let activeGeneration = self.generation
       do {
-        if self.recordingIsCapturing {
-          let recordingBuffer = try self.copyForSpeechAnalyzer(buffer)
-          IOSLessonRecordingGain.apply(
-            to: recordingBuffer,
-            linearGain: self.recordingGain
-          )
+        let recordingByteCount = IOSLessonRecordingGain.byteCount(of: buffer)
+        if let bufferGain = self.recordingTap.acquireWriteSlot(
+          byteCount: recordingByteCount
+        ) {
+          let recordingBuffer: AVAudioPCMBuffer
+          do {
+            recordingBuffer = try self.copyForSpeechAnalyzer(buffer)
+          } catch {
+            // The slot is reserved by now. Without this the reservation is
+            // never released, and enough failed copies would fill the cap and
+            // silently stop recording for the rest of the turn.
+            self.recordingTap.releaseWriteSlot(byteCount: recordingByteCount)
+            throw error
+          }
           self.recordingWriteQueue.async { [weak self] in
-            guard let self, let file = self.recordingFile else { return }
+            guard let self else { return }
+            defer {
+              self.recordingTap.releaseWriteSlot(byteCount: recordingByteCount)
+            }
+            guard let file = self.recordingFile else { return }
+            // Applied here rather than on the tap thread: the copy is owned by
+            // this block alone, and the gain has to be the one the slot handed
+            // out, not whatever the platform thread has since stored.
+            IOSLessonRecordingGain.apply(
+              to: recordingBuffer,
+              linearGain: bufferGain
+            )
             do {
               try file.write(from: recordingBuffer)
             } catch {
@@ -862,7 +959,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
   }
 
   private func prepareActiveRecordingFile() throws {
-    recordingIsCapturing = false
+    recordingTap.endCapture()
     recordingWriteQueue.sync { recordingFile = nil }
     recordingWriteFailed = false
     recordingSampleRate = 0
@@ -886,8 +983,27 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     )
     recordingWriteQueue.sync { recordingFile = file }
     recordingSampleRate = Int(format.sampleRate.rounded())
-    recordingGain = IOSLessonRecordingGain.linearGain(for: requestedAudioSource)
-    recordingIsCapturing = true
+    // Keyed on the route the session actually gave us, not the one the turn
+    // asked for. A turn that asked for the H20 but ended up on the phone's own
+    // microphone would otherwise have the H20's boost applied to a signal that
+    // never needed it, and clip.
+    let confirmedSource = confirmedRecordingAudioSource()
+    recordingUsesBluetoothInput = confirmedSource == .hfp
+    recordingTap.beginCapture(
+      gain: IOSLessonRecordingGain.linearGain(for: confirmedSource)
+    )
+  }
+
+  /// The audio source the session is recording through right now.
+  ///
+  /// `requestedAudioSource` is what the turn asked for. Every start path
+  /// confirms the route before reaching here, but a route that changed under
+  /// the session afterwards must not keep the requested source's gain.
+  private func confirmedRecordingAudioSource() -> IOSNativeSpeechAudioSource {
+    let hfpConfirmed = audioSession.currentRoute.inputs.contains {
+      IOSNativeSpeechAudioRoutePolicy.accepts(portType: $0.portType, for: .hfp)
+    }
+    return hfpConfirmed ? .hfp : .builtInMic
   }
 
   func armBackgroundAudioHandoff(
@@ -1239,7 +1355,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       inputTapInstalled = false
     }
     inputTapFormat = nil
-    recordingIsCapturing = false
+    recordingTap.endCapture()
     recordingWriteQueue.sync { recordingFile = nil }
     recordingSampleRate = 0
     audioEngine.reset()
@@ -1497,7 +1613,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     audioBufferGateOpen = false
     // Mirrors what `finalizeActiveRecording` used to set here, so a late tap
     // enqueue stops writing even though the file is closed later.
-    recordingIsCapturing = false
+    recordingTap.endCapture()
     if audioSessionCoordinator.isBackgroundCaptureArmed,
       audioEngine.isRunning,
       inputTapInstalled
@@ -1529,7 +1645,17 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
 
   private func finalizeActiveRecording() {
     let path = activeRecordingPath
-    recordingIsCapturing = false
+    recordingTap.endCapture()
+    let droppedBuffers = recordingTap.droppedBufferCount
+    if droppedBuffers > 0 {
+      // Silent truncation would look like the child simply stopped talking, so
+      // say it plainly instead of letting the score explain it.
+      audioSessionCoordinator.trace(
+        stage: "lesson_recording_backlog_dropped",
+        caller: "IOSSpeechRecognizerBridge.finalizeActiveRecording",
+        values: ["droppedBuffers": droppedBuffers]
+      )
+    }
     let recordedFrameCount = recordingWriteQueue.sync { () -> AVAudioFramePosition in
       let length = recordingFile?.length ?? 0
       recordingFile = nil

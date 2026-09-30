@@ -1345,4 +1345,126 @@ class RunnerTests: XCTestCase {
     )
   }
 
+  // MARK: - Lesson recording capture state
+
+  func testLessonRecordingTapStateHandsOutTheGainCaptureBeganWith() {
+    let state = IOSLessonRecordingTapState()
+    XCTAssertNil(state.acquireWriteSlot(byteCount: 1_024))
+
+    state.beginCapture(gain: IOSLessonRecordingGain.defaultLinearGain)
+    XCTAssertEqual(
+      state.acquireWriteSlot(byteCount: 1_024),
+      IOSLessonRecordingGain.defaultLinearGain
+    )
+    state.releaseWriteSlot(byteCount: 1_024)
+
+    state.endCapture()
+    XCTAssertNil(state.acquireWriteSlot(byteCount: 1_024))
+  }
+
+  /// Before the cap existed a stalled disk let every captured buffer stay in
+  /// memory for the whole turn. Reverting the cap makes this red on the very
+  /// first assertion after the backlog is full.
+  func testLessonRecordingTapStateStopsQueueingOnceTheBacklogIsFull() {
+    let state = IOSLessonRecordingTapState()
+    state.beginCapture(gain: 1)
+
+    let chunk = 64 * 1024
+    var reserved = 0
+    while reserved + chunk <= IOSLessonRecordingTapState.maximumPendingBytes {
+      XCTAssertNotNil(state.acquireWriteSlot(byteCount: chunk))
+      reserved += chunk
+    }
+
+    XCTAssertNil(state.acquireWriteSlot(byteCount: chunk))
+    XCTAssertEqual(state.droppedBufferCount, 1)
+
+    // A disk that catches up must be able to record again.
+    state.releaseWriteSlot(byteCount: chunk)
+    XCTAssertNotNil(state.acquireWriteSlot(byteCount: chunk))
+    XCTAssertEqual(state.droppedBufferCount, 1)
+
+    state.beginCapture(gain: 1)
+    XCTAssertEqual(state.droppedBufferCount, 0)
+  }
+
+  func testLessonRecordingTapStateCountsEveryChannelBufferOfACapturedBuffer() {
+    let format = AVAudioFormat(
+      standardFormatWithSampleRate: 48_000,
+      channels: 2
+    )!
+    let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 512)!
+    buffer.frameLength = 512
+    XCTAssertEqual(
+      IOSLessonRecordingGain.byteCount(of: buffer),
+      2 * 512 * MemoryLayout<Float>.size
+    )
+  }
+
+  // MARK: - Lesson recording loudness
+
+  /// A 0.1 s 440 Hz tone at 0.05 full scale, measured by the policy this
+  /// accumulator replaced. The numbers are the old whole-file implementation's.
+  func testLessonLoudnessAccumulatorReproducesTheWholeFilePolicy() {
+    var accumulator = IOSLessonLoudnessAccumulator(sampleRate: 48_000)
+    XCTAssertEqual(accumulator.windowFrames, 960)
+    Self.appendTone(to: &accumulator, frameLength: 4_800, chunkFrames: 4_800)
+    XCTAssertEqual(accumulator.gainDb(channelCount: 1), 8.0309, accuracy: 0.0005)
+  }
+
+  /// The streaming rewrite is only safe if the answer does not depend on how
+  /// the file was cut up. Dropping the carry across chunk boundaries makes
+  /// this red.
+  func testLessonLoudnessAccumulatorIsIndependentOfChunkSize() {
+    var whole = IOSLessonLoudnessAccumulator(sampleRate: 48_000)
+    Self.appendTone(to: &whole, frameLength: 4_800, chunkFrames: 4_800)
+    let expected = whole.gainDb(channelCount: 1)
+
+    for chunkFrames in [1, 7, 777, 960, 8_192] {
+      var chunked = IOSLessonLoudnessAccumulator(sampleRate: 48_000)
+      Self.appendTone(to: &chunked, frameLength: 4_800, chunkFrames: chunkFrames)
+      XCTAssertEqual(
+        chunked.gainDb(channelCount: 1),
+        expected,
+        accuracy: 0.0001,
+        "chunkFrames=\(chunkFrames)"
+      )
+    }
+  }
+
+  func testLessonLoudnessAccumulatorAsksForNoGainWithoutAudio() {
+    var silent = IOSLessonLoudnessAccumulator(sampleRate: 48_000)
+    var samples = [Float](repeating: 0, count: 4_800)
+    samples.withUnsafeMutableBufferPointer { buffer in
+      var channel = buffer.baseAddress!
+      withUnsafePointer(to: &channel) { channels in
+        silent.append(channels, channelCount: 1, frameLength: 4_800)
+      }
+    }
+    XCTAssertEqual(silent.gainDb(channelCount: 1), 0, accuracy: 0.0001)
+
+    var empty = IOSLessonLoudnessAccumulator(sampleRate: 48_000)
+    XCTAssertEqual(empty.gainDb(channelCount: 1), 0, accuracy: 0.0001)
+  }
+
+  private static func appendTone(
+    to accumulator: inout IOSLessonLoudnessAccumulator,
+    frameLength: Int,
+    chunkFrames: Int
+  ) {
+    var samples = (0..<frameLength).map {
+      Float(0.05 * sin(2 * Double.pi * 440 * Double($0) / 48_000))
+    }
+    samples.withUnsafeMutableBufferPointer { buffer in
+      var offset = 0
+      while offset < frameLength {
+        let take = min(chunkFrames, frameLength - offset)
+        var channel = buffer.baseAddress! + offset
+        withUnsafePointer(to: &channel) { channels in
+          accumulator.append(channels, channelCount: 1, frameLength: take)
+        }
+        offset += take
+      }
+    }
+  }
 }

@@ -160,6 +160,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       speak(
         text,
         locale: locale,
+        gainDb: (arguments?["gainDb"] as? NSNumber)?.doubleValue,
         speechRate: waitForCompletion
           ? IOSPromptProsody.speechRate(from: arguments?["speechRate"])
           : IOSPromptProsody.defaultSpeechRate,
@@ -192,6 +193,10 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
   /// and writes a PCM WAV sibling. Authored prompts never pass through this
   /// path, so their established loudness is untouched. Peak headroom prevents
   /// clipping while the gated RMS ignores pauses around the spoken sentence.
+  ///
+  /// Both passes stream. Holding a 60 s take in one buffer cost about 23 MB of
+  /// a child's phone to compute two numbers, and the second pass needs the
+  /// samples again only to scale them.
   private func normalizeLessonRecording(path: String, result: @escaping FlutterResult) {
     DispatchQueue.global(qos: .userInitiated).async {
       do {
@@ -203,32 +208,21 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
         else {
           throw LessonRecordingNormalizationError.invalidRecording
         }
-        let frameLength = AVAudioFrameCount(input.length)
-        guard
-              let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameLength)
-        else {
-          throw LessonRecordingNormalizationError.invalidRecording
+        let channelCount = Int(format.channelCount)
+        var accumulator = IOSLessonLoudnessAccumulator(sampleRate: format.sampleRate)
+        try Self.streamLessonRecording(input) { channels, frameLength in
+          accumulator.append(
+            channels,
+            channelCount: channelCount,
+            frameLength: frameLength
+          )
         }
-        try input.read(into: buffer, frameCount: frameLength)
-        guard let channels = buffer.floatChannelData else {
-          throw LessonRecordingNormalizationError.unsupportedPcm
-        }
-        let gainDb = Self.lessonRecordingGainDb(
-          channels: channels,
-          channelCount: Int(format.channelCount),
-          frameLength: Int(buffer.frameLength),
-          sampleRate: format.sampleRate
-        )
+        let gainDb = accumulator.gainDb(channelCount: channelCount)
         guard gainDb > 0.05 else {
           DispatchQueue.main.async { result(path) }
           return
         }
-        let multiplier = pow(10.0, gainDb / 20.0)
-        for channel in 0..<Int(format.channelCount) {
-          for frame in 0..<Int(buffer.frameLength) {
-            channels[channel][frame] *= Float(multiplier)
-          }
-        }
+        let multiplier = Float(pow(10.0, gainDb / 20.0))
         let outputURL = sourceURL.deletingPathExtension()
           .appendingPathExtension("normalized.wav")
         try? FileManager.default.removeItem(at: outputURL)
@@ -246,7 +240,16 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
           commonFormat: .pcmFormatFloat32,
           interleaved: false
         )
-        try output.write(from: buffer)
+        input.framePosition = 0
+        try Self.streamLessonRecording(input) { channels, frameLength in
+          for channel in 0..<channelCount {
+            for frame in 0..<frameLength {
+              channels[channel][frame] *= multiplier
+            }
+          }
+        } write: { buffer in
+          try output.write(from: buffer)
+        }
         try? FileManager.default.removeItem(at: sourceURL)
         DispatchQueue.main.async { result(outputURL.path) }
       } catch {
@@ -261,45 +264,44 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     }
   }
 
-  private static func lessonRecordingGainDb(
-    channels: UnsafePointer<UnsafeMutablePointer<Float>>,
-    channelCount: Int,
-    frameLength: Int,
-    sampleRate: Double
-  ) -> Double {
-    let windowFrames = max(1, Int(sampleRate / 50.0))
-    var windowEnergies: [Double] = []
-    var peak = 0.0
-    var start = 0
-    while start < frameLength {
-      let end = min(frameLength, start + windowFrames)
-      var energy = 0.0
-      for frame in start..<end {
-        for channel in 0..<channelCount {
-          let sample = Double(channels[channel][frame])
-          peak = max(peak, abs(sample))
-          energy += sample * sample
-        }
-      }
-      let count = max(1, (end - start) * channelCount)
-      windowEnergies.append(energy / Double(count))
-      start = end
+  /// Frames per streamed chunk — about 0.17 s at 48 kHz, so one chunk is tens
+  /// of kilobytes whatever the take's length.
+  private static let lessonRecordingChunkFrames: AVAudioFrameCount = 8_192
+
+  /// Reads `input` from its current position to the end, handing each chunk to
+  /// `visit` and, when given, the same chunk to `write` afterwards.
+  private static func streamLessonRecording(
+    _ input: AVAudioFile,
+    visit: (UnsafePointer<UnsafeMutablePointer<Float>>, Int) -> Void,
+    write: ((AVAudioPCMBuffer) throws -> Void)? = nil
+  ) throws {
+    let format = input.processingFormat
+    guard let buffer = AVAudioPCMBuffer(
+      pcmFormat: format,
+      frameCapacity: lessonRecordingChunkFrames
+    ) else {
+      throw LessonRecordingNormalizationError.invalidRecording
     }
-    guard let strongest = windowEnergies.max(), strongest > 0, peak > 0 else { return 0 }
-    let gate = max(pow(10.0, -50.0 / 10.0), strongest / 1000.0)
-    let active = windowEnergies.filter { $0 >= gate }
-    guard !active.isEmpty else { return 0 }
-    let rmsPower = active.reduce(0, +) / Double(active.count)
-    let measuredDb = 10.0 * log10(rmsPower)
-    let peakDb = 20.0 * log10(peak)
-    let desired = -21.0 - measuredDb
-    let headroom = -1.0 - peakDb
-    return max(0.0, min(28.0, min(desired, headroom)))
+    while input.framePosition < input.length {
+      let remaining = input.length - input.framePosition
+      let frameCount = AVAudioFrameCount(
+        min(AVAudioFramePosition(lessonRecordingChunkFrames), remaining)
+      )
+      try input.read(into: buffer, frameCount: frameCount)
+      let frameLength = Int(buffer.frameLength)
+      guard frameLength > 0 else { break }
+      guard let channels = buffer.floatChannelData else {
+        throw LessonRecordingNormalizationError.unsupportedPcm
+      }
+      visit(channels, frameLength)
+      try write?(buffer)
+    }
   }
 
   private func speak(
     _ text: String,
     locale: String,
+    gainDb: Double? = nil,
     speechRate: Double = IOSPromptProsody.defaultSpeechRate,
     pitch: Double = IOSPromptProsody.defaultPitch,
     forcePhoneSpeaker: Bool,
@@ -329,7 +331,13 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       ?? AVSpeechSynthesisVoice(language: "vi-VN")
     utterance.rate = IOSPromptProsody.utteranceRate(for: speechRate)
     utterance.pitchMultiplier = Float(pitch)
-    utterance.volume = 1.0
+    // Android's TTS path has read `gainDb` all along; iOS dropped it. This
+    // closes the channel contract, not the level gap: `AVSpeechUtterance`
+    // volume tops out at 1.0, so iOS can only attenuate, while Dart currently
+    // sends the shared +8 dB fallback here. That makes this inert today — a
+    // negative gain, if one is ever sent, is now honoured instead of ignored.
+    // Real parity would need an audio engine this path does not have.
+    utterance.volume = IOSPromptPlaybackLevel.volume(forGainDb: gainDb)
     activeUtterance = utterance
     activeUtteranceAudioToken = audioToken
     if waitForCompletion {
@@ -683,5 +691,81 @@ private extension Data {
     Swift.withUnsafeBytes(of: &littleEndianValue) { bytes in
       append(contentsOf: bytes)
     }
+  }
+}
+
+/// Gated RMS and peak for a lesson capture, accumulated chunk by chunk.
+///
+/// Windows are `sampleRate / 50` frames, carried across chunk boundaries so the
+/// result does not depend on how the file was read. The final window may be
+/// short, exactly as it was when the whole file was measured in one buffer.
+struct IOSLessonLoudnessAccumulator {
+  /// The shared playback target every clip is measured against.
+  static let targetDb = -21.0
+  /// Leaves a decibel of headroom so a lifted take cannot reach full scale.
+  static let peakCeilingDb = -1.0
+  static let maximumGainDb = 28.0
+
+  let windowFrames: Int
+
+  private var windowEnergies: [Double] = []
+  private var peak = 0.0
+  private var openEnergy = 0.0
+  private var openFrames = 0
+
+  init(sampleRate: Double) {
+    windowFrames = max(1, Int(sampleRate / 50.0))
+  }
+
+  mutating func append(
+    _ channels: UnsafePointer<UnsafeMutablePointer<Float>>,
+    channelCount: Int,
+    frameLength: Int
+  ) {
+    var start = 0
+    while start < frameLength {
+      let take = min(frameLength - start, windowFrames - openFrames)
+      for frame in start..<(start + take) {
+        for channel in 0..<channelCount {
+          let sample = Double(channels[channel][frame])
+          peak = max(peak, abs(sample))
+          openEnergy += sample * sample
+        }
+      }
+      openFrames += take
+      start += take
+      if openFrames == windowFrames {
+        closeWindow(channelCount: channelCount)
+      }
+    }
+  }
+
+  /// The gain to apply, in dB. Zero means the take is already loud enough, or
+  /// lifting it would clip.
+  mutating func gainDb(channelCount: Int) -> Double {
+    if openFrames > 0 {
+      closeWindow(channelCount: channelCount)
+    }
+    guard let strongest = windowEnergies.max(), strongest > 0, peak > 0 else {
+      return 0
+    }
+    // Ignore the pauses around the spoken sentence: a take is mostly silence
+    // and averaging that in would ask for a gain the speech does not need.
+    let gate = max(pow(10.0, -50.0 / 10.0), strongest / 1000.0)
+    let active = windowEnergies.filter { $0 >= gate }
+    guard !active.isEmpty else { return 0 }
+    let rmsPower = active.reduce(0, +) / Double(active.count)
+    let measuredDb = 10.0 * log10(rmsPower)
+    let peakDb = 20.0 * log10(peak)
+    let desired = Self.targetDb - measuredDb
+    let headroom = Self.peakCeilingDb - peakDb
+    return max(0.0, min(Self.maximumGainDb, min(desired, headroom)))
+  }
+
+  private mutating func closeWindow(channelCount: Int) {
+    let count = max(1, openFrames * channelCount)
+    windowEnergies.append(openEnergy / Double(count))
+    openEnergy = 0
+    openFrames = 0
   }
 }
