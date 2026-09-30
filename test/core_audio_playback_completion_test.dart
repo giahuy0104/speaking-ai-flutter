@@ -225,4 +225,36 @@ void main() {
       isTrue,
     );
   });
+
+  test('a source that is already playing when it loads still completes', () {
+    // The reset must run before the re-arm in the same observe() call: a
+    // loading event usually carries playing: true, because just_audio leaves
+    // playing set after the previous source ended. Reversing the two strands
+    // the gate closed and the clip never reports completion, which blocks
+    // every queued prompt because the turn is released nowhere else.
+    final tracker = PlaybackCompletionTracker(
+      processingState: ProcessingState.idle,
+      playing: false,
+      duration: null,
+    );
+
+    expect(
+      tracker.observe(
+        processingState: ProcessingState.loading,
+        playing: true,
+        position: Duration.zero,
+        duration: const Duration(milliseconds: 800),
+      ),
+      isFalse,
+    );
+    expect(
+      tracker.observe(
+        processingState: ProcessingState.completed,
+        playing: true,
+        position: const Duration(milliseconds: 800),
+        duration: const Duration(milliseconds: 800),
+      ),
+      isTrue,
+    );
+  });
 }
