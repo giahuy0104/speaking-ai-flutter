@@ -137,7 +137,7 @@ void main() {
         findsNothing,
       );
       expect(
-        find.textContaining('Cần kết nối cả nút MAIN và micro H20'),
+        find.textContaining('Cần kết nối cả nút MAIN và micro HOMI'),
         findsOneWidget,
       );
 

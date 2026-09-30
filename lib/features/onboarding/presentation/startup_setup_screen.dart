@@ -500,7 +500,7 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
                   'Bật thiết bị và Bluetooth trên điện thoại, sau đó nhấn nút bên dưới. HOMI sẽ tự kiểm tra kết nối.',
               selected: _h20Ready,
               status: _h20Ready
-                  ? 'Đã kết nối nút MAIN và micro H20'
+                  ? 'Đã kết nối nút MAIN và micro HOMI'
                   : widget.allowPhoneMicFallback && widget.h20BleConnected
                   ? 'Nút MAIN đã kết nối • đang dùng mic iPhone'
                   : widget.h20BleConnected || widget.h20HfpConfigured
@@ -521,7 +521,7 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
                 key: const Key('startup-choose-h20-microphone'),
                 onPressed: _choiceInProgress ? null : _chooseH20Microphone,
                 icon: const Icon(Icons.headset_mic_rounded),
-                label: const Text('Chọn micro H20'),
+                label: const Text('Chọn micro HOMI'),
               ),
             ],
             if (widget.microphoneGranted && !_h20Ready) ...<Widget>[
@@ -529,8 +529,8 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
               _InfoBox(
                 icon: Icons.phone_iphone_rounded,
                 text: widget.allowPhoneMicFallback
-                    ? 'Bạn có thể bắt đầu bằng mic iPhone. H20 sẽ tiếp tục kết nối nền và có thể thiết lập lại sau trong Cài đặt.'
-                    : 'Cần kết nối cả nút MAIN qua BLE và micro H20 trước khi bắt đầu phiên học.',
+                    ? 'Bạn có thể bắt đầu bằng mic iPhone. Thiết bị HOMI sẽ tiếp tục kết nối nền và có thể thiết lập lại sau trong Cài đặt.'
+                    : 'Cần kết nối cả nút MAIN qua BLE và micro HOMI trước khi bắt đầu phiên học.',
               ),
             ],
           ],
@@ -559,9 +559,9 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
           const SizedBox(height: 10),
           Text(
             widget.allowPhoneMicFallback && widget.microphoneGranted
-                ? 'Mic iPhone đã sẵn sàng. Có thể thiết lập H20 sau trong Cài đặt dành cho phụ huynh.'
+                ? 'Mic iPhone đã sẵn sàng. Có thể thiết lập thiết bị HOMI sau trong Cài đặt dành cho phụ huynh.'
                 : widget.microphoneGranted && widget.bluetoothGranted
-                ? 'Cần kết nối cả nút MAIN và micro H20 để bắt đầu, hoặc quay lại chọn chế độ không dùng giọng nói.'
+                ? 'Cần kết nối cả nút MAIN và micro HOMI để bắt đầu, hoặc quay lại chọn chế độ không dùng giọng nói.'
                 : 'Cần cấp đủ quyền micro và Bluetooth để tiếp tục, hoặc quay lại chọn chế độ không dùng giọng nói.',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(

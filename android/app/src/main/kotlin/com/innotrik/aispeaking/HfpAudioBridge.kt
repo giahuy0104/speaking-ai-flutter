@@ -1035,6 +1035,8 @@ class HfpAudioBridge(
         if (!hasConnectPermission()) return false
         return try {
             if (connectedAddresses.contains(device.address)) return true
+            // The HEADSET profile proxy can lag behind a live SCO endpoint.
+            if (isHeadsetConnected(device)) return true
             val hasHfpUuid = device.uuids?.any { HFP_UUIDS.contains(it.uuid) } == true
             hasHfpUuid ||
                 device.bluetoothClass?.majorDeviceClass ==

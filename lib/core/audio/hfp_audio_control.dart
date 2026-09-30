@@ -44,6 +44,7 @@ HfpAudioDevice? selectLikelyH20HfpDevice(
             (normalizedName.contains(normalizedBleName) ||
                 normalizedBleName.contains(normalizedName));
         return matchesBleName ||
+            normalizedName == 'hmd001' ||
             normalizedName.contains('h20') ||
             normalizedName.contains('innotrik') ||
             normalizedName.contains('ailingo') ||
