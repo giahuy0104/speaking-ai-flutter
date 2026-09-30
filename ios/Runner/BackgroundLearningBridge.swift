@@ -116,6 +116,7 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
             || self.audioSessionCoordinator.isBackgroundCaptureEngineRunning
             || self.audioSessionCoordinator.isSpeechCaptureActive
             || self.audioSessionCoordinator.isHfpRouteActive
+            || self.audioSessionCoordinator.isPromptActive
         )
       default:
         result(FlutterMethodNotImplemented)

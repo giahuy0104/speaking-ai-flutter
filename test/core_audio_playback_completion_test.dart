@@ -150,4 +150,79 @@ void main() {
       isTrue,
     );
   });
+
+  test('a session-long tracker closes its gate on every new source', () {
+    // JustAudioPlaybackService keeps one tracker for the whole session to know
+    // when to release the audio turn. Before the gate was reset per source it
+    // latched open on the first clip, so a completed state replayed for an
+    // already finished source released the turn under the clip playing now.
+    final tracker = PlaybackCompletionTracker(
+      processingState: ProcessingState.idle,
+      playing: false,
+      duration: null,
+    );
+
+    // First clip plays through and legitimately completes.
+    expect(
+      tracker.observe(
+        processingState: ProcessingState.ready,
+        playing: true,
+        position: const Duration(milliseconds: 50),
+        duration: const Duration(milliseconds: 900),
+      ),
+      isFalse,
+    );
+    expect(
+      tracker.observe(
+        processingState: ProcessingState.completed,
+        playing: false,
+        position: const Duration(milliseconds: 900),
+        duration: const Duration(milliseconds: 900),
+      ),
+      isTrue,
+    );
+
+    // A second clip is loaded but has not started yet.
+    expect(
+      tracker.observe(
+        processingState: ProcessingState.loading,
+        playing: false,
+        position: Duration.zero,
+        duration: null,
+      ),
+      isFalse,
+    );
+
+    // The first clip's completed state is replayed. It must not read as the
+    // end of the clip that is loading now.
+    expect(
+      tracker.observe(
+        processingState: ProcessingState.completed,
+        playing: false,
+        position: const Duration(milliseconds: 900),
+        duration: const Duration(milliseconds: 900),
+      ),
+      isFalse,
+    );
+
+    // The second clip then plays and completes on its own terms.
+    expect(
+      tracker.observe(
+        processingState: ProcessingState.ready,
+        playing: true,
+        position: const Duration(milliseconds: 40),
+        duration: const Duration(milliseconds: 700),
+      ),
+      isFalse,
+    );
+    expect(
+      tracker.observe(
+        processingState: ProcessingState.completed,
+        playing: false,
+        position: const Duration(milliseconds: 700),
+        duration: const Duration(milliseconds: 700),
+      ),
+      isTrue,
+    );
+  });
 }
