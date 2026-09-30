@@ -1467,4 +1467,48 @@ class RunnerTests: XCTestCase {
       }
     }
   }
+
+  // MARK: - Shared AVAudioSession handoff
+
+  func testNativeSessionIsReusedWhileAForegroundPromptOwnsIt() {
+    // Dart rewrites the session category whenever this reports false. A prompt
+    // owns the live session exactly as the capture paths do, and leaving it out
+    // let a clip reconfigure the session while a prompt was mid-word.
+    XCTAssertTrue(
+      IOSBackgroundAudioHandoffPolicy.shouldReuseNativeSession(
+        backgroundCaptureArmed: false,
+        backgroundCaptureEngineRunning: false,
+        speechCaptureActive: false,
+        hfpRouteActive: false,
+        promptActive: true
+      )
+    )
+  }
+
+  func testNativeSessionIsReusedForEveryOtherNativeOwner() {
+    for owner in 0..<4 {
+      XCTAssertTrue(
+        IOSBackgroundAudioHandoffPolicy.shouldReuseNativeSession(
+          backgroundCaptureArmed: owner == 0,
+          backgroundCaptureEngineRunning: owner == 1,
+          speechCaptureActive: owner == 2,
+          hfpRouteActive: owner == 3,
+          promptActive: false
+        ),
+        "owner \(owner) must keep Dart off the shared session"
+      )
+    }
+  }
+
+  func testDartConfiguresTheSessionWhenNoNativeOwnerHoldsIt() {
+    XCTAssertFalse(
+      IOSBackgroundAudioHandoffPolicy.shouldReuseNativeSession(
+        backgroundCaptureArmed: false,
+        backgroundCaptureEngineRunning: false,
+        speechCaptureActive: false,
+        hfpRouteActive: false,
+        promptActive: false
+      )
+    )
+  }
 }

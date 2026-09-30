@@ -366,6 +366,22 @@ struct IOSBackgroundAudioHandoffPolicy {
   ) -> Bool {
     backgroundLearningEnabled && !applicationIsActive
   }
+
+  /// Whether a native owner already holds the shared AVAudioSession, so Dart
+  /// reuses it instead of rewriting its category.
+  static func shouldReuseNativeSession(
+    backgroundCaptureArmed: Bool,
+    backgroundCaptureEngineRunning: Bool,
+    speechCaptureActive: Bool,
+    hfpRouteActive: Bool,
+    promptActive: Bool
+  ) -> Bool {
+    backgroundCaptureArmed
+      || backgroundCaptureEngineRunning
+      || speechCaptureActive
+      || hfpRouteActive
+      || promptActive
+  }
 }
 
 /// Native, on-device-first speech recognition for iOS.

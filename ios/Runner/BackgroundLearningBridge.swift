@@ -112,11 +112,14 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
         // this value only to reuse the existing native session; it is never
         // inferred from the background-learning or BLE flag alone.
         result(
-          self.audioSessionCoordinator.isBackgroundCaptureArmed
-            || self.audioSessionCoordinator.isBackgroundCaptureEngineRunning
-            || self.audioSessionCoordinator.isSpeechCaptureActive
-            || self.audioSessionCoordinator.isHfpRouteActive
-            || self.audioSessionCoordinator.isPromptActive
+          IOSBackgroundAudioHandoffPolicy.shouldReuseNativeSession(
+            backgroundCaptureArmed: self.audioSessionCoordinator.isBackgroundCaptureArmed,
+            backgroundCaptureEngineRunning: self.audioSessionCoordinator
+              .isBackgroundCaptureEngineRunning,
+            speechCaptureActive: self.audioSessionCoordinator.isSpeechCaptureActive,
+            hfpRouteActive: self.audioSessionCoordinator.isHfpRouteActive,
+            promptActive: self.audioSessionCoordinator.isPromptActive
+          )
         )
       default:
         result(FlutterMethodNotImplemented)
