@@ -32,6 +32,8 @@ object AndroidPlaybackLoudness {
     const val ABSOLUTE_GATE_MEAN_SQUARE = 0.00001
     /** -30 dB below the strongest window: what separates speech from pauses. */
     const val RELATIVE_GATE_RATIO = 1000.0
+    /** 20 ms windows. Named so the build-time manifest can be held to it. */
+    const val WINDOW_HZ = 50
     private const val MAX_DURATION_MS = 30_000L
     private const val MAX_DECODE_NS = 350_000_000L
     /** For measurements nobody waits on, e.g. warming a clip's next playback. */
@@ -264,7 +266,8 @@ class PcmPlaybackLevelMeter(private val sampleRate: Int, private val channelCoun
         val meanSquare: Double get() = energy / count
     }
 
-    private val windowSamples = max(1, sampleRate / 50) * channelCount
+    private val windowSamples =
+        max(1, sampleRate / AndroidPlaybackLoudness.WINDOW_HZ) * channelCount
     private val windows = ArrayList<Window>()
     private var windowEnergy = 0.0
     private var windowCount = 0

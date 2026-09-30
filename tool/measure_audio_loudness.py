@@ -141,6 +141,14 @@ def main():
             "targetRmsDbfs": TARGET_RMS_DBFS,
             "samplePeakCeilingDbfs": SAMPLE_PEAK_CEILING_DBFS,
             "maxGainDb": MAX_GAIN_DB,
+            # Published so the drift test can compare the whole policy, not
+            # only the three numbers it used to see. A window size or a gate
+            # that drifted apart would change every gain in the table while
+            # the three headline constants still matched.
+            "windowHz": WINDOW_HZ,
+            "absoluteGateMeanSquare": ABSOLUTE_GATE_MEAN_SQUARE,
+            "relativeGateRatio": RELATIVE_GATE_RATIO,
+            "maxDurationMs": MAX_DURATION_MS,
             "measurement": "gated-rms-dbfs",
         },
         "gainDb": dict(sorted(entries.items())),

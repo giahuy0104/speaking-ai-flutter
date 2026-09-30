@@ -58,6 +58,8 @@ class VoicePromptBridge(
     private var synthesizedPromptForcePhoneSpeaker = false
     private var synthesizedPromptForceMediaPlayback = false
     private var synthesizedPromptLevelKey: String? = null
+    /** True khi gain đi kèm lời gọi là số đo lúc build của đúng clip này. */
+    private var synthesizedPromptGainFromManifest = false
     // Matched levels of authored clips by content; main thread only.
     private val authoredPromptLevels =
         object : LinkedHashMap<String, PlaybackLoudnessResult>(16, 0.75f, true) {
@@ -260,6 +262,7 @@ class VoicePromptBridge(
         synthesizedPromptId = utteranceId
         synthesizedPromptFile = outputFile
         synthesizedPromptGainMillibels = (gainDb * 100.0).roundToInt()
+        synthesizedPromptGainFromManifest = false
         synthesizedPromptForcePhoneSpeaker = forcePhoneSpeaker
         synthesizedPromptForceMediaPlayback = forceMediaPlayback
         val status =
@@ -281,8 +284,12 @@ class VoicePromptBridge(
     // asks for attenuation. Clamping those away left the first play of every
     // clip at its authored level.
     private fun requestedGainDb(call: MethodCall): Double =
-        (call.argument<Number>("gainDb")?.toDouble() ?: 8.0)
-            .coerceIn(-AndroidPlaybackLoudness.MAX_GAIN_DB, 12.0)
+        suppliedGainDb(call) ?: AuthoredPromptLevel.DEFAULT_GAIN_DB
+
+    /** Gain do Dart gửi xuống, hoặc null khi lời gọi không kèm con số nào. */
+    private fun suppliedGainDb(call: MethodCall): Double? =
+        call.argument<Number>("gainDb")?.toDouble()
+            ?.coerceIn(-AndroidPlaybackLoudness.MAX_GAIN_DB, 12.0)
 
     private fun analyzePlaybackLevel(call: MethodCall, result: MethodChannel.Result) {
         val path = call.argument<String>("path")
@@ -353,7 +360,12 @@ class VoicePromptBridge(
         val file = File(appContext.cacheDir, "$utteranceId.mp3")
         synthesizedPromptId = utteranceId
         synthesizedPromptFile = file
-        synthesizedPromptGainMillibels = (requestedGainDb(call) * 100.0).roundToInt()
+        // Dart chỉ gửi gainDb khi manifest phủ clip này, nên có số tức là đã
+        // đo lúc build và không cần giải mã lại.
+        val manifestGainDb = suppliedGainDb(call)
+        synthesizedPromptGainFromManifest = !AuthoredPromptLevel.shouldMeasure(manifestGainDb)
+        synthesizedPromptGainMillibels =
+            ((manifestGainDb ?: AuthoredPromptLevel.DEFAULT_GAIN_DB) * 100.0).roundToInt()
         synthesizedPromptForcePhoneSpeaker =
             call.argument<Boolean>("forcePhoneSpeaker") == true
         synthesizedPromptForceMediaPlayback =
@@ -423,10 +435,12 @@ class VoicePromptBridge(
         val audioFile = synthesizedPromptFile
         val gainMillibels = synthesizedPromptGainMillibels
         val levelKey = synthesizedPromptLevelKey
+        val gainFromManifest = synthesizedPromptGainFromManifest
         synthesizedPromptId = null
         synthesizedPromptFile = null
         synthesizedPromptGainMillibels = 0
         synthesizedPromptLevelKey = null
+        synthesizedPromptGainFromManifest = false
         if (audioFile == null || !audioFile.exists() || audioFile.length() == 0L) {
             audioFile?.delete()
             completeAwaited(utteranceId, "TTS produced no playable audio.")
@@ -464,9 +478,15 @@ class VoicePromptBridge(
                     if (levelApplied || promptPlayer !== preparedPlayer || promptPlaybackId != utteranceId) return
                     levelApplied = true
                     try {
-                        val gainDb = measured?.gainDb
-                            ?: (gainMillibels / 100.0)
-                                .coerceIn(-AndroidPlaybackLoudness.MAX_GAIN_DB, 8.0)
+                        // Số của manifest là số đo lúc build của đúng clip này,
+                        // nên nó được cùng dải với số đo runtime. Trần 8 dB chỉ
+                        // dành cho mức dự phòng chung, thứ không đo gì cả.
+                        val gainDb = AuthoredPromptLevel.gainDb(
+                            manifestGainDb = if (gainFromManifest) gainMillibels / 100.0 else null,
+                            measuredGainDb = measured?.gainDb,
+                            fallbackGainDb = (gainMillibels / 100.0)
+                                .coerceIn(-AndroidPlaybackLoudness.MAX_GAIN_DB, 8.0),
+                        )
                         val volume = 10.0.pow(gainDb.coerceAtMost(0.0) / 20.0).toFloat()
                         preparedPlayer.setVolume(volume, volume)
                         promptLoudnessEnhancer = try {
@@ -475,12 +495,19 @@ class VoicePromptBridge(
                                 enabled = true
                             }
                         } catch (_: RuntimeException) { null }
-                        AudioDiagnostics.event("prompt.level.applied", mapOf("id" to utteranceId, "gainDb" to gainDb, "measured" to (measured != null)))
+                        AudioDiagnostics.event("prompt.level.applied", mapOf("id" to utteranceId, "gainDb" to gainDb, "measured" to (measured != null), "manifest" to gainFromManifest))
                         preparedPlayer.start()
                         AudioDiagnostics.output("prompt.native.started", audioManager, mapOf("id" to utteranceId, "gainDb" to gainDb, "durationMs" to preparedPlayer.duration, "sessionId" to preparedPlayer.audioSessionId))
                     } catch (error: RuntimeException) {
                         finishPromptPlayback(utteranceId, error.message ?: "Unable to start prompt.")
                     }
+                }
+                if (gainFromManifest) {
+                    // Manifest đã có gain đo lúc build của đúng clip này. Giải mã
+                    // lại chỉ để thay nó bằng một số đo runtime khác là vừa tốn
+                    // công vừa làm clip nghe khác nhau giữa các lần phát.
+                    startWithLevel(null)
+                    return@setOnPreparedListener
                 }
                 if (levelKey != null) {
                     // Authored clips are fixed assets whose MP3 decode rarely fits
@@ -546,6 +573,7 @@ class VoicePromptBridge(
         synthesizedPromptId = null
         synthesizedPromptLevelKey = null
         synthesizedPromptGainMillibels = 0
+        synthesizedPromptGainFromManifest = false
         synthesizedPromptForcePhoneSpeaker = false
         synthesizedPromptForceMediaPlayback = false
         synthesizedPromptFile?.delete()

@@ -720,9 +720,13 @@ class JustAudioPlaybackService
     if (_disposed || cachedUri == null || revision != _preloadRevision) {
       return;
     }
-    unawaited(
-      _measurePlaybackGain(cachedUri),
-    ); // Warm the native bounded meter cache.
+    // Warm the native bounded meter cache, but only for a clip nothing has
+    // already measured. A bundled asset's gain ships in the manifest, so
+    // decoding it here would be work whose result playback never reads.
+    if (_fixedGainDb == null && await _manifestGain(uri) == null) {
+      if (_disposed || revision != _preloadRevision) return;
+      unawaited(_measurePlaybackGain(cachedUri));
+    }
     await _queueSource(() async {
       if (_disposed ||
           revision != _preloadRevision ||
