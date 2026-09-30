@@ -2,6 +2,12 @@ import AVFoundation
 import Flutter
 import Foundation
 
+enum IOSPromptAudioWatchdog {
+  /// Longer than any prompt the app plays, so it only ever fires on a lease
+  /// the ordinary completion path failed to release.
+  static let timeout: TimeInterval = 60
+}
+
 struct IOSPromptOperationLeaseState {
   private var activeTokens: Set<UUID> = []
 
@@ -78,6 +84,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
   private var readyCueToken: UUID?
   private var readyCueAudioToken: UUID?
   private var readyCueFallback: DispatchWorkItem?
+  private var promptAudioWatchdogs: [UUID: DispatchWorkItem] = [:]
   private var readyCuePlayer: AVAudioPlayer?
   private var activeUtterance: AVSpeechUtterance?
   private var activeUtteranceAudioToken: UUID?
@@ -364,6 +371,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
           caller: "VoicePromptBridge.configurePromptAudioSession"
         )
         promptOperationLeases.activate(audioToken)
+        armPromptAudioWatchdog(audioToken)
         return audioToken
       } catch {
         audioSessionCoordinator.trace(
@@ -384,6 +392,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
           caller: "VoicePromptBridge.configurePromptAudioSession"
         )
         promptOperationLeases.activate(audioToken)
+        armPromptAudioWatchdog(audioToken)
         return audioToken
       } catch {
         audioSessionCoordinator.trace(
@@ -401,6 +410,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
         caller: "VoicePromptBridge.configurePromptAudioSession"
       )
       promptOperationLeases.activate(audioToken)
+      armPromptAudioWatchdog(audioToken)
       return audioToken
     } catch {
       audioSessionCoordinator.trace(
@@ -535,6 +545,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
 
   private func releasePromptAudioSession(token: UUID?) {
     guard let token else { return }
+    promptAudioWatchdogs.removeValue(forKey: token)?.cancel()
     guard promptOperationLeases.release(token) else {
       audioSessionCoordinator.trace(
         stage: "prompt_stale_audio_release_ignored",
@@ -545,6 +556,26 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     audioSessionCoordinator.releasePrompt(
       usedHfp: false,
       caller: "VoicePromptBridge.releasePromptAudioSession"
+    )
+  }
+
+  /// A prompt lease that is never released keeps the shared AVAudioSession
+  /// owned, and Dart then reuses that session instead of configuring its own
+  /// for the rest of the process. AVAudioPlayer reports no completion when a
+  /// call or Siri interrupts it, so the ordinary release never runs.
+  private func armPromptAudioWatchdog(_ token: UUID) {
+    let watchdog = DispatchWorkItem { [weak self] in
+      guard let self, self.promptAudioWatchdogs[token] != nil else { return }
+      self.audioSessionCoordinator.trace(
+        stage: "prompt_audio_watchdog_released",
+        caller: "VoicePromptBridge.armPromptAudioWatchdog"
+      )
+      self.releasePromptAudioSession(token: token)
+    }
+    promptAudioWatchdogs[token] = watchdog
+    DispatchQueue.main.asyncAfter(
+      deadline: .now() + IOSPromptAudioWatchdog.timeout,
+      execute: watchdog
     )
   }
 

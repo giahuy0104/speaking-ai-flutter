@@ -1511,4 +1511,36 @@ class RunnerTests: XCTestCase {
       )
     )
   }
+
+  // MARK: - Prompt audio watchdog
+
+  func testPromptAudioWatchdogOutlastsEveryPromptTheAppPlays() {
+    // The longest bound Dart puts on an authored prompt is its duration plus a
+    // few seconds, and the catalogue's clips are seconds long. A watchdog below
+    // that would cut a healthy prompt instead of catching a leaked lease.
+    XCTAssertGreaterThan(IOSPromptAudioWatchdog.timeout, 30)
+  }
+
+  func testALateWatchdogCannotReleaseALeaseTheNormalPathAlreadyFreed() {
+    // The watchdog and the completion callback race whenever a prompt ends
+    // right on the bound. Releasing twice would drop the session under whoever
+    // owns it next.
+    var lease = IOSPromptOperationLeaseState()
+    let token = UUID()
+    lease.activate(token)
+
+    XCTAssertTrue(lease.release(token))
+    XCTAssertFalse(lease.release(token))
+  }
+
+  func testAWatchdogReleasesOnlyItsOwnPrompt() {
+    var lease = IOSPromptOperationLeaseState()
+    let interrupted = UUID()
+    let current = UUID()
+    lease.activate(interrupted)
+    lease.activate(current)
+
+    XCTAssertTrue(lease.release(interrupted))
+    XCTAssertEqual(lease.activeToken, current)
+  }
 }
