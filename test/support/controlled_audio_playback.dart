@@ -46,13 +46,28 @@ class ControlledPlayer implements AudioPlayer {
   int disposeCalls = 0;
   bool _playing = false;
   double _volume = 1.0;
+  ProcessingState _processingState = ProcessingState.ready;
+  Duration _position = Duration.zero;
+
+  /// Pushes a player state the way just_audio would, so a test can replay the
+  /// exact event order around a completion.
+  void emitState({
+    required bool playing,
+    required ProcessingState processingState,
+    Duration position = Duration.zero,
+  }) {
+    _playing = playing;
+    _processingState = processingState;
+    _position = position;
+    _states.add(PlayerState(playing, processingState));
+  }
 
   @override
   bool get playing => _playing;
   @override
-  ProcessingState get processingState => ProcessingState.ready;
+  ProcessingState get processingState => _processingState;
   @override
-  Duration get position => Duration.zero;
+  Duration get position => _position;
   @override
   Duration? get duration => const Duration(seconds: 2);
   @override
@@ -86,6 +101,11 @@ class ControlledPlayer implements AudioPlayer {
   }) async {
     loadedPath = assetPath;
     return duration;
+  }
+
+  @override
+  Future<void> seek(Duration? position, {int? index}) async {
+    _position = position ?? Duration.zero;
   }
 
   @override
