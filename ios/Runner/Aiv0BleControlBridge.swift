@@ -156,25 +156,38 @@ struct H20RemoteControlPolicy {
 }
 
 struct H20BleControlObservation {
+  static func isHmD001Packet(_ bytes: [UInt8]) -> Bool {
+    bytes.count == 12 && bytes[0] == 0x01
+      && [UInt8(0x01), 0x03, 0x04].contains(bytes[1])
+      && [UInt8(0x01), 0x02].contains(bytes[2])
+      && bytes[3] == 0x00 && bytes[7] == 0x00 && bytes[6] <= 100
+  }
+
   static func isObservedMainShort(_ bytes: [UInt8]) -> Bool {
     bytes.count == 12 && bytes[0] == 0x01 && bytes[1] == 0x01 && bytes[3] == 0x01
   }
 
   static func batteryPercent(_ bytes: [UInt8]) -> Int? {
-    guard isObservedMainShort(bytes) else { return nil }
+    guard isObservedMainShort(bytes) || isHmD001Packet(bytes) else { return nil }
     return min(max(Int(bytes[6]) | (Int(bytes[7]) << 8), 0), 100)
   }
 
   static func fields(for bytes: [UInt8]) -> [String: Any] {
     let observedMain = isObservedMainShort(bytes)
+    let hmD001 = isHmD001Packet(bytes)
+    let button = hmD001
+      ? (bytes[1] == 0x01 ? "main" : bytes[1] == 0x03 ? "volumeUp" : "volumeDown")
+      : (observedMain ? "main" : "unknown")
     var fields: [String: Any] = [
       "source": "ble",
-      "button": observedMain ? "main" : "unknown",
-      "gesture": observedMain ? "shortPress" : "unknown",
-      "protocol": observedMain ? "observedV1" : "unknown",
+      "button": button,
+      "gesture": hmD001 ? (bytes[2] == 0x01 ? "shortPress" : "longPress")
+        : (observedMain ? "shortPress" : "unknown"),
+      "protocol": hmD001 ? "observedHmD001" : (observedMain ? "observedV1" : "unknown"),
       "rawPayload": bytes.map { String(format: "%02X", $0) }.joined(separator: " "),
     ]
     if observedMain { fields["sequence"] = Int(bytes[2]) }
+    if hmD001 { fields["sequence"] = Int(bytes[4]) | (Int(bytes[5]) << 8) }
     return fields
   }
 }
@@ -1686,6 +1699,7 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
     let lowerName = name.lowercased()
     let likely = advertisesControl || lowerName.contains("h20")
       || lowerName.contains("aiv0") || lowerName.contains("innotrik")
+      || lowerName == "hm-d001"
     let current = discoveredDevices[peripheral.identifier]
     if current == nil || RSSI.intValue > current!.rssi {
       discoveredDevices[peripheral.identifier] = DiscoveredDevice(
@@ -1979,9 +1993,11 @@ extension Aiv0BleControlBridge: CBPeripheralDelegate {
       if let observedBattery = H20BleControlObservation.batteryPercent(bytes) {
         batteryPercent = observedBattery
       }
-      if !duplicate, H20BleControlObservation.isObservedMainShort(bytes) {
+      if !duplicate && (H20BleControlObservation.isObservedMainShort(bytes)
+        || (H20BleControlObservation.isHmD001Packet(bytes) && bytes[1] == 0x01)) {
         audioSessionCoordinator.notePhysicalMain(rawHex: rawHex, source: "ble")
-        let packetSequence = Int(bytes[2])
+        let packetSequence = H20BleControlObservation.isHmD001Packet(bytes)
+          ? Int(bytes[4]) | (Int(bytes[5]) << 8) : Int(bytes[2])
         audioSessionCoordinator.trace(
           stage: "MAIN_EVENT_DELIVERY_ATTEMPT",
           caller: "Aiv0BleControlBridge.eventChannel",

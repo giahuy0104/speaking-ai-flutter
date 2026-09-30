@@ -168,6 +168,67 @@ void main() {
   });
 
   group('Aiv0DraftProtocolCodec', () {
+    test(
+      'decodes observed HM-D001 buttons without enabling APP State writes',
+      () {
+        const codec = Aiv0DraftProtocolCodec(confirmed: false);
+        final cases = <(List<int>, Aiv0Button, Aiv0ButtonGesture)>[
+          (
+            <int>[1, 1, 1, 0, 0x1C, 0, 79, 0, 0xC7, 0x40, 0x0C, 0],
+            Aiv0Button.main,
+            Aiv0ButtonGesture.shortPress,
+          ),
+          (
+            <int>[1, 1, 2, 0, 0x1D, 0, 79, 0, 0xA7, 0x5B, 0x0C, 0],
+            Aiv0Button.main,
+            Aiv0ButtonGesture.longPress,
+          ),
+          (
+            <int>[1, 4, 2, 0, 0x1E, 0, 79, 0, 0x82, 0x7B, 0x0C, 0],
+            Aiv0Button.volumeDown,
+            Aiv0ButtonGesture.longPress,
+          ),
+          (
+            <int>[1, 3, 2, 0, 0x1F, 0, 79, 0, 0xFC, 0x97, 0x0C, 0],
+            Aiv0Button.volumeUp,
+            Aiv0ButtonGesture.longPress,
+          ),
+        ];
+
+        for (final (raw, button, gesture) in cases) {
+          final event = codec.decodeButtonEvent(Uint8List.fromList(raw));
+          expect(event.button, button);
+          expect(event.gesture, gesture);
+          expect(event.isObservedHmD001Packet, isTrue);
+          expect(event.isObservedH20Packet, isFalse);
+          expect(event.isActionable, isTrue);
+          expect(event.sequence, raw[4]);
+          expect(event.batteryPercent, 79);
+        }
+        expect(
+          () => codec.encodeAppState(
+            state: Aiv0AppState.idle,
+            result: Aiv0AppResult.accepted,
+          ),
+          throwsStateError,
+        );
+      },
+    );
+
+    test('does not dispatch unobserved HM-D001 button and gesture codes', () {
+      const codec = Aiv0DraftProtocolCodec(confirmed: false);
+      for (final raw in <List<int>>[
+        <int>[1, 2, 2, 0, 1, 0, 79, 0, 0, 0, 0, 0],
+        <int>[1, 3, 3, 0, 1, 0, 79, 0, 0, 0, 0, 0],
+        <int>[1, 3, 2, 1, 1, 0, 79, 0, 0, 0, 0, 0],
+      ]) {
+        expect(
+          codec.decodeButtonEvent(Uint8List.fromList(raw)).isActionable,
+          isFalse,
+        );
+      }
+    });
+
     test('decodes observed H20 MAIN packet without enabling APP State', () {
       const codec = Aiv0DraftProtocolCodec(confirmed: false);
       final event = codec.decodeButtonEvent(

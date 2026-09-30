@@ -102,6 +102,7 @@ class Aiv0ButtonEvent {
     this.batteryPercent,
     this.uptimeMilliseconds,
     this.isObservedH20Packet = false,
+    this.isObservedHmD001Packet = false,
     this.isDraftPacket = false,
     this.isDuplicate = false,
     this.rawDescription,
@@ -118,6 +119,7 @@ class Aiv0ButtonEvent {
   final int? batteryPercent;
   final int? uptimeMilliseconds;
   final bool isObservedH20Packet;
+  final bool isObservedHmD001Packet;
   final bool isDraftPacket;
   final bool isDuplicate;
   final String? rawDescription;
@@ -125,7 +127,8 @@ class Aiv0ButtonEvent {
   /// Whether this notification has enough information to enter the unified
   /// MAIN handler. Observed H20 packets are actionable even while the separate
   /// APP State write packet remains unconfirmed.
-  bool get isActionable => isObservedH20Packet || isDraftPacket;
+  bool get isActionable =>
+      isObservedH20Packet || isObservedHmD001Packet || isDraftPacket;
 
   String get rawHex => rawBytes
       .map((byte) => byte.toRadixString(16).padLeft(2, '0').toUpperCase())
@@ -175,6 +178,38 @@ class Aiv0DraftProtocolCodec {
         batteryPercent: data.getUint16(6, Endian.little).clamp(0, 100),
         uptimeMilliseconds: data.getUint32(8, Endian.little),
         isObservedH20Packet: true,
+      );
+    }
+
+    // HM-D001 uses the same GATT service but the confirmed button/gesture
+    // layout below, independently of the unconfirmed APP State writer.
+    final isObservedHmD001Packet =
+        bytes.length == buttonPacketLength &&
+        bytes[0] == protocolVersion &&
+        (bytes[1] == 0x01 || bytes[1] == 0x03 || bytes[1] == 0x04) &&
+        (bytes[2] == 0x01 || bytes[2] == 0x02) &&
+        bytes[3] == 0x00 &&
+        bytes[7] == 0x00 &&
+        bytes[6] <= 100;
+    if (isObservedHmD001Packet) {
+      final data = ByteData.sublistView(bytes);
+      return Aiv0ButtonEvent(
+        rawBytes: bytes,
+        deviceId: deviceId,
+        receivedAt: receivedAt ?? DateTime.now(),
+        button: switch (bytes[1]) {
+          0x01 => Aiv0Button.main,
+          0x03 => Aiv0Button.volumeUp,
+          _ => Aiv0Button.volumeDown,
+        },
+        gesture: bytes[2] == 0x01
+            ? Aiv0ButtonGesture.shortPress
+            : Aiv0ButtonGesture.longPress,
+        sequence: data.getUint16(4, Endian.little),
+        batteryPercent: bytes[6],
+        uptimeMilliseconds: data.getUint32(8, Endian.little),
+        isObservedHmD001Packet: !confirmed,
+        isDraftPacket: confirmed,
       );
     }
 
@@ -880,6 +915,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
           batteryPercent: buttonEvent.batteryPercent,
           uptimeMilliseconds: buttonEvent.uptimeMilliseconds,
           isObservedH20Packet: buttonEvent.isObservedH20Packet,
+          isObservedHmD001Packet: buttonEvent.isObservedHmD001Packet,
           isDraftPacket: buttonEvent.isDraftPacket,
           isDuplicate: event['duplicate'] == true,
         ),
