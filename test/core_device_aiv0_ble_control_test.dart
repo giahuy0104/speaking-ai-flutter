@@ -158,6 +158,37 @@ void main() {
       expect(selectAiv0AutoConnectCandidate(devices)?.id, 'SERVICE');
     });
 
+    test('prefers HM-D001 when migrating a saved H20', () {
+      const devices = <Aiv0BleDevice>[
+        Aiv0BleDevice(
+          id: 'OLD',
+          name: 'H20',
+          rssi: -30,
+          advertisesControlService: true,
+        ),
+        Aiv0BleDevice(
+          id: 'NEW',
+          name: 'HM-D001',
+          rssi: -80,
+          advertisesControlService: true,
+        ),
+      ];
+
+      expect(
+        selectAiv0AutoConnectCandidate(
+          devices,
+          savedDeviceId: 'OLD',
+          savedDeviceName: 'H20',
+        )?.id,
+        'NEW',
+      );
+      expect(
+        selectAiv0AutoConnectCandidate(devices, savedDeviceId: 'OLD')?.id,
+        'OLD',
+      );
+      expect(selectAiv0AutoConnectCandidate(devices)?.id, 'NEW');
+    });
+
     test('does not connect an unrelated BLE device', () {
       const devices = <Aiv0BleDevice>[
         Aiv0BleDevice(id: 'OTHER', name: 'Other', rssi: -10),

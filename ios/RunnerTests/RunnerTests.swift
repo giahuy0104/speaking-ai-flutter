@@ -221,6 +221,14 @@ class RunnerTests: XCTestCase {
         applicationIsActive: true,
         learningActive: true,
         diagnosticsActive: false,
+        bluetoothPortNames: ["HM-D001 Hands-Free"]
+      )
+    )
+    XCTAssertTrue(
+      H20RemoteControlPolicy.shouldListen(
+        applicationIsActive: true,
+        learningActive: true,
+        diagnosticsActive: false,
         bluetoothPortNames: ["H20"]
       )
     )

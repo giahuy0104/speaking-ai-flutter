@@ -65,8 +65,18 @@ class Aiv0BleDevice {
 Aiv0BleDevice? selectAiv0AutoConnectCandidate(
   List<Aiv0BleDevice> devices, {
   String? savedDeviceId,
+  String? savedDeviceName,
 }) {
   if (devices.isEmpty) return null;
+  final hmD001Devices =
+      devices
+          .where((device) => device.name.trim().toLowerCase() == 'hm-d001')
+          .toList(growable: false)
+        ..sort((a, b) => b.rssi.compareTo(a.rssi));
+  if ((savedDeviceName?.toLowerCase().contains('h20') ?? false) &&
+      hmD001Devices.isNotEmpty) {
+    return hmD001Devices.first;
+  }
   final normalizedSavedId = savedDeviceId?.trim().toUpperCase();
   if (normalizedSavedId != null && normalizedSavedId.isNotEmpty) {
     for (final device in devices) {
@@ -75,6 +85,7 @@ Aiv0BleDevice? selectAiv0AutoConnectCandidate(
       }
     }
   }
+  if (hmD001Devices.isNotEmpty) return hmD001Devices.first;
 
   final serviceMatches =
       devices
@@ -732,7 +743,12 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
 
     final preferences = await SharedPreferences.getInstance();
     final savedDeviceId = preferences.getString(_lastDeviceIdPreference);
-    if (savedDeviceId != null && savedDeviceId.trim().isNotEmpty) {
+    final savedDeviceName = preferences.getString(_lastDeviceNamePreference);
+    final migratingFromH20 =
+        savedDeviceName?.toLowerCase().contains('h20') ?? false;
+    if (savedDeviceId != null &&
+        savedDeviceId.trim().isNotEmpty &&
+        !migratingFromH20) {
       try {
         // This is the fast path for normal daily use: native can reopen the
         // verified GATT identifier directly without waiting for another scan.
@@ -755,9 +771,20 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     final candidate = selectAiv0AutoConnectCandidate(
       devices,
       savedDeviceId: savedDeviceId,
+      savedDeviceName: savedDeviceName,
     );
     final targetId = candidate?.id;
-    if (targetId == null || targetId.isEmpty) return false;
+    if (targetId == null || targetId.isEmpty) {
+      if (migratingFromH20 && savedDeviceId != null) {
+        try {
+          await connect(savedDeviceId.trim());
+          return true;
+        } catch (_) {
+          return false;
+        }
+      }
+      return false;
+    }
 
     try {
       await connect(targetId);

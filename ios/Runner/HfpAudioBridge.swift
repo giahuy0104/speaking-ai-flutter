@@ -248,13 +248,13 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
         selectedInputName = activeInput.portName
         routeActive = true
         phase = "ready"
-        message = "Đã xác nhận mic và loa H20 trên route bluetoothHFP."
+        message = "Đã xác nhận mic và loa HOMI trên route bluetoothHFP."
       } else {
         routeActive = false
         phase = "idle"
         message = inputs.isEmpty
-          ? "iOS chưa công bố đầu vào bluetoothHFP dù H20 đang ghép đôi. Hãy tắt/bật lại H20 rồi thử lại."
-          : "Đã tìm thấy \(inputs.count) mic HFP; hãy chọn H20 để mở route hai chiều."
+          ? "iOS chưa công bố đầu vào bluetoothHFP dù HM-D001 đang ghép đôi. Hãy tắt/bật lại HM-D001 rồi thử lại."
+          : "Đã tìm thấy \(inputs.count) mic HFP; hãy chọn HM-D001 để mở route hai chiều."
         if inputs.isEmpty {
           audioSessionCoordinator.trace(
             stage: "hfp_inputs_unavailable",
@@ -326,7 +326,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       try configureSession(activate: true)
       routeActive = false
       phase = "connecting"
-      message = "Đang xác nhận mic và loa H20 trên route bluetoothHFP…"
+      message = "Đang xác nhận mic và loa HOMI trên route bluetoothHFP…"
       emitStatus()
       // Releasing the discovery route lets BLE recover, but iOS can then
       // republish the same H20 input with a new UID. Wait for the input and
@@ -396,7 +396,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       selectedInputName = activeInput.portName
       routeActive = true
       phase = "recording"
-      message = "Đang dùng lại mic và loa H20 trên route bluetoothHFP hai chiều."
+      message = "Đang dùng lại mic và loa HOMI trên route bluetoothHFP hai chiều."
       audioSessionCoordinator.trace(
         stage: "HFP_ROUTE_CONFIRMED",
         caller: "HfpAudioBridge.startAudioRoute.reused",
@@ -561,8 +561,8 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       routeActive = true
       phase = recording ? "recording" : "ready"
       message = recording
-        ? "Đang dùng mic và loa H20 trên route bluetoothHFP hai chiều."
-        : "Đã xác nhận mic và loa H20 trên route bluetoothHFP."
+        ? "Đang dùng mic và loa HOMI trên route bluetoothHFP hai chiều."
+        : "Đã xác nhận mic và loa HOMI trên route bluetoothHFP."
       audioSessionCoordinator.trace(
         stage: "HFP_ROUTE_CONFIRMED",
         caller: "HfpAudioBridge.waitForActiveBluetoothInput",
@@ -796,13 +796,13 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       selectedInputName = active.portName
       routeActive = true
       phase = "recording"
-      message = "Đang dùng mic và loa H20 trên route bluetoothHFP hai chiều."
+      message = "Đang dùng mic và loa HOMI trên route bluetoothHFP hai chiều."
     } else if let active = selectedOrUnclaimedActiveTwoWayHfpInput() {
       selectedInputId = active.uid
       selectedInputName = active.portName
       routeActive = true
       phase = "ready"
-      message = "Mic và loa H20 đã được xác nhận trên currentRoute."
+      message = "Mic và loa HOMI đã được xác nhận trên currentRoute."
     } else {
       routeActive = false
       phase = phase == "recording" ? "error" : "idle"
@@ -937,7 +937,7 @@ private enum HfpBridgeError: LocalizedError {
     case .routeCancelled:
       return "Yêu cầu mở mic HFP đã được thay thế hoặc hủy."
     case .routeReleaseTimedOut:
-      return "HFP/SCO vẫn đang hoạt động; HOMI chưa mở BLE để tránh làm gián đoạn mic H20."
+      return "HFP/SCO vẫn đang hoạt động; HOMI chưa mở BLE để tránh làm gián đoạn micro."
     }
   }
 }

@@ -135,7 +135,10 @@ struct H20RemoteControlPolicy {
   ) -> Bool {
     applicationIsActive
       && (learningActive || diagnosticsActive)
-      && bluetoothPortNames.contains { $0.localizedCaseInsensitiveContains("H20") }
+      && bluetoothPortNames.contains {
+        $0.localizedCaseInsensitiveContains("HM-D001")
+          || $0.localizedCaseInsensitiveContains("H20")
+      }
   }
 
   static func observation(command: String, receivedAtEpochMs: Int) -> [String: Any] {
@@ -673,7 +676,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       return $0.rssi > $1.rssi
     }
     phase = stateCharacteristic == nil ? "idle" : "connected"
-    message = devices.isEmpty ? "Không tìm thấy H20/AIV0." : nil
+    message = devices.isEmpty ? "Không tìm thấy HM-D001." : nil
     emitStatus()
     result(devices.map(\.map))
   }
@@ -686,7 +689,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       return
     }
     guard pendingConnectResult == nil else {
-      result(FlutterError(code: "CONNECT_IN_PROGRESS", message: "Đang kết nối H20.", details: nil))
+      result(FlutterError(code: "CONNECT_IN_PROGRESS", message: "Đang kết nối HOMI.", details: nil))
       return
     }
     guard let manager = readyCentral(result) else { return }
@@ -696,7 +699,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     guard let peripheral else {
       result(FlutterError(
         code: "DEVICE_NOT_FOUND",
-        message: "Không tìm thấy H20 đã lưu. Hãy quét lại thiết bị.",
+        message: "Không tìm thấy thiết bị HOMI đã lưu. Hãy quét lại thiết bị.",
         details: nil
       ))
       return
@@ -716,8 +719,8 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     pendingConnectResult = result
     phase = "connecting"
     message = startStep == .complete
-      ? "BLE Control H20 đã kết nối; nút MAIN sẵn sàng."
-      : "Đang kết nối BLE Control H20…"
+      ? "BLE Control HOMI đã kết nối; nút MAIN sẵn sàng."
+      : "Đang kết nối BLE Control HOMI…"
     emitStatus()
     audioSessionCoordinator.trace(
       stage: "ble_connect_start",
@@ -727,7 +730,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     if startStep == .connect, shouldDeferBluetoothReconnect() {
       deferredReconnectPeripheral = peripheral
       phase = "reconnecting"
-      message = "BLE H20 đang chờ câu dẫn/ghi âm kết thúc; HFP không bị thay đổi."
+      message = "BLE HOMI đang chờ câu dẫn/ghi âm kết thúc; HFP không bị thay đổi."
       audioSessionCoordinator.trace(
         stage: "ble_connect_deferred_for_audio",
         caller: "Aiv0BleControlBridge.connect"
@@ -771,7 +774,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     cancelReconnectTasks()
     connectTimeoutWorkItem?.cancel()
     connectTimeoutWorkItem = nil
-    failPendingConnect(code: "CONNECT_CANCELLED", message: "Đã hủy kết nối H20.")
+    failPendingConnect(code: "CONNECT_CANCELLED", message: "Đã hủy kết nối HOMI.")
     if let peripheral = connectedPeripheral {
       requestPeripheralDisconnect(
         peripheral,
@@ -820,7 +823,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       return
     }
     guard let peripheral = connectedPeripheral, let characteristic = stateCharacteristic else {
-      result(FlutterError(code: "NOT_CONNECTED", message: "BLE Control H20 chưa kết nối.", details: nil))
+      result(FlutterError(code: "NOT_CONNECTED", message: "BLE Control HOMI chưa kết nối.", details: nil))
       return
     }
     let numbers = rawBytes as? [NSNumber]
@@ -874,7 +877,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
         )
       }
       self.phase = "error"
-      self.message = "Hết thời gian xác minh dịch vụ BLE Control H20."
+      self.message = "Hết thời gian xác minh dịch vụ BLE Control HOMI."
       self.emitStatus()
       self.failPendingConnect(code: "CONNECT_TIMEOUT", message: self.message!)
     }
@@ -888,7 +891,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     cancelReconnectTasks()
     reconnectAttempt = 0
     phase = "connected"
-    message = "BLE Control H20 đã kết nối."
+    message = "BLE Control HOMI đã kết nối."
     emitStatus()
     let result = pendingConnectResult
     pendingConnectResult = nil
@@ -918,7 +921,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     if shouldDeferBluetoothReconnect() {
       deferredReconnectPeripheral = peripheral
       phase = "reconnecting"
-      message = "BLE H20 tạm chờ đến khi lượt MAIN kết thúc; HFP không bị thay đổi."
+      message = "BLE HOMI tạm chờ đến khi lượt MAIN kết thúc; HFP không bị thay đổi."
       audioSessionCoordinator.trace(
         stage: "ble_reconnect_deferred",
         caller: "Aiv0BleControlBridge.scheduleReconnect"
@@ -941,7 +944,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       reconnectAttempt < Aiv0ReconnectPolicy.maxAttempts
     else {
       phase = "error"
-      message = "Kết nối BLE Control H20 đã mất."
+      message = "Kết nối BLE Control HOMI đã mất."
       emitStatus()
       failPendingConnect(code: "RECONNECT_EXHAUSTED", message: message!)
       return
@@ -950,7 +953,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     reconnectCount += 1
     let attempt = reconnectAttempt
     phase = "reconnecting"
-    message = "Đang kết nối lại H20 (lần \(attempt)/\(Aiv0ReconnectPolicy.maxAttempts))…"
+    message = "Đang kết nối lại HOMI (lần \(attempt)/\(Aiv0ReconnectPolicy.maxAttempts))…"
     emitStatus()
     let delay = Aiv0ReconnectPolicy.delaySeconds(forAttempt: attempt)
     audioSessionCoordinator.trace(
@@ -1082,7 +1085,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
         deferredReconnectPeripheral = nil
         peripheral.delegate = self
         phase = "connecting"
-        message = "Đang khôi phục nút MAIN H20…"
+        message = "Đang khôi phục nút MAIN HOMI…"
         emitStatus()
         peripheral.discoverServices([
           ProtocolUUID.controlService,
@@ -1151,7 +1154,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
         self.refreshMainNotificationSubscription()
       case .reportFailure:
         self.phase = "error"
-        self.message = "BLE H20 vẫn kết nối nhưng chưa xác nhận MAIN Notify."
+        self.message = "BLE HOMI vẫn kết nối nhưng chưa xác nhận MAIN Notify."
         self.lastNotificationRecovery = "timeout • connected • notify=disabled"
         self.emitStatus()
         self.failPendingConnect(code: "NOTIFY_TIMEOUT", message: self.message!)
@@ -1193,7 +1196,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     case .rediscover:
       notificationRefreshInProgress = false
       phase = "connecting"
-      message = "Đang khôi phục nút MAIN H20…"
+      message = "Đang khôi phục nút MAIN HOMI…"
       emitStatus()
       peripheral.discoverServices([
         ProtocolUUID.controlService,
@@ -1214,7 +1217,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       notificationValidationPending = false
       duplicatePacketFilter.resetWindow()
       phase = "connected"
-      message = "BLE Control H20 đã kết nối; nút MAIN sẵn sàng."
+      message = "BLE Control HOMI đã kết nối; nút MAIN sẵn sàng."
       lastNotificationRecovery = "complete • peripheral=\(peripheralState) • notify=\(notificationState)"
       emitStatus()
       if shouldRefreshAgain {
@@ -1226,7 +1229,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   private func validateControlCharacteristics() {
     guard let button = buttonCharacteristic, let state = stateCharacteristic else {
       phase = "error"
-      message = "H20 thiếu characteristic MAIN hoặc APP State."
+      message = "HOMI thiếu characteristic MAIN hoặc APP State."
       emitStatus()
       failPendingConnect(code: "PROTOCOL_MISMATCH", message: message!)
       if let peripheral = connectedPeripheral {
@@ -1242,7 +1245,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     let canWrite = state.properties.contains(.write) || state.properties.contains(.writeWithoutResponse)
     guard canNotify, canWrite else {
       phase = "error"
-      message = "Characteristic BLE Control H20 không đúng quyền Notify/Write."
+      message = "Characteristic BLE Control HOMI không đúng quyền Notify/Write."
       emitStatus()
       failPendingConnect(code: "PROTOCOL_MISMATCH", message: message!)
       return
@@ -1600,7 +1603,7 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
     )
     resetCharacteristics()
     phase = "reconnecting"
-    message = "iOS đang khôi phục kết nối H20."
+    message = "iOS đang khôi phục kết nối HOMI."
     lastNotificationRecovery =
       "state-restoration • peripheral=\(peripheral.state) • notify=discovering"
     audioSessionCoordinator.trace(
@@ -1640,14 +1643,14 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
          stateCharacteristic == nil,
          restoredPeripheral.state == .disconnected {
         phase = "reconnecting"
-        message = "iOS đang kết nối lại H20."
+        message = "iOS đang kết nối lại HOMI."
         connectPeripheral(restoredPeripheral, using: central)
         scheduleConnectTimeout()
       } else if let restoredPeripheral = connectedPeripheral,
                 stateCharacteristic == nil,
                 restoredPeripheral.state == .connected {
         phase = "connecting"
-        message = "iOS đang khôi phục nút MAIN H20."
+        message = "iOS đang khôi phục nút MAIN HOMI."
         restoredPeripheral.delegate = self
         restoredPeripheral.discoverServices([
           ProtocolUUID.controlService,
@@ -1742,7 +1745,7 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
     error: Error?
   ) {
     phase = "error"
-    message = "Không kết nối được H20: \(error?.localizedDescription ?? "không rõ lỗi")"
+    message = "Không kết nối được HOMI: \(error?.localizedDescription ?? "không rõ lỗi")"
     emitStatus()
     failPendingConnect(code: "CONNECT_FAILED", message: message!)
     let nsError = error as NSError?
@@ -1799,8 +1802,8 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
     if !manualDisconnect && !disposed {
       phase = "reconnecting"
       message = systemIsReconnecting
-        ? "BLE GATT H20 vừa ngắt; iOS đang tự khôi phục MAIN."
-        : "BLE GATT H20 vừa ngắt; đang chờ khôi phục MAIN."
+        ? "BLE GATT HOMI vừa ngắt; iOS đang tự khôi phục MAIN."
+        : "BLE GATT HOMI vừa ngắt; đang chờ khôi phục MAIN."
     }
     audioSessionCoordinator.trace(
       stage: "BLE_DISCONNECTED",
@@ -1950,7 +1953,7 @@ extension Aiv0BleControlBridge: CBPeripheralDelegate {
       return
     }
     guard error == nil, characteristic.isNotifying else {
-      failDiscovery("Không bật được thông báo MAIN của H20.")
+      failDiscovery("Không bật được thông báo MAIN của HOMI.")
       return
     }
     lastNotificationRecovery = "initial • peripheral=\(peripheralState) • notify=\(notificationState)"

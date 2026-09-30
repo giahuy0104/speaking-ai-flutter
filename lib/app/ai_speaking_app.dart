@@ -804,10 +804,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     } else if (mounted) {
       setState(() {
         _startupPermissionError = controller.canUseAiv0Ble
-            ? 'Nút MAIN đã kết nối nhưng micro H20 chưa sẵn sàng. Bấm Kết nối thiết bị để chọn micro.'
+            ? 'Nút MAIN đã kết nối nhưng micro HM-D001 chưa sẵn sàng. Bấm Kết nối thiết bị để chọn micro.'
             : controller.usesHfpInput
-            ? 'Micro H20 đã sẵn sàng nhưng chưa kết nối được nút MAIN qua BLE.'
-            : 'Chưa kết nối được H20. Hãy kiểm tra Bluetooth và thiết bị rồi thử lại.';
+            ? 'Micro HM-D001 đã sẵn sàng nhưng chưa kết nối được nút MAIN qua BLE.'
+            : 'Chưa kết nối được HM-D001. Hãy kiểm tra Bluetooth và thiết bị rồi thử lại.';
       });
     }
     if (controller.isH20Ready) {
@@ -852,11 +852,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
 
     final message = switch (state) {
       Aiv0BluetoothAdapterState.poweredOff =>
-        'Bluetooth đang tắt. Hãy bật Bluetooth để kết nối với HOMI H20.',
+        'Bluetooth đang tắt. Hãy bật Bluetooth để kết nối với HM-D001.',
       Aiv0BluetoothAdapterState.unauthorized =>
         'HOMI chưa được phép sử dụng Bluetooth. Hãy cho phép Bluetooth trong Cài đặt.',
       Aiv0BluetoothAdapterState.unsupported =>
-        'Điện thoại này không hỗ trợ Bluetooth Low Energy cần thiết cho HOMI H20.',
+        'Điện thoại này không hỗ trợ Bluetooth Low Energy cần thiết cho HM-D001.',
       Aiv0BluetoothAdapterState.resetting =>
         'Bluetooth đang khởi động lại. Hãy đợi một chút rồi thử lại.',
       _ => 'Bluetooth chưa sẵn sàng. Hãy kiểm tra Bluetooth rồi thử lại.',
@@ -914,7 +914,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
     if (devices.isEmpty) {
       const message =
-          'Chưa tìm thấy micro HOMI (H20/HM-D001). Hãy kết nối thiết bị trong Cài đặt Bluetooth rồi quay lại HOMI.';
+          'Chưa tìm thấy micro HM-D001. Hãy kết nối thiết bị trong Cài đặt Bluetooth rồi quay lại HOMI.';
       if (mounted) setState(() => _startupPermissionError = message);
       if (interactive) {
         final openSettings = await _showParentH20GuidanceDialog(
@@ -1025,9 +1025,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (defaultTargetPlatform == TargetPlatform.android &&
         !selected.isConnected) {
       final openSettings = await _showParentH20GuidanceDialog(
-        title: 'Kết nối HOMI H20',
+        title: 'Kết nối HM-D001',
         message:
-            'HOMI H20 đã được ghép đôi nhưng chưa kết nối âm thanh. Hãy kết nối thiết bị trong Cài đặt Bluetooth rồi quay lại.',
+            'HM-D001 đã được ghép đôi nhưng chưa kết nối âm thanh. Hãy kết nối thiết bị trong Cài đặt Bluetooth rồi quay lại.',
         primaryLabel: 'Mở Cài đặt Bluetooth',
       );
       if (openSettings) {
@@ -1046,7 +1046,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     } catch (error) {
       if (mounted) {
         setState(() {
-          _startupPermissionError = 'Chưa thể chọn micro H20: $error';
+          _startupPermissionError = 'Chưa thể chọn micro HM-D001: $error';
         });
       }
       return _ParentHfpSelectionResult.unavailable;
@@ -1060,16 +1060,16 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     final bleReady = h20State.bleReady;
     final hfpReady = h20State.hfpReady;
     final message = bleReady && !hfpReady
-        ? 'Nút MAIN đã kết nối nhưng micro H20 chưa sẵn sàng. Hãy kết nối H20 trong Cài đặt Bluetooth rồi quay lại.'
+        ? 'Nút MAIN đã kết nối nhưng micro HM-D001 chưa sẵn sàng. Hãy kết nối HM-D001 trong Cài đặt Bluetooth rồi quay lại.'
         : hfpReady && !bleReady
-        ? 'Micro H20 đã sẵn sàng nhưng chưa kết nối được nút MAIN. Hãy bật H20, đặt thiết bị gần điện thoại rồi thử lại.'
-        : 'Chưa kết nối được HOMI H20. Hãy bật H20, bật Bluetooth và kết nối thiết bị trong Cài đặt Bluetooth.';
+        ? 'Micro HM-D001 đã sẵn sàng nhưng chưa kết nối được nút MAIN. Hãy bật HM-D001, đặt thiết bị gần điện thoại rồi thử lại.'
+        : 'Chưa kết nối được HM-D001. Hãy bật HM-D001, bật Bluetooth và kết nối thiết bị trong Cài đặt Bluetooth.';
     if (mounted) setState(() => _startupPermissionError = message);
     final shouldOpenSettings = !hfpReady;
     final accepted = await _showParentH20GuidanceDialog(
       title: bleReady || hfpReady
-          ? 'Kết nối H20 chưa hoàn tất'
-          : 'Chưa kết nối HOMI H20',
+          ? 'Kết nối HM-D001 chưa hoàn tất'
+          : 'Chưa kết nối HM-D001',
       message: message,
       primaryLabel: shouldOpenSettings
           ? defaultTargetPlatform == TargetPlatform.android
