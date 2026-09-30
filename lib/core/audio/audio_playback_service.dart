@@ -1089,6 +1089,7 @@ class PlaybackCompletionTracker {
         position == Duration.zero) {
       // A new source invalidates every duration observed for an older source.
       _activeDuration = null;
+      _currentPlaybackStarted = false;
     }
     if (playing && processingState != ProcessingState.completed) {
       _currentPlaybackStarted = true;
