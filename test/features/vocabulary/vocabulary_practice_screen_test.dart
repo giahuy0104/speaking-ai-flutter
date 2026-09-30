@@ -412,6 +412,94 @@ void main() {
   );
 
   testWidgets(
+    'giving up on a word plays the authored clip, not synthesised speech',
+    (tester) async {
+      // The retry branch and the give-up branch speak the same word. Only the
+      // retry branch used the authored clip, so the child heard a different
+      // voice on the second attempt than on the first - and on iOS at a
+      // different level, because iOS does not meter synthesised speech.
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      const store = VocabularyStore();
+      const sessionStore = VocabularySessionStore();
+      await store.upsertLessonSentence(
+        lessonCode: 'L01',
+        sentenceId: 'S1',
+        english: 'Open your book',
+        vietnamese: 'Mở sách ra',
+        collection: VocabularyCollection.review,
+        source: VocabularySource.topicCore,
+      );
+      final session = await sessionStore.prepareReview(store);
+      final media = _FakeLessonMediaService();
+      addTearDown(media.close);
+      final voice = _KeyedFakeVoicePromptService();
+      final evaluator = _QueuedAttemptEvaluator(<LessonAttemptOutcome>[
+        LessonAttemptOutcome.retry,
+        LessonAttemptOutcome.needsPractice,
+      ]);
+      var now = DateTime(2026);
+      final endpointDetector = LessonRecordingEndpointDetector(
+        silenceDuration: const Duration(milliseconds: 100),
+        voiceActivityDetector: AdaptiveVoiceActivityDetector(
+          calibrationDuration: Duration.zero,
+          minimumSpeechDuration: Duration.zero,
+          minimumSpeechVariationDb: 0,
+        ),
+        now: () => now,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: VocabularyPracticeScreen(
+            language: DisplayLanguage.vietnamese,
+            childAge: 6,
+            session: session!,
+            store: store,
+            sessionStore: sessionStore,
+            mediaService: media,
+            attemptEvaluator: evaluator,
+            recordingEndpointDetector: endpointDetector,
+            voicePromptService: voice,
+            samplePause: Duration.zero,
+            autoStart: false,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('vocabulary-practice-main-action')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-practice-main-action')));
+      await tester.pumpAndSettle();
+      expect(evaluator.attemptNumbers, <int>[1]);
+
+      media.amplitudes
+        ..add(-60)
+        ..add(-60)
+        ..add(-60);
+      now = now.add(const Duration(milliseconds: 100));
+      media.amplitudes.add(-20);
+      now = now.add(const Duration(milliseconds: 100));
+      media.amplitudes.add(-60);
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
+
+      expect(evaluator.attemptNumbers, <int>[1, 2]);
+      expect(
+        voice.spoken.where((item) => item == 'en-US:Open your book'),
+        isEmpty,
+        reason: 'the word must never be synthesised while a clip exists',
+      );
+      expect(
+        voice.audioKeys.where((key) => key.endsWith('.word.en')),
+        hasLength(3),
+        reason: 'first play, retry, and give-up all use the authored clip',
+      );
+    },
+  );
+
+  testWidgets(
     'Review retries with English only and stops early after speech silence',
     (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -1409,6 +1497,22 @@ class _FakeVoicePromptService implements VoicePromptService {
 
   @override
   Future<void> stop() async {}
+}
+
+/// Separates the two ways a word can reach the child: an authored clip
+/// (`audioKeys`) or synthesised speech (`spoken`).
+class _KeyedFakeVoicePromptService extends _FakeVoicePromptService
+    implements KeyedVoicePromptService {
+  final List<String> audioKeys = <String>[];
+
+  @override
+  Future<void> speakAndWaitWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) async {
+    audioKeys.add(audioKey);
+  }
 }
 
 class _CorrectFeedbackGateVoice extends _FakeVoicePromptService {

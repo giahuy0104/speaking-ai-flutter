@@ -724,7 +724,11 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       ),
     );
     if (!_isCurrent(generation, entry.id)) return;
-    await _speakAndWait(entry.word, locale: 'en-US');
+    // Same word, same screen: the retry branch above plays the authored clip,
+    // so giving up must too. Falling through to TTS here made the child hear a
+    // different voice on the second attempt than on the first, and on iOS at a
+    // different level, because iOS does not meter synthesised speech.
+    await _speakVocabularyText(entry, entry.word, locale: 'en-US');
     if (!_isCurrent(generation, entry.id)) return;
     final results = Map<String, bool>.of(_session.results);
     results.putIfAbsent(entry.id, () => false);
