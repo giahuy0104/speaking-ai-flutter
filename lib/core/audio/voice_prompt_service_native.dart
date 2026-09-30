@@ -31,7 +31,12 @@ class MethodChannelVoicePromptService
     double? gainDb,
   }) => _channel.invokeMethod<void>('playAuthoredAudioAndWait', {
     'bytes': bytes,
-    'gainDb': gainDb ?? androidAssistantSpeechBoostDb,
+    // Omitted rather than defaulted: the native side treats a present gain as
+    // the manifest's build-time measurement of this exact clip and skips its
+    // own decode. Sending the shared fallback here would claim a measurement
+    // for clips the manifest never covered. Both platforms apply the same
+    // fallback when the key is absent.
+    'gainDb': ?gainDb,
     'forcePhoneSpeaker': forcePhoneSpeaker,
     'forceMediaPlayback': forceMediaPlayback,
   });

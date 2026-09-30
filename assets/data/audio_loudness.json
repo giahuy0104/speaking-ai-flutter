@@ -3,6 +3,10 @@
     "targetRmsDbfs": -21.0,
     "samplePeakCeilingDbfs": -1.0,
     "maxGainDb": 28.0,
+    "windowHz": 50,
+    "absoluteGateMeanSquare": 1e-05,
+    "relativeGateRatio": 1000.0,
+    "maxDurationMs": 30000,
     "measurement": "gated-rms-dbfs"
   },
   "gainDb": {

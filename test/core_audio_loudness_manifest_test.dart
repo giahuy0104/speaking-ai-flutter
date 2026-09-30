@@ -75,8 +75,14 @@ void main() {
 
       // Two platforms reading one manifest only sound the same while the
       // manifest was built to the same target the runtime meter aims at.
+      //
+      // Every constant the measurement depends on is compared, not only the
+      // three headline ones: a window size or a gate that drifted apart would
+      // change every gain in the table while the target still matched.
       double constant(String name) => double.parse(
-        RegExp('const val $name = (-?[0-9.]+)').firstMatch(kotlin)!.group(1)!,
+        RegExp(
+          '(?:private )?const val $name = (-?[0-9._]+)L?',
+        ).firstMatch(kotlin)!.group(1)!.replaceAll('_', ''),
       );
 
       expect(policy['targetRmsDbfs'], constant('TARGET_RMS_DBFS'));
@@ -85,6 +91,13 @@ void main() {
         constant('SAMPLE_PEAK_CEILING_DBFS'),
       );
       expect(policy['maxGainDb'], constant('MAX_GAIN_DB'));
+      expect(policy['windowHz'], constant('WINDOW_HZ'));
+      expect(
+        policy['absoluteGateMeanSquare'],
+        constant('ABSOLUTE_GATE_MEAN_SQUARE'),
+      );
+      expect(policy['relativeGateRatio'], constant('RELATIVE_GATE_RATIO'));
+      expect(policy['maxDurationMs'], constant('MAX_DURATION_MS'));
       expect(policy['measurement'], 'gated-rms-dbfs');
     });
 

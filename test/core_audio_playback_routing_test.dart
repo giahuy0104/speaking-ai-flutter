@@ -3,12 +3,12 @@ import 'dart:math' as math;
 
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_turn_coordinator.dart';
-import 'package:ai_speaking_flutter_app/core/audio/device_audio_cache.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:just_audio/just_audio.dart';
+
+import 'support/controlled_audio_playback.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -38,8 +38,8 @@ void main() {
         owner: AudioTurnOwner.mainAssistant,
         mode: AudioTurnMode.promptPlayback,
       );
-      final player = _ControlledPlayer();
-      final cache = _ControlledCache();
+      final player = ControlledPlayer();
+      final cache = ControlledCache();
       final service = JustAudioPlaybackService(
         player: player,
         cache: cache,
@@ -56,13 +56,13 @@ void main() {
         playing,
         throwsA(isA<AudioTurnAcquireCancelled>()),
       );
-      await _flush();
+      await flushMicrotasks();
       expect(coordinator.pendingCount, 1);
       await service.stop();
       await cancelled;
       expect(coordinator.pendingCount, 0);
       await prompt.release();
-      await _flush();
+      await flushMicrotasks();
       expect(player.playedPaths, isEmpty);
       expect(cache.resolveCalls, 0);
 
@@ -75,8 +75,8 @@ void main() {
     'late cache result cannot restart a stopped clip or release a newer turn',
     () async {
       final coordinator = AudioTurnCoordinator();
-      final player = _ControlledPlayer();
-      final cache = _ControlledCache()..pendingResolve = Completer<Uri>();
+      final player = ControlledPlayer();
+      final cache = ControlledCache()..pendingResolve = Completer<Uri>();
       final pending = cache.pendingResolve!;
       final service = JustAudioPlaybackService(
         player: player,
@@ -99,7 +99,7 @@ void main() {
       final newToken = coordinator.currentToken;
       expect(newToken, isNotNull);
       pending.complete(firstUri);
-      await _flush();
+      await flushMicrotasks();
       expect(player.playedPaths, <String>[secondUri.toFilePath()]);
       expect(coordinator.currentToken, newToken);
     },
@@ -108,8 +108,8 @@ void main() {
   test(
     'stop during native source loading prevents late play and permits next clip',
     () async {
-      final player = _ControlledPlayer();
-      final cache = _ControlledCache();
+      final player = ControlledPlayer();
+      final cache = ControlledCache();
       final service = JustAudioPlaybackService(player: player, cache: cache);
       addTearDown(() async {
         await service.dispose();
@@ -135,8 +135,8 @@ void main() {
   );
 
   test('stop immediately before native play keeps the phone silent', () async {
-    final player = _ControlledPlayer()..pendingSpeed = Completer<void>();
-    final cache = _ControlledCache();
+    final player = ControlledPlayer()..pendingSpeed = Completer<void>();
+    final cache = ControlledCache();
     final service = JustAudioPlaybackService(player: player, cache: cache);
     addTearDown(() async {
       await service.dispose();
@@ -148,15 +148,15 @@ void main() {
     await service.stop();
     await cancelled;
     player.pendingSpeed!.complete();
-    await _flush();
+    await flushMicrotasks();
     expect(player.playedPaths, isEmpty);
   });
 
   test(
     'dispose cancels pending cache work without reviving the player',
     () async {
-      final player = _ControlledPlayer();
-      final cache = _ControlledCache()..pendingResolve = Completer<Uri>();
+      final player = ControlledPlayer();
+      final cache = ControlledCache()..pendingResolve = Completer<Uri>();
       final service = JustAudioPlaybackService(player: player, cache: cache);
       addTearDown(cache.dispose);
       final playing = service.play(firstUri);
@@ -165,7 +165,7 @@ void main() {
       await service.dispose();
       await cancelled;
       cache.pendingResolve!.complete(firstUri);
-      await _flush();
+      await flushMicrotasks();
       expect(player.playedPaths, isEmpty);
       expect(player.disposeCalls, 1);
       await expectLater(
@@ -178,9 +178,9 @@ void main() {
   test(
     'each Android player keeps its selected output when another session prepares media',
     () async {
-      final h20Player = _ControlledPlayer();
-      final phonePlayer = _ControlledPlayer();
-      final cache = _ControlledCache();
+      final h20Player = ControlledPlayer();
+      final phonePlayer = ControlledPlayer();
+      final cache = ControlledCache();
       final h20 = JustAudioPlaybackService(player: h20Player, cache: cache);
       final phone = JustAudioPlaybackService(player: phonePlayer, cache: cache);
       addTearDown(() async {
@@ -224,8 +224,8 @@ void main() {
       }
       return null;
     });
-    final player = _ControlledPlayer();
-    final cache = _ControlledCache();
+    final player = ControlledPlayer();
+    final cache = ControlledCache();
     final service = JustAudioPlaybackService(player: player, cache: cache);
     addTearDown(() async {
       await service.dispose();
@@ -240,15 +240,15 @@ void main() {
     service.setCommunicationRouteActive(false);
     await service.play(secondUri);
     firstPreparation.complete();
-    await _flush();
+    await flushMicrotasks();
     expect(player.attributes!.usage, AndroidAudioUsage.media);
     expect(player.playedPaths, <String>[secondUri.toFilePath()]);
   });
 
   test('iOS playback does not receive Android attribute overrides', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-    final player = _ControlledPlayer();
-    final cache = _ControlledCache();
+    final player = ControlledPlayer();
+    final cache = ControlledCache();
     final service = JustAudioPlaybackService(player: player, cache: cache);
     addTearDown(() async {
       await service.dispose();
@@ -268,8 +268,8 @@ void main() {
         calls.add(call);
         return <String, Object?>{'gainDb': -6.0};
       });
-      final player = _ControlledPlayer();
-      final cache = _ControlledCache();
+      final player = ControlledPlayer();
+      final cache = ControlledCache();
       final service = JustAudioPlaybackService(player: player, cache: cache);
       addTearDown(() async {
         await service.dispose();
@@ -295,8 +295,8 @@ void main() {
             'gainDb': path == firstUri.toFilePath() ? -12.0 : followingGain,
           };
         });
-        final player = _ControlledPlayer();
-        final cache = _ControlledCache();
+        final player = ControlledPlayer();
+        final cache = ControlledCache();
         final service = JustAudioPlaybackService(player: player, cache: cache);
         addTearDown(() async {
           await service.dispose();
@@ -325,8 +325,8 @@ void main() {
         }
         return {'gainDb': 0.0};
       });
-      final player = _ControlledPlayer();
-      final cache = _ControlledCache();
+      final player = ControlledPlayer();
+      final cache = ControlledCache();
       final service = JustAudioPlaybackService(player: player, cache: cache);
       addTearDown(() async {
         await service.dispose();
@@ -343,14 +343,14 @@ void main() {
       await cancelled;
       final next = service.play(secondUri);
       try {
-        await _flush();
+        await flushMicrotasks();
         expect(player.playedPaths, <String>[secondUri.toFilePath()]);
         expect(player.volumeChanges, <double>[1.0]);
       } finally {
         pendingMeasurement.complete({'gainDb': -24.0});
         await next;
       }
-      await _flush();
+      await flushMicrotasks();
       expect(player.playedPaths, <String>[secondUri.toFilePath()]);
       expect(player.volumeChanges, <double>[1.0]);
     },
@@ -363,8 +363,8 @@ void main() {
         final path = (call.arguments as Map<Object?, Object?>)['path'];
         return path == firstUri.toFilePath() ? {'gainDb': -6.0} : null;
       });
-      final player = _ControlledPlayer();
-      final cache = _ControlledCache();
+      final player = ControlledPlayer();
+      final cache = ControlledCache();
       final service = JustAudioPlaybackService(player: player, cache: cache);
       addTearDown(() async {
         await service.dispose();
@@ -389,8 +389,8 @@ void main() {
             ? {'gainDb': -6.0}
             : pendingMeasurement.future;
       });
-      final player = _ControlledPlayer();
-      final cache = _ControlledCache();
+      final player = ControlledPlayer();
+      final cache = ControlledCache();
       final service = JustAudioPlaybackService(player: player, cache: cache);
       addTearDown(() async {
         await service.dispose();
@@ -402,7 +402,7 @@ void main() {
       expect(player.volumesAtPlay.last, 1.0);
       final changesBeforeLateResult = List<double>.of(player.volumeChanges);
       pendingMeasurement.complete({'gainDb': -30.0});
-      await _flush();
+      await flushMicrotasks();
       expect(player.volumeChanges, changesBeforeLateResult);
       expect(player.playedPaths, <String>[
         firstUri.toFilePath(),
@@ -410,116 +410,4 @@ void main() {
       ]);
     },
   );
-}
-
-Future<void> _flush() async {
-  for (var index = 0; index < 8; index++) {
-    await Future<void>.delayed(Duration.zero);
-  }
-}
-
-class _ControlledCache extends DeviceAudioCache {
-  Completer<Uri>? pendingResolve;
-  final resolveEntered = Completer<void>();
-  int resolveCalls = 0;
-
-  @override
-  Future<Uri> resolveAfterPreload(
-    Uri uri, {
-    Duration maxWait = const Duration(milliseconds: 500),
-  }) async {
-    resolveCalls++;
-    if (!resolveEntered.isCompleted) resolveEntered.complete();
-    return pendingResolve?.future ?? uri;
-  }
-}
-
-class _ControlledPlayer implements AudioPlayer {
-  final _states = StreamController<PlayerState>.broadcast(sync: true);
-  final _positions = StreamController<Duration>.broadcast(sync: true);
-  final List<String> playedPaths = <String>[];
-  final List<double> volumeChanges = <double>[];
-  final List<double> volumesAtPlay = <double>[];
-  final List<AndroidAudioAttributes> attributesAtPlay =
-      <AndroidAudioAttributes>[];
-  final blockedLoadEntered = Completer<void>();
-  final speedEntered = Completer<void>();
-  Completer<void>? pendingLoad;
-  Completer<void>? pendingSpeed;
-  AndroidAudioAttributes? attributes;
-  String? loadedPath;
-  int disposeCalls = 0;
-  bool _playing = false;
-  double _volume = 1.0;
-
-  @override
-  bool get playing => _playing;
-  @override
-  ProcessingState get processingState => ProcessingState.ready;
-  @override
-  Duration get position => Duration.zero;
-  @override
-  Duration? get duration => const Duration(seconds: 2);
-  @override
-  Stream<PlayerState> get playerStateStream => _states.stream;
-  @override
-  Stream<Duration> get positionStream => _positions.stream;
-
-  @override
-  Future<Duration?> setFilePath(
-    String path, {
-    Duration? initialPosition,
-    bool preload = true,
-    dynamic tag,
-  }) async {
-    final pending = pendingLoad;
-    if (pending != null) {
-      if (!blockedLoadEntered.isCompleted) blockedLoadEntered.complete();
-      await pending.future;
-    }
-    loadedPath = path;
-    return duration;
-  }
-
-  @override
-  Future<void> setSpeed(double speed) async {
-    if (!speedEntered.isCompleted) speedEntered.complete();
-    await pendingSpeed?.future;
-  }
-
-  @override
-  Future<void> setAndroidAudioAttributes(AndroidAudioAttributes value) async {
-    attributes = value;
-  }
-
-  @override
-  Future<void> setVolume(double volume) async {
-    _volume = volume;
-    volumeChanges.add(volume);
-  }
-
-  @override
-  Future<void> play() async {
-    playedPaths.add(loadedPath!);
-    volumesAtPlay.add(_volume);
-    if (attributes != null) attributesAtPlay.add(attributes!);
-    _playing = true;
-    _states.add(PlayerState(true, ProcessingState.ready));
-  }
-
-  @override
-  Future<void> pause() async {
-    _playing = false;
-    _states.add(PlayerState(false, ProcessingState.ready));
-  }
-
-  @override
-  Future<void> dispose() async {
-    disposeCalls++;
-    await _states.close();
-    await _positions.close();
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

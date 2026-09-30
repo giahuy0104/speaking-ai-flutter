@@ -257,4 +257,36 @@ void main() {
       'turnId': 'ios-main-test',
     });
   });
+
+  test(
+    'an authored clip only carries gainDb when the manifest measured it',
+    () async {
+      // The native side treats a present gainDb as "this exact clip was
+      // measured at build time" and skips its own decode. Defaulting the key
+      // here claimed a measurement for every clip, which silently disabled
+      // runtime metering for the ones the manifest never covered.
+      const channel = MethodChannel('test_authored_gain');
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            calls.add(call);
+            return null;
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null),
+      );
+      const service = MethodChannelVoicePromptService(channel: channel);
+      final bytes = Uint8List.fromList(<int>[1, 2, 3]);
+
+      await service.playAuthoredAudioAndWait(bytes);
+      await service.playAuthoredAudioAndWait(bytes, gainDb: -9.5);
+
+      final uncovered = calls.first.arguments as Map<Object?, Object?>;
+      expect(uncovered.containsKey('gainDb'), isFalse);
+
+      final measured = calls.last.arguments as Map<Object?, Object?>;
+      expect(measured['gainDb'], -9.5);
+    },
+  );
 }
