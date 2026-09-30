@@ -9,14 +9,18 @@ class H20ControlObservationTest {
         val mainLong = byteArrayOf(1, 1, 2, 0, 0x1d, 0, 0x4f, 0, 0, 0, 0, 0)
         val downLong = byteArrayOf(1, 4, 2, 0, 0x1e, 0, 0x4f, 0, 0, 0, 0, 0)
         val upLong = byteArrayOf(1, 3, 2, 0, 0x1f, 0, 0x4f, 0, 0, 0, 0, 0)
+        val powerShort = byteArrayOf(1, 2, 1, 0, 0x29, 0, 0x47, 0, 0xf1.toByte(), 0x60, 0x36, 0)
         assertEquals("shortPress", H20ControlObservation.bleMetadata(mainShort)["gesture"])
         assertEquals("longPress", H20ControlObservation.bleMetadata(mainLong)["gesture"])
         assertEquals("volumeDown", H20ControlObservation.bleMetadata(downLong)["button"])
         assertEquals("volumeUp", H20ControlObservation.bleMetadata(upLong)["button"])
+        assertEquals("power", H20ControlObservation.bleMetadata(powerShort)["button"])
+        assertEquals("shortPress", H20ControlObservation.bleMetadata(powerShort)["gesture"])
         assertEquals("observedHmD001", H20ControlObservation.bleMetadata(upLong)["protocol"])
         assertTrue(H20ControlObservation.isObservedMainPacket(mainShort))
         assertTrue(H20ControlObservation.isObservedMainPacket(mainLong))
         assertFalse(H20ControlObservation.isObservedMainPacket(downLong))
+        assertFalse(H20ControlObservation.isObservedMainPacket(powerShort))
         assertEquals(79, H20ControlObservation.batteryPercent(mainLong))
     }
 

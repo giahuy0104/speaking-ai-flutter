@@ -158,8 +158,9 @@ struct H20RemoteControlPolicy {
 struct H20BleControlObservation {
   static func isHmD001Packet(_ bytes: [UInt8]) -> Bool {
     bytes.count == 12 && bytes[0] == 0x01
-      && [UInt8(0x01), 0x03, 0x04].contains(bytes[1])
+      && [UInt8(0x01), 0x02, 0x03, 0x04].contains(bytes[1])
       && [UInt8(0x01), 0x02].contains(bytes[2])
+      && (bytes[1] != 0x02 || bytes[2] == 0x01)
       && bytes[3] == 0x00 && bytes[7] == 0x00 && bytes[6] <= 100
   }
 
@@ -176,7 +177,8 @@ struct H20BleControlObservation {
     let observedMain = isObservedMainShort(bytes)
     let hmD001 = isHmD001Packet(bytes)
     let button = hmD001
-      ? (bytes[1] == 0x01 ? "main" : bytes[1] == 0x03 ? "volumeUp" : "volumeDown")
+      ? (bytes[1] == 0x01 ? "main" : bytes[1] == 0x02 ? "power"
+        : bytes[1] == 0x03 ? "volumeUp" : "volumeDown")
       : (observedMain ? "main" : "unknown")
     var fields: [String: Any] = [
       "source": "ble",

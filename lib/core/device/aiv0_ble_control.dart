@@ -186,7 +186,10 @@ class Aiv0DraftProtocolCodec {
     final isObservedHmD001Packet =
         bytes.length == buttonPacketLength &&
         bytes[0] == protocolVersion &&
-        (bytes[1] == 0x01 || bytes[1] == 0x03 || bytes[1] == 0x04) &&
+        (bytes[1] == 0x01 ||
+            (bytes[1] == 0x02 && bytes[2] == 0x01) ||
+            bytes[1] == 0x03 ||
+            bytes[1] == 0x04) &&
         (bytes[2] == 0x01 || bytes[2] == 0x02) &&
         bytes[3] == 0x00 &&
         bytes[7] == 0x00 &&
@@ -199,6 +202,7 @@ class Aiv0DraftProtocolCodec {
         receivedAt: receivedAt ?? DateTime.now(),
         button: switch (bytes[1]) {
           0x01 => Aiv0Button.main,
+          0x02 => Aiv0Button.power,
           0x03 => Aiv0Button.volumeUp,
           _ => Aiv0Button.volumeDown,
         },

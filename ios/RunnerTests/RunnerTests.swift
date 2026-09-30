@@ -12,10 +12,16 @@ class RunnerTests: XCTestCase {
     let mainLong: [UInt8] = [1, 1, 2, 0, 0x1D, 0, 79, 0, 0, 0, 0, 0]
     let downLong: [UInt8] = [1, 4, 2, 0, 0x1E, 0, 79, 0, 0, 0, 0, 0]
     let upLong: [UInt8] = [1, 3, 2, 0, 0x1F, 0, 79, 0, 0, 0, 0, 0]
+    let powerShort: [UInt8] = [1, 2, 1, 0, 0x29, 0, 0x47, 0, 0xF1, 0x60, 0x36, 0]
     XCTAssertEqual(H20BleControlObservation.fields(for: mainShort)["gesture"] as? String, "shortPress")
     XCTAssertEqual(H20BleControlObservation.fields(for: mainLong)["gesture"] as? String, "longPress")
     XCTAssertEqual(H20BleControlObservation.fields(for: downLong)["button"] as? String, "volumeDown")
     XCTAssertEqual(H20BleControlObservation.fields(for: upLong)["button"] as? String, "volumeUp")
+    XCTAssertEqual(H20BleControlObservation.fields(for: powerShort)["button"] as? String, "power")
+    XCTAssertEqual(H20BleControlObservation.fields(for: powerShort)["gesture"] as? String, "shortPress")
+    XCTAssertFalse(H20BleControlObservation.isHmD001Packet(
+      [1, 2, 2, 0, 0x29, 0, 0x47, 0, 0, 0, 0, 0]
+    ))
     XCTAssertEqual(H20BleControlObservation.batteryPercent(mainLong), 79)
     XCTAssertFalse(H20BleControlObservation.isObservedMainShort(mainLong))
     XCTAssertTrue(H20BleControlObservation.isObservedMainShort(

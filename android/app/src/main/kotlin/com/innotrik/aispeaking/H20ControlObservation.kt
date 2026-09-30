@@ -11,8 +11,9 @@ internal object H20ControlObservation {
     private fun isHmD001Packet(bytes: ByteArray): Boolean =
         bytes.size == 12 &&
             (bytes[0].toInt() and 0xff) == 1 &&
-            (bytes[1].toInt() and 0xff) in setOf(1, 3, 4) &&
+            (bytes[1].toInt() and 0xff) in setOf(1, 2, 3, 4) &&
             (bytes[2].toInt() and 0xff) in setOf(1, 2) &&
+            ((bytes[1].toInt() and 0xff) != 2 || (bytes[2].toInt() and 0xff) == 1) &&
             bytes[3].toInt() == 0 &&
             bytes[7].toInt() == 0 &&
             (bytes[6].toInt() and 0xff) <= 100
@@ -32,6 +33,7 @@ internal object H20ControlObservation {
         val hmD001 = isHmD001Packet(bytes)
         val button = if (hmD001) when (bytes[1].toInt() and 0xff) {
             1 -> "main"
+            2 -> "power"
             3 -> "volumeUp"
             else -> "volumeDown"
         } else if (legacy) "main" else "unknown"
