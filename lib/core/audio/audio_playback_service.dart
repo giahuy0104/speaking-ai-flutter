@@ -186,6 +186,7 @@ class JustAudioPlaybackService
     _audioSession = AudioSession.instance;
     if (audioTurnCoordinator != null) {
       _audioTurnCompletionSubscription = completionStream.listen((_) {
+        if (!identical(_turnReleasableFor, _playbackRequest)) return;
         unawaited(_releaseAudioTurn());
       });
     }
@@ -233,6 +234,7 @@ class JustAudioPlaybackService
   late final Future<AudioSession> _audioSession;
   StreamSubscription<void>? _audioTurnCompletionSubscription;
   AudioTurnLease? _audioTurnLease;
+  _PlaybackRequest? _turnReleasableFor;
   Future<void>? _playbackSessionPreparation;
   int _playbackPreparationGeneration = 0;
   Future<void> _sourceOperation = Future<void>.value();
@@ -741,10 +743,12 @@ class JustAudioPlaybackService
     _playbackRequest?.cancel();
     final request = _PlaybackRequest(_communicationRouteActive);
     _playbackRequest = request;
+    _turnReleasableFor = null;
     try {
       await _acquireAudioTurn(request);
       _requireCurrentPlayback(request);
       final metrics = await _playWithoutTurnCoordination(uri, request);
+      _turnReleasableFor = request;
       AudioDiagnostics.event('media.play.started', {
         'owner': _audioTurnOwner.name,
         'startDelayMs': metrics.startedAfterRequest.inMilliseconds,
