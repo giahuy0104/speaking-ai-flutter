@@ -1,8 +1,11 @@
 import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
+import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
 import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
+import 'package:ai_speaking_flutter_app/core/audio/learning_audio_dependencies.dart';
+import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_attempt_evaluator.dart';
@@ -968,6 +971,350 @@ void main() {
     expect(
       mediaService.lastRecordingPlaybackGainDb,
       lessonRecordingPlaybackGainDb,
+    );
+  });
+
+  testWidgets('V4 does not award a Star when child replay fails', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final mediaService = _FailingAttemptPlaybackMediaService();
+    final progressStore = _MemoryProgressStore();
+    await tester.pumpWidget(
+      _subject(
+        _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+        mediaService,
+        progressStore: progressStore,
+        guideAudioLibrary: _silentGuideAudioLibrary(),
+        attemptEvaluator: _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
+          LessonAttemptOutcome.good,
+        ]),
+        voicePromptService: _FakeVoicePromptService(),
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+    await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+    await _pumpGuidedSpeechTurn(tester);
+
+    expect(find.text('Sentence 1'), findsOneWidget);
+    expect(
+      find.text('Chưa phát lại được bản ghi. Con hãy ghi âm lại nhé.'),
+      findsOneWidget,
+    );
+    expect(progressStore.earnedStars, isEmpty);
+    expect(progressStore.sessionResults, isEmpty);
+  });
+
+  testWidgets('V2 keeps scoring a valid attempt if replay fails', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final progressStore = _MemoryProgressStore();
+    await tester.pumpWidget(
+      _subject(
+        _lesson(code: 'A035_T01_L01', sentenceCount: 2),
+        _FailingAttemptPlaybackMediaService(),
+        progressStore: progressStore,
+        guideAudioLibrary: _silentGuideAudioLibrary(),
+        attemptEvaluator: _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
+          LessonAttemptOutcome.good,
+        ]),
+        voicePromptService: _FakeVoicePromptService(),
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+    await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+    await _pumpGuidedSpeechTurn(tester);
+
+    expect(find.text('Sentence 2'), findsOneWidget);
+    expect(progressStore.sessionResults[0], ListeningSessionResult.achieved);
+  });
+
+  testWidgets('iOS does not score a transcript without a lesson recording', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    await _usePhoneSurface(tester);
+    final speechInput = _MissingRecordingIosSpeechInput();
+    final progressStore = _MemoryProgressStore();
+    await tester.pumpWidget(
+      _subject(
+        _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+        _IosLessonMediaService(),
+        controller: _IosLearningAudioDependencies(speechInput),
+        useOwnedEvaluator: true,
+        progressStore: progressStore,
+        guideAudioLibrary: _silentGuideAudioLibrary(),
+        voicePromptService: _FakeVoicePromptService(),
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+    expect(speechInput.started, isTrue);
+    await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+    await tester.pump();
+
+    expect(find.text('Sentence 1'), findsOneWidget);
+    expect(
+      find.text('Chưa phát lại được bản ghi. Con hãy ghi âm lại nhé.'),
+      findsOneWidget,
+    );
+    expect(progressStore.earnedStars, isEmpty);
+    expect(progressStore.sessionResults, isEmpty);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('iOS replays a saved lesson recording before awarding a Star', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    await _usePhoneSurface(tester);
+    final events = <String>[];
+    final mediaService = _IosLessonMediaService(events: events);
+    final progressStore = _MemoryProgressStore();
+    final speechInput = _MissingRecordingIosSpeechInput(
+      recordedAudio: const AudioCapture(
+        filePath: 'C:\\recordings\\lesson-1.wav',
+        mimeType: 'audio/wav',
+        duration: Duration(seconds: 2),
+        inputLabel: 'Apple Native Speech',
+        isBluetoothInput: false,
+        initialNoiseRms: null,
+      ),
+    );
+    await tester.pumpWidget(
+      _subject(
+        _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+        mediaService,
+        controller: _IosLearningAudioDependencies(speechInput),
+        useOwnedEvaluator: true,
+        progressStore: progressStore,
+        guideAudioLibrary: _starEffectsGuideAudioLibrary(),
+        voicePromptService: _FakeVoicePromptService(events),
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+    await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+    await _pumpGuidedSpeechTurn(tester);
+
+    expect(
+      mediaService.playedUris.any((uri) => uri.path.endsWith('.wav')),
+      isTrue,
+    );
+    final replayIndex = events.indexWhere(
+      (event) => event.startsWith('media|') && event.endsWith('lesson-1.wav'),
+    );
+    final praiseIndex = events.indexOf('voice|Đúng rồi!');
+    final starIndex = events.indexOf('voice|Bạn vừa nhận Ngôi sao đầu tiên!');
+    expect(replayIndex, greaterThanOrEqualTo(0));
+    expect(praiseIndex, greaterThan(replayIndex));
+    expect(starIndex, greaterThan(praiseIndex));
+    expect(progressStore.earnedStars, isNotEmpty);
+    await _pumpGuidedSpeechTurn(tester);
+    expect(find.text('Sentence 2'), findsOneWidget);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('MAIN during correct feedback retains Star without late audio', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final prompts = _BlockingCorrectPromptVoiceService();
+    final progressStore = _MemoryProgressStore();
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: _subject(
+          _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+          _GuidedMediaService(),
+          progressStore: progressStore,
+          guideAudioLibrary: _silentGuideAudioLibrary(),
+          attemptEvaluator: _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
+            LessonAttemptOutcome.good,
+          ]),
+          voicePromptService: prompts,
+        ),
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+    await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+    await tester.pump();
+    await prompts.correctStarted.future;
+    expect(await registry.pauseForMainAssistant(), isTrue);
+    await tester.pump();
+
+    expect(find.text('Sentence 1'), findsOneWidget);
+    expect(progressStore.sessionResults[0], ListeningSessionResult.achieved);
+    expect(progressStore.earnedStars, contains('core:GUIDED-FLOW_S1'));
+    expect(
+      prompts.spoken,
+      isNot(contains('vi-VN|Bạn vừa nhận Ngôi sao đầu tiên!')),
+    );
+    expect(find.text('Bài học đang tạm dừng.'), findsOneWidget);
+  });
+
+  testWidgets('MAIN during result save completes the earned Star silently', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final progressStore = _BlockingAchievedProgressStore();
+    final prompts = _FakeVoicePromptService();
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: _subject(
+          _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+          _GuidedMediaService(),
+          progressStore: progressStore,
+          guideAudioLibrary: _silentGuideAudioLibrary(),
+          attemptEvaluator: _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
+            LessonAttemptOutcome.good,
+          ]),
+          voicePromptService: prompts,
+        ),
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+    await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+    await tester.pump();
+    await progressStore.achievedSaveStarted.future;
+    expect(await registry.pauseForMainAssistant(), isTrue);
+    progressStore.completeAchievedSave();
+    await _pumpGuidedSpeechTurn(tester);
+
+    expect(progressStore.sessionResults[0], ListeningSessionResult.achieved);
+    expect(progressStore.earnedStars, contains('core:GUIDED-FLOW_S1'));
+    expect(find.text('Sentence 1'), findsOneWidget);
+    expect(find.text('Bài học đang tạm dừng.'), findsOneWidget);
+    expect(prompts.spoken, isNot(contains('vi-VN|Đúng rồi!')));
+  });
+
+  testWidgets('next item during result save keeps the old Star recording', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final progressStore = _BlockingAchievedProgressStore();
+    final vocabularyStore = _MemoryVocabularyStore();
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: _subject(
+          _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+          _GuidedMediaService(),
+          progressStore: progressStore,
+          vocabularyStore: vocabularyStore,
+          guideAudioLibrary: _silentGuideAudioLibrary(),
+          attemptEvaluator: _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
+            LessonAttemptOutcome.good,
+          ]),
+          voicePromptService: _FakeVoicePromptService(),
+        ),
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+    await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+    await tester.pump();
+    await progressStore.achievedSaveStarted.future;
+    expect(
+      (await registry.interruptAndExecute(
+        ActiveLearningCommand.nextItem,
+      )).wasHandled,
+      isTrue,
+    );
+    progressStore.completeAchievedSave();
+    await _pumpGuidedSpeechTurn(tester);
+
+    expect(find.text('Sentence 2'), findsOneWidget);
+    expect(progressStore.sessionResults[0], ListeningSessionResult.achieved);
+    expect(progressStore.earnedStars, contains('core:GUIDED-FLOW_S1'));
+    expect(vocabularyStore.entries, hasLength(1));
+    expect(vocabularyStore.entries.single.word, 'Sentence 1');
+    expect(
+      vocabularyStore.entries.single.correctAudioPath,
+      'C:\\recordings\\latest.m4a',
+    );
+  });
+
+  testWidgets('V4 progress writes do not overlap the Star award', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final progressStore = _BlockingStarProgressStore();
+    await tester.pumpWidget(
+      _subject(
+        _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+        _GuidedMediaService(),
+        progressStore: progressStore,
+        guideAudioLibrary: _silentGuideAudioLibrary(),
+        attemptEvaluator: _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
+          LessonAttemptOutcome.good,
+        ]),
+        voicePromptService: _FakeVoicePromptService(),
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+    await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+    await tester.pump();
+    await progressStore.awardStarted.future;
+
+    expect(progressStore.clearedNeedsPracticeDuringAward, isFalse);
+    progressStore.completeAward();
+    await _pumpGuidedSpeechTurn(tester);
+
+    expect(progressStore.clearedNeedsPractice, isTrue);
+    expect(progressStore.clearedNeedsPracticeDuringAward, isFalse);
+    expect(progressStore.earnedStars, contains('core:GUIDED-FLOW_S1'));
+    expect(progressStore.sessionResults[0], ListeningSessionResult.achieved);
+  });
+
+  testWidgets('next item retains the earned Star without old reward audio', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final prompts = _BlockingCorrectPromptVoiceService();
+    final progressStore = _MemoryProgressStore();
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: _subject(
+          _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+          _GuidedMediaService(),
+          progressStore: progressStore,
+          guideAudioLibrary: _silentGuideAudioLibrary(),
+          attemptEvaluator: _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
+            LessonAttemptOutcome.good,
+          ]),
+          voicePromptService: prompts,
+        ),
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+    await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+    await tester.pump();
+    await prompts.correctStarted.future;
+    expect(
+      (await registry.interruptAndExecute(
+        ActiveLearningCommand.nextItem,
+      )).wasHandled,
+      isTrue,
+    );
+    await _pumpGuidedSpeechTurn(tester);
+
+    expect(find.text('Sentence 2'), findsOneWidget);
+    expect(progressStore.sessionResults[0], ListeningSessionResult.achieved);
+    expect(progressStore.earnedStars, contains('core:GUIDED-FLOW_S1'));
+    expect(
+      prompts.spoken,
+      isNot(contains('vi-VN|Bạn vừa nhận Ngôi sao đầu tiên!')),
     );
   });
 
@@ -3109,6 +3456,8 @@ void main() {
 Widget _subject(
   ListeningLessonContent lesson,
   LessonMediaService mediaService, {
+  LearningAudioDependencies? controller,
+  bool useOwnedEvaluator = false,
   LessonGuideAudioLibrary? guideAudioLibrary,
   ListeningTopicContent? topicContent,
   ListeningLevelContent? levelContent,
@@ -3135,13 +3484,16 @@ Widget _subject(
       endAge: 5,
       topic: listeningCatalogs.first.topics.first,
       lesson: lesson,
+      controller: controller,
       topicContent: topicContent,
       levelContent: levelContent,
       progressStore: progressStore ?? _MemoryProgressStore(),
       mediaService: mediaService,
       vocabularyStore: vocabularyStore ?? _MemoryVocabularyStore(),
       guideAudioLibrary: guideAudioLibrary,
-      attemptEvaluator: attemptEvaluator ?? const RecordedAttemptEvaluator(),
+      attemptEvaluator: useOwnedEvaluator
+          ? null
+          : attemptEvaluator ?? const RecordedAttemptEvaluator(),
       // Keep widget tests independent from the platform-channel speech-ready
       // cue used by the preserved single-sentence flow.
       voicePromptService: voicePromptService ?? _FakeVoicePromptService(),
@@ -3418,6 +3770,71 @@ class _BlockingVoicePromptService extends _FakeVoicePromptService {
   }
 }
 
+class _BlockingCorrectPromptVoiceService extends _FakeVoicePromptService {
+  final correctStarted = Completer<void>();
+  final _correctFinished = Completer<void>();
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) {
+    if (text != 'Đúng rồi!') return super.speakAndWait(text, locale: locale);
+    spoken.add('$locale|$text');
+    if (!correctStarted.isCompleted) correctStarted.complete();
+    return _correctFinished.future;
+  }
+
+  @override
+  Future<void> stop() async {
+    await super.stop();
+    if (!_correctFinished.isCompleted) _correctFinished.complete();
+  }
+}
+
+class _IosLearningAudioDependencies implements LearningAudioDependencies {
+  _IosLearningAudioDependencies(this.input);
+
+  final IOSStreamingSpeechInput input;
+
+  @override
+  AudioTurnCoordinator? get audioTurnCoordinator => null;
+
+  @override
+  StreamingSpeechInput? get learningSpeechInput => input;
+
+  @override
+  HfpAudioControl? createLearningAudioRouteControl() => null;
+}
+
+class _MissingRecordingIosSpeechInput extends IOSStreamingSpeechInput {
+  _MissingRecordingIosSpeechInput({this.recordedAudio});
+
+  final AudioCapture? recordedAudio;
+  bool started = false;
+
+  @override
+  Stream<double> get amplitudeDbfs => const Stream<double>.empty();
+
+  @override
+  Future<void> startLessonEnglishRecognitionWithRecording(
+    String recordingPath,
+  ) async {
+    started = true;
+  }
+
+  @override
+  Future<StreamingSpeechCapture> stop() async => StreamingSpeechCapture(
+    sourceText: 'Sentence 1',
+    duration: Duration(seconds: 2),
+    inputLabel: 'Apple Native Speech',
+    confidence: 1,
+    firstResultMs: 100,
+    finalAfterStopMs: 100,
+    recordedAudio: recordedAudio,
+  );
+
+  @override
+  Future<void> cancel() async {}
+}
+
 class _IntroEventVoicePromptService implements VoicePromptService {
   _IntroEventVoicePromptService(this.events);
 
@@ -3674,6 +4091,50 @@ class _GuidedMediaService extends LessonMediaService {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _IosLessonMediaService extends _GuidedMediaService {
+  _IosLessonMediaService({super.events});
+
+  @override
+  Future<String> recordingPath({
+    required String lessonId,
+    required int sentenceNumber,
+    String? extension,
+  }) async => 'C:\\recordings\\lesson-$sentenceNumber.wav';
+
+  @override
+  Future<LessonRecording> registerExternalRecording({
+    required LessonRecording recording,
+    required String lessonId,
+    required String lessonTitle,
+    required String sentenceId,
+    required int sentenceNumber,
+    required String english,
+    required String vietnamese,
+  }) async => recording;
+}
+
+class _FailingAttemptPlaybackMediaService extends _GuidedMediaService {
+  @override
+  Future<void> playToCompletion(
+    Uri uri, {
+    Duration timeout = const Duration(seconds: 15),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
+  }) async {
+    if (uri.toString().contains('latest.m4a')) {
+      throw StateError('Recording playback failed');
+    }
+    await super.playToCompletion(
+      uri,
+      timeout: timeout,
+      route: route,
+      playbackGainDb: playbackGainDb,
+      fixedPlaybackGain: fixedPlaybackGain,
+    );
+  }
 }
 
 class _RouteLossMediaService extends _GuidedMediaService {
@@ -4134,6 +4595,58 @@ class _MemoryProgressStore extends ListeningProgressStore {
   @override
   Future<void> saveCurrentSentence(String lessonId, int sentenceIndex) async {
     currentSentence = sentenceIndex;
+  }
+}
+
+class _BlockingAchievedProgressStore extends _MemoryProgressStore {
+  final achievedSaveStarted = Completer<void>();
+  final _achievedSaveReleased = Completer<void>();
+
+  void completeAchievedSave() {
+    if (!_achievedSaveReleased.isCompleted) _achievedSaveReleased.complete();
+  }
+
+  @override
+  Future<void> saveSessionResult(
+    String lessonId,
+    int sentenceIndex,
+    ListeningSessionResult result,
+  ) async {
+    if (result == ListeningSessionResult.achieved) {
+      if (!achievedSaveStarted.isCompleted) achievedSaveStarted.complete();
+      await _achievedSaveReleased.future;
+    }
+    await super.saveSessionResult(lessonId, sentenceIndex, result);
+  }
+}
+
+class _BlockingStarProgressStore extends _MemoryProgressStore {
+  final awardStarted = Completer<void>();
+  final _awardReleased = Completer<void>();
+  bool clearedNeedsPractice = false;
+  bool clearedNeedsPracticeDuringAward = false;
+
+  void completeAward() {
+    if (!_awardReleased.isCompleted) _awardReleased.complete();
+  }
+
+  @override
+  Future<bool> awardStar(String scopeId, String starId) async {
+    if (!awardStarted.isCompleted) awardStarted.complete();
+    await _awardReleased.future;
+    return super.awardStar(scopeId, starId);
+  }
+
+  @override
+  Future<void> clearNeedsPracticeSentence(
+    String lessonId,
+    int sentenceIndex,
+  ) async {
+    clearedNeedsPractice = true;
+    if (!_awardReleased.isCompleted) {
+      clearedNeedsPracticeDuringAward = true;
+    }
+    await super.clearNeedsPracticeSentence(lessonId, sentenceIndex);
   }
 }
 

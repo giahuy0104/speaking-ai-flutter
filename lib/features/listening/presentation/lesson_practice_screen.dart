@@ -1153,7 +1153,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     );
   }
 
-  Future<void> _playAttemptRecordingToCompletion(
+  Future<bool> _playAttemptRecordingToCompletion(
     LessonRecording recording,
   ) async {
     final parsed = Uri.tryParse(recording.filePath);
@@ -1170,11 +1170,22 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         timeout: timeout,
         playbackGainDb: lessonRecordingPlaybackGainDb,
       );
+      return true;
     } catch (error) {
-      // Playback must not discard a valid attempt. Scoring can still continue
-      // and the recording card remains available for a manual replay.
       debugPrint('HOMI lesson attempt playback failed: $error');
+      return false;
     }
+  }
+
+  void _showAttemptReplayFailure() {
+    if (!mounted) return;
+    setState(() {
+      _recording = false;
+      _recordingPath = null;
+      _recordingDuration = null;
+      _mediaBusy = false;
+      _message = 'Chưa phát lại được bản ghi. Con hãy ghi âm lại nhé.';
+    });
   }
 
   Future<bool> _runMediaAction(Future<void> Function() action) async {
@@ -1399,11 +1410,14 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         var shouldOpenMicrophoneAgain = false;
         try {
           LessonAttemptOutcome? evaluatedOutcome;
+          var replayedRecording = false;
           // Recognition/scoring and child-voice replay are independent. Start
           // them together, but apply feedback only after replay has completed
           // so assistant audio can never overlap the child's voice.
           await Future.wait<void>(<Future<void>>[
-            _playAttemptRecordingToCompletion(recording),
+            _playAttemptRecordingToCompletion(
+              recording,
+            ).then<void>((replayed) => replayedRecording = replayed),
             _attemptEvaluator
                 .evaluate(
                   lessonCode: widget.lesson.code,
@@ -1424,6 +1438,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             evaluatedSentenceIndex,
             evaluatedSentence.id,
           )) {
+            return;
+          }
+          if (widget.lesson.usesV4Flow && !replayedRecording) {
+            _showAttemptReplayFailure();
             return;
           }
           setState(() => _mediaBusy = false);
@@ -1526,6 +1544,13 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
 
     if (!isCurrentCapture()) return;
+    if (widget.lesson.usesV4Flow &&
+        recording == null &&
+        outcome != LessonAttemptOutcome.unclear &&
+        outcome != LessonAttemptOutcome.noResponse) {
+      _showAttemptReplayFailure();
+      return;
+    }
     final evaluationRequest = _lessonSession.beginAttemptEvaluation();
     setState(() {
       _recording = false;
@@ -1567,12 +1592,18 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       )) {
         return;
       }
-      await _playAttemptRecordingToCompletion(finalizedRecording);
+      final replayedRecording = await _playAttemptRecordingToCompletion(
+        finalizedRecording,
+      );
       if (!_isCurrentEvaluation(
         evaluationRequest,
         evaluatedSentenceIndex,
         evaluatedSentence.id,
       )) {
+        return;
+      }
+      if (widget.lesson.usesV4Flow && !replayedRecording) {
+        _showAttemptReplayFailure();
         return;
       }
     }
@@ -1625,31 +1656,72 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     switch (outcome) {
       case LessonAttemptOutcome.good:
         _invalidResponseCount = 0;
+        final correctAudioPath = _recordingPath;
         await widget.progressStore.saveSessionResult(
           widget.lesson.id,
           sentenceIndex,
           ListeningSessionResult.achieved,
         );
+        bool? firstNewStar;
+        Future<bool?>? starPersistence;
+        if (widget.lesson.usesV4Flow) {
+          // A scored answer owns its Star even if MAIN interrupts the praise.
+          // Persist it before any cancellable feedback, but narrate it later.
+          starPersistence = _persistLessonStar(
+            starId: 'core:${sentence.id}',
+            english: sentence.english,
+            vietnamese: sentence.vietnamese,
+            vocabularyId: sentence.id,
+            correctAudioPath: correctAudioPath,
+          );
+        }
         if (!widget.lesson.usesV4Flow) {
           await _saveSentenceToVocabulary(
             VocabularyCollection.star,
             sentence: sentence,
           );
-        }
-        if (!_isCurrentEvaluation(
-          evaluationRequest,
-          sentenceIndex,
-          sentence.id,
-        )) {
-          return false;
-        }
-        try {
-          await widget.progressStore.clearNeedsPracticeSentence(
-            widget.lesson.id,
+          if (!_isCurrentEvaluation(
+            evaluationRequest,
             sentenceIndex,
-          );
-        } catch (_) {
-          // A restricted browser session must not block the lesson flow.
+            sentence.id,
+          )) {
+            return false;
+          }
+        }
+        if (starPersistence != null) {
+          firstNewStar = await starPersistence;
+          try {
+            await widget.progressStore.clearNeedsPracticeSentence(
+              widget.lesson.id,
+              sentenceIndex,
+            );
+          } catch (_) {
+            // A restricted browser session must not block the lesson flow.
+          }
+          _needsPracticeSentenceIndexes.remove(sentenceIndex);
+          await _clearAuthoredNeedsPractice(
+            sentence.english,
+          ).catchError((Object _) {});
+        } else {
+          try {
+            await widget.progressStore.clearNeedsPracticeSentence(
+              widget.lesson.id,
+              sentenceIndex,
+            );
+          } catch (_) {
+            // A restricted browser session must not block the lesson flow.
+          }
+          if (!_isCurrentEvaluation(
+            evaluationRequest,
+            sentenceIndex,
+            sentence.id,
+          )) {
+            return false;
+          }
+          _needsPracticeSentenceIndexes.remove(sentenceIndex);
+          await _clearAuthoredNeedsPractice(
+            sentence.english,
+          ).catchError((Object _) {});
         }
         if (!_isCurrentEvaluation(
           evaluationRequest,
@@ -1658,25 +1730,25 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         )) {
           return false;
         }
-        _needsPracticeSentenceIndexes.remove(sentenceIndex);
-        await _clearAuthoredNeedsPractice(
-          sentence.english,
-        ).catchError((Object _) {});
         _showPraiseFireworks();
         final correctPrompt = widget.lesson.usesV4Flow
             ? _ageFeedbackPrompt('CORRECT', LessonFeedbackKind.correct)
             : LessonGuideFlowV2.good;
         setState(() => _message = correctPrompt.text);
         await _playPrompt(correctPrompt);
-        // V4 introduces a first-ever star only after the normal correct-answer
-        // feedback. This preserves the authored order: praise, star, then the
-        // one-time explanation of what stars mean.
-        if (widget.lesson.usesV4Flow) {
-          await _awardLessonStar(
-            starId: 'core:${sentence.id}',
-            english: sentence.english,
-            vietnamese: sentence.vietnamese,
-            vocabularyId: sentence.id,
+        if (!_isCurrentEvaluation(
+          evaluationRequest,
+          sentenceIndex,
+          sentence.id,
+        )) {
+          return false;
+        }
+        if (firstNewStar != null) {
+          await _playLessonStarFeedback(
+            isFirst: firstNewStar,
+            evaluationRequest: evaluationRequest,
+            sentenceIndex: sentenceIndex,
+            sentenceId: sentence.id,
           );
         }
         if (!_isCurrentEvaluation(
@@ -2028,7 +2100,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     return null;
   }
 
-  Future<bool> _awardLessonStar({
+  Future<bool?> _persistLessonStar({
     required String starId,
     required String english,
     required String vietnamese,
@@ -2056,9 +2128,21 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       starSlotId: '${widget.lesson.code}:$starId',
       correctAudioPath: starRecordingPath ?? recordingPath,
     );
-    if (!isNew) return false;
+    return isNew ? lessonStarsBefore.isEmpty : null;
+  }
+
+  Future<void> _playLessonStarFeedback({
+    required bool isFirst,
+    required int evaluationRequest,
+    required int sentenceIndex,
+    required String sentenceId,
+  }) async {
+    bool isCurrent() =>
+        _isCurrentEvaluation(evaluationRequest, sentenceIndex, sentenceId);
+    if (!isCurrent()) return;
     await _playFirstStarSoundEffect();
-    if (lessonStarsBefore.isEmpty && mounted) {
+    if (!isCurrent()) return;
+    if (isFirst) {
       await _playPrompt(
         const LessonGuidePrompt(
           audioCode: 'FIRST_STAR',
@@ -2067,14 +2151,20 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         ),
       );
     }
+    if (!isCurrent()) return;
     await _playNewStarTingSoundEffect();
-    return true;
   }
 
   Future<void> _playFirstStarSoundEffect() async {
+    final pauseTicket = _lessonSession.mainPauseTicket;
     try {
       final authoredUri = await _guideAudioLibrary.uriForAudioCode('SFX_STAR');
-      if (authoredUri != null && mounted) {
+      if (!mounted ||
+          _pausedForMainAssistant ||
+          !_lessonSession.isCurrentMainPause(pauseTicket)) {
+        return;
+      }
+      if (authoredUri != null) {
         await widget.mediaService.playToCompletion(
           authoredUri,
           timeout: const Duration(seconds: 5),

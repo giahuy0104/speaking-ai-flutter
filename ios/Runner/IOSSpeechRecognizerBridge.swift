@@ -311,6 +311,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
   private var lastDiagnosticStage = "idle"
   private var firstAnalyzerInputGeneration: Int?
   private var activeRecordingPath: String?
+  private let recordingFileLock = NSLock()
   private var recordingFile: AVAudioFile?
   private var recordingSampleRate = 0
   private var recordingUsesBluetoothInput = false
@@ -605,7 +606,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     latestAlternatives = []
     latestConfidence = -1
     activeRecordingPath = recordingPath
-    recordingFile = nil
+    clearRecordingFile()
     recordingSampleRate = 0
     recordingUsesBluetoothInput = audioSource == .hfp
     completedRecordingMetadata = [:]
@@ -746,11 +747,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       guard let self, self.active, self.audioBufferGateOpen else { return }
       let activeGeneration = self.generation
       do {
-        if self.recordingFile != nil {
-          let recordingBuffer = try self.copyForSpeechAnalyzer(buffer)
-          IOSLessonRecordingGain.apply(to: recordingBuffer)
-          try self.recordingFile?.write(from: recordingBuffer)
-        }
+        try self.writeRecordingBuffer(buffer)
         let analyzerInputCount: Int
         if #available(iOS 26.0, *),
           self.activeEngine == .speechAnalyzer,
@@ -788,8 +785,23 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     )
   }
 
-  private func prepareActiveRecordingFile() throws {
+  private func writeRecordingBuffer(_ buffer: AVAudioPCMBuffer) throws {
+    recordingFileLock.lock()
+    defer { recordingFileLock.unlock() }
+    guard let recordingFile else { return }
+    let recordingBuffer = try copyForSpeechAnalyzer(buffer)
+    IOSLessonRecordingGain.apply(to: recordingBuffer)
+    try recordingFile.write(from: recordingBuffer)
+  }
+
+  private func clearRecordingFile() {
+    recordingFileLock.lock()
     recordingFile = nil
+    recordingFileLock.unlock()
+  }
+
+  private func prepareActiveRecordingFile() throws {
+    clearRecordingFile()
     recordingSampleRate = 0
     guard let path = activeRecordingPath else { return }
     guard let format = inputTapFormat else {
@@ -803,12 +815,15 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     if FileManager.default.fileExists(atPath: path) {
       try FileManager.default.removeItem(at: url)
     }
-    recordingFile = try AVAudioFile(
+    let file = try AVAudioFile(
       forWriting: url,
       settings: IOSLessonRecordingFormat.settings(for: format),
       commonFormat: format.commonFormat,
       interleaved: format.isInterleaved
     )
+    recordingFileLock.lock()
+    recordingFile = file
+    recordingFileLock.unlock()
     recordingSampleRate = Int(format.sampleRate.rounded())
   }
 
@@ -1161,7 +1176,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       inputTapInstalled = false
     }
     inputTapFormat = nil
-    recordingFile = nil
+    clearRecordingFile()
     recordingSampleRate = 0
     audioEngine.reset()
   }
@@ -1437,8 +1452,10 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
 
   private func finalizeActiveRecording() {
     let path = activeRecordingPath
+    recordingFileLock.lock()
     let recordedFrameCount = recordingFile?.length ?? 0
     recordingFile = nil
+    recordingFileLock.unlock()
     activeRecordingPath = nil
     guard let path else { return }
     // A WAV container can contain a header/padding larger than 44 bytes even
