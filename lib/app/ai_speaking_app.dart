@@ -154,6 +154,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   int? _pendingStartupAge;
   String? _startupPermissionError;
   DateTime? _lastAiv0AutoConnectAttempt;
+  DateTime? _lastIosHfpAutoSelectionAttempt;
+  String? _lastIosHfpAutoSelectionBleDeviceId;
   DateTime? _suppressH20AutoConnectUntil;
   bool _restoreHfpAfterPhysicalMain = false;
   bool _isRestoringHfpAfterPhysicalMain = false;
@@ -168,6 +170,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       DeviceConnectionFeedbackGate();
   bool _aiv0AutoConnectAttemptActive = false;
   Future<bool>? _androidHfpAutoSelectionFuture;
+  Future<bool>? _iosHfpAutoSelectionFuture;
+  bool _iosBleWasConnected = false;
+  bool _iosHfpAutoSelectionPending = false;
   Future<bool>? _androidMainHfpRoutePreparation;
   bool _androidMainHfpRouteHeld = false;
   bool _virtualMainPhoneFallback = false;
@@ -468,6 +473,12 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     setState(() => _parentSetupCompleted = true);
     if (_privacyConsentGranted) {
       _startBackgroundWork();
+      if (_usesIosHfpLifecycle &&
+          _controller?.canUseAiv0Ble == true &&
+          _controller?.usesHfpInput != true) {
+        _iosHfpAutoSelectionPending = true;
+        unawaited(_autoSelectAvailableIosHfp());
+      }
     }
   }
 
@@ -637,10 +648,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       return;
     }
     _lastAiv0AutoConnectAttempt = now;
-    // Background recovery owns BLE Control only. Selecting an iOS HFP input
-    // reconfigures AVAudioSession and can tear down the shared Apple Speech
-    // recognizer between the MAIN prompt and its listening turn. Changing the
-    // microphone therefore remains an explicit parent-setup action.
+    // During parent setup, select HFP before BLE so the two transports settle
+    // in that order. Background selection runs separately after BLE connects
+    // and only while no speech turn owns the audio session.
     if (defaultTargetPlatform == TargetPlatform.iOS &&
         reason == _H20AutoConnectReason.parentSetup) {
       // H20 exposes Classic Bluetooth HFP and BLE Control as two transports.
@@ -709,6 +719,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     debugPrint('H20 BLE Control connected automatically.');
     if (defaultTargetPlatform == TargetPlatform.android) {
       await _autoSelectConnectedAndroidHfp();
+    } else if (_usesIosHfpLifecycle &&
+        reason == _H20AutoConnectReason.background &&
+        (!bleAlreadyConnected || _iosHfpAutoSelectionPending)) {
+      _iosHfpAutoSelectionPending = true;
+      unawaited(_autoSelectAvailableIosHfp());
     }
     final h20Ready = controller.isH20Ready;
     if (h20Ready) {
@@ -767,6 +782,34 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
     final controller = _controller;
     if (controller == null) return false;
+
+    if (_usesIosHfpLifecycle && !forceMicrophonePicker) {
+      _lastAiv0AutoConnectAttempt = null;
+      await _autoConnectH20Ble();
+      if (controller.canUseAiv0Ble) {
+        // BLE confirms the physical MAIN link. The HFP microphone is selected
+        // after setup, when no onboarding sheet owns the audio session.
+        if (!controller.usesHfpInput) {
+          _iosHfpAutoSelectionPending = true;
+        }
+        return _finishParentH20SetupSuccess();
+      }
+      if (interactive) {
+        await _showIncompleteParentH20Guidance(controller);
+        if (controller.canUseAiv0Ble) {
+          if (!controller.usesHfpInput) {
+            _iosHfpAutoSelectionPending = true;
+          }
+          return _finishParentH20SetupSuccess();
+        }
+      } else if (mounted) {
+        setState(() {
+          _startupPermissionError =
+              'Chưa kết nối được nút MAIN qua BLE. Hãy bật HOMI và thử lại.';
+        });
+      }
+      return false;
+    }
 
     if (forceMicrophonePicker) {
       final selected = await _selectParentSetupHfpMicrophone(
@@ -1059,15 +1102,19 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     final h20State = controller.h20ConnectionState();
     final bleReady = h20State.bleReady;
     final hfpReady = h20State.hfpReady;
-    final message = bleReady && !hfpReady
+    final message = _usesIosHfpLifecycle && !bleReady
+        ? 'Chưa kết nối được nút MAIN qua BLE. Hãy bật HOMI, đặt gần iPhone rồi thử lại.'
+        : bleReady && !hfpReady
         ? 'Nút MAIN đã kết nối nhưng micro HM-D001 chưa sẵn sàng. Hãy kết nối HM-D001 trong Cài đặt Bluetooth rồi quay lại.'
         : hfpReady && !bleReady
         ? 'Micro HM-D001 đã sẵn sàng nhưng chưa kết nối được nút MAIN. Hãy bật HM-D001, đặt thiết bị gần điện thoại rồi thử lại.'
         : 'Chưa kết nối được HM-D001. Hãy bật HM-D001, bật Bluetooth và kết nối thiết bị trong Cài đặt Bluetooth.';
     if (mounted) setState(() => _startupPermissionError = message);
-    final shouldOpenSettings = !hfpReady;
+    final shouldOpenSettings = !_usesIosHfpLifecycle && !hfpReady;
     final accepted = await _showParentH20GuidanceDialog(
-      title: bleReady || hfpReady
+      title: _usesIosHfpLifecycle && !bleReady
+          ? 'Chưa kết nối nút MAIN'
+          : bleReady || hfpReady
           ? 'Kết nối HM-D001 chưa hoàn tất'
           : 'Chưa kết nối HM-D001',
       message: message,
@@ -1084,7 +1131,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       return;
     }
     _lastAiv0AutoConnectAttempt = null;
-    await _autoConnectH20Ble(reason: _H20AutoConnectReason.parentSetup);
+    await _autoConnectH20Ble(
+      reason: _usesIosHfpLifecycle
+          ? _H20AutoConnectReason.background
+          : _H20AutoConnectReason.parentSetup,
+    );
   }
 
   Future<bool> _showParentH20GuidanceDialog({
@@ -1126,6 +1177,14 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (_usesIosHfpLifecycle) {
       _deviceConnectionFeedbackGate.clear();
       _hideDeviceConnectionFeedback();
+      final justConnected = status.isConnected && !_iosBleWasConnected;
+      _iosBleWasConnected = status.isConnected;
+      if (!status.isConnected) {
+        _iosHfpAutoSelectionPending = false;
+      } else if (justConnected) {
+        _iosHfpAutoSelectionPending = true;
+        unawaited(_autoSelectAvailableIosHfp());
+      }
       return;
     }
     if (status.isConnected) {
@@ -1262,6 +1321,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (_usesIosHfpLifecycle) {
       _deviceConnectionFeedbackGate.clear();
       _hideDeviceConnectionFeedback();
+      if (_iosHfpAutoSelectionPending) {
+        unawaited(_autoSelectAvailableIosHfp());
+      }
       return;
     }
     final playbackActive = _isAppAudioPlaybackActive;
@@ -1325,6 +1387,78 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (!_aiv0AutoConnectAttemptActive) {
       _hideDeviceConnectionFeedback();
     }
+  }
+
+  Future<bool> _autoSelectAvailableIosHfp() {
+    if (!_usesIosHfpLifecycle ||
+        !_iosHfpAutoSelectionPending ||
+        !_startupReady ||
+        !_microphonePermissionGranted ||
+        !_bluetoothPermissionGranted) {
+      return Future<bool>.value(false);
+    }
+    final controller = _controller;
+    final ble = _aiv0BleControl;
+    if (controller == null || ble == null || !controller.canUseAiv0Ble) {
+      return Future<bool>.value(false);
+    }
+    if (controller.usesHfpInput) {
+      _iosHfpAutoSelectionPending = false;
+      return Future<bool>.value(true);
+    }
+    final pending = _iosHfpAutoSelectionFuture;
+    if (pending != null) return pending;
+    final now = DateTime.now();
+    if ((_suppressH20AutoConnectUntil?.isAfter(now) ?? false) ||
+        (_lastIosHfpAutoSelectionAttempt != null &&
+            _lastIosHfpAutoSelectionBleDeviceId == ble.status.deviceId &&
+            now.difference(_lastIosHfpAutoSelectionAttempt!) <
+                const Duration(seconds: 30)) ||
+        !_canRestoreHfpAfterMainFlow ||
+        controller.hfpAudioStatus.isBusy ||
+        _isAppAudioPlaybackActive ||
+        _audioTurnCoordinator?.currentToken != null ||
+        _isGlobalModalOpen ||
+        _restoreHfpAfterPhysicalMain) {
+      return Future<bool>.value(false);
+    }
+    final operation = _runIosHfpAutoSelection(controller, ble);
+    _iosHfpAutoSelectionFuture = operation;
+    return operation.whenComplete(() {
+      if (identical(_iosHfpAutoSelectionFuture, operation)) {
+        _iosHfpAutoSelectionFuture = null;
+      }
+    });
+  }
+
+  Future<bool> _runIosHfpAutoSelection(
+    ConversationController controller,
+    MethodChannelAiv0BleControl ble,
+  ) async {
+    // A GATT connected event can arrive before the native route and status
+    // callbacks finish. Discover only after that transition has settled.
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    if (!mounted ||
+        !controller.canUseAiv0Ble ||
+        controller.usesHfpInput ||
+        !_canRestoreHfpAfterMainFlow ||
+        controller.hfpAudioStatus.isBusy ||
+        _isAppAudioPlaybackActive ||
+        _audioTurnCoordinator?.currentToken != null ||
+        _isGlobalModalOpen) {
+      return false;
+    }
+    _iosHfpAutoSelectionPending = false;
+    _lastIosHfpAutoSelectionAttempt = DateTime.now();
+    _lastIosHfpAutoSelectionBleDeviceId = ble.status.deviceId;
+    final selected = await controller.autoConnectH20Hfp(
+      bleDeviceName:
+          ble.status.deviceName ?? controller.aiv0BleStatus.deviceName,
+    );
+    if (selected) {
+      debugPrint('Connected iOS H20 HFP microphone selected automatically.');
+    }
+    return selected;
   }
 
   Future<bool> _autoSelectConnectedAndroidHfp() {

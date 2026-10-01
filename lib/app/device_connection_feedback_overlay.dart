@@ -5,13 +5,17 @@ import 'mascot_assets.dart';
 
 enum DeviceConnectionFeedbackStage { connecting, connected }
 
-/// Short, app-owned feedback shown while both H20 transports become ready.
-/// Success means BLE MAIN control and the selected HFP microphone profile are
-/// available; an active SCO route is still opened only for an audio turn.
+/// Short, app-owned feedback for device setup. Callers can describe BLE-only
+/// success while the HFP microphone is still being selected.
 class DeviceConnectionFeedbackOverlay extends StatelessWidget {
-  const DeviceConnectionFeedbackOverlay({required this.stage, super.key});
+  const DeviceConnectionFeedbackOverlay({
+    required this.stage,
+    this.connectedDetail,
+    super.key,
+  });
 
   final DeviceConnectionFeedbackStage stage;
+  final String? connectedDetail;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +23,7 @@ class DeviceConnectionFeedbackOverlay extends StatelessWidget {
     final connected = stage == DeviceConnectionFeedbackStage.connected;
     final title = connected ? 'Đã kết nối thiết bị' : 'Đang kết nối thiết bị';
     final detail = connected
-        ? 'Nút MAIN và micro H20 đã sẵn sàng.'
+        ? connectedDetail ?? 'Nút MAIN và micro H20 đã sẵn sàng.'
         : 'HOMI đang kiểm tra nút MAIN và micro H20.';
 
     return Stack(
