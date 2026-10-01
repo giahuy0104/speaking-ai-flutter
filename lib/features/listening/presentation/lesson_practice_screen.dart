@@ -21,6 +21,7 @@ import '../../vocabulary/data/vocabulary_store.dart';
 import '../../vocabulary/domain/vocabulary_entry.dart';
 import '../../voice_navigation/domain/main_assistant_audio_keys.dart';
 import '../../voice_navigation/domain/master_navigation_contract.dart';
+import '../../voice_navigation/application/voice_navigation_intent_resolver.dart';
 import '../application/lesson_attempt_evaluator.dart';
 import '../application/lesson_guide_audio_library.dart';
 import '../application/lesson_completion_choice_recognizer.dart';
@@ -196,6 +197,8 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   V4CompletionStage? _activeV4CompletionStage;
   List<V4CompletionAction> _activeV4CompletionActions =
       const <V4CompletionAction>[];
+  List<int> _iosIncompleteCompletionTopicNumbers = const <int>[];
+  int? _iosSelectedCompletionTopicNumber;
   ActiveLearningModuleRegistry? _activeModuleRegistry;
   Object? _activeModuleRegistration;
 
@@ -2809,9 +2812,14 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     await beforePrompt?.call();
     if (!mounted) return;
     final action = await _showV4Choice(stage, actions, nextLevel: nextLevel);
+    final selectedTopicNumber = _iosSelectedCompletionTopicNumber;
+    _iosSelectedCompletionTopicNumber = null;
     if (action == null) return;
     await widget.progressStore.clearPendingCompletionChoice(widget.lesson.id);
-    await _handleV4CompletionAction(action);
+    await _handleV4CompletionAction(
+      action,
+      selectedTopicNumber: selectedTopicNumber,
+    );
   }
 
   Future<void> _announcePendingChoiceMilestone(
@@ -2880,6 +2888,16 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     int? nextLevel,
   }) async {
     if (!mounted) return null;
+    _iosSelectedCompletionTopicNumber = null;
+    _iosIncompleteCompletionTopicNumbers = const <int>[];
+    if (!kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.iOS &&
+        (stage == V4CompletionStage.topicEnd ||
+            stage == V4CompletionStage.topicEndOneRemaining)) {
+      _iosIncompleteCompletionTopicNumbers =
+          await _incompleteTopicsInCurrentLevel();
+      if (!mounted) return null;
+    }
     final nextLessonNumber = _nextLessonInTopic?.number;
     final topicNumber = widget.topicContent?.number;
     final prompt = v4CompletionPrompt(
@@ -2981,6 +2999,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     _v4CompletionChoiceVisible = false;
     _activeV4CompletionStage = null;
     _activeV4CompletionActions = const <V4CompletionAction>[];
+    _iosIncompleteCompletionTopicNumbers = const <int>[];
     return result;
   }
 
@@ -2988,13 +3007,17 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     BuildContext sheetContext,
     V4CompletionAction action,
   ) async {
+    _iosSelectedCompletionTopicNumber = null;
     await _cancelCompletionChoiceCapture();
     if (sheetContext.mounted) {
       Navigator.of(sheetContext).pop(action);
     }
   }
 
-  Future<void> _handleV4CompletionAction(V4CompletionAction? action) async {
+  Future<void> _handleV4CompletionAction(
+    V4CompletionAction? action, {
+    int? selectedTopicNumber,
+  }) async {
     if (!mounted || action == null) return;
     if (action == V4CompletionAction.stop) {
       _returnToListening();
@@ -3010,6 +3033,20 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         return;
       case V4CompletionAction.nextTopic:
         final remaining = await _incompleteTopicsInCurrentLevel();
+        if (!kIsWeb &&
+            defaultTargetPlatform == TargetPlatform.iOS &&
+            selectedTopicNumber != null &&
+            remaining.contains(selectedTopicNumber)) {
+          final topic = widget.contentGroup?.topics
+              .where((candidate) => candidate.number == selectedTopicNumber)
+              .firstOrNull;
+          if (topic != null &&
+              widget.levelContent?.topicNumbers.contains(topic.number) ==
+                  true) {
+            await _openContentTopic(topic);
+            return;
+          }
+        }
         if (remaining.length == 1) {
           final topic = widget.contentGroup?.topics
               .where((candidate) => candidate.number == remaining.single)
@@ -3757,14 +3794,41 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   V4CompletionAction? _resolveV4CompletionTranscript(
     String transcript,
     V4CompletionStage stage,
-  ) => const V4CompletionChoiceResolver().resolve(
-    transcript,
-    stage: stage,
-    allowedActions: _activeV4CompletionActions,
-    currentLesson: widget.lesson.number,
-    nextLesson: _nextLessonInTopic?.number,
-    nextLevel: _mainCompletionNextLevel,
-  );
+  ) {
+    if (!kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.iOS &&
+        (stage == V4CompletionStage.topicEnd ||
+            stage == V4CompletionStage.topicEndOneRemaining) &&
+        _activeV4CompletionActions.contains(V4CompletionAction.nextTopic)) {
+      final selected = VoiceNavigationIntentResolver.directTopicNumber(
+        transcript,
+      );
+      if (selected != null) {
+        final inCurrentLevel =
+            widget.levelContent?.topicNumbers.contains(selected) == true;
+        final hasContent =
+            widget.contentGroup?.topics.any(
+              (topic) => topic.number == selected,
+            ) ==
+            true;
+        if (inCurrentLevel &&
+            hasContent &&
+            _iosIncompleteCompletionTopicNumbers.contains(selected)) {
+          _iosSelectedCompletionTopicNumber = selected;
+          return V4CompletionAction.nextTopic;
+        }
+        return null;
+      }
+    }
+    return const V4CompletionChoiceResolver().resolve(
+      transcript,
+      stage: stage,
+      allowedActions: _activeV4CompletionActions,
+      currentLesson: widget.lesson.number,
+      nextLesson: _nextLessonInTopic?.number,
+      nextLevel: _mainCompletionNextLevel,
+    );
+  }
 
   void _clearCompletionChoiceListeners() {
     final completed = _completionChoiceCompletedSubscription;

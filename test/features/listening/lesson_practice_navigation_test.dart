@@ -124,6 +124,117 @@ void main() {
     }),
   );
 
+  for (final choice in <(String, int?)>[
+    ('Chủ đề 2', 2),
+    ('Chủ đề số 2', 2),
+    ('Chủ đề 3', 3),
+    ('Chủ đề 1', null),
+    ('Chủ đề 4', null),
+  ]) {
+    testWidgets(
+      'iOS completion validates spoken ${choice.$1} when Topics 2 and 3 remain',
+      (tester) async {
+        final transcript = choice.$1;
+        SharedPreferences.setMockInitialValues({});
+        await _usePhoneSurface(tester);
+        final first = _v4Lesson();
+        final second = _v4Lesson(number: 2);
+        final third = _v4Lesson(number: 3);
+        final topics = <ListeningTopicContent>[
+          ListeningTopicContent(
+            id: 'topic-one',
+            number: 1,
+            titleVi: 'Chủ đề 1',
+            titleEn: 'Topic 1',
+            levelNumber: 1,
+            lessons: [first],
+          ),
+          ListeningTopicContent(
+            id: 'topic-two',
+            number: 2,
+            titleVi: 'Chủ đề 2',
+            titleEn: 'Topic 2',
+            levelNumber: 1,
+            lessons: [second],
+          ),
+          ListeningTopicContent(
+            id: 'topic-three',
+            number: 3,
+            titleVi: 'Chủ đề 3',
+            titleEn: 'Topic 3',
+            levelNumber: 1,
+            lessons: [third],
+          ),
+        ];
+        const level = ListeningLevelContent(
+          id: 'level-one',
+          number: 1,
+          titleVi: 'Level 1',
+          topicNumbers: [1, 2, 3],
+        );
+        final group = ListeningContentAgeGroup(
+          startAge: 3,
+          endAge: 5,
+          topics: topics,
+          levels: [level],
+        );
+        final store = _TopicTransitionProgressStore()
+          ..progress[first.id] = 1
+          ..coreStarted = true
+          ..pendingCompletionChoice = ListeningPendingChoiceStage.topicEnd;
+        store.completedV4LessonActivities.add(first.id);
+        final speech = _IosCompletionCommandSpeechInput(transcript);
+        addTearDown(speech.dispose);
+        final media = _SilentMediaService();
+        await tester.pumpWidget(
+          _subject(
+            first,
+            store,
+            Key('ios-explicit-$transcript'),
+            topicContent: topics.first,
+            contentGroup: group,
+            levelContent: level,
+            controller: _LearningAudioDependencies(speech),
+            voicePromptService: _SilentVoicePromptService(),
+            mediaService: media,
+            initialResumeStage: ListeningResumeStage.waitingForChoice,
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(speech.commands.commandStarts, 1);
+        speech.commands.partial.add(transcript);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 701));
+        await tester.pump();
+
+        if (choice.$2 == null) {
+          expect(find.byType(LessonIntroScreen), findsNothing);
+          expect(
+            find.byKey(const ValueKey('v4-choice-nextTopic')),
+            findsOneWidget,
+          );
+          expect(
+            store.pendingCompletionChoice,
+            ListeningPendingChoiceStage.topicEnd,
+          );
+          await tester.tap(find.byKey(const ValueKey('v4-choice-stop')));
+          await tester.pumpAndSettle();
+        } else {
+          final intro = tester.widget<LessonIntroScreen>(
+            find.byType(LessonIntroScreen),
+          );
+          expect(intro.topicContent?.number, choice.$2);
+          expect(intro.lesson.id, choice.$2 == 2 ? second.id : third.id);
+          expect(store.pendingCompletionChoice, isNull);
+        }
+        expect(media.startRecordingCount, 0);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    );
+  }
+
   for (final command in [
     ActiveLearningCommand.nextItem,
     ActiveLearningCommand.previousItem,

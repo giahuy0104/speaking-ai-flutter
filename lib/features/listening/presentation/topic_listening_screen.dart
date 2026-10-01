@@ -62,6 +62,7 @@ class TopicListeningScreen extends StatefulWidget {
     this.onTopicSelected,
     this.onLessonSelectionRequested,
     this.onLevelTopicSelectionRequested,
+    this.iosTopicRecognitionFailureRevision,
     this.onCourseRelearnLevelSelectionRequested,
     this.onChildAgeChanged,
     this.onRequestParentAccess,
@@ -84,6 +85,9 @@ class TopicListeningScreen extends StatefulWidget {
   final ValueChanged<int>? onTopicSelected;
   final TopicLessonSelectionPrompt? onLessonSelectionRequested;
   final LevelTopicSelectionPrompt? onLevelTopicSelectionRequested;
+
+  /// Incremented when an activated iOS topic response turn fails recognition.
+  final ValueListenable<int>? iosTopicRecognitionFailureRevision;
   final CourseRelearnLevelSelectionPrompt?
   onCourseRelearnLevelSelectionRequested;
   final ValueChanged<int>? onChildAgeChanged;
@@ -112,6 +116,9 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
   late final VoicePromptService _voicePromptService;
   late final bool _ownsVoicePromptService;
   bool _initialVoiceTargetHandled = false;
+  ListeningLevelContent? _activeVoiceTopicLevel;
+  int? _activeVoiceTopicRevision;
+  bool _topicChoiceSheetOpen = false;
 
   ListeningAgeCatalog get _catalog => listeningCatalogs[_selectedCatalogIndex];
 
@@ -153,11 +160,33 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           coordinator: widget.controller?.audioTurnCoordinator,
           owner: AudioTurnOwner.listeningLesson,
         );
+    widget.iosTopicRecognitionFailureRevision?.addListener(
+      _onIosTopicRecognitionFailure,
+    );
     unawaited(_loadContentAndProgress());
   }
 
   @override
+  void didUpdateWidget(covariant TopicListeningScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.iosTopicRecognitionFailureRevision !=
+        widget.iosTopicRecognitionFailureRevision) {
+      oldWidget.iosTopicRecognitionFailureRevision?.removeListener(
+        _onIosTopicRecognitionFailure,
+      );
+      _activeVoiceTopicLevel = null;
+      _activeVoiceTopicRevision = null;
+      widget.iosTopicRecognitionFailureRevision?.addListener(
+        _onIosTopicRecognitionFailure,
+      );
+    }
+  }
+
+  @override
   void dispose() {
+    widget.iosTopicRecognitionFailureRevision?.removeListener(
+      _onIosTopicRecognitionFailure,
+    );
     if (_ownsVoicePromptService) {
       unawaited(_voicePromptService.dispose());
     }
@@ -165,6 +194,28 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
       unawaited(_historyMediaService.dispose());
     }
     super.dispose();
+  }
+
+  void _onIosTopicRecognitionFailure() {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS || !mounted) {
+      return;
+    }
+    final revision = widget.iosTopicRecognitionFailureRevision?.value;
+    final level = _activeVoiceTopicLevel;
+    if (revision == null ||
+        level == null ||
+        _activeVoiceTopicRevision == null ||
+        revision <= _activeVoiceTopicRevision! ||
+        _topicChoiceSheetOpen) {
+      return;
+    }
+    _activeVoiceTopicRevision = revision;
+    if (ModalRoute.of(context)?.isCurrent != true) {
+      _activeVoiceTopicLevel = null;
+      return;
+    }
+    AudioDiagnostics.event('screen.topics.ios_recognition_fallback');
+    unawaited(_showLevelTopicChoices(level));
   }
 
   Future<void> _speakOnSelectedLessonOutput(
@@ -748,6 +799,8 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     required int levelNumber,
     required bool announceLevel,
   }) async {
+    _activeVoiceTopicLevel = null;
+    _activeVoiceTopicRevision = null;
     final requestedLevel = group.level(levelNumber);
     final canResumeRequestedLevel =
         requestedLevel != null &&
@@ -796,6 +849,8 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
         .toList(growable: false);
     if (callback != null) {
       try {
+        final revisionBeforeActivation =
+            widget.iosTopicRecognitionFailureRevision?.value;
         final activated = await callback(
           childAge: _catalog.startAge,
           levelNumber: level.number,
@@ -803,7 +858,18 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           completedTopicNumbers: completedTopics,
           announceLevel: announceLevel,
         );
-        if (activated) return;
+        if (activated) {
+          if (!kIsWeb &&
+              defaultTargetPlatform == TargetPlatform.iOS &&
+              mounted &&
+              revisionBeforeActivation != null) {
+            _activeVoiceTopicLevel = level;
+            _activeVoiceTopicRevision = revisionBeforeActivation;
+            // A recognizer can fail while the activation Future is completing.
+            _onIosTopicRecognitionFailure();
+          }
+          return;
+        }
       } catch (error) {
         debugPrint('HOMI topic selection activation failed: $error');
       }
@@ -821,46 +887,58 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
       debugPrint('HOMI topic selection prompt failed: $error');
     }
     if (callback == null || !mounted) return;
-    final selected = await showModalBottomSheet<int>(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Text(
-                  context.tr('Bạn chọn Chủ đề số mấy?', '请选择主题编号。'),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(sheetContext).textTheme.titleLarge,
-                ),
-                for (final topicNumber in level.topicNumbers) ...<Widget>[
-                  const SizedBox(height: 10),
-                  FilledButton(
-                    key: ValueKey<String>('level-topic-choice-$topicNumber'),
-                    onPressed: () =>
-                        Navigator.of(sheetContext).pop(topicNumber),
-                    child: Text(
-                      context.tr('Chủ đề $topicNumber', '主题 $topicNumber'),
-                    ),
+    await _showLevelTopicChoices(level);
+  }
+
+  Future<void> _showLevelTopicChoices(ListeningLevelContent level) async {
+    if (!mounted || _topicChoiceSheetOpen) return;
+    _topicChoiceSheetOpen = true;
+    try {
+      final selected = await showModalBottomSheet<int>(
+        context: context,
+        builder: (sheetContext) => SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Text(
+                    context.tr('Bạn chọn Chủ đề số mấy?', '请选择主题编号。'),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(sheetContext).textTheme.titleLarge,
                   ),
+                  for (final topicNumber in level.topicNumbers) ...<Widget>[
+                    const SizedBox(height: 10),
+                    FilledButton(
+                      key: ValueKey<String>('level-topic-choice-$topicNumber'),
+                      onPressed: () =>
+                          Navigator.of(sheetContext).pop(topicNumber),
+                      child: Text(
+                        context.tr('Chủ đề $topicNumber', '主题 $topicNumber'),
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),
-      ),
-    );
-    if (selected == null || !mounted) return;
-    final topicIndex = selected - 1;
-    if (topicIndex < 0 || topicIndex >= _catalog.topics.length) return;
-    await _openTopic(
-      _catalog.topics[topicIndex],
-      topicIndex,
-      requestVoiceLessonSelection: false,
-    );
+      );
+      if (selected == null || !mounted) return;
+      _activeVoiceTopicLevel = null;
+      _activeVoiceTopicRevision = null;
+      final topicIndex = selected - 1;
+      if (topicIndex < 0 || topicIndex >= _catalog.topics.length) return;
+      await _openTopic(
+        _catalog.topics[topicIndex],
+        topicIndex,
+        requestVoiceLessonSelection: false,
+      );
+    } finally {
+      _topicChoiceSheetOpen = false;
+    }
   }
 
   Future<void> _openInitialVoiceTarget() async {
@@ -901,6 +979,8 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
   }
 
   Future<void> _openTopicSongs(ListeningTopic topic, int topicIndex) async {
+    _activeVoiceTopicLevel = null;
+    _activeVoiceTopicRevision = null;
     try {
       final catalog = await _contentFuture;
       if (!mounted) return;
@@ -1008,6 +1088,8 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     bool forceRelearnTopic = false,
     bool forceRelearnLesson = false,
   }) async {
+    _activeVoiceTopicLevel = null;
+    _activeVoiceTopicRevision = null;
     try {
       final catalog = await _contentFuture;
       if (!mounted) {

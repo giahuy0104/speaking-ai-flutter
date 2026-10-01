@@ -52,6 +52,7 @@ class MainVoiceAssistantTurn {
     this.navigationBeforePrompt,
     this.navigationAfterPrompt,
     this.activeLearningCommand,
+    this.exhaustedUnrecognizedInput = false,
   });
 
   final String promptText;
@@ -62,6 +63,7 @@ class MainVoiceAssistantTurn {
   final VoiceNavigationIntent? navigationBeforePrompt;
   final VoiceNavigationIntent? navigationAfterPrompt;
   final ActiveLearningCommand? activeLearningCommand;
+  final bool exhaustedUnrecognizedInput;
 }
 
 /// Holds the multi-turn conversation started from the fixed Main button.
@@ -379,6 +381,53 @@ class MainVoiceAssistantFlow {
     _activeVoicePrompt = null;
     _activeVoiceSelection = null;
     _fallbackAttempts.clear();
+  }
+
+  /// Retains the current choice while iOS waits for a route installation ack.
+  /// A returned closure restores only the conversational choice; the monotonic
+  /// generation is intentionally left advanced so obsolete async work stays
+  /// cancelled.
+  void Function() captureNavigationChoice() {
+    final stage = _stage;
+    final selectedAge = _selectedAge;
+    final selectedCatalog = _selectedCatalog;
+    final selectedTopicNumber = _selectedTopicNumber;
+    final selectedTopicContent = _selectedTopicContent;
+    final completedTopicNumbers = _completedTopicNumbers;
+    final allowedTopicNumbers = _allowedTopicNumbers;
+    final allowedLevelNumbers = _allowedLevelNumbers;
+    final pendingReplayTopicNumber = _pendingReplayTopicNumber;
+    final completedLessonNumbers = _completedLessonNumbers;
+    final pendingReplayLessonNumber = _pendingReplayLessonNumber;
+    final activeLearningKind = _activeLearningKind;
+    final activeVoiceNode = _activeVoiceNode;
+    final activeVoicePrompt = _activeVoicePrompt;
+    final activeVoiceSelection = _activeVoiceSelection;
+    final pausedChoice = _pausedChoice;
+    final fallbackAttempts = Map<MainVoiceAssistantStage, int>.of(
+      _fallbackAttempts,
+    );
+    return () {
+      _stage = stage;
+      _selectedAge = selectedAge;
+      _selectedCatalog = selectedCatalog;
+      _selectedTopicNumber = selectedTopicNumber;
+      _selectedTopicContent = selectedTopicContent;
+      _completedTopicNumbers = completedTopicNumbers;
+      _allowedTopicNumbers = allowedTopicNumbers;
+      _allowedLevelNumbers = allowedLevelNumbers;
+      _pendingReplayTopicNumber = pendingReplayTopicNumber;
+      _completedLessonNumbers = completedLessonNumbers;
+      _pendingReplayLessonNumber = pendingReplayLessonNumber;
+      _activeLearningKind = activeLearningKind;
+      _activeVoiceNode = activeVoiceNode;
+      _activeVoicePrompt = activeVoicePrompt;
+      _activeVoiceSelection = activeVoiceSelection;
+      _pausedChoice = pausedChoice;
+      _fallbackAttempts
+        ..clear()
+        ..addAll(fallbackAttempts);
+    };
   }
 
   void pauseChoice() {
@@ -2058,6 +2107,7 @@ class MainVoiceAssistantFlow {
       promptText: MasterNavigationContract.pause,
       promptAudioKey: MainAssistantAudioKeys.cancelled,
       continueListening: false,
+      exhaustedUnrecognizedInput: true,
       activeLearningCommand: _stage == MainVoiceAssistantStage.activeLearning
           ? ActiveLearningCommand.stop
           : null,

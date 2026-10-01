@@ -12,6 +12,7 @@ import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_le
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_listening_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/listening_route_names.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -30,6 +31,7 @@ void main() {
     ListeningProgressStore? progressStore,
     TopicLessonSelectionPrompt? onLessonSelectionRequested,
     LevelTopicSelectionPrompt? onLevelTopicSelectionRequested,
+    ValueListenable<int>? iosTopicRecognitionFailureRevision,
     CourseRelearnLevelSelectionPrompt? onCourseRelearnLevelSelectionRequested,
     ValueChanged<int>? onChildAgeChanged,
     Future<bool> Function()? onRequestParentAccess,
@@ -56,6 +58,8 @@ void main() {
           progressStore: progressStore ?? _MemoryProgressStore(),
           onLessonSelectionRequested: onLessonSelectionRequested,
           onLevelTopicSelectionRequested: onLevelTopicSelectionRequested,
+          iosTopicRecognitionFailureRevision:
+              iosTopicRecognitionFailureRevision,
           onCourseRelearnLevelSelectionRequested:
               onCourseRelearnLevelSelectionRequested,
           onChildAgeChanged: onChildAgeChanged,
@@ -275,6 +279,103 @@ void main() {
       }),
     );
   }
+
+  testWidgets(
+    'iOS offers Topic 2 after activated recognition fails later',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final failureRevision = ValueNotifier<int>(0);
+      addTearDown(failureRevision.dispose);
+      final store = _MemoryProgressStore()
+        ..checkpoint = const ListeningTopicSelectionCheckpoint(
+          levelNumber: 1,
+          announceLevel: false,
+        );
+      var activations = 0;
+      await tester.pumpWidget(
+        buildSubject(
+          childAge: 3,
+          progressStore: store,
+          iosTopicRecognitionFailureRevision: failureRevision,
+          onLevelTopicSelectionRequested:
+              ({
+                required childAge,
+                required levelNumber,
+                required topicNumbers,
+                required completedTopicNumbers,
+                required announceLevel,
+              }) async {
+                activations += 1;
+                return true;
+              },
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(activations, 1);
+      expect(find.byKey(const ValueKey('level-topic-choice-2')), findsNothing);
+
+      failureRevision.value += 1;
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('level-topic-choice-2')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('level-topic-choice-3')),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const ValueKey('level-topic-choice-2')));
+      for (var index = 0; index < 5; index++) {
+        await tester.pump();
+      }
+      await tester.pump(const Duration(milliseconds: 400));
+
+      final intro = tester.widget<LessonIntroScreen>(
+        find.byType(LessonIntroScreen),
+      );
+      expect(intro.topicContent?.number, 2);
+      expect(intro.lesson.number, 1);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+    variant: const TargetPlatformVariant(<TargetPlatform>{TargetPlatform.iOS}),
+  );
+
+  testWidgets(
+    'Android ignores iOS recognition failure signal',
+    (tester) async {
+      final failureRevision = ValueNotifier<int>(0);
+      addTearDown(failureRevision.dispose);
+      final store = _MemoryProgressStore()
+        ..checkpoint = const ListeningTopicSelectionCheckpoint(
+          levelNumber: 1,
+          announceLevel: false,
+        );
+      await tester.pumpWidget(
+        buildSubject(
+          childAge: 3,
+          progressStore: store,
+          iosTopicRecognitionFailureRevision: failureRevision,
+          onLevelTopicSelectionRequested:
+              ({
+                required childAge,
+                required levelNumber,
+                required topicNumbers,
+                required completedTopicNumbers,
+                required announceLevel,
+              }) async => true,
+        ),
+      );
+      await tester.pumpAndSettle();
+      failureRevision.value += 1;
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('level-topic-choice-2')), findsNothing);
+    },
+    variant: const TargetPlatformVariant(<TargetPlatform>{
+      TargetPlatform.android,
+    }),
+  );
 
   testWidgets('shows bilingual topic and lesson titles', (tester) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));

@@ -214,6 +214,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     if (oldWidget.voiceNavigationController !=
         widget.voiceNavigationController) {
       oldWidget.voiceNavigationController?.setIntentHandler(null);
+      oldWidget.voiceNavigationController?.setIntentResultHandler(null);
       unawaited(oldWidget.voiceNavigationController?.pause());
       _attachVoiceNavigationHandler();
     }
@@ -246,6 +247,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     _voiceNavigationRestartTimer?.cancel();
     widget.controller.removeListener(_onConversationControllerChanged);
     widget.voiceNavigationController?.setIntentHandler(null);
+    widget.voiceNavigationController?.setIntentResultHandler(null);
     unawaited(widget.voiceNavigationController?.pause());
     _backgroundLearningCoordinator.dispose();
     _vocabularyActivationController.dispose();
@@ -563,8 +565,17 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           defaultTargetPlatform == TargetPlatform.iOS);
 
   void _attachVoiceNavigationHandler() {
+    final iosResultHandler =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
     widget.voiceNavigationController?.setIntentHandler(
-      widget.config.enableVoiceNavigation ? _handleVoiceNavigationIntent : null,
+      widget.config.enableVoiceNavigation && !iosResultHandler
+          ? _handleVoiceNavigationIntent
+          : null,
+    );
+    widget.voiceNavigationController?.setIntentResultHandler(
+      widget.config.enableVoiceNavigation && iosResultHandler
+          ? _handleVoiceNavigationIntentResult
+          : null,
     );
   }
 
@@ -663,7 +674,34 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     await _executeVoiceNavigation(intent);
   }
 
-  Future<void> _executeVoiceNavigation(VoiceNavigationIntent intent) async {
+  Future<bool> _handleVoiceNavigationIntentResult(
+    VoiceNavigationIntent intent,
+  ) async {
+    if (!mounted || _tutorialActive) {
+      if (mounted) {
+        _showVoiceNavigationMessage('Hãy kết thúc hướng dẫn rồi thử lại nhé.');
+      }
+      return false;
+    }
+    try {
+      final installed = await _executeVoiceNavigation(intent);
+      if (!installed && mounted) {
+        _showVoiceNavigationMessage(
+          'Chưa mở được nội dung. Bạn hãy thử lại hoặc chạm vào mục muốn học.',
+        );
+      }
+      return installed;
+    } catch (error) {
+      if (mounted) {
+        _showVoiceNavigationMessage(
+          'Chưa mở được nội dung. Bạn hãy thử lại hoặc chạm vào mục muốn học.',
+        );
+      }
+      rethrow;
+    }
+  }
+
+  Future<bool> _executeVoiceNavigation(VoiceNavigationIntent intent) async {
     final useChinese =
         widget.controller.displayLanguage == DisplayLanguage.simplifiedChinese;
     final activeKind = ActiveLearningModuleScope.read(context)?.activeKind;
@@ -725,7 +763,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       }
       await _closeTopicListeningIfNeeded();
       if (!mounted) {
-        return;
+        return false;
       }
     }
     _showVoiceNavigationMessage(
@@ -736,7 +774,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
     switch (intent.destination) {
       case VoiceNavigationDestination.conversation:
-        if (!await _showConversationAndWait()) return;
+        if (!await _showConversationAndWait()) return false;
         if (deferVocabularyExitCommit) {
           widget.onActiveLearningExitCommitted?.call();
         }
@@ -745,6 +783,11 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         }
       case VoiceNavigationDestination.vocabulary:
         await _showVocabularyAndWait();
+        if (!kIsWeb &&
+            defaultTargetPlatform == TargetPlatform.iOS &&
+            (!mounted || _page != 1)) {
+          return false;
+        }
         final vocabularyTarget = intent.vocabularyTarget;
         if (vocabularyTarget != null) {
           await _vocabularyNavigationController.openVoiceTarget(
@@ -783,7 +826,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           await _closeTopicListeningIfNeeded();
         }
         if (mounted) {
-          final routePushed = Completer<void>();
+          final routePushed = Completer<bool>();
           unawaited(
             _openTopicListening(
               initialVoiceTarget: opensCurrentLevelSelection ? null : target,
@@ -794,16 +837,21 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           // route. Wait until the route is installed, then release MAIN's
           // native turn before the destination starts its own audio on a frame.
           // Waiting for the painted frame here can deadlock a suspended UI.
-          await routePushed.future.timeout(
+          final installed = await routePushed.future.timeout(
             const Duration(seconds: 2),
-            onTimeout: () {},
+            onTimeout: () =>
+                kIsWeb || defaultTargetPlatform != TargetPlatform.iOS,
           );
+          if (!installed) return false;
+        } else {
+          return false;
         }
       case VoiceNavigationDestination.history:
         _showHistory();
       case VoiceNavigationDestination.settings:
         _showSettings();
     }
+    return true;
   }
 
   Future<void> _closeTopicListeningIfNeeded() async {
@@ -1137,11 +1185,11 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
   Future<void> _openTopicListening({
     ListeningVoiceNavigationTarget? initialVoiceTarget,
-    Completer<void>? routePushed,
+    Completer<bool>? routePushed,
   }) async {
     if (_openingTopics) {
       if (routePushed != null && !routePushed.isCompleted) {
-        routePushed.complete();
+        routePushed.complete(false);
       }
       return;
     }
@@ -1150,6 +1198,9 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     _topicRouteClosedCompleter = routeClosedCompleter;
     try {
       if (!mounted) {
+        if (routePushed != null && !routePushed.isCompleted) {
+          routePushed.complete(false);
+        }
         return;
       }
       unawaited(
@@ -1175,6 +1226,9 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           initialVoiceTarget: initialVoiceTarget,
           onTopicSelected: (index) => _activeVoiceTopicIndex = index,
           onChildAgeChanged: widget.onChildAgeChanged,
+          iosTopicRecognitionFailureRevision: widget
+              .voiceNavigationController
+              ?.iosTopicRecognitionFailureRevision,
           onRequestParentAccess: _requestTopicAgeAccess,
           onCommunicationRequested: widget.controller.clearPresentationResult,
           onLessonSelectionRequested:
@@ -1242,12 +1296,23 @@ class _HomeLearningShellState extends State<HomeLearningShell>
             },
       );
       if (routePushed != null && !routePushed.isCompleted) {
-        routePushed.complete();
+        routePushed.complete(true);
       }
       await routeClosed;
+    } catch (error) {
+      final routeWasInstalled = routePushed?.isCompleted ?? false;
+      if (routePushed != null && !routePushed.isCompleted) {
+        routePushed.complete(false);
+      }
+      if (routePushed == null ||
+          routeWasInstalled ||
+          kIsWeb ||
+          defaultTargetPlatform != TargetPlatform.iOS) {
+        rethrow;
+      }
     } finally {
       if (routePushed != null && !routePushed.isCompleted) {
-        routePushed.complete();
+        routePushed.complete(false);
       }
       await _backgroundLearningCoordinator.clearListeningCheckpoint();
       _openingTopics = false;

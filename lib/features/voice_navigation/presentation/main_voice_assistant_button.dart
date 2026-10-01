@@ -48,6 +48,7 @@ class MainVoiceAssistantButton extends StatelessWidget {
             (isSpeakingMode ||
                 (!audioState.isBusy && !audioState.isPlaybackPlaying));
         final microphoneError = voiceController.lastErrorMessage;
+        final commandError = voiceController.hasUnhandledLearningCommandError;
         final label = isSpeakingMode
             ? switch (speakingState) {
                 MainSpeakingSessionState.ready => 'Đang chuẩn bị...',
@@ -67,13 +68,17 @@ class MainVoiceAssistantButton extends StatelessWidget {
             ? 'Đang nghe...'
             : voiceController.isMainButtonSessionActive &&
                   microphoneError != null
-            ? 'Đang thử lại mic...'
+            ? commandError
+                  ? 'Lệnh chưa xong'
+                  : 'Đang thử lại mic...'
             : voiceController.isMainButtonSessionActive &&
                   (voiceController.isStarting ||
                       voiceController.isAwaitingCommand)
             ? 'Đang chuẩn bị mic...'
             : microphoneError != null
-            ? 'Thử lại mic'
+            ? commandError
+                  ? 'Lệnh chưa xong'
+                  : 'Thử lại mic'
             : 'Main';
         final icon = isSpeakingMode
             ? switch (speakingState) {

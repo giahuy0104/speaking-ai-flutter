@@ -346,6 +346,8 @@ class _VoiceState extends ChangeNotifier implements VoiceNavigationController {
   @override
   String? get lastErrorMessage => null;
   @override
+  bool get hasUnhandledLearningCommandError => false;
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

@@ -14,6 +14,8 @@ import 'voice_navigation_intent_resolver.dart';
 
 typedef VoiceNavigationIntentHandler =
     FutureOr<void> Function(VoiceNavigationIntent intent);
+typedef VoiceNavigationIntentResultHandler =
+    FutureOr<bool> Function(VoiceNavigationIntent intent);
 typedef ActiveLearningCommandHandler =
     FutureOr<ActiveLearningCommandResult> Function(
       ActiveLearningCommand command,
@@ -143,6 +145,9 @@ class VoiceNavigationController extends ChangeNotifier {
   bool _commandSilenceElapsed = false;
   bool _commandAnswerComplete = false;
   VoiceNavigationIntentHandler? _intentHandler;
+  VoiceNavigationIntentResultHandler? _intentResultHandler;
+  final ValueNotifier<int> _iosTopicRecognitionFailureRevision =
+      ValueNotifier<int>(0);
   Future<void>? _pauseInProgress;
   Future<void>? _startInProgress;
   Future<void>? _finishInProgress;
@@ -196,8 +201,37 @@ class VoiceNavigationController extends ChangeNotifier {
     return message.isEmpty ? 'Không mở được micro. Bạn thử lại nhé.' : message;
   }
 
+  bool get hasUnhandledLearningCommandError {
+    final error = _lastError;
+    return !kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.iOS &&
+        error is StreamingSpeechInputException &&
+        (error.code == 'NAVIGATION_COMMAND_UNHANDLED' ||
+            error.code == 'NAVIGATION_COMMAND_UNAVAILABLE');
+  }
+
+  ValueListenable<int> get iosTopicRecognitionFailureRevision =>
+      _iosTopicRecognitionFailureRevision;
+
+  void _reportIosTopicRecognitionFailure({MainVoiceAssistantStage? stage}) {
+    if (_disposed ||
+        kIsWeb ||
+        defaultTargetPlatform != TargetPlatform.iOS ||
+        (stage ?? _mainAssistantFlow.stage) !=
+            MainVoiceAssistantStage.chooseTopicAfterCompletion) {
+      return;
+    }
+    _iosTopicRecognitionFailureRevision.value += 1;
+  }
+
   void setIntentHandler(VoiceNavigationIntentHandler? handler) {
     _intentHandler = handler;
+  }
+
+  /// iOS MAIN waits for the destination to confirm that navigation started.
+  /// The legacy handler remains unchanged for Android and other callers.
+  void setIntentResultHandler(VoiceNavigationIntentResultHandler? handler) {
+    _intentResultHandler = handler;
   }
 
   void setChildAge(int age) {
@@ -516,6 +550,12 @@ class VoiceNavigationController extends ChangeNotifier {
     _awaitingCommand = false;
     notifyListeners();
 
+    final iosNavigation =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    final choiceStage = _mainAssistantFlow.stage;
+    final restoreChoice = iosNavigation
+        ? _mainAssistantFlow.captureNavigationChoice()
+        : null;
     final turn = await _mainAssistantFlow.handle(recognizedText);
     AudioDiagnostics.event('main.command.resolved', {
       'generation': generation,
@@ -526,14 +566,35 @@ class VoiceNavigationController extends ChangeNotifier {
     if (_disposed || generation != _generation || !_buttonCommandSession) {
       return false;
     }
+    if (restoreChoice != null &&
+        (turn.navigationBeforePrompt != null ||
+            turn.navigationAfterPrompt != null)) {
+      restoreChoice();
+    }
     // A valid transcript starts a new response window at the resulting node.
     _mainNoSpeechRetryCount = 0;
 
     final navigationBeforePrompt = turn.navigationBeforePrompt;
     if (navigationBeforePrompt != null) {
-      await _dispatchIntent(navigationBeforePrompt);
+      final dispatched = await _dispatchIntent(navigationBeforePrompt);
+      if (!dispatched &&
+          !kIsWeb &&
+          defaultTargetPlatform == TargetPlatform.iOS) {
+        if (_disposed || generation != _generation || !_buttonCommandSession) {
+          return false;
+        }
+        // This route never installed. Keep the current choice and let the
+        // finishing recognizer reopen its normal command window for a retry.
+        _awaitingCommand = true;
+        if (_listening) _armCommandWindowTimer(generation);
+        notifyListeners();
+        return false;
+      }
       if (_disposed || generation != _generation || !_buttonCommandSession) {
         return false;
+      }
+      if (iosNavigation && _mainAssistantFlow.stage == choiceStage) {
+        _mainAssistantFlow.reset();
       }
     }
 
@@ -566,6 +627,9 @@ class VoiceNavigationController extends ChangeNotifier {
         !turn.continueListening &&
         turn.navigationAfterPrompt != null;
     if (!promptCompleted && !canCompleteRecognizedNavigation) {
+      if (turn.exhaustedUnrecognizedInput) {
+        _reportIosTopicRecognitionFailure(stage: choiceStage);
+      }
       return false;
     }
     if (canCompleteRecognizedNavigation) {
@@ -608,7 +672,7 @@ class VoiceNavigationController extends ChangeNotifier {
         turn.navigationAfterPrompt == null &&
         turn.activeLearningCommand == null) {
       _mainAssistantFlow.pauseChoice();
-    } else {
+    } else if (!iosNavigation || turn.navigationAfterPrompt == null) {
       _mainAssistantFlow.reset();
     }
     // The MAIN controller is the sole owner of the native turn. Apple Speech
@@ -622,6 +686,9 @@ class VoiceNavigationController extends ChangeNotifier {
       generation: generation,
     );
     if (_disposed || generation != _generation) return false;
+    if (turn.exhaustedUnrecognizedInput) {
+      _reportIosTopicRecognitionFailure(stage: choiceStage);
+    }
     AudioDiagnostics.event('main.native_end.completed', {
       'generation': generation,
     });
@@ -629,12 +696,52 @@ class VoiceNavigationController extends ChangeNotifier {
     if (activeLearningCommand != null) {
       final handler = _activeLearningCommandHandler;
       if (handler != null) {
-        await handler(activeLearningCommand);
+        final result = await handler(activeLearningCommand);
+        if (!kIsWeb &&
+            defaultTargetPlatform == TargetPlatform.iOS &&
+            !result.wasHandled) {
+          _lastError = StreamingSpeechInputException(
+            result.spokenReply ??
+                'Chưa thực hiện được lệnh học. Bạn hãy thử lại hoặc chạm nút trên màn hình.',
+            code: 'NAVIGATION_COMMAND_UNHANDLED',
+          );
+          AudioDiagnostics.event('main.active_command.unhandled', {
+            'generation': generation,
+            'command': activeLearningCommand.name,
+            'status': result.status.name,
+          });
+          notifyListeners();
+          return false;
+        }
+      } else if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+        _lastError = const StreamingSpeechInputException(
+          'Chưa thực hiện được lệnh học. Bạn hãy thử lại.',
+          code: 'NAVIGATION_COMMAND_UNAVAILABLE',
+        );
+        AudioDiagnostics.event('main.active_command.unhandled', {
+          'generation': generation,
+          'command': activeLearningCommand.name,
+          'status': 'unavailable',
+        });
+        notifyListeners();
+        return false;
       }
     }
     final navigationAfterPrompt = turn.navigationAfterPrompt;
     if (navigationAfterPrompt != null) {
-      await _dispatchIntent(navigationAfterPrompt);
+      final dispatched = await _dispatchIntent(navigationAfterPrompt);
+      if (!dispatched &&
+          !kIsWeb &&
+          defaultTargetPlatform == TargetPlatform.iOS) {
+        notifyListeners();
+        return false;
+      }
+      if (iosNavigation &&
+          !_disposed &&
+          generation == _generation &&
+          _mainAssistantFlow.stage == choiceStage) {
+        _mainAssistantFlow.reset();
+      }
     }
     notifyListeners();
     return true;
@@ -958,19 +1065,45 @@ class VoiceNavigationController extends ChangeNotifier {
       'main_assistant_no_speech_exit',
       generation: generation,
     );
+    if (!_disposed && generation == _generation) {
+      _reportIosTopicRecognitionFailure();
+    }
     notifyListeners();
   }
 
   Future<bool> _dispatchIntent(VoiceNavigationIntent intent) async {
     final handler = _intentHandler;
-    if (handler == null || _disposed) {
+    final resultHandler = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+        ? _intentResultHandler
+        : null;
+    if ((handler == null && resultHandler == null) || _disposed) {
       return false;
     }
     AudioDiagnostics.event('navigation.dispatch', {
       'generation': _generation,
       'destination': intent.destination.name,
     });
-    await handler(intent);
+    if (resultHandler != null) {
+      try {
+        final installed = await resultHandler(intent);
+        AudioDiagnostics.event('navigation.handler.completed', {
+          'generation': _generation,
+          'destination': intent.destination.name,
+          'installed': installed,
+        });
+        return installed;
+      } catch (error) {
+        _lastError = error;
+        notifyListeners();
+        AudioDiagnostics.event('navigation.handler.failed', {
+          'generation': _generation,
+          'destination': intent.destination.name,
+          'error': error.toString(),
+        });
+        return false;
+      }
+    }
+    await handler!(intent);
     AudioDiagnostics.event('navigation.handler.completed', {
       'generation': _generation,
       'destination': intent.destination.name,
@@ -1130,6 +1263,7 @@ class VoiceNavigationController extends ChangeNotifier {
         message: error.toString(),
       );
       _lastError = error;
+      _reportIosTopicRecognitionFailure();
       _starting = false;
       _listening = false;
       _lastReadyGeneration = null;
@@ -1560,6 +1694,7 @@ class VoiceNavigationController extends ChangeNotifier {
           return;
         }
         _lastError = error;
+        _reportIosTopicRecognitionFailure();
         _continuousRequested = false;
         if (_buttonCommandSession) {
           _awaitingCommand = false;
@@ -1696,6 +1831,7 @@ class VoiceNavigationController extends ChangeNotifier {
     if (_ownsVoicePromptService) {
       unawaited(_voicePromptService?.dispose());
     }
+    _iosTopicRecognitionFailureRevision.dispose();
     super.dispose();
   }
 }

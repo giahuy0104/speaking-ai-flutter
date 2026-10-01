@@ -18,6 +18,270 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
+    'iOS retains numbered Topic choice until route installation succeeds',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final speech = _FakeNavigationSpeechInput();
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: _FakeVoicePromptService(),
+        mainAssistantFlow: MainVoiceAssistantFlow(
+          contentLoader: _loadMainAssistantContent,
+        ),
+      );
+      final acceptedTopics = <int>[];
+      controller.setIntentResultHandler((intent) {
+        acceptedTopics.add(intent.topicNumber!);
+        return acceptedTopics.length > 1;
+      });
+      expect(
+        await controller.activateLevelTopicSelection(
+          childAge: 6,
+          levelNumber: 1,
+          topicNumbers: [1, 2, 3],
+          completedTopicNumbers: [],
+          announceLevel: false,
+        ),
+        isTrue,
+      );
+      expect(await controller.dispatchRecognizedText('Chủ đề số 3'), isFalse);
+      expect(acceptedTopics, [3]);
+      expect(controller.isAwaitingCommand, isTrue);
+      expect(
+        controller.mainAssistantStage,
+        MainVoiceAssistantStage.chooseTopicAfterCompletion,
+      );
+      expect(await controller.dispatchRecognizedText('Chủ đề số 3'), isTrue);
+      expect(acceptedTopics, [3, 3]);
+      expect(controller.mainAssistantStage, MainVoiceAssistantStage.idle);
+      await controller.pause();
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  test(
+    'Android keeps its navigation handler when iOS result handler exists',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final speech = _FakeNavigationSpeechInput();
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: _FakeVoicePromptService(),
+        mainAssistantFlow: MainVoiceAssistantFlow(
+          contentLoader: _loadMainAssistantContent,
+        ),
+      );
+      var legacyCalls = 0;
+      var iosResultCalls = 0;
+      controller.setIntentHandler((_) => legacyCalls++);
+      controller.setIntentResultHandler((_) {
+        iosResultCalls++;
+        return false;
+      });
+      expect(
+        await controller.activateLevelTopicSelection(
+          childAge: 6,
+          levelNumber: 1,
+          topicNumbers: [1, 2, 3],
+          completedTopicNumbers: [],
+          announceLevel: false,
+        ),
+        isTrue,
+      );
+      expect(await controller.dispatchRecognizedText('Chủ đề số 3'), isTrue);
+      expect(legacyCalls, 1);
+      expect(iosResultCalls, 0);
+      await controller.pause();
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  test('iOS exposes a terminal Topic microphone failure revision', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final speech = _FakeNavigationSpeechInput();
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: _FakeVoicePromptService(),
+      mainAssistantFlow: MainVoiceAssistantFlow(
+        contentLoader: _loadMainAssistantContent,
+      ),
+    );
+    expect(
+      await controller.activateLevelTopicSelection(
+        childAge: 6,
+        levelNumber: 1,
+        topicNumbers: [1, 2, 3],
+        completedTopicNumbers: [],
+        announceLevel: false,
+      ),
+      isTrue,
+    );
+    final before = controller.iosTopicRecognitionFailureRevision.value;
+    // A final recognizer failure is distinct from ordinary silence retries.
+    speech.stopFailure = const StreamingSpeechInputException(
+      'Không dùng được micro',
+      code: 'IOS_FINAL_ERROR',
+    );
+    speech.emitCompleted();
+    await _waitUntil(
+      () => controller.iosTopicRecognitionFailureRevision.value > before,
+    );
+    expect(controller.iosTopicRecognitionFailureRevision.value, before + 1);
+    await controller.pause();
+    controller.dispose();
+    await speech.dispose();
+  });
+
+  test(
+    'iOS Topic silence signals only after the second command window',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final speech = _FakeNavigationSpeechInput(stopText: '');
+      final prompt = _FakeMainTurnVoicePromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+        mainAssistantFlow: MainVoiceAssistantFlow(
+          contentLoader: _loadMainAssistantContent,
+        ),
+        commandWindowDuration: const Duration(milliseconds: 100),
+        restartDelay: const Duration(milliseconds: 1),
+      );
+      expect(
+        await controller.activateLevelTopicSelection(
+          childAge: 6,
+          levelNumber: 1,
+          topicNumbers: [1, 2, 3],
+          completedTopicNumbers: [],
+          announceLevel: false,
+        ),
+        isTrue,
+      );
+      await _waitUntil(() => prompt.spokenTexts.length >= 2);
+      expect(controller.iosTopicRecognitionFailureRevision.value, 0);
+      await _waitUntil(() => !controller.isMainButtonSessionActive);
+      expect(controller.iosTopicRecognitionFailureRevision.value, 1);
+      await controller.pause();
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  test('iOS Topic unrecognized fallback signals only when exhausted', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final speech = _FakeNavigationSpeechInput();
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: _FakeVoicePromptService(),
+      mainAssistantFlow: MainVoiceAssistantFlow(
+        contentLoader: _loadMainAssistantContent,
+      ),
+    );
+    expect(
+      await controller.activateLevelTopicSelection(
+        childAge: 6,
+        levelNumber: 1,
+        topicNumbers: [1, 2, 3],
+        completedTopicNumbers: [],
+        announceLevel: false,
+      ),
+      isTrue,
+    );
+    expect(await controller.dispatchRecognizedText('Không rõ gì hết'), isTrue);
+    expect(controller.iosTopicRecognitionFailureRevision.value, 0);
+    expect(await controller.dispatchRecognizedText('Không rõ gì hết'), isTrue);
+    expect(controller.iosTopicRecognitionFailureRevision.value, 1);
+    await controller.pause();
+    controller.dispose();
+    await speech.dispose();
+  });
+
+  test(
+    'iOS surfaces an unhandled learning command after native handoff',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final speech = _FakeNavigationSpeechInput();
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: _FakeVoicePromptService(),
+        activeLearningCommandHandler: (_) async =>
+            const ActiveLearningCommandResult.busy(),
+      );
+      expect(
+        await controller.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: ActiveLearningModuleKind.listeningLesson,
+        ),
+        isTrue,
+      );
+      expect(await controller.dispatchRecognizedText('Tiếp tục'), isFalse);
+      expect(
+        controller.lastErrorMessage,
+        contains('Chưa thực hiện được lệnh học'),
+      );
+      await controller.pause();
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  testWidgets('iOS MAIN labels an unhandled command as unfinished', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final speech = _FakeNavigationSpeechInput();
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: _FakeVoicePromptService(),
+      activeLearningCommandHandler: (_) async =>
+          const ActiveLearningCommandResult.busy(),
+    );
+    final audioState = _FakeMainAssistantAudioState();
+    final speaking = MainSpeakingSessionController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: MainVoiceAssistantButton(
+            voiceController: controller,
+            audioState: audioState,
+            speakingSessionController: speaking,
+            isActivationPending: false,
+            onPressed: () async {},
+            onLongPressed: () async {},
+            onLongPressReleased: () async {},
+          ),
+        ),
+      ),
+    );
+    expect(
+      await controller.activateFromMainButton(
+        activeLearning: true,
+        activeLearningKind: ActiveLearningModuleKind.listeningLesson,
+      ),
+      isTrue,
+    );
+    expect(await controller.dispatchRecognizedText('Tiếp tục'), isFalse);
+    await tester.pump();
+    expect(find.text('Lệnh chưa xong'), findsOneWidget);
+    expect(find.text('Thử lại mic'), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+    controller.dispose();
+    audioState.dispose();
+    speaking.dispose();
+    await speech.dispose();
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  test(
     'cancelled lesson MAIN cannot resume learning after delayed native cleanup',
     () async {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
@@ -2593,6 +2857,7 @@ class _FakeNavigationSpeechInput
   final List<String> events = <String>[];
   final List<String> diagnosticStages = <String>[];
   int stopCalls = 0;
+  Object? stopFailure;
   final String stopText;
   final List<String> stopAlternatives;
   NativeSpeechDiagnostic? _nativeDiagnostic;
@@ -2677,6 +2942,7 @@ class _FakeNavigationSpeechInput
   @override
   Future<StreamingSpeechCapture> stop() async {
     stopCalls++;
+    if (stopFailure case final failure?) throw failure;
     return StreamingSpeechCapture(
       sourceText: stopText,
       duration: const Duration(seconds: 1),
