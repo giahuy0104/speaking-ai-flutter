@@ -67,6 +67,10 @@ class VoiceNavigationController extends ChangeNotifier {
     _completedSubscription = _speechInput.completed.listen((_) {
       if (_listening && !_finishing) {
         unawaited(_finishSession(_generation));
+      } else if (_starting && !_finishing) {
+        // Apple Speech may finalize before its start MethodChannel call (or
+        // Android's ready cue) has returned. Finalize once the turn is ready.
+        _pendingStartCompletionGeneration = _generation;
       }
     });
     _partialTextSubscription = _speechInput.partialText.listen(
@@ -147,6 +151,9 @@ class VoiceNavigationController extends ChangeNotifier {
   bool _starting = false;
   bool _listening = false;
   bool _finishing = false;
+  int? _lastReadyGeneration;
+  int? _pendingStartCompletionGeneration;
+  String? _pendingStartPartialText;
   bool _speechDetected = false;
   int _speechActivitySamples = 0;
   bool _awaitingCommand = false;
@@ -372,7 +379,11 @@ class VoiceNavigationController extends ChangeNotifier {
         return false;
       }
       await _runStartSession(generation);
-      return !_disposed && generation == _generation && _listening;
+      // An immediate native final may already have moved listening into
+      // finalization. The microphone did open, so this activation succeeded.
+      return !_disposed &&
+          generation == _generation &&
+          _lastReadyGeneration == generation;
     } finally {
       if (!_disposed && activationGeneration == _generation) {
         _mainButtonActivationInProgress = false;
@@ -412,6 +423,8 @@ class VoiceNavigationController extends ChangeNotifier {
     _finishInProgress = null;
     _starting = false;
     _listening = false;
+    _pendingStartCompletionGeneration = null;
+    _pendingStartPartialText = null;
     _speechDetected = false;
     final pendingOperations = <Future<void>>[
       if (shouldCancelInput || starting != null || finishing != null)
@@ -996,6 +1009,9 @@ class VoiceNavigationController extends ChangeNotifier {
       return;
     }
     _starting = true;
+    _lastReadyGeneration = null;
+    _pendingStartCompletionGeneration = null;
+    _pendingStartPartialText = null;
     notifyListeners();
     try {
       final commandInput = _speechInput is CommandStreamingSpeechInput
@@ -1060,6 +1076,7 @@ class VoiceNavigationController extends ChangeNotifier {
       }
       _starting = false;
       _listening = true;
+      _lastReadyGeneration = generation;
       _speechDetected = false;
       _speechActivitySamples = 0;
       _resetCommandSilence();
@@ -1090,8 +1107,17 @@ class VoiceNavigationController extends ChangeNotifier {
         () => unawaited(_finishSession(generation)),
       );
       notifyListeners();
+      final pendingPartial = _pendingStartPartialText;
+      _pendingStartPartialText = null;
+      if (pendingPartial != null) _handlePartialText(pendingPartial);
+      final completedDuringStart =
+          _pendingStartCompletionGeneration == generation;
+      _pendingStartCompletionGeneration = null;
+      if (completedDuringStart) unawaited(_finishSession(generation));
     } catch (error) {
       if (_disposed || generation != _generation) return;
+      _pendingStartCompletionGeneration = null;
+      _pendingStartPartialText = null;
       final diagnostics = _speechInput is NativeSpeechDiagnostics
           ? _speechInput as NativeSpeechDiagnostics
           : null;
@@ -1103,6 +1129,7 @@ class VoiceNavigationController extends ChangeNotifier {
       _lastError = error;
       _starting = false;
       _listening = false;
+      _lastReadyGeneration = null;
       // A physical/virtual MAIN turn has exactly one native start. Do not hide
       // its error behind route, recognizer, or delayed retry loops.
       final exhaustedMainAttempts = _buttonCommandSession;
@@ -1237,7 +1264,12 @@ class VoiceNavigationController extends ChangeNotifier {
   }
 
   void _handleCommandSpeechEnded(String text) {
-    if (_disposed || !_listening || _finishing || !_awaitingCommand) return;
+    if (_disposed ||
+        (!_listening && !_starting) ||
+        _finishing ||
+        !_awaitingCommand) {
+      return;
+    }
     final actionable = _buttonCommandSession
         ? _mainAssistantFlow.canHandle(text)
         : _resolver.resolve(text, allowShortDirectCommand: false) != null;
@@ -1247,6 +1279,10 @@ class VoiceNavigationController extends ChangeNotifier {
       'actionable': actionable,
     });
     if (!actionable) return;
+    if (_starting) {
+      _pendingStartCompletionGeneration = _generation;
+      return;
+    }
     // The native recognizer has detected the end of the utterance. Ask it to
     // finalize now, preserving stop()'s grace for a corrected final transcript;
     // do not cancel and dispatch the provisional number like a partial intent.
@@ -1254,6 +1290,10 @@ class VoiceNavigationController extends ChangeNotifier {
   }
 
   void _handlePartialText(String text) {
+    if (_starting && text.trim().isNotEmpty) {
+      _pendingStartPartialText = text;
+      return;
+    }
     if (!_listening || text.trim().isEmpty) {
       return;
     }
@@ -1539,6 +1579,9 @@ class VoiceNavigationController extends ChangeNotifier {
       'ANDROID_SPEECH_6',
       'ANDROID_SPEECH_7',
       'ANDROID_SPEECH_8',
+      // Apple Speech reports an empty finalized command as NO_SPEECH. It is
+      // the same child silence as Android's timeout/no-match, not a broken mic.
+      'IOS_SPEECH_NO_SPEECH',
       // Semantic equivalents used by test doubles and other native bridges.
       'SPEECH_AUDIO',
       'SPEECH_CLIENT',
@@ -1625,6 +1668,8 @@ class VoiceNavigationController extends ChangeNotifier {
     _disposed = true;
     _continuousRequested = false;
     _generation += 1;
+    _pendingStartCompletionGeneration = null;
+    _pendingStartPartialText = null;
     _cancelTimers();
     unawaited(_completedSubscription?.cancel());
     unawaited(_partialTextSubscription?.cancel());

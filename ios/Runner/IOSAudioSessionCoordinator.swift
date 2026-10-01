@@ -16,6 +16,42 @@ enum IOSAudioSessionOwner: String, Hashable {
   case speechCapture
 }
 
+/// Keep speech capture on the headset selected in Settings, including when
+/// iOS republishes the same device with a new transient HFP input UID.
+struct IOSSelectedHfpRoutePolicy {
+  static func matches(
+    active: IOSHfpInputIdentity?,
+    selected: IOSHfpInputIdentity?
+  ) -> Bool {
+    guard let active, let selected else { return false }
+    return IOSHfpInputSelectionPolicy.select(
+      from: [active],
+      selectedUID: selected.uid,
+      selectedName: selected.name
+    ) != nil
+  }
+}
+
+/// Applies the same selected-device identity rule while resolving an input
+/// for prompt and speech setup. An unselected app may use the first HFP input;
+/// once a device is selected, an unrelated headset is never a fallback.
+struct IOSPreferredHfpInputPolicy {
+  static func select(
+    from inputs: [IOSHfpInputIdentity],
+    selectedUID: String?,
+    selectedName: String?
+  ) -> IOSHfpInputIdentity? {
+    if selectedUID == nil && selectedName == nil {
+      return inputs.first
+    }
+    return IOSHfpInputSelectionPolicy.select(
+      from: inputs,
+      selectedUID: selectedUID,
+      selectedName: selectedName
+    )
+  }
+}
+
 struct IOSAudioSessionOwnershipState {
   private var leaseCounts: [IOSAudioSessionOwner: Int] = [:]
 
@@ -448,8 +484,8 @@ final class IOSAudioSessionCoordinator: NSObject {
         return usesHfp
       }
       let currentRouteUsesPreferredHfp = preferredHfpInput.map { preferredInput in
-        session.currentRoute.inputs.contains { $0.uid == preferredInput.uid }
-      } ?? true
+        hasSelectedTwoWayHfpRoute(input: preferredInput)
+      } ?? (preferredHfpInputUID == nil && preferredHfpInputName == nil)
       if IOSHfpRouteReusePolicy.canReuse(
         hasTwoWayHfpRoute: hasTwoWayHfpRoute(),
         audioSessionActive: isAudioSessionActive
@@ -661,26 +697,48 @@ final class IOSAudioSessionCoordinator: NSObject {
   /// been selected yet, keep the existing first-HFP behaviour. Once a device
   /// is selected, never silently replace it with a different Bluetooth device.
   func selectedOrAvailableHfpInput() -> AVAudioSessionPortDescription? {
-    let currentInputs = session.currentRoute.inputs.filter {
-      IOSHfpRoutePolicy.isHfpInput($0.portType)
-    }
     let availableInputs = (session.availableInputs ?? []).filter {
       IOSHfpRoutePolicy.isHfpInput($0.portType)
     }
-    let candidates = currentInputs + availableInputs
+    let currentInputs = session.currentRoute.inputs.filter {
+      IOSHfpRoutePolicy.isHfpInput($0.portType)
+    }
+    // iOS may republish H20 with a new UID. Resolve against available inputs
+    // before accepting an older currentRoute snapshot with the previous UID.
+    // The latter remains a setup hint only when iOS has not populated
+    // availableInputs yet; every playback/capture still verifies the live route.
+    let liveCurrent = isAudioSessionActive && hasTwoWayHfpRoute() ? currentInputs : []
+    let setupHint = availableInputs.isEmpty ? currentInputs : []
+    for candidates in [availableInputs, liveCurrent, setupHint] {
+      let identities = candidates.map {
+        IOSHfpInputIdentity(uid: $0.uid, name: $0.portName)
+      }
+      if let identity = IOSPreferredHfpInputPolicy.select(
+        from: identities,
+        selectedUID: preferredHfpInputUID,
+        selectedName: preferredHfpInputName
+      ), let selected = candidates.first(where: { $0.uid == identity.uid }) {
+        return selected
+      }
+    }
+    return nil
+  }
 
-    if let uid = preferredHfpInputUID,
-       let selected = candidates.first(where: { $0.uid == uid }) {
-      return selected
+  func hasSelectedTwoWayHfpRoute() -> Bool {
+    guard let selected = selectedOrAvailableHfpInput() else { return false }
+    return hasSelectedTwoWayHfpRoute(input: selected)
+  }
+
+  private func hasSelectedTwoWayHfpRoute(input: AVAudioSessionPortDescription) -> Bool {
+    guard isAudioSessionActive, hasTwoWayHfpRoute() else { return false }
+    let selected = IOSHfpInputIdentity(uid: input.uid, name: input.portName)
+    return session.currentRoute.inputs.contains { active in
+      IOSHfpRoutePolicy.isHfpInput(active.portType)
+        && IOSSelectedHfpRoutePolicy.matches(
+          active: IOSHfpInputIdentity(uid: active.uid, name: active.portName),
+          selected: selected
+        )
     }
-    if let name = preferredHfpInputName,
-       let selected = candidates.first(where: { $0.portName == name }) {
-      return selected
-    }
-    if preferredHfpInputUID != nil || preferredHfpInputName != nil {
-      return nil
-    }
-    return candidates.first
   }
 
   func prepareCapture(target: IOSAudioInputTarget, caller: String) throws {
@@ -695,8 +753,11 @@ final class IOSAudioSessionCoordinator: NSObject {
     do {
       switch target {
       case .hfp:
+        guard let input = selectedOrAvailableHfpInput() else {
+          throw IOSAudioSessionCoordinatorError.hfpInputUnavailable
+        }
         if IOSHfpRouteReusePolicy.canReuse(
-          hasTwoWayHfpRoute: hasTwoWayHfpRoute(),
+          hasTwoWayHfpRoute: hasSelectedTwoWayHfpRoute(input: input),
           audioSessionActive: isAudioSessionActive
         ) {
           trace(stage: "audio_session_active", caller: caller, values: ["audioSource": target.rawValue])
@@ -705,9 +766,6 @@ final class IOSAudioSessionCoordinator: NSObject {
             onSpeechCaptureStarted?()
           }
           return
-        }
-        guard let input = currentOrAvailableInput(portType: .bluetoothHFP) else {
-          throw IOSAudioSessionCoordinatorError.hfpInputUnavailable
         }
         try configureHfp(activate: true, preferredInput: input, caller: caller)
       case .builtInMic:

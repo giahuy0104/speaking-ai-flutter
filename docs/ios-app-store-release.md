@@ -80,14 +80,20 @@ audio to a new service. Native lesson recordings now use PCM16 WAV at the
 actual input sample rate/channel count (not a falsely labelled fixed 16 kHz).
 The conversion does not modify the recognition buffer. Files are finalized
 before their path/MIME/rate metadata is returned; cancellation invalidates old callbacks.
-Installation credentials use the iOS Keychain adapter. Offline translation on
-iOS is unavailable until a replacement is integrated; Android retains ML Kit.
+Installation credentials use the iOS Keychain adapter. Physical iOS devices
+now use ML Kit for offline Vietnamese/English text translation in both
+directions after parent-authorized Wi-Fi model preparation. Apple Speech
+still supplies the iOS transcript. Simulator translation explicitly reports
+unavailable; it cannot verify model downloads or translation quality.
 Do not put backend provider/API keys in Dart defines.
 
 Before building a release:
 
 1. Run `ios-bootstrap` to compile the real Swift/Pod integration and execute
-   RunnerTests on the configured iPhone simulator. Download the
+   RunnerTests on the configured iPhone simulator, then compile the real
+   ML Kit integration for an unsigned physical-device release. The workflow
+   reinstalls device Pods after simulator tests and rejects a simulator
+   adapter in a device build. Download the
    `RunnerTests.xcresult` artifact if it fails. Windows Flutter tests cannot
    establish native iOS compilation or physical H20 behavior.
 2. Run `ios-app-store` with the existing signing/privacy group. It also runs

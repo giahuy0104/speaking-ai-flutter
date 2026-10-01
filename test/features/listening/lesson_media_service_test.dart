@@ -161,6 +161,45 @@ void main() {
     );
   });
 
+  test('iOS H20 capture keeps the selected output through feedback', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final temporary = await Directory.systemTemp.createTemp(
+      'ios-lesson-route-',
+    );
+    addTearDown(() => temporary.delete(recursive: true));
+    final recorder = _FakeLessonRecorder();
+    final hfp = _FakeHfpAudioControl(
+      <String>[],
+      status: const BluetoothAudioStatus(
+        phase: BluetoothAudioConnectionPhase.recording,
+        deviceId: '42',
+        deviceName: 'H20',
+        routeActive: true,
+      ),
+    );
+    final media = _RecordingTestMediaService(
+      '${temporary.path}/attempt.m4a',
+      recorder: recorder,
+      playbackService: _ControlledPlaybackService(),
+      hfpAudioControl: hfp,
+    );
+    addTearDown(media.dispose);
+
+    await media.startRecording(
+      lessonId: 'numbers',
+      sentenceNumber: 1,
+      saveToHistory: false,
+    );
+    expect(recorder.lastConfig?.device, _FakeLessonRecorder.h20);
+    await media.stopRecording();
+    expect(hfp.stopCalls, 0);
+    await media.play(Uri.parse('https://example.test/feedback.mp3'));
+    expect(hfp.stopCalls, 0);
+    await media.stopPlayback();
+    expect(hfp.stopCalls, 1);
+  });
+
   test(
     'stop during playback preparation prevents a late clip on default output',
     () async {
@@ -181,45 +220,47 @@ void main() {
       await media.dispose();
     },
   );
-  test(
-    'Android route loss stops the clip and fails its completion gate',
-    () async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.android;
-      addTearDown(() => debugDefaultTargetPlatformOverride = null);
-      final events = <String>[];
-      final playback = _RouteAwareControlledPlaybackService(events);
-      final statuses = StreamController<BluetoothAudioStatus>.broadcast();
-      final hfp = _FakeHfpAudioControl(
-        events,
-        status: const BluetoothAudioStatus(
-          phase: BluetoothAudioConnectionPhase.recording,
-          deviceId: 'h20',
-          routeActive: true,
-        ),
-        changes: statuses.stream,
-      );
-      final media = LessonMediaService(
-        playbackService: playback,
-        hfpAudioControl: hfp,
-      );
-      final playing = media.playToCompletion(
-        Uri.parse('https://example.test/model.mp3'),
-      );
-      final failed = expectLater(playing, throwsA(isA<HfpAudioException>()));
-      await Future<void>.delayed(Duration.zero);
-      statuses.add(
-        const BluetoothAudioStatus(
-          phase: BluetoothAudioConnectionPhase.ready,
-          deviceId: 'h20',
-          routeActive: false,
-        ),
-      );
-      await failed;
-      expect(playback.stopCalls, 1);
-      await media.dispose();
-      await statuses.close();
-    },
-  );
+  for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+    test(
+      '$platform route loss stops the clip and fails its completion gate',
+      () async {
+        debugDefaultTargetPlatformOverride = platform;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        final events = <String>[];
+        final playback = _RouteAwareControlledPlaybackService(events);
+        final statuses = StreamController<BluetoothAudioStatus>.broadcast();
+        final hfp = _FakeHfpAudioControl(
+          events,
+          status: const BluetoothAudioStatus(
+            phase: BluetoothAudioConnectionPhase.recording,
+            deviceId: 'h20',
+            routeActive: true,
+          ),
+          changes: statuses.stream,
+        );
+        final media = LessonMediaService(
+          playbackService: playback,
+          hfpAudioControl: hfp,
+        );
+        final playing = media.playToCompletion(
+          Uri.parse('https://example.test/model.mp3'),
+        );
+        final failed = expectLater(playing, throwsA(isA<HfpAudioException>()));
+        await Future<void>.delayed(Duration.zero);
+        statuses.add(
+          const BluetoothAudioStatus(
+            phase: BluetoothAudioConnectionPhase.ready,
+            deviceId: 'h20',
+            routeActive: false,
+          ),
+        );
+        await failed;
+        expect(playback.stopCalls, 1);
+        await media.dispose();
+        await statuses.close();
+      },
+    );
+  }
   test(
     'playToCompletion does not finish until playback reports ended',
     () async {
@@ -798,7 +839,10 @@ class _FakeLessonRecorder implements AudioRecorder {
   Future<void> dispose() async {}
 
   @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) {
+    if (invocation.isGetter && invocation.memberName == #ios) return null;
+    return super.noSuchMethod(invocation);
+  }
 }
 
 class _BlockedPreparationPlaybackService extends _ControlledPlaybackService {

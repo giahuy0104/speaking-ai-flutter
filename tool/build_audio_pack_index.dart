@@ -174,6 +174,9 @@ Future<Map<String, String>> _sourceTextByKey() async {
             : 'Bài này là';
         final title = _normalize(lessonMap['titleEn'] as String? ?? '');
         final entry = lessonMap['entry'] as Map<String, dynamic>?;
+        result['listening.lesson.$lessonId.hook.vi'] = _normalize(
+          entry?['text'] as String? ?? '',
+        );
         final afterTitle = _normalize(
           '${entry?['text'] as String? ?? ''} Bắt đầu nhé.',
         );

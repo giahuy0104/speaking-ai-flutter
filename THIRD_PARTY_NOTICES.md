@@ -26,11 +26,11 @@ The optional model `vosk-model-small-vn-0.4` is downloaded only after parent app
 
 ## Google ML Kit on-device translation
 
-On Android, HOMI optionally downloads the Vietnamese and English ML Kit language models after parent approval and uses them to translate text on the device when the production backend is unavailable. The iOS app does not include ML Kit.
+On Android and physical iOS devices, HOMI optionally prepares ML Kit language packs after parent approval and uses them to translate Vietnamese/English text on the device when the production backend is unavailable. iOS uses the SDK's built-in English model and downloads the Vietnamese pack over Wi-Fi. Translation itself never starts a download. The arm64 iOS simulator adapter explicitly reports unavailable.
 
 - Product documentation: https://developers.google.com/ml-kit/language/translation
 - Usage and attribution terms: https://developers.google.com/ml-kit/language/translation/translation-terms
-- Flutter integration: Android-only local copies of `google_mlkit_translation: 0.15.1` and `google_mlkit_commons: 0.13.0` under `third_party/`
+- Flutter integration: local copies of `google_mlkit_translation: 0.15.1` and `google_mlkit_commons: 0.13.0` under `third_party/`; the translation package includes HOMI's iOS Vietnamese/English bridge to `GoogleMLKit/Translate ~> 9.0.0`. The commons native plugin remains Android-only.
 - Flutter integration license: MIT
 
 Translations are generated automatically using translation software powered by Google Translate. Automatic translations may be inaccurate. Google disclaims warranties related to these translations, including warranties of accuracy, reliability, merchantability, fitness for a particular purpose, and noninfringement.

@@ -14,10 +14,109 @@ import 'package:ai_speaking_flutter_app/features/conversation/application/offlin
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, debugDefaultTargetPlatformOverride;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
+  test(
+    'iOS parent vocabulary translates both directions without API calls',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final repository = _FallbackRepository();
+      final vietnameseTranslator = _FakeOfflineTranslator(
+        translatedText: 'Cat',
+      );
+      final englishTranslator = _FakeEnglishVietnameseTranslator();
+      final input = _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Mic iPhone',
+      );
+      final controller = ConversationController(
+        audioInput: input,
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        offlineVietnameseEnglishTranslator: vietnameseTranslator,
+        offlineEnglishVietnameseTranslator: englishTranslator,
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+      );
+      addTearDown(controller.dispose);
+
+      final vietnamese = await controller.translateVocabulary('con mèo');
+      final english = await controller.translateVocabulary(
+        'I like red apples.',
+      );
+
+      expect(vietnamese, (englishText: 'Cat', vietnameseText: 'con mèo'));
+      expect(english, (
+        englishText: 'I like red apples.',
+        vietnameseText: 'Con thích những quả táo đỏ.',
+      ));
+      expect(vietnameseTranslator.inputs, <String>['con mèo']);
+      expect(englishTranslator.inputs, <String>['I like red apples.']);
+      expect(input.startCount, 0);
+      expect(repository.streamingTextRequests, 0);
+      expect(repository.fullFileUploads, 0);
+      expect(repository.batchStarted, 0);
+      expect(repository.realtimeStarted, 0);
+    },
+  );
+
+  test(
+    'iOS offline Apple transcript translates before any API starts',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final repository = _ArchivingFallbackRepository();
+      final translator = _FakeOfflineTranslator(
+        translatedText: 'The weather is beautiful today.',
+      );
+      final voicePrompt = _RecordingVoicePromptService();
+      final input = _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Mic iPhone',
+      );
+      final controller = ConversationController(
+        audioInput: input,
+        streamingSpeechInput: _FakeIOSStreamingSpeechInput(
+          sourceText: 'Hôm nay trời đẹp quá',
+        ),
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        voicePromptService: voicePrompt,
+        offlineVietnameseEnglishTranslator: translator,
+        networkTransportAvailable: () async => false,
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.startRecording();
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await controller.stopRecording(manual: true);
+
+      expect(controller.phase, ConversationPhase.ready);
+      expect(controller.result?.processingMode, 'offline_translation');
+      expect(controller.result?.audioSource, 'device_tts');
+      expect(controller.result?.englishText, 'The weather is beautiful today.');
+      expect(translator.inputs, <String>['Hôm nay trời đẹp quá']);
+      expect(voicePrompt.spoken, <String>[
+        'en-US|The weather is beautiful today.',
+      ]);
+      expect(input.startCount, 0);
+      expect(repository.streamingTextRequests, 0);
+      expect(repository.fullFileUploads, 0);
+      expect(repository.batchStarted, 0);
+      expect(repository.realtimeStarted, 0);
+      expect(repository.archived.isCompleted, isFalse);
+    },
+  );
+
   test('fallback buffer keeps immutable chunks in order', () {
     final buffer = RealtimeFallbackBuffer(maxBytes: 8);
     final source = Uint8List.fromList(<int>[1, 2, 3]);
@@ -3206,12 +3305,16 @@ class _FakeOfflineTranslator implements OfflineVietnameseEnglishTranslator {
 
 class _FakeEnglishVietnameseTranslator
     implements OfflineEnglishVietnameseTranslator {
+  final List<String> inputs = <String>[];
+
   @override
   Future<bool> modelsReady() async => true;
 
   @override
-  Future<String> translate(String englishText) async =>
-      'Con thích những quả táo đỏ.';
+  Future<String> translate(String englishText) async {
+    inputs.add(englishText);
+    return 'Con thích những quả táo đỏ.';
+  }
 
   @override
   Future<void> close() async {}

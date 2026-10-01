@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
@@ -11,9 +10,179 @@ import 'package:ai_speaking_flutter_app/features/conversation/application/vietna
 import 'package:ai_speaking_flutter_app/features/conversation/application/conversation_recording_endpoint_policy.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('early native no-speech terminal follows the retry flow', () async {
+    final speechInput = _EarlyFinalStreamingSpeechInput(reportNoSpeech: true);
+    final prompts = _FakeVoicePromptService();
+    final repository = _CapturingStreamingRepository();
+    final controller = ConversationController(
+      audioInput: _SilentAudioInput(),
+      streamingSpeechInput: speechInput,
+      playbackService: const _FakePlaybackService(),
+      voicePromptService: prompts,
+      repository: repository,
+      childAge: 6,
+      webRuntimeOverride: false,
+    );
+    addTearDown(controller.dispose);
+
+    final starting = controller.startRecording();
+    await speechInput.startRequested.future;
+    speechInput.emitFinal();
+    speechInput.finishStart();
+    await starting;
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(speechInput.stopCount, 1);
+    expect(controller.lastTurnEndReason, ConversationTurnEndReason.noSpeech);
+    expect(repository.capture, isNull);
+    expect(prompts.spokenTexts, <String>[
+      'HOMI chưa nghe thấy bạn nói. Bạn nói lại nhé.',
+    ]);
+  });
+
+  test(
+    'manual stop retains a native final received during amplitude cleanup',
+    () async {
+      final speechInput = _DelayedAmplitudeCancellationSpeechInput()
+        ..finishStart();
+      final repository = _CapturingStreamingRepository();
+      final controller = ConversationController(
+        audioInput: _SilentAudioInput(),
+        streamingSpeechInput: speechInput,
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        childAge: 6,
+        webRuntimeOverride: false,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.startRecording();
+      final stopping = controller.stopRecording(manual: true);
+      await speechInput.amplitudeCancellationRequested.future;
+      speechInput.emitFinal();
+      speechInput.finishAmplitudeCancellation();
+      await stopping;
+
+      expect(speechInput.stopCount, 1);
+      expect(repository.capture?.sourceText, 'Con muốn đi công viên');
+      expect(
+        controller.lastTurnEndReason,
+        isNot(ConversationTurnEndReason.tooShort),
+      );
+    },
+  );
+
+  test(
+    'native final before start acknowledges is processed exactly once',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final speechInput = _EarlyFinalStreamingSpeechInput();
+      final repository = _CapturingStreamingRepository();
+      final controller = ConversationController(
+        audioInput: _SilentAudioInput(),
+        streamingSpeechInput: speechInput,
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        childAge: 6,
+        webRuntimeOverride: false,
+      );
+      addTearDown(controller.dispose);
+
+      final starting = controller.startRecording();
+      await speechInput.startRequested.future;
+      speechInput.emitFinal();
+      expect(speechInput.stopCount, 0);
+      speechInput.finishStart();
+      await starting;
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(speechInput.stopCount, 1);
+      expect(repository.capture?.sourceText, 'Con muốn đi công viên');
+      expect(controller.result?.vietnameseText, 'Con muốn đi công viên');
+      expect(controller.isRecording, isFalse);
+      expect(
+        controller.lastTurnEndReason,
+        isNot(ConversationTurnEndReason.tooShort),
+      );
+      expect(
+        controller.lastTurnEndReason,
+        isNot(ConversationTurnEndReason.noSpeech),
+      );
+    },
+  );
+
+  test(
+    'native final while ready cue is pending preserves the transcript',
+    () async {
+      final speechInput = _EarlyFinalStreamingSpeechInput()..finishStart();
+      final cueStarted = Completer<void>();
+      final cueFinished = Completer<void>();
+      final repository = _CapturingStreamingRepository();
+      final controller = ConversationController(
+        audioInput: _SilentAudioInput(),
+        streamingSpeechInput: speechInput,
+        playbackService: const _FakePlaybackService(),
+        voicePromptService: _FakeVoicePromptService(
+          readyCueOperation: () async {
+            cueStarted.complete();
+            await cueFinished.future;
+          },
+        ),
+        repository: repository,
+        childAge: 6,
+        webRuntimeOverride: false,
+      );
+      addTearDown(controller.dispose);
+
+      final starting = controller.startRecording();
+      await cueStarted.future;
+      speechInput.emitFinal();
+      cueFinished.complete();
+      await starting;
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(speechInput.stopCount, 1);
+      expect(repository.capture?.sourceText, 'Con muốn đi công viên');
+      expect(controller.isRecording, isFalse);
+    },
+  );
+
+  test(
+    'cancelled native start does not replay its buffered final into the next turn',
+    () async {
+      final speechInput = _EarlyFinalStreamingSpeechInput();
+      final repository = _CapturingStreamingRepository();
+      final controller = ConversationController(
+        audioInput: _SilentAudioInput(),
+        streamingSpeechInput: speechInput,
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        childAge: 6,
+        webRuntimeOverride: false,
+      );
+      addTearDown(controller.dispose);
+
+      final starting = controller.startRecording();
+      await speechInput.startRequested.future;
+      speechInput.emitFinal();
+      await controller.cancelCurrentMainAction();
+      await starting;
+      speechInput.emitFinal();
+      await controller.startRecording();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(speechInput.stopCount, 0);
+      expect(repository.capture, isNull);
+      expect(controller.isRecording, isTrue);
+      await controller.cancelCurrentMainAction();
+    },
+  );
+
   test('translation quiet window adapts to short versus long speech', () {
     for (final item in <(String, int)>[
       ('apple', 400),
@@ -517,8 +686,9 @@ class _ControllablePlaybackService implements AudioPlaybackService {
 
 class _FakeVoicePromptService
     implements VoicePromptService, SpeechReadyCuePlayer {
-  _FakeVoicePromptService({this.onReadyCue});
+  _FakeVoicePromptService({this.onReadyCue, this.readyCueOperation});
   final void Function()? onReadyCue;
+  final Future<void> Function()? readyCueOperation;
   final List<String> spokenTexts = <String>[];
   int readyCueCount = 0;
 
@@ -526,6 +696,7 @@ class _FakeVoicePromptService
   Future<void> playSpeechReadyCue() async {
     onReadyCue?.call();
     readyCueCount += 1;
+    await readyCueOperation?.call();
   }
 
   @override
@@ -542,6 +713,77 @@ class _FakeVoicePromptService
 
   @override
   Future<void> dispose() async {}
+}
+
+class _EarlyFinalStreamingSpeechInput extends _ImmediateStreamingSpeechInput {
+  _EarlyFinalStreamingSpeechInput({this.reportNoSpeech = false});
+  final bool reportNoSpeech;
+  final Completer<void> startRequested = Completer<void>();
+  final Completer<void> _startFinished = Completer<void>();
+  final StreamController<void> _completed = StreamController<void>.broadcast(
+    sync: true,
+  );
+  int stopCount = 0;
+
+  void emitFinal() => _completed.add(null);
+  void finishStart() {
+    if (!_startFinished.isCompleted) _startFinished.complete();
+  }
+
+  @override
+  Stream<void> get completed => _completed.stream;
+
+  @override
+  Future<void> start() async {
+    if (!startRequested.isCompleted) startRequested.complete();
+    await _startFinished.future;
+  }
+
+  @override
+  Future<StreamingSpeechCapture> stop() async {
+    stopCount += 1;
+    if (reportNoSpeech) {
+      throw const StreamingSpeechInputException(
+        'Apple Speech heard no speech.',
+        code: 'IOS_SPEECH_NO_SPEECH',
+      );
+    }
+    return super.stop();
+  }
+
+  @override
+  Future<void> cancel() async => finishStart();
+
+  @override
+  Future<void> dispose() => _completed.close();
+}
+
+class _DelayedAmplitudeCancellationSpeechInput
+    extends _EarlyFinalStreamingSpeechInput {
+  _DelayedAmplitudeCancellationSpeechInput() {
+    _amplitude = StreamController<double>(
+      onCancel: () async {
+        amplitudeCancellationRequested.complete();
+        await _amplitudeCancellationFinished.future;
+      },
+    );
+  }
+
+  late final StreamController<double> _amplitude;
+  final Completer<void> amplitudeCancellationRequested = Completer<void>();
+  final Completer<void> _amplitudeCancellationFinished = Completer<void>();
+
+  void finishAmplitudeCancellation() =>
+      _amplitudeCancellationFinished.complete();
+
+  @override
+  Stream<double> get amplitudeDbfs => _amplitude.stream;
+
+  @override
+  Future<void> dispose() async {
+    await _amplitude.close();
+    await super.dispose();
+  }
 }
 
 class _ImmediateStreamingSpeechInput implements StreamingSpeechInput {

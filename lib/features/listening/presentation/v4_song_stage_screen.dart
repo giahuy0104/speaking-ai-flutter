@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
+import '../../../core/audio/hfp_audio_control.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/active_learning_module.dart';
 import '../../../l10n/display_language.dart';
@@ -166,6 +167,14 @@ class _V4SongStageScreenState extends State<V4SongStageScreen>
       } else {
         await prompt.speakAndWait(cue, locale: 'vi-VN');
       }
+    } on HfpAudioException {
+      if (mounted && request == _request) {
+        setState(() {
+          _announcing = false;
+          _message = 'Chưa xác nhận được loa H20. Bạn thử lại nhé.';
+        });
+      }
+      return;
     } catch (_) {
       // The approved song still starts if a device TTS voice is unavailable.
     }

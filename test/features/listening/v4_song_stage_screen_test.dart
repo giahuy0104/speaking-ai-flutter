@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
+import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
@@ -77,6 +78,30 @@ void main() {
     expect(media.playbackTimeouts, <Duration>[const Duration(minutes: 5)]);
     expect(result, V4SongStageAction.continued);
     expect(find.byKey(const Key('v4-song-stage-screen')), findsNothing);
+  });
+
+  testWidgets('song does not start on phone after H20 cue route fails', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final media = _FakeLessonMediaService();
+    await tester.pumpWidget(
+      _host(
+        songTitle: 'Count with Me',
+        mediaService: media,
+        voicePromptService: _RouteFailureVoicePromptService(),
+        songAudioUri: Uri.parse('asset:///assets/audio/song.mp3'),
+        onResult: (_) {},
+      ),
+    );
+    await tester.tap(find.byKey(const Key('open-v4-song-stage')));
+    await tester.pumpAndSettle();
+
+    expect(media.playedToCompletion, isEmpty);
+    expect(
+      find.text('Chưa xác nhận được loa H20. Bạn thử lại nhé.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('skip interrupts an active song and continues without resuming', (
@@ -231,6 +256,13 @@ class _FakeVoicePromptService implements VoicePromptService {
 
   @override
   Future<void> stop() async {}
+}
+
+class _RouteFailureVoicePromptService extends _FakeVoicePromptService {
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    throw const HfpAudioException('H20 route unavailable');
+  }
 }
 
 class _FakeLessonMediaService extends LessonMediaService {

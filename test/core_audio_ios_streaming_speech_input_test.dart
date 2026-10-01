@@ -147,6 +147,149 @@ void main() {
     );
   });
 
+  test('iOS stop waits for the Apple final after a stable partial', () async {
+    const methodChannel = MethodChannel('test_ios_delayed_stop_final');
+    final events = StreamController<dynamic>.broadcast();
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    Timer? finalTimer;
+    messenger.setMockMethodCallHandler(methodChannel, (call) async {
+      if (call.method == 'speech.isAvailable') return true;
+      if (call.method == 'speech.start') {
+        scheduleMicrotask(() => events.add({'type': 'speech.ready'}));
+      }
+      if (call.method == 'speech.stop') {
+        // The native channel acknowledges immediately. Apple finishes after
+        // Android's short stable-partial grace has already elapsed.
+        finalTimer = Timer(const Duration(milliseconds: 400), () {
+          events.add({
+            'type': 'speech.final',
+            'text': 'Play soccer now',
+            'alternatives': ['Play soccer now'],
+          });
+        });
+      }
+      return true;
+    });
+    final input = IOSStreamingSpeechInput(
+      methodChannel: methodChannel,
+      eventStream: events.stream,
+    );
+    addTearDown(() async {
+      finalTimer?.cancel();
+      await input.dispose();
+      messenger.setMockMethodCallHandler(methodChannel, null);
+      await events.close();
+    });
+
+    await input.startLessonEnglishRecognition();
+    events.add({'type': 'speech.partial', 'text': 'Play soccer'});
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+
+    final capture = await input.stop();
+    expect(capture.sourceText, 'Play soccer now');
+    expect(capture.alternatives, ['Play soccer now']);
+  });
+
+  test('iOS salvaged partial retains the WAV closed at speech.end', () async {
+    const methodChannel = MethodChannel('test_ios_stop_wav_before_final');
+    final events = StreamController<dynamic>.broadcast();
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    var cancellationCount = 0;
+    messenger.setMockMethodCallHandler(methodChannel, (call) async {
+      if (call.method == 'speech.isAvailable') return true;
+      if (call.method == 'speech.start') {
+        scheduleMicrotask(() => events.add({'type': 'speech.ready'}));
+      }
+      if (call.method == 'speech.stop') {
+        scheduleMicrotask(() {
+          events.add({
+            'type': 'speech.end',
+            'audioPath': '/tmp/lesson-stop.wav',
+            'audioMimeType': 'audio/wav',
+            'audioByteLength': 4096,
+            'audioSampleRate': 24000,
+            'isBluetoothInput': true,
+          });
+        });
+      }
+      if (call.method == 'speech.cancel') cancellationCount++;
+      return true;
+    });
+    final input = IOSStreamingSpeechInput(
+      methodChannel: methodChannel,
+      eventStream: events.stream,
+      nativeCommandTimeout: const Duration(milliseconds: 80),
+    );
+    addTearDown(() async {
+      await input.dispose();
+      messenger.setMockMethodCallHandler(methodChannel, null);
+      await events.close();
+    });
+
+    await input.startLessonEnglishRecognitionWithRecording(
+      '/tmp/lesson-stop.wav',
+    );
+    events.add({'type': 'speech.partial', 'text': 'Play soccer'});
+    await Future<void>.delayed(Duration.zero);
+    final cancellationsBeforeStop = cancellationCount;
+
+    final capture = await input.stop();
+    expect(capture.sourceText, 'Play soccer');
+    expect(capture.recordedAudio?.filePath, '/tmp/lesson-stop.wav');
+    expect(capture.recordedAudio?.recordingSampleRate, 24000);
+    expect(capture.isBluetoothInput, isTrue);
+    expect(cancellationCount, cancellationsBeforeStop + 1);
+    expect(input.takeFallbackAudioCapture(), isNull);
+  });
+
+  test('iOS stop acknowledgement does not hide later Apple failure', () async {
+    const methodChannel = MethodChannel('test_ios_stop_late_error');
+    final events = StreamController<dynamic>.broadcast();
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(methodChannel, (call) async {
+      if (call.method == 'speech.isAvailable') return true;
+      if (call.method == 'speech.start') {
+        scheduleMicrotask(() => events.add({'type': 'speech.ready'}));
+      }
+      if (call.method == 'speech.stop') {
+        scheduleMicrotask(() {
+          events.add({
+            'type': 'speech.error',
+            'code': 'SPEECH_ANALYZER_FAILED',
+            'message': 'Apple finalization failed',
+          });
+        });
+      }
+      return true;
+    });
+    final input = IOSStreamingSpeechInput(
+      methodChannel: methodChannel,
+      eventStream: events.stream,
+    );
+    addTearDown(() async {
+      await input.dispose();
+      messenger.setMockMethodCallHandler(methodChannel, null);
+      await events.close();
+    });
+
+    await input.start();
+    events.add({'type': 'speech.partial', 'text': 'Play soccer'});
+    await Future<void>.delayed(Duration.zero);
+    await expectLater(
+      input.stop(),
+      throwsA(
+        isA<StreamingSpeechInputException>().having(
+          (error) => error.code,
+          'code',
+          'IOS_SPEECH_SPEECH_ANALYZER_FAILED',
+        ),
+      ),
+    );
+  });
+
   test('iOS native runtime error never exposes a Batch WAV', () async {
     const methodChannel = MethodChannel('test_ios_native_runtime_error');
     final events = StreamController<dynamic>.broadcast();

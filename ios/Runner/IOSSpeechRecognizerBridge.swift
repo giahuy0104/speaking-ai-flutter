@@ -275,6 +275,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
   private var audioEngine = AVAudioEngine()
 
   private var eventSink: FlutterEventSink?
+  private var routeChangeToken: NSObjectProtocol?
   private var recognizer: SFSpeechRecognizer?
   private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
   private var recognitionTask: SFSpeechRecognitionTask?
@@ -330,6 +331,24 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     }
     eventChannel.setStreamHandler(self)
     audioSessionCoordinator.backgroundCaptureHandoffDelegate = self
+    routeChangeToken = NotificationCenter.default.addObserver(
+      forName: AVAudioSession.routeChangeNotification,
+      object: audioSessionCoordinator.session,
+      queue: .main
+    ) { [weak self] _ in
+      self?.stopCaptureIfSelectedHfpRouteWasLost()
+    }
+  }
+
+  private func stopCaptureIfSelectedHfpRouteWasLost() {
+    // Route-change events during activation are handled by the existing
+    // readiness wait. Once speech.ready has fired, falling back to the phone
+    // microphone would attribute the wrong child's audio to this H20 turn.
+    guard active, !stopping, readyAt != nil,
+      requestedAudioSource == .hfp,
+      !audioRouteMatches(.hfp)
+    else { return }
+    finishWithError(code: "HFP_ROUTE_LOST", error: IOSSpeechBridgeError.hfpRouteLost)
   }
 
   private func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -510,7 +529,10 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       caller: "IOSSpeechRecognizerBridge.stop"
     )
     stopAudioCapture()
-    emit(type: "speech.end")
+    // The WAV is closed synchronously even when Apple is still finalizing
+    // text. Keep lesson playback available if Dart later salvages a partial.
+    emit(type: "speech.end", values: completedRecordingMetadata)
+    let stopGeneration = generation
 
     if #available(iOS 26.0, *),
       activeEngine == .speechAnalyzer,
@@ -520,23 +542,34 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
         guard let self else { return }
         do {
           let transcript = try await session.stop()
+          // Finalizing Apple Speech can outlive cancellation or another MAIN
+          // press. Its transcript must never finish the replacement turn.
+          guard self.active, !self.cancelled,
+            self.generation == stopGeneration,
+            self.analyzerSession === session
+          else { return }
           self.finishSuccessfully(
             text: transcript.text,
             alternatives: transcript.alternatives,
             confidence: -1
           )
-          result(true)
         } catch {
+          guard self.active, !self.cancelled,
+            self.generation == stopGeneration,
+            self.analyzerSession === session
+          else { return }
           self.finishWithError(code: "SPEECH_ANALYZER_FAILED", error: error)
-          result(true)
         }
       }
+      // The channel acknowledges the stop request, as the legacy engine does.
+      // Dart awaits speech.final/error separately with a bounded grace period;
+      // waiting here for Apple finalization can exceed its command timeout.
+      result(true)
       return
     }
 
     recognitionRequest?.endAudio()
     recognitionTask?.finish()
-    let stopGeneration = generation
     DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(650)) { [weak self] in
       guard let self, self.active, self.generation == stopGeneration else { return }
       if self.latestText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -634,8 +667,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
           self.handleTranscriptUpdate(
             text: transcript.text,
             alternatives: transcript.alternatives,
-            confidence: -1,
-            isFinal: false
+            confidence: -1
           )
         }
       }
@@ -702,13 +734,10 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
           let confidence = best.segments.isEmpty
             ? -1
             : Double(best.segments.map(\.confidence).reduce(0, +)) / Double(best.segments.count)
-          self.handleTranscriptUpdate(
-            text: best.formattedString,
-            alternatives: alternatives,
-            confidence: confidence,
-            isFinal: recognitionResult.isFinal
-          )
           if recognitionResult.isFinal {
+            // Only finishSuccessfully emits speech.final, after closing the
+            // WAV. An earlier final here lets Dart finish the lesson without
+            // the recording needed for replay and Star feedback.
             self.finishSuccessfully(
               text: best.formattedString,
               alternatives: alternatives,
@@ -716,6 +745,11 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
             )
             return
           }
+          self.handleTranscriptUpdate(
+            text: best.formattedString,
+            alternatives: alternatives,
+            confidence: confidence
+          )
         }
         if let error, self.active {
           if self.stopping && !self.latestText.isEmpty {
@@ -1049,6 +1083,9 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
   }
 
   private func audioRouteMatches(_ audioSource: IOSNativeSpeechAudioSource) -> Bool {
+    if audioSource == .hfp {
+      return audioSessionCoordinator.hasSelectedTwoWayHfpRoute()
+    }
     let inputMatches = audioSession.currentRoute.inputs.contains {
       IOSNativeSpeechAudioRoutePolicy.accepts(
         portType: $0.portType,
@@ -1211,8 +1248,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
   private func handleTranscriptUpdate(
     text: String,
     alternatives: [String],
-    confidence: Double,
-    isFinal: Bool
+    confidence: Double
   ) {
     let normalized = text.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !normalized.isEmpty else { return }
@@ -1221,12 +1257,12 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     latestConfidence = confidence
     firstPartialAt = firstPartialAt ?? Date()
     audioSessionCoordinator.trace(
-      stage: isFinal ? "speech.final_update" : "speech.partial",
+      stage: "speech.partial",
       caller: "IOSSpeechRecognizerBridge.handleTranscriptUpdate",
       message: normalized
     )
     emit(
-      type: isFinal ? "speech.final" : "speech.partial",
+      type: "speech.partial",
       values: [
         "text": normalized,
         "alternatives": latestAlternatives,
@@ -1394,12 +1430,14 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     attempts: Int = 20
   ) async throws {
     for attempt in 0..<attempts {
-      let inputConfirmed = audioSession.currentRoute.inputs.contains(where: {
-        IOSNativeSpeechAudioRoutePolicy.accepts(
-          portType: $0.portType,
-          for: audioSource
-        )
-      })
+      let inputConfirmed = audioSource == .hfp
+        ? audioSessionCoordinator.hasSelectedTwoWayHfpRoute()
+        : audioSession.currentRoute.inputs.contains(where: {
+            IOSNativeSpeechAudioRoutePolicy.accepts(
+              portType: $0.portType,
+              for: audioSource
+            )
+          })
       let outputConfirmed = audioSource != .hfp
         || audioSession.currentRoute.outputs.contains(where: {
           IOSHfpRoutePolicy.isHfpOutput($0.portType)
@@ -1753,6 +1791,10 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
 
   func dispose() {
     guard !disposed else { return }
+    if let routeChangeToken {
+      NotificationCenter.default.removeObserver(routeChangeToken)
+      self.routeChangeToken = nil
+    }
     startRequestGeneration += 1
     disposed = true
     cancelCurrent(
@@ -2005,6 +2047,7 @@ private enum IOSSpeechBridgeError: LocalizedError {
   case onDeviceUnavailable
   case builtInMicUnavailable
   case hfpInputUnavailable
+  case hfpRouteLost
   case audioRouteMismatch(expected: String, actual: String)
   case audioInputUnavailable
   case audioBufferCopyFailed
@@ -2023,6 +2066,8 @@ private enum IOSSpeechBridgeError: LocalizedError {
       return "iOS không tìm thấy micro tích hợp để mở MAIN."
     case .hfpInputUnavailable:
       return "iOS chưa có đầu vào bluetoothHFP đang khả dụng."
+    case .hfpRouteLost:
+      return "Kết nối âm thanh H20 đã ngắt trong lúc nghe. Hãy kiểm tra Bluetooth rồi thử lại."
     case let .audioRouteMismatch(expected, actual):
       return "Audio route không đúng nguồn \(expected). Route hiện tại: \(actual)"
     case .audioInputUnavailable:

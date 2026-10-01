@@ -131,9 +131,14 @@ class ConversationController extends ChangeNotifier
     _streamingCompletionSubscription = streamingSpeechInput?.completed.listen((
       _,
     ) {
-      if (phase == ConversationPhase.recording &&
-          _usingStreamingSpeech &&
-          !_stopInProgress) {
+      if (!_usingStreamingSpeech ||
+          _streamingSpeechTurnGeneration != _conversationTurnGeneration) {
+        return;
+      }
+      // Apple can publish its final/error before speech.start acknowledges.
+      // Retain the terminal event until this turn owns the recording state.
+      _nativeSpeechCompletedGeneration = _conversationTurnGeneration;
+      if (phase == ConversationPhase.recording && !_stopInProgress) {
         unawaited(stopRecording(manual: false));
       }
     });
@@ -199,8 +204,10 @@ class ConversationController extends ChangeNotifier
     final hfpControl = _hfpAudioControl;
     if (hfpControl != null) {
       _hfpStatusSubscription = hfpControl.statusChanges.listen((status) {
+        _handleIosSelectedMediaOutputStatus(status);
         if (!kIsWeb &&
-            defaultTargetPlatform == TargetPlatform.android &&
+            (defaultTargetPlatform == TargetPlatform.android ||
+                defaultTargetPlatform == TargetPlatform.iOS) &&
             _usingHfpRoute &&
             _playbackPlaying &&
             !status.routeActive &&
@@ -328,9 +335,16 @@ class ConversationController extends ChangeNotifier
   ConversationTurnEndReason? _lastTurnEndReason;
   bool _noisyRecording = false;
   bool _usingStreamingSpeech = false;
+  int? _streamingSpeechTurnGeneration;
+  int? _nativeSpeechCompletedGeneration;
+  String? _pendingStreamingPartialText;
   bool _usingRecordedAudioSpeech = false;
   bool _usingHfpRoute = false;
   bool _handlingHfpRouteLoss = false;
+  Object? _iosMediaPlaybackToken;
+  int? _iosMediaPlaybackTurnGeneration;
+  int? _iosMediaOutputRouteSequence;
+  bool _iosMediaOutputSawBluetooth = false;
   bool _continuousHfpSessionActive = false;
   bool _hfpInputSelected;
   bool _preparingMicrophone = false;
@@ -1428,6 +1442,9 @@ class ConversationController extends ChangeNotifier
         _stopInProgress;
 
     _conversationTurnGeneration += 1;
+    _streamingSpeechTurnGeneration = null;
+    _nativeSpeechCompletedGeneration = null;
+    _pendingStreamingPartialText = null;
     _preparingMicrophone = false;
     _continuousTranslationSession.cancelInteraction();
     _partialPreviewTimer?.cancel();
@@ -2030,6 +2047,9 @@ class ConversationController extends ChangeNotifier
       return;
     }
     final turnGeneration = ++_conversationTurnGeneration;
+    _streamingSpeechTurnGeneration = null;
+    _nativeSpeechCompletedGeneration = null;
+    _pendingStreamingPartialText = null;
 
     bool recordingStartCancelled() =>
         _disposed || turnGeneration != _conversationTurnGeneration;
@@ -2193,11 +2213,15 @@ class ConversationController extends ChangeNotifier
             // offline path), not that native live recognition is unavailable.
             // Starting Batch Chunks here added an audio-session round trip and
             // bypassed SpeechRecognizer even though it was ready.
+            _streamingSpeechTurnGeneration = turnGeneration;
             await _streamingSpeechInput!.start();
           }
           if (await abandonCancelledRecordingStart()) return;
         } catch (error) {
           if (await abandonCancelledRecordingStart()) return;
+          _streamingSpeechTurnGeneration = null;
+          _nativeSpeechCompletedGeneration = null;
+          _pendingStreamingPartialText = null;
           final permissionFailure =
               error is StreamingSpeechInputException &&
               (error.code == 'SPEECH_PERMISSION_DENIED' ||
@@ -2301,8 +2325,18 @@ class ConversationController extends ChangeNotifier
         }
       });
       notifyListeners();
+      final pendingPartial = _pendingStreamingPartialText;
+      _pendingStreamingPartialText = null;
+      if (pendingPartial != null) _onPartialText(pendingPartial);
+      if (_usingStreamingSpeech &&
+          _nativeSpeechCompletedGeneration == turnGeneration) {
+        unawaited(stopRecording(manual: false));
+      }
     } catch (error) {
       if (recordingStartCancelled()) return;
+      _streamingSpeechTurnGeneration = null;
+      _nativeSpeechCompletedGeneration = null;
+      _pendingStreamingPartialText = null;
       _preparingMicrophone = false;
       _setError(_friendlyError(error));
     }
@@ -2712,6 +2746,12 @@ class ConversationController extends ChangeNotifier
   }
 
   void _onPartialText(String sourceText) {
+    if (_preparingMicrophone &&
+        _usingStreamingSpeech &&
+        _streamingSpeechTurnGeneration == _conversationTurnGeneration) {
+      _pendingStreamingPartialText = sourceText;
+      return;
+    }
     if (phase != ConversationPhase.recording ||
         (!_usingStreamingSpeech && !_usingRealtimeTranscription)) {
       return;
@@ -2878,6 +2918,9 @@ class ConversationController extends ChangeNotifier
     _offlineFallbackTimer?.cancel();
     _offlineFallbackTimer = null;
     await _amplitudeSubscription?.cancel();
+    final nativeSpeechCompleted =
+        _usingStreamingSpeech &&
+        _nativeSpeechCompletedGeneration == turnGeneration;
     _stoppedAt = DateTime.now();
     _responseReceivedAt = null;
     _AdaptiveWebChunkUpload? stoppedAdaptiveWebUpload;
@@ -2888,7 +2931,11 @@ class ConversationController extends ChangeNotifier
       final elapsed = startedAt == null
           ? Duration.zero
           : _stoppedAt!.difference(startedAt);
-      if (elapsed < const Duration(milliseconds: 450)) {
+      // The UI may only now have become ready after native recognition ended.
+      // Read its actual transcript/error instead of rejecting that final from
+      // the UI clock or missed RMS samples.
+      if (elapsed < const Duration(milliseconds: 450) &&
+          !nativeSpeechCompleted) {
         _realtimeConnectionGeneration += 1;
         _realtimeConnectionFuture = null;
         if (_usingStreamingSpeech) {
@@ -2939,6 +2986,7 @@ class ConversationController extends ChangeNotifier
       // the existing manual-stop behavior for Android SpeechRecognizer, which
       // has its own transcript/confidence checks.
       if (!_speechDetected &&
+          !nativeSpeechCompleted &&
           (!(_usingStreamingSpeech || _usingRecordedAudioSpeech) || !manual)) {
         await _finishNoSpeechTurn(inputAlreadyStopped: false);
         return;
@@ -3756,6 +3804,7 @@ class ConversationController extends ChangeNotifier
     bool propagateFailure = false,
   }) async {
     final playbackTurnGeneration = _conversationTurnGeneration;
+    final mediaPlaybackToken = Object();
     final currentResult = result;
     final audioUri = _preferredPlaybackUri ?? currentResult?.audioUri;
     if (currentResult == null) {
@@ -3839,6 +3888,12 @@ class ConversationController extends ChangeNotifier
         await _playbackService.stop().catchError((Object _) {});
         return;
       }
+      if (useSelectedMediaOutput) {
+        _startIosSelectedMediaOutputMonitor(
+          playbackTurnGeneration,
+          mediaPlaybackToken,
+        );
+      }
       if (reportLatency && _stoppedAt != null) {
         _reportPlaybackStarted(
           currentResult: currentResult,
@@ -3864,6 +3919,12 @@ class ConversationController extends ChangeNotifier
       notifyListeners();
       if (propagateFailure) rethrow;
     } finally {
+      if (identical(_iosMediaPlaybackToken, mediaPlaybackToken)) {
+        _iosMediaPlaybackToken = null;
+        _iosMediaPlaybackTurnGeneration = null;
+        _iosMediaOutputRouteSequence = null;
+        _iosMediaOutputSawBluetooth = false;
+      }
       if (openedHfpForReplay) await _stopHfpRoute();
     }
   }
@@ -3883,7 +3944,6 @@ class ConversationController extends ChangeNotifier
     if (turnGeneration != _conversationTurnGeneration) return;
     try {
       if (!_isWebRuntime &&
-          defaultTargetPlatform == TargetPlatform.android &&
           promptService is StyledMediaOutputVoicePromptService) {
         await (promptService as StyledMediaOutputVoicePromptService)
             .speakAndWaitStyled(
@@ -4237,7 +4297,7 @@ class ConversationController extends ChangeNotifier
   Future<void> _stopAfterHfpRouteLoss() async {
     _handlingHfpRouteLoss = true;
     // Invalidate this turn immediately so a late translated clip cannot start
-    // on the phone after Android removes the selected H20 output.
+    // on the phone after either native platform loses the selected H20 output.
     final cancellation = cancelCurrentMainAction();
     final generation = _conversationTurnGeneration;
     try {
@@ -4251,6 +4311,55 @@ class ConversationController extends ChangeNotifier
       debugPrint('HOMI H20 route-loss cleanup failed: $error');
     } finally {
       _handlingHfpRouteLoss = false;
+    }
+  }
+
+  void _startIosSelectedMediaOutputMonitor(
+    int turnGeneration,
+    Object playbackToken,
+  ) {
+    final status = _hfpAudioControl?.status;
+    final output = status?.outputPortType;
+    // An older native bridge has no typed route metadata. Do not infer the
+    // selected H20 from a display name, which may differ between HFP and A2DP.
+    if (status?.routeSequence == null || output == null) return;
+    if (output == 'builtInSpeaker' || output == 'builtInReceiver') {
+      throw const HfpAudioException(
+        'Âm thanh đã chuyển sang loa iPhone. Hãy kết nối lại H20 rồi nghe lại.',
+      );
+    }
+    _iosMediaPlaybackToken = playbackToken;
+    _iosMediaPlaybackTurnGeneration = turnGeneration;
+    _iosMediaOutputRouteSequence = status!.routeSequence;
+    _iosMediaOutputSawBluetooth =
+        output == 'bluetoothA2DP' || output == 'bluetoothHFP';
+  }
+
+  void _handleIosSelectedMediaOutputStatus(BluetoothAudioStatus status) {
+    if (kIsWeb ||
+        defaultTargetPlatform != TargetPlatform.iOS ||
+        _iosMediaPlaybackToken == null ||
+        _iosMediaPlaybackTurnGeneration != _conversationTurnGeneration ||
+        _handlingHfpRouteLoss) {
+      return;
+    }
+    final sequence = status.routeSequence;
+    if (sequence == null || sequence <= (_iosMediaOutputRouteSequence ?? -1)) {
+      return;
+    }
+    _iosMediaOutputRouteSequence = sequence;
+    final output = status.outputPortType;
+    if (output == 'bluetoothA2DP' || output == 'bluetoothHFP') {
+      _iosMediaOutputSawBluetooth = true;
+      return;
+    }
+    if (_iosMediaOutputSawBluetooth &&
+        (output == 'builtInSpeaker' || output == 'builtInReceiver')) {
+      _iosMediaPlaybackToken = null;
+      _iosMediaPlaybackTurnGeneration = null;
+      _iosMediaOutputRouteSequence = null;
+      _iosMediaOutputSawBluetooth = false;
+      unawaited(_stopAfterHfpRouteLoss());
     }
   }
 

@@ -120,9 +120,10 @@ class MethodChannelVoicePromptService
       // The prompt is supplementary. The visible message remains available on
       // platforms where the native bridge has not been implemented yet.
     } on PlatformException {
-      // Awaited Android prompts gate capture. Reporting a failed or interrupted
-      // utterance as completed skips the model and opens the microphone early.
-      if (defaultTargetPlatform == TargetPlatform.android &&
+      // Awaited native prompts gate capture on Android and iOS. Reporting a
+      // failed utterance as completed skips the model and opens the mic early.
+      if ((defaultTargetPlatform == TargetPlatform.android ||
+              defaultTargetPlatform == TargetPlatform.iOS) &&
           method == 'speakAndWait') {
         rethrow;
       }
@@ -153,9 +154,12 @@ class MethodChannelVoicePromptService
     } on MissingPluginException {
       // Optional native capability.
     } on PlatformException {
-      // Android capture is gated by this cue. Do not silently open a recorder
-      // after a failed cue/route and make the child speak without a ready signal.
-      if (defaultTargetPlatform == TargetPlatform.android) rethrow;
+      // Native capture is gated by this cue. A failed route/cue must not make
+      // the child speak before a ready signal has actually played.
+      if (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS) {
+        rethrow;
+      }
     }
   }
 

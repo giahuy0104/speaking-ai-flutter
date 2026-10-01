@@ -22,6 +22,18 @@ struct IOSHfpRoutePolicy {
   }
 }
 
+enum IOSAudioOutputRoutePolicy {
+  static func kind(for port: AVAudioSession.Port) -> String {
+    switch port {
+    case .bluetoothA2DP: return "bluetoothA2DP"
+    case .bluetoothHFP: return "bluetoothHFP"
+    case .builtInSpeaker: return "builtInSpeaker"
+    case .builtInReceiver: return "builtInReceiver"
+    default: return "other"
+    }
+  }
+}
+
 /// A route snapshot alone is not sufficient evidence that HFP can be reused.
 /// iOS may keep publishing the previous bluetoothHFP route after the owning
 /// AVAudioSession has already been deactivated.
@@ -138,6 +150,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
   private var message: String?
   private var routeActive = false
   private var routeActivationGeneration = 0
+  private var routeSequence = 0
   private var hfpRouteLease = IOSHfpRouteLeaseState()
   private var notificationTokens: [NSObjectProtocol] = []
   private var disposed = false
@@ -208,14 +221,15 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
   }
 
   private func bluetoothInputs() -> [AVAudioSessionPortDescription] {
-    let current = audioSession.currentRoute.inputs.filter {
-      IOSHfpRoutePolicy.isHfpInput($0.portType)
-    }
     let available = (audioSession.availableInputs ?? []).filter {
       IOSHfpRoutePolicy.isHfpInput($0.portType)
     }
+    let current = audioSessionCoordinator.isAudioSessionActive
+      && audioSessionCoordinator.hasTwoWayHfpRoute()
+      ? audioSession.currentRoute.inputs.filter { IOSHfpRoutePolicy.isHfpInput($0.portType) }
+      : []
     var seen = Set<String>()
-    return (current + available).filter { seen.insert($0.uid).inserted }
+    return (available + current).filter { seen.insert($0.uid).inserted }
   }
 
   private func findDevices(_ result: @escaping FlutterResult) {
@@ -589,6 +603,24 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
           )
           return
         }
+        guard self.selectedOrUnclaimedActiveTwoWayHfpInput() != nil else {
+          if recording && releaseLeaseOnFailure {
+            self.releaseHfpSessionLease(
+              caller: "HfpAudioBridge.routeLostWhileSettling",
+              generation: generation
+            )
+          } else if !recording {
+            self.audioSessionCoordinator.releaseAudioSessionIfIdle(
+              caller: "HfpAudioBridge.connect.routeLostWhileSettling"
+            )
+          }
+          self.fail(
+            result,
+            code: "HFP_ROUTE_UNAVAILABLE",
+            error: HfpBridgeError.routeUnavailable
+          )
+          return
+        }
         if !recording {
           // `connect` only verifies and remembers the paired HFP input. Do not
           // leave SCO active while idle: H20 exposes BLE and Classic Bluetooth
@@ -768,6 +800,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
   }
 
   private func activeTwoWayHfpInput() -> AVAudioSessionPortDescription? {
+    guard audioSessionCoordinator.isAudioSessionActive else { return nil }
     guard hasActiveHfpOutput() else { return nil }
     return activeHfpInput()
   }
@@ -829,7 +862,11 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
         forName: AVAudioSession.routeChangeNotification,
         object: audioSession,
         queue: .main
-      ) { [weak self] _ in self?.refreshStatus() }
+      ) { [weak self] _ in
+        guard let self else { return }
+        self.routeSequence += 1
+        self.refreshStatus()
+      }
     )
     notificationTokens.append(
       center.addObserver(
@@ -871,6 +908,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       "sampleRate": Int(audioSession.sampleRate.rounded()),
       "routeActive": routeActive,
       "audioRoute": routeDescription(),
+      "routeSequence": routeSequence,
       "hasSelectedInput": selectedInputId != nil,
     ]
     if let selectedInputId { value["deviceId"] = selectedInputId }
@@ -881,6 +919,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
     }
     if let output = audioSession.currentRoute.outputs.first {
       value["outputDeviceName"] = output.portName
+      value["outputPortType"] = IOSAudioOutputRoutePolicy.kind(for: output.portType)
     }
     return value
   }

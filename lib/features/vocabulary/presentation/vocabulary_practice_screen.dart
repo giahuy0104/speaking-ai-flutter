@@ -119,6 +119,9 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   bool _userDraggingReview = false;
   final GlobalKey _reviewEntryKey = GlobalKey();
   late final LessonRecordingEndpointDetector _recordingEndpointDetector;
+  StreamSubscription<void>? _iosRecordingCompletedSubscription;
+  StreamSubscription<String>? _iosRecordingPartialSubscription;
+  int _iosRecordingGeneration = 0;
   ActiveLearningModuleRegistry? _activeRegistry;
   Object? _activeRegistration;
 
@@ -184,6 +187,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     _generation += 1;
     _praiseFireworksTimer?.cancel();
     _recordingEndpointDetector.cancel();
+    _cancelIosRecordingListeners();
     if (_activeRegistry != null && _activeRegistration != null) {
       _activeRegistry!.unregister(_activeRegistration!);
     }
@@ -380,17 +384,22 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         _pausedAfterNoResponse) {
       return;
     }
+    _cancelIosRecordingListeners();
+    final iosRecordingGeneration = _iosRecordingGeneration;
+    final iosSpeechInput = _usesIosNativeRecognition ? _iosSpeechInput : null;
+    var nativeCompletionPending = false;
+    var nativeSpeechObserved = false;
     setState(() {
       _recordingStartPending = true;
       _busy = true;
       _message = 'Đang mở micro…';
     });
     try {
-      final android =
-          !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
       final cueBeforeStart =
-          android || (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS);
-      if (android) {
+          !kIsWeb &&
+          (defaultTargetPlatform == TargetPlatform.android ||
+              defaultTargetPlatform == TargetPlatform.iOS);
+      if (cueBeforeStart) {
         // Keep the H20 output selected while the cue (and its acoustic tail)
         // finishes. Opening capture first records the cue as the child's voice.
         await widget.mediaService.prepareSelectedLessonOutput();
@@ -401,7 +410,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
             .playSpeechReadyCue();
       }
       if (!_isCurrent(generation, entry.id)) return;
-      if (_usesIosNativeRecognition) {
+      if (iosSpeechInput != null) {
         final path = await widget.mediaService.recordingPath(
           lessonId: _recordingLessonId,
           sentenceNumber: _index + 1,
@@ -409,7 +418,32 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         );
         if (!_isCurrent(generation, entry.id)) return;
         _capturePending = true;
-        await _iosSpeechInput!.startLessonEnglishRecognitionWithRecording(path);
+        _iosRecordingCompletedSubscription = iosSpeechInput.completed.listen((
+          _,
+        ) {
+          if (!_isCurrent(generation, entry.id) ||
+              iosRecordingGeneration != _iosRecordingGeneration) {
+            return;
+          }
+          nativeCompletionPending = true;
+          if (_recording && !_recordingStartPending) {
+            unawaited(_stopRecording());
+          }
+        });
+        _iosRecordingPartialSubscription = iosSpeechInput.partialText.listen((
+          text,
+        ) {
+          if (!_isCurrent(generation, entry.id) ||
+              iosRecordingGeneration != _iosRecordingGeneration ||
+              text.trim().isEmpty) {
+            return;
+          }
+          nativeSpeechObserved = true;
+          if (_recording && !_recordingStartPending) {
+            _recordingEndpointDetector.confirmSpeech();
+          }
+        });
+        await iosSpeechInput.startLessonEnglishRecognitionWithRecording(path);
       } else {
         _capturePending = true;
         await widget.mediaService.startRecording(
@@ -429,15 +463,18 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       if (!_isCurrent(generation, entry.id)) {
         // MAIN/Back already cancelled this native turn. A late cancellation
         // here could stop the newer owner of the shared Apple Speech engine.
-        if (!_usesIosNativeRecognition) await _cancelCapture();
+        if (iosSpeechInput == null) await _cancelCapture();
         return;
+      }
+      if (iosSpeechInput != null) {
+        widget.mediaService.handoffSelectedLessonOutputToNativeCapture();
       }
       if (!cueBeforeStart && _voicePromptService is SpeechReadyCuePlayer) {
         await (_voicePromptService as SpeechReadyCuePlayer)
             .playSpeechReadyCue();
       }
       if (!_isCurrent(generation, entry.id)) {
-        if (!_usesIosNativeRecognition) await _cancelCapture();
+        if (iosSpeechInput == null) await _cancelCapture();
         return;
       }
       setState(() {
@@ -449,7 +486,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       });
       _recordingEndpointDetector.start(
         amplitudeDbfs:
-            _iosSpeechInput?.amplitudeDbfs ??
+            iosSpeechInput?.amplitudeDbfs ??
             widget.mediaService.recordingAmplitudeDbfs,
         onEndpoint: (_) {
           if (mounted && _recording && !_paused) {
@@ -457,9 +494,14 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
           }
         },
       );
+      if (nativeSpeechObserved) _recordingEndpointDetector.confirmSpeech();
+      if (nativeCompletionPending) unawaited(_stopRecording());
     } catch (error) {
-      _recordingEndpointDetector.cancel();
       if (!_isCurrent(generation, entry.id)) return;
+      _recordingEndpointDetector.cancel();
+      if (iosRecordingGeneration == _iosRecordingGeneration) {
+        _cancelIosRecordingListeners();
+      }
       setState(() {
         _recording = false;
         _recordingStartPending = false;
@@ -475,6 +517,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       return;
     }
     _recordingEndpointDetector.cancel();
+    _cancelIosRecordingListeners();
     final generation = _generation;
     final entry = _entry;
     setState(() {
@@ -805,8 +848,19 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       generation == _generation &&
       _entry.id == entryId;
 
+  void _cancelIosRecordingListeners() {
+    _iosRecordingGeneration += 1;
+    final completed = _iosRecordingCompletedSubscription;
+    final partial = _iosRecordingPartialSubscription;
+    _iosRecordingCompletedSubscription = null;
+    _iosRecordingPartialSubscription = null;
+    unawaited(completed?.cancel());
+    unawaited(partial?.cancel());
+  }
+
   Future<void> _cancelCapture() async {
     _recordingEndpointDetector.cancel();
+    _cancelIosRecordingListeners();
     if (_usesIosNativeRecognition) {
       await _iosSpeechInput!.cancel().catchError((Object _) {});
     } else {
@@ -832,6 +886,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     _recordingProcessing = false;
     _capturePending = false;
     _recordingEndpointDetector.cancel();
+    _cancelIosRecordingListeners();
     if (mounted) {
       setState(() {
         _praiseFireworksVisible = false;
@@ -1544,6 +1599,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     _praiseFireworksTimer = null;
     _praiseFireworksVisible = false;
     _recordingEndpointDetector.cancel();
+    _cancelIosRecordingListeners();
     final wasRecording = _recording || _capturePending;
     _recording = false;
     _recordingStartPending = false;

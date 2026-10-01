@@ -776,7 +776,18 @@ class AndroidStreamingSpeechInput
       final partialAtStop = _stablePartialTranscript(
         minimumStableFor: const Duration(milliseconds: 350),
       );
-      if (partialAtStop != null) {
+      if (_platformName == 'iOS') {
+        // Apple acknowledges speech.stop before asynchronous finalization.
+        // Keep its established command-sized finalization window; applying
+        // Android's 220 ms partial grace can lose Apple's more accurate final.
+        try {
+          sourceText = await completer.future.timeout(_nativeCommandTimeout);
+        } on TimeoutException {
+          _requireCurrentRecognitionTurn(turn);
+          sourceText = _latestText;
+          _resultAt = DateTime.now();
+        }
+      } else if (partialAtStop != null) {
         // A stable partial keeps stop responsive, but the Android final result is
         // often more accurate for softly spoken child speech. Give it a short,
         // bounded grace period before falling back to the partial transcript.
@@ -1043,6 +1054,7 @@ class AndroidStreamingSpeechInput
       return;
     }
     if (type == 'speech.end') {
+      _readRecordedAudioMetadata(event);
       AudioDiagnostics.event('speech.end', {
         'turnId': event['turnId'],
         'commandMode': _commandMode,

@@ -93,7 +93,7 @@ void main() {
       }
     });
 
-    test('uses lesson text instead of prerecorded combined hooks', () {
+    test('keeps registry-owned hooks separate from curriculum audio URLs', () {
       expect(
         lessons.where((lesson) => lesson.combinedHookAudioUri != null),
         isEmpty,

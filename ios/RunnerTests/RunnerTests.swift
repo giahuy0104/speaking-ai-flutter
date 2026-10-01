@@ -1,11 +1,282 @@
 import AVFoundation
 import Flutter
+import google_mlkit_translation
 @testable import Runner
 import Speech
 import UIKit
 import XCTest
 
 class RunnerTests: XCTestCase {
+
+  func testIOSPromptPhoneOutputDoesNotWaitForAnAvailablePairedHfpInput() {
+    XCTAssertFalse(IOSPromptOutputRoutePolicy.expectsHfp(
+      forcePhoneSpeaker: true, hasAvailableHfpInput: true, retainedBackgroundHfpRoute: false
+    ))
+    XCTAssertFalse(IOSPromptOutputRoutePolicy.expectsHfp(
+      forcePhoneSpeaker: true, hasAvailableHfpInput: false, retainedBackgroundHfpRoute: false
+    ))
+  }
+
+  func testIOSPromptSelectedOutputAndDefaultCueStillRequireAvailableHfp() {
+    XCTAssertTrue(IOSPromptOutputRoutePolicy.expectsHfp(
+      forcePhoneSpeaker: false, hasAvailableHfpInput: true, retainedBackgroundHfpRoute: false
+    ))
+    XCTAssertFalse(IOSPromptOutputRoutePolicy.expectsHfp(
+      forcePhoneSpeaker: false, hasAvailableHfpInput: false, retainedBackgroundHfpRoute: false
+    ))
+  }
+
+  func testIOSPromptRetainedBackgroundHfpGraphKeepsRouteLossMonitoring() {
+    XCTAssertTrue(IOSPromptOutputRoutePolicy.expectsHfp(
+      forcePhoneSpeaker: true, hasAvailableHfpInput: true, retainedBackgroundHfpRoute: true
+    ))
+    XCTAssertTrue(IOSPromptOutputRoutePolicy.expectsHfp(
+      forcePhoneSpeaker: true, hasAvailableHfpInput: false, retainedBackgroundHfpRoute: true
+    ))
+  }
+
+  func testIOSOfflineTranslationSupportsTheSameVietnameseEnglishPair() {
+    XCTAssertTrue(GoogleMlKitTranslationPlugin.supportsLanguage("vi"))
+    XCTAssertTrue(GoogleMlKitTranslationPlugin.supportsLanguage("en"))
+    XCTAssertFalse(GoogleMlKitTranslationPlugin.supportsLanguage("unknown"))
+  }
+
+  #if targetEnvironment(simulator)
+  func testIOSSimulatorTranslationModelCheckDoesNotPretendTheModelIsReady() {
+    let plugin = GoogleMlKitTranslationPlugin()
+    var response: Any?
+    var callbacks = 0
+    plugin.handle(FlutterMethodCall(
+      methodName: "nlp#manageLanguageModelModels", arguments: ["task": "check", "model": "vi"]
+    )) { value in
+      response = value
+      callbacks += 1
+    }
+    XCTAssertEqual(callbacks, 1)
+    XCTAssertEqual(response as? Bool, false)
+  }
+
+  func testIOSSimulatorTranslationAndDownloadReturnAnExplicitDeviceRequirement() throws {
+    let plugin = GoogleMlKitTranslationPlugin()
+    let calls = [
+      FlutterMethodCall(methodName: "nlp#manageLanguageModelModels", arguments: [
+        "task": "download", "model": "vi", "wifi": true,
+      ]),
+      FlutterMethodCall(methodName: "nlp#startLanguageTranslator", arguments: [
+        "id": "simulator-test", "source": "vi", "target": "en", "text": "Xin chào",
+      ]),
+    ]
+    for call in calls {
+      var response: Any?
+      var callbacks = 0
+      plugin.handle(call) { value in
+        response = value
+        callbacks += 1
+      }
+      XCTAssertEqual(callbacks, 1)
+      let error = try XCTUnwrap(response as? FlutterError)
+      XCTAssertEqual(error.code, "OFFLINE_TRANSLATION_SIMULATOR_UNAVAILABLE")
+    }
+  }
+
+  func testIOSSimulatorTranslationCloseCompletesExactlyOnce() {
+    let plugin = GoogleMlKitTranslationPlugin()
+    var callbacks = 0
+    plugin.handle(FlutterMethodCall(
+      methodName: "nlp#closeLanguageTranslator", arguments: ["id": "simulator-test"]
+    )) { value in
+      callbacks += 1
+      XCTAssertNil(value)
+    }
+    XCTAssertEqual(callbacks, 1)
+  }
+  #endif
+
+  func testIOSPromptRequestedGainUsesAndroidBoundsAndDefault() {
+    XCTAssertEqual(IOSPromptPlaybackAudio.requestedGainDb(nil), 8)
+    XCTAssertEqual(IOSPromptPlaybackAudio.requestedGainDb(.nan), 8)
+    XCTAssertEqual(IOSPromptPlaybackAudio.requestedGainDb(.infinity), 8)
+    XCTAssertEqual(IOSPromptPlaybackAudio.requestedGainDb(-2), 0)
+    XCTAssertEqual(IOSPromptPlaybackAudio.requestedGainDb(7.5), 7.5)
+    XCTAssertEqual(IOSPromptPlaybackAudio.requestedGainDb(20), 12)
+  }
+
+  func testIOSPromptMeterMatchesAndroidForQuietAndLoudClips() throws {
+    for amplitude in [0.01, 0.5] {
+      var meter = IOSPromptPlaybackLevelMeter(sampleRate: 16_000, channelCount: 1)
+      for _ in 0..<640 { meter.addSample(amplitude) }
+      let level = try XCTUnwrap(meter.result())
+      XCTAssertEqual(level.measuredDb, 20 * log10(amplitude), accuracy: 0.00001)
+      XCTAssertEqual(level.gainDb, -21 - 20 * log10(amplitude), accuracy: 0.00001)
+    }
+  }
+
+  func testIOSPromptMeterDoesNotAmplifySilenceOrBackgroundNoise() throws {
+    for amplitude in [0.0, 0.0001] {
+      var meter = IOSPromptPlaybackLevelMeter(sampleRate: 16_000, channelCount: 1)
+      for _ in 0..<640 { meter.addSample(amplitude) }
+      let level = try XCTUnwrap(meter.result())
+      XCTAssertEqual(level.gainDb, 0)
+      XCTAssertEqual(level.activeWindowCount, 0)
+      XCTAssertTrue(level.measuredDb.isFinite)
+    }
+  }
+
+  func testIOSPromptMeterIgnoresPausesAndCapsGainAt28Db() throws {
+    var meter = IOSPromptPlaybackLevelMeter(sampleRate: 16_000, channelCount: 1)
+    for _ in 0..<320 { meter.addSample(0) }
+    for _ in 0..<320 { meter.addSample(0.0032) }
+    for _ in 0..<320 { meter.addSample(0) }
+    let level = try XCTUnwrap(meter.result())
+    XCTAssertEqual(level.gainDb, 28)
+    XCTAssertEqual(level.activeWindowCount, 1)
+    XCTAssertEqual(level.measuredDb, 20 * log10(0.0032), accuracy: 0.00001)
+  }
+
+  func testIOSPromptMeterWeightsFinalPartialWindowBySampleCount() throws {
+    var meter = IOSPromptPlaybackLevelMeter(sampleRate: 8_000, channelCount: 1)
+    for _ in 0..<160 { meter.addSample(0.1) }
+    for _ in 0..<80 { meter.addSample(0.2) }
+    let level = try XCTUnwrap(meter.result())
+    XCTAssertEqual(level.activeWindowCount, 2)
+    XCTAssertEqual(level.measuredDb, 10 * log10(0.02), accuracy: 0.00001)
+  }
+
+  func testIOSPromptMeterDoesNotLetFinalClickExcludeQuietSpeech() throws {
+    var meter = IOSPromptPlaybackLevelMeter(sampleRate: 16_000, channelCount: 1)
+    for _ in 0..<320 { meter.addSample(0.01) }
+    meter.addSample(1)
+    let level = try XCTUnwrap(meter.result())
+    XCTAssertEqual(level.activeWindowCount, 2)
+    XCTAssertEqual(level.measuredDb, 10 * log10(1.032 / 321), accuracy: 0.00001)
+    XCTAssertEqual(level.gainDb, -1)
+  }
+
+  func testIOSPromptMeterUsesEveryChannelForPeakHeadroom() throws {
+    var meter = IOSPromptPlaybackLevelMeter(sampleRate: 16_000, channelCount: 2)
+    for index in 0..<640 {
+      meter.addSample(index == 0 ? 0.8 : 0.01)
+      meter.addSample(0.01)
+    }
+    let level = try XCTUnwrap(meter.result())
+    XCTAssertEqual(level.peakDb, 20 * log10(0.8), accuracy: 0.00001)
+    XCTAssertEqual(level.gainDb, -1 - 20 * log10(0.8), accuracy: 0.00001)
+    XCTAssertLessThanOrEqual(0.8 * pow(10, level.gainDb / 20), pow(10, -1.0 / 20) + 0.00001)
+  }
+
+  func testIOSPromptMeterRejectsIncompleteChannelsAndNonFinitePcm() {
+    var incomplete = IOSPromptPlaybackLevelMeter(sampleRate: 16_000, channelCount: 2)
+    incomplete.addSample(0.1)
+    XCTAssertNil(incomplete.result())
+    var invalid = IOSPromptPlaybackLevelMeter(sampleRate: 16_000, channelCount: 1)
+    invalid.addSample(.nan)
+    invalid.addSample(0.1)
+    XCTAssertNil(invalid.result())
+  }
+
+  func testIOSPromptPreparationMatchesLevelWithoutChangingSourceBytes() throws {
+    let format = try XCTUnwrap(AVAudioFormat(
+      commonFormat: .pcmFormatFloat32, sampleRate: 16_000, channels: 2, interleaved: false
+    ))
+    let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 640))
+    buffer.frameLength = 640
+    for frame in 0..<640 {
+      buffer.floatChannelData?[0][frame] = 0.01
+      buffer.floatChannelData?[1][frame] = -0.01
+    }
+    let source = FileManager.default.temporaryDirectory
+      .appendingPathComponent("prompt-source-\(UUID().uuidString).caf")
+    let output = source.deletingPathExtension().appendingPathExtension("wav")
+    defer {
+      try? FileManager.default.removeItem(at: source)
+      try? FileManager.default.removeItem(at: output)
+    }
+    do {
+      let writer = try AVAudioFile(
+        forWriting: source, settings: format.settings, commonFormat: .pcmFormatFloat32, interleaved: false
+      )
+      try writer.write(from: buffer)
+    }
+    let original = try Data(contentsOf: source)
+    let level = try IOSPromptPlaybackAudio.prepare(source: source, output: output)
+    XCTAssertEqual(try Data(contentsOf: source), original)
+    XCTAssertEqual(level.gainDb, 19, accuracy: 0.001)
+    let reader = try AVAudioFile(forReading: output)
+    XCTAssertEqual(reader.fileFormat.commonFormat, .pcmFormatInt16)
+    XCTAssertEqual(reader.fileFormat.sampleRate, 16_000)
+    XCTAssertEqual(reader.fileFormat.channelCount, 2)
+    XCTAssertEqual(reader.length, 640)
+    let played = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: reader.processingFormat, frameCapacity: 640))
+    try reader.read(into: played)
+    XCTAssertEqual(try XCTUnwrap(played.floatChannelData?[0][0]), Float(pow(10, -21.0 / 20)), accuracy: 0.00005)
+    XCTAssertEqual(try XCTUnwrap(played.floatChannelData?[1][0]), -Float(pow(10, -21.0 / 20)), accuracy: 0.00005)
+  }
+
+  func testIOSPromptSynthesisFinishesOnceAndCancellationIgnoresLateBuffers() throws {
+    let format = try XCTUnwrap(AVAudioFormat(
+      commonFormat: .pcmFormatFloat32, sampleRate: 16_000, channels: 1, interleaved: false
+    ))
+    let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 160))
+    buffer.frameLength = 160
+    for frame in 0..<160 { buffer.floatChannelData?[0][frame] = 0.1 }
+    let terminal = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 1))
+    terminal.frameLength = 0
+    let operation = IOSPromptSynthesisOperation(token: UUID())
+    defer { operation.cancel() }
+    var completions = 0
+    let callback: (Result<Void, Error>) -> Void = { result in
+      completions += 1
+      if case let .failure(error) = result { XCTFail("Unexpected synthesis failure: \(error)") }
+    }
+    operation.accept(buffer, completion: callback)
+    XCTAssertEqual(completions, 0)
+    operation.accept(terminal, completion: callback)
+    operation.accept(terminal, completion: callback)
+    XCTAssertEqual(completions, 1)
+    XCTAssertEqual(try AVAudioFile(forReading: operation.source).length, 160)
+    operation.cancel()
+    operation.accept(buffer, completion: callback)
+    XCTAssertTrue(operation.isCancelled)
+    XCTAssertFalse(FileManager.default.fileExists(atPath: operation.source.path))
+    XCTAssertEqual(completions, 1)
+  }
+
+  func testIOSOutputRouteKindDistinguishesA2dpFromPhoneSpeaker() {
+    XCTAssertEqual(IOSAudioOutputRoutePolicy.kind(for: .bluetoothA2DP), "bluetoothA2DP")
+    XCTAssertEqual(IOSAudioOutputRoutePolicy.kind(for: .bluetoothHFP), "bluetoothHFP")
+    XCTAssertEqual(IOSAudioOutputRoutePolicy.kind(for: .builtInSpeaker), "builtInSpeaker")
+    XCTAssertEqual(IOSAudioOutputRoutePolicy.kind(for: .builtInReceiver), "builtInReceiver")
+  }
+
+  func testIOSReadyCueMatchesAndroidDurationRateAndLevel() {
+    let bytes = [UInt8](VoicePromptBridge.makeReadyCueWavData())
+    XCTAssertEqual(bytes.count, 44 + 16_000 * 120 / 1_000 * 2)
+    XCTAssertEqual(Array(bytes[0..<4]), Array("RIFF".utf8))
+    XCTAssertEqual(Array(bytes[24..<28]), [0x80, 0x3E, 0x00, 0x00])
+
+    let activeSamples = (128..<(1_920 - 128)).map { frame -> Double in
+      let offset = 44 + frame * 2
+      let bits = UInt16(bytes[offset]) | (UInt16(bytes[offset + 1]) << 8)
+      return Double(Int16(bitPattern: bits)) / Double(Int16.max)
+    }
+    let meanSquare = activeSamples.reduce(0.0) { $0 + $1 * $1 }
+      / Double(activeSamples.count)
+    XCTAssertEqual(20.0 * log10(sqrt(meanSquare)), -21.0, accuracy: 0.25)
+  }
+
+  func testIOSSpeechRouteMatchesOnlyTheSelectedHfpInput() {
+    let selected = IOSHfpInputIdentity(uid: "h20-1", name: "HOMI H20")
+    XCTAssertTrue(IOSSelectedHfpRoutePolicy.matches(active: selected, selected: selected))
+    XCTAssertTrue(IOSSelectedHfpRoutePolicy.matches(
+      active: IOSHfpInputIdentity(uid: "h20-2", name: "HOMI H20"),
+      selected: selected
+    ))
+    XCTAssertFalse(IOSSelectedHfpRoutePolicy.matches(
+      active: IOSHfpInputIdentity(uid: "other-headset", name: "Other headset"),
+      selected: selected
+    ))
+    XCTAssertFalse(IOSSelectedHfpRoutePolicy.matches(active: selected, selected: nil))
+  }
 
   func testHmD001ObservedButtonsDoNotChangeLegacyH20Mapping() {
     let mainShort: [UInt8] = [1, 1, 1, 0, 0x1C, 0, 79, 0, 0, 0, 0, 0]
@@ -540,6 +811,29 @@ class RunnerTests: XCTestCase {
     XCTAssertNil(lease.activeToken)
   }
 
+  func testIOSStyledTranslationDoesNotChangeTheFollowingCoachPrompt() {
+    let translated = AVSpeechUtterance(string: "I like apples.")
+    IOSPromptSpeechStyle.apply(to: translated, speechRate: 0.85, pitch: 1.05)
+    XCTAssertEqual(translated.rate, AVSpeechUtteranceDefaultSpeechRate * 0.85, accuracy: 0.001)
+    XCTAssertEqual(translated.pitchMultiplier, 1.05, accuracy: 0.001)
+
+    let coach = AVSpeechUtterance(string: "Giỏi lắm!")
+    IOSPromptSpeechStyle.apply(to: coach, speechRate: nil, pitch: nil)
+    XCTAssertEqual(coach.rate, AVSpeechUtteranceDefaultSpeechRate, accuracy: 0.001)
+    XCTAssertEqual(coach.pitchMultiplier, 1.0, accuracy: 0.001)
+  }
+
+  func testIOSPromptStyleBoundsInvalidChannelValues() {
+    let utterance = AVSpeechUtterance(string: "Model")
+    IOSPromptSpeechStyle.apply(to: utterance, speechRate: .infinity, pitch: .nan)
+    XCTAssertEqual(utterance.rate, AVSpeechUtteranceDefaultSpeechRate, accuracy: 0.001)
+    XCTAssertEqual(utterance.pitchMultiplier, 1.0, accuracy: 0.001)
+
+    IOSPromptSpeechStyle.apply(to: utterance, speechRate: 50, pitch: -1)
+    XCTAssertEqual(utterance.rate, AVSpeechUtteranceDefaultSpeechRate * 1.5, accuracy: 0.001)
+    XCTAssertEqual(utterance.pitchMultiplier, 0.8, accuracy: 0.001)
+  }
+
   func testIOSHfpRouteLeaseReleasesAtUtteranceBoundary() {
     var lease = IOSHfpRouteLeaseState()
 
@@ -637,6 +931,42 @@ class RunnerTests: XCTestCase {
     )
 
     XCTAssertNil(selected)
+  }
+
+  func testIOSPromptAndSpeechResolveRepublishedSelectedH20ByNormalizedName() {
+    let inputs = [
+      IOSHfpInputIdentity(uid: "airpods", name: "AirPods Pro"),
+      IOSHfpInputIdentity(uid: "new-h20-uid", name: "HOMI H20")
+    ]
+    XCTAssertEqual(
+      IOSPreferredHfpInputPolicy.select(
+        from: inputs,
+        selectedUID: "old-h20-uid",
+        selectedName: "HOMI-H20"
+      )?.uid,
+      "new-h20-uid"
+    )
+    XCTAssertEqual(
+      IOSPreferredHfpInputPolicy.select(
+        from: inputs + [IOSHfpInputIdentity(uid: "old-h20-uid", name: "Other")],
+        selectedUID: "old-h20-uid",
+        selectedName: "HOMI-H20"
+      )?.uid,
+      "old-h20-uid"
+    )
+    XCTAssertNil(IOSPreferredHfpInputPolicy.select(
+      from: [inputs[0]],
+      selectedUID: "old-h20-uid",
+      selectedName: "HOMI-H20"
+    ))
+    XCTAssertEqual(
+      IOSPreferredHfpInputPolicy.select(
+        from: inputs,
+        selectedUID: nil,
+        selectedName: nil
+      )?.uid,
+      "airpods"
+    )
   }
 
   func testAiv0MainNotificationRefreshPreservesAHealthySubscription() {

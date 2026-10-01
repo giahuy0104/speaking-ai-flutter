@@ -10,6 +10,9 @@ definitions:
           exit 1
         fi
         python3 -B -m unittest discover -s tool -p test_select_ios_test_simulator.py
+        python3 -B -m unittest discover -s tool -p test_prepare_ios_translation_pods.py
+        export HOMI_IOS_TRANSLATION_SIMULATOR_STUB=1
+        python3 tool/prepare_ios_translation_pods.py simulator
         flutter build ios \
           --simulator \
           --debug \
@@ -35,6 +38,15 @@ definitions:
           -resultBundlePath build/ios/test-results/RunnerTests.xcresult \
           CODE_SIGNING_ALLOWED=NO
 
+        # Simulator validation cannot prove the real ML Kit dependency links.
+        # Re-resolve and compile the physical-device adapter before IPA signing.
+        unset HOMI_IOS_TRANSLATION_SIMULATOR_STUB
+        python3 tool/prepare_ios_translation_pods.py device
+        flutter build ios --release --no-codesign \
+          --dart-define=BACKEND_BASE_URL="$BACKEND_BASE_URL" \
+          --dart-define=USE_DEMO_BACKEND="$USE_DEMO_BACKEND" \
+          --dart-define=REALTIME_BATCH_FALLBACK="$REALTIME_BATCH_FALLBACK"
+
 workflows:
   ios-app-store:
     name: HOMI iOS App Store IPA and TestFlight Upload
@@ -56,7 +68,7 @@ workflows:
         USE_DEMO_BACKEND: "false"
         CHILD_AGE: "6"
         PREFER_BLE_STREAMING: "false"
-        REALTIME_BATCH_FALLBACK: "false"
+        REALTIME_BATCH_FALLBACK: "true"
         REALTIME_FALLBACK_BUFFER_BYTES: "15728640"
         ENABLE_AIV0_BLE_CONTROL: "true"
         AIV0_DRAFT_PROTOCOL_CONFIRMED: "false"
@@ -163,7 +175,8 @@ workflows:
       - name: Build signed App Store IPA
         script: |
           set -euo pipefail
-          RELEASE_AI_SUBPROCESSORS="${AI_SUBPROCESSORS%% và Google ML Kit*}"
+          unset HOMI_IOS_TRANSLATION_SIMULATOR_STUB
+          python3 tool/prepare_ios_translation_pods.py device
           flutter build ipa \
             --release \
             --build-number="$BUILD_NUMBER" \
@@ -180,7 +193,7 @@ workflows:
             --dart-define=PRIVACY_POLICY_URL="$PRIVACY_POLICY_URL" \
             --dart-define=TERMS_URL="$TERMS_URL" \
             --dart-define=SUPPORT_URL="$SUPPORT_URL" \
-            --dart-define=AI_SUBPROCESSORS="$RELEASE_AI_SUBPROCESSORS" \
+            --dart-define=AI_SUBPROCESSORS="$AI_SUBPROCESSORS" \
             --dart-define=DATA_RETENTION_SUMMARY="$DATA_RETENTION_SUMMARY"
 
     artifacts:
@@ -211,7 +224,7 @@ workflows:
         USE_DEMO_BACKEND: "false"
         CHILD_AGE: "6"
         PREFER_BLE_STREAMING: "false"
-        REALTIME_BATCH_FALLBACK: "false"
+        REALTIME_BATCH_FALLBACK: "true"
         REALTIME_FALLBACK_BUFFER_BYTES: "15728640"
         ENABLE_AIV0_BLE_CONTROL: "true"
         AIV0_DRAFT_PROTOCOL_CONFIRMED: "false"

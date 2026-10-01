@@ -1,15 +1,19 @@
 import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
+import 'package:ai_speaking_flutter_app/core/audio/main_assistant_audio_state.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_voice_assistant_flow.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_speaking_session_controller.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_intent_resolver.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/presentation/main_voice_assistant_button.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -971,6 +975,110 @@ void main() {
   );
 
   test(
+    'MAIN final-only completion during native start is finalized once',
+    () async {
+      final speech = _FirstStartBlockedSpeechInput();
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: _FakeVoicePromptService(),
+      );
+
+      final activation = controller.activateFromMainButton();
+      await _waitUntil(() => speech.events.contains('start'));
+      expect(controller.isStarting, isTrue);
+      speech.emitCompleted();
+      await Future<void>.delayed(Duration.zero);
+      expect(speech.stopCalls, 0);
+
+      speech.firstStart.complete();
+      expect(await activation, isTrue);
+      await _waitUntil(() => speech.stopCalls == 1);
+      expect(speech.stopCalls, 1);
+      await controller.pause();
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  test(
+    'cancelled early completion cannot finalize a newer MAIN turn',
+    () async {
+      final speech = _FirstStartBlockedSpeechInput();
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: _FakeVoicePromptService(),
+        pauseDrainTimeout: const Duration(milliseconds: 1),
+      );
+
+      final firstActivation = controller.activateFromMainButton();
+      await _waitUntil(() => speech.events.contains('start'));
+      speech.emitCompleted();
+      await Future<void>.delayed(Duration.zero);
+      expect(await controller.activateFromMainButton(), isTrue);
+      speech.firstStart.complete();
+      expect(await firstActivation, isFalse);
+      expect(controller.isListening, isTrue);
+      expect(speech.stopCalls, 0);
+
+      await controller.pause();
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  test('actionable topic endpoint during native start is finalized', () async {
+    final speech = _FirstStartBlockedSpeechInput();
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: _FakeVoicePromptService(),
+    );
+
+    final activation = controller.activateLevelTopicSelection(
+      childAge: 6,
+      levelNumber: 1,
+      topicNumbers: const [1, 2, 3],
+      completedTopicNumbers: const [],
+      announceLevel: false,
+    );
+    await _waitUntil(() => speech.events.contains('start'));
+    speech.emitCommandEndpoint('Chủ đề 2');
+    await Future<void>.delayed(Duration.zero);
+    expect(speech.stopCalls, 0);
+
+    speech.firstStart.complete();
+    await activation;
+    await _waitUntil(() => speech.stopCalls == 1);
+    await controller.pause();
+    controller.dispose();
+    await speech.dispose();
+  });
+
+  test('Android MAIN final during ready cue is finalized once', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final speech = _FakeNavigationSpeechInput();
+    final prompt = _BlockedReadyCueVoicePromptService();
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: prompt,
+    );
+
+    final activation = controller.activateFromMainButton();
+    await prompt.cueStarted.future;
+    expect(controller.isStarting, isTrue);
+    speech.emitCompleted();
+    await Future<void>.delayed(Duration.zero);
+    expect(speech.stopCalls, 0);
+
+    prompt.releaseCue();
+    expect(await activation, isTrue);
+    await _waitUntil(() => speech.stopCalls == 1);
+    await controller.pause();
+    controller.dispose();
+    await speech.dispose();
+  });
+
+  test(
     'Main prompt reopens the mic immediately after final recognition',
     () async {
       final speechInput = _FakeNavigationSpeechInput(
@@ -1140,6 +1248,45 @@ void main() {
 
       expect(controller.lastErrorMessage, isNull);
       expect(controller.isMainButtonSessionActive, isTrue);
+      expect(controller.isListening, isTrue);
+
+      await controller.pause();
+      controller.dispose();
+      await speechInput.dispose();
+    },
+  );
+
+  test(
+    'iOS no-speech completion reopens MAIN and uses the spoken silence retry',
+    () async {
+      final speechInput = _TransientFailureNavigationSpeechInput(
+        failuresRemaining: 2,
+        failureCode: 'IOS_SPEECH_NO_SPEECH',
+      );
+      final voicePrompt = _FakeVoicePromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: voicePrompt,
+        commandWindowDuration: const Duration(seconds: 1),
+      );
+
+      expect(await controller.activateFromMainButton(), isTrue);
+      await _waitUntil(() => controller.isListening);
+
+      speechInput.emitCompleted();
+      await _waitUntil(
+        () => speechInput.events.where((event) => event == 'start').length == 2,
+      );
+      expect(controller.lastErrorMessage, isNull);
+      expect(controller.isMainButtonSessionActive, isTrue);
+
+      speechInput.emitCompleted();
+      await _waitUntil(
+        () => voicePrompt.spokenTexts.contains(
+          MainVoiceAssistantFlow.noSpeechRetryPrompt,
+        ),
+      );
+      expect(controller.lastErrorMessage, isNull);
       expect(controller.isListening, isTrue);
 
       await controller.pause();
@@ -2022,6 +2169,78 @@ void main() {
       await speechInput.dispose();
     },
   );
+
+  testWidgets(
+    'screen MAIN interrupts continuous translation during recording and playback',
+    (tester) async {
+      final speechInput = _FakeNavigationSpeechInput();
+      final voiceController = VoiceNavigationController(
+        speechInput: speechInput,
+      );
+      final speakingController = MainSpeakingSessionController();
+      final audioState = _FakeMainAssistantAudioState();
+      var mainPresses = 0;
+
+      speakingController.enter();
+      audioState.isBusy = true;
+      speakingController.synchronize(
+        isRecording: true,
+        isBusy: true,
+        isPlaying: false,
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: MainVoiceAssistantButton(
+              voiceController: voiceController,
+              audioState: audioState,
+              speakingSessionController: speakingController,
+              isActivationPending: false,
+              onPressed: () async {
+                mainPresses += 1;
+              },
+              onLongPressed: () async {},
+              onLongPressReleased: () async {},
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byKey(const Key('main-voice-assistant-button')));
+      await tester.pump();
+      expect(mainPresses, 1);
+
+      audioState.isBusy = false;
+      audioState.isPlaybackPlaying = true;
+      speakingController.synchronize(
+        isRecording: false,
+        isBusy: false,
+        isPlaying: true,
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('main-voice-assistant-button')));
+      await tester.pump();
+      expect(mainPresses, 2);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      speakingController.dispose();
+      voiceController.dispose();
+      audioState.dispose();
+      await speechInput.dispose();
+    },
+  );
+}
+
+class _FakeMainAssistantAudioState extends ChangeNotifier
+    implements MainAssistantAudioState {
+  @override
+  bool isBusy = false;
+
+  @override
+  bool isPlaybackPlaying = false;
+
+  @override
+  bool isPreparingMicrophone = false;
 }
 
 Future<void> _waitUntil(
@@ -2248,17 +2467,21 @@ class _SongVoiceContext implements ActiveLearningVoiceContext {
 
 class _TransientFailureNavigationSpeechInput
     extends _FakeNavigationSpeechInput {
-  _TransientFailureNavigationSpeechInput({required this.failuresRemaining});
+  _TransientFailureNavigationSpeechInput({
+    required this.failuresRemaining,
+    this.failureCode = 'ANDROID_SPEECH_6',
+  });
 
   int failuresRemaining;
+  final String failureCode;
 
   @override
   Future<StreamingSpeechCapture> stop() async {
     if (failuresRemaining > 0) {
       failuresRemaining -= 1;
-      throw const StreamingSpeechInputException(
+      throw StreamingSpeechInputException(
         'Chưa nghe thấy giọng nói.',
-        code: 'ANDROID_SPEECH_6',
+        code: failureCode,
       );
     }
     return super.stop();
@@ -2433,6 +2656,20 @@ class _HangingReadyCueVoicePromptService extends _FakeVoicePromptService {
   Future<void> playSpeechReadyCue() {
     readyCueCount += 1;
     return _neverCompletes.future;
+  }
+}
+
+class _BlockedReadyCueVoicePromptService extends _FakeVoicePromptService {
+  final Completer<void> cueStarted = Completer<void>();
+  final Completer<void> _cueFinished = Completer<void>();
+
+  void releaseCue() => _cueFinished.complete();
+
+  @override
+  Future<void> playSpeechReadyCue() async {
+    readyCueCount += 1;
+    if (!cueStarted.isCompleted) cueStarted.complete();
+    await _cueFinished.future;
   }
 }
 

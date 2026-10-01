@@ -57,14 +57,13 @@ class VocabularyActivationController extends ChangeNotifier {
 class VocabularyHomeNavigationController {
   Object? _owner;
   Future<bool> Function()? _handleBack;
-  Future<void> Function()? _leaveForOtherContent;
+  Future<bool> Function()? _leaveForOtherContent;
   Future<void> Function(VoiceVocabularyTarget target)? _openVoiceTarget;
 
   Future<bool> handleBack() async => await _handleBack?.call() ?? false;
 
-  Future<void> leaveForOtherContent() async {
-    await _leaveForOtherContent?.call();
-  }
+  Future<bool> leaveForOtherContent() async =>
+      await _leaveForOtherContent?.call() ?? true;
 
   Future<void> openVoiceTarget(VoiceVocabularyTarget target) async {
     await _openVoiceTarget?.call(target);
@@ -73,7 +72,7 @@ class VocabularyHomeNavigationController {
   void _attach(
     Object owner, {
     required Future<bool> Function() handleBack,
-    required Future<void> Function() leaveForOtherContent,
+    required Future<bool> Function() leaveForOtherContent,
     required Future<void> Function(VoiceVocabularyTarget target)
     openVoiceTarget,
   }) {
@@ -177,7 +176,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   int _audioCommandGeneration = 0;
   Future<void>? _playbackNavigationCleanup;
   Timer? _playbackNavigationCleanupTimer;
-  Completer<void>? _playbackNavigationCleanupCompleter;
+  Completer<bool>? _playbackNavigationCleanupCompleter;
   bool _playbackInterrupted = false;
   List<VocabularyEntry> _playbackQueue = const <VocabularyEntry>[];
   int _playbackIndex = 0;
@@ -2235,11 +2234,21 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     return true;
   }
 
-  Future<void> _leavePlaybackForOtherContent({
+  Future<bool> _leavePlaybackForOtherContent({
     bool announceMenu = true,
     bool notifyNavigationExit = true,
   }) async {
-    if (_playbackNavigationCleanup != null && announceMenu) return;
+    if (_playbackNavigationCleanup != null && announceMenu) return true;
+    final activeVocabularyTurn =
+        widget.audioDependencies?.audioTurnCoordinator?.currentToken?.owner ==
+        AudioTurnOwner.vocabulary;
+    final hasActiveAudio =
+        activeVocabularyTurn ||
+        _selectedJourney != null ||
+        _playingCollection ||
+        _activeEntryId != null ||
+        _waitingForPlaybackContinuation ||
+        _awaitingPlaybackEndChoice;
     _cancelPendingFixedPrompt();
     if (!announceMenu && notifyNavigationExit) {
       ActiveLearningModuleScope.notifyNavigationExit(context);
@@ -2254,7 +2263,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _playingCollection = false;
     _activeEntryId = null;
     _closeJourney();
-    final cleanup = _boundPlaybackNavigationCleanup(
+    final cleanupResult = _boundPlaybackNavigationCleanup(
       Future.wait<void>(<Future<void>>[
         _voicePromptService.stop().catchError((Object _) {}),
         _mediaService.stopPlayback().catchError((Object _) {}),
@@ -2262,19 +2271,25 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
           _vocabularyAudioService!.stop().catchError((Object _) {}),
       ]).then<void>((_) {}),
     );
+    final cleanup = cleanupResult.then<void>((_) {});
     _playbackNavigationCleanup = cleanup;
-    try {
-      await cleanup;
-    } finally {
-      if (identical(_playbackNavigationCleanup, cleanup)) {
-        _playbackNavigationCleanup = null;
-      }
-    }
+    unawaited(
+      cleanup.whenComplete(() {
+        if (identical(_playbackNavigationCleanup, cleanup)) {
+          _playbackNavigationCleanup = null;
+        }
+      }),
+    );
+    // An idle vocabulary root owns no child audio. Its defensive stop may
+    // still wait on a plugin callback, but MAIN need not hold the next mic for
+    // that callback when no vocabulary playback/route lease is active.
+    final settled = announceMenu || hasActiveAudio ? await cleanupResult : true;
+    if (!settled) return false;
     if (!announceMenu ||
         !mounted ||
         !_isEffectivelyActive ||
         _selectedJourney != null) {
-      return;
+      return true;
     }
     await _speakAndRequestChoice(
       journey == _VocabularyJourney.family
@@ -2283,36 +2298,39 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
           ? VocabularyFlowV3.starOtherMenu
           : VocabularyFlowV3.menu,
     );
+    return true;
   }
 
-  Future<void> _boundPlaybackNavigationCleanup(Future<void> operation) {
+  Future<bool> _boundPlaybackNavigationCleanup(Future<void> operation) {
     _finishPlaybackNavigationCleanup();
-    final completer = Completer<void>();
+    final completer = Completer<bool>();
     _playbackNavigationCleanupCompleter = completer;
-    void finishThisCleanup() {
+    void finishThisCleanup(bool settled) {
       if (identical(_playbackNavigationCleanupCompleter, completer)) {
-        _finishPlaybackNavigationCleanup();
+        _finishPlaybackNavigationCleanup(settled: settled);
       }
     }
 
     _playbackNavigationCleanupTimer = Timer(const Duration(seconds: 2), () {
-      finishThisCleanup();
+      finishThisCleanup(false);
     });
     unawaited(
       operation.then(
-        (_) => finishThisCleanup(),
-        onError: (Object _, StackTrace _) => finishThisCleanup(),
+        (_) => finishThisCleanup(true),
+        onError: (Object _, StackTrace _) => finishThisCleanup(false),
       ),
     );
     return completer.future;
   }
 
-  void _finishPlaybackNavigationCleanup() {
+  void _finishPlaybackNavigationCleanup({bool settled = false}) {
     _playbackNavigationCleanupTimer?.cancel();
     _playbackNavigationCleanupTimer = null;
     final completer = _playbackNavigationCleanupCompleter;
     _playbackNavigationCleanupCompleter = null;
-    if (completer != null && !completer.isCompleted) completer.complete();
+    if (completer != null && !completer.isCompleted) {
+      completer.complete(settled);
+    }
   }
 
   Future<void> _speakAndRequestChoice(String prompt) async {

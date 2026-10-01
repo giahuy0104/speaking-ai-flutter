@@ -195,41 +195,242 @@ void main() {
     },
   );
 
-  for (final cancel in <bool>[false, true]) {
-    testWidgets(
-      'Android Challenge waits for ready cue${cancel ? " and MAIN cancels pending capture" : " before recording"}',
-      (tester) async {
-        debugDefaultTargetPlatformOverride = TargetPlatform.android;
-        addTearDown(() => debugDefaultTargetPlatformOverride = null);
-        await _usePhoneSurface(tester);
-        final registry = ActiveLearningModuleRegistry();
-        addTearDown(registry.dispose);
-        final media = _FakeLessonMediaService();
-        final prompts = _GatedChallengeCuePrompt();
-        await tester.pumpWidget(
-          ActiveLearningModuleScope(
-            registry: registry,
-            child: _subject(
-              startAge: 7,
-              mediaService: media,
-              voicePromptService: prompts,
+  for (final platform in <TargetPlatform>[
+    TargetPlatform.android,
+    TargetPlatform.iOS,
+  ]) {
+    for (final cancel in <bool>[false, true]) {
+      testWidgets(
+        '${platform.name} Challenge waits for ready cue${cancel ? " and MAIN cancels pending capture" : " before recording"}',
+        (tester) async {
+          debugDefaultTargetPlatformOverride = platform;
+          addTearDown(() => debugDefaultTargetPlatformOverride = null);
+          await _usePhoneSurface(tester);
+          final registry = ActiveLearningModuleRegistry();
+          addTearDown(registry.dispose);
+          final media = _FakeLessonMediaService();
+          final prompts = _GatedChallengeCuePrompt();
+          await tester.pumpWidget(
+            ActiveLearningModuleScope(
+              registry: registry,
+              child: _subject(
+                startAge: 7,
+                mediaService: media,
+                voicePromptService: prompts,
+              ),
             ),
+          );
+          await _pumpChallengeTransition(tester);
+          expect(prompts.cueStarted, isTrue);
+          expect(media.recordingStarts, 0);
+          expect(media.selectedOutputPreparations, 2);
+          if (cancel) await registry.pauseForMainAssistant();
+          prompts.cue.complete();
+          await _pumpChallengeTransition(tester);
+          expect(media.recordingStarts, cancel ? 0 : 1);
+          await tester.pumpWidget(const SizedBox.shrink());
+          await tester.pump();
+          debugDefaultTargetPlatformOverride = null;
+        },
+      );
+    }
+  }
+
+  for (final platform in <TargetPlatform>[
+    TargetPlatform.android,
+    TargetPlatform.iOS,
+  ]) {
+    testWidgets(
+      '${platform.name} Challenge has the same retry and answer script',
+      (tester) async {
+        await _usePhoneSurface(tester);
+        final media = _FakeLessonMediaService();
+        final prompts = _RecordingVoicePromptService();
+        final speech = _TerminalChallengeSpeechInput(<String>[
+          'It is five dollars.',
+          'It is five dollars.',
+        ]);
+        addTearDown(speech.dispose);
+        final needsPractice = <String>[];
+        await tester.pumpWidget(
+          _subject(
+            startAge: 7,
+            mediaService: media,
+            voicePromptService: prompts,
+            iosSpeechInput: speech,
+            attemptEvaluator: _QueuedAttemptEvaluator(<LessonAttemptOutcome>[
+              LessonAttemptOutcome.retry,
+              LessonAttemptOutcome.retry,
+            ]),
+            challenges: _twoChallenges,
+            onNeedsPractice: (id, _, _) async => needsPractice.add(id),
           ),
         );
         await _pumpChallengeTransition(tester);
-        expect(prompts.cueStarted, isTrue);
-        expect(media.recordingStarts, 0);
-        expect(media.selectedOutputPreparations, 2);
-        if (cancel) await registry.pauseForMainAssistant();
-        prompts.cue.complete();
-        await _pumpChallengeTransition(tester);
-        expect(media.recordingStarts, cancel ? 0 : 1);
+        for (var attempt = 0; attempt < 2; attempt++) {
+          await tester.tap(
+            find.byKey(const Key('lesson-challenge-record-button')),
+          );
+          await _pumpChallengeTransition(tester);
+        }
+        expect(prompts.spoken, <String>[
+          'vi-VN|Tiếp theo là một câu thử thách nhé.',
+          'vi-VN|Where is the library?',
+          'vi-VN|Bạn trả lời nhé',
+          'vi-VN|Bạn thử lại nhé.',
+          'vi-VN|Where is the library?',
+          'vi-VN|Bạn trả lời nhé',
+          'vi-VN|Chưa đúng. Mình nghe câu đúng nhé.',
+          'en-US|Go straight.',
+          'vi-VN|How are you?',
+          'vi-VN|Bạn trả lời nhé',
+        ]);
+        expect(find.text('Câu 2/2'), findsOneWidget);
+        expect(media.completedPlaybackUris, hasLength(2));
+        expect(needsPractice, <String>['challenge:1']);
+        expect(
+          platform == TargetPlatform.iOS
+              ? speech.startCalls
+              : media.recordingStarts,
+          3,
+        );
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pump();
-        debugDefaultTargetPlatformOverride = null;
       },
+      variant: TargetPlatformVariant.only(platform),
     );
   }
+
+  testWidgets(
+    'iOS native final scores once before the answer timer expires',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final media = _FakeLessonMediaService();
+      final prompts = _RecordingVoicePromptService();
+      final speech = _TerminalChallengeSpeechInput(<String>['Go straight.']);
+      final backend = _FailIfCalledAttemptEvaluator();
+      addTearDown(speech.dispose);
+      await tester.pumpWidget(
+        _subject(
+          startAge: 7,
+          mediaService: media,
+          voicePromptService: prompts,
+          iosSpeechInput: speech,
+          attemptEvaluator: backend,
+          challenges: _twoChallenges,
+        ),
+      );
+      await _pumpChallengeTransition(tester);
+      speech.finish();
+      speech.finish();
+      await _pumpChallengeTransition(tester);
+      expect(speech.stopCalls, 1);
+      expect(speech.startCalls, 2);
+      expect(backend.evaluationCalls, 0);
+      expect(media.recordingStarts, 0);
+      expect(media.completedPlaybackUris, <Uri>[
+        Uri.file('/recordings/answer-1.wav'),
+      ]);
+      expect(find.text('Câu 2/2'), findsOneWidget);
+      expect(prompts.spoken, <String>[
+        'vi-VN|Tiếp theo là một câu thử thách nhé.',
+        'vi-VN|Where is the library?',
+        'vi-VN|Bạn trả lời nhé',
+        'vi-VN|Đúng rồi!',
+        'vi-VN|How are you?',
+        'vi-VN|Bạn trả lời nhé',
+      ]);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'iOS final during native start is consumed after the handoff',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final gate = Completer<void>();
+      final speech = _TerminalChallengeSpeechInput(<String>[
+        'Go straight.',
+      ], startGate: gate);
+      addTearDown(speech.dispose);
+      final media = _FakeLessonMediaService();
+      await tester.pumpWidget(
+        _subject(
+          startAge: 7,
+          mediaService: media,
+          iosSpeechInput: speech,
+          challenges: _twoChallenges,
+          attemptEvaluator: _FailIfCalledAttemptEvaluator(),
+        ),
+      );
+      await _pumpChallengeTransition(tester);
+      speech.finish();
+      await _pumpChallengeTransition(tester);
+      expect(speech.stopCalls, 0);
+      expect(media.nativeCaptureHandoffs, 0);
+      gate.complete();
+      await _pumpChallengeTransition(tester);
+      expect(speech.stopCalls, 1);
+      expect(speech.startCalls, 2);
+      expect(media.nativeCaptureHandoffs, 2);
+      expect(find.text('Câu 2/2'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'iOS old native score cannot advance after MAIN resumes',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final gate = Completer<void>();
+      final speech = _TerminalChallengeSpeechInput(<String>[
+        'Go straight.',
+      ], stopGate: gate);
+      addTearDown(speech.dispose);
+      final prompts = _RecordingVoicePromptService();
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _subject(
+            startAge: 7,
+            voicePromptService: prompts,
+            iosSpeechInput: speech,
+            challenges: _twoChallenges,
+            attemptEvaluator: _FailIfCalledAttemptEvaluator(),
+          ),
+        ),
+      );
+      await _pumpChallengeTransition(tester);
+      speech.finish();
+      await _pumpChallengeTransition(tester);
+      expect(speech.stopCalls, 1);
+      await registry.pauseForMainAssistant();
+      speech.finish();
+      await registry.execute(ActiveLearningCommand.resume);
+      await _pumpChallengeTransition(tester);
+      expect(speech.startCalls, 2);
+      gate.complete();
+      await _pumpChallengeTransition(tester);
+      expect(speech.stopCalls, 1);
+      expect(find.text('Câu 1/2'), findsOneWidget);
+      expect(find.text('Dừng và chấm'), findsOneWidget);
+      expect(prompts.spoken, isNot(contains('vi-VN|Đúng rồi!')));
+      expect(prompts.spoken.skip(3), <String>[
+        'vi-VN|Mình tiếp tục câu thử thách nhé.',
+        'vi-VN|Where is the library?',
+        'vi-VN|Bạn trả lời nhé',
+      ]);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
 
   testWidgets('failed Challenge retry prompt cannot reopen capture', (
     tester,
@@ -847,6 +1048,80 @@ void main() {
     },
   );
 
+  for (final pendingStart in <bool>[false, true]) {
+    testWidgets(
+      'iOS Challenge remembers partial speech ${pendingStart ? "before" : "after"} native start and stops after silence',
+      (tester) async {
+        await _usePhoneSurface(tester);
+        final startGate = pendingStart ? Completer<void>() : null;
+        final speech = _TerminalChallengeSpeechInput(<String>[
+          'Go straight.',
+        ], startGate: startGate);
+        addTearDown(speech.dispose);
+        final backend = _FailIfCalledAttemptEvaluator();
+        await tester.pumpWidget(
+          _subject(
+            startAge: 7,
+            iosSpeechInput: speech,
+            attemptEvaluator: backend,
+          ),
+        );
+        await _pumpChallengeTransition(tester);
+        expect(speech.startCalls, 1);
+        speech.emitPartial('Go straight.');
+        await tester.pump();
+        if (pendingStart) {
+          await tester.pump(const Duration(milliseconds: 800));
+          expect(speech.stopCalls, 0);
+          startGate!.complete();
+          await tester.pump();
+          await tester.pump();
+        }
+        await tester.pump(const Duration(milliseconds: 650));
+        expect(speech.stopCalls, 0);
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(speech.stopCalls, 1);
+        expect(backend.evaluationCalls, 0);
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump();
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    );
+  }
+
+  testWidgets(
+    'iOS Challenge allows the Apple Speech ready budget after H20 route startup',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final startGate = Completer<void>();
+      final speech = _TerminalChallengeSpeechInput(<String>[
+        'Go straight.',
+      ], startGate: startGate);
+      addTearDown(speech.dispose);
+      final media = _FakeLessonMediaService();
+      await tester.pumpWidget(
+        _subject(
+          startAge: 7,
+          mediaService: media,
+          iosSpeechInput: speech,
+          attemptEvaluator: _FailIfCalledAttemptEvaluator(),
+        ),
+      );
+      await _pumpChallengeTransition(tester);
+      expect(speech.startCalls, 1);
+      await tester.pump(const Duration(milliseconds: 8500));
+      expect(speech.cancelCalls, 0);
+      startGate.complete();
+      await _pumpChallengeTransition(tester);
+      expect(speech.cancelCalls, 0);
+      expect(media.nativeCaptureHandoffs, 1);
+      expect(find.text('Dừng và chấm'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
   testWidgets('iOS scores a challenge on device without calling the backend', (
     tester,
   ) async {
@@ -1043,6 +1318,27 @@ void main() {
     },
   );
 }
+
+const _twoChallenges = <ListeningChallengeContent>[
+  ListeningChallengeContent(
+    id: 'challenge-1',
+    format: 'VI_TO_EN',
+    prompt: 'Where is the library?',
+    choices: <String>['Go straight.', 'It is five dollars.'],
+    correctAnswer: 'Go straight.',
+    correctVietnamese: 'Đi thẳng.',
+    targetId: 'target-1',
+  ),
+  ListeningChallengeContent(
+    id: 'challenge-2',
+    format: 'VI_TO_EN',
+    prompt: 'How are you?',
+    choices: <String>['I am fine.', 'I am eight.'],
+    correctAnswer: 'I am fine.',
+    correctVietnamese: 'Con khỏe.',
+    targetId: 'target-2',
+  ),
+];
 
 Widget _subject({
   required int startAge,
@@ -1341,6 +1637,85 @@ class _FakeLessonEnglishSpeechInput implements LessonEnglishSpeechInput {
   @override
   Future<void> cancel() async {
     cancelCalls += 1;
+  }
+}
+
+class _TerminalChallengeSpeechInput
+    implements LessonEnglishSpeechInput, StreamingSpeechInput {
+  _TerminalChallengeSpeechInput(
+    this.transcripts, {
+    this.startGate,
+    this.stopGate,
+  });
+
+  final List<String> transcripts;
+  final Completer<void>? startGate;
+  final Completer<void>? stopGate;
+  final _completed = StreamController<void>.broadcast(sync: true);
+  final _partial = StreamController<String>.broadcast(sync: true);
+  int startCalls = 0;
+  int stopCalls = 0;
+  int cancelCalls = 0;
+
+  void finish() => _completed.add(null);
+
+  void emitPartial(String text) => _partial.add(text);
+
+  @override
+  String get label => 'Apple Speech';
+
+  @override
+  Stream<double> get amplitudeDbfs => const Stream<double>.empty();
+
+  @override
+  Stream<void> get completed => _completed.stream;
+
+  @override
+  Stream<String> get partialText => _partial.stream;
+
+  @override
+  Future<bool> checkAvailability() async => true;
+
+  @override
+  Future<void> start() => startLessonEnglishRecognition();
+
+  @override
+  Future<void> startLessonEnglishRecognition() async {
+    startCalls += 1;
+    if (startCalls == 1) await startGate?.future;
+  }
+
+  @override
+  Future<StreamingSpeechCapture> stop() async {
+    final attempt = stopCalls++;
+    if (attempt == 0) await stopGate?.future;
+    return StreamingSpeechCapture(
+      sourceText: transcripts[attempt],
+      duration: const Duration(seconds: 1),
+      inputLabel: label,
+      confidence: 1,
+      firstResultMs: 100,
+      finalAfterStopMs: 50,
+      recordedAudio: AudioCapture(
+        filePath: '/recordings/answer-${attempt + 1}.wav',
+        mimeType: 'audio/wav',
+        duration: const Duration(seconds: 1),
+        inputLabel: label,
+        isBluetoothInput: false,
+        initialNoiseRms: null,
+      ),
+    );
+  }
+
+  @override
+  Future<void> cancel() async {
+    cancelCalls += 1;
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _completed.close();
+    await _partial.close();
   }
 }
 

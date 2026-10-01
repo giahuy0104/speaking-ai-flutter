@@ -22,6 +22,117 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  for (final command in [
+    ActiveLearningCommand.nextItem,
+    ActiveLearningCommand.previousItem,
+  ]) {
+    testWidgets(
+      'late ${command.name} progress save cannot change a resumed sentence',
+      (tester) async {
+        await _usePhoneSurface(tester);
+        final registry = ActiveLearningModuleRegistry();
+        addTearDown(registry.dispose);
+        final store = _GatedNavigationProgressStore(command);
+        final lesson = _lessonWithSentences(3);
+        final media = _SilentMediaService();
+        await tester.pumpWidget(
+          ActiveLearningModuleScope(
+            registry: registry,
+            child: _subject(
+              lesson,
+              store,
+              const Key('late-navigation-save'),
+              mediaService: media,
+              voicePromptService: _SilentVoicePromptService(),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Sentence 2'), findsOneWidget);
+
+        expect(
+          (await registry.interruptAndExecute(command)).wasHandled,
+          isTrue,
+        );
+        await tester.pumpAndSettle();
+        expect(store.savePending, isTrue);
+        expect(await registry.pauseForMainAssistant(), isTrue);
+        expect(
+          (await registry.execute(
+            ActiveLearningCommand.replayCurrent,
+          )).wasHandled,
+          isTrue,
+        );
+        await tester.pumpAndSettle();
+        final resumedAudio = List<Uri>.of(media.playedUris);
+        expect(resumedAudio.last, lesson.sentences[1].audioUri);
+
+        store.releaseSave();
+        await tester.pumpAndSettle();
+        expect(find.text('Sentence 2'), findsOneWidget);
+        expect(media.playedUris, resumedAudio);
+        expect(store.currentSentence, 1);
+        expect(media.recording, isFalse);
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+      variant: TargetPlatformVariant({
+        TargetPlatform.android,
+        TargetPlatform.iOS,
+      }),
+    );
+  }
+
+  testWidgets(
+    'MAIN replay during initial cursor loading waits for the restored sentence',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final store = _GatedInitialCursorStore();
+      final lesson = _lessonWithSentences(3);
+      final media = _SilentMediaService();
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _subject(
+            lesson,
+            store,
+            const Key('main-before-restored-cursor'),
+            mediaService: media,
+            voicePromptService: _SilentVoicePromptService(),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect(
+        (await registry.execute(
+          ActiveLearningCommand.replayCurrent,
+        )).wasHandled,
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+      expect(media.playedUris, isEmpty);
+      // Repeated input while storage is still loading must start one fresh turn.
+      expect(
+        (await registry.execute(
+          ActiveLearningCommand.replayCurrent,
+        )).wasHandled,
+        isTrue,
+      );
+      store.releaseRead();
+      await tester.pumpAndSettle();
+      expect(find.text('Sentence 2'), findsOneWidget);
+      expect(media.playedUris, [lesson.sentences[1].audioUri]);
+      expect(store.currentSentence, 1);
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
   for (final lateFailure in [false, true]) {
     testWidgets(
       'iOS pending completion start cannot cancel newer MAIN (lateFailure=$lateFailure)',
@@ -70,6 +181,42 @@ void main() {
       variant: TargetPlatformVariant.only(TargetPlatform.iOS),
     );
   }
+  testWidgets(
+    'iOS completion final received during native start stops choice once',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      await _usePhoneSurface(tester);
+      final store = _MemoryProgressStore()
+        ..completedSentences = 1
+        ..challengeProcessed = true
+        ..pendingCompletionChoice = ListeningPendingChoiceStage.lessonEnd
+        ..resumeStage = ListeningResumeStage.waitingForChoice;
+      final gate = Completer<void>();
+      final speech = _IosCompletionCommandSpeechInput('Dừng lại')
+        ..firstStartGate = gate;
+      addTearDown(speech.dispose);
+      await tester.pumpWidget(
+        _subject(
+          _v4Lesson(),
+          store,
+          const Key('ios-early-final-choice'),
+          mediaService: _SilentMediaService(),
+          voicePromptService: _SilentVoicePromptService(),
+          controller: _LearningAudioDependencies(speech),
+          initialResumeStage: ListeningResumeStage.waitingForChoice,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(speech.commands.commandStarts, 1);
+      speech.commands.done.add(null);
+      await tester.pump();
+      gate.complete();
+      await tester.pumpAndSettle();
+      expect(speech.commands.stops, 1);
+      await tester.pumpWidget(const SizedBox());
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
   testWidgets(
     'iOS old completion result cannot navigate after MAIN resumes a new choice',
     (tester) async {
@@ -193,6 +340,7 @@ void main() {
             0,
             reason: 'iOS drains ting before opening Apple Speech',
           );
+          expect(media.selectedOutputPreparationCount, greaterThan(0));
         });
         await tester.pumpWidget(
           _subject(
@@ -215,6 +363,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(prompts.readyCues, 1);
         expect(speech.commands.commandStarts, 1);
+        expect(media.nativeHandoffCount, 1);
         expect(media.startRecordingCount, 0);
         expect(find.text('Thả để lưu bản ghi'), findsNothing);
         expect(find.text('Nhấn và giữ để ghi âm'), findsOneWidget);
@@ -1415,6 +1564,49 @@ class _MemoryProgressStore extends ListeningProgressStore {
   }
 }
 
+class _GatedNavigationProgressStore extends _MemoryProgressStore {
+  _GatedNavigationProgressStore(this.command) : super(currentSentence: 1);
+
+  final ActiveLearningCommand command;
+  final Completer<void> _saveGate = Completer<void>();
+  bool savePending = false;
+
+  void releaseSave() => _saveGate.complete();
+
+  @override
+  Future<void> saveLesson(String lessonId, int completed) async {
+    if (command == ActiveLearningCommand.nextItem && !_saveGate.isCompleted) {
+      savePending = true;
+      await _saveGate.future;
+    }
+    await super.saveLesson(lessonId, completed);
+  }
+
+  @override
+  Future<void> saveCurrentSentence(String lessonId, int sentenceIndex) async {
+    if (command == ActiveLearningCommand.previousItem &&
+        !_saveGate.isCompleted) {
+      savePending = true;
+      // The write has already happened; its completion arrives after MAIN.
+      await super.saveCurrentSentence(lessonId, sentenceIndex);
+      await _saveGate.future;
+      return;
+    }
+    await super.saveCurrentSentence(lessonId, sentenceIndex);
+  }
+}
+
+class _GatedInitialCursorStore extends _MemoryProgressStore {
+  _GatedInitialCursorStore() : super(currentSentence: 1);
+  final Completer<void> _readGate = Completer<void>();
+  void releaseRead() => _readGate.complete();
+  @override
+  Future<int> readCurrentSentence(String lessonId) async {
+    await _readGate.future;
+    return currentSentence;
+  }
+}
+
 class _SilentMediaService extends LessonMediaService {
   _SilentMediaService({this.existingRecordingPath});
 
@@ -1422,13 +1614,22 @@ class _SilentMediaService extends LessonMediaService {
   final List<Uri> playedUris = <Uri>[];
   bool recording = false;
   int startRecordingCount = 0;
+  int selectedOutputPreparationCount = 0;
+  int nativeHandoffCount = 0;
   final List<String> startedSentenceIds = <String>[];
 
   @override
   Future<void> preparePhoneSpeakerOutput() async {}
 
   @override
-  Future<void> prepareSelectedLessonOutput() async {}
+  Future<void> prepareSelectedLessonOutput() async {
+    selectedOutputPreparationCount += 1;
+  }
+
+  @override
+  void handoffSelectedLessonOutputToNativeCapture() {
+    nativeHandoffCount += 1;
+  }
 
   @override
   Future<String?> existingRecording({
@@ -1580,6 +1781,7 @@ class _CompletionCommandSpeechInput
   _CompletionCommandSpeechInput([this.transcript = 'Dừng lại']);
   final String transcript;
   final partial = StreamController<String>.broadcast();
+  final done = StreamController<void>.broadcast();
   int commandStarts = 0;
   int stops = 0;
   int cancels = 0;
@@ -1588,7 +1790,7 @@ class _CompletionCommandSpeechInput
   @override
   Stream<double> get amplitudeDbfs => const Stream<double>.empty();
   @override
-  Stream<void> get completed => const Stream<void>.empty();
+  Stream<void> get completed => done.stream;
   @override
   Stream<String> get partialText => partial.stream;
   @override
@@ -1621,6 +1823,7 @@ class _CompletionCommandSpeechInput
   @override
   Future<void> dispose() async {
     await partial.close();
+    await done.close();
   }
 }
 

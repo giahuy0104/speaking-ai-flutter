@@ -8,6 +8,19 @@ $catalogPath = Join-Path $repositoryRoot 'assets\data\listening_lessons.json'
 $outputDirectory = Join-Path $repositoryRoot 'assets\audio\listening-common'
 $manifestPath = Join-Path $repositoryRoot 'assets\data\listening_common_audio.json'
 $cacheDirectory = Join-Path $repositoryRoot 'build\listening-common-tts-cache'
+$authoredHooksByKey = @{}
+if (Test-Path -LiteralPath $manifestPath) {
+  $existingManifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+  foreach ($existingPrompt in $existingManifest.prompts) {
+    if ([string]$existingPrompt.asset -notlike 'assets/audio/LESSON_HOOKS/*') { continue }
+    $hookPath = Join-Path $repositoryRoot $existingPrompt.asset
+    if (!(Test-Path -LiteralPath $hookPath) -or
+        (Get-FileHash -LiteralPath $hookPath -Algorithm SHA256).Hash.ToLowerInvariant() -cne $existingPrompt.sha256) {
+      throw "The committed lesson hook failed integrity verification: $($existingPrompt.key)"
+    }
+    $authoredHooksByKey[$existingPrompt.key] = $existingPrompt
+  }
+}
 $apiKey = (Get-Content -LiteralPath $ApiKeyPath -Raw).Trim()
 if ([string]::IsNullOrWhiteSpace($apiKey)) {
   throw 'The ElevenLabs API key file is empty.'
@@ -124,6 +137,16 @@ foreach ($group in $catalog.groups) {
       $absolutePath = Join-Path $outputDirectory $fileName
       $englishTitle = ([string]$lesson.titleEn).Trim()
       $entryText = ([string]$lesson.entry.text).Trim()
+      $hookKey = "listening.lesson.$($lesson.id).hook.vi"
+      if ($authoredHooksByKey.ContainsKey($hookKey)) {
+        $hookPrompt = $authoredHooksByKey[$hookKey]
+        if ($lesson.entry.kind -cne 'hook' -or $hookPrompt.text -cne $entryText) {
+          throw "The committed lesson hook no longer matches its lesson entry: $hookKey"
+        }
+        # Preserve the original scene sound and speech; never synthesize it again.
+        [void]$manifestEntries.Add($hookPrompt)
+        $authoredHooksByKey.Remove($hookKey)
+      }
       $beforeTitle = if ([int]$lesson.number -eq 1) {
         "Chủ đề $($topic.number). Bài đầu tiên là"
       } else {
@@ -146,6 +169,10 @@ foreach ($group in $catalog.groups) {
       Write-Output "[$lessonCount] $key"
     }
   }
+}
+
+if ($authoredHooksByKey.Count -gt 0) {
+  throw 'The committed lesson hooks contain keys no longer present in the curriculum.'
 }
 
 $manifest = [ordered]@{

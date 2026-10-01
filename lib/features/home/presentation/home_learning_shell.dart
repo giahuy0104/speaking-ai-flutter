@@ -27,6 +27,7 @@ import '../../settings/presentation/history_sheet.dart';
 import '../../settings/presentation/settings_sheet.dart';
 import '../../settings/application/parent_media_settings.dart';
 import '../../vocabulary/data/minhqnd_dictionary_provider.dart';
+import '../../vocabulary/application/vocabulary_audio_service.dart';
 import '../../vocabulary/domain/vocabulary_entry.dart';
 import '../../vocabulary/presentation/vocabulary_home_screen.dart';
 import '../../voice_navigation/application/voice_navigation_controller.dart';
@@ -50,6 +51,7 @@ class HomeLearningShell extends StatefulWidget {
     this.onScreenMainPressed,
     this.onVocabularyVoiceChoiceRequested,
     this.vocabularySuggestionProvider,
+    this.vocabularyAudioService,
     this.onModalVisibilityChanged,
     this.privacyConsentGranted = false,
     this.voiceAccessEnabled = true,
@@ -82,6 +84,7 @@ class HomeLearningShell extends StatefulWidget {
   })?
   onVocabularyVoiceChoiceRequested;
   final VocabularySuggestionProvider? vocabularySuggestionProvider;
+  final VocabularyContentAudioService? vocabularyAudioService;
   final ValueChanged<bool>? onModalVisibilityChanged;
   final bool privacyConsentGranted;
   final bool voiceAccessEnabled;
@@ -290,10 +293,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     }
     _applyBackgroundLearningDirective(directive);
     if (state == AppLifecycleState.resumed) {
-      // A spoken command can change the logical page while Android is not
+      // A spoken command can change the logical page while the app is not
       // drawing frames. Reconcile the PageView as soon as it becomes visible
       // again so the assistant state and the screen cannot remain out of sync.
-      if (_usesAndroidPageSynchronization) {
+      if (_usesNativePageSynchronization) {
         unawaited(_moveToRequestedPage(animate: false));
       }
       final activeRegistry = ActiveLearningModuleScope.read(context);
@@ -456,6 +459,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                           activationController: _vocabularyActivationController,
                           childAge: widget.controller.childAge,
                           audioDependencies: widget.controller,
+                          vocabularyAudioService: widget.vocabularyAudioService,
                           autoStartToday: true,
                           onRequestVoiceChoice:
                               widget.onVocabularyVoiceChoiceRequested,
@@ -553,8 +557,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       ? Duration.zero
       : const Duration(milliseconds: 220);
 
-  bool get _usesAndroidPageSynchronization =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+  bool get _usesNativePageSynchronization =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
 
   void _attachVoiceNavigationHandler() {
     widget.voiceNavigationController?.setIntentHandler(
@@ -675,6 +681,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       (null, _) => false,
       _ => true,
     };
+    final deferVocabularyExitCommit =
+        leavesActiveModule &&
+        activeKind == ActiveLearningModuleKind.vocabulary &&
+        intent.destination == VoiceNavigationDestination.conversation;
     if (leavesActiveModule &&
         activeKind == ActiveLearningModuleKind.listeningLesson) {
       // A listening route is popped during a committed module transfer. Keep
@@ -685,7 +695,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       _pausedListeningCheckpoint = await const ActiveListeningSessionStore()
           .read();
     }
-    if (leavesActiveModule) {
+    if (leavesActiveModule && !deferVocabularyExitCommit) {
       // MAIN already paused the source owner, which persisted its exact item
       // checkpoint. A committed module transfer must only clear automatic
       // resume ownership; it must not complete, skip, or reset that source.
@@ -726,7 +736,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
     switch (intent.destination) {
       case VoiceNavigationDestination.conversation:
-        await _showConversationAndWait();
+        if (!await _showConversationAndWait()) return;
+        if (deferVocabularyExitCommit) {
+          widget.onActiveLearningExitCommitted?.call();
+        }
         if (intent.enterMainSpeakingMode) {
           await widget.onMainSpeakingModeStarted?.call();
         }
@@ -770,10 +783,20 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           await _closeTopicListeningIfNeeded();
         }
         if (mounted) {
+          final routePushed = Completer<void>();
           unawaited(
             _openTopicListening(
               initialVoiceTarget: opensCurrentLevelSelection ? null : target,
+              routePushed: routePushed,
             ),
+          );
+          // Navigator.push returns only when the user eventually leaves the
+          // route. Wait until the route is installed, then release MAIN's
+          // native turn before the destination starts its own audio on a frame.
+          // Waiting for the painted frame here can deadlock a suspended UI.
+          await routePushed.future.timeout(
+            const Duration(seconds: 2),
+            onTimeout: () {},
           );
         }
       case VoiceNavigationDestination.history:
@@ -1007,17 +1030,34 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   void _showConversation() {
-    unawaited(_showConversationAndWait());
+    // A tap commits the visible page change immediately. Only a voice transfer
+    // that opens another microphone must wait for vocabulary audio to settle.
+    unawaited(_showConversationAndWait(requireStoppedAudio: false));
   }
 
-  Future<void> _showConversationAndWait() async {
-    _vocabularyActivationController.deactivate();
+  Future<bool> _showConversationAndWait({
+    bool requireStoppedAudio = true,
+  }) async {
     if (_page == 1) {
-      unawaited(_vocabularyNavigationController.leaveForOtherContent());
+      // A slow native stop can outlive the vocabulary cleanup's two-second
+      // bound. Keep the old page and do not open translation's microphone in
+      // that case; the user can retry after the audio route settles.
+      final cleanup = _vocabularyNavigationController.leaveForOtherContent();
+      final settled = requireStoppedAudio ? await cleanup : true;
+      if (!requireStoppedAudio) unawaited(cleanup);
+      if (!mounted) return false;
+      if (!settled) {
+        _showVoiceNavigationMessage(
+          'Âm thanh Từ vựng chưa dừng hẳn. Hãy thử chuyển lại sau một chút.',
+        );
+        return false;
+      }
+      _vocabularyActivationController.deactivate();
       ActiveLearningModuleScope.notifyNavigationExit(context);
       unawaited(widget.voiceNavigationController?.pause());
     }
     await _requestHomePage(0);
+    return mounted;
   }
 
   Future<void> _requestHomePage(int page) async {
@@ -1040,7 +1080,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     final requestGeneration = generation ?? ++_pageNavigationGeneration;
     final targetPage = _requestedPage;
     if (!_pageController.hasClients) {
-      if (!_usesAndroidPageSynchronization) return;
+      if (!_usesNativePageSynchronization) return;
       await WidgetsBinding.instance.endOfFrame;
     }
     if (!mounted ||
@@ -1063,7 +1103,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       duration: _motionDuration,
       curve: Curves.easeOutCubic,
     );
-    if (!_usesAndroidPageSynchronization) {
+    if (!_usesNativePageSynchronization) {
       unawaited(transition);
       return;
     }
@@ -1097,8 +1137,12 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
   Future<void> _openTopicListening({
     ListeningVoiceNavigationTarget? initialVoiceTarget,
+    Completer<void>? routePushed,
   }) async {
     if (_openingTopics) {
+      if (routePushed != null && !routePushed.isCompleted) {
+        routePushed.complete();
+      }
       return;
     }
     _openingTopics = true;
@@ -1117,7 +1161,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       final routeDuration = MediaQuery.disableAnimationsOf(context)
           ? Duration.zero
           : const Duration(milliseconds: 260);
-      await pushForActiveLearning<void>(
+      final routeClosed = pushForActiveLearning<void>(
         context,
         (_) => TopicListeningScreen(
           language: widget.controller.displayLanguage,
@@ -1195,7 +1239,14 @@ class _HomeLearningShellState extends State<HomeLearningShell>
               );
             },
       );
+      if (routePushed != null && !routePushed.isCompleted) {
+        routePushed.complete();
+      }
+      await routeClosed;
     } finally {
+      if (routePushed != null && !routePushed.isCompleted) {
+        routePushed.complete();
+      }
       await _backgroundLearningCoordinator.clearListeningCheckpoint();
       _openingTopics = false;
       _activeVoiceTopicIndex = null;

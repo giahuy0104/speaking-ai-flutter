@@ -41,7 +41,9 @@ class LessonMediaService {
        _audioTurnCoordinator = audioTurnCoordinator,
        _audioTurnOwner = audioTurnOwner,
        historyStore = historyStore ?? const LessonRecordingHistoryStore() {
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    if (!kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS)) {
       _hfpStatusSubscription = _hfpAudioControl?.statusChanges.listen((status) {
         if (_activeHfpRouteToken == null ||
             status.routeActive ||
@@ -58,7 +60,8 @@ class LessonMediaService {
             ),
           );
         }
-        // Stop the current clip before Android can continue it on the phone.
+        // Stop the current clip before either phone can continue it on the
+        // built-in speaker after losing the selected H20 route.
         unawaited(_playbackService?.stop().catchError((Object _) {}));
         if (_recordingStartedAt != null) {
           const failure = LessonMediaException(
@@ -658,11 +661,12 @@ class LessonMediaService {
               await deleteLessonRecording(path);
             }
           }
-          // Keep the lesson's selected output through scoring and feedback.
-          // Dropping SCO here starts a teardown that can arrive while the next
-          // prompt is playing and switch that prompt back to the phone. Keep
-          // the existing lifecycle on the other platforms.
-          if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+          // Keep the selected H20 output through scoring and feedback on both
+          // phones. Dropping the route here can finish its teardown after the
+          // next prompt starts, moving that prompt to the phone speaker.
+          if (kIsWeb ||
+              (defaultTargetPlatform != TargetPlatform.android &&
+                  defaultTargetPlatform != TargetPlatform.iOS)) {
             await _releaseHfpRoute();
           }
           return recording;

@@ -209,6 +209,7 @@ void main() {
       expect(pubspec, contains('assets/audio/MAIN/GAP66/'));
       expect(pubspec, contains('assets/data/homi_gap66_audio.json'));
       expect(pubspec, contains('assets/audio/listening-common/'));
+      expect(pubspec, contains('assets/audio/LESSON_HOOKS/'));
       expect(pubspec, contains('assets/data/listening_common_audio.json'));
       expect(pubspec, contains('assets/audio/vocabulary-common/'));
       expect(pubspec, contains('assets/data/vocabulary_common_audio.json'));
@@ -242,14 +243,6 @@ void main() {
         isNot(
           matches(
             RegExp(r'^\s*- assets/audio/CURRICULUM/\s*$', multiLine: true),
-          ),
-        ),
-      );
-      expect(
-        pubspec,
-        isNot(
-          matches(
-            RegExp(r'^\s*- assets/audio/LESSON_HOOKS/\s*$', multiLine: true),
           ),
         ),
       );

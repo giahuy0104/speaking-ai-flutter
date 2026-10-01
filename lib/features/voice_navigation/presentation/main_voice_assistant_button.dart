@@ -41,10 +41,9 @@ class MainVoiceAssistantButton extends StatelessWidget {
         final isAssistantBusy = voiceController.isMainButtonSessionActive;
         final canActivate =
             !isActivationPending &&
-            !isSpeakingMode &&
-            !audioState.isBusy &&
-            !audioState.isPlaybackPlaying &&
-            !isAssistantBusy;
+            !isAssistantBusy &&
+            (isSpeakingMode ||
+                (!audioState.isBusy && !audioState.isPlaybackPlaying));
         final microphoneError = voiceController.lastErrorMessage;
         final label = isSpeakingMode
             ? switch (speakingState) {
@@ -104,11 +103,11 @@ class MainVoiceAssistantButton extends StatelessWidget {
         return Semantics(
           button: true,
           label: canActivate
-              ? microphoneError == null
+              ? isSpeakingMode
+                    ? 'Main, dừng phiên dịch và mở HOMI'
+                    : microphoneError == null
                     ? 'Main, gọi HOMI để chọn tính năng'
                     : microphoneStatus
-              : isSpeakingMode
-              ? '$label, ứng dụng sẽ tự động chuyển sang lượt tiếp theo'
               : '$microphoneStatus Vui lòng chờ.',
           child: RawGestureDetector(
             gestures: <Type, GestureRecognizerFactory>{

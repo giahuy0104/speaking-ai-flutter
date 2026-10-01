@@ -221,6 +221,71 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
     String text, {
     required int request,
   }) async {
+    final hookText = widget.lesson.entry?.text.trim() ?? '';
+    final hookIndex = hookText.isEmpty ? -1 : text.indexOf(hookText);
+    final hookKey = ListeningAudioKeys.lessonHook(widget.lesson.id);
+    final hookUri = widget.lesson.combinedHookAudioUri;
+    final isFreshEntry =
+        _introAudioKey == ListeningAudioKeys.lessonIntro(widget.lesson.id);
+    var hasAuthoredHook = hookUri != null;
+    if (isFreshEntry &&
+        hookIndex >= 0 &&
+        widget.lesson.entry?.kind == ListeningLessonEntryKind.hook &&
+        !hasAuthoredHook &&
+        prompt is KeyedAuthoredPromptBudgetProvider) {
+      try {
+        hasAuthoredHook =
+            await (prompt as KeyedAuthoredPromptBudgetProvider)
+                .authoredPromptBudgetForKey(
+                  hookKey,
+                  text: hookText,
+                  locale: 'vi-VN',
+                ) !=
+            null;
+      } catch (error) {
+        if (!_isCurrentIntroRequest(request)) return;
+        if (error is HfpAudioException) rethrow;
+        debugPrint('Lesson hook lookup failed for ${widget.lesson.id}: $error');
+      }
+    }
+    if (!_isCurrentIntroRequest(request)) return;
+    if (isFreshEntry && hookIndex >= 0 && hasAuthoredHook) {
+      // The hook clip already contains its scene sound and spoken entry.
+      // Keep the topic/title lead and start cue, each exactly once.
+      final lead = text
+          .substring(0, hookIndex)
+          .trim()
+          .replaceFirst(RegExp(r'\.\s*$'), '');
+      final startCue = text.substring(hookIndex + hookText.length).trim();
+      if (lead.isNotEmpty) {
+        await _speakIntroPrompt(prompt, lead, request: request);
+      }
+      if (!_isCurrentIntroRequest(request)) return;
+      try {
+        if (hookUri != null) {
+          await widget.mediaService.playToCompletion(hookUri);
+        } else {
+          await _speakIntroPrompt(
+            prompt,
+            hookText,
+            request: request,
+            audioKey: hookKey,
+          );
+        }
+      } catch (error) {
+        if (!_isCurrentIntroRequest(request)) return;
+        if (error is HfpAudioException) rethrow;
+        debugPrint(
+          'Lesson hook playback failed for ${widget.lesson.id}: $error',
+        );
+        await _speakIntroPrompt(prompt, hookText, request: request);
+      }
+      if (!_isCurrentIntroRequest(request)) return;
+      if (startCue.isNotEmpty) {
+        await _speakIntroPrompt(prompt, startCue, request: request);
+      }
+      return;
+    }
     try {
       await _speakIntroPrompt(
         prompt,

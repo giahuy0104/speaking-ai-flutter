@@ -131,7 +131,7 @@ class MlKitOfflineTranslationAdapter implements OfflineTranslationAdapter {
   Future<void> close() => _translator.close();
 }
 
-/// Android on-device Vietnamese-to-English translation.
+/// Android/iOS on-device Vietnamese-to-English translation.
 ///
 /// ML Kit downloads the Vietnamese and English language packs once, stores
 /// them in the platform model store, and performs subsequent translations
@@ -144,7 +144,9 @@ class MlKitOfflineVietnameseEnglishTranslator
   }) : _adapter = adapter ?? MlKitOfflineTranslationAdapter(),
        _enabled =
            enabled ??
-           (!kIsWeb && defaultTargetPlatform == TargetPlatform.android);
+           (!kIsWeb &&
+               (defaultTargetPlatform == TargetPlatform.android ||
+                   defaultTargetPlatform == TargetPlatform.iOS));
 
   static const String _vietnameseCode = 'vi';
   static const String _englishCode = 'en';
@@ -204,7 +206,9 @@ class MlKitOfflineVietnameseEnglishTranslator
         _vietnameseCode,
         _englishCode,
       ]) {
+        if (_closed) return false;
         if (!await _adapter.isModelDownloaded(languageCode)) {
+          if (_closed) return false;
           final downloaded = await _adapter.downloadModel(
             languageCode,
             wifiOnly: wifiOnly,
@@ -260,7 +264,9 @@ class MlKitOfflineEnglishVietnameseTranslator
   MlKitOfflineEnglishVietnameseTranslator({bool? enabled})
     : _enabled =
           enabled ??
-          (!kIsWeb && defaultTargetPlatform == TargetPlatform.android),
+          (!kIsWeb &&
+              (defaultTargetPlatform == TargetPlatform.android ||
+                  defaultTargetPlatform == TargetPlatform.iOS)),
       _modelManager = OnDeviceTranslatorModelManager(),
       _translator = OnDeviceTranslator(
         sourceLanguage: TranslateLanguage.english,

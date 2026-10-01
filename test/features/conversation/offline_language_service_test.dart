@@ -102,7 +102,7 @@ void main() {
     },
   );
 
-  test('iOS does not request ML Kit translation models', () async {
+  test('iOS downloads the same translation packs over Wi-Fi', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
 
@@ -111,18 +111,109 @@ void main() {
       adapter: adapter,
     );
     expect(await translator.modelsReady(), isFalse);
+    expect(await translator.downloadModels(), isTrue);
+    expect(adapter.downloads, <String>['vi:wifi', 'en:wifi']);
+    expect(
+      await translator.translate('Con muốn uống nước'),
+      'Can I have some water?',
+    );
+    await translator.close();
+  });
+
+  test('iOS translates both directions using installed native packs', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    const channel = MethodChannel('google_mlkit_on_device_translator');
+    final calls = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          calls.add(call);
+          if (call.method == 'nlp#manageLanguageModelModels') return true;
+          if (call.method == 'nlp#startLanguageTranslator') {
+            return (call.arguments as Map)['source'] == 'en'
+                ? 'Con muốn uống nước'
+                : 'Can I have some water?';
+          }
+          return null;
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null),
+    );
+    final forward = MlKitOfflineVietnameseEnglishTranslator();
+    final reverse = MlKitOfflineEnglishVietnameseTranslator();
+    expect(
+      await forward.translate('Con muốn uống nước'),
+      'Can I have some water?',
+    );
+    expect(
+      await reverse.translate('Can I have some water?'),
+      'Con muốn uống nước',
+    );
+    final translationCalls = calls
+        .where((call) => call.method == 'nlp#startLanguageTranslator')
+        .toList();
+    expect(translationCalls[0].arguments, containsPair('source', 'vi'));
+    expect(translationCalls[0].arguments, containsPair('target', 'en'));
+    expect(translationCalls[1].arguments, containsPair('source', 'en'));
+    expect(translationCalls[1].arguments, containsPair('target', 'vi'));
+    expect(
+      calls.where(
+        (call) =>
+            call.method == 'nlp#manageLanguageModelModels' &&
+            (call.arguments as Map)['task'] == 'download',
+      ),
+      isEmpty,
+    );
+    await forward.close();
+    await reverse.close();
+  });
+
+  test(
+    'unavailable iOS simulator cannot claim offline translation ready',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      const channel = MethodChannel('google_mlkit_on_device_translator');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            if (call.method == 'nlp#closeLanguageTranslator') return null;
+            if ((call.arguments as Map)['task'] == 'check') return false;
+            throw PlatformException(
+              code: 'OFFLINE_TRANSLATION_SIMULATOR_UNAVAILABLE',
+            );
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null),
+      );
+      final translator = MlKitOfflineVietnameseEnglishTranslator();
+      expect(await translator.modelsReady(), isFalse);
+      expect(await translator.downloadModels(), isFalse);
+      await expectLater(
+        translator.translate('Xin chào'),
+        throwsA(
+          isA<PlatformException>().having(
+            (error) => error.code,
+            'code',
+            'OFFLINE_TRANSLATION_MODEL_UNAVAILABLE',
+          ),
+        ),
+      );
+      await translator.close();
+    },
+  );
+
+  test('desktop does not start translation model downloads', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final adapter = _FakeTranslationAdapter();
+    final translator = MlKitOfflineVietnameseEnglishTranslator(
+      adapter: adapter,
+    );
+    expect(await translator.modelsReady(), isFalse);
     expect(await translator.downloadModels(), isFalse);
     expect(adapter.downloads, isEmpty);
-    await expectLater(
-      translator.translate('Xin chào'),
-      throwsA(
-        isA<PlatformException>().having(
-          (error) => error.code,
-          'code',
-          'OFFLINE_TRANSLATION_MODEL_UNAVAILABLE',
-        ),
-      ),
-    );
     await translator.close();
   });
 

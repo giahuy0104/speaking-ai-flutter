@@ -1185,6 +1185,7 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
   AndroidOfflineSpeechModelStatus? _status;
   AndroidOfflineSpeechModelPreparationResult? _preparation;
   bool _busy = true;
+  bool _preparingIosModels = false;
   int _request = 0;
   Timer? _refreshTimer;
 
@@ -1215,12 +1216,15 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
               consent == AndroidOfflineSpeechModelConsent.allowed,
         );
       } else {
+        final translationReady = await _translator.modelsReady();
         speechStatus = AndroidOfflineSpeechModelStatus(
-          state: consent == AndroidOfflineSpeechModelConsent.allowed
+          state: translationReady
+              ? AndroidOfflineSpeechModelState.installed
+              : _preparingIosModels
               ? AndroidOfflineSpeechModelState.pending
               : AndroidOfflineSpeechModelState.missing,
           appManaged: true,
-          modelId: 'apple-speech',
+          modelId: 'apple-speech+mlkit-vi-en',
         );
       }
       if (!mounted || request != _request) {
@@ -1359,7 +1363,12 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
   }
 
   Future<void> _prepareAllModels() async {
+    _preparingIosModels = !_isAndroid;
     try {
+      if (await _consentStore.read() !=
+          AndroidOfflineSpeechModelConsent.allowed) {
+        return;
+      }
       if (_isAndroid) {
         await Future.wait<AndroidOfflineSpeechModelPreparationResult>([
           _coordinator.prepare(locale: 'en-US'),
@@ -1370,10 +1379,13 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
           await _appleSpeech.prepareLocale(locale);
         }
       }
-      if (_isAndroid) {
+      if (mounted &&
+          await _consentStore.read() ==
+              AndroidOfflineSpeechModelConsent.allowed) {
         await _translator.downloadModels(wifiOnly: true);
       }
     } finally {
+      _preparingIosModels = false;
       if (mounted) {
         await _refresh();
       }
@@ -1381,8 +1393,7 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
   }
 
   void _updateRefreshTimer() {
-    if (_isAndroid &&
-        _status?.state == AndroidOfflineSpeechModelState.pending) {
+    if (_status?.state == AndroidOfflineSpeechModelState.pending) {
       _refreshTimer ??= Timer.periodic(
         const Duration(seconds: 2),
         (_) => unawaited(_refresh()),
@@ -1410,8 +1421,8 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
           SnackBar(
             content: Text(
               context.tr(
-                'HOMI sẽ chuẩn bị giọng nói offline bằng Apple Speech.',
-                'HOMI 将使用 Apple Speech 准备离线语音。',
+                'HOMI sẽ chuẩn bị giọng nói và tải gói dịch offline qua Wi-Fi.',
+                'HOMI 将准备离线语音，并通过 Wi-Fi 下载离线翻译模型。',
               ),
             ),
           ),
@@ -1450,14 +1461,26 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
       return context.tr('Đang kiểm tra các gói offline…', '正在检查离线模型…');
     }
     if (!_isAndroid) {
+      if (_status?.state == AndroidOfflineSpeechModelState.installed) {
+        return context.tr(
+          'Dịch Việt–Anh và Anh–Việt đã sẵn sàng trên thiết bị. Giọng nói offline phụ thuộc model Apple Speech của thiết bị.',
+          '设备上的越英双向翻译已准备好。离线语音取决于设备的 Apple Speech 模型。',
+        );
+      }
+      if (_preparingIosModels) {
+        return context.tr(
+          'HOMI đang chuẩn bị giọng nói và tải gói dịch offline qua Wi-Fi. Bạn có thể tiếp tục dùng ứng dụng.',
+          'HOMI 正在准备语音并通过 Wi-Fi 下载离线翻译模型；您可以继续使用应用。',
+        );
+      }
       return _consent == AndroidOfflineSpeechModelConsent.allowed
           ? context.tr(
-              'Đã bật chuẩn bị giọng nói offline bằng Apple Speech. Tính năng dịch offline trên iOS sẽ được bổ sung sau.',
-              '已开启 Apple Speech 离线语音准备。iOS 离线翻译将在之后提供。',
+              'Đã cho phép chuẩn bị giọng nói và tải gói dịch Việt–Anh/Anh–Việt qua Wi-Fi. Các gói dịch chưa sẵn sàng; cần iPhone thật để tải và dùng offline.',
+              '已允许准备语音并通过 Wi-Fi 下载越英双向翻译模型。翻译模型尚未准备好；下载和离线使用需要实体 iPhone。',
             )
           : context.tr(
-              'Bật để HOMI chuẩn bị giọng nói offline bằng Apple Speech. Tính năng dịch offline trên iOS sẽ được bổ sung sau.',
-              '开启后 HOMI 会准备 Apple Speech 离线语音。iOS 离线翻译将在之后提供。',
+              'Bật để HOMI chuẩn bị Apple Speech và tải gói dịch Việt–Anh/Anh–Việt qua Wi-Fi cho iPhone.',
+              '开启后 HOMI 会准备 Apple Speech，并通过 Wi-Fi 为 iPhone 下载越英双向翻译模型。',
             );
     }
     switch (_status?.state) {
@@ -1527,12 +1550,7 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  _isAndroid
-                      ? context.tr(
-                          'Tự tải giọng nói và dịch offline',
-                          '自动下载离线语音和翻译',
-                        )
-                      : context.tr('Chuẩn bị giọng nói offline', '准备离线语音'),
+                  context.tr('Tự tải giọng nói và dịch offline', '自动下载离线语音和翻译'),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),

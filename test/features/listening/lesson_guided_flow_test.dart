@@ -1,8 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
+import 'package:ai_speaking_flutter_app/core/audio/catalog/audio_pack_cache.dart';
+import 'package:ai_speaking_flutter_app/core/audio/catalog/voice_prompt_audio_registry_adapter.dart';
 import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
 import 'package:ai_speaking_flutter_app/core/audio/learning_audio_dependencies.dart';
 import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
@@ -29,6 +33,8 @@ import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/services.dart';
+import 'package:crypto/crypto.dart';
 
 void main() {
   for (final guided in <bool>[false, true]) {
@@ -326,63 +332,79 @@ void main() {
     ActiveLearningCommand.previousItem,
     ActiveLearningCommand.nextItem,
   ]) {
-    testWidgets('V4 $command waits for EN and VI to finish before capture', (
-      tester,
-    ) async {
-      await _usePhoneSurface(tester);
-      final registry = ActiveLearningModuleRegistry();
-      addTearDown(registry.dispose);
-      final media = _GuidedMediaService(recordedSentenceNumbers: {1, 2, 3});
-      final prompts = _GatedModelVoicePromptService();
-      await tester.pumpWidget(
-        ActiveLearningModuleScope(
-          registry: registry,
-          child: _subject(
-            _lesson(v4: true, sentenceCount: 3),
-            media,
-            progressStore: _MemoryProgressStore()..currentSentence = 1,
-            guideAudioLibrary: _silentGuideAudioLibrary(),
-            voicePromptService: prompts,
-          ),
-        ),
+    for (final virtualButton in <bool>[false, true]) {
+      testWidgets(
+        'V4 $command ${virtualButton ? "button" : "MAIN"} waits for EN and VI to finish before capture',
+        (tester) async {
+          await _usePhoneSurface(tester);
+          final registry = ActiveLearningModuleRegistry();
+          addTearDown(registry.dispose);
+          final media = _GuidedMediaService(recordedSentenceNumbers: {1, 2, 3});
+          final prompts = _GatedModelVoicePromptService();
+          await tester.pumpWidget(
+            ActiveLearningModuleScope(
+              registry: registry,
+              child: _subject(
+                _lesson(v4: true, sentenceCount: 3),
+                media,
+                progressStore: _MemoryProgressStore()..currentSentence = 1,
+                guideAudioLibrary: _silentGuideAudioLibrary(),
+                voicePromptService: prompts,
+              ),
+            ),
+          );
+          await _pumpGuidedSpeechTurn(tester);
+          if (!virtualButton) await registry.pauseForMainAssistant();
+          final previousStarts = media.startedSentenceIds.length;
+          prompts.spoken.clear();
+          prompts.englishGate = Completer<void>();
+          prompts.vietnameseGate = Completer<void>();
+          if (virtualButton) {
+            final key = command == ActiveLearningCommand.nextItem
+                ? 'virtual-lesson-next'
+                : command == ActiveLearningCommand.previousItem
+                ? 'virtual-lesson-previous'
+                : 'virtual-lesson-replay';
+            await tester.tap(find.byKey(Key(key)));
+          } else {
+            await registry.execute(command);
+          }
+          await _pumpGuidedSpeechTurn(tester);
+          final number = command == ActiveLearningCommand.nextItem
+              ? 3
+              : command == ActiveLearningCommand.previousItem
+              ? 1
+              : 2;
+          final lead = command == ActiveLearningCommand.nextItem
+              ? <String>['vi-VN|Mình chuyển sang câu sau nhé.']
+              : command == ActiveLearningCommand.previousItem
+              ? <String>['vi-VN|Mình nghe lại câu trước nhé']
+              : <String>[];
+          expect(prompts.spoken, [...lead, 'en-US|Sentence $number']);
+          expect(media.startedSentenceIds.length, previousStarts);
+          prompts.englishGate!.complete();
+          await tester.pump();
+          await tester.pump(LessonGuideFlowV2.englishToVietnamesePause);
+          expect(prompts.spoken, [
+            ...lead,
+            'en-US|Sentence $number',
+            'vi-VN|Câu $number',
+          ]);
+          expect(media.startedSentenceIds.length, previousStarts);
+          prompts.vietnameseGate!.complete();
+          await tester.pump();
+          await tester.pump();
+          expect(media.startedSentenceIds.length, previousStarts + 1);
+          expect(media.startedSentenceIds.last, 'GUIDED-FLOW_S$number');
+          await tester.pumpWidget(const SizedBox.shrink());
+          await tester.pump();
+        },
+        variant: TargetPlatformVariant(<TargetPlatform>{
+          TargetPlatform.android,
+          TargetPlatform.iOS,
+        }),
       );
-      await _pumpGuidedSpeechTurn(tester);
-      await registry.pauseForMainAssistant();
-      final previousStarts = media.startedSentenceIds.length;
-      prompts.spoken.clear();
-      prompts.englishGate = Completer<void>();
-      prompts.vietnameseGate = Completer<void>();
-      await registry.execute(command);
-      await _pumpGuidedSpeechTurn(tester);
-      final number = command == ActiveLearningCommand.nextItem
-          ? 3
-          : command == ActiveLearningCommand.previousItem
-          ? 1
-          : 2;
-      final lead = command == ActiveLearningCommand.nextItem
-          ? <String>['vi-VN|Mình chuyển sang câu sau nhé.']
-          : command == ActiveLearningCommand.previousItem
-          ? <String>['vi-VN|Mình nghe lại câu trước nhé']
-          : <String>[];
-      expect(prompts.spoken, [...lead, 'en-US|Sentence $number']);
-      expect(media.startedSentenceIds.length, previousStarts);
-      prompts.englishGate!.complete();
-      await tester.pump();
-      await tester.pump(LessonGuideFlowV2.englishToVietnamesePause);
-      expect(prompts.spoken, [
-        ...lead,
-        'en-US|Sentence $number',
-        'vi-VN|Câu $number',
-      ]);
-      expect(media.startedSentenceIds.length, previousStarts);
-      prompts.vietnameseGate!.complete();
-      await tester.pump();
-      await tester.pump();
-      expect(media.startedSentenceIds.length, previousStarts + 1);
-      expect(media.startedSentenceIds.last, 'GUIDED-FLOW_S$number');
-      await tester.pumpWidget(const SizedBox.shrink());
-      await tester.pump();
-    });
+    }
   }
 
   testWidgets('failed model never opens mic and replay can recover', (
@@ -1064,6 +1086,144 @@ void main() {
     debugDefaultTargetPlatformOverride = null;
   });
 
+  testWidgets('iOS Core consumes final even while native start is returning', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    await _usePhoneSurface(tester);
+    final startGate = Completer<void>();
+    final speechInput = _MissingRecordingIosSpeechInput(
+      startGate: startGate,
+      recordedAudio: const AudioCapture(
+        filePath: 'C:\\recordings\\lesson-1.wav',
+        mimeType: 'audio/wav',
+        duration: Duration(seconds: 2),
+        inputLabel: 'Apple Native Speech',
+        isBluetoothInput: false,
+        initialNoiseRms: null,
+      ),
+    );
+    addTearDown(speechInput.dispose);
+    final media = _IosLessonMediaService();
+    await tester.pumpWidget(
+      _subject(
+        _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+        media,
+        controller: _IosLearningAudioDependencies(speechInput),
+        useOwnedEvaluator: true,
+        guideAudioLibrary: _silentGuideAudioLibrary(),
+        voicePromptService: _FakeVoicePromptService(),
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+    expect(speechInput.started, isTrue);
+    speechInput.finishRecognition();
+    expect(speechInput.stopCalls, 0);
+    startGate.complete();
+    await tester.pump();
+    await _pumpGuidedSpeechTurn(tester);
+
+    expect(speechInput.stopCalls, 1);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets(
+    'iOS Core stale start failure preserves the resumed capture endpoint and final listener',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final startGate = Completer<void>();
+      final speech = _MissingRecordingIosSpeechInput(startGate: startGate);
+      addTearDown(speech.dispose);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _subject(
+            _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+            _IosLessonMediaService(),
+            controller: _IosLearningAudioDependencies(speech),
+            useOwnedEvaluator: true,
+            guideAudioLibrary: _silentGuideAudioLibrary(),
+            voicePromptService: _FakeVoicePromptService(),
+          ),
+        ),
+      );
+      await _pumpGuidedSpeechTurn(tester);
+      expect(speech.startCalls, 1);
+      await registry.pauseForMainAssistant();
+      await registry.execute(ActiveLearningCommand.resume);
+      await _pumpGuidedSpeechTurn(tester);
+      expect(speech.startCalls, 2);
+      speech.emitPartial('Sentence 1');
+      await tester.pump();
+      startGate.completeError(
+        const StreamingSpeechInputException(
+          'Old start cancelled',
+          code: 'SPEECH_START_CANCELLED',
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 750));
+      expect(speech.stopCalls, 1);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  for (final pendingStart in <bool>[false, true]) {
+    testWidgets(
+      'iOS Core remembers partial speech ${pendingStart ? "before" : "after"} native start and stops after silence',
+      (tester) async {
+        await _usePhoneSurface(tester);
+        final startGate = pendingStart ? Completer<void>() : null;
+        final speechInput = _MissingRecordingIosSpeechInput(
+          startGate: startGate,
+          recordedAudio: const AudioCapture(
+            filePath: '/recordings/lesson-1.wav',
+            mimeType: 'audio/wav',
+            duration: Duration(seconds: 1),
+            inputLabel: 'Apple Native Speech',
+            isBluetoothInput: false,
+            initialNoiseRms: null,
+          ),
+        );
+        addTearDown(speechInput.dispose);
+        await tester.pumpWidget(
+          _subject(
+            _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+            _IosLessonMediaService(),
+            controller: _IosLearningAudioDependencies(speechInput),
+            useOwnedEvaluator: true,
+            guideAudioLibrary: _silentGuideAudioLibrary(),
+            voicePromptService: _FakeVoicePromptService(),
+          ),
+        );
+        await _pumpGuidedSpeechTurn(tester);
+        expect(speechInput.started, isTrue);
+        speechInput.emitPartial('Sentence 1');
+        await tester.pump();
+        if (pendingStart) {
+          await tester.pump(const Duration(milliseconds: 800));
+          expect(speechInput.stopCalls, 0);
+          startGate!.complete();
+          await tester.pump();
+          await tester.pump();
+        }
+        await tester.pump(const Duration(milliseconds: 650));
+        expect(speechInput.stopCalls, 0);
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(speechInput.stopCalls, 1);
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump();
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    );
+  }
+
   testWidgets('iOS replays a saved lesson recording before awarding a Star', (
     tester,
   ) async {
@@ -1072,6 +1232,31 @@ void main() {
     await _usePhoneSurface(tester);
     final events = <String>[];
     final mediaService = _IosLessonMediaService(events: events);
+    final manifest =
+        jsonDecode(
+              File(
+                'assets/data/listening_common_audio.json',
+              ).readAsStringSync(),
+            )
+            as Map<String, dynamic>;
+    final assistantManifest =
+        jsonDecode(
+              File('assets/data/assistant_core_audio.json').readAsStringSync(),
+            )
+            as Map<String, dynamic>;
+    (manifest['prompts'] as List).addAll(assistantManifest['prompts'] as List);
+    final delegate = _RegistryAudioVoicePromptService(events, manifest);
+    final prompts = VoicePromptAudioRegistryAdapter(
+      delegate: delegate,
+      bundle: _RegistryFileBundle(),
+      manifestAssets: const [
+        'assets/data/listening_common_audio.json',
+        'assets/data/assistant_core_audio.json',
+      ],
+      cache: MemoryAudioPackCache(),
+    );
+    addTearDown(prompts.dispose);
+    await prompts.repository.ensureLoaded();
     final progressStore = _MemoryProgressStore();
     final speechInput = _MissingRecordingIosSpeechInput(
       recordedAudio: const AudioCapture(
@@ -1091,10 +1276,11 @@ void main() {
         useOwnedEvaluator: true,
         progressStore: progressStore,
         guideAudioLibrary: _starEffectsGuideAudioLibrary(),
-        voicePromptService: _FakeVoicePromptService(events),
+        voicePromptService: prompts,
       ),
     );
     await _pumpGuidedSpeechTurn(tester);
+    expect(mediaService.nativeHandoffCount, 1);
     await tester.tap(find.byKey(const Key('record-lesson-sentence')));
     await _pumpGuidedSpeechTurn(tester);
 
@@ -1105,11 +1291,20 @@ void main() {
     final replayIndex = events.indexWhere(
       (event) => event.startsWith('media|') && event.endsWith('lesson-1.wav'),
     );
-    final praiseIndex = events.indexOf('voice|Đúng rồi!');
-    final starIndex = events.indexOf('voice|Bạn vừa nhận Ngôi sao đầu tiên!');
+    final praiseIndex = events.indexOf(
+      'asset|assistant.feedback.v4.correct.vi',
+    );
+    final starIndex = events.indexOf(
+      'asset|${ListeningAudioKeys.rewardFirstStar}',
+    );
     expect(replayIndex, greaterThanOrEqualTo(0));
     expect(praiseIndex, greaterThan(replayIndex));
     expect(starIndex, greaterThan(praiseIndex));
+    final tingIndex = events.indexOf(
+      'media|/assets/audio/MAIN/SFX_STAR_TING.mp3',
+    );
+    expect(tingIndex, greaterThan(starIndex));
+    expect(events.indexOf('voice|Sentence 2'), greaterThan(tingIndex));
     expect(progressStore.earnedStars, isNotEmpty);
     await _pumpGuidedSpeechTurn(tester);
     expect(find.text('Sentence 2'), findsOneWidget);
@@ -2969,45 +3164,50 @@ void main() {
     await tester.pump();
   });
 
-  testWidgets('V4 fresh entry ignores combined hook and speaks full intro', (
-    tester,
-  ) async {
-    await _usePhoneSurface(tester);
-    final events = <String>[];
-    final hookUri = Uri.parse(
-      'asset:///assets/audio/LESSON_HOOKS/test-hook.mp3',
-    );
-    final media = _IntroEventMediaService(events);
-    final prompts = _IntroEventVoicePromptService(events);
-    final lesson = _lesson(v4: true, combinedHookAudioUri: hookUri);
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: buildAppTheme(),
-        home: LessonIntroScreen(
-          language: DisplayLanguage.vietnamese,
-          startAge: 3,
-          endAge: 5,
-          topic: listeningCatalogs.first.topics.first,
-          topicContent: _topicContent(<ListeningLessonContent>[lesson]),
-          lesson: lesson,
-          progressStore: _MemoryProgressStore(),
-          mediaService: media,
-          voicePromptService: prompts,
-          guideAudioLibrary: _silentGuideAudioLibrary(),
-          autoAdvance: false,
+  testWidgets(
+    'V4 fresh entry plays scene hook between title and start cue',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final events = <String>[];
+      final hookUri = Uri.parse(
+        'asset:///assets/audio/LESSON_HOOKS/test-hook.mp3',
+      );
+      final media = _IntroEventMediaService(events);
+      final prompts = _IntroEventVoicePromptService(events);
+      final lesson = _lesson(v4: true, combinedHookAudioUri: hookUri);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: LessonIntroScreen(
+            language: DisplayLanguage.vietnamese,
+            startAge: 3,
+            endAge: 5,
+            topic: listeningCatalogs.first.topics.first,
+            topicContent: _topicContent(<ListeningLessonContent>[lesson]),
+            lesson: lesson,
+            progressStore: _MemoryProgressStore(),
+            mediaService: media,
+            voicePromptService: prompts,
+            guideAudioLibrary: _silentGuideAudioLibrary(),
+            autoAdvance: false,
+          ),
         ),
-      ),
-    );
-    await tester.pump();
-    await tester.pump();
+      );
+      await tester.pump();
+      await tester.pump();
 
-    expect(events.where((event) => event.startsWith('media|')), isEmpty);
-    expect(events, <String>[
-      'vi-VN|Chủ đề 1. Bài đầu tiên là',
-      'en-US|Guided lesson',
-      'vi-VN|. Mình cùng học nhé. Bắt đầu nhé.',
-    ]);
-  });
+      expect(events, <String>[
+        'vi-VN|Chủ đề 1. Bài đầu tiên là',
+        'en-US|Guided lesson',
+        'media|$hookUri',
+        'vi-VN|Bắt đầu nhé.',
+      ]);
+    },
+    variant: TargetPlatformVariant(<TargetPlatform>{
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
 
   testWidgets('V4 lesson openings route every state to authored audio keys', (
     tester,
@@ -3127,41 +3327,125 @@ void main() {
     }
   });
 
-  testWidgets('V4 unavailable combined hook does not block the full intro', (
-    tester,
-  ) async {
-    await _usePhoneSurface(tester);
-    final events = <String>[];
-    final hookUri = Uri.parse('asset:///assets/audio/LESSON_HOOKS/missing.mp3');
-    final lesson = _lesson(v4: true, combinedHookAudioUri: hookUri);
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: buildAppTheme(),
-        home: LessonIntroScreen(
-          language: DisplayLanguage.vietnamese,
-          startAge: 3,
-          endAge: 5,
-          topic: listeningCatalogs.first.topics.first,
-          topicContent: _topicContent(<ListeningLessonContent>[lesson]),
-          lesson: lesson,
-          progressStore: _MemoryProgressStore(),
-          mediaService: _IntroEventMediaService(events, fail: true),
-          voicePromptService: _IntroEventVoicePromptService(events),
-          guideAudioLibrary: _silentGuideAudioLibrary(),
-          autoAdvance: false,
+  testWidgets(
+    'V4 unavailable scene hook falls back without repeating title',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final events = <String>[];
+      final hookUri = Uri.parse(
+        'asset:///assets/audio/LESSON_HOOKS/missing.mp3',
+      );
+      final lesson = _lesson(v4: true, combinedHookAudioUri: hookUri);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: LessonIntroScreen(
+            language: DisplayLanguage.vietnamese,
+            startAge: 3,
+            endAge: 5,
+            topic: listeningCatalogs.first.topics.first,
+            topicContent: _topicContent(<ListeningLessonContent>[lesson]),
+            lesson: lesson,
+            progressStore: _MemoryProgressStore(),
+            mediaService: _IntroEventMediaService(events, fail: true),
+            voicePromptService: _IntroEventVoicePromptService(events),
+            guideAudioLibrary: _silentGuideAudioLibrary(),
+            autoAdvance: false,
+          ),
         ),
-      ),
-    );
-    await tester.pump();
-    await tester.pump();
+      );
+      await tester.pump();
+      await tester.pump();
 
-    expect(events.where((event) => event.startsWith('media|')), isEmpty);
-    expect(events, <String>[
-      'vi-VN|Chủ đề 1. Bài đầu tiên là',
-      'en-US|Guided lesson',
-      'vi-VN|. Mình cùng học nhé. Bắt đầu nhé.',
-    ]);
-  });
+      expect(events, <String>[
+        'vi-VN|Chủ đề 1. Bài đầu tiên là',
+        'en-US|Guided lesson',
+        'media|$hookUri',
+        'vi-VN|Mình cùng học nhé.',
+        'vi-VN|Bắt đầu nhé.',
+      ]);
+    },
+    variant: TargetPlatformVariant(<TargetPlatform>{
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
+    'V4 pet entry plays its registry hook exactly once after the complete lead',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final catalog = ListeningContentCatalog.fromJson(
+        jsonDecode(
+              File('assets/data/listening_lessons.json').readAsStringSync(),
+            )
+            as Map<String, dynamic>,
+      );
+      final topicContent = catalog.groups.first.topics.firstWhere(
+        (topic) => topic.number == 5,
+      );
+      final lesson = topicContent.lessons.first;
+      final events = <String>[];
+      final manifest =
+          jsonDecode(
+                File(
+                  'assets/data/listening_common_audio.json',
+                ).readAsStringSync(),
+              )
+              as Map<String, dynamic>;
+      final prompts = VoicePromptAudioRegistryAdapter(
+        delegate: _RegistryAudioVoicePromptService(events, manifest),
+        manifestAssets: const ['assets/data/listening_common_audio.json'],
+        bundle: _RegistryFileBundle(),
+        cache: MemoryAudioPackCache(),
+      );
+      addTearDown(prompts.dispose);
+      await prompts.repository.ensureLoaded();
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: LessonIntroScreen(
+            language: DisplayLanguage.vietnamese,
+            startAge: 3,
+            endAge: 5,
+            topic: listeningCatalogs.first.topics[4],
+            topicContent: topicContent,
+            lesson: lesson,
+            progressStore: _MemoryProgressStore(),
+            mediaService: _IntroEventMediaService(events),
+            voicePromptService: prompts,
+            guideAudioLibrary: _silentGuideAudioLibrary(),
+            autoAdvance: false,
+          ),
+        ),
+      );
+      await _pumpGuidedSpeechTurn(tester);
+      final hookEvent = 'asset|${ListeningAudioKeys.lessonHook(lesson.id)}';
+      expect(
+        events,
+        containsAllInOrder([
+          'voice|Chủ đề 5. Bài đầu tiên là',
+          'voice|${lesson.titleEn}',
+          hookEvent,
+          'voice|Bắt đầu nhé.',
+        ]),
+      );
+      expect(events.where((event) => event == hookEvent), hasLength(1));
+      expect(
+        events.where((event) => event == 'voice|${lesson.titleEn}'),
+        hasLength(1),
+      );
+      expect(events, isNot(contains('voice|${lesson.entry!.text}')));
+      expect(
+        events,
+        isNot(contains('asset|${ListeningAudioKeys.lessonIntro(lesson.id)}')),
+      );
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
 
   testWidgets('V4 resume does not replay the combined hook', (tester) async {
     await _usePhoneSurface(tester);
@@ -3702,6 +3986,47 @@ class _FakeVoicePromptService implements VoicePromptService {
   Future<void> dispose() async {}
 }
 
+class _RegistryAudioVoicePromptService extends _FakeVoicePromptService
+    implements AuthoredAudioVoicePromptService {
+  _RegistryAudioVoicePromptService(
+    super.events,
+    Map<String, dynamic> manifest,
+  ) {
+    for (final prompt
+        in (manifest['prompts'] as List).cast<Map<String, dynamic>>()) {
+      _keysBySha
+          .putIfAbsent(prompt['sha256'] as String, () => <String>[])
+          .add(prompt['key'] as String);
+    }
+  }
+
+  final Map<String, List<String>> _keysBySha = {};
+
+  @override
+  Future<void> playAuthoredAudioAndWait(
+    Uint8List bytes, {
+    bool forcePhoneSpeaker = false,
+    bool forceMediaPlayback = false,
+  }) async {
+    expect(forceMediaPlayback, isTrue);
+    final keys = _keysBySha[sha256.convert(bytes).toString()];
+    expect(keys, isNotNull);
+    for (final key in keys!) {
+      events!.add('asset|$key');
+    }
+  }
+}
+
+class _RegistryFileBundle extends CachingAssetBundle {
+  @override
+  Future<ByteData> load(String key) async =>
+      ByteData.sublistView(File(key).readAsBytesSync());
+
+  @override
+  Future<String> loadString(String key, {bool cache = true}) async =>
+      File(key).readAsStringSync();
+}
+
 class _KeyedVoicePromptService extends _FakeVoicePromptService
     implements
         KeyedVoicePromptService,
@@ -3805,10 +4130,26 @@ class _IosLearningAudioDependencies implements LearningAudioDependencies {
 }
 
 class _MissingRecordingIosSpeechInput extends IOSStreamingSpeechInput {
-  _MissingRecordingIosSpeechInput({this.recordedAudio});
+  _MissingRecordingIosSpeechInput({this.recordedAudio, this.startGate});
 
   final AudioCapture? recordedAudio;
+  final Completer<void>? startGate;
+  final StreamController<void> _completed = StreamController<void>.broadcast();
+  final StreamController<String> _partial =
+      StreamController<String>.broadcast();
   bool started = false;
+  int startCalls = 0;
+  int stopCalls = 0;
+
+  @override
+  Stream<void> get completed => _completed.stream;
+
+  void finishRecognition() => _completed.add(null);
+
+  @override
+  Stream<String> get partialText => _partial.stream;
+
+  void emitPartial(String text) => _partial.add(text);
 
   @override
   Stream<double> get amplitudeDbfs => const Stream<double>.empty();
@@ -3818,21 +4159,33 @@ class _MissingRecordingIosSpeechInput extends IOSStreamingSpeechInput {
     String recordingPath,
   ) async {
     started = true;
+    startCalls += 1;
+    if (startCalls == 1) await startGate?.future;
   }
 
   @override
-  Future<StreamingSpeechCapture> stop() async => StreamingSpeechCapture(
-    sourceText: 'Sentence 1',
-    duration: Duration(seconds: 2),
-    inputLabel: 'Apple Native Speech',
-    confidence: 1,
-    firstResultMs: 100,
-    finalAfterStopMs: 100,
-    recordedAudio: recordedAudio,
-  );
+  Future<StreamingSpeechCapture> stop() async {
+    stopCalls += 1;
+    return StreamingSpeechCapture(
+      sourceText: 'Sentence 1',
+      duration: Duration(seconds: 2),
+      inputLabel: 'Apple Native Speech',
+      confidence: 1,
+      firstResultMs: 100,
+      finalAfterStopMs: 100,
+      recordedAudio: recordedAudio,
+    );
+  }
 
   @override
   Future<void> cancel() async {}
+
+  @override
+  Future<void> dispose() async {
+    await _completed.close();
+    await _partial.close();
+    await super.dispose();
+  }
 }
 
 class _IntroEventVoicePromptService implements VoicePromptService {
@@ -4095,6 +4448,13 @@ class _GuidedMediaService extends LessonMediaService {
 
 class _IosLessonMediaService extends _GuidedMediaService {
   _IosLessonMediaService({super.events});
+
+  int nativeHandoffCount = 0;
+
+  @override
+  void handoffSelectedLessonOutputToNativeCapture() {
+    nativeHandoffCount += 1;
+  }
 
   @override
   Future<String> recordingPath({

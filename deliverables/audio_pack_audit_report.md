@@ -1,15 +1,15 @@
 # Audio Pack Audit
 
 - Packs: 16
-- Audio entries: 3935
-- Unique bytes by pack: 127569995
+- Audio entries: 3948
+- Unique bytes by pack: 128180553
 - Text-hash coverage: 100.00%
 - iOS: not verified on Windows
 
 | Pack | Version | Audio | Bytes | Preload |
 |---|---:|---:|---:|---|
 | assistant-core | v2 | 78 | 2370856 | shared |
-| listening-common | v1 | 429 | 25794218 | shared |
+| listening-common | v1 | 442 | 26404776 | shared |
 | listening-3-5 | v1 | 206 | 3527759 | 3-5 |
 | listening-6-7 | v1 | 224 | 4219431 | 6-7 |
 | listening-8-10 | v1 | 220 | 4058340 | 8-10 |

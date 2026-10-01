@@ -60,6 +60,7 @@ flutter:
     - assets/audio/assistant-core/
     - assets/audio/MAIN/GAP66/
     - assets/audio/listening-common/
+    - assets/audio/LESSON_HOOKS/
     - assets/audio/vocabulary-common/
     - assets/audio/listening-3-5/
     - assets/audio/listening-6-7/

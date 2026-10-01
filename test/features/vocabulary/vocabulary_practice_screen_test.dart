@@ -160,6 +160,130 @@ void main() {
     );
   }
 
+  testWidgets(
+    'iOS Review stale start failure preserves the resumed capture endpoint',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final media = _FakeLessonMediaService();
+      final voice = _FakeVoicePromptService();
+      final speech = _GatedIosLessonInput(startGate: Completer<void>());
+      addTearDown(registry.dispose);
+      addTearDown(media.close);
+      addTearDown(speech.dispose);
+      await _mountReview(
+        tester,
+        registry: registry,
+        media: media,
+        voice: voice,
+        evaluator: null,
+        audioDependencies: _IosLearningDependencies(speech),
+      );
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pumpAndSettle();
+      expect(speech.startCalls, 1);
+      await registry.pauseForMainAssistant();
+      await registry.execute(ActiveLearningCommand.resume);
+      await tester.pumpAndSettle();
+      expect(speech.startCalls, 2);
+      speech.emitPartial('Apple');
+      await tester.pump();
+      speech.startGate!.completeError(
+        const StreamingSpeechInputException(
+          'Old start cancelled',
+          code: 'SPEECH_START_CANCELLED',
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 750));
+      expect(speech.stopCalls, 1);
+      expect(tester.takeException(), isNull);
+      await registry.pauseForMainAssistant();
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'iOS Review consumes Apple Speech completion during pending native start',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final media = _FakeLessonMediaService();
+      final voice = _FakeVoicePromptService();
+      final speech = _GatedIosLessonInput(startGate: Completer<void>());
+      addTearDown(registry.dispose);
+      addTearDown(media.close);
+      addTearDown(speech.dispose);
+      await _mountReview(
+        tester,
+        registry: registry,
+        media: media,
+        voice: voice,
+        evaluator: null,
+        audioDependencies: _IosLearningDependencies(speech),
+      );
+
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pumpAndSettle();
+      expect(speech.startCalls, 1);
+      expect(speech.stopCalls, 0);
+      expect(media.handoffCalls, 0);
+
+      speech.emitPartial('apple');
+      speech.emitCompleted();
+      await tester.pump();
+      expect(speech.stopCalls, 0);
+      speech.startGate!.complete();
+      await _pumpUntil(tester, () => speech.stopCalls == 1);
+      expect(media.handoffCalls, 1);
+      expect(media.events.last, 'handoff');
+      await registry.pauseForMainAssistant();
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'iOS Review selects lesson output before cue and hands off after native start',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final media = _FakeLessonMediaService();
+      final voice = _GatedCueVoice(media);
+      final speech = _GatedIosLessonInput();
+      addTearDown(registry.dispose);
+      addTearDown(media.close);
+      addTearDown(speech.dispose);
+      await _mountReview(
+        tester,
+        registry: registry,
+        media: media,
+        voice: voice,
+        evaluator: null,
+        audioDependencies: _IosLearningDependencies(speech),
+      );
+
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(media.events, <String>['prepare', 'prepare', 'cue', 'handoff']);
+      expect(speech.startCalls, 1);
+      expect(media.handoffCalls, 1);
+      expect(media.startCalls, 0);
+      await registry.pauseForMainAssistant();
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
   for (final systemBack in <bool>[false, true]) {
     testWidgets(
       'unfinished Today exits with ${systemBack ? "system" : "screen"} Back even if audio stop hangs',
@@ -1304,6 +1428,7 @@ class _FakeLessonMediaService extends LessonMediaService {
   bool recording = false;
   int startCalls = 0;
   int stopCalls = 0;
+  int handoffCalls = 0;
   final StreamController<double> amplitudes =
       StreamController<double>.broadcast(sync: true);
 
@@ -1320,6 +1445,12 @@ class _FakeLessonMediaService extends LessonMediaService {
   @override
   Future<void> prepareSelectedLessonOutput() async {
     events.add('prepare');
+  }
+
+  @override
+  void handoffSelectedLessonOutputToNativeCapture() {
+    handoffCalls += 1;
+    events.add('handoff');
   }
 
   @override
@@ -1364,15 +1495,27 @@ class _GatedIosLessonInput extends IOSStreamingSpeechInput {
 
   final Completer<void>? startGate;
   final stopGate = Completer<StreamingSpeechCapture>();
+  final _completed = StreamController<void>.broadcast(sync: true);
+  final _partial = StreamController<String>.broadcast(sync: true);
   int startCalls = 0;
   int stopCalls = 0;
   int cancelCalls = 0;
   int takeRecordingCalls = 0;
 
   @override
+  Stream<void> get completed => _completed.stream;
+
+  @override
+  Stream<String> get partialText => _partial.stream;
+
+  void emitCompleted() => _completed.add(null);
+
+  void emitPartial(String text) => _partial.add(text);
+
+  @override
   Future<void> startLessonEnglishRecognitionWithRecording(String path) async {
     startCalls++;
-    await startGate?.future;
+    if (startCalls == 1) await startGate?.future;
   }
 
   @override
@@ -1390,6 +1533,13 @@ class _GatedIosLessonInput extends IOSStreamingSpeechInput {
   AudioCapture? takeLessonRecordingAudioCapture() {
     takeRecordingCalls++;
     return null;
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _completed.close();
+    await _partial.close();
+    await super.dispose();
   }
 }
 

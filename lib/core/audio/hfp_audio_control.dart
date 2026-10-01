@@ -349,6 +349,8 @@ class MethodChannelHfpAudioControl implements HfpAudioControl {
       routeActive: map['routeActive'] == true,
       inputDeviceName: _nullableString(map['inputDeviceName']),
       outputDeviceName: _nullableString(map['outputDeviceName']),
+      outputPortType: _nullableString(map['outputPortType']),
+      routeSequence: (map['routeSequence'] as num?)?.toInt(),
       audioRoute: _nullableString(map['audioRoute']),
     );
   }
@@ -360,6 +362,13 @@ class MethodChannelHfpAudioControl implements HfpAudioControl {
 
   void _setStatus(BluetoothAudioStatus next) {
     if (_disposed) {
+      return;
+    }
+    final previousRouteSequence = _status.routeSequence;
+    final nextRouteSequence = next.routeSequence;
+    if (previousRouteSequence != null &&
+        nextRouteSequence != null &&
+        nextRouteSequence < previousRouteSequence) {
       return;
     }
     _status = next;

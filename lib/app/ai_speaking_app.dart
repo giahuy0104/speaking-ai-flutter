@@ -294,16 +294,27 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         }
       }
 
-      var translationReady = true;
-      if (isAndroidRuntime) {
-        translationReady = await _offlineTranslator.modelsReady();
-        if (!translationReady) {
-          translationReady = await _offlineTranslator.downloadModels(
-            wifiOnly: true,
-          );
-        }
+      // Speech preparation can wait for an Apple locale download. Honour a
+      // parent's change to the optional download setting before starting the
+      // separate translation model download.
+      if (_offlineSpeechModelConsent !=
+          AndroidOfflineSpeechModelConsent.allowed) {
+        return;
       }
-      if (speechReady && translationReady) {
+      var translationReady = await _offlineTranslator.modelsReady();
+      if (!translationReady) {
+        if (_offlineSpeechModelConsent !=
+            AndroidOfflineSpeechModelConsent.allowed) {
+          return;
+        }
+        translationReady = await _offlineTranslator.downloadModels(
+          wifiOnly: true,
+        );
+      }
+      if (speechReady &&
+          translationReady &&
+          _offlineSpeechModelConsent ==
+              AndroidOfflineSpeechModelConsent.allowed) {
         _offlineSpeechModelPreparationFinished = true;
         _offlineSpeechModelTimer?.cancel();
         _offlineSpeechModelTimer = null;
@@ -1593,10 +1604,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       offlineVietnameseSpeechRecognizer: supportsAndroidNativeSpeech
           ? const AndroidVoskVietnameseSpeechRecognizer()
           : null,
-      offlineVietnameseEnglishTranslator: supportsAndroidNativeSpeech
+      offlineVietnameseEnglishTranslator: supportsNativeSpeech
           ? _offlineTranslator
           : null,
-      offlineEnglishVietnameseTranslator: supportsAndroidNativeSpeech
+      offlineEnglishVietnameseTranslator: supportsNativeSpeech
           ? _offlineVocabularyTranslator
           : null,
       vietnameseTranscriptCorrector: supportsNativeSpeech

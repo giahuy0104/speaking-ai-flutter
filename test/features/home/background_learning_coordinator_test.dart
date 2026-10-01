@@ -8,6 +8,233 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  for (final platform in <TargetPlatform>[
+    TargetPlatform.android,
+    TargetPlatform.iOS,
+  ]) {
+    test(
+      '${platform.name} waits for native stop before re-enabling voice',
+      () async {
+        final session = _FakeBackgroundSession();
+        addTearDown(session.dispose);
+        final nativeStop = Completer<void>();
+        final directives = <BackgroundLearningDirective>[];
+        final coordinator = BackgroundLearningCoordinator(
+          session: session,
+          initialLifecycleState: AppLifecycleState.resumed,
+          onDirective: directives.add,
+          isWeb: false,
+          targetPlatform: platform,
+        );
+        addTearDown(coordinator.dispose);
+        await coordinator.initialize(voiceAccessEnabled: true);
+        session.onStop = () => nativeStop.future;
+
+        final stopping = coordinator.updateVoiceAccess(false);
+        final enabling = coordinator.updateVoiceAccess(true);
+        session.emit(
+          const BackgroundLearningEvent(
+            type: BackgroundLearningEventType.resumable,
+            reason: 'audio_session_interruption_ended',
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+        expect(session.startCount, 1);
+        expect(coordinator.isActive, isFalse);
+        expect(directives, <BackgroundLearningDirective>[
+          BackgroundLearningDirective.keepVoiceNavigation,
+        ]);
+
+        session.onStop = null;
+        nativeStop.complete();
+        await stopping;
+        await enabling;
+
+        expect(session.startCount, 2);
+        expect(coordinator.isActive, isTrue);
+        expect(directives, <BackgroundLearningDirective>[
+          BackgroundLearningDirective.keepVoiceNavigation,
+          BackgroundLearningDirective.keepVoiceNavigation,
+        ]);
+      },
+    );
+
+    test(
+      '${platform.name} cannot restore voice after a revoked start',
+      () async {
+        final session = _FakeBackgroundSession();
+        addTearDown(session.dispose);
+        final nativeStart = Completer<bool>();
+        session.onStart = () => nativeStart.future;
+        final directives = <BackgroundLearningDirective>[];
+        final coordinator = BackgroundLearningCoordinator(
+          session: session,
+          initialLifecycleState: AppLifecycleState.resumed,
+          onDirective: directives.add,
+          isWeb: false,
+          targetPlatform: platform,
+        );
+        addTearDown(coordinator.dispose);
+
+        final starting = coordinator.initialize(voiceAccessEnabled: true);
+        await coordinator.updateVoiceAccess(false);
+        session.emit(
+          const BackgroundLearningEvent(
+            type: BackgroundLearningEventType.resumable,
+            reason: 'audio_session_interruption_ended',
+          ),
+        );
+        nativeStart.complete(true);
+        await starting;
+        await Future<void>.delayed(Duration.zero);
+
+        expect(coordinator.isActive, isFalse);
+        expect(directives, isEmpty);
+        expect(session.startCount, 1);
+        expect(session.stopCount, 2);
+      },
+    );
+
+    test('${platform.name} retries a failed native background start', () async {
+      final session = _FakeBackgroundSession();
+      addTearDown(session.dispose);
+      session.onStart = () async => throw StateError('native start failed');
+      final directives = <BackgroundLearningDirective>[];
+      final coordinator = BackgroundLearningCoordinator(
+        session: session,
+        initialLifecycleState: AppLifecycleState.resumed,
+        onDirective: directives.add,
+        isWeb: false,
+        targetPlatform: platform,
+      );
+      addTearDown(coordinator.dispose);
+
+      await coordinator.initialize(voiceAccessEnabled: true);
+      expect(coordinator.isActive, isFalse);
+      expect(directives, isEmpty);
+      session.onStart = null;
+      await coordinator.ensureStarted(voiceAccessEnabled: true);
+
+      expect(session.startCount, 2);
+      expect(coordinator.isActive, isTrue);
+      expect(directives, <BackgroundLearningDirective>[
+        BackgroundLearningDirective.keepVoiceNavigation,
+      ]);
+    });
+  }
+
+  test('iOS re-enables voice after the revoked native start settles', () async {
+    final session = _FakeBackgroundSession();
+    addTearDown(session.dispose);
+    final nativeStart = Completer<bool>();
+    session.onStart = () => nativeStart.future;
+    final directives = <BackgroundLearningDirective>[];
+    final coordinator = BackgroundLearningCoordinator(
+      session: session,
+      initialLifecycleState: AppLifecycleState.resumed,
+      onDirective: directives.add,
+      isWeb: false,
+      targetPlatform: TargetPlatform.iOS,
+    );
+    addTearDown(coordinator.dispose);
+
+    final starting = coordinator.initialize(voiceAccessEnabled: true);
+    await coordinator.updateVoiceAccess(false);
+    await coordinator.updateVoiceAccess(true);
+    session.onStart = null;
+    nativeStart.complete(true);
+    await starting;
+    await Future<void>.delayed(Duration.zero);
+
+    expect(session.startCount, 2);
+    expect(session.stopCount, 2);
+    expect(coordinator.isActive, isTrue);
+    expect(directives, <BackgroundLearningDirective>[
+      BackgroundLearningDirective.keepVoiceNavigation,
+    ]);
+  });
+
+  test(
+    'iOS closes a native start that completes after Home disposal',
+    () async {
+      final session = _FakeBackgroundSession();
+      addTearDown(session.dispose);
+      final nativeStart = Completer<bool>();
+      session.onStart = () => nativeStart.future;
+      final directives = <BackgroundLearningDirective>[];
+      final coordinator = BackgroundLearningCoordinator(
+        session: session,
+        initialLifecycleState: AppLifecycleState.resumed,
+        onDirective: directives.add,
+        isWeb: false,
+        targetPlatform: TargetPlatform.iOS,
+      );
+      addTearDown(coordinator.dispose);
+
+      final starting = coordinator.initialize(voiceAccessEnabled: true);
+      coordinator.dispose();
+      nativeStart.complete(true);
+      await starting;
+
+      expect(coordinator.isActive, isFalse);
+      expect(directives, isEmpty);
+      expect(session.stopCount, 2);
+    },
+  );
+
+  test(
+    'iOS detached lifecycle invalidates pending native background start',
+    () async {
+      final session = _FakeBackgroundSession();
+      addTearDown(session.dispose);
+      final nativeStart = Completer<bool>();
+      session.onStart = () => nativeStart.future;
+      final directives = <BackgroundLearningDirective>[];
+      final coordinator = BackgroundLearningCoordinator(
+        session: session,
+        initialLifecycleState: AppLifecycleState.resumed,
+        onDirective: directives.add,
+        isWeb: false,
+        targetPlatform: TargetPlatform.iOS,
+      );
+      addTearDown(coordinator.dispose);
+
+      final starting = coordinator.initialize(voiceAccessEnabled: true);
+      expect(
+        coordinator.handleLifecycle(
+          AppLifecycleState.detached,
+          voiceAccessEnabled: true,
+          explicitMainSessionActive: true,
+        ),
+        BackgroundLearningDirective.pauseVoiceNavigation,
+      );
+      nativeStart.complete(true);
+      await starting;
+
+      session.emit(
+        const BackgroundLearningEvent(
+          type: BackgroundLearningEventType.resumable,
+          reason: 'audio_session_interruption_ended',
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(coordinator.isActive, isFalse);
+      expect(directives, isEmpty);
+      expect(session.startCount, 1);
+      expect(session.stopCount, 2);
+
+      session.onStart = null;
+      coordinator.handleLifecycle(
+        AppLifecycleState.resumed,
+        voiceAccessEnabled: true,
+        explicitMainSessionActive: false,
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(session.startCount, 2);
+      expect(coordinator.isActive, isTrue);
+    },
+  );
+
   test(
     'Android keeps only an explicit MAIN microphone in background',
     () async {
@@ -186,6 +413,8 @@ class _FakeBackgroundSession
       StreamController<BackgroundLearningEvent>.broadcast();
   int startCount = 0;
   int stopCount = 0;
+  Future<bool> Function()? onStart;
+  Future<void> Function()? onStop;
   final List<bool> activeLearningValues = <bool>[];
 
   @override
@@ -194,12 +423,14 @@ class _FakeBackgroundSession
   @override
   Future<bool> start() async {
     startCount += 1;
+    if (onStart != null) return onStart!();
     return true;
   }
 
   @override
   Future<void> stop() async {
     stopCount += 1;
+    await onStop?.call();
   }
 
   @override

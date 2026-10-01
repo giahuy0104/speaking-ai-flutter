@@ -45,6 +45,9 @@ class BackgroundLearningCoordinator {
   bool _microphoneRequiresVisibleResume = false;
   bool _checkpointHandled = false;
   bool _disposed = false;
+  bool _voiceAccessEnabled = false;
+  int _sessionGeneration = 0;
+  Future<void>? _sessionStopOperation;
 
   bool get isActive => _active;
   bool get isForeground => _lifecycleState == AppLifecycleState.resumed;
@@ -55,13 +58,15 @@ class BackgroundLearningCoordinator {
 
   Future<void> updateVoiceAccess(bool enabled) async {
     if (_disposed) return;
+    _voiceAccessEnabled = enabled;
     if (enabled) {
       await ensureStarted(voiceAccessEnabled: true);
       return;
     }
+    _sessionGeneration += 1;
     _active = false;
     _microphoneRequiresVisibleResume = false;
-    await _session.stop();
+    await _stopNativeSession();
   }
 
   BackgroundLearningDirective handleLifecycle(
@@ -89,8 +94,9 @@ class BackgroundLearningCoordinator {
     }
 
     if (state == AppLifecycleState.detached) {
+      _sessionGeneration += 1;
       _active = false;
-      unawaited(_session.stop());
+      unawaited(_stopNativeSession());
     } else if (_active && voiceAccessEnabled) {
       return BackgroundLearningDirective.keepVoiceNavigation;
     }
@@ -98,22 +104,48 @@ class BackgroundLearningCoordinator {
   }
 
   Future<void> ensureStarted({required bool voiceAccessEnabled}) async {
-    if (_disposed || !voiceAccessEnabled || _active || _starting || _isWeb) {
+    if (_disposed) return;
+    _voiceAccessEnabled = voiceAccessEnabled;
+    if (!voiceAccessEnabled || _active || _starting || _isWeb) {
       return;
     }
     _starting = true;
+    final generation = _sessionGeneration;
     _subscription ??= _session.events.listen(_handleEvent);
-    final active = await _session.start();
-    _starting = false;
-    if (_disposed) {
-      if (active && (_isWeb || _targetPlatform != TargetPlatform.android)) {
-        await _session.stop();
+    try {
+      final stopping = _sessionStopOperation;
+      if (stopping != null) await stopping;
+      if (_disposed ||
+          generation != _sessionGeneration ||
+          !_voiceAccessEnabled) {
+        return;
       }
-      return;
-    }
-    _active = active;
-    if (active) {
-      _onDirective(BackgroundLearningDirective.keepVoiceNavigation);
+      final active = await _session.start();
+      if (_disposed || generation != _sessionGeneration) {
+        // A late native start must not re-arm iOS capture after voice access
+        // was revoked, the app detached, or this Home shell was disposed.
+        if (active &&
+            (!_disposed || _targetPlatform != TargetPlatform.android)) {
+          await _stopNativeSession();
+        }
+        return;
+      }
+      _active = active;
+      if (active) {
+        _onDirective(BackgroundLearningDirective.keepVoiceNavigation);
+      }
+    } catch (error) {
+      debugPrint('Cannot start background learning session: $error');
+    } finally {
+      _starting = false;
+      // Enabling voice again while a revoked start is settling requests a
+      // fresh native session, instead of silently losing the enable action.
+      if (!_disposed &&
+          generation != _sessionGeneration &&
+          _voiceAccessEnabled &&
+          isForeground) {
+        unawaited(ensureStarted(voiceAccessEnabled: true));
+      }
     }
   }
 
@@ -141,6 +173,26 @@ class BackgroundLearningCoordinator {
 
   Future<void> clearListeningCheckpoint() => _checkpointStore.clear();
 
+  Future<void> _stopNativeSession() {
+    final previous = _sessionStopOperation;
+    late final Future<void> operation;
+    operation =
+        (() async {
+          if (previous != null) {
+            await previous.catchError((Object error) {
+              debugPrint('Previous background learning stop failed: $error');
+            });
+          }
+          await _session.stop();
+        })().whenComplete(() {
+          if (identical(_sessionStopOperation, operation)) {
+            _sessionStopOperation = null;
+          }
+        });
+    _sessionStopOperation = operation;
+    return operation;
+  }
+
   Future<void> setActiveLearning(bool active) async {
     final session = _session;
     if (session is ActiveLearningBackgroundSessionControl) {
@@ -150,7 +202,13 @@ class BackgroundLearningCoordinator {
   }
 
   void _handleEvent(BackgroundLearningEvent event) {
-    if (_disposed) return;
+    if (_disposed ||
+        !_voiceAccessEnabled ||
+        _sessionStopOperation != null ||
+        (_targetPlatform == TargetPlatform.iOS &&
+            _lifecycleState == AppLifecycleState.detached)) {
+      return;
+    }
     if (event.type == BackgroundLearningEventType.resumable) {
       _active = true;
       _microphoneRequiresVisibleResume =
@@ -166,9 +224,10 @@ class BackgroundLearningCoordinator {
   void dispose() {
     if (_disposed) return;
     _disposed = true;
+    _sessionGeneration += 1;
     unawaited(_subscription?.cancel());
     if (_isWeb || _targetPlatform != TargetPlatform.android) {
-      unawaited(_session.stop());
+      unawaited(_stopNativeSession());
     }
   }
 }

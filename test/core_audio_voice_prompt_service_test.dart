@@ -8,28 +8,52 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('Android awaited TTS failure propagates to the capture gate', () async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.android;
-    addTearDown(() => debugDefaultTargetPlatformOverride = null);
-    const channel = MethodChannel('test_failed_model');
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (call) async {
-          throw PlatformException(code: 'HFP_ROUTE_LOST');
-        });
-    addTearDown(
-      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, null),
+  for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+    test(
+      '${platform.name} awaited TTS failure propagates to the capture gate',
+      () async {
+        debugDefaultTargetPlatformOverride = platform;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        const channel = MethodChannel('test_failed_model');
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (call) async {
+              throw PlatformException(code: 'HFP_ROUTE_LOST');
+            });
+        addTearDown(
+          () => TestDefaultBinaryMessengerBinding
+              .instance
+              .defaultBinaryMessenger
+              .setMockMethodCallHandler(channel, null),
+        );
+        const service = MethodChannelVoicePromptService(channel: channel);
+        await expectLater(
+          service.speakAndWait('Model'),
+          throwsA(isA<PlatformException>()),
+        );
+        await expectLater(
+          service.speakAndWaitOnSelectedMediaOutput('Model'),
+          throwsA(isA<PlatformException>()),
+        );
+        await expectLater(
+          service.speakAndWaitOnPhoneSpeaker('Model'),
+          throwsA(isA<PlatformException>()),
+        );
+        await expectLater(
+          service.speakAndWaitStyled(
+            'Model',
+            locale: 'en-US',
+            speechRate: 0.85,
+            pitch: 1.05,
+          ),
+          throwsA(isA<PlatformException>()),
+        );
+        // Unawaited supplementary speech and navigation cleanup keep their
+        // established best-effort behavior on both native platforms.
+        await service.speak('Model');
+        await service.stop();
+      },
     );
-    const service = MethodChannelVoicePromptService(channel: channel);
-    await expectLater(
-      service.speakAndWait('Model'),
-      throwsA(isA<PlatformException>()),
-    );
-    await expectLater(
-      service.speakAndWaitOnSelectedMediaOutput('Model'),
-      throwsA(isA<PlatformException>()),
-    );
-  });
+  }
 
   test(
     'translation style stays per utterance and leaves prompt defaults intact',
@@ -209,25 +233,36 @@ void main() {
     expect(completed, isTrue);
   });
 
-  for (final code in ['READY_CUE_UNAVAILABLE', 'HFP_ROUTE_LOST']) {
-    test('Android $code fails the ready gate instead of opening mic', () async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.android;
-      addTearDown(() => debugDefaultTargetPlatformOverride = null);
-      const channel = MethodChannel('test_ready_cue_failure');
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (_) async {
-            throw PlatformException(code: code);
+  for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+    for (final code in [
+      'READY_CUE_UNAVAILABLE',
+      'HFP_ROUTE_LOST',
+      'READY_CUE_TIMEOUT',
+    ]) {
+      test(
+        '${platform.name} $code fails the ready gate instead of opening mic',
+        () async {
+          debugDefaultTargetPlatformOverride = platform;
+          addTearDown(() => debugDefaultTargetPlatformOverride = null);
+          const channel = MethodChannel('test_ready_cue_failure');
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+              .setMockMethodCallHandler(channel, (_) async {
+                throw PlatformException(code: code);
+              });
+          addTearDown(() {
+            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+                .setMockMethodCallHandler(channel, null);
           });
-      addTearDown(() {
-        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(channel, null);
-      });
-      const service = MethodChannelVoicePromptService(channel: channel);
-      await expectLater(
-        service.playSpeechReadyCue(),
-        throwsA(isA<PlatformException>().having((e) => e.code, 'code', code)),
+          const service = MethodChannelVoicePromptService(channel: channel);
+          await expectLater(
+            service.playSpeechReadyCue(),
+            throwsA(
+              isA<PlatformException>().having((e) => e.code, 'code', code),
+            ),
+          );
+        },
       );
-    });
+    }
   }
 
   test('brackets one MAIN turn through the native coordinator', () async {

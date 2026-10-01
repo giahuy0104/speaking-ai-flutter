@@ -123,6 +123,8 @@ class BluetoothAudioStatus {
     this.routeActive = false,
     this.inputDeviceName,
     this.outputDeviceName,
+    this.outputPortType,
+    this.routeSequence,
     this.audioRoute,
   });
 
@@ -137,6 +139,12 @@ class BluetoothAudioStatus {
   final bool routeActive;
   final String? inputDeviceName;
   final String? outputDeviceName;
+
+  /// Native iOS output kind, such as bluetoothA2DP or builtInSpeaker.
+  final String? outputPortType;
+
+  /// Monotonic native route-change sequence; absent on older builds/Android.
+  final int? routeSequence;
   final String? audioRoute;
 
   bool get isBridgeSupported =>

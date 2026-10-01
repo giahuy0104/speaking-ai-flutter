@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
@@ -10,6 +9,7 @@ import 'package:ai_speaking_flutter_app/core/device/main_button_coordinator.dart
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -436,6 +436,125 @@ void main() {
     },
   );
 
+  testWidgets(
+    'losing the selected H20 route stops in-flight translation audio',
+    (tester) async {
+      final hfp = _FakeHfpAudioControl(
+        devices: const <HfpAudioDevice>[
+          HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+        ],
+      );
+      final playback = _HeldPlaybackService();
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        hfpAudioControl: hfp,
+        playbackService: playback,
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+      );
+      await controller.connectHfpDevice(hfp.devices.single);
+      controller.result = ConversationResult(
+        conversationId: 'route-loss',
+        sessionId: 'route-loss-session',
+        context: PracticeContext.home,
+        vietnameseText: 'Xin chào',
+        englishText: 'Hello',
+        audioUri: Uri.parse('https://example.com/hello.mp3'),
+        processingMode: 'rule',
+        textSource: 'phrase_rule',
+        audioSource: 'cache',
+        asrMode: 'android_streaming',
+        latency: const ConversationLatency(
+          asrMs: 1,
+          llmMs: 0,
+          ttsMs: 0,
+          timeToFirstAudioMs: 1,
+        ),
+      );
+
+      final playing = controller.playResult();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 10));
+      expect(playback.started.isCompleted, isTrue);
+      expect(hfp.status.routeActive, isTrue);
+
+      hfp.emitRouteLoss();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 10));
+
+      expect(playback.stopCount, greaterThan(0));
+      expect(controller.errorMessage, contains('Kết nối âm thanh H20'));
+      await playing;
+      controller.dispose();
+      await playback.dispose();
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
+    'iOS A2DP playback stops on speaker fallback but ignores stale route events',
+    (tester) async {
+      final hfp = _FakeHfpAudioControl(
+        devices: const <HfpAudioDevice>[
+          HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+        ],
+      );
+      final playback = _HeldPlaybackService();
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        streamingSpeechInput: _FakeContinuousHfpStreamingSpeechInput(),
+        hfpAudioControl: hfp,
+        playbackService: playback,
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.hfpStreaming,
+      );
+      await controller.connectHfpDevice(hfp.devices.single);
+      hfp.emitOutputRoute('bluetoothA2DP', sequence: 10);
+      controller.result = ConversationResult(
+        conversationId: 'a2dp-route-loss',
+        sessionId: 'a2dp-session',
+        context: PracticeContext.home,
+        vietnameseText: 'Xin chào',
+        englishText: 'Hello',
+        audioUri: Uri.parse('https://example.com/hello.mp3'),
+        processingMode: 'rule',
+        textSource: 'phrase_rule',
+        audioSource: 'cache',
+        asrMode: 'ios_native',
+        latency: const ConversationLatency(
+          asrMs: 1,
+          llmMs: 0,
+          ttsMs: 0,
+          timeToFirstAudioMs: 1,
+        ),
+      );
+
+      final playing = controller.playResult();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 10));
+      expect(playback.started.isCompleted, isTrue);
+      expect(playback.communicationRouteActive, isFalse);
+
+      hfp.emitOutputRoute('builtInSpeaker', sequence: 9);
+      await tester.pump();
+      expect(playback.stopCount, 0);
+
+      hfp.emitOutputRoute('builtInSpeaker', sequence: 11);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 10));
+      expect(playback.stopCount, greaterThan(0));
+      expect(controller.errorMessage, contains('Kết nối âm thanh H20'));
+      await playing;
+      controller.dispose();
+      await playback.dispose();
+    },
+    variant: TargetPlatformVariant({TargetPlatform.iOS}),
+  );
+
   test(
     'completed turn stays blocked until its microphone cleanup finishes',
     () async {
@@ -615,6 +734,31 @@ class _FakeHfpAudioControl implements HfpAudioControl {
   int disconnectCount = 0;
   HfpAudioDevice? connectedDevice;
 
+  void emitRouteLoss() {
+    _status = const BluetoothAudioStatus(
+      phase: BluetoothAudioConnectionPhase.idle,
+      deviceId: 'h20',
+      deviceName: 'H20',
+      sampleRate: 16000,
+    );
+    _statuses.add(_status);
+  }
+
+  void emitOutputRoute(String portType, {required int sequence}) {
+    final next = BluetoothAudioStatus(
+      phase: BluetoothAudioConnectionPhase.ready,
+      deviceId: 'h20',
+      deviceName: 'H20',
+      sampleRate: 16000,
+      outputPortType: portType,
+      routeSequence: sequence,
+    );
+    if (sequence >= (_status.routeSequence ?? -1)) {
+      _status = next;
+    }
+    _statuses.add(next);
+  }
+
   @override
   bool get usesBrowserAudioInput => false;
 
@@ -729,6 +873,49 @@ class _FakePlaybackService
 
   @override
   Future<void> dispose() => _completions.close();
+}
+
+class _HeldPlaybackService extends _FakePlaybackService {
+  final Completer<void> started = Completer<void>();
+  final StreamController<bool> _playing = StreamController<bool>.broadcast(
+    sync: true,
+  );
+  final StreamController<void> _finished = StreamController<void>.broadcast(
+    sync: true,
+  );
+  int stopCount = 0;
+
+  @override
+  Stream<bool> get playingStream => _playing.stream;
+
+  @override
+  Stream<void> get completionStream => _finished.stream;
+
+  @override
+  Future<PlaybackStartMetrics> play(Uri uri) async {
+    playedUris.add(uri);
+    _playing.add(true);
+    if (!started.isCompleted) started.complete();
+    return const PlaybackStartMetrics(
+      audioLoadDuration: Duration.zero,
+      startedAfterRequest: Duration.zero,
+      fromDeviceCache: true,
+    );
+  }
+
+  @override
+  Future<void> stop() async {
+    stopCount += 1;
+    _playing.add(false);
+    _finished.add(null);
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _playing.close();
+    await _finished.close();
+    await super.dispose();
+  }
 }
 
 class _FakeAiv0BleControl implements Aiv0BleControl {

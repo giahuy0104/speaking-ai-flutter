@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-09-24T08:36:37.767554Z",
+  "generatedAt": "2026-09-30T15:53:06.131772Z",
   "packCount": 16,
-  "audioEntries": 3935,
-  "uniquePackBytes": 127569995,
-  "speechEntries": 3928,
+  "audioEntries": 3948,
+  "uniquePackBytes": 128180553,
+  "speechEntries": 3941,
   "textHashCoverage": 1.0,
   "missingSourceTextKeys": [],
   "dynamicTtsOnly": [
@@ -32,9 +32,9 @@
       "version": "v1",
       "minimumAppVersion": "1.0.8",
       "manifest": "assets/data/listening_common_audio.json",
-      "manifestSha256": "7fcdfdc94e4931c6fb22b08a7523373d562f71efbc9b530f6f669e479a0fcd1a",
-      "audioCount": 429,
-      "sizeBytes": 25794218,
+      "manifestSha256": "b71c9629e087f869109dbe10b62f7fdbb0a7d59295b703064a33aed9f240f7de",
+      "audioCount": 442,
+      "sizeBytes": 26404776,
       "preloadGroup": "shared"
     },
     {

@@ -120,6 +120,9 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   int _invalidResponseCount = 0;
   String? _activeAttemptAudioPath;
   StreamSubscription<LessonMediaException>? _recordingErrorSubscription;
+  StreamSubscription<void>? _iosRecordingCompletedSubscription;
+  StreamSubscription<String>? _iosRecordingPartialSubscription;
+  int _iosCaptureGeneration = 0;
   ActiveLearningModuleRegistry? _activeModuleRegistry;
   Object? _activeModuleRegistration;
 
@@ -177,6 +180,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     // put the Challenge UI back into a recording state with no microphone.
     _request += 1;
     _recordingEndpointDetector.cancel();
+    _cancelIosRecordingCompletion();
     setState(() {
       _recording = false;
       _recordingStartPending = false;
@@ -213,6 +217,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     _mainPauseGeneration += 1;
     unawaited(_recordingErrorSubscription?.cancel());
     _recordingEndpointDetector.cancel();
+    _cancelIosRecordingCompletion();
     _promptCompletionTimer?.cancel();
     _promptCompletionTimer = null;
     final promptWaiter = _promptCompletionWaiter;
@@ -255,6 +260,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     _request += 1;
     _mainPauseGeneration += 1;
     _recordingEndpointDetector.cancel();
+    _cancelIosRecordingCompletion();
     _promptCompletionTimer?.cancel();
     _promptCompletionTimer = null;
     final waiter = _promptCompletionWaiter;
@@ -281,6 +287,16 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       else if (wasRecording)
         widget.mediaService.cancelRecording().catchError((Object _) {}),
     ]);
+  }
+
+  void _cancelIosRecordingCompletion() {
+    _iosCaptureGeneration += 1;
+    final subscription = _iosRecordingCompletedSubscription;
+    final partialSubscription = _iosRecordingPartialSubscription;
+    _iosRecordingCompletedSubscription = null;
+    _iosRecordingPartialSubscription = null;
+    unawaited(subscription?.cancel());
+    unawaited(partialSubscription?.cancel());
   }
 
   @override
@@ -426,6 +442,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   Future<void> _replayCurrent() async {
     if (_recording) {
       _recordingEndpointDetector.cancel();
+      _cancelIosRecordingCompletion();
       if (_recordingUsesIosSpeech && widget.iosSpeechInput != null) {
         await widget.iosSpeechInput!.cancel().catchError((Object _) {});
       } else {
@@ -558,6 +575,10 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     final expected = _expectedEnglish;
     if (expected.isEmpty) return;
     final request = _request;
+    _cancelIosRecordingCompletion();
+    final captureGeneration = _iosCaptureGeneration;
+    var nativeCompletionPending = false;
+    var nativeSpeechObserved = false;
     setState(() {
       _busy = true;
       _message = null;
@@ -570,9 +591,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
           !kIsWeb &&
           (defaultTargetPlatform == TargetPlatform.iOS ||
               defaultTargetPlatform == TargetPlatform.android);
-      if (!kIsWeb &&
-          defaultTargetPlatform == TargetPlatform.android &&
-          prompt is SpeechReadyCuePlayer) {
+      if (cueBeforeStart && prompt is SpeechReadyCuePlayer) {
         await _prepareSelectedLessonOutputWithRetry(request);
         if (!mounted || _pausedForMainAssistant || request != _request) return;
       }
@@ -600,15 +619,51 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         _recordingStartPending = true;
         _recordingUsesIosSpeech = true;
         usesIosSpeech = true;
+        if (iosSpeechInput is StreamingSpeechInput) {
+          _iosRecordingCompletedSubscription =
+              (iosSpeechInput as StreamingSpeechInput).completed.listen((_) {
+                if (!mounted ||
+                    _pausedForMainAssistant ||
+                    request != _request ||
+                    captureGeneration != _iosCaptureGeneration) {
+                  return;
+                }
+                // Apple Speech can finish (or report no speech) while native
+                // start is still returning. Consume that terminal result once
+                // the recording UI owns the turn, without waiting six seconds.
+                nativeCompletionPending = true;
+                if (_recording && !_recordingStartPending) {
+                  unawaited(_stopRecording());
+                }
+              });
+          _iosRecordingPartialSubscription =
+              (iosSpeechInput as StreamingSpeechInput).partialText.listen((
+                text,
+              ) {
+                if (!mounted ||
+                    _pausedForMainAssistant ||
+                    request != _request ||
+                    captureGeneration != _iosCaptureGeneration ||
+                    text.trim().isEmpty) {
+                  return;
+                }
+                nativeSpeechObserved = true;
+                if (_recording && !_recordingStartPending) {
+                  _recordingEndpointDetector.confirmSpeech();
+                }
+              });
+        }
         if (iosSpeechInput is IOSStreamingSpeechInput) {
           await iosSpeechInput
               .startLessonEnglishRecognitionWithRecording(
                 _activeAttemptAudioPath!,
               )
-              .timeout(const Duration(seconds: 8));
+              // Apple Speech allows nine seconds for its ready event, after
+              // the selected H20 route opens. Leave room for both boundaries.
+              .timeout(const Duration(seconds: 12));
         } else {
           await iosSpeechInput.startLessonEnglishRecognition().timeout(
-            const Duration(seconds: 8),
+            const Duration(seconds: 12),
           );
         }
         if (!mounted || _pausedForMainAssistant || request != _request) return;
@@ -661,9 +716,12 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
           if (mounted && _recording) unawaited(_stopRecording());
         },
       );
+      if (nativeSpeechObserved) _recordingEndpointDetector.confirmSpeech();
+      if (nativeCompletionPending) unawaited(_stopRecording());
     } catch (error) {
       if (!mounted || _pausedForMainAssistant || request != _request) return;
       _recordingEndpointDetector.cancel();
+      _cancelIosRecordingCompletion();
       if (_recordingUsesIosSpeech) {
         await widget.iosSpeechInput?.cancel().catchError((Object _) {});
         if (!mounted || _pausedForMainAssistant || request != _request) return;
@@ -685,6 +743,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     final request = _request;
     final pauseGeneration = _mainPauseGeneration;
     _recordingEndpointDetector.cancel();
+    _cancelIosRecordingCompletion();
     setState(() => _busy = true);
     var shouldOpenMicrophoneAgain = false;
     try {
@@ -967,6 +1026,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
 
   Future<bool> _advance() async {
     if (_pausedForMainAssistant) return false;
+    final request = _request;
     if (_challengeIndex < widget.challenges.length - 1) {
       setState(() {
         _challengeIndex += 1;
@@ -979,7 +1039,9 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       'Bạn đã hoàn thành phần thử thách rồi.',
       audioKey: ListeningAudioKeys.feedbackCompleted,
     );
-    if (!mounted || _pausedForMainAssistant) return false;
+    if (!mounted || _pausedForMainAssistant || request != _request) {
+      return false;
+    }
     if (mounted) Navigator.of(context).pop(true);
     return false;
   }
