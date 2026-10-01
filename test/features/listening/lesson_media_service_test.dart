@@ -693,7 +693,7 @@ void main() {
         recordConfig.androidConfig.audioManagerMode,
         AudioManagerMode.modeNormal,
       );
-      expect(recordConfig.audioInterruption, AudioInterruptionMode.pause);
+      expect(recordConfig.audioInterruption, AudioInterruptionMode.none);
     }
     final session = lessonRecordingAudioSessionConfiguration(
       useSelectedHfp: true,

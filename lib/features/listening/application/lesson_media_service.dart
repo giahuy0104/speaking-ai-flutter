@@ -582,6 +582,12 @@ class LessonMediaService {
     autoGain: true,
     echoCancel: true,
     noiseSuppress: true,
+    // record_android pauses on any audio-focus loss and never resumes by
+    // itself, so one notification sound drops the rest of the child's take.
+    audioInterruption:
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+        ? AudioInterruptionMode.none
+        : AudioInterruptionMode.pause,
     device: inputDevice,
     // HfpAudioControl already owns the exact selected H20 route. Letting the
     // record plugin manage Bluetooth too makes it select the first SCO device
