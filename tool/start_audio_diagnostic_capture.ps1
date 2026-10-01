@@ -14,7 +14,8 @@ if ($LASTEXITCODE -ne 0) { throw 'Cannot enable native diagnostics on the select
 # Keep capture alive after this task returns; do not clear existing device logs.
 $capture = Start-Process -FilePath $AdbPath -WindowStyle Hidden -PassThru `
   -ArgumentList @('-s', $DeviceId, 'logcat', '-v', 'epoch', '-T', '1',
-    'HomiDiag:V', 'flutter:I', 'HfpAudioBridge:V', 'AudioManager:I',
+    'HomiDiag:V', 'Aiv0BleControl:V', 'BluetoothGatt:V', 'flutter:I',
+    'HfpAudioBridge:V', 'AudioManager:I',
     'AudioService:I', 'SpeechRecognizer:V', 'AndroidRuntime:E', '*:S') `
   -RedirectStandardOutput (Join-Path $captureDirectory 'device.log') `
   -RedirectStandardError (Join-Path $captureDirectory 'capture.stderr.log')
