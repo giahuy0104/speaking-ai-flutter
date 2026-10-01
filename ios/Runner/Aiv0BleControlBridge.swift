@@ -714,6 +714,14 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     cancelReconnectTasks()
     reconnectAttempt = 0
     manualDisconnect = false
+    if let previous = connectedPeripheral,
+      previous.identifier != peripheral.identifier {
+      requestPeripheralDisconnect(
+        previous,
+        caller: "Aiv0BleControlBridge.connect",
+        code: "device_switched"
+      )
+    }
     connectedPeripheral = peripheral
     peripheral.delegate = self
     pendingConnectResult = result
@@ -1718,7 +1726,11 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
   }
 
   func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
-    connectedPeripheral = peripheral
+    guard !manualDisconnect,
+      connectedPeripheral?.identifier == peripheral.identifier else {
+      central.cancelPeripheralConnection(peripheral)
+      return
+    }
     peripheral.delegate = self
     phase = "connecting"
     message = "Đang xác minh dịch vụ BLE Control…"
@@ -1744,6 +1756,8 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
     didFailToConnect peripheral: CBPeripheral,
     error: Error?
   ) {
+    guard !manualDisconnect,
+      connectedPeripheral?.identifier == peripheral.identifier else { return }
     phase = "error"
     message = "Không kết nối được HOMI: \(error?.localizedDescription ?? "không rõ lỗi")"
     emitStatus()
@@ -1790,6 +1804,7 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
     error: Error?,
     systemIsReconnecting: Bool
   ) {
+    guard connectedPeripheral?.identifier == peripheral.identifier else { return }
     let nsError = error as NSError?
     let peripheralState = String(describing: peripheral.state)
     let disconnectCode = nsError.map { "\($0.domain):\($0.code)" } ?? "none"
@@ -1846,6 +1861,7 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
 
 extension Aiv0BleControlBridge: CBPeripheralDelegate {
   func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+    guard connectedPeripheral?.identifier == peripheral.identifier else { return }
     guard error == nil else {
       failDiscovery("Không đọc được dịch vụ BLE: \(error!.localizedDescription)")
       return
@@ -1877,6 +1893,7 @@ extension Aiv0BleControlBridge: CBPeripheralDelegate {
     didDiscoverCharacteristicsFor service: CBService,
     error: Error?
   ) {
+    guard connectedPeripheral?.identifier == peripheral.identifier else { return }
     guard error == nil else {
       if service.uuid == ProtocolUUID.controlService {
         failDiscovery("Không đọc được characteristic BLE Control: \(error!.localizedDescription)")
@@ -1906,6 +1923,7 @@ extension Aiv0BleControlBridge: CBPeripheralDelegate {
     didUpdateNotificationStateFor characteristic: CBCharacteristic,
     error: Error?
   ) {
+    guard connectedPeripheral?.identifier == peripheral.identifier else { return }
     guard characteristic.uuid == ProtocolUUID.buttonEvent else { return }
     let peripheralState = String(describing: peripheral.state)
     let notificationState = characteristic.isNotifying ? "notifying" : "disabled"
@@ -1977,6 +1995,7 @@ extension Aiv0BleControlBridge: CBPeripheralDelegate {
     didUpdateValueFor characteristic: CBCharacteristic,
     error: Error?
   ) {
+    guard connectedPeripheral?.identifier == peripheral.identifier else { return }
     guard error == nil, let data = characteristic.value else {
       if characteristic.uuid == ProtocolUUID.buttonEvent {
         invalidPacketCount += 1
@@ -2040,6 +2059,7 @@ extension Aiv0BleControlBridge: CBPeripheralDelegate {
     didWriteValueFor characteristic: CBCharacteristic,
     error: Error?
   ) {
+    guard connectedPeripheral?.identifier == peripheral.identifier else { return }
     guard characteristic.uuid == ProtocolUUID.appState else { return }
     let result = pendingWriteResult
     pendingWriteResult = nil

@@ -89,6 +89,9 @@ class Aiv0BleControlBridge(
     private var firmwareCharacteristic: BluetoothGattCharacteristic? = null
     private var shouldReconnect = false
     private var reconnectAttempts = 0
+    private var reconnectRunnable: Runnable? = null
+    private var lastDisconnectCode: String? = null
+    private var lastDisconnectEpochMs: Long? = null
     private var disposed = false
     private val connectionTimeout = Runnable {
         if (phase == "connecting" || phase == "reconnecting") {
@@ -415,6 +418,7 @@ class Aiv0BleControlBridge(
         }
         stopScan(complete = true)
         shouldReconnect = false
+        cancelPendingReconnect()
         closeGatt()
         val device = runCatching { adapter!!.getRemoteDevice(requestedId) }.getOrNull()
         if (device == null) {
@@ -435,6 +439,7 @@ class Aiv0BleControlBridge(
     }
 
     private fun openGatt(device: BluetoothDevice) {
+        cancelPendingReconnect()
         mainHandler.removeCallbacks(connectionTimeout)
         val opened = runCatching {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -453,10 +458,14 @@ class Aiv0BleControlBridge(
     private val gattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             mainHandler.post {
+                if (gatt !== bluetoothGatt) {
+                    // A cancelled session can deliver its disconnect after a new
+                    // GATT is opened. It must not replace or close the new link.
+                    runCatching { gatt.close() }
+                    return@post
+                }
                 when (newState) {
                     BluetoothProfile.STATE_CONNECTED -> {
-                        bluetoothGatt = gatt
-                        reconnectAttempts = 0
                         // Do not publish a stale value from the previous GATT
                         // session before this peripheral has been read.
                         batteryPercent = null
@@ -474,6 +483,7 @@ class Aiv0BleControlBridge(
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             mainHandler.post {
+                if (gatt !== bluetoothGatt) return@post
                 if (status != BluetoothGatt.GATT_SUCCESS) {
                     failConnection("Không đọc được GATT services (mã $status).")
                     return@post
@@ -545,12 +555,14 @@ class Aiv0BleControlBridge(
             status: Int,
         ) {
             mainHandler.post {
+                if (gatt !== bluetoothGatt) return@post
                 if (descriptor.uuid != Aiv0BleProtocol.clientCharacteristicConfigUuid) return@post
                 if (status != BluetoothGatt.GATT_SUCCESS) {
                     failConnection("Không bật được Indicate 9E3B0002 (mã $status).")
                     return@post
                 }
                 phase = "connected"
+                reconnectAttempts = 0
                 mainHandler.removeCallbacks(connectionTimeout)
                 runtimePreferences.edit()
                     .putString(LAST_DEVICE_ID, deviceId)
@@ -574,7 +586,7 @@ class Aiv0BleControlBridge(
             characteristic: BluetoothGattCharacteristic,
         ) {
             @Suppress("DEPRECATION")
-            handleCharacteristicChanged(characteristic.uuid, characteristic.value ?: byteArrayOf())
+            handleCharacteristicChanged(gatt, characteristic.uuid, characteristic.value ?: byteArrayOf())
         }
 
         override fun onCharacteristicChanged(
@@ -582,7 +594,7 @@ class Aiv0BleControlBridge(
             characteristic: BluetoothGattCharacteristic,
             value: ByteArray,
         ) {
-            handleCharacteristicChanged(characteristic.uuid, value)
+            handleCharacteristicChanged(gatt, characteristic.uuid, value)
         }
 
         @Deprecated("Deprecated in Java")
@@ -611,6 +623,7 @@ class Aiv0BleControlBridge(
         ) {
             if (characteristic.uuid != Aiv0BleProtocol.appStateUuid) return
             mainHandler.post {
+                if (gatt !== bluetoothGatt) return@post
                 val pending = pendingWriteResult
                 pendingWriteResult = null
                 if (status == BluetoothGatt.GATT_SUCCESS) {
@@ -622,9 +635,10 @@ class Aiv0BleControlBridge(
         }
     }
 
-    private fun handleCharacteristicChanged(uuid: java.util.UUID, value: ByteArray) {
+    private fun handleCharacteristicChanged(gatt: BluetoothGatt, uuid: java.util.UUID, value: ByteArray) {
         if (uuid == Aiv0BleProtocol.batteryLevelUuid) {
             mainHandler.post {
+                if (gatt !== bluetoothGatt) return@post
                 batteryPercent = value.firstOrNull()?.toInt()?.and(0xFF)?.coerceIn(0, 100)
                 emitStatus()
             }
@@ -632,6 +646,7 @@ class Aiv0BleControlBridge(
         }
         if (uuid != Aiv0BleProtocol.buttonEventUuid) return
         mainHandler.post {
+            if (gatt !== bluetoothGatt) return@post
             packetCount += 1
             val hex = value.toHex()
             val now = android.os.SystemClock.elapsedRealtime()
@@ -688,6 +703,7 @@ class Aiv0BleControlBridge(
         status: Int,
     ) {
         mainHandler.post {
+            if (gatt !== bluetoothGatt) return@post
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 when (characteristic.uuid) {
                     Aiv0BleProtocol.batteryLevelUuid -> {
@@ -750,6 +766,7 @@ class Aiv0BleControlBridge(
     private fun disconnect(result: MethodChannel.Result) {
         shouldReconnect = false
         reconnectAttempts = 0
+        cancelPendingReconnect()
         connectResult?.error("CONNECT_CANCELLED", "Đã hủy kết nối.", null)
         connectResult = null
         closeGatt()
@@ -760,10 +777,13 @@ class Aiv0BleControlBridge(
     }
 
     private fun handleDisconnected(gatt: BluetoothGatt, status: Int) {
+        if (gatt !== bluetoothGatt) return
         mainHandler.removeCallbacks(connectionTimeout)
-        if (bluetoothGatt === gatt) bluetoothGatt = null
+        bluetoothGatt = null
         runCatching { gatt.close() }
         clearCharacteristics()
+        lastDisconnectCode = status.toString()
+        lastDisconnectEpochMs = System.currentTimeMillis()
         if (!shouldReconnect || disposed) {
             phase = "idle"
             message = "BLE Control đã ngắt kết nối."
@@ -785,8 +805,13 @@ class Aiv0BleControlBridge(
         Log.w(TAG, "Reconnect $reconnectAttempts/$MAX_RECONNECT_ATTEMPTS status=$status")
         emitStatus()
         val delay = (1_000L shl (reconnectAttempts - 1)).coerceAtMost(8_000L)
-        mainHandler.postDelayed({
-            val id = deviceId ?: return@postDelayed
+        val expectedId = deviceId
+        val retry = Runnable {
+            reconnectRunnable = null
+            if (!shouldReconnect || disposed || phase != "reconnecting" ||
+                deviceId != expectedId || bluetoothGatt != null
+            ) return@Runnable
+            val id = expectedId ?: return@Runnable
             val device = runCatching { adapter?.getRemoteDevice(id) }.getOrNull()
             if (device == null) {
                 phase = "error"
@@ -795,12 +820,20 @@ class Aiv0BleControlBridge(
             } else {
                 openGatt(device)
             }
-        }, delay)
+        }
+        reconnectRunnable = retry
+        mainHandler.postDelayed(retry, delay)
+    }
+
+    private fun cancelPendingReconnect() {
+        reconnectRunnable?.let(mainHandler::removeCallbacks)
+        reconnectRunnable = null
     }
 
     private fun failConnection(reason: String) {
         mainHandler.removeCallbacks(connectionTimeout)
         shouldReconnect = false
+        cancelPendingReconnect()
         phase = "error"
         message = reason
         connectResult?.error("AIV0_PROTOCOL_MISMATCH", reason, snapshot())
@@ -841,6 +874,10 @@ class Aiv0BleControlBridge(
         "invalidPacketCount" to invalidPacketCount,
         "duplicatePacketCount" to duplicatePacketCount,
         "reconnectCount" to reconnectCount,
+        "peripheralState" to if (phase == "connected") "connected" else "disconnected",
+        "mainNotificationState" to if (phase == "connected") "enabled" else "unavailable",
+        "lastDisconnectCode" to lastDisconnectCode,
+        "lastDisconnectEpochMs" to lastDisconnectEpochMs,
         "mediaKeyObservationActive" to mediaKeyObserver.active,
     )
 
@@ -885,6 +922,7 @@ class Aiv0BleControlBridge(
                 ?: "H20"
             shouldReconnect = true
             reconnectAttempts = 0
+            cancelPendingReconnect()
             phase = "reconnecting"
             message = "Đang khôi phục kết nối H20…"
             emitStatus()
@@ -898,6 +936,7 @@ class Aiv0BleControlBridge(
             if (disposed) return@post
             shouldReconnect = false
             reconnectAttempts = 0
+            cancelPendingReconnect()
             closeGatt()
             phase = "idle"
             message = "Phiên HOMI nền đã dừng."
@@ -911,6 +950,7 @@ class Aiv0BleControlBridge(
         mediaKeyObserver.dispose()
         shouldReconnect = false
         mainHandler.removeCallbacksAndMessages(null)
+        reconnectRunnable = null
         stopScan(complete = false)
         connectResult?.error("DISPOSED", "BLE Control đã đóng.", null)
         connectResult = null
