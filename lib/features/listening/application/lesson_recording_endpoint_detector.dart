@@ -47,7 +47,7 @@ class LessonRecordingEndpointDetector {
   StreamSubscription<double>? _amplitudeSubscription;
   Timer? _silenceTimer;
   Timer? _maximumTimer;
-  DateTime? _startedAt;
+  DateTime? _signalStartedAt;
   void Function(LessonRecordingEndpointReason reason)? _onEndpoint;
   bool _speechDetected = false;
   bool _levelHeardSpeech = false;
@@ -66,6 +66,9 @@ class LessonRecordingEndpointDetector {
   /// steady-noise promotion window.
   static const Duration _flatSpeechConfirmation = Duration(milliseconds: 270);
 
+  /// Android reports -160 dBFS until its input stream delivers audio.
+  static const double _noSignalDbfs = -100;
+
   bool get speechDetected => _speechDetected;
 
   void start({
@@ -75,7 +78,7 @@ class LessonRecordingEndpointDetector {
     cancel();
     final generation = ++_generation;
     _voiceActivityDetector.reset();
-    _startedAt = _now();
+    _signalStartedAt = null;
     _onEndpoint = onEndpoint;
     _speechDetected = false;
     _levelHeardSpeech = false;
@@ -133,10 +136,13 @@ class LessonRecordingEndpointDetector {
   void _handleAmplitude(double dbfs, int generation) {
     if (generation != _generation || _endpointSent) return;
     if (!dbfs.isFinite) return;
-    final startedAt = _startedAt;
+    // Calibrating on the empty start-up reads pins the ambient floor at its
+    // minimum, and room noise then reads as speech for the whole turn.
+    if (_signalStartedAt == null && dbfs <= _noSignalDbfs) return;
+    final startedAt = _signalStartedAt ??= _now();
     final activity = _voiceActivityDetector.addSample(
       dbfs,
-      elapsed: startedAt == null ? Duration.zero : _now().difference(startedAt),
+      elapsed: _now().difference(startedAt),
     );
     if (activity.speechStarted) _speechDetected = true;
     if (_recoverQuietCapture && !_speechDetected) {
@@ -175,7 +181,7 @@ class LessonRecordingEndpointDetector {
   /// clear level drop; a single impact or continuous fan noise does not qualify.
   void _recoverSpeechDuringCalibration(double dbfs) {
     if (_earlyVoiceFinished) return;
-    final startedAt = _startedAt;
+    final startedAt = _signalStartedAt;
     if (startedAt == null) return;
     final now = _now();
     if (_earlyVoiceStartedAt == null) {

@@ -310,6 +310,39 @@ void main() {
     ]);
   });
 
+  // Levels a Pixel 8 reported: empty reads while the input opens, then the room.
+  const startupSilence = <double>[-160, -160, -160];
+  const roomNoise = <double>[
+    -26, -26, -26, -22, -22, -24, -24, -24, -24, -24, -24, -23, //
+  ];
+
+  testWidgets(
+    'speech in a noisy room ends on its quiet tail after the start-up silence',
+    (tester) async {
+      final amplitudes = StreamController<double>.broadcast(sync: true);
+      addTearDown(amplitudes.close);
+      var now = DateTime(2026);
+      final reasons = <LessonRecordingEndpointReason>[];
+      final detector = LessonRecordingEndpointDetector(now: () => now);
+      detector.start(amplitudeDbfs: amplitudes.stream, onEndpoint: reasons.add);
+
+      for (final level in <double>[
+        ...startupSilence,
+        ...roomNoise.take(8),
+        -9, -5, -11, -6, -12, -7, -10, //
+        ...roomNoise.skip(8),
+      ]) {
+        now = now.add(const Duration(milliseconds: 90));
+        amplitudes.add(level);
+      }
+      expect(detector.speechDetected, isTrue);
+      await tester.pump(const Duration(milliseconds: 700));
+      expect(reasons, <LessonRecordingEndpointReason>[
+        LessonRecordingEndpointReason.silence,
+      ]);
+    },
+  );
+
   testWidgets(
     'quiet iOS H20 speech ends after its quiet tail instead of six seconds',
     (tester) async {
