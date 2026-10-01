@@ -49,6 +49,7 @@ import '../features/privacy/data/privacy_consent_store.dart';
 import '../features/settings/data/child_age_store.dart';
 import '../features/voice_navigation/application/main_speaking_fallback_flow.dart';
 import '../features/voice_navigation/application/main_assistant_session.dart';
+import '../features/voice_navigation/application/main_button_activation_policy.dart';
 import '../features/voice_navigation/application/main_speaking_session_controller.dart';
 import '../features/voice_navigation/application/voice_navigation_controller.dart';
 import '../features/voice_navigation/data/web_batch_streaming_speech_input.dart';
@@ -171,6 +172,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   Future<bool>? _androidMainHfpRoutePreparation;
   bool _androidMainHfpRouteHeld = false;
   bool _virtualMainPhoneFallback = false;
+  NativeSpeechAudioSource? _mainSpeechAudioSourceOverride;
   AndroidOfflineSpeechModelConsent _offlineSpeechModelConsent =
       AndroidOfflineSpeechModelConsent.undecided;
   Timer? _offlineSpeechModelTimer;
@@ -1566,10 +1568,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
               useSelectedOutputRoute: () => !_virtualMainPhoneFallback,
             ),
             prepareSelectedOutput: _prepareAndroidMainHfpRoute,
-            mainSpeechAudioSource: () =>
-                _virtualMainPhoneFallback && _usesIosHfpLifecycle
-                ? NativeSpeechAudioSource.builtInMic
-                : null,
+            mainSpeechAudioSource: () => _mainSpeechAudioSourceOverride,
             ownsVoicePromptService: true,
             activeLearningCommandHandler: _handleActiveLearningCommand,
           )
@@ -1783,6 +1782,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           conversationController.isBusy ||
           conversationController.isPlaybackPlaying,
       assistantFlowBusy: _mainSpeakingSessionController.isActive,
+      mainButtonSessionActive: voiceController.isMainButtonSessionActive,
       canContinue: () => mounted,
       prepareActivation: () async {
         final ready = await _prepareAndroidMainHfpRoute();
@@ -1919,12 +1919,44 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       );
       return MainButtonActionResult.busy;
     }
-    _virtualMainPhoneFallback =
-        event.source == MainButtonSource.screen &&
-        !kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.android ||
-            defaultTargetPlatform == TargetPlatform.iOS) &&
-        controller?.isH20Ready != true;
+    if (!MainButtonActivationPolicy.canStart(
+      isActivationPending: _isActivatingMainAssistant,
+      isMainButtonSessionActive:
+          _voiceNavigationController?.isMainButtonSessionActive ?? false,
+    )) {
+      controller?.recordAiv0MainDiagnostic(
+        'MAIN_APP_HANDLER_REJECTED',
+        message: 'main_assistant_already_active',
+      );
+      return MainButtonActionResult.busy;
+    }
+    final route = MainButtonActivationPolicy.audioRoute(
+      source: event.source,
+      isNativeMobile:
+          !kIsWeb &&
+          (defaultTargetPlatform == TargetPlatform.android ||
+              defaultTargetPlatform == TargetPlatform.iOS),
+      isIos: _usesIosHfpLifecycle,
+      isH20Ready: controller?.isH20Ready == true,
+    );
+    if (route == MainButtonAudioRoute.unavailable) {
+      controller?.recordAiv0MainDiagnostic(
+        'MAIN_APP_HANDLER_REJECTED',
+        message: 'selected_h20_microphone_not_ready',
+      );
+      controller?.showH20ConnectionMessage(
+        'Chưa kết nối đủ nút MAIN và micro H20. Hãy bật H20 rồi thử lại.',
+      );
+      return MainButtonActionResult.busy;
+    }
+    _virtualMainPhoneFallback = route == MainButtonAudioRoute.phoneMicrophone;
+    // Pin the selected source throughout an iOS MAIN turn. A route loss after
+    // this gate must fail HFP recognition rather than switch to the phone mic.
+    _mainSpeechAudioSourceOverride = _usesIosHfpLifecycle
+        ? _virtualMainPhoneFallback
+              ? NativeSpeechAudioSource.builtInMic
+              : NativeSpeechAudioSource.hfp
+        : null;
     // Both buttons share the assistant lifecycle. Only the temporary tester
     // fallback changes the route for on-screen MAIN without H20.
     controller?.recordAiv0MainDiagnostic(
@@ -1936,7 +1968,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     final activated = _mainSpeakingSessionController.isActive
         ? await _interruptContinuousTranslationWithMain()
         : await _activateMainAssistant();
-    if (!activated) _virtualMainPhoneFallback = false;
+    if (!activated) {
+      _virtualMainPhoneFallback = false;
+      _mainSpeechAudioSourceOverride = null;
+    }
     controller?.recordAiv0MainDiagnostic(
       'MAIN_APP_HANDLER_COMPLETED',
       values: <String, Object?>{'activated': activated},
@@ -2043,6 +2078,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (!voiceController.isMainButtonSessionActive &&
         !_isActivatingMainAssistant) {
       _virtualMainPhoneFallback = false;
+      _mainSpeechAudioSourceOverride = null;
     }
     if (!voiceController.isMainButtonSessionActive &&
         !voiceController.isActive) {

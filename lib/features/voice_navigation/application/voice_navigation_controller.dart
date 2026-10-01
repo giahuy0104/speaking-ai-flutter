@@ -409,6 +409,7 @@ class VoiceNavigationController extends ChangeNotifier {
     final shouldStopPrompt = _acknowledgingWakeWord;
     _awaitingCommand = false;
     _acknowledgingWakeWord = false;
+    _finishing = false;
     final pendingPause = _pauseInProgress;
     if (pendingPause != null) {
       return pendingPause;
@@ -522,11 +523,11 @@ class VoiceNavigationController extends ChangeNotifier {
           ?.destination
           .name,
     });
-    // A valid transcript starts a new response window at the resulting node.
-    _mainNoSpeechRetryCount = 0;
     if (_disposed || generation != _generation || !_buttonCommandSession) {
       return false;
     }
+    // A valid transcript starts a new response window at the resulting node.
+    _mainNoSpeechRetryCount = 0;
 
     final navigationBeforePrompt = turn.navigationBeforePrompt;
     if (navigationBeforePrompt != null) {
@@ -620,6 +621,7 @@ class VoiceNavigationController extends ChangeNotifier {
       'main_assistant_completed',
       generation: generation,
     );
+    if (_disposed || generation != _generation) return false;
     AudioDiagnostics.event('main.native_end.completed', {
       'generation': generation,
     });
@@ -881,6 +883,7 @@ class VoiceNavigationController extends ChangeNotifier {
           return;
         }
         final outcome = await _handleCaptureCandidates(capture, generation);
+        if (_disposed || generation != _generation) return;
         if (outcome.heardTranscript) {
           _finishing = false;
           _speechDetected = false;
@@ -893,11 +896,11 @@ class VoiceNavigationController extends ChangeNotifier {
           return;
         }
       } catch (error) {
-        _lastError = error;
+        if (!_disposed && generation == _generation) _lastError = error;
       } finally {
-        _finishing = false;
-        _speechDetected = false;
-        if (!_disposed) {
+        if (!_disposed && generation == _generation) {
+          _finishing = false;
+          _speechDetected = false;
           notifyListeners();
         }
       }
@@ -1162,10 +1165,20 @@ class VoiceNavigationController extends ChangeNotifier {
       return;
     }
     final mainTurnService = service as MainTurnVoicePromptService;
-    final beginOperation = mainTurnService.beginMainTurn();
+    final audioSource = _mainSpeechAudioSource?.call();
+    final beginOperation =
+        audioSource != null && service is RoutedMainTurnVoicePromptService
+        ? (service as RoutedMainTurnVoicePromptService)
+              .beginMainTurnWithAudioSource(audioSource.channelValue)
+        : mainTurnService.beginMainTurn();
     try {
       final turnId = await beginOperation.timeout(_pauseDrainTimeout);
       if (_disposed || generation != _generation) {
+        await _adoptOrCloseLateNativeMainTurn(
+          mainTurnService,
+          generation: generation,
+          turnId: turnId,
+        );
         return;
       }
       _nativeMainTurnId = turnId;
@@ -1472,9 +1485,9 @@ class VoiceNavigationController extends ChangeNotifier {
         _lastError = error;
       }
     } finally {
-      _finishing = false;
-      _speechDetected = false;
-      if (!_disposed) {
+      if (!_disposed && generation == _generation) {
+        _finishing = false;
+        _speechDetected = false;
         notifyListeners();
       }
     }
@@ -1558,9 +1571,9 @@ class VoiceNavigationController extends ChangeNotifier {
         }
       }
     } finally {
-      _finishing = false;
-      _speechDetected = false;
-      if (!_disposed) {
+      if (!_disposed && generation == _generation) {
+        _finishing = false;
+        _speechDetected = false;
         notifyListeners();
       }
     }

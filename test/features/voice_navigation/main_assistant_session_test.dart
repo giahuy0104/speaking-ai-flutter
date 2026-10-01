@@ -7,6 +7,39 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
+    'an active MAIN session rejects reentry after activation completes',
+    () async {
+      final module = _FakeActiveModule();
+      final harness = _SessionHarness(module: module);
+      addTearDown(harness.dispose);
+      var prepared = 0;
+      var activated = 0;
+      expect(harness.session.isActivationPending, isFalse);
+      final result = await harness.session.activate(
+        startupReady: true,
+        voiceAccessEnabled: true,
+        conversationBusy: false,
+        assistantFlowBusy: false,
+        mainButtonSessionActive: true,
+        canContinue: () => true,
+        prepareActivation: () async {
+          prepared++;
+          return true;
+        },
+        activateVoice:
+            ({required activeLearning, required activeLearningKind}) async {
+              activated++;
+              return true;
+            },
+      );
+      expect(result, isFalse);
+      expect(prepared, 0);
+      expect(activated, 0);
+      expect(module.pauseCount, 0);
+      expect(harness.activationStates, isEmpty);
+    },
+  );
+  test(
     'external translation handoff stays cancelled after a newer MAIN starts',
     () {
       final harness = _SessionHarness(module: _FakeActiveModule());

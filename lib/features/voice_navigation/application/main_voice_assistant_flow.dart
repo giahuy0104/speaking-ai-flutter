@@ -123,6 +123,7 @@ class MainVoiceAssistantFlow {
   String? _activeVoicePrompt;
   ActiveLearningVoiceSelectionContext? _activeVoiceSelection;
   bool _pausedChoice = false;
+  int _flowGeneration = 0;
   final Map<MainVoiceAssistantStage, int> _fallbackAttempts =
       <MainVoiceAssistantStage, int>{};
 
@@ -360,6 +361,7 @@ class MainVoiceAssistantFlow {
   }
 
   void reset() {
+    _flowGeneration += 1;
     _pausedChoice = false;
     _stage = MainVoiceAssistantStage.idle;
     _selectedAge = null;
@@ -1402,8 +1404,15 @@ class MainVoiceAssistantFlow {
     if (catalog == null || age == null) {
       return _beginConfiguredTopicSelection(recognizedText);
     }
+    final generation = _flowGeneration;
     try {
       final content = await _contentLoader();
+      if (generation != _flowGeneration) {
+        return const MainVoiceAssistantTurn(
+          promptText: '',
+          continueListening: false,
+        );
+      }
       final topicContent = content.topic(
         startAge: catalog.startAge,
         endAge: catalog.endAge,
@@ -1434,6 +1443,12 @@ class MainVoiceAssistantFlow {
         navigationBeforePrompt: intent,
       );
     } catch (_) {
+      if (generation != _flowGeneration) {
+        return const MainVoiceAssistantTurn(
+          promptText: '',
+          continueListening: false,
+        );
+      }
       reset();
       return const MainVoiceAssistantTurn(
         promptText: 'HOMI chưa tải được bài học. Bạn thử lại sau nhé.',

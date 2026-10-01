@@ -8,6 +8,138 @@ import XCTest
 
 class RunnerTests: XCTestCase {
 
+  func testIOSMainPhoneTurnSelectsBuiltInPrearmBeforeAnyPrompt() {
+    let target = IOSMainTurnAudioRoutePolicy.inputTarget(fromChannelValue: "builtInMic")
+    XCTAssertEqual(target, .builtInMic)
+    XCTAssertEqual(IOSBackgroundAudioHandoffPolicy.audioSource(
+      mainInputTarget: target,
+      activeAudioSource: nil,
+      hasAvailableHfpInput: true
+    ), .builtInMic)
+    let forcePhone = IOSMainTurnAudioRoutePolicy.forcesPhoneSpeaker(
+      explicitRequest: false,
+      mainInputTarget: target
+    )
+    XCTAssertTrue(forcePhone)
+    // TTS, authored selected-media prompts and the cue use this same policy.
+    XCTAssertFalse(IOSPromptOutputRoutePolicy.expectsHfp(
+      forcePhoneSpeaker: forcePhone,
+      hasAvailableHfpInput: true,
+      retainedBackgroundHfpRoute: false
+    ))
+    XCTAssertFalse(IOSMainTurnAudioRoutePolicy.requiresHfp(
+      mainInputTarget: target,
+      explicitPhoneRequest: false
+    ))
+  }
+
+  func testIOSMainHfpTurnNeverSelectsPhonePrearmWhenTheRouteDisappears() {
+    let target = IOSMainTurnAudioRoutePolicy.inputTarget(fromChannelValue: "hfp")
+    XCTAssertEqual(target, .hfp)
+    XCTAssertEqual(IOSBackgroundAudioHandoffPolicy.audioSource(
+      mainInputTarget: target,
+      activeAudioSource: nil,
+      hasAvailableHfpInput: false
+    ), .hfp)
+    XCTAssertTrue(IOSMainTurnAudioRoutePolicy.requiresHfp(
+      mainInputTarget: target,
+      explicitPhoneRequest: false
+    ))
+    XCTAssertFalse(IOSMainTurnAudioRoutePolicy.forcesPhoneSpeaker(
+      explicitRequest: false,
+      mainInputTarget: target
+    ))
+  }
+
+  func testIOSLegacyMainRouteSelectionPreservesAutomaticAndActiveCapturePolicy() {
+    XCTAssertNil(IOSMainTurnAudioRoutePolicy.inputTarget(fromChannelValue: nil))
+    XCTAssertNil(IOSMainTurnAudioRoutePolicy.inputTarget(fromChannelValue: "unknown"))
+    XCTAssertEqual(IOSBackgroundAudioHandoffPolicy.audioSource(
+      mainInputTarget: nil, activeAudioSource: nil, hasAvailableHfpInput: true
+    ), .hfp)
+    XCTAssertEqual(IOSBackgroundAudioHandoffPolicy.audioSource(
+      mainInputTarget: nil, activeAudioSource: nil, hasAvailableHfpInput: false
+    ), .builtInMic)
+    XCTAssertEqual(IOSBackgroundAudioHandoffPolicy.audioSource(
+      mainInputTarget: nil, activeAudioSource: .builtInMic, hasAvailableHfpInput: true
+    ), .builtInMic)
+  }
+
+  func testIOSMainSourceChangeReplacesOnlyAnIdleBackgroundGraph() {
+    XCTAssertTrue(IOSBackgroundAudioHandoffPolicy.shouldReplaceIdleSource(
+      current: .hfp, requested: .builtInMic, captureActive: false
+    ))
+    XCTAssertTrue(IOSBackgroundAudioHandoffPolicy.shouldReplaceIdleSource(
+      current: .builtInMic, requested: .hfp, captureActive: false
+    ))
+    XCTAssertFalse(IOSBackgroundAudioHandoffPolicy.shouldReplaceIdleSource(
+      current: .hfp, requested: .builtInMic, captureActive: true
+    ))
+    XCTAssertFalse(IOSBackgroundAudioHandoffPolicy.shouldReplaceIdleSource(
+      current: .builtInMic, requested: .builtInMic, captureActive: false
+    ))
+  }
+
+  func testIOSBackgroundHandoffRetryBelongsOnlyToTheCurrentArmGeneration() {
+    // Disarm completed the HFP arm's obsolete waiters, then a phone arm began.
+    // Its old delayed retry must neither reopen HFP nor drain the phone waiters.
+    XCTAssertFalse(IOSBackgroundAudioHandoffPolicy.shouldRunArmAttempt(
+      disposed: false, phase: .arming, requestedGeneration: 1, currentGeneration: 3
+    ))
+    XCTAssertTrue(IOSBackgroundAudioHandoffPolicy.shouldRunArmAttempt(
+      disposed: false, phase: .arming, requestedGeneration: 3, currentGeneration: 3
+    ))
+    XCTAssertFalse(IOSBackgroundAudioHandoffPolicy.shouldRunArmAttempt(
+      disposed: false, phase: .idle, requestedGeneration: 3, currentGeneration: 3
+    ))
+    XCTAssertFalse(IOSBackgroundAudioHandoffPolicy.shouldRunArmAttempt(
+      disposed: true, phase: .arming, requestedGeneration: 3, currentGeneration: 3
+    ))
+  }
+
+  func testIOSMainRoutePolicyIsSetBeforeBackgroundArmAndClearedByItsExactTurn() {
+    let coordinator = IOSAudioSessionCoordinator()
+    let handoff = MainTurnAudioTargetHandoff(coordinator: coordinator)
+    coordinator.backgroundCaptureHandoffDelegate = handoff
+    coordinator.setBackgroundLearningEnabled(true, caller: "RunnerTests")
+    let turnId = coordinator.beginMainTurn(
+      source: "RunnerTests", audioInputTarget: .builtInMic, forceNewTurn: true
+    )
+    coordinator.requestBackgroundCaptureArm(caller: "RunnerTests")
+    XCTAssertEqual(handoff.targets.compactMap { $0 }.last, .builtInMic)
+    coordinator.endMainTurn(
+      reason: "obsolete_reply", caller: "RunnerTests", expectedTurnId: "obsolete"
+    )
+    XCTAssertEqual(coordinator.mainAudioInputTarget, .builtInMic)
+    coordinator.endMainTurn(
+      reason: "test_complete", caller: "RunnerTests", expectedTurnId: turnId
+    )
+    XCTAssertNil(coordinator.mainAudioInputTarget)
+    coordinator.dispose()
+  }
+
+  func testIOSVirtualMainActivationsGetFreshIdsBeforeAnOldBeginReplyCompletes() {
+    let coordinator = IOSAudioSessionCoordinator()
+    let firstTurn = coordinator.beginMainTurn(
+      source: "RunnerTests.firstVirtual", audioInputTarget: .builtInMic, forceNewTurn: true
+    )
+    let secondTurn = coordinator.beginMainTurn(
+      source: "RunnerTests.secondVirtual", audioInputTarget: .hfp, forceNewTurn: true
+    )
+    XCTAssertNotEqual(firstTurn, secondTurn)
+    coordinator.endMainTurn(
+      reason: "late_first_begin_reply", caller: "RunnerTests", expectedTurnId: firstTurn
+    )
+    XCTAssertTrue(coordinator.isMainTurnActive)
+    XCTAssertEqual(coordinator.mainAudioInputTarget, .hfp)
+    coordinator.endMainTurn(
+      reason: "test_complete", caller: "RunnerTests", expectedTurnId: secondTurn
+    )
+    XCTAssertFalse(coordinator.isMainTurnActive)
+    XCTAssertNil(coordinator.mainAudioInputTarget)
+    coordinator.dispose()
+  }
+
   func testIOSPromptPhoneOutputDoesNotWaitForAnAvailablePairedHfpInput() {
     XCTAssertFalse(IOSPromptOutputRoutePolicy.expectsHfp(
       forcePhoneSpeaker: true, hasAvailableHfpInput: true, retainedBackgroundHfpRoute: false
@@ -1564,4 +1696,20 @@ class RunnerTests: XCTestCase {
     )
   }
 
+}
+
+private final class MainTurnAudioTargetHandoff: IOSBackgroundCaptureHandoffDelegate {
+  private unowned let coordinator: IOSAudioSessionCoordinator
+  private(set) var targets: [IOSAudioInputTarget?] = []
+
+  init(coordinator: IOSAudioSessionCoordinator) {
+    self.coordinator = coordinator
+  }
+
+  func armBackgroundAudioHandoff(caller: String, completion: @escaping () -> Void) {
+    targets.append(coordinator.mainAudioInputTarget)
+    completion()
+  }
+
+  func disarmBackgroundAudioHandoff(caller: String) {}
 }

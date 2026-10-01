@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/v4_completion_flow.dart';
@@ -10,6 +12,52 @@ import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_en
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  for (final loaderFails in [false, true]) {
+    test(
+      'late Topic loading keeps the newer MAIN Level choice (failure=$loaderFails)',
+      () async {
+        final content = await _loadThreeTopicContent();
+        final pendingContent = Completer<ListeningContentCatalog>();
+        final flow = MainVoiceAssistantFlow(
+          contentLoader: () => pendingContent.future,
+          childAge: 6,
+        );
+        flow.beginLevelTopicSelection(
+          childAge: 6,
+          levelNumber: 1,
+          topicNumbers: [1, 2, 3],
+          completedTopicNumbers: [],
+          announceLevel: false,
+        );
+        final previousTurn = flow.handle('Chủ đề 3');
+        flow.beginLevelTopicSelection(
+          childAge: 6,
+          levelNumber: 2,
+          topicNumbers: [2],
+          completedTopicNumbers: [],
+          announceLevel: false,
+        );
+        final currentPrompt = flow.currentPrompt;
+        if (loaderFails) {
+          pendingContent.completeError(StateError('old content load failed'));
+        } else {
+          pendingContent.complete(content);
+        }
+        final oldTurn = await previousTurn;
+        expect(flow.stage, MainVoiceAssistantStage.chooseTopicAfterCompletion);
+        expect(flow.currentPrompt, currentPrompt);
+        expect(flow.canHandle('Chủ đề 2'), isTrue);
+        expect(oldTurn.navigationBeforePrompt, isNull);
+        expect(oldTurn.navigationAfterPrompt, isNull);
+        expect(oldTurn.promptText, isEmpty);
+        final outsideCurrentLevel = await flow.handle('Chủ đề 3');
+        expect(outsideCurrentLevel.continueListening, isTrue);
+        expect(outsideCurrentLevel.navigationBeforePrompt, isNull);
+        expect(flow.stage, MainVoiceAssistantStage.chooseTopicAfterCompletion);
+      },
+    );
+  }
+
   test(
     'topic command prefixes wait for the final number in every MAIN menu',
     () {

@@ -7,6 +7,27 @@ enum IOSAudioInputTarget: String {
   case hfp
 }
 
+enum IOSMainTurnAudioRoutePolicy {
+  static func inputTarget(fromChannelValue value: Any?) -> IOSAudioInputTarget? {
+    guard let value = value as? String else { return nil }
+    return IOSAudioInputTarget(rawValue: value)
+  }
+
+  static func forcesPhoneSpeaker(
+    explicitRequest: Bool,
+    mainInputTarget: IOSAudioInputTarget?
+  ) -> Bool {
+    explicitRequest || mainInputTarget == .builtInMic
+  }
+
+  static func requiresHfp(
+    mainInputTarget: IOSAudioInputTarget?,
+    explicitPhoneRequest: Bool
+  ) -> Bool {
+    mainInputTarget == .hfp && !explicitPhoneRequest
+  }
+}
+
 enum IOSAudioSessionOwner: String, Hashable {
   case backgroundCapture
   case backgroundTransition
@@ -142,6 +163,7 @@ final class IOSAudioSessionCoordinator: NSObject {
   /// owner never mistakes a stale route for a usable audio session.
   private(set) var isAudioSessionActive = false
   private(set) var isMainTurnActive = false
+  private(set) var mainAudioInputTarget: IOSAudioInputTarget?
   private(set) var isBackgroundLearningEnabled = false
   private(set) var isBackgroundCaptureEngineRunning = false
   var isSpeechCaptureActive: Bool { ownership.contains(.speechCapture) }
@@ -313,7 +335,11 @@ final class IOSAudioSessionCoordinator: NSObject {
   }
 
   @discardableResult
-  func beginMainTurn(source: String) -> String {
+  func beginMainTurn(
+    source: String,
+    audioInputTarget: IOSAudioInputTarget? = nil,
+    forceNewTurn: Bool = false
+  ) -> String {
     let now = Date()
     let pendingIsRecent = pendingTurnStartedAt.map {
       now.timeIntervalSince($0) <= 5
@@ -324,6 +350,7 @@ final class IOSAudioSessionCoordinator: NSObject {
       turnTimeout = nil
       activeTurnId = pendingTurnId
       activeTurnStartedAt = pendingTurnStartedAt
+      mainAudioInputTarget = audioInputTarget
       self.pendingTurnId = nil
       pendingTurnStartedAt = nil
       isMainTurnActive = true
@@ -340,7 +367,7 @@ final class IOSAudioSessionCoordinator: NSObject {
       return pendingTurnId
     }
 
-    if isMainTurnActive, let activeTurnId {
+    if !forceNewTurn, isMainTurnActive, let activeTurnId {
       trace(stage: "main_turn_reused", caller: source)
       retainBackgroundTurnExecutionIfNeeded(caller: source)
       return activeTurnId
@@ -351,14 +378,25 @@ final class IOSAudioSessionCoordinator: NSObject {
       pendingTurnId = nil
       pendingTurnStartedAt = nil
     }
+    let previousTurnId = activeTurnId
+    turnTimeout?.cancel()
+    turnTimeout = nil
     activeTurnId = makeTurnId()
     activeTurnStartedAt = now
+    mainAudioInputTarget = audioInputTarget
     sequence = 0
     isMainTurnActive = true
     if !ownership.contains(.mainTurn) {
       acquireSessionOwner(.mainTurn, caller: source)
     }
-    trace(stage: "main_turn_started", caller: source)
+    trace(
+      stage: previousTurnId == nil ? "main_turn_started" : "main_turn_superseded",
+      caller: source,
+      values: [
+        "previousTurnId": previousTurnId ?? "",
+        "audioSource": audioInputTarget?.rawValue ?? "automatic",
+      ]
+    )
     scheduleSafetyTimeout()
     retainBackgroundTurnExecutionIfNeeded(caller: source)
     return activeTurnId!
@@ -394,6 +432,7 @@ final class IOSAudioSessionCoordinator: NSObject {
     releaseSessionOwner(.mainTurn, caller: caller)
     activeTurnId = nil
     activeTurnStartedAt = nil
+    mainAudioInputTarget = nil
     sequence = 0
     // A prompt, live capture, or persistent HFP route may still own the same
     // AVAudioSession after the logical MAIN turn ends. Deactivation is safe only
@@ -476,6 +515,11 @@ final class IOSAudioSessionCoordinator: NSObject {
     do {
       if isBackgroundCaptureEngineRunning {
         let usesHfp = hasTwoWayHfpRoute()
+        if mainAudioInputTarget == .hfp && !usesHfp {
+          // A previous phone capture may still be draining after Dart's
+          // bounded pause. Never speak an H20 MAIN prompt on that graph.
+          throw IOSAudioSessionCoordinatorError.mainAudioSourceConflict
+        }
         trace(
           stage: "prompt_audio_background_capture_reused",
           caller: caller,
@@ -528,6 +572,13 @@ final class IOSAudioSessionCoordinator: NSObject {
     trace(stage: "phone_prompt_audio_prepare", caller: caller)
     do {
       if isBackgroundCaptureEngineRunning {
+        if mainAudioInputTarget == .builtInMic,
+          session.currentRoute.inputs.contains(where: { $0.portType == .bluetoothHFP })
+        {
+          // A bounded Dart pause may leave its old capture draining briefly.
+          // Fail this phone prompt instead of playing it on that HFP graph.
+          throw IOSAudioSessionCoordinatorError.mainAudioSourceConflict
+        }
         trace(stage: "phone_prompt_background_capture_reused", caller: caller)
         return
       }
@@ -1198,6 +1249,7 @@ final class IOSAudioSessionCoordinator: NSObject {
 private enum IOSAudioSessionCoordinatorError: LocalizedError {
   case builtInMicUnavailable
   case hfpInputUnavailable
+  case mainAudioSourceConflict
 
   var errorDescription: String? {
     switch self {
@@ -1205,6 +1257,8 @@ private enum IOSAudioSessionCoordinatorError: LocalizedError {
       return "Không tìm thấy mic tích hợp của iPhone/iPad."
     case .hfpInputUnavailable:
       return "Không tìm thấy mic HFP đang kết nối."
+    case .mainAudioSourceConflict:
+      return "Phiên micro H20 trước đang kết thúc. Hãy thử lại."
     }
   }
 }

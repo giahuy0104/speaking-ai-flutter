@@ -18,6 +18,167 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
+    'cancelled lesson MAIN cannot resume learning after delayed native cleanup',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final speech = _FakeNavigationSpeechInput(stopText: 'Tiếp tục');
+      final voice = _DeferredEndMainTurnVoicePromptService();
+      final commands = <ActiveLearningCommand>[];
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: voice,
+        pauseDrainTimeout: const Duration(milliseconds: 1),
+        activeLearningCommandHandler: (command) async {
+          commands.add(command);
+          return const ActiveLearningCommandResult.handled();
+        },
+      );
+      expect(
+        await controller.activateFromMainButton(activeLearning: true),
+        isTrue,
+      );
+      speech.emitCompleted();
+      await _waitUntil(
+        () => voice.endedReasons.contains('main_assistant_completed'),
+      );
+      expect(commands, isEmpty);
+      // STOP cancels the accepted command while native HFP cleanup is pending.
+      await controller.pause();
+      expect(
+        await controller.activateLevelTopicSelection(
+          childAge: 6,
+          levelNumber: 1,
+          topicNumbers: [1, 2],
+          completedTopicNumbers: [],
+          announceLevel: false,
+        ),
+        isTrue,
+      );
+      voice.pendingEnd.complete();
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(commands, isEmpty);
+      expect(controller.isListening, isTrue);
+      expect(
+        controller.mainAssistantStage,
+        MainVoiceAssistantStage.chooseTopicAfterCompletion,
+      );
+      await controller.pause();
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  for (final disposeBeforeReply in [false, true]) {
+    test(
+      'native MAIN arm reply after cancellation closes its exact turn (dispose=$disposeBeforeReply)',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        final speech = _FakeNavigationSpeechInput();
+        final voice = _LateBeginMainTurnVoicePromptService();
+        final controller = VoiceNavigationController(
+          speechInput: speech,
+          voicePromptService: voice,
+          pauseDrainTimeout: const Duration(seconds: 5),
+        );
+        final activation = controller.activateFromMainButton();
+        await _waitUntil(() => voice.beginCount == 1);
+        if (disposeBeforeReply) {
+          controller.dispose();
+        } else {
+          await controller.pause();
+        }
+        voice.pendingBegin.complete('cancelled-before-timeout');
+        expect(await activation, isFalse);
+        expect(voice.endedTurnIds, ['cancelled-before-timeout']);
+        expect(speech.events, isNot(contains('start')));
+        expect(voice.spokenTexts, isEmpty);
+        if (!disposeBeforeReply) {
+          expect(controller.isMainButtonSessionActive, isFalse);
+          expect(controller.isActive, isFalse);
+          controller.dispose();
+        }
+        await speech.dispose();
+      },
+    );
+  }
+
+  for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+    test(
+      'late previous MAIN finalization cannot deactivate a newer Topic choice on $platform',
+      () async {
+        debugDefaultTargetPlatformOverride = platform;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        final speech = _GatedFinalizationSpeechInput();
+        final controller = VoiceNavigationController(
+          speechInput: speech,
+          voicePromptService: _FakeVoicePromptService(),
+          mainAssistantFlow: MainVoiceAssistantFlow(
+            contentLoader: () async {
+              final source = (await _loadMainAssistantContent()).groups.single;
+              final sourceTopic = source.topics.single;
+              return ListeningContentCatalog(
+                groups: [
+                  ListeningContentAgeGroup(
+                    startAge: source.startAge,
+                    endAge: source.endAge,
+                    topics: [
+                      ListeningTopicContent(
+                        id: 'reentry-topic-two',
+                        number: 2,
+                        titleVi: sourceTopic.titleVi,
+                        titleEn: sourceTopic.titleEn,
+                        lessons: sourceTopic.lessons,
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
+          pauseDrainTimeout: const Duration(milliseconds: 1),
+        );
+        final intents = <VoiceNavigationIntent>[];
+        controller.setIntentHandler(intents.add);
+        Future<bool> activateTopicChoice() =>
+            controller.activateLevelTopicSelection(
+              childAge: 6,
+              levelNumber: 1,
+              topicNumbers: [1, 2],
+              completedTopicNumbers: [],
+              announceLevel: false,
+            );
+        expect(await activateTopicChoice(), isTrue);
+        speech.emitCompleted();
+        await _waitUntil(() => speech.pendingStops.length == 1);
+
+        // A fresh MAIN owns another prompt/microphone even when the old Apple
+        // Speech finalizer has not replied after the bounded pause drain.
+        expect(await activateTopicChoice(), isTrue);
+        speech.emitCompleted();
+        await _waitUntil(() => speech.pendingStops.length == 2);
+        expect(controller.isActive, isTrue);
+        speech.completeStop(0, 'Chủ đề 1');
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        expect(controller.isActive, isTrue);
+        expect(
+          controller.mainAssistantStage,
+          MainVoiceAssistantStage.chooseTopicAfterCompletion,
+        );
+        expect(intents, isEmpty);
+
+        speech.completeStop(1, 'Chủ đề 2');
+        await _waitUntil(() => intents.isNotEmpty);
+        expect(intents.single.topicNumber, 2);
+        await controller.pause();
+        controller.dispose();
+        await speech.dispose();
+      },
+    );
+  }
+
+  test(
     'MAIN item controls remain blocked until native turn cleanup finishes',
     () async {
       final speech = _FakeNavigationSpeechInput(stopText: 'Tiếp tục');
@@ -2541,6 +2702,31 @@ class _FakeNavigationSpeechInput
     await _commandEndpointController.close();
     await _alternativeTextController.close();
     await _diagnosticsController.close();
+  }
+}
+
+class _GatedFinalizationSpeechInput extends _FakeNavigationSpeechInput {
+  final pendingStops = <Completer<StreamingSpeechCapture>>[];
+
+  @override
+  Future<StreamingSpeechCapture> stop() {
+    stopCalls++;
+    final pending = Completer<StreamingSpeechCapture>();
+    pendingStops.add(pending);
+    return pending.future;
+  }
+
+  void completeStop(int index, String text) {
+    pendingStops[index].complete(
+      StreamingSpeechCapture(
+        sourceText: text,
+        duration: const Duration(seconds: 1),
+        inputLabel: label,
+        confidence: 0.9,
+        firstResultMs: 100,
+        finalAfterStopMs: 20,
+      ),
+    );
   }
 }
 

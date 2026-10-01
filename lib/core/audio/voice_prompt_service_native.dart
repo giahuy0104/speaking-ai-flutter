@@ -16,7 +16,7 @@ class MethodChannelVoicePromptService
         PhoneSpeakerVoicePromptService,
         SelectedMediaOutputVoicePromptService,
         StyledMediaOutputVoicePromptService,
-        MainTurnVoicePromptService {
+        RoutedMainTurnVoicePromptService {
   const MethodChannelVoicePromptService({
     MethodChannel channel = const MethodChannel('ailingo_voice_prompt'),
   }) : _channel = channel;
@@ -36,9 +36,20 @@ class MethodChannelVoicePromptService
   });
 
   @override
-  Future<String?> beginMainTurn() async {
+  Future<String?> beginMainTurn() => _beginMainTurn();
+
+  @override
+  Future<String?> beginMainTurnWithAudioSource(String audioSource) =>
+      _beginMainTurn(audioSource: audioSource);
+
+  Future<String?> _beginMainTurn({String? audioSource}) async {
     try {
-      return await _channel.invokeMethod<String>('beginMainTurn');
+      return await _channel.invokeMethod<String>(
+        'beginMainTurn',
+        audioSource == null
+            ? null
+            : <String, dynamic>{'audioSource': audioSource},
+      );
     } on MissingPluginException {
       return null;
     }

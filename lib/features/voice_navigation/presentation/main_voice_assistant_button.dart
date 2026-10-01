@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/audio/main_assistant_audio_state.dart';
+import '../application/main_button_activation_policy.dart';
 import '../application/main_speaking_session_controller.dart';
 import '../application/voice_navigation_controller.dart';
 
@@ -38,10 +39,12 @@ class MainVoiceAssistantButton extends StatelessWidget {
       builder: (context, _) {
         final speakingState = speakingSessionController.state;
         final isSpeakingMode = speakingSessionController.isActive;
-        final isAssistantBusy = voiceController.isMainButtonSessionActive;
         final canActivate =
-            !isActivationPending &&
-            !isAssistantBusy &&
+            MainButtonActivationPolicy.canStart(
+              isActivationPending: isActivationPending,
+              isMainButtonSessionActive:
+                  voiceController.isMainButtonSessionActive,
+            ) &&
             (isSpeakingMode ||
                 (!audioState.isBusy && !audioState.isPlaybackPlaying));
         final microphoneError = voiceController.lastErrorMessage;
@@ -110,6 +113,8 @@ class MainVoiceAssistantButton extends StatelessWidget {
                     : microphoneStatus
               : '$microphoneStatus Vui lòng chờ.',
           child: RawGestureDetector(
+            // STOP remains available while the short-press FAB is disabled.
+            behavior: HitTestBehavior.opaque,
             gestures: <Type, GestureRecognizerFactory>{
               LongPressGestureRecognizer:
                   GestureRecognizerFactoryWithHandlers<
@@ -127,13 +132,18 @@ class MainVoiceAssistantButton extends StatelessWidget {
                     },
                   ),
             },
-            child: FloatingActionButton.extended(
-              key: const Key('main-voice-assistant-button'),
-              heroTag: 'main-voice-assistant-button',
-              tooltip: microphoneStatus,
-              onPressed: canActivate ? () => unawaited(onPressed()) : null,
-              icon: Icon(icon),
-              label: Text(label),
+            child: Tooltip(
+              message: microphoneStatus,
+              // The FAB's default tooltip claims LONG after 500 ms, before
+              // MAIN's 1.5-second STOP gesture can win the gesture arena.
+              triggerMode: TooltipTriggerMode.manual,
+              child: FloatingActionButton.extended(
+                key: const Key('main-voice-assistant-button'),
+                heroTag: 'main-voice-assistant-button',
+                onPressed: canActivate ? () => unawaited(onPressed()) : null,
+                icon: Icon(icon),
+                label: Text(label),
+              ),
             ),
           ),
         );

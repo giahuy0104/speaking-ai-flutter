@@ -23,7 +23,7 @@ class MainAssistantAudioPromptService
         PhoneSpeakerVoicePromptService,
         SelectedMediaOutputVoicePromptService,
         StyledMediaOutputVoicePromptService,
-        MainTurnVoicePromptService {
+        RoutedMainTurnVoicePromptService {
   MainAssistantAudioPromptService({
     required VoicePromptService delegate,
     AssetBundle? bundle,
@@ -579,6 +579,16 @@ class MainAssistantAudioPromptService
     return !_disposed && delegate is MainTurnVoicePromptService
         ? (delegate as MainTurnVoicePromptService).beginMainTurn()
         : null;
+  }
+
+  @override
+  Future<String?> beginMainTurnWithAudioSource(String audioSource) async {
+    if (_disposed) return null;
+    final delegate = _delegate;
+    return delegate is RoutedMainTurnVoicePromptService
+        ? (delegate as RoutedMainTurnVoicePromptService)
+              .beginMainTurnWithAudioSource(audioSource)
+        : beginMainTurn();
   }
 
   @override

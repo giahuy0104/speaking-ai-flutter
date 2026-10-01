@@ -251,6 +251,34 @@ enum IOSBackgroundAudioHandoffPhase: String {
 }
 
 struct IOSBackgroundAudioHandoffPolicy {
+  static func shouldRunArmAttempt(
+    disposed: Bool,
+    phase: IOSBackgroundAudioHandoffPhase,
+    requestedGeneration: Int,
+    currentGeneration: Int
+  ) -> Bool {
+    !disposed && phase == .arming && requestedGeneration == currentGeneration
+  }
+
+  static func audioSource(
+    mainInputTarget: IOSAudioInputTarget?,
+    activeAudioSource: IOSNativeSpeechAudioSource?,
+    hasAvailableHfpInput: Bool
+  ) -> IOSNativeSpeechAudioSource {
+    if let mainInputTarget {
+      return mainInputTarget == .hfp ? .hfp : .builtInMic
+    }
+    return activeAudioSource ?? (hasAvailableHfpInput ? .hfp : .builtInMic)
+  }
+
+  static func shouldReplaceIdleSource(
+    current: IOSNativeSpeechAudioSource?,
+    requested: IOSNativeSpeechAudioSource,
+    captureActive: Bool
+  ) -> Bool {
+    !captureActive && current != nil && current != requested
+  }
+
   static func shouldKeepEngineRunning(
     backgroundLearningEnabled: Bool,
     applicationIsActive: Bool
@@ -879,6 +907,34 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       completion()
       return
     }
+    let mainInputTarget = audioSessionCoordinator.mainAudioInputTarget
+    let activeAudioSource = active && audioEngine.isRunning ? requestedAudioSource : nil
+    let audioSource = IOSBackgroundAudioHandoffPolicy.audioSource(
+      mainInputTarget: mainInputTarget,
+      activeAudioSource: activeAudioSource,
+      hasAvailableHfpInput: mainInputTarget == nil && activeAudioSource == nil
+        && audioSessionCoordinator.selectedOrAvailableHfpInput() != nil
+    )
+    if active, audioEngine.isRunning, audioSource != requestedAudioSource {
+      // An obsolete capture can still be draining after Dart's bounded pause.
+      // Do not reconfigure its running graph underneath that capture.
+      audioSessionCoordinator.trace(
+        stage: "background_capture_arm_source_conflict",
+        caller: caller,
+        values: ["audioSource": audioSource.rawValue]
+      )
+      completion()
+      return
+    }
+    if IOSBackgroundAudioHandoffPolicy.shouldReplaceIdleSource(
+      current: backgroundHandoffAudioSource,
+      requested: audioSource,
+      captureActive: active
+    ) {
+      // MAIN's explicit phone/HFP policy is known before prompt playback. Tear
+      // down an idle warm graph before selecting the new input, never mid-tap.
+      forceDisarmBackgroundAudioHandoff(caller: "\(caller).sourceChanged")
+    }
     if audioSessionCoordinator.isBackgroundCaptureArmed,
       audioEngine.isRunning,
       audioSessionCoordinator.isBackgroundCaptureEngineRunning,
@@ -906,14 +962,6 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     }
 
     backgroundHandoffDisarmWhenIdle = false
-    let audioSource: IOSNativeSpeechAudioSource
-    if active, audioEngine.isRunning {
-      audioSource = requestedAudioSource
-    } else {
-      audioSource = audioSessionCoordinator.selectedOrAvailableHfpInput() == nil
-        ? .builtInMic
-        : .hfp
-    }
     let target: IOSAudioInputTarget = audioSource == .hfp ? .hfp : .builtInMic
     do {
       try audioSessionCoordinator.prepareBackgroundCapture(
@@ -958,11 +1006,15 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     armGeneration: Int,
     caller: String
   ) {
-    guard !disposed,
-      backgroundHandoffPhase == .arming,
-      armGeneration == backgroundHandoffArmGeneration
+    guard IOSBackgroundAudioHandoffPolicy.shouldRunArmAttempt(
+      disposed: disposed,
+      phase: backgroundHandoffPhase,
+      requestedGeneration: armGeneration,
+      currentGeneration: backgroundHandoffArmGeneration
+    )
     else {
-      finishBackgroundHandoffArmCompletions()
+      // Replacement/disarm already completed the obsolete request. Its retry
+      // must not complete waiters belonging to the newer graph preparation.
       return
     }
     do {

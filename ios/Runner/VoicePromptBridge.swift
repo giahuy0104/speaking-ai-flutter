@@ -325,8 +325,15 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     }
     switch call.method {
     case "beginMainTurn":
+      let arguments = call.arguments as? [String: Any]
       let turnId = audioSessionCoordinator.beginMainTurn(
-        source: "VoicePromptBridge.beginMainTurn"
+        source: "VoicePromptBridge.beginMainTurn",
+        audioInputTarget: IOSMainTurnAudioRoutePolicy.inputTarget(
+          fromChannelValue: arguments?["audioSource"]
+        ),
+        // A cancelled begin can return after the next virtual MAIN activation.
+        // Its exact-ID cleanup must never close that newer activation.
+        forceNewTurn: true
       )
       // Arm the record-capable engine before Flutter starts the assistant
       // prompt. If the app moves to background while that prompt is speaking,
@@ -683,11 +690,13 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     forceMediaPlayback: Bool = false
   ) -> UUID? {
     let audioToken = UUID()
-    let preferredHfpInput = audioSessionCoordinator.selectedOrAvailableHfpInput()
     // Match Android's explicit phone-output request even when a paired HFP
     // input remains available. The coordinator may retain an already-running
     // background capture graph; the playback guard follows that actual route.
-    if forcePhoneSpeaker {
+    if IOSMainTurnAudioRoutePolicy.forcesPhoneSpeaker(
+      explicitRequest: forcePhoneSpeaker,
+      mainInputTarget: audioSessionCoordinator.mainAudioInputTarget
+    ) {
       do {
         try audioSessionCoordinator.preparePhoneSpeaker(
           caller: "VoicePromptBridge.configurePromptAudioSession"
@@ -703,6 +712,18 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
         )
         return nil
       }
+    }
+    let preferredHfpInput = audioSessionCoordinator.selectedOrAvailableHfpInput()
+    if IOSMainTurnAudioRoutePolicy.requiresHfp(
+      mainInputTarget: audioSessionCoordinator.mainAudioInputTarget,
+      explicitPhoneRequest: forcePhoneSpeaker
+    ), preferredHfpInput == nil {
+      audioSessionCoordinator.trace(
+        stage: "prompt_audio_error",
+        caller: "VoicePromptBridge.configurePromptAudioSession",
+        code: "MAIN_HFP_INPUT_UNAVAILABLE"
+      )
+      return nil
     }
     // A selected H20 must keep assistant speech on its HFP route. Media
     // playback is only used if that route is genuinely unavailable, such as
@@ -743,9 +764,14 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
   }
 
   private func promptExpectsHfp(forcePhoneSpeaker: Bool) -> Bool {
-    IOSPromptOutputRoutePolicy.expectsHfp(
-      forcePhoneSpeaker: forcePhoneSpeaker,
-      hasAvailableHfpInput: audioSessionCoordinator.selectedOrAvailableHfpInput() != nil,
+    let usesPhoneSpeaker = IOSMainTurnAudioRoutePolicy.forcesPhoneSpeaker(
+      explicitRequest: forcePhoneSpeaker,
+      mainInputTarget: audioSessionCoordinator.mainAudioInputTarget
+    )
+    return IOSPromptOutputRoutePolicy.expectsHfp(
+      forcePhoneSpeaker: usesPhoneSpeaker,
+      hasAvailableHfpInput: !usesPhoneSpeaker
+        && audioSessionCoordinator.selectedOrAvailableHfpInput() != nil,
       retainedBackgroundHfpRoute: audioSessionCoordinator.isBackgroundCaptureEngineRunning
         && audioSessionCoordinator.hasSelectedTwoWayHfpRoute()
     )

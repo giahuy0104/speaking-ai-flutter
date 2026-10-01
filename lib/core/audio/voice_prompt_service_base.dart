@@ -101,3 +101,11 @@ abstract interface class MainTurnVoicePromptService {
 
   Future<void> endMainTurn(String reason, {String? turnId});
 }
+
+/// Optional source selection before iOS prearms capture for a MAIN turn.
+/// Existing delegates may keep [MainTurnVoicePromptService] without this API.
+abstract interface class RoutedMainTurnVoicePromptService
+    implements MainTurnVoicePromptService {
+  /// [audioSource] is `builtInMic` or `hfp`, matching native speech input names.
+  Future<String?> beginMainTurnWithAudioSource(String audioSource);
+}

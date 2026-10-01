@@ -1,5 +1,6 @@
 import '../../../core/device/active_learning_module.dart';
 import '../../../core/session/app_flow_coordinator.dart';
+import 'main_button_activation_policy.dart';
 
 typedef MainAssistantActivation =
     Future<bool> Function({
@@ -46,13 +47,17 @@ class MainAssistantSession {
     required bool voiceAccessEnabled,
     required bool conversationBusy,
     required bool assistantFlowBusy,
+    bool mainButtonSessionActive = false,
     required bool Function() canContinue,
     required MainAssistantActivation activateVoice,
     Future<bool> Function()? prepareActivation,
   }) async {
     if (!startupReady ||
         !voiceAccessEnabled ||
-        _activationPending ||
+        !MainButtonActivationPolicy.canStart(
+          isActivationPending: _activationPending,
+          isMainButtonSessionActive: mainButtonSessionActive,
+        ) ||
         assistantFlowBusy) {
       return false;
     }
