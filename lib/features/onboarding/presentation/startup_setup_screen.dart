@@ -96,6 +96,9 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
 
   bool get _h20Ready => widget.h20BleConnected && widget.h20HfpConfigured;
 
+  bool get _deviceConnectionAccepted =>
+      _h20Ready || (widget.allowPhoneMicFallback && widget.h20BleConnected);
+
   bool get _canComplete =>
       widget.limitedModeSelected ||
       (widget.microphoneGranted &&
@@ -175,6 +178,12 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
         if (_deviceConnectionFeedbackStage != null)
           DeviceConnectionFeedbackOverlay(
             stage: _deviceConnectionFeedbackStage!,
+            connectedDetail:
+                widget.allowPhoneMicFallback &&
+                    widget.h20BleConnected &&
+                    !widget.h20HfpConfigured
+                ? 'Nút MAIN đã kết nối. HOMI sẽ thử chọn micro sau thiết lập.'
+                : null,
           ),
       ],
     );
@@ -498,20 +507,24 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
               title: 'Kết nối thiết bị',
               description:
                   'Bật thiết bị và Bluetooth trên điện thoại, sau đó nhấn nút bên dưới. HOMI sẽ tự kiểm tra kết nối.',
-              selected: _h20Ready,
+              selected: _deviceConnectionAccepted,
               status: _h20Ready
                   ? 'Đã kết nối nút MAIN và micro HOMI'
                   : widget.allowPhoneMicFallback && widget.h20BleConnected
-                  ? 'Nút MAIN đã kết nối • đang dùng mic iPhone'
+                  ? 'Nút MAIN đã kết nối • micro HOMI chưa sẵn sàng'
                   : widget.h20BleConnected || widget.h20HfpConfigured
                   ? 'Đang hoàn tất kết nối còn lại…'
                   : _h20SetupRequested
                   ? 'Chưa kết nối • kiểm tra thiết bị đã bật và ở gần'
                   : 'Chưa kết nối • có thể thực hiện ngay hoặc để sau',
               actionKey: const Key('startup-setup-h20'),
-              actionLabel: _h20Ready ? 'Đã kết nối' : 'Kết nối thiết bị',
+              actionLabel: _deviceConnectionAccepted
+                  ? 'Đã kết nối'
+                  : 'Kết nối thiết bị',
               busy: _choiceInProgress,
-              onPressed: _choiceInProgress || _h20Ready ? null : _setupH20,
+              onPressed: _choiceInProgress || _deviceConnectionAccepted
+                  ? null
+                  : _setupH20,
             ),
             if (widget.allowPhoneMicFallback &&
                 !widget.h20HfpConfigured &&
@@ -529,7 +542,9 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
               _InfoBox(
                 icon: Icons.phone_iphone_rounded,
                 text: widget.allowPhoneMicFallback
-                    ? 'Bạn có thể bắt đầu bằng mic iPhone. Thiết bị HOMI sẽ tiếp tục kết nối nền và có thể thiết lập lại sau trong Cài đặt.'
+                    ? widget.h20BleConnected
+                          ? 'Nút MAIN đã kết nối. HOMI sẽ thử chọn micro HM-D001 sau thiết lập. Trong lúc chờ, dùng nút micro trên màn hình với mic iPhone.'
+                          : 'Bạn có thể bắt đầu bằng mic iPhone. Thiết bị HOMI sẽ tiếp tục kết nối nền và có thể thiết lập lại sau trong Cài đặt.'
                     : 'Cần kết nối cả nút MAIN qua BLE và micro HOMI trước khi bắt đầu phiên học.',
               ),
             ],
