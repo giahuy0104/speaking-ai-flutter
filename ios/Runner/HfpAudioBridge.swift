@@ -100,6 +100,14 @@ struct IOSHfpIdleRouteReleasePolicy {
   }
 }
 
+/// A verified HFP input remains selected while its voice route is idle.
+/// Recording still requires a fresh two-way currentRoute confirmation.
+struct IOSHfpIdleReadinessPolicy {
+  static func phase(hasVerifiedSelection: Bool, hasSelectedInput: Bool) -> String {
+    return hasVerifiedSelection && hasSelectedInput ? "ready" : "idle"
+  }
+}
+
 struct IOSHfpInputIdentity: Equatable {
   let uid: String
   let name: String
@@ -146,6 +154,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
   private var eventSink: FlutterEventSink?
   private var selectedInputId: String?
   private var selectedInputName: String?
+  private var selectedInputVerified = false
   private var phase = "idle"
   private var message: String?
   private var routeActive = false
@@ -327,6 +336,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
     routeActivationGeneration += 1
     let activationGeneration = routeActivationGeneration
     selectedInputId = deviceId
+    selectedInputVerified = false
     let normalizedName = deviceName?.trimmingCharacters(in: .whitespacesAndNewlines)
     if let normalizedName, !normalizedName.isEmpty {
       selectedInputName = normalizedName
@@ -372,6 +382,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       )
       selectedInputId = nil
       selectedInputName = nil
+      selectedInputVerified = false
       phase = "idle"
       message = "Đã trở về mic mặc định của iPhone/iPad."
       emitStatus()
@@ -408,6 +419,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
     ), let activeInput = reusableInput {
       selectedInputId = activeInput.uid
       selectedInputName = activeInput.portName
+      selectedInputVerified = true
       routeActive = true
       phase = "recording"
       message = "Đang dùng lại mic và loa HOMI trên route bluetoothHFP hai chiều."
@@ -572,6 +584,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
     if let hfpInput = selectedOrUnclaimedActiveTwoWayHfpInput() {
       selectedInputId = hfpInput.uid
       selectedInputName = hfpInput.portName
+      selectedInputVerified = true
       routeActive = true
       phase = recording ? "recording" : "ready"
       message = recording
@@ -603,7 +616,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
           )
           return
         }
-        guard self.selectedOrUnclaimedActiveTwoWayHfpInput() != nil else {
+        guard let confirmedInput = self.selectedOrUnclaimedActiveTwoWayHfpInput() else {
           if recording && releaseLeaseOnFailure {
             self.releaseHfpSessionLease(
               caller: "HfpAudioBridge.routeLostWhileSettling",
@@ -621,6 +634,18 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
           )
           return
         }
+        // A route-change notification can run during the settling window and
+        // temporarily replace the earlier status. Publish the route that was
+        // just confirmed before returning the authoritative method snapshot.
+        self.selectedInputId = confirmedInput.uid
+        self.selectedInputName = confirmedInput.portName
+        self.selectedInputVerified = true
+        self.routeActive = true
+        self.phase = recording ? "recording" : "ready"
+        self.message = recording
+          ? "Đang dùng mic và loa HOMI trên route bluetoothHFP hai chiều."
+          : "Đã xác nhận mic và loa HOMI trên route bluetoothHFP."
+        self.emitStatus()
         if !recording {
           // `connect` only verifies and remembers the paired HFP input. Do not
           // leave SCO active while idle: H20 exposes BLE and Classic Bluetooth
@@ -685,7 +710,10 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       selectedInputName = activeInput.portName
     }
     routeActive = false
-    phase = "idle"
+    phase = IOSHfpIdleReadinessPolicy.phase(
+      hasVerifiedSelection: selectedInputVerified,
+      hasSelectedInput: selectedInputId != nil
+    )
     message = selectedInputId == nil
       ? nil
       : "Đã chọn mic HFP; SCO đang nhả để giữ BLE MAIN sẵn sàng."
@@ -725,7 +753,10 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
     switch step {
     case .complete:
       routeActive = false
-      phase = "idle"
+      phase = IOSHfpIdleReadinessPolicy.phase(
+        hasVerifiedSelection: selectedInputVerified,
+        hasSelectedInput: selectedInputId != nil
+      )
       message = "Đã chọn mic HFP; SCO đã nhả và BLE có thể kết nối an toàn."
       audioSessionCoordinator.trace(
         stage: "hfp_idle_route_confirmed",
@@ -827,29 +858,43 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
     {
       selectedInputId = active.uid
       selectedInputName = active.portName
+      selectedInputVerified = true
       routeActive = true
       phase = "recording"
       message = "Đang dùng mic và loa HOMI trên route bluetoothHFP hai chiều."
     } else if let active = selectedOrUnclaimedActiveTwoWayHfpInput() {
       selectedInputId = active.uid
       selectedInputName = active.portName
+      selectedInputVerified = true
       routeActive = true
       phase = "ready"
       message = "Mic và loa HOMI đã được xác nhận trên currentRoute."
     } else {
       routeActive = false
-      phase = phase == "recording" ? "error" : "idle"
+      if phase == "recording" {
+        selectedInputVerified = false
+        phase = "error"
+      } else {
+        phase = IOSHfpIdleReadinessPolicy.phase(
+          hasVerifiedSelection: selectedInputVerified,
+          hasSelectedInput: selectedInputId != nil
+        )
+      }
       if selectedInputId != nil {
-        let available = bluetoothInputs().map {
-          IOSHfpInputIdentity(uid: $0.uid, name: $0.portName)
+        if selectedInputVerified {
+          message = "Đã chọn mic HFP; route đang nghỉ và sẽ được kiểm tra lại khi sử dụng."
+        } else {
+          let available = bluetoothInputs().map {
+            IOSHfpInputIdentity(uid: $0.uid, name: $0.portName)
+          }
+          message = IOSHfpInputSelectionPolicy.select(
+            from: available,
+            selectedUID: selectedInputId,
+            selectedName: selectedInputName
+          ) != nil
+            ? "Đã chọn mic HFP; route hiện chưa hoạt động."
+            : "Mic HFP không còn khả dụng; hãy kiểm tra Bluetooth iOS."
         }
-        message = IOSHfpInputSelectionPolicy.select(
-          from: available,
-          selectedUID: selectedInputId,
-          selectedName: selectedInputName
-        ) != nil
-          ? "Đã chọn mic HFP; route hiện chưa hoạt động."
-          : "Mic HFP không còn khả dụng; hãy kiểm tra Bluetooth iOS."
       }
     }
     emitStatus()
@@ -875,6 +920,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
         queue: .main
       ) { [weak self] _ in
         guard let self else { return }
+        self.selectedInputVerified = false
         self.audioSessionCoordinator.noteMediaServicesWereReset(
           caller: "HfpAudioBridge.mediaServicesWereReset"
         )
@@ -930,6 +976,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
   }
 
   private func fail(_ result: FlutterResult, code: String, error: Error) {
+    selectedInputVerified = false
     phase = "error"
     message = error.localizedDescription
     routeActive = false

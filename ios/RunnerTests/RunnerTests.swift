@@ -843,6 +843,30 @@ class RunnerTests: XCTestCase {
     )
   }
 
+  func testIOSHfpVerifiedSelectionStaysReadyAfterIdleRouteRelease() {
+    XCTAssertEqual(
+      IOSHfpIdleReadinessPolicy.phase(
+        hasVerifiedSelection: true,
+        hasSelectedInput: true
+      ),
+      "ready"
+    )
+    XCTAssertEqual(
+      IOSHfpIdleReadinessPolicy.phase(
+        hasVerifiedSelection: false,
+        hasSelectedInput: true
+      ),
+      "idle"
+    )
+    XCTAssertEqual(
+      IOSHfpIdleReadinessPolicy.phase(
+        hasVerifiedSelection: true,
+        hasSelectedInput: false
+      ),
+      "idle"
+    )
+  }
+
   func testIOSAudioOwnershipKeepsPromptAliveWhenMainTurnEnds() {
     var ownership = IOSAudioSessionOwnershipState()
 
