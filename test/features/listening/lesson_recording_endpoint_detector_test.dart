@@ -343,6 +343,33 @@ void main() {
     },
   );
 
+  testWidgets('a noise at mic-open that sags later is not an opening answer', (
+    tester,
+  ) async {
+    final amplitudes = StreamController<double>.broadcast(sync: true);
+    addTearDown(amplitudes.close);
+    var now = DateTime(2026);
+    final reasons = <LessonRecordingEndpointReason>[];
+    final detector = LessonRecordingEndpointDetector(now: () => now);
+    detector.start(amplitudeDbfs: amplitudes.stream, onEndpoint: reasons.add);
+
+    for (final level in <double>[
+      ...startupSilence,
+      -14, -14, -14, -23, -23, -23, -23, -23, -20, -20, -20, -23, -23, -22, //
+      -22, -22, -23, -23, -23, -23, -22, -22, -22, -24, -24, -24, -23, -23,
+    ]) {
+      now = now.add(const Duration(milliseconds: 90));
+      amplitudes.add(level);
+    }
+    expect(detector.speechDetected, isFalse);
+    await tester.pump(const Duration(milliseconds: 5999));
+    expect(reasons, isEmpty);
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(reasons, <LessonRecordingEndpointReason>[
+      LessonRecordingEndpointReason.maximumDuration,
+    ]);
+  });
+
   testWidgets(
     'quiet iOS H20 speech ends after its quiet tail instead of six seconds',
     (tester) async {

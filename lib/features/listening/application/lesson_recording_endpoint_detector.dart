@@ -55,6 +55,7 @@ class LessonRecordingEndpointDetector {
   int _generation = 0;
   DateTime? _sustainedVoiceStartedAt;
   DateTime? _earlyVoiceStartedAt;
+  DateTime? _earlyVoiceLastHeardAt;
   double? _earlyVoiceMinimum;
   double? _earlyVoiceMaximum;
   int _earlyVoiceSamples = 0;
@@ -65,6 +66,9 @@ class LessonRecordingEndpointDetector {
   /// for this window is still speech, while being well below the detector's
   /// steady-noise promotion window.
   static const Duration _flatSpeechConfirmation = Duration(milliseconds: 270);
+
+  /// Longest fade from an opening burst to its 10 dB drop.
+  static const Duration _earlyVoiceFade = Duration(milliseconds: 500);
 
   /// Android reports -160 dBFS until its input stream delivers audio.
   static const double _noSignalDbfs = -100;
@@ -191,6 +195,7 @@ class LessonRecordingEndpointDetector {
       }
       if (dbfs < -60) return;
       _earlyVoiceStartedAt = now;
+      _earlyVoiceLastHeardAt = now;
       _earlyVoiceMinimum = dbfs;
       _earlyVoiceMaximum = dbfs;
       _earlyVoiceSamples = 1;
@@ -199,6 +204,13 @@ class LessonRecordingEndpointDetector {
 
     final minimum = _earlyVoiceMinimum!;
     final maximum = _earlyVoiceMaximum!;
+    // The drop has to end the burst itself; a later sag is the room.
+    if (dbfs > minimum - 5) {
+      _earlyVoiceLastHeardAt = now;
+    } else if (now.difference(_earlyVoiceLastHeardAt!) > _earlyVoiceFade) {
+      _earlyVoiceFinished = true;
+      return;
+    }
     if (dbfs <= minimum - 10) {
       _earlyVoiceFinished = true;
       final duration = now.difference(_earlyVoiceStartedAt!);
