@@ -1200,22 +1200,24 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                 required completedTopicNumbers,
                 required announceLevel,
               }) async {
-                await widget.voiceNavigationController
-                    ?.activateLevelTopicSelection(
-                      childAge: childAge,
-                      levelNumber: levelNumber,
-                      topicNumbers: topicNumbers,
-                      completedTopicNumbers: completedTopicNumbers,
-                      announceLevel: announceLevel,
-                    );
+                return await widget.voiceNavigationController
+                        ?.activateLevelTopicSelection(
+                          childAge: childAge,
+                          levelNumber: levelNumber,
+                          topicNumbers: topicNumbers,
+                          completedTopicNumbers: completedTopicNumbers,
+                          announceLevel: announceLevel,
+                        ) ??
+                    false;
               },
           onCourseRelearnLevelSelectionRequested:
               ({required childAge, required levelNumbers}) async {
-                await widget.voiceNavigationController
-                    ?.activateCourseRelearnLevelSelection(
-                      childAge: childAge,
-                      levelNumbers: levelNumbers,
-                    );
+                return await widget.voiceNavigationController
+                        ?.activateCourseRelearnLevelSelection(
+                          childAge: childAge,
+                          levelNumbers: levelNumbers,
+                        ) ??
+                    false;
               },
           contentFuture: widget.listeningContentFuture,
           progressStore: widget.listeningProgressStore,

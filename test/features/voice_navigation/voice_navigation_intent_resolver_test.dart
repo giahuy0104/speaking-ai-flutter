@@ -6,6 +6,79 @@ void main() {
   const resolver = VoiceNavigationIntentResolver();
 
   group('VoiceNavigationIntentResolver', () {
+    test(
+      'recognizes complete numbered topic commands without an action verb',
+      () {
+        for (final entry in <String, int>{
+          'Chủ đề số 1': 1,
+          'Chủ đề số 2': 2,
+          'Chủ đề số 3': 3,
+          'chủ đề số một': 1,
+          'chu de so hai': 2,
+          'Chủ đề ba nhé': 3,
+          'Con muốn học chủ đề số ba': 3,
+          'Mở chủ đề mười một': 11,
+          'Topic number one': 1,
+          'Topic two': 2,
+          'Open topic number three please': 3,
+        }.entries) {
+          final intent = resolver.resolve(entry.key);
+          expect(
+            intent?.destination,
+            VoiceNavigationDestination.topics,
+            reason: entry.key,
+          );
+          expect(intent?.topicNumber, entry.value, reason: entry.key);
+          expect(intent?.openLesson, isFalse, reason: entry.key);
+        }
+      },
+    );
+
+    test('numbered topic recognition waits for a complete final utterance', () {
+      for (final phrase in <String>[
+        'Chủ đề số',
+        'Bạn chọn chủ đề số mấy',
+        'Chủ đề số hai rất hay',
+        'Hôm nay cô kể chuyện về chủ đề số ba',
+      ]) {
+        expect(
+          VoiceNavigationIntentResolver.directTopicNumber(phrase),
+          isNull,
+          reason: phrase,
+        );
+      }
+      expect(resolver.resolve('Chủ đề số'), isNull);
+      expect(resolver.resolve('Chủ đề số hai rất hay'), isNull);
+      expect(
+        resolver.resolve('Chủ đề số hai', allowShortDirectCommand: false),
+        isNull,
+      );
+    });
+
+    test(
+      'continuous numbered topic navigation still requires a command cue',
+      () {
+        for (final command in <String>[
+          'Mở chủ đề số hai',
+          'Con muốn học chủ đề số hai',
+        ]) {
+          final intent = resolver.resolve(
+            command,
+            allowShortDirectCommand: false,
+          );
+          expect(intent?.destination, VoiceNavigationDestination.topics);
+          expect(intent?.topicNumber, 2);
+        }
+        expect(
+          resolver.resolve(
+            'Hôm nay cô kể chuyện về chủ đề số hai',
+            allowShortDirectCommand: false,
+          ),
+          isNull,
+        );
+      },
+    );
+
     test('recognizes approved INT-022 HOMI wake phrases and ASR variants', () {
       for (final phrase in MasterNavigationContract.phrases['WAKE_WORD']!) {
         expect(resolver.containsWakeWord(phrase), isTrue, reason: phrase);

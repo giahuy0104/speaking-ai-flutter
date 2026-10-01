@@ -443,12 +443,16 @@ class AivoControlDispatcher extends ChangeNotifier {
       return _mainResult(await onMain(mainInput));
     }
     if (!registry.hasActiveModule) return AivoControlStatus.unavailable;
+    // Item controls can restart lesson audio. MAIN must finish its question
+    // and release recognition before an accessory can resume that owner.
+    if (!(canResume?.call() ?? true)) return AivoControlStatus.busy;
     final owner = registry.controller;
     final paused = await registry.pauseForMainAssistant(
       canContinue: () => ticket == _generation,
     );
     if (!paused ||
         ticket != _generation ||
+        !(canResume?.call() ?? true) ||
         !identical(owner, registry.controller)) {
       return AivoControlStatus.busy;
     }

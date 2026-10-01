@@ -22,6 +22,108 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  testWidgets(
+    'finishing Topic 1 continues the remaining Topic at its unfinished lesson',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      await _usePhoneSurface(tester);
+      final first = _v4Lesson();
+      final alreadyCompleted = _v4Lesson(number: 2);
+      final unfinished = _v4Lesson(
+        number: 3,
+        sentences: const [
+          ListeningSentenceContent(
+            id: 'topic-two-sentence-one',
+            number: 1,
+            english: 'Good morning.',
+            vietnamese: 'Chào buổi sáng.',
+          ),
+          ListeningSentenceContent(
+            id: 'topic-two-sentence-two',
+            number: 2,
+            english: 'Good night.',
+            vietnamese: 'Chúc ngủ ngon.',
+          ),
+        ],
+      );
+      final firstTopic = ListeningTopicContent(
+        id: 'topic-one',
+        number: 1,
+        titleVi: 'Chủ đề 1',
+        titleEn: 'Topic 1',
+        levelNumber: 1,
+        lessons: [first],
+      );
+      final secondTopic = ListeningTopicContent(
+        id: 'topic-two',
+        number: 2,
+        titleVi: 'Chủ đề 2',
+        titleEn: 'Topic 2',
+        levelNumber: 1,
+        lessons: [alreadyCompleted, unfinished],
+      );
+      const level = ListeningLevelContent(
+        id: 'level-one',
+        number: 1,
+        titleVi: 'Level 1',
+        topicNumbers: [1, 2],
+      );
+      final group = ListeningContentAgeGroup(
+        startAge: 3,
+        endAge: 5,
+        topics: [firstTopic, secondTopic],
+        levels: [level],
+      );
+      final store = _TopicTransitionProgressStore()
+        ..progress.addAll({first.id: 1, alreadyCompleted.id: 1})
+        ..cursors[unfinished.id] = 1
+        ..coreStarted = true
+        ..stages[alreadyCompleted.id] = ListeningResumeStage.completed
+        ..pendingCompletionChoice =
+            ListeningPendingChoiceStage.topicEndOneRemaining;
+      store.completedV4LessonActivities.addAll([first.id, alreadyCompleted.id]);
+      final voice = _KeyedRecordingVoicePromptService();
+      final media = _SilentMediaService();
+      await tester.pumpWidget(
+        _subject(
+          first,
+          store,
+          const Key('topic-one-completion'),
+          topicContent: firstTopic,
+          contentGroup: group,
+          levelContent: level,
+          voicePromptService: voice,
+          mediaService: media,
+          initialResumeStage: ListeningResumeStage.waitingForChoice,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('v4-choice-nextTopic')));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      final practice = tester.widget<LessonPracticeScreen>(
+        find.byType(LessonPracticeScreen),
+      );
+      expect(practice.topicContent?.number, 2);
+      expect(practice.lesson.id, unfinished.id);
+      expect(find.byKey(const ValueKey('v4-choice-nextTopic')), findsNothing);
+      expect(
+        voice.spoken.join(' '),
+        contains('Mình học tiếp bài V4 lesson nhé.'),
+      );
+      expect(store.cursors[unfinished.id], 1);
+      expect(media.startedSentenceIds.last, unfinished.sentences[1].id);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
   for (final command in [
     ActiveLearningCommand.nextItem,
     ActiveLearningCommand.previousItem,
@@ -214,6 +316,63 @@ void main() {
       await tester.pumpAndSettle();
       expect(speech.commands.stops, 1);
       await tester.pumpWidget(const SizedBox());
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+  testWidgets(
+    'iOS completion keeps an early partial and ends after silence without more native events',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      await _usePhoneSurface(tester);
+      final lesson = _v4Lesson();
+      final store = _MemoryProgressStore()
+        ..completedSentences = 1
+        ..challengeProcessed = true
+        ..pendingCompletionChoice = ListeningPendingChoiceStage.lessonEnd
+        ..resumeStage = ListeningResumeStage.waitingForChoice;
+      final gate = Completer<void>();
+      final speech = _IosCompletionCommandSpeechInput('Bài 2')
+        ..firstStartGate = gate;
+      addTearDown(speech.dispose);
+      final media = _SilentMediaService();
+      await tester.pumpWidget(
+        _subject(
+          lesson,
+          store,
+          const Key('ios-early-partial-choice'),
+          mediaService: media,
+          voicePromptService: _SilentVoicePromptService(),
+          controller: _LearningAudioDependencies(speech),
+          topicContent: ListeningTopicContent(
+            id: 'topic-1',
+            number: 1,
+            titleVi: 'Chủ đề 1',
+            titleEn: 'Topic 1',
+            lessons: [lesson, _v4Lesson(number: 2)],
+          ),
+          initialResumeStage: ListeningResumeStage.waitingForChoice,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(speech.commands.commandStarts, 1);
+      // SpeechAnalyzer can publish the child's entire answer before the native
+      // start reply, then stay silent until Dart requests finalization.
+      speech.commands.partial.add('Bài 2');
+      await tester.pump();
+      expect(speech.commands.stops, 0);
+      gate.complete();
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 701));
+      await tester.pump();
+      expect(speech.commands.stops, 1);
+      final intro = tester.widget<LessonIntroScreen>(
+        find.byType(LessonIntroScreen),
+      );
+      expect(intro.lesson.number, 2);
+      expect(store.pendingCompletionChoice, isNull);
+      expect(media.startRecordingCount, 0);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump();
     },
     variant: TargetPlatformVariant.only(TargetPlatform.iOS),
   );
@@ -1250,6 +1409,8 @@ Widget _subject(
   VoicePromptService? voicePromptService,
   LearningAudioDependencies? controller,
   ListeningTopicContent? topicContent,
+  ListeningContentAgeGroup? contentGroup,
+  ListeningLevelContent? levelContent,
   LessonCompletionChoiceRecognizer? completionChoiceRecognizer,
   ListeningResumeStage initialResumeStage = ListeningResumeStage.core,
   VoidCallback? onCommunicationRequested,
@@ -1276,6 +1437,8 @@ Widget _subject(
       voicePromptService: voicePromptService,
       controller: controller,
       topicContent: topicContent,
+      contentGroup: contentGroup,
+      levelContent: levelContent,
       completionChoiceRecognizer: completionChoiceRecognizer,
       initialResumeStage: initialResumeStage,
       onCommunicationRequested: onCommunicationRequested,
@@ -1308,7 +1471,11 @@ ListeningLessonContent _lessonWithSentences(int count) {
   );
 }
 
-ListeningLessonContent _v4Lesson({bool withSong = false, int number = 1}) {
+ListeningLessonContent _v4Lesson({
+  bool withSong = false,
+  int number = 1,
+  List<ListeningSentenceContent>? sentences,
+}) {
   return ListeningLessonContent(
     id: number == 1
         ? 'navigation-test-lesson'
@@ -1335,14 +1502,16 @@ ListeningLessonContent _v4Lesson({bool withSong = false, int number = 1}) {
         targetId: 'v4-target-1',
       ),
     ],
-    sentences: <ListeningSentenceContent>[
-      const ListeningSentenceContent(
-        id: 'v4-target-1',
-        number: 1,
-        english: 'Good morning.',
-        vietnamese: 'Chào buổi sáng.',
-      ),
-    ],
+    sentences:
+        sentences ??
+        <ListeningSentenceContent>[
+          const ListeningSentenceContent(
+            id: 'v4-target-1',
+            number: 1,
+            english: 'Good morning.',
+            vietnamese: 'Chào buổi sáng.',
+          ),
+        ],
     songTitle: withSong ? 'Count with Me' : null,
     songAudioId: withSong ? 'C35_L1_T01_B01_SONG' : null,
     songAudioUri: withSong
@@ -1561,6 +1730,45 @@ class _MemoryProgressStore extends ListeningProgressStore {
   @override
   Future<void> markV4LessonActivityCompleted(String lessonId) async {
     completedV4LessonActivities.add(lessonId);
+  }
+}
+
+class _TopicTransitionProgressStore extends _MemoryProgressStore {
+  final Map<String, int> progress = {};
+  final Map<String, int> cursors = {};
+  final Map<String, ListeningResumeStage> stages = {};
+
+  @override
+  Future<bool> hasOpenedLearningGuide() async => true;
+
+  @override
+  Future<void> markLearningGuideOpened() async {}
+
+  @override
+  Future<Map<String, int>> readAll() async => Map.of(progress);
+
+  @override
+  Future<int> readLesson(String lessonId) async => progress[lessonId] ?? 0;
+
+  @override
+  Future<int> readCurrentSentence(String lessonId) async =>
+      cursors[lessonId] ?? 0;
+
+  @override
+  Future<void> saveCurrentSentence(String lessonId, int sentenceIndex) async {
+    cursors[lessonId] = sentenceIndex;
+  }
+
+  @override
+  Future<ListeningResumeStage> readResumeStage(String lessonId) async =>
+      stages[lessonId] ?? ListeningResumeStage.core;
+
+  @override
+  Future<void> saveResumeStage(
+    String lessonId,
+    ListeningResumeStage stage,
+  ) async {
+    stages[lessonId] = stage;
   }
 }
 

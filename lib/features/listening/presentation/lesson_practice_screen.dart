@@ -183,6 +183,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   StreamSubscription<void>? _completionChoiceCompletedSubscription;
   StreamSubscription<String>? _completionChoicePartialSubscription;
   bool _pausedForMainAssistant = false;
+  bool _pausedByStop = false;
   bool _challengeEntryPending = false;
   int _challengeEntryRequest = 0;
   bool _exiting = false;
@@ -533,6 +534,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   @override
   Future<void> pauseForMainAssistant({bool waitForCleanup = true}) async {
     _pausedForMainAssistant = true;
+    _pausedByStop = false;
     _lessonSession.invalidateMainPause();
     _lessonSession.invalidateActiveTurn();
     _cancelPendingLessonDelays();
@@ -649,9 +651,16 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
     switch (command) {
       case ActiveLearningCommand.stop:
-        await pauseForMainAssistant();
-        if (mounted) {
-          setState(() => _message = 'Đã dừng. Nhấn MAIN để tiếp tục.');
+        final stopCleanup = pauseForMainAssistant();
+        final stopTicket = _lessonSession.mainPauseTicket;
+        await stopCleanup;
+        if (mounted &&
+            _pausedForMainAssistant &&
+            _lessonSession.isCurrentMainPause(stopTicket)) {
+          setState(() {
+            _pausedByStop = true;
+            _message = 'Đã dừng. Nhấn MAIN để tiếp tục.';
+          });
         }
         return const ActiveLearningCommandResult.handled(
           spokenReply: 'Đã dừng.',
@@ -846,7 +855,9 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   }
 
   Future<void> _runVirtualLessonCommand(ActiveLearningCommand command) async {
-    if (_virtualCommandPending || !mounted) {
+    if (_virtualCommandPending ||
+        !mounted ||
+        (_pausedForMainAssistant && !_pausedByStop)) {
       return;
     }
     setState(() => _virtualCommandPending = true);
@@ -879,7 +890,9 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         _recording ||
         _mediaBusy ||
         _evaluatingAttempt ||
-        _pausedAfterNoResponse;
+        _pausedAfterNoResponse ||
+        _pausedForMainAssistant ||
+        _virtualCommandPending;
     return DisplayLanguageScope(
       language: widget.language,
       child: PopScope<Object?>(
@@ -925,8 +938,12 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
                                       lessonType: widget.lesson.type,
                                       current: _sentenceIndex + 1,
                                       total: total,
-                                      onPlaySample: _playSample,
-                                      onPlayVietnamese: _playVietnamese,
+                                      onPlaySample: interactionBusy
+                                          ? null
+                                          : _playSample,
+                                      onPlayVietnamese: interactionBusy
+                                          ? null
+                                          : _playVietnamese,
                                     ),
                                     if (_recordingPath == null) ...<Widget>[
                                       const SizedBox(height: 14),
@@ -939,7 +956,9 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
                                       busy:
                                           _mediaBusy ||
                                           _evaluatingAttempt ||
-                                          _pausedAfterNoResponse,
+                                          _pausedAfterNoResponse ||
+                                          _pausedForMainAssistant ||
+                                          _virtualCommandPending,
                                       onTap: _toggleRecording,
                                       onLongPressStart: _startRecording,
                                       onLongPressEnd: _stopRecording,
@@ -1040,7 +1059,9 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
                   top: MediaQuery.paddingOf(context).top + 70,
                   right: 6,
                   child: _VirtualLessonControls(
-                    pending: _virtualCommandPending || _pausedForMainAssistant,
+                    pending:
+                        _virtualCommandPending ||
+                        (_pausedForMainAssistant && !_pausedByStop),
                     canGoPrevious: _sentenceIndex > 0,
                     onPrevious: () => _runVirtualLessonCommand(
                       ActiveLearningCommand.previousItem,
@@ -3061,15 +3082,34 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         topic.lessons.map((lesson) => lesson.id),
       );
     }
-    final lesson = topic.lessons.first;
+    final ListeningLessonContent? lesson;
+    if (relearn) {
+      lesson = topic.lessons.first;
+    } else {
+      final progressFuture = widget.progressStore.readAll();
+      final completedActivitiesFuture = widget.progressStore
+          .readCompletedV4LessonActivities();
+      lesson = ListeningCurriculumFlow.firstIncompleteLesson(
+        topic,
+        await progressFuture,
+        await completedActivitiesFuture,
+      );
+    }
+    final selectedLesson = lesson;
+    if (selectedLesson == null) {
+      await _returnToTopicSelection(
+        levelNumber: topic.levelNumber,
+        announceLevel: false,
+      );
+      return;
+    }
     unawaited(
       const ActiveListeningSessionStore().save(
         childAge: widget.startAge,
         topicNumber: topic.number,
-        lessonNumber: lesson.number,
+        lessonNumber: selectedLesson.number,
       ),
     );
-    await widget.progressStore.saveCurrentSentence(lesson.id, 0);
     final ageCatalog = listeningCatalogs.firstWhere(
       (catalog) =>
           catalog.startAge == widget.startAge &&
@@ -3080,6 +3120,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       ageCatalog.topics.length - 1,
     );
     await widget.mediaService.stopPlayback();
+    await _releaseOwnedVoicePromptService().catchError((Object _) {});
     if (!mounted) return;
     _handingOffMediaPlayback = true;
     await pushReplacementForActiveLearning<void, void>(
@@ -3089,13 +3130,17 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         startAge: widget.startAge,
         endAge: widget.endAge,
         topic: ageCatalog.topics[topicIndex],
-        lesson: lesson,
+        lesson: selectedLesson,
         controller: widget.controller,
         topicContent: topic,
         contentGroup: widget.contentGroup,
         levelContent: widget.contentGroup?.level(topic.levelNumber),
         progressStore: widget.progressStore,
         mediaService: widget.mediaService,
+        guideAudioLibrary: _guideAudioLibrary,
+        voicePromptService: _ownsVoicePromptService
+            ? null
+            : _voicePromptService,
         relearnFromBeginning: relearn,
         relearnTopicSequence: relearn,
         onTopicCompleted: widget.onTopicCompleted,
@@ -3370,6 +3415,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     });
     IOSStreamingSpeechInput? completionIosSpeechInput;
     var nativeCompletionPending = false;
+    var nativeSpeechObserved = false;
     try {
       final readyCuePlayer = _voicePromptService;
       final cueBeforeStart =
@@ -3427,7 +3473,17 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       _completionChoicePartialSubscription = nativeInput?.partialText.listen((
         text,
       ) {
-        if (_completionChoiceRecording && text.trim().isNotEmpty) {
+        if (!mounted ||
+            _pausedForMainAssistant ||
+            !_lessonSession.isCurrentMainPause(pauseGeneration) ||
+            !_lessonSession.isCurrentCompletionChoice(choiceGeneration) ||
+            text.trim().isEmpty) {
+          return;
+        }
+        // SpeechAnalyzer may publish the complete answer before start replies.
+        // Keep that evidence until the endpoint detector owns this capture.
+        nativeSpeechObserved = true;
+        if (_completionChoiceRecording && !_recordingStartPending) {
           _recordingEndpointDetector.confirmSpeech();
         }
       });
@@ -3485,6 +3541,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             widget.mediaService.recordingAmplitudeDbfs,
         onEndpoint: (_) => unawaited(_stopCompletionChoiceRecording()),
       );
+      if (nativeSpeechObserved) _recordingEndpointDetector.confirmSpeech();
       if (nativeCompletionPending) unawaited(_stopCompletionChoiceRecording());
     } catch (error) {
       if (!mounted ||
@@ -4632,8 +4689,8 @@ class _SentenceCard extends StatelessWidget {
   final ListeningLessonType lessonType;
   final int current;
   final int total;
-  final VoidCallback onPlaySample;
-  final VoidCallback onPlayVietnamese;
+  final VoidCallback? onPlaySample;
+  final VoidCallback? onPlayVietnamese;
 
   @override
   Widget build(BuildContext context) {

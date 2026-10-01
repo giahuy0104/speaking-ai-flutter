@@ -33,8 +33,9 @@ typedef TopicLessonSelectionPrompt =
       required List<int> completedLessonNumbers,
     });
 
+/// Returns true only when the assistant has opened the topic response turn.
 typedef LevelTopicSelectionPrompt =
-    Future<void> Function({
+    Future<bool> Function({
       required int childAge,
       required int levelNumber,
       required List<int> topicNumbers,
@@ -43,7 +44,7 @@ typedef LevelTopicSelectionPrompt =
     });
 
 typedef CourseRelearnLevelSelectionPrompt =
-    Future<void> Function({
+    Future<bool> Function({
       required int childAge,
       required List<int> levelNumbers,
     });
@@ -662,15 +663,27 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     if (levelNumbers.isEmpty || !mounted) return;
     final callback = widget.onCourseRelearnLevelSelectionRequested;
     if (callback != null) {
-      await callback(childAge: _catalog.startAge, levelNumbers: levelNumbers);
-      return;
+      try {
+        final activated = await callback(
+          childAge: _catalog.startAge,
+          levelNumbers: levelNumbers,
+        );
+        if (activated) return;
+      } catch (error) {
+        debugPrint('HOMI course replay activation failed: $error');
+      }
     }
 
     final prompt = v4CompletionPrompt(V4CompletionStage.courseRelearnLevel);
-    await _speakOnSelectedLessonOutput(
-      prompt,
-      audioKey: ListeningAudioKeys.chooseLevel,
-    );
+    if (!mounted) return;
+    try {
+      await _speakOnSelectedLessonOutput(
+        prompt,
+        audioKey: ListeningAudioKeys.chooseLevel,
+      );
+    } catch (error) {
+      debugPrint('HOMI course replay prompt failed: $error');
+    }
     if (!mounted) return;
     final selected = await showModalBottomSheet<int>(
       context: context,
@@ -735,13 +748,37 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     required int levelNumber,
     required bool announceLevel,
   }) async {
-    final level = group.level(levelNumber);
+    final requestedLevel = group.level(levelNumber);
+    final canResumeRequestedLevel =
+        requestedLevel != null &&
+        ListeningCurriculumFlow.levelUnlocked(
+          group,
+          requestedLevel,
+          _lessonProgress,
+          _completedV4LessonActivities,
+        ) &&
+        !ListeningCurriculumFlow.allTopicsInLevelCompleted(
+          group,
+          requestedLevel,
+          _lessonProgress,
+          _completedV4LessonActivities,
+        );
+    final level = canResumeRequestedLevel
+        ? requestedLevel
+        : group.level(
+            ListeningCurriculumFlow.currentUnlockedLevelNumber(
+              group,
+              _lessonProgress,
+              _completedV4LessonActivities,
+            ),
+          );
     if (level == null) return;
     await widget.progressStore.saveTopicSelectionCheckpoint(
       '${_catalog.startAge}-${_catalog.endAge}',
       levelNumber: level.number,
       announceLevel: announceLevel,
     );
+    if (!mounted) return;
     final callback = widget.onLevelTopicSelectionRequested;
     final completedTopics = level.topicNumbers
         .where((number) {
@@ -758,21 +795,71 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
         })
         .toList(growable: false);
     if (callback != null) {
-      await callback(
-        childAge: _catalog.startAge,
-        levelNumber: level.number,
-        topicNumbers: level.topicNumbers,
-        completedTopicNumbers: completedTopics,
-        announceLevel: announceLevel,
-      );
-      return;
+      try {
+        final activated = await callback(
+          childAge: _catalog.startAge,
+          levelNumber: level.number,
+          topicNumbers: level.topicNumbers,
+          completedTopicNumbers: completedTopics,
+          announceLevel: announceLevel,
+        );
+        if (activated) return;
+      } catch (error) {
+        debugPrint('HOMI topic selection activation failed: $error');
+      }
     }
     final lead = announceLevel ? 'Bắt đầu Level ${level.number}. ' : '';
-    await _speakOnSelectedLessonOutput(
-      '${lead}Có ${level.topicNumbers.length} Chủ đề. Bạn chọn Chủ đề số mấy?',
-      audioKey: announceLevel
-          ? MainAssistantAudioKeys.levelTopicSelection(level.number)
-          : MainAssistantAudioKeys.chooseTopic(level.topicNumbers.length),
+    if (!mounted) return;
+    try {
+      await _speakOnSelectedLessonOutput(
+        '${lead}Có ${level.topicNumbers.length} Chủ đề. Bạn chọn Chủ đề số mấy?',
+        audioKey: announceLevel
+            ? MainAssistantAudioKeys.levelTopicSelection(level.number)
+            : MainAssistantAudioKeys.chooseTopic(level.topicNumbers.length),
+      );
+    } catch (error) {
+      debugPrint('HOMI topic selection prompt failed: $error');
+    }
+    if (callback == null || !mounted) return;
+    final selected = await showModalBottomSheet<int>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Text(
+                  context.tr('Bạn chọn Chủ đề số mấy?', '请选择主题编号。'),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(sheetContext).textTheme.titleLarge,
+                ),
+                for (final topicNumber in level.topicNumbers) ...<Widget>[
+                  const SizedBox(height: 10),
+                  FilledButton(
+                    key: ValueKey<String>('level-topic-choice-$topicNumber'),
+                    onPressed: () =>
+                        Navigator.of(sheetContext).pop(topicNumber),
+                    child: Text(
+                      context.tr('Chủ đề $topicNumber', '主题 $topicNumber'),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (selected == null || !mounted) return;
+    final topicIndex = selected - 1;
+    if (topicIndex < 0 || topicIndex >= _catalog.topics.length) return;
+    await _openTopic(
+      _catalog.topics[topicIndex],
+      topicIndex,
+      requestVoiceLessonSelection: false,
     );
   }
 

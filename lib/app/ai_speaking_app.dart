@@ -1657,7 +1657,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       canExecute: () => _startupReady && _voiceAccessEnabled,
       canResume: () =>
           !_isActivatingMainAssistant &&
-          !(_voiceNavigationController?.isMainButtonSessionActive ?? false),
+          !(_voiceNavigationController?.isMainButtonSessionActive ?? false) &&
+          !(_voiceNavigationController?.isActive ?? false),
       onModuleHandled: _appFlowCoordinator.forgetPausedModule,
       platform: defaultTargetPlatform.name,
       operationTimeout: const Duration(seconds: 30),

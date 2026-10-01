@@ -47,6 +47,62 @@ class VoiceNavigationIntent {
 class VoiceNavigationIntentResolver {
   const VoiceNavigationIntentResolver();
 
+  static const spokenNumberPattern =
+      r'\d{1,2}|muoi(?: (?:mot|hai|ba|bon|tu|lam))?|dau tien|mot|hai|ba|bon|tu|nam|sau|bay|tam|chin|first|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen';
+
+  static int? parseSpokenNumber(String token) =>
+      int.tryParse(token) ??
+      const <String, int>{
+        'mot': 1,
+        'dau tien': 1,
+        'hai': 2,
+        'ba': 3,
+        'bon': 4,
+        'tu': 4,
+        'nam': 5,
+        'sau': 6,
+        'bay': 7,
+        'tam': 8,
+        'chin': 9,
+        'muoi': 10,
+        'muoi mot': 11,
+        'muoi hai': 12,
+        'muoi ba': 13,
+        'muoi bon': 14,
+        'muoi tu': 14,
+        'muoi lam': 15,
+        'first': 1,
+        'one': 1,
+        'two': 2,
+        'three': 3,
+        'four': 4,
+        'five': 5,
+        'six': 6,
+        'seven': 7,
+        'eight': 8,
+        'nine': 9,
+        'ten': 10,
+        'eleven': 11,
+        'twelve': 12,
+        'thirteen': 13,
+        'fourteen': 14,
+        'fifteen': 15,
+      }[token];
+
+  /// A numbered topic is a complete command even without an opening verb.
+  /// Require the whole utterance so an ordinary sentence mentioning a topic
+  /// does not navigate, and a partial prefix never commits a missing number.
+  static int? directTopicNumber(String recognizedText) {
+    final normalized = _normalize(recognizedText);
+    final match = RegExp(
+      r'^(?:(?:con|minh|toi) )?'
+      r'(?:(?:chon|hoc lai|hoc|muon hoc lai|muon hoc|muon chon|muon|cho minh hoc|mo lai|mo|vao|hay mo|open|choose|select) )?'
+      '(?:chu de|topic)(?: so| number)? ($spokenNumberPattern)'
+      r'(?: nhe| nha| a| di| please)?$',
+    ).firstMatch(normalized);
+    return match == null ? null : parseSpokenNumber(match.group(1)!);
+  }
+
   /// HOMI wake aliases approved in the fallback workbook. "Bạn ơi" is
   /// intentionally excluded: without a brand word it is too broad to use as
   /// an app-wide wake trigger.
@@ -187,6 +243,19 @@ class VoiceNavigationIntentResolver {
   }) {
     final normalized = _normalize(recognizedText);
     if (normalized.isEmpty) {
+      return null;
+    }
+
+    final directTopic = directTopicNumber(normalized);
+    if (directTopic != null && allowShortDirectCommand) {
+      return VoiceNavigationIntent(
+        destination: VoiceNavigationDestination.topics,
+        recognizedText: recognizedText.trim(),
+        matchedPhrase: 'chu de so $directTopic',
+        topicNumber: directTopic,
+      );
+    }
+    if (RegExp(r'^(?:chu de so|topic number)(?: |$)').hasMatch(normalized)) {
       return null;
     }
 
@@ -400,29 +469,13 @@ class VoiceNavigationIntentResolver {
   static int? _numberAfter(String value, String marker) {
     final match = RegExp(
       '(^| )$marker(?: hoc)?(?: so)? '
-      r'(\d+|mot|hai|ba|bon|nam|sau|bay|tam|chin|muoi|dau tien)( |$)',
+      '($spokenNumberPattern)( |\$)',
     ).firstMatch(value);
     final token = match?.group(2);
     if (token == null) {
       return null;
     }
-    final numeric = int.tryParse(token);
-    if (numeric != null) {
-      return numeric;
-    }
-    return const <String, int>{
-      'mot': 1,
-      'dau tien': 1,
-      'hai': 2,
-      'ba': 3,
-      'bon': 4,
-      'nam': 5,
-      'sau': 6,
-      'bay': 7,
-      'tam': 8,
-      'chin': 9,
-      'muoi': 10,
-    }[token];
+    return parseSpokenNumber(token);
   }
 
   static String _normalize(String value) {

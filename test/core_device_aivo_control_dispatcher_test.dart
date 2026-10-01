@@ -13,14 +13,17 @@ void main() {
   late _Module module;
   var mainCalls = 0;
   var handledCalls = 0;
+  var canResume = true;
   setUp(() {
     mainCalls = 0;
     handledCalls = 0;
+    canResume = true;
     registry = ActiveLearningModuleRegistry();
     module = _Module();
     controls = AivoControlDispatcher(
       registry: registry,
       platform: 'iOS',
+      canResume: () => canResume,
       onModuleHandled: () => handledCalls++,
       onMain: (_) async {
         mainCalls++;
@@ -314,6 +317,102 @@ void main() {
       ActiveLearningCommand.replayCurrent,
     ]);
     expect(mainCalls, 0);
+  });
+  test(
+    'observed H20 item packets cannot play lesson audio while MAIN owns speech',
+    () async {
+      registry.register(module);
+      module.paused = true;
+      canResume = false;
+      const codec = Aiv0DraftProtocolCodec(confirmed: false);
+      for (final raw in <List<int>>[
+        <int>[1, 4, 2, 0, 0x1E, 0, 79, 0, 0x82, 0x7B, 0x0C, 0],
+        <int>[1, 3, 2, 0, 0x1F, 0, 79, 0, 0xFC, 0x97, 0x0C, 0],
+        <int>[1, 2, 1, 0, 0x29, 0, 0x47, 0, 0xF1, 0x60, 0x36, 0],
+      ]) {
+        final event = codec.decodeButtonEvent(Uint8List.fromList(raw));
+        expect(
+          await controls.dispatch(AivoControlInput.fromBle(event)),
+          AivoControlStatus.busy,
+        );
+        expect(
+          controls.capability(event.button, event.gesture),
+          AivoCapability.received,
+        );
+      }
+      expect(module.commands, isEmpty);
+      expect(module.pauseCalls, 0);
+      expect(module.paused, isTrue);
+      expect(handledCalls, 0);
+      expect(mainCalls, 0);
+    },
+  );
+  for (final (button, gesture, command) in [
+    (
+      Aiv0Button.volumeUp,
+      Aiv0ButtonGesture.longPress,
+      ActiveLearningCommand.previousItem,
+    ),
+    (
+      Aiv0Button.volumeDown,
+      Aiv0ButtonGesture.longPress,
+      ActiveLearningCommand.nextItem,
+    ),
+    (
+      Aiv0Button.power,
+      Aiv0ButtonGesture.shortPress,
+      ActiveLearningCommand.replayCurrent,
+    ),
+  ]) {
+    test('$command waits for MAIN then remains available after STOP', () async {
+      registry.register(module);
+      module.paused = true;
+      canResume = false;
+      expect(
+        await controls.dispatch(input(button, gesture)),
+        AivoControlStatus.busy,
+      );
+      expect(module.commands, isEmpty);
+      canResume = true;
+      expect(
+        await controls.dispatch(input(button, gesture)),
+        AivoControlStatus.accepted,
+      );
+      expect(module.commands, [command]);
+      expect(module.paused, isFalse);
+      expect(handledCalls, 1);
+      expect(mainCalls, 0);
+    });
+  }
+  test(
+    'MAIN starting during item cleanup blocks the pending playback command',
+    () async {
+      registry.register(module);
+      module.pauseGate = Completer<void>();
+      final pending = controls.dispatch(
+        input(Aiv0Button.volumeDown, Aiv0ButtonGesture.longPress),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(module.pauseCalls, 1);
+      canResume = false;
+      module.pauseGate!.complete();
+      expect(await pending, AivoControlStatus.busy);
+      expect(module.commands, isEmpty);
+      expect(module.paused, isTrue);
+      expect(handledCalls, 0);
+    },
+  );
+  test('H20 STOP remains available while MAIN owns a paused lesson', () async {
+    registry.register(module);
+    module.paused = true;
+    canResume = false;
+    expect(
+      await controls.dispatch(
+        input(Aiv0Button.main, Aiv0ButtonGesture.longPress),
+      ),
+      AivoControlStatus.accepted,
+    );
+    expect(module.commands, [ActiveLearningCommand.stop]);
   });
   test(
     'duplicate sequence dispatches once and remains visible in history',

@@ -18,6 +18,95 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
+    'MAIN item controls remain blocked until native turn cleanup finishes',
+    () async {
+      final speech = _FakeNavigationSpeechInput(stopText: 'Tiếp tục');
+      final prompt = _DeferredEndMainTurnVoicePromptService();
+      final commands = <ActiveLearningCommand>[];
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+        activeLearningCommandHandler: (command) async {
+          commands.add(command);
+          return const ActiveLearningCommandResult.handled();
+        },
+      );
+      expect(
+        await controller.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: ActiveLearningModuleKind.listeningLesson,
+        ),
+        isTrue,
+      );
+      speech.emitCompleted();
+      await _waitUntil(
+        () => prompt.endedReasons.contains('main_assistant_completed'),
+      );
+      expect(controller.isMainButtonSessionActive, isFalse);
+      expect(controller.isActive, isTrue);
+      expect(commands, isEmpty);
+      prompt.pendingEnd.complete();
+      await _waitUntil(() => !controller.isActive);
+      expect(commands, [ActiveLearningCommand.resume]);
+      await controller.pause();
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+    test(
+      'Home MAIN keeps numbered topic prefixes and final correction on $platform',
+      () async {
+        debugDefaultTargetPlatformOverride = platform;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        final speech = _FakeNavigationSpeechInput(stopText: 'Chủ đề số ba');
+        final prompt = _FakeVoicePromptService();
+        final controller = VoiceNavigationController(
+          speechInput: speech,
+          voicePromptService: prompt,
+          mainAssistantFlow: MainVoiceAssistantFlow(
+            childAge: 6,
+            contentLoader: _loadMainAssistantContent,
+          ),
+          partialIntentDebounce: const Duration(milliseconds: 1),
+        );
+        final intents = <VoiceNavigationIntent>[];
+        controller.setIntentHandler(intents.add);
+        expect(await controller.activateFromMainButton(), isTrue);
+        for (final prefix in [
+          'Con muốn học chủ đề',
+          'Con muốn học chủ đề số',
+        ]) {
+          speech.emitPartial(prefix);
+          if (prefix.endsWith(' số')) speech.emitCommandEndpoint(prefix);
+          await Future<void>.delayed(const Duration(milliseconds: 15));
+          expect(speech.stopCalls, 0, reason: prefix);
+          expect(intents, isEmpty, reason: prefix);
+          expect(
+            controller.mainAssistantStage,
+            MainVoiceAssistantStage.chooseFeature,
+          );
+        }
+        speech.emitPartial('Chủ đề số hai');
+        await Future<void>.delayed(const Duration(milliseconds: 15));
+        expect(speech.stopCalls, 0);
+        speech.emitCommandEndpoint('Chủ đề số hai');
+        await _waitUntil(() => intents.isNotEmpty);
+        expect(
+          intents.single.topicNumber,
+          3,
+          reason: 'final ASR correction wins',
+        );
+        expect(prompt.spokenTexts, [MainVoiceAssistantFlow.openingPrompt]);
+        await controller.pause();
+        controller.dispose();
+        await speech.dispose();
+      },
+    );
+  }
+
+  test(
     'topic endpoint validates a complete choice and keeps final correction',
     () async {
       final speech = _FakeNavigationSpeechInput(stopText: 'Chủ đề 3');
@@ -2535,6 +2624,17 @@ class _FakeMainTurnVoicePromptService extends _FakeVoicePromptService
   Future<void> endMainTurn(String reason, {String? turnId}) async {
     endedReasons.add(reason);
     endedTurnIds.add(turnId);
+  }
+}
+
+class _DeferredEndMainTurnVoicePromptService
+    extends _FakeMainTurnVoicePromptService {
+  final pendingEnd = Completer<void>();
+
+  @override
+  Future<void> endMainTurn(String reason, {String? turnId}) async {
+    await super.endMainTurn(reason, turnId: turnId);
+    if (reason == 'main_assistant_completed') await pendingEnd.future;
   }
 }
 

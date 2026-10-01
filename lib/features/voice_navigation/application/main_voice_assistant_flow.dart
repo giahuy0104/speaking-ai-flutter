@@ -405,6 +405,15 @@ class MainVoiceAssistantFlow {
   /// the recognizer's own endpoint. The final transcript is still what gets
   /// handled.
   bool canEndOnSilence(String recognizedText) {
+    final normalized = _normalize(recognizedText);
+    final directTopic = VoiceNavigationIntentResolver.directTopicNumber(
+      normalized,
+    );
+    if (directTopic != null &&
+        (_hasStageSpecificIntent(normalized) ||
+            _selectionModuleDestination(normalized) != null)) {
+      return directTopic != 10;
+    }
     final numberStage = switch (_stage) {
       MainVoiceAssistantStage.chooseTopic ||
       MainVoiceAssistantStage.chooseTopicAfterCompletion ||
@@ -413,7 +422,6 @@ class MainVoiceAssistantFlow {
       _ => false,
     };
     if (!numberStage) return false;
-    final normalized = _normalize(recognizedText);
     final number = _extractSpokenNumber(normalized);
     // "Mười" can still become "mười một" after a pause.
     return number != null &&
@@ -431,19 +439,20 @@ class MainVoiceAssistantFlow {
     if (normalized.isEmpty || _looksLikePromptEcho(normalized)) {
       return false;
     }
+    if (RegExp(
+      r'(^| )(?:chu de|topic)(?: so| number)?$',
+    ).hasMatch(normalized)) {
+      // A stable module name may still grow into "Chủ đề số hai". Preserve
+      // the entire command in Home, module switches and content selection.
+      return false;
+    }
+    if (VoiceNavigationIntentResolver.directTopicNumber(normalized) != null) {
+      // A numbered destination must retain its final number through MAIN's
+      // normal final-result path, just like a choice within the current Level.
+      return false;
+    }
     final selectionDestination = _selectionModuleDestination(normalized);
     if (selectionDestination != null) {
-      // While the child is choosing a topic, the stable partial "Chủ đề" is
-      // also the prefix of "Chủ đề số 2". Committing OPEN_SUBJECT here resets
-      // the topic-selection flow before the recognizer can publish the number.
-      // Wait for the final transcript in these two stages; an exact final
-      // "Chủ đề" still remains a valid global navigation command in handle().
-      if (normalized == 'chu de' &&
-          selectionDestination == VoiceNavigationDestination.topics &&
-          (_stage == MainVoiceAssistantStage.chooseTopic ||
-              _stage == MainVoiceAssistantStage.chooseTopicAfterCompletion)) {
-        return false;
-      }
       return true;
     }
     if (!_hasStageSpecificIntent(normalized) && !_isStopChoice(normalized)) {
@@ -664,6 +673,9 @@ class MainVoiceAssistantFlow {
           destination: VoiceNavigationDestination.topics,
           recognizedText: recognizedText.trim(),
           matchedPhrase: 'chu de',
+          topicNumber: VoiceNavigationIntentResolver.directTopicNumber(
+            recognizedText,
+          ),
         ),
       );
     }
@@ -689,6 +701,12 @@ class MainVoiceAssistantFlow {
     }.contains(_stage)) {
       return null;
     }
+    if (_stage != MainVoiceAssistantStage.chooseTopic &&
+        _stage != MainVoiceAssistantStage.chooseTopicAfterCompletion &&
+        _stage != MainVoiceAssistantStage.confirmReplayTopic &&
+        VoiceNavigationIntentResolver.directTopicNumber(text) != null) {
+      return VoiceNavigationDestination.topics;
+    }
     if (MasterNavigationContract.matches('OPEN_SUBJECT', text)) {
       return VoiceNavigationDestination.topics;
     }
@@ -711,6 +729,9 @@ class MainVoiceAssistantFlow {
       recognizedText: recognizedText.trim(),
       matchedPhrase: 'hoc theo chu de',
       childAge: childAge,
+      topicNumber: VoiceNavigationIntentResolver.directTopicNumber(
+        recognizedText,
+      ),
     );
     // TopicListeningScreen owns Level/progress resolution. Keeping that state
     // out of MAIN prevents the legacy all-course count (10) from overriding
@@ -907,6 +928,9 @@ class MainVoiceAssistantFlow {
         },
         childAge: destination == VoiceNavigationDestination.topics
             ? _configuredChildAge
+            : null,
+        topicNumber: destination == VoiceNavigationDestination.topics
+            ? VoiceNavigationIntentResolver.directTopicNumber(recognizedText)
             : null,
         enterMainSpeakingMode:
             destination == VoiceNavigationDestination.conversation,
@@ -1811,6 +1835,7 @@ class MainVoiceAssistantFlow {
       _matchesFallbackIntent(normalized, 'INT-016');
 
   static bool _isTopicChoice(String normalized) =>
+      VoiceNavigationIntentResolver.directTopicNumber(normalized) != null ||
       MasterNavigationContract.matches('OPEN_SUBJECT', normalized) ||
       _matchesFallbackIntent(normalized, 'INT-002') ||
       const {
@@ -2141,52 +2166,19 @@ class MainVoiceAssistantFlow {
     final scope = switch (_stage) {
       MainVoiceAssistantStage.chooseCourseRelearnLevel => 'level',
       MainVoiceAssistantStage.chooseLesson ||
-      MainVoiceAssistantStage.confirmReplayLesson => 'bai',
-      _ => 'chu de',
+      MainVoiceAssistantStage.confirmReplayLesson => '(?:bai|lesson)',
+      _ => '(?:chu de|topic)',
     };
     final numberPattern = RegExp(
       '^(?:(?:con|minh|toi) )?(?:(?:chon|hoc lai|hoc|muon|muon hoc|muon hoc lai|muon chon|cho minh hoc|mo lai) )?'
-      '(?:$scope )?(?:so )?'
-      r'(\d{1,2}|mot|hai|ba|bon|tu|nam|sau|bay|tam|chin|muoi(?: (?:mot|hai|ba|bon|tu|lam))?|dau tien)(?: nhe| a| di)?$',
+      '(?:$scope )?(?:(?:so|number) )?'
+      '(${VoiceNavigationIntentResolver.spokenNumberPattern})'
+      r'(?: nhe| nha| a| di| please)?$',
     );
     final match = numberPattern.firstMatch(normalized);
-    return match == null ? null : _extractNumberToken(match.group(1)!);
-  }
-
-  static int? _extractNumberToken(String normalized) {
-    final digitMatch = RegExp(r'(^| )(\d{1,2})( |$)').firstMatch(normalized);
-    final numeric = int.tryParse(digitMatch?.group(2) ?? '');
-    if (numeric != null) {
-      return numeric;
-    }
-
-    const values = <String, int>{
-      'muoi lam': 15,
-      'muoi bon': 14,
-      'muoi tu': 14,
-      'muoi ba': 13,
-      'muoi hai': 12,
-      'muoi mot': 11,
-      'muoi': 10,
-      'chin': 9,
-      'tam': 8,
-      'bay': 7,
-      'sau': 6,
-      'nam': 5,
-      'lam': 5,
-      'bon': 4,
-      'tu': 4,
-      'ba': 3,
-      'hai': 2,
-      'mot': 1,
-      'dau tien': 1,
-    };
-    for (final entry in values.entries) {
-      if (_containsPhrase(normalized, entry.key)) {
-        return entry.value;
-      }
-    }
-    return null;
+    return match == null
+        ? null
+        : VoiceNavigationIntentResolver.parseSpokenNumber(match.group(1)!);
   }
 
   static String _normalize(String value) =>

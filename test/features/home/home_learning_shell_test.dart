@@ -14,6 +14,7 @@ import 'package:ai_speaking_flutter_app/features/home/presentation/home_learning
 import 'package:ai_speaking_flutter_app/features/listening/data/active_listening_session_store.dart';
 import 'package:ai_speaking_flutter_app/features/listening/data/listening_progress_store.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/listening_route_names.dart';
+import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_lesson_list_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_listening_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
 import 'package:ai_speaking_flutter_app/features/settings/application/parent_media_settings.dart';
@@ -901,6 +902,76 @@ void main() {
     },
   );
 
+  for (final choice in <String, int>{
+    'Chủ đề số một': 1,
+    'Topic number two': 2,
+    'Chủ đề số ba': 3,
+  }.entries) {
+    testWidgets(
+      'MAIN opens ${choice.key} directly from Home',
+      (tester) async {
+        SharedPreferences.setMockInitialValues(<String, Object>{});
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final contentFuture = AssetListeningContentRepository(
+          bundle: rootBundle,
+        ).load();
+        final voiceNavigationController = VoiceNavigationController(
+          speechInput: _FakeStreamingSpeechInput(),
+          ownsSpeechInput: true,
+          mainAssistantFlow: MainVoiceAssistantFlow(
+            childAge: 6,
+            contentLoader: () => contentFuture,
+          ),
+        );
+        final controller = _controller();
+        addTearDown(controller.dispose);
+        addTearDown(voiceNavigationController.dispose);
+        await tester.pumpWidget(
+          _app(
+            controller,
+            autoStartVoiceNavigation: true,
+            voiceNavigationController: voiceNavigationController,
+            listeningContentFuture: contentFuture,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          await voiceNavigationController.activateFromMainButton(),
+          isTrue,
+        );
+        expect(
+          await voiceNavigationController.dispatchRecognizedText(choice.key),
+          isTrue,
+        );
+        for (var index = 0; index < 20; index += 1) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        final lessonList = tester.widget<TopicLessonListScreen>(
+          find.byType(TopicLessonListScreen, skipOffstage: false),
+        );
+        expect(lessonList.content.number, choice.value);
+        expect(voiceNavigationController.isMainButtonSessionActive, isFalse);
+        expect(voiceNavigationController.isActive, isFalse);
+        expect(voiceNavigationController.continuousRequested, isFalse);
+        expect(
+          find.byKey(const Key('lesson-intro-screen')).evaluate().length +
+              find.byKey(const Key('lesson-review-screen')).evaluate().length +
+              find.byKey(const Key('lesson-practice-screen')).evaluate().length,
+          1,
+        );
+      },
+      variant: TargetPlatformVariant({
+        TargetPlatform.android,
+        TargetPlatform.iOS,
+      }),
+    );
+  }
+
   testWidgets(
     'Main flow uses the saved age and topic owner to open the first lesson',
     (tester) async {
@@ -949,9 +1020,11 @@ void main() {
       }
       expect(find.byType(TopicListeningScreen), findsOneWidget);
       expect(
-        await voiceNavigationController.dispatchRecognizedText(
-          'Con muốn học chủ đề số 3',
-        ),
+        voiceNavigationController.mainAssistantStage,
+        MainVoiceAssistantStage.chooseTopicAfterCompletion,
+      );
+      expect(
+        await voiceNavigationController.dispatchRecognizedText('Chủ đề số ba'),
         isTrue,
       );
       for (var index = 0; index < 20; index += 1) {
@@ -967,6 +1040,15 @@ void main() {
       expect(
         find.byKey(const Key('topic-lesson-list-screen'), skipOffstage: false),
         findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<TopicLessonListScreen>(
+              find.byType(TopicLessonListScreen, skipOffstage: false),
+            )
+            .content
+            .number,
+        3,
       );
     },
     variant: TargetPlatformVariant({

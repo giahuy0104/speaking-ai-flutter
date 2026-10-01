@@ -407,6 +407,144 @@ void main() {
     }
   }
 
+  for (final command in <ActiveLearningCommand>[
+    ActiveLearningCommand.replayCurrent,
+    ActiveLearningCommand.previousItem,
+    ActiveLearningCommand.nextItem,
+  ]) {
+    testWidgets(
+      'STOP keeps the cursor and ${command.name} button resumes a full guided turn',
+      (tester) async {
+        await _usePhoneSurface(tester);
+        final registry = ActiveLearningModuleRegistry();
+        addTearDown(registry.dispose);
+        final media = _GuidedMediaService(recordedSentenceNumbers: {1, 2, 3});
+        final prompts = _GatedModelVoicePromptService();
+        final progress = _MemoryProgressStore()..currentSentence = 1;
+        await tester.pumpWidget(
+          ActiveLearningModuleScope(
+            registry: registry,
+            child: _subject(
+              _lesson(v4: true, sentenceCount: 3),
+              media,
+              progressStore: progress,
+              guideAudioLibrary: _silentGuideAudioLibrary(),
+              voicePromptService: prompts,
+            ),
+          ),
+        );
+        await _pumpGuidedSpeechTurn(tester);
+        expect(
+          (await registry.interruptAndExecute(
+            ActiveLearningCommand.stop,
+          )).wasHandled,
+          isTrue,
+        );
+        await tester.pump();
+        expect(find.text('Sentence 2'), findsOneWidget);
+        expect(progress.currentSentence, 1);
+        final startsBeforeResume = media.startedSentenceIds.length;
+        prompts.spoken.clear();
+        prompts.englishGate = Completer<void>();
+        prompts.vietnameseGate = Completer<void>();
+        final key = command == ActiveLearningCommand.nextItem
+            ? 'virtual-lesson-next'
+            : command == ActiveLearningCommand.previousItem
+            ? 'virtual-lesson-previous'
+            : 'virtual-lesson-replay';
+        final button = find.descendant(
+          of: find.byKey(Key(key)),
+          matching: find.byType(IconButton),
+        );
+        expect(tester.widget<IconButton>(button).onPressed, isNotNull);
+        await tester.tap(button);
+        await _pumpGuidedSpeechTurn(tester);
+        final number = command == ActiveLearningCommand.nextItem
+            ? 3
+            : command == ActiveLearningCommand.previousItem
+            ? 1
+            : 2;
+        expect(find.text('Sentence $number'), findsWidgets);
+        expect(progress.currentSentence, number - 1);
+        expect(prompts.spoken.last, 'en-US|Sentence $number');
+        expect(media.startedSentenceIds.length, startsBeforeResume);
+        prompts.englishGate!.complete();
+        await tester.pump();
+        await tester.pump(LessonGuideFlowV2.englishToVietnamesePause);
+        expect(prompts.spoken.last, 'vi-VN|Câu $number');
+        expect(media.startedSentenceIds.length, startsBeforeResume);
+        prompts.vietnameseGate!.complete();
+        await tester.pump();
+        await tester.pump();
+        expect(media.startedSentenceIds.length, startsBeforeResume + 1);
+        expect(media.startedSentenceIds.last, 'GUIDED-FLOW_S$number');
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump();
+      },
+      variant: TargetPlatformVariant(<TargetPlatform>{
+        TargetPlatform.android,
+        TargetPlatform.iOS,
+      }),
+    );
+  }
+
+  testWidgets(
+    'MAIN pause disables touch playback while it owns the lesson',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _subject(
+            _lesson(v4: true, sentenceCount: 3),
+            _GuidedMediaService(),
+            progressStore: _MemoryProgressStore()..currentSentence = 1,
+            guideAudioLibrary: _silentGuideAudioLibrary(),
+            voicePromptService: _FakeVoicePromptService(),
+          ),
+        ),
+      );
+      await _pumpGuidedSpeechTurn(tester);
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      await tester.pump();
+      for (final key in <String>[
+        'virtual-lesson-previous',
+        'virtual-lesson-replay',
+        'virtual-lesson-next',
+      ]) {
+        final button = find.descendant(
+          of: find.byKey(Key(key)),
+          matching: find.byType(IconButton),
+        );
+        expect(tester.widget<IconButton>(button).onPressed, isNull);
+      }
+      expect(
+        tester
+            .widget<OutlinedButton>(
+              find.byKey(const Key('previous-lesson-sentence')),
+            )
+            .onPressed,
+        isNull,
+      );
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.byKey(const Key('continue-lesson-sentence')),
+            )
+            .onPressed,
+        isNull,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
   testWidgets('failed model never opens mic and replay can recover', (
     tester,
   ) async {

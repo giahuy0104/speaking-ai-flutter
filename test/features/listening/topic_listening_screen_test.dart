@@ -149,6 +149,7 @@ void main() {
                   topicNumbers: topicNumbers,
                   announceLevel: announceLevel,
                 ));
+                return true;
               },
         ),
       );
@@ -167,6 +168,113 @@ void main() {
       await tester.pump();
     }
   });
+
+  testWidgets('stale topic checkpoints restore an available unfinished Level', (
+    tester,
+  ) async {
+    final catalog = await AssetListeningContentRepository().load();
+    final group = catalog.groups.firstWhere((group) => group.startAge == 3);
+    for (final scenario in [
+      (savedLevel: 1, completeFirstLevel: true, expectedLevel: 2),
+      (savedLevel: 99, completeFirstLevel: false, expectedLevel: 1),
+      (savedLevel: 3, completeFirstLevel: false, expectedLevel: 1),
+    ]) {
+      final store = _MemoryProgressStore()
+        ..checkpoint = ListeningTopicSelectionCheckpoint(
+          levelNumber: scenario.savedLevel,
+          announceLevel: false,
+        );
+      if (scenario.completeFirstLevel) {
+        for (final topic in group.topics.where(
+          (topic) => group.levels.first.topicNumbers.contains(topic.number),
+        )) {
+          for (final lesson in topic.lessons) {
+            await store.saveLesson(lesson.id, lesson.sentences.length);
+            await store.markV4LessonActivityCompleted(lesson.id);
+          }
+        }
+      }
+      final requestedLevels = <int>[];
+      await tester.pumpWidget(
+        buildSubject(
+          childAge: 3,
+          contentFuture: Future.value(catalog),
+          progressStore: store,
+          onLevelTopicSelectionRequested:
+              ({
+                required childAge,
+                required levelNumber,
+                required topicNumbers,
+                required completedTopicNumbers,
+                required announceLevel,
+              }) async {
+                requestedLevels.add(levelNumber);
+                return true;
+              },
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(requestedLevels, [scenario.expectedLevel]);
+      expect(store.checkpoint?.levelNumber, scenario.expectedLevel);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    }
+  });
+
+  for (final throwsActivation in [false, true]) {
+    testWidgets(
+      'failed topic assistant offers a working Topic 2 choice (throws=$throwsActivation)',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(390, 844));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        final voice = _GatedTopicIntroVoicePromptService();
+        final media = _SelectedOutputMediaService();
+        await tester.pumpWidget(
+          buildSubject(
+            childAge: 3,
+            voicePromptService: voice,
+            mediaService: media,
+            onLevelTopicSelectionRequested:
+                ({
+                  required childAge,
+                  required levelNumber,
+                  required topicNumbers,
+                  required completedTopicNumbers,
+                  required announceLevel,
+                }) async {
+                  if (throwsActivation) {
+                    throw StateError('microphone unavailable');
+                  }
+                  return false;
+                },
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(const ValueKey('level-topic-choice-2')),
+          findsOneWidget,
+        );
+        expect(voice.spoken.single, contains('Bạn chọn Chủ đề số mấy?'));
+
+        await tester.tap(find.byKey(const ValueKey('level-topic-choice-2')));
+        for (var index = 0; index < 5; index++) {
+          await tester.pump();
+        }
+        await tester.pump(const Duration(milliseconds: 400));
+        final intro = tester.widget<LessonIntroScreen>(
+          find.byType(LessonIntroScreen),
+        );
+        expect(intro.topicContent?.number, 2);
+        expect(intro.lesson.number, 1);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+      variant: TargetPlatformVariant({
+        TargetPlatform.android,
+        TargetPlatform.iOS,
+      }),
+    );
+  }
 
   testWidgets('shows bilingual topic and lesson titles', (tester) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
@@ -515,6 +623,7 @@ void main() {
             ({required childAge, required levelNumbers}) async {
               requestedAge = childAge;
               requestedLevels = levelNumbers;
+              return true;
             },
       ),
     );
@@ -523,6 +632,73 @@ void main() {
     expect(requestedAge, 6);
     expect(requestedLevels, <int>[1, 2, 3]);
   });
+
+  for (final throwsActivation in [false, true]) {
+    testWidgets(
+      'failed completed Course assistant can replay Level 1 (throws=$throwsActivation)',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(390, 844));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        final catalog = await AssetListeningContentRepository().load();
+        final group = catalog.groups.firstWhere((group) => group.startAge == 3);
+        final store = _MemoryProgressStore()..courseCompleted = true;
+        for (final topic in group.topics) {
+          for (final lesson in topic.lessons) {
+            await store.saveLesson(lesson.id, lesson.sentences.length);
+            await store.markV4LessonActivityCompleted(lesson.id);
+          }
+        }
+        final requestedLevels = <int>[];
+        await tester.pumpWidget(
+          buildSubject(
+            childAge: 3,
+            progressStore: store,
+            contentFuture: Future.value(catalog),
+            onCourseRelearnLevelSelectionRequested:
+                ({required childAge, required levelNumbers}) async {
+                  if (throwsActivation) {
+                    throw StateError('microphone unavailable');
+                  }
+                  return false;
+                },
+            onLevelTopicSelectionRequested:
+                ({
+                  required childAge,
+                  required levelNumber,
+                  required topicNumbers,
+                  required completedTopicNumbers,
+                  required announceLevel,
+                }) async {
+                  requestedLevels.add(levelNumber);
+                  return true;
+                },
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('course-relearn-level-1')));
+        await tester.pumpAndSettle();
+
+        expect(requestedLevels, [1]);
+        expect(store.checkpoint?.levelNumber, 1);
+        final replayTopic = group.topics.firstWhere(
+          (topic) => group.levels.first.topicNumbers.contains(topic.number),
+        );
+        expect(await store.readLesson(replayTopic.lessons.first.id), 0);
+        expect(
+          await store.hasCompletedV4LessonActivity(
+            replayTopic.lessons.first.id,
+          ),
+          isFalse,
+        );
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+      variant: TargetPlatformVariant({
+        TargetPlatform.android,
+        TargetPlatform.iOS,
+      }),
+    );
+  }
 
   testWidgets(
     'does not report a V4 topic complete until its authored activities finish',
@@ -1090,6 +1266,17 @@ class _ImmediateVoicePromptService implements VoicePromptService {
 
   @override
   Future<void> stop() async {}
+}
+
+class _GatedTopicIntroVoicePromptService extends _ImmediateVoicePromptService {
+  final spoken = <String>[];
+  final _introGate = Completer<void>();
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    spoken.add(text);
+    if (text.contains('Chủ đề 2.')) await _introGate.future;
+  }
 }
 
 class _SelectedOutputMediaService extends LessonMediaService {

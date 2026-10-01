@@ -10,6 +10,167 @@ import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_en
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test(
+    'topic command prefixes wait for the final number in every MAIN menu',
+    () {
+      for (final begin in <void Function(MainVoiceAssistantFlow)>[
+        (flow) => flow.begin(),
+        (flow) => flow.beginAfterTranslationStop(),
+        (flow) => flow.beginOtherLearning(),
+        (flow) => flow.beginActiveLearning(
+          kind: ActiveLearningModuleKind.listeningLesson,
+        ),
+      ]) {
+        final flow = MainVoiceAssistantFlow(
+          contentLoader: _loadThreeTopicContent,
+          childAge: 6,
+        );
+        begin(flow);
+        for (final partial in [
+          'Chủ đề',
+          'Con muốn học chủ đề',
+          'Con muốn học chủ đề số',
+          'Chủ đề số hai',
+        ]) {
+          expect(flow.canHandlePartial(partial), isFalse, reason: partial);
+        }
+        expect(flow.canEndOnSilence('Chủ đề số hai'), isTrue);
+        expect(flow.canEndOnSilence('Chủ đề số mười'), isFalse);
+      }
+    },
+  );
+
+  test(
+    'module switches keep the direct topic number without another menu',
+    () async {
+      final topic = (await _loadThreeTopicContent()).topic(
+        startAge: 6,
+        endAge: 7,
+        topicNumber: 3,
+      );
+      for (final begin in <void Function(MainVoiceAssistantFlow)>[
+        (flow) => flow.beginAfterTranslationStop(),
+        (flow) => flow.beginOtherLearning(),
+        (flow) =>
+            flow.beginActiveLearning(kind: ActiveLearningModuleKind.vocabulary),
+        (flow) => flow.beginLessonSelectionForTopic(
+          childAge: 6,
+          topicNumber: 3,
+          topicContent: topic,
+          completedLessonNumbers: [],
+        ),
+      ]) {
+        final flow = MainVoiceAssistantFlow(
+          contentLoader: _loadThreeTopicContent,
+          childAge: 6,
+        );
+        begin(flow);
+        expect(flow.canHandle('Topic number two'), isTrue);
+        expect(flow.canEndOnSilence('Topic number two'), isTrue);
+        final turn = await flow.handle('Topic number two');
+        expect(turn.navigationAfterPrompt?.topicNumber, 2);
+        expect(turn.navigationAfterPrompt?.childAge, 6);
+        expect(turn.promptText, MasterNavigationContract.switchedToSubject);
+        expect(turn.continueListening, isFalse);
+        expect(flow.stage, MainVoiceAssistantStage.idle);
+      }
+    },
+  );
+
+  test(
+    'MAIN keeps a direct numbered topic from Home in its navigation target',
+    () async {
+      for (final entry in <String, int>{
+        'Chủ đề số 1': 1,
+        'Chủ đề số hai': 2,
+        'Chủ đề số ba': 3,
+        'Topic number one': 1,
+        'Topic number two': 2,
+        'Topic number three': 3,
+      }.entries) {
+        final flow = MainVoiceAssistantFlow(
+          contentLoader: _loadThreeTopicContent,
+          childAge: 6,
+        );
+        flow.begin();
+        expect(flow.canHandle(entry.key), isTrue, reason: entry.key);
+        expect(flow.canHandlePartial(entry.key), isFalse, reason: entry.key);
+        final turn = await flow.handle(entry.key);
+        expect(turn.continueListening, isFalse, reason: entry.key);
+        expect(
+          turn.navigationBeforePrompt?.destination,
+          VoiceNavigationDestination.topics,
+          reason: entry.key,
+        );
+        expect(
+          turn.navigationBeforePrompt?.topicNumber,
+          entry.value,
+          reason: entry.key,
+        );
+        expect(turn.navigationBeforePrompt?.childAge, 6, reason: entry.key);
+        expect(turn.navigationBeforePrompt?.relearnTopic, isFalse);
+        expect(turn.navigationBeforePrompt?.openLesson, isFalse);
+      }
+    },
+  );
+
+  test(
+    'Level selection accepts Vietnamese and English spoken topic numbers',
+    () async {
+      for (final entry in <String, int>{
+        'Chủ đề số một': 1,
+        'Chủ đề số hai': 2,
+        'Chủ đề số ba': 3,
+        'Topic number one': 1,
+        'Topic number two': 2,
+        'Topic number three': 3,
+      }.entries) {
+        final flow = MainVoiceAssistantFlow(
+          contentLoader: _loadThreeTopicContent,
+          childAge: 6,
+        );
+        flow.beginLevelTopicSelection(
+          childAge: 6,
+          levelNumber: 1,
+          topicNumbers: const <int>[1, 2, 3],
+          completedTopicNumbers: const <int>[],
+          announceLevel: false,
+        );
+        expect(flow.canHandle(entry.key), isTrue, reason: entry.key);
+        expect(flow.canHandlePartial(entry.key), isFalse, reason: entry.key);
+        final turn = await flow.handle(entry.key);
+        expect(turn.continueListening, isFalse, reason: entry.key);
+        expect(
+          turn.navigationBeforePrompt?.topicNumber,
+          entry.value,
+          reason: entry.key,
+        );
+      }
+    },
+  );
+
+  test(
+    'numbered direct commands do not bypass the current Level topic list',
+    () async {
+      final flow = MainVoiceAssistantFlow(
+        contentLoader: _loadContent,
+        childAge: 6,
+      );
+      flow.beginLevelTopicSelection(
+        childAge: 6,
+        levelNumber: 1,
+        topicNumbers: const <int>[1, 2, 3],
+        completedTopicNumbers: const <int>[],
+        announceLevel: false,
+      );
+      final turn = await flow.handle('Topic number four');
+      expect(turn.continueListening, isTrue);
+      expect(turn.navigationBeforePrompt, isNull);
+      expect(turn.navigationAfterPrompt, isNull);
+      expect(flow.stage, MainVoiceAssistantStage.chooseTopicAfterCompletion);
+    },
+  );
+
   test('only a complete topic number may end MAIN on silence', () {
     final flow = MainVoiceAssistantFlow(
       contentLoader: _loadContent,
@@ -149,9 +310,8 @@ void main() {
             );
             expect(
               flow.canHandlePartial(phrase),
-              previousStage ==
-                          MainVoiceAssistantStage.chooseTopicAfterCompletion &&
-                      phrase == 'Chủ đề'
+              entry.value == VoiceNavigationDestination.topics &&
+                      phrase.toLowerCase().endsWith('chủ đề')
                   ? isFalse
                   : isTrue,
               reason: '$previousStage: $phrase',
@@ -186,7 +346,7 @@ void main() {
       flow.begin();
 
       expect(flow.canHandlePartial('Con muốn học từ vựng'), isTrue);
-      expect(flow.canHandlePartial('Học theo chủ đề'), isTrue);
+      expect(flow.canHandlePartial('Học theo chủ đề'), isFalse);
       expect(flow.canHandlePartial('Mình muốn học'), isFalse);
       expect(flow.canHandlePartial('Dừng lại'), isTrue);
 
@@ -1265,6 +1425,28 @@ class _CompletionVoiceContext
         V4CompletionAction.stop => ActiveLearningCommand.stop,
         _ => null,
       };
+}
+
+Future<ListeningContentCatalog> _loadThreeTopicContent() async {
+  final group = (await _loadContent()).groups.single;
+  return ListeningContentCatalog(
+    groups: <ListeningContentAgeGroup>[
+      ListeningContentAgeGroup(
+        startAge: group.startAge,
+        endAge: group.endAge,
+        topics: <ListeningTopicContent>[
+          ListeningTopicContent(
+            id: 'a067_t01',
+            number: 1,
+            titleVi: 'Chủ đề 1',
+            titleEn: 'Topic 1',
+            lessons: <ListeningLessonContent>[_lesson(1, 'Bài đầu tiên')],
+          ),
+          ...group.topics,
+        ],
+      ),
+    ],
+  );
 }
 
 Future<ListeningContentCatalog> _loadContent() async {
