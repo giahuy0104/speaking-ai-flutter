@@ -452,9 +452,9 @@ class MainVoiceAssistantFlow {
   }
 
   /// Whether [recognizedText] is already a complete topic, lesson or Level
-  /// number, so the turn may end after a short silence instead of waiting for
-  /// the recognizer's own endpoint. The final transcript is still what gets
-  /// handled.
+  /// number, or the Topics module on its own, so the turn may end after a
+  /// short silence instead of waiting for the recognizer's own endpoint. The
+  /// final transcript is still what gets handled.
   bool canEndOnSilence(String recognizedText) {
     final normalized = _normalize(recognizedText);
     final directTopic = VoiceNavigationIntentResolver.directTopicNumber(
@@ -464,6 +464,12 @@ class MainVoiceAssistantFlow {
         (_hasStageSpecificIntent(normalized) ||
             _selectionModuleDestination(normalized) != null)) {
       return directTopic != 10;
+    }
+    // A child who stays quiet after "Chủ đề" asked for the Topics list; a
+    // trailing "số" still announces a number.
+    if (RegExp(r'(^| )(?:chu de|topic)$').hasMatch(normalized) &&
+        canHandle(recognizedText)) {
+      return true;
     }
     final numberStage = switch (_stage) {
       MainVoiceAssistantStage.chooseTopic ||

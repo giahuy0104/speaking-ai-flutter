@@ -621,6 +621,31 @@ void main() {
     await speech.dispose();
   });
 
+  test('the bare Topics command ends MAIN after a short silence', () async {
+    final speech = _FakeNavigationSpeechInput(stopText: 'Chủ đề');
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: _FakeVoicePromptService(),
+      mainAssistantFlow: MainVoiceAssistantFlow(
+        contentLoader: _loadMainAssistantContent,
+      ),
+      commandSilenceEndpoint: const Duration(milliseconds: 60),
+    );
+    final intents = <VoiceNavigationIntent>[];
+    controller.setIntentHandler(intents.add);
+    await controller.activateFromMainButton();
+    await _waitUntil(() => controller.isListening);
+
+    speech.emitPartial('Chủ đề');
+    await _waitUntil(() => intents.isNotEmpty);
+    expect(speech.stopCalls, 1);
+    expect(intents.single.destination, VoiceNavigationDestination.topics);
+    expect(intents.single.topicNumber, isNull);
+    await controller.pause();
+    controller.dispose();
+    await speech.dispose();
+  });
+
   test(
     'level silence ends MAIN when a late partial completes the number',
     () async {

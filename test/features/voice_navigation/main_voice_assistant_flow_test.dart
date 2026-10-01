@@ -219,7 +219,7 @@ void main() {
     },
   );
 
-  test('only a complete topic number may end MAIN on silence', () {
+  test('a complete topic number or bare Topics may end MAIN on silence', () {
     final flow = MainVoiceAssistantFlow(
       contentLoader: _loadContent,
       childAge: 6,
@@ -235,11 +235,30 @@ void main() {
     );
     expect(flow.canEndOnSilence('Chủ đề số 2'), isTrue);
     expect(flow.canEndOnSilence('số hai'), isTrue);
-    expect(flow.canEndOnSilence('Chủ đề'), isFalse);
+    expect(flow.canEndOnSilence('Chủ đề'), isTrue);
     expect(flow.canEndOnSilence('Chủ đề số'), isFalse);
     expect(flow.canEndOnSilence('Chủ đề số mười'), isFalse);
     expect(flow.canEndOnSilence('Chủ đề 10'), isFalse);
     expect(flow.canEndOnSilence('Bạn chọn Chủ đề số mấy'), isFalse);
+  });
+
+  test('the bare Topics command may end MAIN on silence', () {
+    for (final begin in <void Function(MainVoiceAssistantFlow)>[
+      (flow) => flow.begin(),
+      (flow) => flow.beginAfterTranslationStop(),
+      (flow) => flow.beginOtherLearning(),
+      (flow) => flow.beginActiveLearning(
+        kind: ActiveLearningModuleKind.listeningLesson,
+      ),
+    ]) {
+      final flow = MainVoiceAssistantFlow(
+        contentLoader: _loadThreeTopicContent,
+        childAge: 6,
+      );
+      begin(flow);
+      expect(flow.canEndOnSilence('Chủ đề'), isTrue);
+      expect(flow.canEndOnSilence('Chủ đề số'), isFalse);
+    }
   });
 
   test('Topic dynamic prompts resolve to authored audio keys', () async {
