@@ -1748,6 +1748,8 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       return "BUILT_IN_MIC_UNAVAILABLE"
     case .hfpInputUnavailable:
       return "HFP_INPUT_UNAVAILABLE"
+    case .hfpRouteLost:
+      return "HFP_ROUTE_LOST"
     case .audioRouteMismatch:
       return "AUDIO_ROUTE_MISMATCH"
     case .audioInputUnavailable:
