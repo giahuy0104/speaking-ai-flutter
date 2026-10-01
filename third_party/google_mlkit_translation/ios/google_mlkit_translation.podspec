@@ -20,9 +20,10 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '15.5'
   s.static_framework = true
   s.swift_version = '5.0'
-  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
+  pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
   if simulator_stub
-    s.pod_target_xcconfig['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] =
+    pod_target_xcconfig['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] =
       '$(inherited) HOMI_TRANSLATION_SIMULATOR_STUB'
   end
+  s.pod_target_xcconfig = pod_target_xcconfig
 end

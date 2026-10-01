@@ -1,5 +1,7 @@
 import json
 from pathlib import Path
+import shutil
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -82,6 +84,25 @@ class TranslationPodsTest(unittest.TestCase):
     def test_invalid_mode_rejected(self):
         with self.assertRaises(ValueError):
             build_environment("release", {})
+
+
+@unittest.skipUnless(shutil.which("pod"), "CocoaPods is unavailable")
+class TranslationPodspecIntegrationTest(unittest.TestCase):
+    def test_real_podspec_loads_for_simulator_and_device(self):
+        podspec = (
+            Path(__file__).resolve().parent.parent
+            / "third_party/google_mlkit_translation/ios/google_mlkit_translation.podspec"
+        )
+        for mode in ("simulator", "device"):
+            with self.subTest(mode=mode):
+                result = subprocess.run(
+                    ["pod", "ipc", "spec", str(podspec)],
+                    env=build_environment(mode), check=True,
+                    capture_output=True, text=True,
+                )
+                loaded = json.loads(result.stdout)
+                verify_spec(loaded, mode)
+                self.assertEqual(loaded["pod_target_xcconfig"]["DEFINES_MODULE"], "YES")
 
 
 if __name__ == "__main__":
