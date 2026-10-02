@@ -782,17 +782,41 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           await widget.onMainSpeakingModeStarted?.call();
         }
       case VoiceNavigationDestination.vocabulary:
-        await _showVocabularyAndWait();
-        if (!kIsWeb &&
-            defaultTargetPlatform == TargetPlatform.iOS &&
-            (!mounted || _page != 1)) {
-          return false;
-        }
         final vocabularyTarget = intent.vocabularyTarget;
         if (vocabularyTarget != null) {
-          await _vocabularyNavigationController.openVoiceTarget(
-            vocabularyTarget,
-          );
+          // Reserve the direct destination before page activation. The
+          // vocabulary page otherwise starts Today's practice while MAIN is
+          // still handing off its audio turn.
+          _vocabularyNavigationController.prepareVoiceTarget(vocabularyTarget);
+        }
+        try {
+          await _showVocabularyAndWait();
+          if (!kIsWeb &&
+              defaultTargetPlatform == TargetPlatform.iOS &&
+              (!mounted || _page != 1)) {
+            return false;
+          }
+          if (vocabularyTarget != null) {
+            try {
+              await _vocabularyNavigationController.openVoiceTarget(
+                vocabularyTarget,
+              );
+            } catch (error) {
+              debugPrint(
+                'Could not open the requested vocabulary section: $error',
+              );
+              if (mounted) {
+                _showVoiceNavigationMessage(
+                  'Chưa mở được phần Từ vựng vừa chọn. Bạn hãy thử lại.',
+                );
+              }
+              return false;
+            }
+          }
+        } finally {
+          if (vocabularyTarget != null) {
+            _vocabularyNavigationController.clearPreparedVoiceTarget();
+          }
         }
       case VoiceNavigationDestination.topics:
         final pausedCheckpoint =

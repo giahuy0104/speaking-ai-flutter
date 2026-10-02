@@ -5,6 +5,7 @@ import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
+import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/core/platform/background_learning_session.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/data/demo_conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
@@ -1458,6 +1459,51 @@ void main() {
       speakingSessionController.dispose();
       await tester.pumpWidget(const SizedBox.shrink());
     },
+  );
+
+  testWidgets(
+    'MAIN opens Stars directly from a learning turn on native platforms',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final controller = _controller();
+      final voiceNavigationController = VoiceNavigationController(
+        speechInput: _FakeStreamingSpeechInput(),
+        ownsSpeechInput: true,
+        mainAssistantFlow: MainVoiceAssistantFlow(),
+      );
+      addTearDown(controller.dispose);
+      addTearDown(voiceNavigationController.dispose);
+      await tester.pumpWidget(
+        _app(controller, voiceNavigationController: voiceNavigationController),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        await voiceNavigationController.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: ActiveLearningModuleKind.listeningLesson,
+        ),
+        isTrue,
+      );
+      unawaited(voiceNavigationController.dispatchRecognizedText('Ngôi sao'));
+      for (var attempt = 0; attempt < 40; attempt++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        if (find.text('Ngôi sao của bạn').evaluate().isNotEmpty) break;
+      }
+      await tester.pumpAndSettle();
+
+      expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
+      expect(find.text('Ngôi sao của bạn'), findsOneWidget);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
   );
 }
 
