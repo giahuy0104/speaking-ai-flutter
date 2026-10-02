@@ -21,13 +21,13 @@ import '../../../core/device/aiv0_ble_control.dart';
 import '../../../core/device/h20_connection_state.dart';
 import '../../../core/device/main_button_coordinator.dart';
 import '../../../l10n/display_language.dart';
-import '../application/conversation_settings_port.dart';
-import '../application/conversation_recording_endpoint_policy.dart';
 import '../application/continuous_translation_session.dart';
+import '../application/conversation_recording_endpoint_policy.dart';
+import '../application/conversation_settings_port.dart';
 import '../application/offline_language_service.dart';
 import '../application/vietnamese_transcript_corrector.dart';
-import '../domain/conversation_models.dart';
 import '../domain/conversation_audio_keys.dart';
+import '../domain/conversation_models.dart';
 import '../domain/conversation_repository.dart';
 import '../domain/speech_gated_batch_upload_session.dart';
 
@@ -47,7 +47,8 @@ class ConversationController extends ChangeNotifier
         ConversationSettingsPort,
         LearningAudioDependencies,
         MainAssistantAudioState {
-  static const double translatedSpeechPlaybackRate = 0.80;
+          // 0.65–0.75 là khoảng lý tưởng: chậm rõ ràng, không bị kéo quá dài
+  static const double translatedSpeechPlaybackRate = .6;
 
   ConversationController({
     required AudioInput audioInput,
@@ -3949,8 +3950,8 @@ class ConversationController extends ChangeNotifier
             .speakAndWaitStyled(
               text,
               locale: 'en-US',
-              speechRate: translatedSpeechPlaybackRate,
-              pitch: 1.05,
+              speechRate: getPlaybackRateForAge(_childAge),
+              pitch: getPitchForAge(_childAge), // Tăng nhẹ cao độ → giọng trong trẻo, thân thiện hơn với trẻ
             );
       } else if (promptService is SelectedMediaOutputVoicePromptService) {
         await (promptService as SelectedMediaOutputVoicePromptService)
@@ -3966,14 +3967,30 @@ class ConversationController extends ChangeNotifier
       notifyListeners();
     }
   }
+    // Tốc độ nói chuẩn theo độ tuổi
+   double getPlaybackRateForAge(int childAge) {
+    if (childAge < 4) return 0.55;   // Trẻ dưới 4 tuổi: chậm hơn
+    if (childAge < 7) return 0.62;   // 4–6 tuổi: trung bình chậm
+    if (childAge < 10) return 0.7;   // 7–9 tuổi: tăng nhẹ
+    return 0.75;                      // Từ 10 tuổi: gần tốc độ bình thường
+  }
 
+   double getPitchForAge(int childAge) {
+    if (childAge < 6) return 1.2;    // Giọng cao trong trẻo
+    if (childAge < 10) return 1.15;
+    return 1.05;
+  }
   void _useTranslatedSpeechPlaybackRate() {
     final playback = _playbackService;
     if (playback is PlaybackRateAwareAudioPlaybackService) {
       (playback as PlaybackRateAwareAudioPlaybackService).setPlaybackRate(
-        translatedSpeechPlaybackRate,
+        getPlaybackRateForAge(_childAge),
       );
+
     }
+
+
+
   }
 
   void _useNormalPlaybackRate() {
@@ -4968,4 +4985,8 @@ class _AdaptiveWebChunkUpload {
       await session.discard(reason: reason).catchError((Object _) {});
     }
   }
+
+
+
+
 }
