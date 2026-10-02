@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/features/onboarding/presentation/startup_setup_screen.dart';
 import 'package:flutter/material.dart';
@@ -347,7 +349,9 @@ void main() {
     await tester.tap(connectButton);
     await tester.pump();
     expect(
-      find.text('Nút MAIN đã kết nối. HOMI sẽ thử chọn micro sau thiết lập.'),
+      find.text(
+        'Nút MAIN đã kết nối. HOMI sẽ tự tìm micro HM-D001 sau thiết lập.',
+      ),
       findsOneWidget,
     );
     await tester.pump(const Duration(milliseconds: 901));
@@ -363,6 +367,95 @@ void main() {
     final completeButton = find.byKey(const Key('startup-confirm-age'));
     await tester.ensureVisible(completeButton);
     expect(tester.widget<FilledButton>(completeButton).onPressed, isNotNull);
+  });
+
+  testWidgets('Android accepts a slow BLE connection without HFP', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    var bleConnected = false;
+    var completed = false;
+    final connection = Completer<bool>();
+    StateSetter? rebuildSetup;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: StatefulBuilder(
+          builder: (context, setState) {
+            rebuildSetup = setState;
+            return StartupSetupScreen(
+              profileLoading: false,
+              permissionRequestInProgress: false,
+              privacyConfigurationComplete: true,
+              privacyConsentGranted: true,
+              limitedModeSelected: false,
+              microphoneGranted: true,
+              bluetoothRequired: true,
+              bluetoothGranted: true,
+              h20BleConnected: bleConnected,
+              h20HfpConfigured: false,
+              allowBleOnlySetup: true,
+              selectedAge: 8,
+              aiSubprocessors: 'Railway và Cloudflare',
+              dataRetentionSummary: 'Theo chính sách công khai.',
+              onGrantPrivacyConsent: () async {},
+              onContinueWithoutVoice: () async {},
+              onRetryPermissions: () {},
+              onSetupH20: () => connection.future,
+              onAgeSelected: (_) {},
+              onCompleteSetup: () async => completed = true,
+            );
+          },
+        ),
+      ),
+    );
+
+    for (var step = 0; step < 2; step += 1) {
+      final nextButton = find.byKey(const Key('startup-next'));
+      await tester.ensureVisible(nextButton);
+      await tester.tap(nextButton);
+      await tester.pumpAndSettle();
+    }
+    final completeButton = find.byKey(const Key('startup-confirm-age'));
+    await tester.ensureVisible(completeButton);
+    expect(tester.widget<FilledButton>(completeButton).onPressed, isNull);
+
+    final connectButton = find.byKey(const Key('startup-setup-h20'));
+    await tester.ensureVisible(connectButton);
+    await tester.tap(connectButton);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 13));
+    expect(
+      find.byKey(const Key('device-connection-feedback-connecting')),
+      findsOneWidget,
+    );
+    expect(tester.widget<FilledButton>(completeButton).onPressed, isNull);
+
+    rebuildSetup!(() => bleConnected = true);
+    connection.complete(true);
+    await tester.pump();
+    expect(
+      find.text(
+        'Nút MAIN đã kết nối. HOMI sẽ tự tìm micro HM-D001 sau thiết lập.',
+      ),
+      findsOneWidget,
+    );
+    await tester.pump(const Duration(milliseconds: 901));
+    expect(
+      find.text('Nút MAIN đã kết nối • micro HOMI chưa sẵn sàng'),
+      findsOneWidget,
+    );
+    expect(tester.widget<OutlinedButton>(connectButton).onPressed, isNull);
+    expect(
+      find.byKey(const Key('startup-choose-h20-microphone')),
+      findsNothing,
+    );
+    await tester.ensureVisible(completeButton);
+    expect(tester.widget<FilledButton>(completeButton).onPressed, isNotNull);
+    await tester.tap(completeButton);
+    expect(completed, isTrue);
   });
 
   testWidgets('closing legal review early does not unlock voice consent', (
