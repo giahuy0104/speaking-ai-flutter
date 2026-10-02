@@ -698,9 +698,13 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
         message: 'Cần cấp quyền Bluetooth để kết nối H20.',
       );
     }
-    await _methodChannel.invokeMethod<void>('connect', <String, Object?>{
-      'deviceId': deviceId,
-    });
+    final connectedStatus = await _methodChannel
+        .invokeMapMethod<Object?, Object?>('connect', <String, Object?>{
+          'deviceId': deviceId,
+        });
+    // Android returns the verified GATT/MAIN Notify snapshot with the connect
+    // result. Its EventChannel update may arrive after setup checks BLE state.
+    if (connectedStatus != null) _updateStatus(connectedStatus);
     final preferences = await SharedPreferences.getInstance();
     await preferences.setString(_lastDeviceIdPreference, deviceId);
     final connectedName = _status.deviceName?.trim();
