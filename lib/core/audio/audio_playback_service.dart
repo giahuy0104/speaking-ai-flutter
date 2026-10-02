@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 
 import 'audio_gain.dart';
+import 'debug/playback_rate_debug.dart';
 import 'audio_diagnostics.dart';
 import 'audio_turn_coordinator.dart';
 import 'browser_audio_playback.dart';
@@ -154,11 +155,48 @@ class JustAudioPlaybackService
   // without pushing typical voice recordings into heavy clipping.
   static const double androidPlaybackGainDb = androidSpeechBoostDb;
 
+  /// Thời gian tối đa chờ file cache để đo được mức âm lượng thật.
+  ///
+  /// Bản tải do `_cache.cache(...)` chạy song song với lúc bắt đầu phát, nên
+  /// chờ ở đây hầu như không thêm độ trễ. Quá hạn thì dùng gain dự phòng và
+  /// lần phát sau sẽ chốt mức đo được.
+  static const Duration _gainCacheWait = Duration(milliseconds: 800);
+
+  /// Mức nâng âm lượng cho giọng dịch, tính bằng dB.
+  ///
+  /// Bộ đo chuẩn hoá giọng đọc về RMS -21 dBFS, và mức đó trên loa ngoài hoặc
+  /// H20 nghe hơi nhỏ. Cộng thêm mức này cho MỌI nguồn (file cache và URL mạng)
+  /// nên âm lượng vẫn đồng nhất giữa lần tự đọc và lần nghe lại. Đây là con số
+  /// duy nhất cần chỉnh khi muốn to/nhỏ hơn: tăng lên thì to hơn.
+  ///
+  /// Chỉ bật cho player của giọng dịch (xem `speechBoostDb` ở factory). Player
+  /// của bài học để 0 nên giữ nguyên mức đã căn chỉnh trước đây.
+  static const double translatedSpeechBoostDb = 5.0;
+
+  /// Công tắc cho phép tắt hẳn phần đo và tự cân âm lượng ở máy.
+  ///
+  /// Lý tưởng nhất là backend trả file đã đồng đều âm lượng, khi đó app chỉ cần
+  /// phát ở mức 1.0 và không phải đo gì. Công tắc này để kiểm chứng điều đó:
+  ///
+  /// ```bash
+  /// # Tắt đo, phát đúng mức file (volume 1.0, không tăng, không giảm)
+  /// flutter run --dart-define=HOMI_TRANSLATION_GAIN_METERING=false
+  /// ```
+  ///
+  /// Khi tắt, cả lần tự đọc lẫn lần nghe lại đều phát ở 1.0 nên chắc chắn không
+  /// còn lệch âm lượng. Chỉ áp cho player của giọng dịch; luồng nào tự đặt gain
+  /// qua `setPlaybackGainDb`/`setFixedPlaybackGainDb` vẫn giữ nguyên.
+  static const bool translationGainMeteringEnabled = bool.fromEnvironment(
+    'HOMI_TRANSLATION_GAIN_METERING',
+    defaultValue: true,
+  );
+
   factory JustAudioPlaybackService({
     AudioPlayer? player,
     DeviceAudioCache? cache,
     AudioTurnCoordinator? audioTurnCoordinator,
     AudioTurnOwner audioTurnOwner = AudioTurnOwner.legacy,
+    double speechBoostDb = 0.0,
   }) {
     final defaults = player == null ? _createDefaultPlayer() : null;
     return JustAudioPlaybackService._(
@@ -167,6 +205,7 @@ class JustAudioPlaybackService
       cache: cache,
       audioTurnCoordinator: audioTurnCoordinator,
       audioTurnOwner: audioTurnOwner,
+      speechBoostDb: speechBoostDb,
     );
   }
 
@@ -176,7 +215,9 @@ class JustAudioPlaybackService
     DeviceAudioCache? cache,
     AudioTurnCoordinator? audioTurnCoordinator,
     required AudioTurnOwner audioTurnOwner,
-  }) : _cache = cache ?? DeviceAudioCache(),
+    double speechBoostDb = 0.0,
+  }) : _speechBoostDb = speechBoostDb,
+       _cache = cache ?? DeviceAudioCache(),
        _ownsCache = cache == null,
        _browserPlayback = createBrowserAudioPlayback(),
        _player = player,
@@ -189,6 +230,22 @@ class JustAudioPlaybackService
         unawaited(_releaseAudioTurn());
       });
     }
+    PlaybackRateDebug.watchPlayer(
+      _audioTurnOwner.name,
+      currentRate: () => _playbackRate,
+      position: () => _player.position,
+      isPlaying: () => _player.playing,
+    );
+    // Ghi lại từng lần player đổi trạng thái. Hai lần phát chồng nhau sẽ hiện
+    // thành hai lần chuyển sang playing mà không có lần dừng xen giữa.
+    _playerStateDebugSubscription = _player.playerStateStream.listen((state) {
+      PlaybackRateDebug.mark('player.state', <String, Object?>{
+        'owner': _audioTurnOwner.name,
+        'playing': state.playing,
+        'processing': state.processingState.name,
+        'positionMs': _player.position.inMilliseconds,
+      });
+    });
   }
 
   static _DefaultAudioPlayer _createDefaultPlayer() {
@@ -232,6 +289,7 @@ class JustAudioPlaybackService
   final AudioTurnOwner _audioTurnOwner;
   late final Future<AudioSession> _audioSession;
   StreamSubscription<void>? _audioTurnCompletionSubscription;
+  StreamSubscription<PlayerState>? _playerStateDebugSubscription;
   AudioTurnLease? _audioTurnLease;
   Future<void>? _playbackSessionPreparation;
   int _playbackPreparationGeneration = 0;
@@ -243,6 +301,26 @@ class JustAudioPlaybackService
   double _playbackRate = 1.0;
   double _fallbackGainDb = androidPlaybackGainDb;
   double? _fixedGainDb;
+  /// Mức nâng thêm cho giọng dịch của tính năng này (0 = không nâng).
+  ///
+  /// Lớn hơn 0 cũng đánh dấu đây là player của giọng dịch, tức là player duy
+  /// nhất chịu công tắc [translationGainMeteringEnabled].
+  final double _speechBoostDb;
+  /// Gain đã đo được, ghi theo từng file audio.
+  ///
+  /// Lần phát đầu nhận URL mạng nên phép đo trực tiếp không chạy được; nếu để
+  /// rơi vào gain dự phòng thì lần nghe lại (đã có file trong cache, đo được)
+  /// sẽ nhỏ hơn hẳn, dù là cùng một câu. Nhớ kết quả đo để mọi lần phát về sau
+  /// của đúng file đó dùng cùng một mức âm lượng.
+  ///
+  /// Nhớ theo *file cache* vì đó mới là thứ được đo; URI mạng chỉ là chìa khoá
+  /// tra cứu.
+  static final Map<Uri, double> _rememberedGainByFile = <Uri, double>{};
+
+  /// Xoá bộ nhớ mức âm lượng. Dành cho test cần cô lập; trong ứng dụng thật bộ
+  /// nhớ này sống cùng tiến trình vì mỗi câu chỉ nên có một mức âm lượng.
+  @visibleForTesting
+  static void resetRememberedGainForTesting() => _rememberedGainByFile.clear();
   _PlaybackRequest? _playbackRequest;
   final Map<Uri, ({String sha256, int maximumBytes})> _integrity = {};
   bool _disposed = false;
@@ -278,6 +356,9 @@ class JustAudioPlaybackService
     await enhancer.setEnabled(true);
   }
 
+  /// Đo mức âm lượng của một file đã có trên máy.
+  ///
+  /// Chỉ nhận file/asset. Một URL mạng luôn trả null vì phép đo không tải mạng.
   Future<double?> _measurePlaybackGain(Uri uri) async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return null;
     final Map<String, Object?> arguments;
@@ -305,24 +386,116 @@ class JustAudioPlaybackService
     }
   }
 
+  /// Chờ bản tải nền hoàn tất để đo được chính file cache.
+  ///
+  /// Chỉ dùng cho nguồn mạng khi phép đo trực tiếp không chạy được. Bản tải do
+  /// `_cache.cache(...)` khởi động ngay sau khi bắt đầu phát, nên lần phát đầu
+  /// dùng chung chính future đó. Trả về URI của file nếu kịp, ngược lại giữ
+  /// nguyên URI mạng (hành vi cũ).
+  Future<Uri> _resolveLocalForGain(Uri uri) async {
+    if (uri.isScheme('file') || uri.isScheme('asset')) return uri;
+    if (!uri.isScheme('http') && !uri.isScheme('https')) return uri;
+    try {
+      final cached = await _cache
+          .cache(uri)
+          .timeout(_gainCacheWait, onTimeout: () => null);
+      return cached ?? uri;
+    } catch (_) {
+      return uri;
+    }
+  }
+
   Future<void> _applySourceLevel(Uri uri, _PlaybackRequest request) async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
     // Metering does not mutate the player. Cancelling this wait lets the next
     // queued source start immediately; a late meter response cannot apply gain.
     final fixedGain = _fixedGainDb;
-    final measuredGain = fixedGain == null
-        ? await request.wait(_measurePlaybackGain(uri))
-        : null;
+    // Chỉ player của giọng dịch đi theo chính sách này; mọi player khác giữ
+    // nguyên cách xử lý cũ.
+    final handlesTranslationSpeech = _speechBoostDb > 0.0;
+    if (handlesTranslationSpeech && !translationGainMeteringEnabled) {
+      // Công tắc đã tắt phần đo: phát đúng mức file gốc, không tăng không giảm.
+      // Đây là phép thử xem backend đã trả file đồng đều âm lượng chưa.
+      PlaybackRateDebug.mark('gain.metering_disabled', <String, Object?>{
+        'uri': PlaybackRateDebug.uriTag(uri),
+        'playerVolume': 1.0,
+      });
+      await _player.setVolume(1.0);
+      await _androidLoudnessEnhancer?.setTargetGain(0.0);
+      return;
+    }
+    Uri? measuredFile;
+    var measuredGain = fixedGain == null ? _rememberedGainByFile[uri] : null;
+    if (fixedGain == null && measuredGain == null) {
+      // Đo chính file cache cho MỌI lần phát, kể cả lần tự đọc đầu tiên.
+      //
+      // Lần tự đọc nhận URL mạng nên phép đo trực tiếp không chạy được, và nếu
+      // để rơi vào gain dự phòng thì lần nghe lại (đã có file, đo được) sẽ nhỏ
+      // hơn hẳn. Chờ bản tải nền rồi đo đúng file đó để hai đường dùng chung
+      // một mức.
+      final local = await request
+          .wait(_resolveLocalForGain(uri))
+          .catchError((Object _) => uri);
+      // Bước chờ cache ở trên có thể đã bị hủy. Kiểm tra ngay, để một lượt đã
+      // dừng không đi tiếp vào phép đo và không treo lượt phát kế tiếp.
+      _requireCurrentPlayback(request);
+      if (local != uri) {
+        measuredFile = local;
+        measuredGain = await request.wait(_measurePlaybackGain(local));
+        _requireCurrentPlayback(request);
+      }
+      if (measuredGain == null) {
+        // Phép đo ở URI gốc có thể không bao giờ trả về (đang chờ native).
+        // Dừng lượt phát phải cắt được nó, nên chờ qua `request.wait` và kiểm
+        // tra hủy sau khi có kết quả.
+        measuredGain = await request.wait(_measurePlaybackGain(uri));
+        _requireCurrentPlayback(request);
+      }
+    }
     _requireCurrentPlayback(request);
-    final gain = fixedGain ?? measuredGain ?? _fallbackGainDb;
+    final rememberedGain = measuredGain ??
+        (measuredFile == null ? null : _rememberedGainByFile[measuredFile]);
+    // Ghi cả URI gốc và URI file để lần tự đọc (URI mạng) và lần nghe lại (URI
+    // file) cùng tra ra đúng một mức.
+    final resolvedGain = fixedGain ?? rememberedGain ?? _fallbackGainDb;
+    // Nâng đều cho giọng dịch. Áp cho cả mức đo được lẫn mức dự phòng nên hai
+    // đường phát vẫn khớp nhau; bỏ qua khi tính năng đã tự đặt gain riêng.
+    final gain = fixedGain == null
+        ? resolvedGain + _speechBoostDb
+        : resolvedGain;
+    if (fixedGain == null && rememberedGain != null) {
+      _rememberedGainByFile[uri] = rememberedGain;
+      if (measuredFile != null) {
+        _rememberedGainByFile[measuredFile] = rememberedGain;
+      }
+    }
     // Reset attenuation even if this source cannot be measured, including
     // injected players without an Android effect pipeline.
-    await _player.setVolume(
-      math.pow(10.0, math.min(gain, 0.0) / 20.0).toDouble(),
-    );
+    final appliedVolume = math.pow(10.0, math.min(gain, 0.0) / 20.0).toDouble();
+    PlaybackRateDebug.mark('gain.applying', <String, Object?>{
+      'uri': PlaybackRateDebug.uriTag(uri),
+      'measuredGainDb': measuredGain,
+      'rememberedGainDb': rememberedGain,
+      'fixedGainDb': fixedGain,
+      'fallbackGainDb': _fallbackGainDb,
+      'effectiveGainDb': gain,
+      'volume': appliedVolume,
+      'enhancer': _androidLoudnessEnhancer != null ? 'present' : 'none',
+      'positionMs': _player.position.inMilliseconds,
+      'playingNow': _player.playing,
+    });
+    await _player.setVolume(appliedVolume);
     _requireCurrentPlayback(request);
     await _androidLoudnessEnhancer?.setTargetGain(math.max(gain, 0.0));
     _requireCurrentPlayback(request);
+    PlaybackRateDebug.mark('gain.applied', <String, Object?>{
+      'uri': PlaybackRateDebug.uriTag(uri),
+      'effectiveGainDb': gain,
+      'volume': appliedVolume,
+      'enhancerTargetGainDb': _androidLoudnessEnhancer == null
+          ? null
+          : math.max(gain, 0.0),
+    });
     AudioDiagnostics.event('media.level.applied', {
       'owner': _audioTurnOwner.name,
       'gainDb': gain,
@@ -334,8 +507,24 @@ class JustAudioPlaybackService
   @override
   void setPlaybackRate(double rate) {
     final safeRate = rate.clamp(0.4, 2.0).toDouble();
-    if (_playbackRate == safeRate) return;
+    final previous = _playbackRate;
+    if (_playbackRate == safeRate) {
+      PlaybackRateDebug.mark('rate.no_op', <String, Object?>{
+        'owner': _audioTurnOwner.name,
+        'requested': rate,
+        'held': safeRate,
+      });
+      return;
+    }
     _playbackRate = safeRate;
+    PlaybackRateDebug.mark('rate.held', <String, Object?>{
+      'owner': _audioTurnOwner.name,
+      'requested': rate,
+      'from': previous,
+      'to': safeRate,
+      'positionMs': _player.position.inMilliseconds,
+      'playingNow': _player.playing,
+    });
     _browserPlayback?.setPlaybackRate(safeRate);
   }
 
@@ -505,7 +694,20 @@ class JustAudioPlaybackService
     );
 
     try {
+      PlaybackRateDebug.mark('speed.applying', <String, Object?>{
+        'owner': _audioTurnOwner.name,
+        'rate': _playbackRate,
+        'positionMsBefore': _player.position.inMilliseconds,
+        'playingBefore': _player.playing,
+        'elapsedMs': DateTime.now().millisecondsSinceEpoch,
+      });
       await request.wait(_player.setSpeed(_playbackRate));
+      PlaybackRateDebug.mark('speed.applied', <String, Object?>{
+        'owner': _audioTurnOwner.name,
+        'rate': _playbackRate,
+        'positionMsAfter': _player.position.inMilliseconds,
+        'playingAfter': _player.playing,
+      });
       await request.wait(
         _applyAndroidPlaybackAttributes(request.communicationRoute),
       );
@@ -527,14 +729,32 @@ class JustAudioPlaybackService
     }
   }
 
+  /// Luôn đưa player về trạng thái dừng, ở đầu clip, trước khi ghi tốc độ.
+  ///
+  /// Bản cũ chỉ `seek(0)` khi clip đã phát hết. Khi trẻ bấm nghe lại lúc clip
+  /// gần kết thúc, `processingState` vẫn là ready nên không có `seek(0)`, và
+  /// `setUrl` được gọi trong lúc player vẫn đang phát. ExoPlayer tạo lại nguồn
+  /// ở trạng thái playing, nên đoạn đầu của clip mới phát ra trước khi tốc độ
+  /// kịp ghi — đúng hiện tượng "đoạn đầu nhanh, đoạn sau chậm".
   Future<void> _rewindCompletedPlayback() async {
-    final duration = _player.duration;
-    final reachedEnd =
-        duration != null &&
-        duration > Duration.zero &&
-        _player.position >= duration - const Duration(milliseconds: 20);
-    if (_player.processingState == ProcessingState.completed || reachedEnd) {
+    PlaybackRateDebug.mark('rewind.start', <String, Object?>{
+      'playing': _player.playing,
+      'positionMs': _player.position.inMilliseconds,
+      'processing': _player.processingState.name,
+    });
+    if (_player.playing) {
+      await _player.pause();
+      PlaybackRateDebug.mark('rewind.paused', <String, Object?>{
+        'playing': _player.playing,
+        'positionMs': _player.position.inMilliseconds,
+      });
+    }
+    if (_player.position > Duration.zero) {
       await _player.seek(Duration.zero);
+      PlaybackRateDebug.mark('rewind.seeked', <String, Object?>{
+        'playing': _player.playing,
+        'positionMs': _player.position.inMilliseconds,
+      });
     }
   }
 
@@ -739,12 +959,33 @@ class JustAudioPlaybackService
     });
     if (_disposed) throw const PlaybackException('Lượt phát âm thanh đã dừng.');
     _playbackRequest?.cancel();
+    final previousRequest = _playbackRequest;
+    PlaybackRateDebug.mark('play.enter', <String, Object?>{
+      'owner': _audioTurnOwner.name,
+      'uri': PlaybackRateDebug.uriTag(uri),
+      'heldRate': _playbackRate,
+      'playerTag': PlaybackRateDebug.uriTag(_loadedOriginalUri ?? _loadedResolvedUri),
+      'positionMs': _player.position.inMilliseconds,
+      'playerPlaying': _player.playing,
+      'cancelledPreviousRequest': previousRequest != null,
+    });
     final request = _PlaybackRequest(_communicationRouteActive);
     _playbackRequest = request;
     try {
       await _acquireAudioTurn(request);
       _requireCurrentPlayback(request);
       final metrics = await _playWithoutTurnCoordination(uri, request);
+      PlaybackRateDebug.mark('play.started', <String, Object?>{
+        'owner': _audioTurnOwner.name,
+        'uri': PlaybackRateDebug.uriTag(uri),
+        'rate': _playbackRate,
+        'playerTag': PlaybackRateDebug.uriTag(_loadedOriginalUri ?? _loadedResolvedUri),
+        'startDelayMs': metrics.startedAfterRequest.inMilliseconds,
+        'fromDeviceCache': metrics.fromDeviceCache,
+        'positionMs': _player.position.inMilliseconds,
+        'volume': _player.volume,
+        'audioSessionId': _player.androidAudioSessionId,
+      });
       AudioDiagnostics.event('media.play.started', {
         'owner': _audioTurnOwner.name,
         'startDelayMs': metrics.startedAfterRequest.inMilliseconds,
@@ -847,6 +1088,13 @@ class JustAudioPlaybackService
     ++_preloadRevision;
     await request.wait(_consumePlaybackPreparation());
     _requireCurrentPlayback(request);
+    // Dừng player trước khi đổi nguồn. Nếu để ExoPlayer đổi nguồn trong lúc
+    // đang phát, nguồn mới kế thừa trạng thái playing và phát ra trước khi
+    // `setSpeed` bên dưới kịp chạy (xem `_rewindCompletedPlayback`).
+    if (_player.playing) {
+      await request.wait(_player.pause());
+      _requireCurrentPlayback(request);
+    }
     final integrity = _integrity[uri];
     final resolvedUri = await request.wait(
       integrity == null
@@ -858,10 +1106,19 @@ class JustAudioPlaybackService
     );
     _requireCurrentPlayback(request);
     final loadStartedAt = DateTime.now();
+    var reusedLoadedSource = false;
     await request.wait(
       _queueSource(() async {
         _requireCurrentPlayback(request);
-        if (_loadedOriginalUri == uri && _loadedResolvedUri == resolvedUri) {
+        // So sánh cả hai chiều: lần tự phát trao URI mạng, lần nghe lại trao
+        // thẳng URI file trong cache. Nếu chỉ so URI gốc thì guard luôn trượt,
+        // source bị nạp lại mỗi lần nghe lại, và ExoPlayer tạo AudioTrack mới
+        // trong lúc track cũ chưa nhả — nguồn gốc của tiếng to bất thường.
+        final sameLoadedSource =
+            (_loadedOriginalUri == uri && _loadedResolvedUri == resolvedUri) ||
+            _loadedResolvedUri == uri;
+        if (sameLoadedSource) {
+          reusedLoadedSource = true;
           return;
         }
         _loadedOriginalUri = null;
@@ -874,18 +1131,26 @@ class JustAudioPlaybackService
     );
     _requireCurrentPlayback(request);
     final loadedAt = DateTime.now();
+    PlaybackRateDebug.mark('source.ready', <String, Object?>{
+      'uri': PlaybackRateDebug.uriTag(uri),
+      'resolved': PlaybackRateDebug.uriTag(resolvedUri),
+      'reusedLoadedSource': reusedLoadedSource,
+      'loadMs': loadedAt.difference(loadStartedAt).inMilliseconds,
+    });
+    if (!reusedLoadedSource) {
+      assert(() {
+        debugPrint(
+          'Audio source ready for $uri after '
+          '${loadedAt.difference(requestedAt).inMilliseconds} ms '
+          '(duration: ${_player.duration}, position: ${_player.position}).',
+        );
+        return true;
+      }());
+    }
     await request.wait(
       _queueSource(() => _applySourceLevel(resolvedUri, request)),
     );
     _requireCurrentPlayback(request);
-    assert(() {
-      debugPrint(
-        'Audio source ready for $uri after '
-        '${loadedAt.difference(requestedAt).inMilliseconds} ms '
-        '(duration: ${_player.duration}, position: ${_player.position}).',
-      );
-      return true;
-    }());
     try {
       await request.wait(_rewindCompletedPlayback());
       _requireCurrentPlayback(request);
@@ -923,6 +1188,12 @@ class JustAudioPlaybackService
 
   @override
   Future<void> stop() async {
+    PlaybackRateDebug.mark('stop.enter', <String, Object?>{
+      'owner': _audioTurnOwner.name,
+      'heldRate': _playbackRate,
+      'playerTag': PlaybackRateDebug.uriTag(_loadedOriginalUri ?? _loadedResolvedUri),
+      'positionMs': _player.position.inMilliseconds,
+    });
     _playbackRequest?.cancel();
     _playbackRequest = null;
     ++_playbackPreparationGeneration;
@@ -976,6 +1247,7 @@ class JustAudioPlaybackService
     _playbackSessionPreparation = null;
     ++_preloadRevision;
     await _audioTurnCompletionSubscription?.cancel();
+    await _playerStateDebugSubscription?.cancel();
     await _releaseAudioTurn();
     await _browserPlayback?.dispose();
     await _player.dispose();

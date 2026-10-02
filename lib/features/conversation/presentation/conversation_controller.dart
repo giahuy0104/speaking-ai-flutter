@@ -10,6 +10,7 @@ import '../../../core/audio/adaptive_voice_activity_detector.dart';
 import '../../../core/audio/audio_input.dart';
 import '../../../core/audio/audio_playback_service.dart';
 import '../../../core/audio/catalog/media_audio_keys.dart';
+import '../../../core/audio/debug/playback_rate_debug.dart';
 import '../../../core/audio/hfp_audio_control.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
 import '../../../core/audio/main_assistant_audio_state.dart';
@@ -47,7 +48,11 @@ class ConversationController extends ChangeNotifier
         ConversationSettingsPort,
         LearningAudioDependencies,
         MainAssistantAudioState {
-  static const double translatedSpeechPlaybackRate = 0.80;
+  /// Tốc độ phát giọng tiếng Anh cho cả lượt dịch liên tục và lượt dịch đơn.
+  /// Backend tạo file ở tốc độ gốc; Flutter hạ tốc độ khi phát để trẻ 3–15
+  /// tuổi nghe rõ. Cao độ không đổi vì đây chỉ là tốc độ phát. Áp dụng cho cả
+  /// file audio của backend, TTS dự phòng offline và nghe lại từ lịch sử.
+  static const double translatedSpeechPlaybackRate = 0.6;
 
   ConversationController({
     required AudioInput audioInput,
@@ -2047,6 +2052,11 @@ class ConversationController extends ChangeNotifier
       return;
     }
     final turnGeneration = ++_conversationTurnGeneration;
+    PlaybackRateDebug.mark('turn.recording_start', <String, Object?>{
+      'turnGeneration': turnGeneration,
+      'rateAware': _playbackService is PlaybackRateAwareAudioPlaybackService,
+      'stopOnSilence': stopOnSilence,
+    });
     _streamingSpeechTurnGeneration = null;
     _nativeSpeechCompletedGeneration = null;
     _pendingStreamingPartialText = null;
@@ -3264,7 +3274,20 @@ class ConversationController extends ChangeNotifier
           // reports that it started. The turn must not become ready while the
           // assistant is still speaking, regardless of phone/A2DP/HFP output.
           earlyRulePlaybackCompletion = _waitForActivePlaybackToComplete();
-          earlyRulePlayback = _playbackService.play(localAudioUri);
+          PlaybackRateDebug.mark('early_rule.play', <String, Object?>{
+            'uri': PlaybackRateDebug.uriTag(localAudioUri),
+            'turnGeneration': _conversationTurnGeneration,
+            'stage': 'before_online_result',
+          });
+          // The online result may cancel this request a few hundred ms later.
+          // That cancellation rejects the future, and nothing can await it
+          // before the cancel lands, so surface it as a normal playback
+          // failure instead of an unhandled zone error.
+          earlyRulePlayback = _playbackService
+              .play(localAudioUri)
+              .catchError((Object error, StackTrace stackTrace) {
+                throw PlaybackException(_friendlyError(error));
+              });
         }
       }
 
@@ -3820,6 +3843,13 @@ class ConversationController extends ChangeNotifier
 
     _useTranslatedSpeechPlaybackRate();
 
+    PlaybackRateDebug.mark('playresult.target', <String, Object?>{
+      'turnGeneration': playbackTurnGeneration,
+      'uri': PlaybackRateDebug.uriTag(audioUri),
+      'sha256': currentResult.audioSha256 != null,
+      'continuousHfp': _continuousHfpSessionActive,
+    });
+
     var openedHfpForReplay = false;
     try {
       // Native iOS recognition already opened and released one utterance-scoped
@@ -3864,6 +3894,10 @@ class ConversationController extends ChangeNotifier
         final directStart =
             (gesturePlayback as DirectUserGestureAudioPlaybackService)
                 .playLoadedForUserGesture(audioUri);
+        PlaybackRateDebug.mark('playresult.gesture_path', <String, Object?>{
+          'uri': PlaybackRateDebug.uriTag(audioUri),
+          'turnGeneration': playbackTurnGeneration,
+        });
         final directMetrics = await directStart.timeout(
           _audioPreparationTimeout,
           onTimeout: () => throw const PlaybackException(
@@ -3943,6 +3977,12 @@ class ConversationController extends ChangeNotifier
     }
     if (turnGeneration != _conversationTurnGeneration) return;
     try {
+      PlaybackRateDebug.mark('offline_tts.speak', <String, Object?>{
+        'turnGeneration': turnGeneration,
+        'speechRate': translatedSpeechPlaybackRate,
+        'styled': promptService is StyledMediaOutputVoicePromptService,
+        'textLength': text.length,
+      });
       if (!_isWebRuntime &&
           promptService is StyledMediaOutputVoicePromptService) {
         await (promptService as StyledMediaOutputVoicePromptService)
@@ -3969,6 +4009,12 @@ class ConversationController extends ChangeNotifier
 
   void _useTranslatedSpeechPlaybackRate() {
     final playback = _playbackService;
+    PlaybackRateDebug.mark('use_rate.translation', <String, Object?>{
+      'target': translatedSpeechPlaybackRate,
+      'rateAware': playback is PlaybackRateAwareAudioPlaybackService,
+      'turnGeneration': _conversationTurnGeneration,
+      'phase': phase.name,
+    });
     if (playback is PlaybackRateAwareAudioPlaybackService) {
       (playback as PlaybackRateAwareAudioPlaybackService).setPlaybackRate(
         translatedSpeechPlaybackRate,
@@ -3978,6 +4024,12 @@ class ConversationController extends ChangeNotifier
 
   void _useNormalPlaybackRate() {
     final playback = _playbackService;
+    PlaybackRateDebug.mark('use_rate.normal', <String, Object?>{
+      'target': 1.0,
+      'rateAware': playback is PlaybackRateAwareAudioPlaybackService,
+      'turnGeneration': _conversationTurnGeneration,
+      'phase': phase.name,
+    });
     if (playback is PlaybackRateAwareAudioPlaybackService) {
       (playback as PlaybackRateAwareAudioPlaybackService).setPlaybackRate(1.0);
     }
@@ -4098,6 +4150,10 @@ class ConversationController extends ChangeNotifier
     if (audioUri == null) {
       throw StateError('Lượt nói này chưa có âm thanh để phát lại.');
     }
+    PlaybackRateDebug.mark('replay.enter', <String, Object?>{
+      'uri': PlaybackRateDebug.uriTag(audioUri),
+      'turnGeneration': _conversationTurnGeneration,
+    });
     _useTranslatedSpeechPlaybackRate();
     await _playbackService.play(audioUri);
   }

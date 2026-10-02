@@ -21,6 +21,9 @@ void main() {
 
   setUp(() {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    // The service remembers each clip's level for the life of the process, so
+    // one test must not hand its level to the next.
+    JustAudioPlaybackService.resetRememberedGainForTesting();
     messenger.setMockMethodCallHandler(sessionChannel, (_) async => null);
     messenger.setMockMethodCallHandler(levelChannel, (_) async => null);
   });
@@ -131,6 +134,78 @@ void main() {
       pending.complete();
       await next;
       expect(player.playedPaths, <String>[secondUri.toFilePath()]);
+    },
+  );
+
+  test(
+    'replay from mid-clip pauses and rewinds before applying speed',
+    () async {
+      // A source that is still playing half way through: this is the state when
+      // the child taps Play again near the end of the sentence. The old code
+      // only rewound a completed clip, so ExoPlayer swapped the source while
+      // still playing and the new clip started before `setSpeed` ran, which is
+      // the reported fast opening / slow ending.
+      final player = _MidClipPlayer();
+      final cache = _ControlledCache();
+      final service = JustAudioPlaybackService(player: player, cache: cache);
+      addTearDown(() async {
+        await service.dispose();
+        cache.dispose();
+      });
+
+      service.setPlaybackRate(0.65);
+      await service.play(firstUri);
+
+      // The player must be stopped and rewound before the source is swapped or
+      // the speed is written.
+      expect(
+        player.events.indexOf('pause'),
+        lessThan(player.events.indexOf('setSpeed:0.65')),
+      );
+      expect(
+        player.events.indexOf('seek:0'),
+        lessThan(player.events.indexOf('setSpeed:0.65')),
+      );
+      expect(player.events.contains('play'), isTrue);
+      expect(player.speedAppliedWhilePlaying, isFalse);
+    },
+  );
+
+  test(
+    'replaying the same clip reuses the loaded source instead of reloading it',
+    () async {
+      // Production order: the first play resolves the network URI to a cached
+      // file, the replay path then hands the service that file URI directly.
+      // The old guard only compared the original URI, missed both entries, and
+      // reloaded the source on every replay, which created a second AudioTrack
+      // before the old one was released.
+      final cachedFile = Uri.parse('file:///cached-clip.mp3');
+      final player = _ControlledPlayer();
+      final cache = _ResolvingCache(
+        firstResolve: cachedFile,
+        laterResolve: cachedFile,
+      );
+      final service = JustAudioPlaybackService(player: player, cache: cache);
+      addTearDown(() async {
+        await service.dispose();
+        cache.dispose();
+      });
+
+      final firstPlay = Uri.parse('https://example.test/speech.mp3');
+      await service.play(firstPlay);
+      expect(player.playedPaths, <String>[cachedFile.toFilePath()]);
+      expect(player.setFilePathCalls, 1);
+
+      await service.play(cachedFile);
+      expect(
+        player.setFilePathCalls,
+        1,
+        reason: 'the replay reused the loaded source, so it must not reload it',
+      );
+      expect(player.playedPaths, <String>[
+        cachedFile.toFilePath(),
+        cachedFile.toFilePath(),
+      ]);
     },
   );
 
@@ -434,10 +509,34 @@ class _ControlledCache extends DeviceAudioCache {
   }
 }
 
+/// Cache that maps a network URI onto a cached file the way the device cache
+/// does, so a replay can hand the service the already-resolved file URI.
+class _ResolvingCache extends DeviceAudioCache {
+  _ResolvingCache({required this.firstResolve, required this.laterResolve});
+
+  final Uri firstResolve;
+  final Uri laterResolve;
+  bool _resolvedOnce = false;
+
+  @override
+  Future<Uri> resolveAfterPreload(
+    Uri uri, {
+    Duration maxWait = const Duration(milliseconds: 500),
+  }) async {
+    if (uri.isScheme('file') || uri.isScheme('asset')) return uri;
+    if (!_resolvedOnce) {
+      _resolvedOnce = true;
+      return firstResolve;
+    }
+    return laterResolve;
+  }
+}
+
 class _ControlledPlayer implements AudioPlayer {
   final _states = StreamController<PlayerState>.broadcast(sync: true);
   final _positions = StreamController<Duration>.broadcast(sync: true);
   final List<String> playedPaths = <String>[];
+  int setFilePathCalls = 0;
   final List<double> volumeChanges = <double>[];
   final List<double> volumesAtPlay = <double>[];
   final List<AndroidAudioAttributes> attributesAtPlay =
@@ -451,6 +550,11 @@ class _ControlledPlayer implements AudioPlayer {
   int disposeCalls = 0;
   bool _playing = false;
   double _volume = 1.0;
+
+  @override
+  double get volume => _volume;
+  @override
+  int? get androidAudioSessionId => 1;
 
   @override
   bool get playing => _playing;
@@ -472,6 +576,7 @@ class _ControlledPlayer implements AudioPlayer {
     bool preload = true,
     dynamic tag,
   }) async {
+    setFilePathCalls++;
     final pending = pendingLoad;
     if (pending != null) {
       if (!blockedLoadEntered.isCompleted) blockedLoadEntered.complete();
@@ -516,6 +621,94 @@ class _ControlledPlayer implements AudioPlayer {
   @override
   Future<void> dispose() async {
     disposeCalls++;
+    await _states.close();
+    await _positions.close();
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Player already loaded and playing half way through a 1.3 s clip.
+///
+/// Records the order in which the service stops, rewinds and applies speed, so
+/// a replay that starts mid-clip can be checked for the fast-opening bug.
+class _MidClipPlayer implements AudioPlayer {
+  final _states = StreamController<PlayerState>.broadcast(sync: true);
+  final _positions = StreamController<Duration>.broadcast(sync: true);
+
+  final List<String> events = <String>[];
+  bool speedAppliedWhilePlaying = false;
+
+  @override
+  double get volume => 1.0;
+  @override
+  int? get androidAudioSessionId => 1;
+  // Starts mid-playback: the state the player is in when the child taps Play
+  // again while the sentence is still being read.
+  bool _playing = true;
+  Duration _position = const Duration(milliseconds: 500);
+
+  @override
+  bool get playing => _playing;
+  @override
+  ProcessingState get processingState => ProcessingState.ready;
+  @override
+  Duration get position => _position;
+  @override
+  Duration? get duration => const Duration(milliseconds: 1300);
+  @override
+  Stream<PlayerState> get playerStateStream => _states.stream;
+  @override
+  Stream<Duration> get positionStream => _positions.stream;
+
+  @override
+  Future<Duration?> setFilePath(
+    String path, {
+    Duration? initialPosition,
+    bool preload = true,
+    dynamic tag,
+  }) async {
+    events.add('setFilePath');
+    return duration;
+  }
+
+  @override
+  Future<void> setSpeed(double speed) async {
+    events.add('setSpeed:$speed');
+    if (_playing) speedAppliedWhilePlaying = true;
+  }
+
+  @override
+  Future<void> pause() async {
+    events.add('pause');
+    _playing = false;
+    _states.add(PlayerState(false, ProcessingState.ready));
+  }
+
+  @override
+  Future<void> seek(Duration? position, {int? index}) async {
+    _position = position ?? Duration.zero;
+    events.add('seek:${_position.inMilliseconds}');
+    _positions.add(_position);
+  }
+
+  @override
+  Future<void> setVolume(double volume) async {}
+
+  @override
+  Future<void> setAndroidAudioAttributes(AndroidAudioAttributes value) async {}
+
+  @override
+  Future<void> play() async {
+    events.add('play');
+    _playing = true;
+    _states.add(PlayerState(true, ProcessingState.ready));
+    _positions.add(const Duration(milliseconds: 10));
+  }
+
+  @override
+  Future<void> dispose() async {
     await _states.close();
     await _positions.close();
   }

@@ -108,7 +108,7 @@ và luồng bài học. Các sai lệch tìm thấy và đã sửa thêm:
 | Ghi âm Core/lựa chọn cuối bài | Apple Speech đã nhận quyền capture nhưng lesson vẫn giữ lease HFP của lượt phát trước; iOS recorder thông thường lại nhả HFP trước lời phản hồi | Bàn giao lease khi Apple Speech bắt đầu; giữ HFP qua chấm điểm/phản hồi trên cả iOS và Android |
 | Native H20 và tiếng “ting” | iOS có thể chọn nhầm HFP khác, hoặc bắt đầu cue/TTS/file lời dẫn trước khi tuyến HFP thực sự sẵn sàng | Xác nhận đúng thiết bị H20 đã chọn và tuyến hai chiều trước capture/phát âm thanh; chờ 180 ms đuôi cue, báo lỗi nếu route mất |
 | Bài hát sau Challenge | Lỗi tuyến H20 khi phát lời mở đầu bị nuốt, bài hát có thể vẫn bắt đầu trên đầu ra sai | Giữ màn bài hát ở trạng thái lỗi để thử lại, không tự tiếp tục sau lỗi HFP |
-| Giọng dịch offline | Tốc độ/cao độ bản dịch iOS khác cấu hình Android | Gửi cùng `speechRate=0.80`, `pitch=1.05`; không để style này dính sang lời coach tiếp theo |
+| Giọng dịch offline | Tốc độ/cao độ bản dịch iOS khác cấu hình Android | Gửi cùng `speechRate=0.60`, `pitch=1.05`; không để style này dính sang lời coach tiếp theo |
 
 Kiểm tra sau sửa: `flutter analyze --no-pub` sạch; kiểm tra kiến trúc và
 `git diff --check` đạt; **1.313/1.313 kiểm thử không dùng ảnh mẫu đạt** theo

@@ -1722,6 +1722,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         cache: deviceAudioCache,
         audioTurnCoordinator: audioTurnCoordinator,
         audioTurnOwner: AudioTurnOwner.continuousTranslation,
+        // Giọng dịch nghe qua loa ngoài/H20 hơi nhỏ ở mức chuẩn hoá, nên nâng
+        // thêm. Chỉ player này được nâng; player của bài học giữ mức cũ.
+        speechBoostDb: JustAudioPlaybackService.translatedSpeechBoostDb,
       ),
       voicePromptService: createVoicePromptService(
         coordinator: audioTurnCoordinator,

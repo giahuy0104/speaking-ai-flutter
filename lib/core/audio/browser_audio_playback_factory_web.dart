@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:web/web.dart' as web;
 
 import 'browser_audio_playback.dart';
+import 'debug/playback_rate_debug.dart';
 import 'wav_audio.dart';
 
 BrowserAudioPlayback? createBrowserAudioPlayback() =>
@@ -108,8 +109,19 @@ class _HtmlAudioElementPlayback implements BrowserAudioPlayback {
 
   @override
   void setPlaybackRate(double rate) {
+    PlaybackRateDebug.mark('web.rate.set', <String, Object?>{
+      'requested': rate,
+      'oldElementRate': _element.playbackRate,
+      'playing': _playing,
+      'currentTimeMs': (_element.currentTime * 1000).round(),
+      'source': PlaybackRateDebug.uriTag(_sourceUri),
+    });
     _element.defaultPlaybackRate = rate;
     _element.playbackRate = rate;
+    PlaybackRateDebug.mark('web.rate.applied', <String, Object?>{
+      'elementRate': _element.playbackRate,
+      'currentTimeMs': (_element.currentTime * 1000).round(),
+    });
   }
 
   @override
@@ -207,11 +219,22 @@ class _HtmlAudioElementPlayback implements BrowserAudioPlayback {
     if (_sourceUri == uri) {
       return;
     }
+    PlaybackRateDebug.mark('web.source.assign', <String, Object?>{
+      'uri': PlaybackRateDebug.uriTag(uri),
+      'elementRate': _element.playbackRate,
+      'defaultRate': _element.defaultPlaybackRate,
+      'currentTimeMs': (_element.currentTime * 1000).round(),
+    });
     // Publish identity before load(); cached Safari responses may dispatch a
     // readiness event synchronously from the load call.
     _sourceUri = uri;
     _element.src = uri.isScheme('asset') ? 'assets${uri.path}' : uri.toString();
     _element.load();
+    PlaybackRateDebug.mark('web.load.called', <String, Object?>{
+      'uri': PlaybackRateDebug.uriTag(uri),
+      'elementRate': _element.playbackRate,
+      'defaultRate': _element.defaultPlaybackRate,
+    });
     if (!_positionController.isClosed) {
       _positionController.add(Duration.zero);
     }
@@ -275,6 +298,13 @@ class _HtmlAudioElementPlayback implements BrowserAudioPlayback {
       _preloadReadyCompleter = Completer<void>();
     }
     _preloadedSourceUri = uri;
+    PlaybackRateDebug.mark('web.preload.request', <String, Object?>{
+      'uri': PlaybackRateDebug.uriTag(uri),
+      'elementRate': _element.playbackRate,
+      'defaultRate': _element.defaultPlaybackRate,
+      'alreadyPreloaded': _preloadedSourceUri == uri,
+      'playing': _playing,
+    });
     _setSource(uri);
     // Safari may already have buffered a cached response before event handlers
     // observe the transition. readyState 2 is HAVE_CURRENT_DATA and 3 is
@@ -317,11 +347,25 @@ class _HtmlAudioElementPlayback implements BrowserAudioPlayback {
     // here makes that end event observable instead of leaving callers waiting
     // for their safety timeout.
     _emitPlaying(true);
+    PlaybackRateDebug.mark('web.play.before', <String, Object?>{
+      'uri': PlaybackRateDebug.uriTag(uri),
+      'elementRate': _element.playbackRate,
+      'defaultRate': _element.defaultPlaybackRate,
+      'currentTimeMs': (_element.currentTime * 1000).round(),
+      'reusedPreload': reusingPreloadedSource,
+    });
     try {
       // Keep this as the first asynchronous browser media operation. For the
       // Play button it runs in the same tap callback; for autoplay it reuses
       // the exact element unlocked when recording began.
       await _element.play().toDart.timeout(const Duration(seconds: 4));
+      PlaybackRateDebug.mark('web.play.after', <String, Object?>{
+        'uri': PlaybackRateDebug.uriTag(uri),
+        'elementRate': _element.playbackRate,
+        'defaultRate': _element.defaultPlaybackRate,
+        'currentTimeMs': (_element.currentTime * 1000).round(),
+        'paused': _element.paused,
+      });
     } catch (error) {
       _resetAfterFailure();
       throw StateError('Browser audio playback failed: $error');
@@ -348,6 +392,11 @@ class _HtmlAudioElementPlayback implements BrowserAudioPlayback {
     if (_disposed) {
       return;
     }
+    PlaybackRateDebug.mark('web.pause', <String, Object?>{
+      'elementRate': _element.playbackRate,
+      'currentTimeMs': (_element.currentTime * 1000).round(),
+      'source': PlaybackRateDebug.uriTag(_sourceUri),
+    });
     _element.pause();
     _emitPlaying(false);
   }

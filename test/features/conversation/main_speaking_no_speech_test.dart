@@ -197,7 +197,7 @@ void main() {
         Duration(milliseconds: item.$2),
       );
     }
-    expect(ConversationController.translatedSpeechPlaybackRate, 0.8);
+    expect(ConversationController.translatedSpeechPlaybackRate, 0.6);
   });
 
   test(
