@@ -534,6 +534,10 @@ class MainVoiceAssistantFlow {
             _isStarVocabularyChoice(normalized),
       MainVoiceAssistantStage.activeLearning =>
         _resolveActiveCommand(normalized) != null ||
+            // Outside the vocabulary these open a section there; a lesson's
+            // completion choice does not resolve them as its own command.
+            (_activeLearningKind != ActiveLearningModuleKind.vocabulary &&
+                _vocabularyTarget(normalized) != null) ||
             MasterNavigationContract.matches('CONTINUE_GLOBAL', normalized) ||
             (_activeLearningKind == ActiveLearningModuleKind.listeningLesson &&
                 MasterNavigationContract.matches(

@@ -724,6 +724,12 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         activeKind == ActiveLearningModuleKind.vocabulary &&
         intent.destination == VoiceNavigationDestination.conversation;
     if (leavesActiveModule &&
+        activeKind == ActiveLearningModuleKind.vocabulary) {
+      // A vocabulary practice route sits above this shell and would keep
+      // covering the destination. Closing it keeps its checkpoint, like Back.
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+    if (leavesActiveModule &&
         activeKind == ActiveLearningModuleKind.listeningLesson) {
       // A listening route is popped during a committed module transfer. Keep
       // its durable lesson pointer in memory before the route cleanup clears
@@ -782,17 +788,43 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           await widget.onMainSpeakingModeStarted?.call();
         }
       case VoiceNavigationDestination.vocabulary:
-        await _showVocabularyAndWait();
-        if (!kIsWeb &&
-            defaultTargetPlatform == TargetPlatform.iOS &&
-            (!mounted || _page != 1)) {
-          return false;
-        }
         final vocabularyTarget = intent.vocabularyTarget;
+        // A Topic can sit above an already active vocabulary page.
+        final alreadyActive = _vocabularyActivationController.isActive;
         if (vocabularyTarget != null) {
-          await _vocabularyNavigationController.openVoiceTarget(
-            vocabularyTarget,
-          );
+          // Reserve the requested section before activation can offer Today.
+          _vocabularyNavigationController.prepareVoiceTarget(vocabularyTarget);
+        }
+        try {
+          await _showVocabularyAndWait(autoStart: vocabularyTarget == null);
+          if (!kIsWeb &&
+              defaultTargetPlatform == TargetPlatform.iOS &&
+              (!mounted || _page != 1)) {
+            _vocabularyNavigationController.clearPreparedVoiceTarget();
+            return false;
+          }
+          if (vocabularyTarget != null) {
+            // Playback can outlive this MAIN turn; report failures separately.
+            unawaited(
+              _vocabularyNavigationController
+                  .openVoiceTarget(vocabularyTarget)
+                  .catchError((Object error) {
+                    debugPrint(
+                      'Could not open the requested vocabulary section: $error',
+                    );
+                    if (mounted) {
+                      _showVoiceNavigationMessage(
+                        'Chưa mở được phần Từ vựng vừa chọn. Bạn hãy thử lại.',
+                      );
+                    }
+                  }),
+            );
+          } else if (alreadyActive) {
+            unawaited(_vocabularyNavigationController.openRoot());
+          }
+        } catch (_) {
+          _vocabularyNavigationController.clearPreparedVoiceTarget();
+          rethrow;
         }
       case VoiceNavigationDestination.topics:
         final pausedCheckpoint =
@@ -1064,7 +1096,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     unawaited(_showVocabularyAndWait());
   }
 
-  Future<void> _showVocabularyAndWait() async {
+  Future<void> _showVocabularyAndWait({bool autoStart = true}) async {
     AudioDiagnostics.event('screen.vocabulary.activate');
     if (AudioDiagnostics.enabled) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1073,7 +1105,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         }
       });
     }
-    _vocabularyActivationController.activate();
+    _vocabularyActivationController.activate(autoStart: autoStart);
     await _requestHomePage(1);
   }
 

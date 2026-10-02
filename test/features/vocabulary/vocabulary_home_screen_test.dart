@@ -7,6 +7,7 @@ import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_intent_resolver.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_audio_service.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_fixed_prompt_audio_service.dart';
@@ -1943,6 +1944,274 @@ void main() {
       expect(find.text('Ngôi sao của bạn'), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'prepared MAIN Stars skips Today menu and preserves unfinished Review',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final activationController = VocabularyActivationController();
+      final navigationController = VocabularyHomeNavigationController();
+      addTearDown(registry.dispose);
+      addTearDown(activationController.dispose);
+      final store = _MemoryVocabularyStore(<VocabularyEntry>[
+        VocabularyEntry(
+          id: 'review-word',
+          word: 'Apple',
+          meaning: 'Táo',
+          addedAt: DateTime(2026, 9, 29),
+          collection: VocabularyCollection.review,
+          status: VocabularyLearningStatus.needsPractice,
+          source: VocabularySource.topicCore,
+        ),
+      ]);
+      const sessions = VocabularySessionStore();
+      final review = await sessions.prepareReview(store);
+      expect(review, isNotNull);
+      await sessions.saveActive(review!);
+      final prompts = _RecordingVoicePromptService();
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: ActiveLearningModuleScope(
+            registry: registry,
+            child: DisplayLanguageScope(
+              language: DisplayLanguage.vietnamese,
+              child: VocabularyHomeScreen(
+                isReady: true,
+                isActive: false,
+                autoStartToday: true,
+                activationController: activationController,
+                navigationController: navigationController,
+                store: store,
+                sessionStore: sessions,
+                mediaService: _ImmediateLessonMediaService(),
+                voicePromptService: prompts,
+                fixedPromptAudioService:
+                    const _UnavailableFixedPromptAudioService(),
+                onReturnToConversation: () {},
+                onHistory: () {},
+                onSettings: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      navigationController.prepareVoiceTarget(VoiceVocabularyTarget.star);
+      activationController.activate();
+      await tester.pump();
+      await navigationController.openVoiceTarget(VoiceVocabularyTarget.star);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+      expect(find.text('Ngôi sao của bạn'), findsOneWidget);
+      expect(prompts.spokenTexts, contains(VocabularyFlowV3.starEmpty));
+      expect(prompts.spokenTexts, isNot(contains(VocabularyFlowV3.menu)));
+      expect((await sessions.readActive())?.id, review.id);
+      expect(navigationController.preparedVoiceTarget, isNull);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  for (final (command, title) in <(ActiveLearningCommand, String)>[
+    (ActiveLearningCommand.vocabularyStars, 'Ngôi sao của bạn'),
+    (ActiveLearningCommand.vocabularyParentAdded, 'Ba mẹ đã thêm'),
+  ]) {
+    testWidgets(
+      'MAIN opens $title from Vocabulary root despite unfinished Review',
+      (tester) async {
+        final registry = ActiveLearningModuleRegistry();
+        addTearDown(registry.dispose);
+        final store = _MemoryVocabularyStore(<VocabularyEntry>[
+          VocabularyEntry(
+            id: 'review-word',
+            word: 'Apple',
+            meaning: 'Táo',
+            addedAt: DateTime(2026, 9, 29),
+            collection: VocabularyCollection.review,
+            status: VocabularyLearningStatus.needsPractice,
+            source: VocabularySource.topicCore,
+          ),
+        ]);
+        const sessions = VocabularySessionStore();
+        final review = await sessions.prepareReview(store);
+        expect(review, isNotNull);
+        await sessions.saveActive(review!);
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildAppTheme(),
+            home: ActiveLearningModuleScope(
+              registry: registry,
+              child: DisplayLanguageScope(
+                language: DisplayLanguage.vietnamese,
+                child: VocabularyHomeScreen(
+                  isReady: true,
+                  store: store,
+                  sessionStore: sessions,
+                  mediaService: _ImmediateLessonMediaService(),
+                  voicePromptService: _RecordingVoicePromptService(),
+                  fixedPromptAudioService:
+                      const _UnavailableFixedPromptAudioService(),
+                  onReturnToConversation: () {},
+                  onHistory: () {},
+                  onSettings: () {},
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect((await registry.execute(command)).wasHandled, isTrue);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(VocabularyPracticeScreen), findsNothing);
+        expect(find.text(title), findsOneWidget);
+        expect((await sessions.readActive())?.id, review.id);
+      },
+      variant: TargetPlatformVariant({
+        TargetPlatform.android,
+        TargetPlatform.iOS,
+      }),
+    );
+  }
+
+  testWidgets(
+    'a Review checkpoint does not replace a requested Stars journey',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final voice = _RecordingVoicePromptService();
+      final navigation = VocabularyHomeNavigationController();
+      final store = _MemoryVocabularyStore(_starAndReviewEntries());
+      final checkpoint = await const VocabularySessionStore().prepareReview(
+        store,
+      );
+      expect(checkpoint?.mode, VocabularyPracticeMode.review);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: ActiveLearningModuleScope(
+            registry: registry,
+            child: DisplayLanguageScope(
+              language: DisplayLanguage.vietnamese,
+              child: VocabularyHomeScreen(
+                isReady: true,
+                isActive: true,
+                store: store,
+                mediaService: _ImmediateLessonMediaService(),
+                voicePromptService: voice,
+                fixedPromptAudioService:
+                    const _UnavailableFixedPromptAudioService(),
+                navigationController: navigation,
+                onReturnToConversation: () {},
+                onHistory: () {},
+                onSettings: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      unawaited(navigation.openVoiceTarget(VoiceVocabularyTarget.star));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+      expect(find.text('Ngôi sao của bạn'), findsOneWidget);
+      expect(voice.spokenTexts, contains(VocabularyFlowV3.starIntro));
+      expect(
+        (await const VocabularySessionStore().readActive())?.id,
+        checkpoint?.id,
+      );
+    },
+  );
+
+  testWidgets(
+    'a voice target owns the vocabulary entry instead of the automatic menu',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final activationController = VocabularyActivationController();
+      addTearDown(registry.dispose);
+      addTearDown(activationController.dispose);
+      final voice = _RecordingVoicePromptService();
+      final navigation = VocabularyHomeNavigationController();
+      final choicePrompts = <String?>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: ActiveLearningModuleScope(
+            registry: registry,
+            child: DisplayLanguageScope(
+              language: DisplayLanguage.vietnamese,
+              child: VocabularyHomeScreen(
+                isReady: true,
+                isActive: false,
+                autoStartToday: true,
+                activationController: activationController,
+                store: _MemoryVocabularyStore(_starAndReviewEntries()),
+                mediaService: _ImmediateLessonMediaService(),
+                voicePromptService: voice,
+                fixedPromptAudioService:
+                    const _UnavailableFixedPromptAudioService(),
+                navigationController: navigation,
+                onRequestVoiceChoice:
+                    ({
+                      String? noSpeechRetryPrompt,
+                      String? noSpeechExitPrompt,
+                    }) async {
+                      choicePrompts.add(noSpeechRetryPrompt);
+                    },
+                onReturnToConversation: () {},
+                onHistory: () {},
+                onSettings: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // MAIN activates the tab, then opens the section the child asked for.
+      activationController.activate(autoStart: false);
+      unawaited(navigation.openVoiceTarget(VoiceVocabularyTarget.star));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+      expect(find.text('Ngôi sao của bạn'), findsOneWidget);
+      expect(voice.spokenTexts, isNot(contains(VocabularyFlowV3.menu)));
+      expect(choicePrompts, <String?>[VocabularyFlowV3.starFinished]);
+    },
+  );
+}
+
+List<VocabularyEntry> _starAndReviewEntries() {
+  final day = DateTime(2026, 9, 15);
+  return <VocabularyEntry>[
+    VocabularyEntry(
+      id: 'star-1',
+      word: 'Good morning',
+      meaning: 'Chào buổi sáng',
+      addedAt: day,
+      earnedAt: day,
+      collection: VocabularyCollection.star,
+      source: VocabularySource.topicCore,
+      correctAudioPath: '/audio/star-1.wav',
+    ),
+    VocabularyEntry(
+      id: 'review-1',
+      word: 'Banana',
+      meaning: 'Chuối',
+      addedAt: day,
+      status: VocabularyLearningStatus.needsPractice,
+      source: VocabularySource.topicCore,
+    ),
+  ];
 }
 
 class _MemoryVocabularyStore extends VocabularyStore {

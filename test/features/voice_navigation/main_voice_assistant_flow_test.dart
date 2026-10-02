@@ -12,6 +12,27 @@ import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_en
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test(
+    'bare Bộ từ vựng opens Vocabulary from Home and translation menu',
+    () async {
+      for (final begin in <void Function(MainVoiceAssistantFlow)>[
+        (flow) => flow.begin(),
+        (flow) => flow.beginAfterTranslationStop(),
+      ]) {
+        final flow = MainVoiceAssistantFlow();
+        begin(flow);
+        expect(flow.canHandle('Bộ từ vựng'), isTrue);
+        expect(flow.canHandlePartial('Bộ từ vựng'), isTrue);
+        final turn = await flow.handle('Bộ từ vựng');
+        expect(
+          (turn.navigationBeforePrompt ?? turn.navigationAfterPrompt)
+              ?.destination,
+          VoiceNavigationDestination.vocabulary,
+        );
+      }
+    },
+  );
+
   for (final loaderFails in [false, true]) {
     test(
       'late Topic loading keeps the newer MAIN Level choice (failure=$loaderFails)',
@@ -761,6 +782,8 @@ void main() {
             ),
           );
         expect(flow.canHandle(entry.key), isTrue, reason: entry.key);
+        // A stable partial is enough; the lesson's own choices do not claim it.
+        expect(flow.canHandlePartial(entry.key), isTrue, reason: entry.key);
 
         final turn = await flow.handle(entry.key);
         expect(
