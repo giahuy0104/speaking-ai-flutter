@@ -26,6 +26,17 @@ class VoicePromptBridge(
     messenger: BinaryMessenger,
 ) : MethodChannel.MethodCallHandler,
     TextToSpeech.OnInitListener {
+    companion object {
+        // Bounded wait before an authored clip not yet in authoredPromptLevels
+        // falls back to 0 dB. Justified by on-device MediaCodec timing of real
+        // bundled prompt MP3s (p1 7KB/p2 25KB/p3 80KB/p4 153KB, 3 cold-decode
+        // samples each): 28-99ms / 42-46ms / 107-156ms / 186-189ms. The worst
+        // observed was ~190ms; this leaves headroom for slower devices without
+        // reintroducing the seconds-long wait the background-only design above
+        // was written to avoid.
+        private const val AUTHORED_LEVEL_WAIT_MS = 300L
+    }
+
     private data class PendingPrompt(
         val text: String,
         val locale: String,
@@ -65,6 +76,12 @@ class VoicePromptBridge(
                 eldest: MutableMap.MutableEntry<String, PlaybackLoudnessResult>?,
             ) = size > 64
         }
+    // Callbacks waiting on an in-flight measurement for a given content key,
+    // so a second play of the same not-yet-measured clip joins the one
+    // decode already running instead of starting a duplicate. Main thread only.
+    private val authoredLevelWaiters =
+        mutableMapOf<String, MutableList<(PlaybackLoudnessResult?) -> Unit>>()
+    private var authoredLevelTimeout: Runnable? = null
     private var promptPlaybackId: String? = null
     private var promptPlaybackFile: File? = null
     private var promptPlayer: MediaPlayer? = null
@@ -353,9 +370,11 @@ class VoicePromptBridge(
             call.argument<Boolean>("forcePhoneSpeaker") == true
         synthesizedPromptForceMediaPlayback =
             call.argument<Boolean>("forceMediaPlayback") == true
-        synthesizedPromptLevelKey = "${bytes.size}:${bytes.contentHashCode()}"
+        val levelKey = "${bytes.size}:${bytes.contentHashCode()}"
+        synthesizedPromptLevelKey = levelKey
         try {
             file.writeBytes(bytes)
+            ensureAuthoredLevelMeasurement(levelKey, bytes)
             playSynthesizedPrompt(utteranceId)
         } catch (_: Exception) {
             clearSynthesizedPrompt()
@@ -455,11 +474,11 @@ class VoicePromptBridge(
                     return@setOnPreparedListener
                 }
                 var levelApplied = false
-                fun startWithLevel(measured: PlaybackLoudnessResult?) {
+                fun startWithLevel(measured: PlaybackLoudnessResult?, unmeasuredFallbackDb: Double) {
                     if (levelApplied || promptPlayer !== preparedPlayer || promptPlaybackId != utteranceId) return
                     levelApplied = true
                     try {
-                        val gainDb = measured?.gainDb ?: (gainMillibels / 100.0).coerceIn(0.0, 8.0)
+                        val gainDb = measured?.gainDb ?: unmeasuredFallbackDb
                         val volume = 10.0.pow(gainDb.coerceAtMost(0.0) / 20.0).toFloat()
                         preparedPlayer.setVolume(volume, volume)
                         promptLoudnessEnhancer = try {
@@ -468,7 +487,7 @@ class VoicePromptBridge(
                                 enabled = true
                             }
                         } catch (_: RuntimeException) { null }
-                        AudioDiagnostics.event("prompt.level.applied", mapOf("id" to utteranceId, "gainDb" to gainDb, "measured" to (measured != null)))
+                        AudioDiagnostics.event("prompt.level.applied", mapOf("id" to utteranceId, "gainDb" to gainDb, "measured" to (measured != null), "fallbackDb" to (if (measured == null) unmeasuredFallbackDb else null)))
                         preparedPlayer.start()
                         AudioDiagnostics.output("prompt.native.started", audioManager, mapOf("id" to utteranceId, "gainDb" to gainDb, "durationMs" to preparedPlayer.duration, "sessionId" to preparedPlayer.audioSessionId))
                     } catch (error: RuntimeException) {
@@ -476,32 +495,57 @@ class VoicePromptBridge(
                     }
                 }
                 if (levelKey != null) {
-                    // Authored clips are fixed assets whose MP3 decode rarely fits
-                    // the wait below. Start now; measure in the background so the
-                    // clip's next playback starts with its matched level.
                     val cached = authoredPromptLevels[levelKey]
-                    startWithLevel(cached)
-                    if (cached == null) {
-                        levelWorker.execute {
-                            val measured = runCatching {
-                                AndroidPlaybackLoudness.analyze(
-                                    audioFile,
-                                    AndroidPlaybackLoudness.BACKGROUND_DECODE_NS,
-                                )
-                            }.getOrNull() ?: return@execute
-                            mainHandler.post { authoredPromptLevels[levelKey] = measured }
+                    if (cached != null) {
+                        startWithLevel(cached, 0.0)
+                        return@setOnPreparedListener
+                    }
+                    // authoredLevelWaiters[levelKey] only exists while a decode
+                    // is genuinely running (created and removed solely by
+                    // ensureAuthoredLevelMeasurement). A missing entry here
+                    // means that attempt already finished -- and since cached
+                    // is null, it finished with an error, not a result. There
+                    // is nothing left to wait for, so fall back immediately
+                    // rather than fabricate a waiter entry nobody would ever
+                    // resolve: that would wrongly make every later play of
+                    // this content believe a measurement is still in flight
+                    // and never retry.
+                    val waiters = authoredLevelWaiters[levelKey]
+                    if (waiters == null) {
+                        startWithLevel(null, 0.0)
+                        return@setOnPreparedListener
+                    }
+                    // Running: wait briefly so the first play of this content
+                    // matches every later replay. A slow OEM codec must not
+                    // reintroduce a seconds-long wait, so this falls back to
+                    // 0 dB (play as authored, no boost/cut) on timeout -- an
+                    // approximation, not a guaranteed match to the eventual
+                    // measured level. The decode keeps running in the
+                    // background past the timeout so later replays still get
+                    // the real gain.
+                    val timeout = Runnable {
+                        authoredLevelTimeout = null
+                        startWithLevel(null, 0.0)
+                    }
+                    authoredLevelTimeout = timeout
+                    mainHandler.postDelayed(timeout, AUTHORED_LEVEL_WAIT_MS)
+                    waiters.add { measured ->
+                        if (authoredLevelTimeout === timeout) {
+                            mainHandler.removeCallbacks(timeout)
+                            authoredLevelTimeout = null
                         }
+                        startWithLevel(measured, 0.0)
                     }
                     return@setOnPreparedListener
                 }
                 // A slow OEM codec must not reintroduce a seconds-long wait.
-                val levelTimeout = Runnable { startWithLevel(null) }
+                val levelTimeout = Runnable { startWithLevel(null, (gainMillibels / 100.0).coerceIn(0.0, 8.0)) }
                 mainHandler.postDelayed(levelTimeout, 450L)
                 levelWorker.execute {
                     val measured = runCatching { AndroidPlaybackLoudness.analyze(audioFile) }.getOrNull()
                     mainHandler.post {
                         mainHandler.removeCallbacks(levelTimeout)
-                        startWithLevel(measured)
+                        startWithLevel(measured, (gainMillibels / 100.0).coerceIn(0.0, 8.0))
                     }
                 }
             }
@@ -545,8 +589,36 @@ class VoicePromptBridge(
         synthesizedPromptFile = null
     }
 
+    // Starts the background measurement for an authored clip's content at
+    // most once, keyed by content rather than by utterance. Runs on the
+    // in-memory bytes, not the per-utterance playback file: that file is
+    // deleted by releasePromptPlayback() as soon as a newer prompt replaces
+    // this one, which would otherwise pull it out from under a still-running
+    // decode shared by a later identical-content request.
+    private fun ensureAuthoredLevelMeasurement(levelKey: String, bytes: ByteArray) {
+        if (authoredPromptLevels.containsKey(levelKey) || authoredLevelWaiters.containsKey(levelKey)) {
+            return
+        }
+        authoredLevelWaiters[levelKey] = mutableListOf()
+        val levelFile = File(appContext.cacheDir, "level-$levelKey.audio")
+        levelWorker.execute {
+            val measured = runCatching {
+                levelFile.writeBytes(bytes)
+                AndroidPlaybackLoudness.analyze(levelFile, AndroidPlaybackLoudness.BACKGROUND_DECODE_NS)
+            }.getOrNull()
+            levelFile.delete()
+            mainHandler.post {
+                if (measured != null) authoredPromptLevels[levelKey] = measured
+                val pending = authoredLevelWaiters.remove(levelKey).orEmpty()
+                pending.forEach { it(measured) }
+            }
+        }
+    }
+
     private fun releasePromptPlayback() {
         promptPlaybackId = null
+        authoredLevelTimeout?.let(mainHandler::removeCallbacks)
+        authoredLevelTimeout = null
         promptLoudnessEnhancer?.release()
         promptLoudnessEnhancer = null
         promptPlayer?.release()
