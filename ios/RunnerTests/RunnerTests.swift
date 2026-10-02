@@ -101,7 +101,7 @@ class RunnerTests: XCTestCase {
     let coordinator = IOSAudioSessionCoordinator()
     let handoff = MainTurnAudioTargetHandoff(coordinator: coordinator)
     coordinator.backgroundCaptureHandoffDelegate = handoff
-    coordinator.setBackgroundLearningEnabled(true, caller: "RunnerTests")
+    coordinator.setBackgroundLearningEnabled(true)
     let turnId = coordinator.beginMainTurn(
       source: "RunnerTests", audioInputTarget: .builtInMic, forceNewTurn: true
     )
