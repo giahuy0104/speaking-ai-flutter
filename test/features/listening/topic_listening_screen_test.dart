@@ -597,46 +597,58 @@ void main() {
     expect(await progressStore.readLesson(topic.lessons.first.id), 0);
   });
 
-  testWidgets('an in-progress topic resumes with its authored audio key', (
-    tester,
-  ) async {
-    final content = await AssetListeningContentRepository().load();
-    final topic = content.topic(startAge: 6, endAge: 7, topicNumber: 1);
-    final progressStore = _MemoryProgressStore()..coreStarted = true;
-    await progressStore.saveLesson(topic.lessons.first.id, 1);
-    final prompts = _SelectedOutputVoicePromptService();
+  testWidgets(
+    'an in-progress topic resumes with its authored audio key when the '
+    'target lesson has not started',
+    (tester) async {
+      final content = await AssetListeningContentRepository().load();
+      final topic = content.topic(startAge: 6, endAge: 7, topicNumber: 1);
+      final progressStore = _MemoryProgressStore();
+      final firstLesson = topic.lessons.first;
+      // Lesson 1 is fully done (core + V4 activity), so the topic is
+      // in-progress but the next lesson the screen opens (lesson 2) has not
+      // started itself -- its own intro will not speak a resume line, so the
+      // topic-level resume prompt must still fire here.
+      await progressStore.saveLesson(firstLesson.id, firstLesson.sentences.length);
+      await progressStore.markV4LessonActivityCompleted(firstLesson.id);
+      final prompts = _SelectedOutputVoicePromptService();
 
-    await tester.pumpWidget(
-      buildSubject(
-        childAge: 6,
-        contentFuture: Future<ListeningContentCatalog>.value(content),
-        progressStore: progressStore,
-        mediaService: _SelectedOutputMediaService(),
-        voicePromptService: prompts,
-      ),
-    );
-    await tester.pumpAndSettle();
-    prompts.selectedOutputKeys.clear();
+      await tester.pumpWidget(
+        buildSubject(
+          childAge: 6,
+          contentFuture: Future<ListeningContentCatalog>.value(content),
+          progressStore: progressStore,
+          mediaService: _SelectedOutputMediaService(),
+          voicePromptService: prompts,
+        ),
+      );
+      await tester.pumpAndSettle();
+      prompts.selectedOutputKeys.clear();
 
-    final firstTopic = find.byKey(const ValueKey('topic-action-6-7-0'));
-    await tester.ensureVisible(firstTopic);
-    await tester.tap(firstTopic);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
+      final firstTopic = find.byKey(const ValueKey('topic-action-6-7-0'));
+      await tester.ensureVisible(firstTopic);
+      await tester.tap(firstTopic);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
 
-    expect(
-      prompts.selectedOutputKeys,
-      contains(ListeningAudioKeys.topicResume(1)),
-    );
-  });
+      expect(
+        prompts.selectedOutputKeys,
+        contains(ListeningAudioKeys.topicResume(1)),
+      );
+    },
+  );
 
   testWidgets(
     'an in-progress topic opens its lesson while the resume line plays',
     (tester) async {
       final content = await AssetListeningContentRepository().load();
       final topic = content.topic(startAge: 3, endAge: 5, topicNumber: 1);
-      final progressStore = _LessonIntroProgressStore()..coreStarted = true;
-      await progressStore.saveLesson(topic.lessons.first.id, 1);
+      final progressStore = _LessonIntroProgressStore();
+      final firstLesson = topic.lessons.first;
+      // Same as above: lesson 1 fully done so lesson 2 (the target) is fresh
+      // and the topic resume line is expected to play and hold the screen.
+      await progressStore.saveLesson(firstLesson.id, firstLesson.sentences.length);
+      await progressStore.markV4LessonActivityCompleted(firstLesson.id);
       final prompts = _HeldTopicResumeVoicePromptService();
 
       await tester.pumpWidget(
@@ -665,6 +677,45 @@ void main() {
       expect(prompts.selectedOutputPrompts, <String>[
         'Mình học tiếp Chủ đề 1 nhé.',
       ]);
+    },
+  );
+
+  testWidgets(
+    'an in-progress topic skips its resume line when the target lesson '
+    'will announce its own resume',
+    (tester) async {
+      final content = await AssetListeningContentRepository().load();
+      final topic = content.topic(startAge: 6, endAge: 7, topicNumber: 1);
+      final progressStore = _MemoryProgressStore()..coreStarted = true;
+      // Lesson 1 itself (the target the screen will open) already has
+      // progress, so LessonIntroScreen will speak its own "Mình học tiếp bài
+      // ... nhé" resume line -- the topic-level line must be skipped so the
+      // two "continuing..." prompts don't both play back to back.
+      await progressStore.saveLesson(topic.lessons.first.id, 1);
+      final prompts = _SelectedOutputVoicePromptService();
+
+      await tester.pumpWidget(
+        buildSubject(
+          childAge: 6,
+          contentFuture: Future<ListeningContentCatalog>.value(content),
+          progressStore: progressStore,
+          mediaService: _SelectedOutputMediaService(),
+          voicePromptService: prompts,
+        ),
+      );
+      await tester.pumpAndSettle();
+      prompts.selectedOutputKeys.clear();
+
+      final firstTopic = find.byKey(const ValueKey('topic-action-6-7-0'));
+      await tester.ensureVisible(firstTopic);
+      await tester.tap(firstTopic);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(
+        prompts.selectedOutputKeys,
+        isNot(contains(ListeningAudioKeys.topicResume(1))),
+      );
     },
   );
 
