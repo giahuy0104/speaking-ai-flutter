@@ -2579,6 +2579,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       if (resumeStage != ListeningResumeStage.song) {
         _challengeEntryPending = true;
       }
+      var justFinishedChallenge = false;
       var challengeProcessed = await widget.progressStore
           .hasProcessedLessonChallenge(widget.lesson.id);
       if (!challengeProcessed && resumeStage != ListeningResumeStage.song) {
@@ -2630,6 +2631,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           widget.lesson.id,
         );
         challengeProcessed = true;
+        justFinishedChallenge = true;
       }
       _challengeEntryPending = false;
 
@@ -2653,7 +2655,14 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         widget.lesson.id,
         ListeningResumeStage.completed,
       );
-      await _announceV4ActivityMilestone();
+      // The challenge screen already spoke "Bạn đã hoàn thành phần thử thách
+      // rồi." immediately before closing, so skip the otherwise-identical
+      // "Bạn đã hoàn thành Bài ... rồi!" line when it would follow right
+      // after with no song stage in between. The topic-completion line (new
+      // information) is never skipped.
+      await _announceV4ActivityMilestone(
+        skipLessonLine: justFinishedChallenge && !shouldOpenSong,
+      );
       if (!mounted) return;
       await _showV4CompletionChoice();
       return;
@@ -2695,11 +2704,15 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
   }
 
-  Future<void> _announceV4ActivityMilestone() async {
+  Future<void> _announceV4ActivityMilestone({
+    bool skipLessonLine = false,
+  }) async {
     final topic = widget.topicContent;
-    await _speakLessonPrompt(
-      'Bạn đã hoàn thành Bài ${widget.lesson.number} rồi!',
-    );
+    if (!skipLessonLine) {
+      await _speakLessonPrompt(
+        'Bạn đã hoàn thành Bài ${widget.lesson.number} rồi!',
+      );
+    }
     if (topic != null && _nextLessonInTopic == null) {
       await _speakLessonPrompt('Bạn đã hoàn thành Chủ đề ${topic.number} rồi!');
     }

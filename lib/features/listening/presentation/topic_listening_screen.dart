@@ -252,6 +252,33 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     await prompt.speakAndWait(text, locale: locale);
   }
 
+  /// Mirrors the `isInProgress` gate `LessonIntroScreen._prepareGuideText`
+  /// uses to decide whether it will speak its own "Mình học tiếp bài ... nhé"
+  /// (or V2 guide resume) line for [lesson], so the topic-level resume
+  /// prompt above can skip itself rather than announcing "continuing" twice.
+  Future<bool> _willPlayLessonResumePhrase(
+    ListeningLessonContent lesson,
+  ) async {
+    if (!lesson.usesGuidedPractice) {
+      return false;
+    }
+    final completed = await widget.progressStore.readLesson(lesson.id);
+    if (completed >= lesson.sentences.length) {
+      return false;
+    }
+    final hasStartedCore = lesson.usesV4Flow
+        ? await widget.progressStore.hasStartedLessonCore(lesson.id)
+        : await widget.progressStore.readCurrentSentence(lesson.id) > 0;
+    if (!hasStartedCore) {
+      return false;
+    }
+    if (!lesson.usesV4Flow) {
+      return true;
+    }
+    final resumeStage = await widget.progressStore.readResumeStage(lesson.id);
+    return resumeStage == ListeningResumeStage.core;
+  }
+
   @override
   Widget build(BuildContext context) {
     return DisplayLanguageScope(
@@ -1153,9 +1180,15 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           );
           lessonNumber =
               firstIncomplete?.number ?? content.lessons.first.number;
-          if (state == ListeningTopicLearningState.inProgress) {
+          final lessonWillAnnounceOwnResume =
+              firstIncomplete != null &&
+              await _willPlayLessonResumePhrase(firstIncomplete);
+          if (state == ListeningTopicLearningState.inProgress &&
+              !lessonWillAnnounceOwnResume) {
             // Open the lesson while this line plays; the lesson intro waits
-            // for it, so the two prompts never overlap.
+            // for it, so the two prompts never overlap. Skipped when the
+            // lesson intro is about to speak its own resume line for the
+            // same lesson, so the two "continuing..." prompts don't both play.
             resumePrompt =
                 _speakOnSelectedLessonOutput(
                   'Mình học tiếp Chủ đề ${content.number} nhé.',

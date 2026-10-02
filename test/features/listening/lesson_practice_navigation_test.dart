@@ -1114,6 +1114,65 @@ void main() {
     },
   );
 
+  testWidgets(
+    'V4 skips the duplicate lesson-completion line right after a freshly '
+    'finished challenge (no song stage)',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final store = _MemoryProgressStore()..completedSentences = 1;
+      final mediaService = _SilentMediaService(
+        existingRecordingPath: 'C:\\recordings\\saved-v4-attempt.m4a',
+      );
+      final lesson = _v4Lesson();
+      final voice = _KeyedRecordingVoicePromptService();
+
+      await tester.pumpWidget(
+        _subject(
+          lesson,
+          store,
+          const Key('v4-challenge-completion-speech'),
+          mediaService: mediaService,
+          voicePromptService: voice,
+          completionChoiceRecognizer: const _FixedCompletionChoiceRecognizer(
+            'Dừng lại',
+          ),
+          initialResumeStage: ListeningResumeStage.challenge,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final challengeWidget = tester.widget<LessonChallengeScreen>(
+        find.byType(LessonChallengeScreen),
+      );
+      // The challenge screen itself already speaks "Bạn đã hoàn thành phần
+      // thử thách rồi." right before popping `true` -- this mirrors that
+      // contract without re-exercising LessonChallengeScreen's own TTS.
+      await challengeWidget.onChallengeResolved!(
+        challengeWidget.challenges.single,
+        true,
+      );
+      Navigator.of(
+        tester.element(find.byType(LessonChallengeScreen)),
+      ).pop(true);
+      await tester.pumpAndSettle();
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        voice.audioKeys,
+        isNot(
+          contains(
+            ListeningAudioKeys.topicContextPrompt(
+              'Bạn đã hoàn thành Bài ${lesson.number} rồi!',
+            ),
+          ),
+        ),
+      );
+    },
+  );
+
   testWidgets('Challenge intro is owned once by the pushed challenge route', (
     tester,
   ) async {
