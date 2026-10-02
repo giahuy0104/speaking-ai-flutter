@@ -724,6 +724,12 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         activeKind == ActiveLearningModuleKind.vocabulary &&
         intent.destination == VoiceNavigationDestination.conversation;
     if (leavesActiveModule &&
+        activeKind == ActiveLearningModuleKind.vocabulary) {
+      // A vocabulary practice route sits above this shell and would keep
+      // covering the destination. Closing it keeps its checkpoint, like Back.
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+    if (leavesActiveModule &&
         activeKind == ActiveLearningModuleKind.listeningLesson) {
       // A listening route is popped during a committed module transfer. Keep
       // its durable lesson pointer in memory before the route cleanup clears
@@ -782,17 +788,24 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           await widget.onMainSpeakingModeStarted?.call();
         }
       case VoiceNavigationDestination.vocabulary:
-        await _showVocabularyAndWait();
+        final vocabularyTarget = intent.vocabularyTarget;
+        // A Topic route opened over the vocabulary page leaves it active, so
+        // showing the page again starts nothing by itself.
+        final alreadyActive = _vocabularyActivationController.isActive;
+        await _showVocabularyAndWait(autoStart: vocabularyTarget == null);
         if (!kIsWeb &&
             defaultTargetPlatform == TargetPlatform.iOS &&
             (!mounted || _page != 1)) {
           return false;
         }
-        final vocabularyTarget = intent.vocabularyTarget;
+        // The section plays for as long as the child listens. MAIN's turn ends
+        // once it has started, like a section chosen inside the vocabulary.
         if (vocabularyTarget != null) {
-          await _vocabularyNavigationController.openVoiceTarget(
-            vocabularyTarget,
+          unawaited(
+            _vocabularyNavigationController.openVoiceTarget(vocabularyTarget),
           );
+        } else if (alreadyActive) {
+          unawaited(_vocabularyNavigationController.openRoot());
         }
       case VoiceNavigationDestination.topics:
         final pausedCheckpoint =
@@ -1064,7 +1077,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     unawaited(_showVocabularyAndWait());
   }
 
-  Future<void> _showVocabularyAndWait() async {
+  Future<void> _showVocabularyAndWait({bool autoStart = true}) async {
     AudioDiagnostics.event('screen.vocabulary.activate');
     if (AudioDiagnostics.enabled) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1073,7 +1086,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         }
       });
     }
-    _vocabularyActivationController.activate();
+    _vocabularyActivationController.activate(autoStart: autoStart);
     await _requestHomePage(1);
   }
 

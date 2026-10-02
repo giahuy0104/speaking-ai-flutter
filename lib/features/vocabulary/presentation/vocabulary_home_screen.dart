@@ -40,10 +40,19 @@ const _avatarAsset = 'assets/images/mascot/penguin-avatar.png';
 /// still follows [VocabularyHomeScreen.isActive] when frames resume.
 class VocabularyActivationController extends ChangeNotifier {
   bool _active = false;
+  bool _autoStart = true;
 
   bool get isActive => _active;
 
-  void activate() => _setActive(true);
+  /// Whether this activation starts today's flow by itself.
+  bool get autoStart => _autoStart;
+
+  /// Pass [autoStart] false when the caller opens a section itself, so the
+  /// automatic entry does not talk over it.
+  void activate({bool autoStart = true}) {
+    _autoStart = autoStart;
+    _setActive(true);
+  }
 
   void deactivate() => _setActive(false);
 
@@ -59,6 +68,7 @@ class VocabularyHomeNavigationController {
   Future<bool> Function()? _handleBack;
   Future<bool> Function()? _leaveForOtherContent;
   Future<void> Function(VoiceVocabularyTarget target)? _openVoiceTarget;
+  Future<void> Function()? _openRoot;
 
   Future<bool> handleBack() async => await _handleBack?.call() ?? false;
 
@@ -69,17 +79,24 @@ class VocabularyHomeNavigationController {
     await _openVoiceTarget?.call(target);
   }
 
+  /// Restarts the vocabulary entry flow on a screen that is already active.
+  Future<void> openRoot() async {
+    await _openRoot?.call();
+  }
+
   void _attach(
     Object owner, {
     required Future<bool> Function() handleBack,
     required Future<bool> Function() leaveForOtherContent,
     required Future<void> Function(VoiceVocabularyTarget target)
     openVoiceTarget,
+    required Future<void> Function() openRoot,
   }) {
     _owner = owner;
     _handleBack = handleBack;
     _leaveForOtherContent = leaveForOtherContent;
     _openVoiceTarget = openVoiceTarget;
+    _openRoot = openRoot;
   }
 
   void _detach(Object owner) {
@@ -88,6 +105,7 @@ class VocabularyHomeNavigationController {
     _handleBack = null;
     _leaveForOtherContent = null;
     _openVoiceTarget = null;
+    _openRoot = null;
   }
 }
 
@@ -287,7 +305,13 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     }
     _syncActiveLearningRegistration();
     if (active && widget.autoStartToday) {
-      unawaited(_maybeStartToday());
+      if (widget.activationController?.autoStart ?? true) {
+        unawaited(_maybeStartToday());
+      } else {
+        // The caller owns this entry; a later reload must not start today's
+        // flow in the middle of it.
+        _todayOffered = true;
+      }
     }
   }
 
@@ -343,6 +367,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         notifyNavigationExit: false,
       ),
       openVoiceTarget: _openVoiceTarget,
+      openRoot: () => _runAudioCommand(_openVocabularyRoot),
     );
   }
 
@@ -358,7 +383,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         await _playJourney(_VocabularyJourney.stars);
         return;
       case VoiceVocabularyTarget.review:
-        await _startReview();
+        await _runAudioCommand(_startReview);
         return;
     }
   }
@@ -2223,10 +2248,12 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   Future<bool> _resumeBlockingPracticeIfNeeded() async {
     final active = await widget.sessionStore.readActive();
-    if (active == null) return false;
-    if (active.mode == VocabularyPracticeMode.today) {
-      await _speakOnSelectedOutput(VocabularyFlowV3.finishActiveGroupFirst);
+    // Only today's unfinished group comes first. A Review checkpoint waits for
+    // "Luyện lại" and must not replace the section the child asked for.
+    if (active == null || active.mode != VocabularyPracticeMode.today) {
+      return false;
     }
+    await _speakOnSelectedOutput(VocabularyFlowV3.finishActiveGroupFirst);
     await _runPracticeSession(
       active,
       announceInitialIntro: false,

@@ -761,6 +761,8 @@ void main() {
             ),
           );
         expect(flow.canHandle(entry.key), isTrue, reason: entry.key);
+        // A stable partial is enough; the lesson's own choices do not claim it.
+        expect(flow.canHandlePartial(entry.key), isTrue, reason: entry.key);
 
         final turn = await flow.handle(entry.key);
         expect(
