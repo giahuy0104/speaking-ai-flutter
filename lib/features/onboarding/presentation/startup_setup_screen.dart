@@ -35,6 +35,7 @@ class StartupSetupScreen extends StatefulWidget {
     required this.onAgeSelected,
     required this.onCompleteSetup,
     this.allowPhoneMicFallback = false,
+    this.allowBleOnlySetup = false,
     this.androidOfflineEnglishModelOptionAvailable = false,
     this.androidOfflineEnglishModelDownloadAllowed = false,
     this.onAndroidOfflineEnglishModelDownloadChanged,
@@ -58,6 +59,7 @@ class StartupSetupScreen extends StatefulWidget {
   final bool h20BleConnected;
   final bool h20HfpConfigured;
   final bool allowPhoneMicFallback;
+  final bool allowBleOnlySetup;
   final int? selectedAge;
   final String aiSubprocessors;
   final String dataRetentionSummary;
@@ -96,15 +98,22 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
 
   bool get _h20Ready => widget.h20BleConnected && widget.h20HfpConfigured;
 
+  bool get _bleOnlySetupAccepted =>
+      widget.allowBleOnlySetup && widget.h20BleConnected;
+
   bool get _deviceConnectionAccepted =>
-      _h20Ready || (widget.allowPhoneMicFallback && widget.h20BleConnected);
+      _h20Ready ||
+      _bleOnlySetupAccepted ||
+      (widget.allowPhoneMicFallback && widget.h20BleConnected);
 
   bool get _canComplete =>
       widget.limitedModeSelected ||
       (widget.microphoneGranted &&
           (!widget.bluetoothRequired ||
               (widget.bluetoothGranted &&
-                  (_h20Ready || widget.allowPhoneMicFallback))));
+                  (_h20Ready ||
+                      widget.allowPhoneMicFallback ||
+                      _bleOnlySetupAccepted))));
 
   @override
   void initState() {
@@ -179,10 +188,10 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
           DeviceConnectionFeedbackOverlay(
             stage: _deviceConnectionFeedbackStage!,
             connectedDetail:
-                widget.allowPhoneMicFallback &&
+                (widget.allowPhoneMicFallback || widget.allowBleOnlySetup) &&
                     widget.h20BleConnected &&
                     !widget.h20HfpConfigured
-                ? 'Nút MAIN đã kết nối. HOMI sẽ thử chọn micro sau thiết lập.'
+                ? 'Nút MAIN đã kết nối. HOMI sẽ tự tìm micro HM-D001 sau thiết lập.'
                 : null,
           ),
       ],
@@ -510,7 +519,9 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
               selected: _deviceConnectionAccepted,
               status: _h20Ready
                   ? 'Đã kết nối nút MAIN và micro HOMI'
-                  : widget.allowPhoneMicFallback && widget.h20BleConnected
+                  : (widget.allowPhoneMicFallback ||
+                            widget.allowBleOnlySetup) &&
+                        widget.h20BleConnected
                   ? 'Nút MAIN đã kết nối • micro HOMI chưa sẵn sàng'
                   : widget.h20BleConnected || widget.h20HfpConfigured
                   ? 'Đang hoàn tất kết nối còn lại…'
@@ -541,7 +552,11 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
               const SizedBox(height: 12),
               _InfoBox(
                 icon: Icons.phone_iphone_rounded,
-                text: widget.allowPhoneMicFallback
+                text: widget.allowBleOnlySetup
+                    ? widget.h20BleConnected
+                          ? 'Nút MAIN đã kết nối. HOMI sẽ tiếp tục tìm micro HM-D001 đã kết nối Bluetooth. Trong lúc chờ, dùng nút micro trên màn hình với mic điện thoại.'
+                          : 'Hãy kết nối nút MAIN qua BLE. HOMI sẽ tự tìm micro HM-D001 sau khi bạn bắt đầu.'
+                    : widget.allowPhoneMicFallback
                     ? widget.h20BleConnected
                           ? 'Nút MAIN đã kết nối. HOMI sẽ thử chọn micro HM-D001 sau thiết lập. Trong lúc chờ, dùng nút micro trên màn hình với mic iPhone.'
                           : 'Bạn có thể bắt đầu bằng mic iPhone. Thiết bị HOMI sẽ tiếp tục kết nối nền và có thể thiết lập lại sau trong Cài đặt.'
