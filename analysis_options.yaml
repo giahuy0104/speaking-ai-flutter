@@ -5,3 +5,6 @@ analyzer:
     avoid_print: error
   exclude:
     - build/**
+    - android/**
+    - ios/**
+    - web/**

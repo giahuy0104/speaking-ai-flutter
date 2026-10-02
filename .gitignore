@@ -69,3 +69,6 @@ flutter_*.log
 /artifacts/reports/
 /tmp/
 ~$*.docx
+
+# FVM Version Cache
+.fvm/
