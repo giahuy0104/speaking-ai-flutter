@@ -766,9 +766,18 @@ class AndroidStreamingSpeechInput
 
     try {
       if (_active) {
-        await _methodChannel
-            .invokeMethod<void>('speech.stop')
-            .timeout(_nativeCommandTimeout);
+        try {
+          await _methodChannel
+              .invokeMethod<void>('speech.stop')
+              .timeout(_nativeCommandTimeout);
+        } on PlatformException catch (error) {
+          // Apple Speech can finalize on its own in the instant before native
+          // handles this stop. That turn already emitted speech.final, so its
+          // transcript must be kept instead of failing the whole command.
+          if (error.code != 'SPEECH_NOT_ACTIVE' || !completer.isCompleted) {
+            rethrow;
+          }
+        }
       }
       _requireCurrentRecognitionTurn(turn);
 
