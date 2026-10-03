@@ -2512,11 +2512,25 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     String? noSpeechRetryPrompt,
     String? noSpeechExitPrompt,
   }) async {
-    await _activateMainAssistant(
+    // The MAIN turn that opened the vocabulary has already ended, which
+    // cleared its handset fallback. Choose the route again for this follow-up
+    // question so a phone without a ready H20 still opens a microphone.
+    final route = MainButtonActivationPolicy.followUpAudioRoute(
+      isAndroid: !kIsWeb && defaultTargetPlatform == TargetPlatform.android,
+      isH20Ready: _controller?.isH20Ready == true,
+    );
+    final usesPhone = route == MainButtonAudioRoute.phoneMicrophone;
+    if (usesPhone) {
+      _virtualMainPhoneFallback = true;
+    }
+    final activated = await _activateMainAssistant(
       promptAlreadySpoken: true,
       noSpeechRetryPrompt: noSpeechRetryPrompt,
       noSpeechExitPrompt: noSpeechExitPrompt,
     );
+    if (!activated && usesPhone) {
+      _virtualMainPhoneFallback = false;
+    }
   }
 
   Future<void> _startMainSpeakingMode() async {

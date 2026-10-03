@@ -71,6 +71,30 @@ void main() {
     },
   );
 
+  test('an Android follow-up question without H20 keeps the handset route', () {
+    expect(
+      MainButtonActivationPolicy.followUpAudioRoute(
+        isAndroid: true,
+        isH20Ready: false,
+      ),
+      MainButtonAudioRoute.phoneMicrophone,
+    );
+    expect(
+      MainButtonActivationPolicy.followUpAudioRoute(
+        isAndroid: true,
+        isH20Ready: true,
+      ),
+      MainButtonAudioRoute.selectedHfp,
+    );
+    expect(
+      MainButtonActivationPolicy.followUpAudioRoute(
+        isAndroid: false,
+        isH20Ready: false,
+      ),
+      MainButtonAudioRoute.selectedHfp,
+    );
+  });
+
   test(
     'connected H20 uses the same selected route for both MAIN sources',
     () async {

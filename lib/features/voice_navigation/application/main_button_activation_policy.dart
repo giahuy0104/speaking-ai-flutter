@@ -23,4 +23,16 @@ abstract final class MainButtonActivationPolicy {
     }
     return MainButtonAudioRoute.selectedHfp;
   }
+
+  /// A module's follow-up question (the vocabulary menu, for example)
+  /// continues the session that opened it. Android prepares the H20 route
+  /// before every activation, so without a ready H20 the follow-up keeps the
+  /// handset microphone; otherwise no microphone opens after the prompt. iOS
+  /// has no such gate and keeps its route unchanged.
+  static MainButtonAudioRoute followUpAudioRoute({
+    required bool isAndroid,
+    required bool isH20Ready,
+  }) => isAndroid && !isH20Ready
+      ? MainButtonAudioRoute.phoneMicrophone
+      : MainButtonAudioRoute.selectedHfp;
 }
