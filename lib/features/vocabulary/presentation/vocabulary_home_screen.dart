@@ -416,8 +416,18 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   ActiveLearningModuleKind get moduleKind =>
       ActiveLearningModuleKind.vocabulary;
 
+  /// MAIN resumes this module only while it holds audio worth resuming. After
+  /// the vocabulary menu ends with "Dừng lại" nothing is paused, so the next
+  /// MAIN press must open the assistant instead of a silent resume.
   @override
-  bool get isPausedForMain => _pausedForMainAssistant;
+  bool get isPausedForMain => _pausedForMainAssistant && _hasResumableAudio;
+
+  bool get _hasResumableAudio =>
+      _playbackInterrupted ||
+      _waitingForPlaybackContinuation ||
+      (_playbackQueue.isEmpty &&
+          (_selectedJourney == _VocabularyJourney.family ||
+              _selectedJourney == _VocabularyJourney.stars));
 
   @override
   ActiveLearningVoiceNode get mainVoiceNode {

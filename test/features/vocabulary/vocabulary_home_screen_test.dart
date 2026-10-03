@@ -90,6 +90,64 @@ void main() {
   );
 
   testWidgets(
+    'menu stop leaves nothing paused so the next MAIN opens the assistant',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: MaterialApp(
+            theme: buildAppTheme(),
+            home: DisplayLanguageScope(
+              language: DisplayLanguage.vietnamese,
+              child: VocabularyHomeScreen(
+                isReady: true,
+                isActive: true,
+                store: _MemoryVocabularyStore(),
+                mediaService: _ImmediateLessonMediaService(),
+                voicePromptService: _RecordingVoicePromptService(),
+                fixedPromptAudioService:
+                    const _UnavailableFixedPromptAudioService(),
+                onReturnToConversation: () {},
+                onHistory: () {},
+                onSettings: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // "Dừng lại" at the vocabulary menu: MAIN pauses the module and then
+      // issues stop. No collection was playing, so MAIN must not treat the
+      // module as paused; otherwise the next press becomes a silent resume.
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect(
+        (await registry.execute(ActiveLearningCommand.stop)).wasHandled,
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+      expect(registry.isActiveModulePaused, isFalse);
+
+      // Interrupted collection audio still resumes from MAIN.
+      expect(
+        (await registry.execute(
+          ActiveLearningCommand.vocabularyStars,
+        )).wasHandled,
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect(registry.isActiveModulePaused, isTrue);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
     'MAIN generic Vocabulary opens unfinished Today',
     (tester) async {
       final registry = ActiveLearningModuleRegistry();
@@ -1784,7 +1842,8 @@ void main() {
 
     expect(registry.activeKind, ActiveLearningModuleKind.vocabulary);
     await registry.pauseForMainAssistant();
-    expect(registry.isActiveModulePaused, isTrue);
+    // Nothing was playing on the landing, so MAIN has nothing to resume.
+    expect(registry.isActiveModulePaused, isFalse);
 
     final review = await registry.execute(
       ActiveLearningCommand.vocabularyPracticeAgain,
