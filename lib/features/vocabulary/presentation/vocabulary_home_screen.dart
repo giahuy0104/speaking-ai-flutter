@@ -68,21 +68,7 @@ class VocabularyHomeNavigationController {
   Future<bool> Function()? _handleBack;
   Future<bool> Function()? _leaveForOtherContent;
   Future<void> Function(VoiceVocabularyTarget target)? _openVoiceTarget;
-  Completer<void> _attached = Completer<void>();
-  VoiceVocabularyTarget? _preparedVoiceTarget;
   Future<void> Function()? _openRoot;
-
-  VoiceVocabularyTarget? get preparedVoiceTarget => _preparedVoiceTarget;
-
-  /// Reserve a direct MAIN destination before activating the vocabulary page.
-  /// Activation can otherwise start Today's practice before navigation arrives.
-  void prepareVoiceTarget(VoiceVocabularyTarget target) {
-    _preparedVoiceTarget = target;
-  }
-
-  void clearPreparedVoiceTarget() {
-    _preparedVoiceTarget = null;
-  }
 
   Future<bool> handleBack() async => await _handleBack?.call() ?? false;
 
@@ -90,18 +76,7 @@ class VocabularyHomeNavigationController {
       await _leaveForOtherContent?.call() ?? true;
 
   Future<void> openVoiceTarget(VoiceVocabularyTarget target) async {
-    try {
-      if (_openVoiceTarget == null) {
-        await _attached.future.timeout(const Duration(seconds: 2));
-      }
-      final open = _openVoiceTarget;
-      if (open == null) {
-        throw StateError('Vocabulary page is not ready for voice navigation.');
-      }
-      await open(target);
-    } finally {
-      clearPreparedVoiceTarget();
-    }
+    await _openVoiceTarget?.call(target);
   }
 
   /// Restarts the vocabulary entry flow on a screen that is already active.
@@ -122,7 +97,6 @@ class VocabularyHomeNavigationController {
     _leaveForOtherContent = leaveForOtherContent;
     _openVoiceTarget = openVoiceTarget;
     _openRoot = openRoot;
-    if (!_attached.isCompleted) _attached.complete();
   }
 
   void _detach(Object owner) {
@@ -132,7 +106,6 @@ class VocabularyHomeNavigationController {
     _leaveForOtherContent = null;
     _openVoiceTarget = null;
     _openRoot = null;
-    _attached = Completer<void>();
   }
 }
 
@@ -400,21 +373,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   Future<void> _openVoiceTarget(VoiceVocabularyTarget target) async {
     _pausedForMainAssistant = false;
-    _todayOffered = true;
     switch (target) {
       case VoiceVocabularyTarget.parent:
         _openJourney(_VocabularyJourney.family);
-        await _playJourney(
-          _VocabularyJourney.family,
-          resumeBlockingPractice: false,
-        );
+        await _playJourney(_VocabularyJourney.family);
         return;
       case VoiceVocabularyTarget.star:
         _openJourney(_VocabularyJourney.stars);
-        await _playJourney(
-          _VocabularyJourney.stars,
-          resumeBlockingPractice: false,
-        );
+        await _playJourney(_VocabularyJourney.stars);
         return;
       case VoiceVocabularyTarget.review:
         await _runAudioCommand(_startReview);
@@ -538,12 +504,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       case ActiveLearningCommand.vocabularyParentAdded:
         _pausedForMainAssistant = false;
         _openJourney(_VocabularyJourney.family);
-        unawaited(
-          _playJourney(
-            _VocabularyJourney.family,
-            resumeBlockingPractice: false,
-          ),
-        );
+        unawaited(_playJourney(_VocabularyJourney.family));
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.vocabularyPracticeAgain:
         if (_awaitingPlaybackEndChoice && _selectedJourney != null) {
@@ -557,9 +518,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       case ActiveLearningCommand.vocabularyStars:
         _pausedForMainAssistant = false;
         _openJourney(_VocabularyJourney.stars);
-        unawaited(
-          _playJourney(_VocabularyJourney.stars, resumeBlockingPractice: false),
-        );
+        unawaited(_playJourney(_VocabularyJourney.stars));
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.vocabularyLatest:
       case ActiveLearningCommand.vocabularyAll:
@@ -1629,8 +1588,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         !_isEffectivelyActive ||
         _openingPractice ||
         _startingToday ||
-        _pausedForMainAssistant ||
-        widget.navigationController?.preparedVoiceTarget != null) {
+        _pausedForMainAssistant) {
       return;
     }
     _startingToday = true;
@@ -1641,9 +1599,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       final session = await widget.sessionStore.prepareToday(widget.store);
       _todayOffered = true;
       if (session == null) {
-        if (mounted &&
-            _isEffectivelyActive &&
-            widget.navigationController?.preparedVoiceTarget == null) {
+        if (mounted && _isEffectivelyActive) {
           await _speakAndRequestChoice(
             firstEntryToday
                 ? VocabularyFlowV3.todayEmptyMenu
@@ -1652,11 +1608,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         }
         return;
       }
-      if (!mounted ||
-          !_isEffectivelyActive ||
-          widget.navigationController?.preparedVoiceTarget != null) {
-        return;
-      }
+      if (!mounted || !_isEffectivelyActive) return;
       await _runPracticeSession(
         session,
         announceInitialIntro: activeBeforeEntry?.id != session.id,
@@ -1759,7 +1711,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
               ? _VocabularyJourney.stars
               : _VocabularyJourney.family;
           _openJourney(journey);
-          await _playJourney(journey, resumeBlockingPractice: false);
+          await _playJourney(journey);
           return;
         }
         if (result != VocabularyPracticeResult.continueLearning) {
@@ -1814,27 +1766,15 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     }
   }
 
-  Future<void> _playJourney(
-    _VocabularyJourney journey, {
-    bool resumeBlockingPractice = true,
-  }) => _runAudioCommand(
-    () => _playJourneyWithOutput(
-      journey,
-      resumeBlockingPractice: resumeBlockingPractice,
-    ),
-  );
+  Future<void> _playJourney(_VocabularyJourney journey) =>
+      _runAudioCommand(() => _playJourneyWithOutput(journey));
 
-  Future<void> _playJourneyWithOutput(
-    _VocabularyJourney journey, {
-    required bool resumeBlockingPractice,
-  }) async {
+  Future<void> _playJourneyWithOutput(_VocabularyJourney journey) async {
     final generation = _playbackGeneration;
     await _playbackNavigationCleanup;
     if (!mounted || generation != _playbackGeneration) return;
     if (_playingCollection || !mounted) return;
-    if (resumeBlockingPractice && await _resumeBlockingPracticeIfNeeded()) {
-      return;
-    }
+    if (await _resumeBlockingPracticeIfNeeded()) return;
     if (!mounted || generation != _playbackGeneration) return;
 
     _openJourney(journey);

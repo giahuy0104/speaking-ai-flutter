@@ -2,6 +2,7 @@ import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +34,47 @@ void main() {
     expect(control.status.phase, Aiv0BlePhase.idle);
     await control.dispose();
   });
+
+  test(
+    'iOS connect reads verified BLE status before setup continues',
+    () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final methods = <String>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            methods.add(call.method);
+            switch (call.method) {
+              case 'initialize':
+                return <Object?, Object?>{'phase': 'idle'};
+              case 'requestPermissions':
+                return true;
+              case 'connect':
+                return null;
+              case 'status':
+                return <Object?, Object?>{
+                  'phase': 'connected',
+                  'peripheralState': 'CBPeripheralState(rawValue: 2)',
+                  'deviceId': 'homi-device',
+                  'deviceName': 'HM-D001',
+                  'mainNotificationState': 'notifying',
+                };
+              default:
+                return null;
+            }
+          });
+      final control = MethodChannelAiv0BleControl(
+        enabled: true,
+        draftProtocolConfirmed: false,
+      );
+
+      await control.connect('homi-device');
+
+      expect(methods, containsAllInOrder(<String>['connect', 'status']));
+      expect(control.status.isConnected, isTrue);
+      expect(control.status.mainNotificationState, 'notifying');
+      await control.dispose();
+    },
+  );
 
   test(
     'control context is forwarded without starting audio or recording',

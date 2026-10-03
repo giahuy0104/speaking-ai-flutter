@@ -454,9 +454,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         _recordingUsesIosSpeech = false;
       });
     }
-    // The introduction belongs to the first Challenge turn. Replaying the
-    // current question must start with the question itself.
-    await _playCurrentPrompt();
+    await _playCurrentPrompt(announceIntro: true);
   }
 
   Future<void> _speakPromptAndWait(

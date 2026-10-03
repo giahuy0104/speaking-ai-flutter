@@ -1465,51 +1465,6 @@ void main() {
   );
 
   testWidgets(
-    'MAIN opens Stars directly from a learning turn on native platforms',
-    (tester) async {
-      SharedPreferences.setMockInitialValues(<String, Object>{});
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      final controller = _controller();
-      final voiceNavigationController = VoiceNavigationController(
-        speechInput: _FakeStreamingSpeechInput(),
-        ownsSpeechInput: true,
-        mainAssistantFlow: MainVoiceAssistantFlow(),
-      );
-      addTearDown(controller.dispose);
-      addTearDown(voiceNavigationController.dispose);
-      await tester.pumpWidget(
-        _app(controller, voiceNavigationController: voiceNavigationController),
-      );
-      await tester.pumpAndSettle();
-
-      expect(
-        await voiceNavigationController.activateFromMainButton(
-          activeLearning: true,
-          activeLearningKind: ActiveLearningModuleKind.listeningLesson,
-        ),
-        isTrue,
-      );
-      unawaited(voiceNavigationController.dispatchRecognizedText('Ngôi sao'));
-      for (var attempt = 0; attempt < 40; attempt++) {
-        await tester.pump(const Duration(milliseconds: 100));
-        if (find.text('Ngôi sao của bạn').evaluate().isNotEmpty) break;
-      }
-      await tester.pumpAndSettle();
-
-      expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
-      expect(find.text('Ngôi sao của bạn'), findsOneWidget);
-    },
-    variant: TargetPlatformVariant({
-      TargetPlatform.android,
-      TargetPlatform.iOS,
-    }),
-  );
-
-  testWidgets(
     'leaving a vocabulary practice for translation closes the practice route',
     (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});

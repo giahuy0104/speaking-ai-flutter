@@ -703,8 +703,12 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
           'deviceId': deviceId,
         });
     // Android returns the verified GATT/MAIN Notify snapshot with the connect
-    // result. Its EventChannel update may arrive after setup checks BLE state.
-    if (connectedStatus != null) _updateStatus(connectedStatus);
+    // result. iOS returns null, so read its current snapshot explicitly. The
+    // EventChannel update can arrive after setup checks BLE state on either OS.
+    final statusSnapshot =
+        connectedStatus ??
+        await _methodChannel.invokeMapMethod<Object?, Object?>('status');
+    if (statusSnapshot != null) _updateStatus(statusSnapshot);
     final preferences = await SharedPreferences.getInstance();
     await preferences.setString(_lastDeviceIdPreference, deviceId);
     final connectedName = _status.deviceName?.trim();

@@ -978,24 +978,6 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     if (_loading || _exiting) {
       return const ActiveLearningCommandResult.busy();
     }
-    if (_isReview &&
-        !_completed &&
-        (command == ActiveLearningCommand.vocabularyParentAdded ||
-            command == ActiveLearningCommand.vocabularyStars)) {
-      // Leaving Review for another vocabulary collection preserves the exact
-      // unfinished item. The child can resume Review later from this checkpoint.
-      await pauseForMainAssistant();
-      await widget.sessionStore.saveActive(
-        _session.copyWith(currentIndex: _index),
-      );
-      if (!mounted) return const ActiveLearningCommandResult.unavailable();
-      _finish(
-        command == ActiveLearningCommand.vocabularyStars
-            ? VocabularyPracticeResult.stars
-            : VocabularyPracticeResult.parentAdded,
-      );
-      return const ActiveLearningCommandResult.handled();
-    }
     if (command == ActiveLearningCommand.vocabularyRoot) {
       await pauseForMainAssistant();
       await widget.sessionStore.saveActive(

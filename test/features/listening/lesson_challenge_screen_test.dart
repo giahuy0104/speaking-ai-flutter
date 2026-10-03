@@ -16,7 +16,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('Challenge replays only the current question', (tester) async {
+  testWidgets('Challenge speaks intro and question again when replayed', (
+    tester,
+  ) async {
     await _usePhoneSurface(tester);
     final media = _FakeLessonMediaService();
     final prompts = _RecordingVoicePromptService();
@@ -44,11 +46,7 @@ void main() {
     await tester.tap(find.byTooltip('Nghe lại'));
     await _pumpChallengeTransition(tester);
 
-    expect(prompts.spoken, <String>[
-      ...questionTurn,
-      'vi-VN|Where is the library?',
-      'vi-VN|Bạn trả lời nhé',
-    ]);
+    expect(prompts.spoken, <String>[...questionTurn, ...questionTurn]);
     expect(media.recordingCancels, 1);
     expect(media.recordingStarts, 2);
     expect(evaluator.evaluationCalls, 0);
@@ -72,44 +70,9 @@ void main() {
     await tester.tap(find.byTooltip('Nghe lại'));
     await _pumpChallengeTransition(tester);
 
-    expect(prompts.audioKeys, <String>[
-      ...firstTurn,
-      'listening.challenge.challenge-1.prompt.vi',
-      'listening.challenge.answer_handoff.vi',
-    ]);
+    expect(prompts.audioKeys, <String>[...firstTurn, ...firstTurn]);
     expect(find.text('Go straight.'), findsOneWidget);
     expect(find.text('It is five dollars.'), findsOneWidget);
-  });
-
-  testWidgets('MAIN Nghe lại repeats the question without the intro', (
-    tester,
-  ) async {
-    await _usePhoneSurface(tester);
-    final registry = ActiveLearningModuleRegistry();
-    addTearDown(registry.dispose);
-    final prompts = _RecordingVoicePromptService();
-    await tester.pumpWidget(
-      ActiveLearningModuleScope(
-        registry: registry,
-        child: _subject(startAge: 7, voicePromptService: prompts),
-      ),
-    );
-    await _pumpChallengeTransition(tester);
-
-    expect(await registry.pauseForMainAssistant(), isTrue);
-    expect(
-      (await registry.execute(ActiveLearningCommand.replayCurrent)).wasHandled,
-      isTrue,
-    );
-    await _pumpChallengeTransition(tester);
-
-    expect(prompts.spoken, <String>[
-      'vi-VN|Tiếp theo là một câu thử thách nhé.',
-      'vi-VN|Where is the library?',
-      'vi-VN|Bạn trả lời nhé',
-      'vi-VN|Where is the library?',
-      'vi-VN|Bạn trả lời nhé',
-    ]);
   });
 
   testWidgets('startPaused waits for resume before the first spoken turn', (

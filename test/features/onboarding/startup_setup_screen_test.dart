@@ -297,43 +297,45 @@ void main() {
     expect(completed, isTrue);
   });
 
-  testWidgets('iOS accepts BLE while HOMI microphone is still pending', (
+  testWidgets('iOS accepts slow BLE while HOMI microphone is pending', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     var bleConnected = false;
+    final connection = Completer<bool>();
+    StateSetter? rebuildSetup;
 
     await tester.pumpWidget(
       MaterialApp(
         theme: buildAppTheme(),
         home: StatefulBuilder(
-          builder: (context, setState) => StartupSetupScreen(
-            profileLoading: false,
-            permissionRequestInProgress: false,
-            privacyConfigurationComplete: true,
-            privacyConsentGranted: true,
-            limitedModeSelected: false,
-            microphoneGranted: true,
-            bluetoothRequired: true,
-            bluetoothGranted: true,
-            h20BleConnected: bleConnected,
-            h20HfpConfigured: false,
-            allowPhoneMicFallback: true,
-            selectedAge: 8,
-            aiSubprocessors: 'Railway và Cloudflare',
-            dataRetentionSummary: 'Theo chính sách công khai.',
-            onGrantPrivacyConsent: () async {},
-            onContinueWithoutVoice: () async {},
-            onRetryPermissions: () {},
-            onSetupH20: () async {
-              setState(() => bleConnected = true);
-              return true;
-            },
-            onChooseH20Microphone: () async => false,
-            onAgeSelected: (_) {},
-            onCompleteSetup: () async {},
-          ),
+          builder: (context, setState) {
+            rebuildSetup = setState;
+            return StartupSetupScreen(
+              profileLoading: false,
+              permissionRequestInProgress: false,
+              privacyConfigurationComplete: true,
+              privacyConsentGranted: true,
+              limitedModeSelected: false,
+              microphoneGranted: true,
+              bluetoothRequired: true,
+              bluetoothGranted: true,
+              h20BleConnected: bleConnected,
+              h20HfpConfigured: false,
+              allowPhoneMicFallback: true,
+              selectedAge: 8,
+              aiSubprocessors: 'Railway và Cloudflare',
+              dataRetentionSummary: 'Theo chính sách công khai.',
+              onGrantPrivacyConsent: () async {},
+              onContinueWithoutVoice: () async {},
+              onRetryPermissions: () {},
+              onSetupH20: () => connection.future,
+              onChooseH20Microphone: () async => false,
+              onAgeSelected: (_) {},
+              onCompleteSetup: () async {},
+            );
+          },
         ),
       ),
     );
@@ -347,6 +349,14 @@ void main() {
     final connectButton = find.byKey(const Key('startup-setup-h20'));
     await tester.ensureVisible(connectButton);
     await tester.tap(connectButton);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 13));
+    expect(
+      find.byKey(const Key('device-connection-feedback-connecting')),
+      findsOneWidget,
+    );
+    rebuildSetup!(() => bleConnected = true);
+    connection.complete(true);
     await tester.pump();
     expect(
       find.text(

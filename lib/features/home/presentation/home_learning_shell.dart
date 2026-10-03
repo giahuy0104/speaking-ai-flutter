@@ -789,42 +789,23 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         }
       case VoiceNavigationDestination.vocabulary:
         final vocabularyTarget = intent.vocabularyTarget;
-        // A Topic can sit above an already active vocabulary page.
+        // A Topic route opened over the vocabulary page leaves it active, so
+        // showing the page again starts nothing by itself.
         final alreadyActive = _vocabularyActivationController.isActive;
-        if (vocabularyTarget != null) {
-          // Reserve the requested section before activation can offer Today.
-          _vocabularyNavigationController.prepareVoiceTarget(vocabularyTarget);
+        await _showVocabularyAndWait(autoStart: vocabularyTarget == null);
+        if (!kIsWeb &&
+            defaultTargetPlatform == TargetPlatform.iOS &&
+            (!mounted || _page != 1)) {
+          return false;
         }
-        try {
-          await _showVocabularyAndWait(autoStart: vocabularyTarget == null);
-          if (!kIsWeb &&
-              defaultTargetPlatform == TargetPlatform.iOS &&
-              (!mounted || _page != 1)) {
-            _vocabularyNavigationController.clearPreparedVoiceTarget();
-            return false;
-          }
-          if (vocabularyTarget != null) {
-            // Playback can outlive this MAIN turn; report failures separately.
-            unawaited(
-              _vocabularyNavigationController
-                  .openVoiceTarget(vocabularyTarget)
-                  .catchError((Object error) {
-                    debugPrint(
-                      'Could not open the requested vocabulary section: $error',
-                    );
-                    if (mounted) {
-                      _showVoiceNavigationMessage(
-                        'Chưa mở được phần Từ vựng vừa chọn. Bạn hãy thử lại.',
-                      );
-                    }
-                  }),
-            );
-          } else if (alreadyActive) {
-            unawaited(_vocabularyNavigationController.openRoot());
-          }
-        } catch (_) {
-          _vocabularyNavigationController.clearPreparedVoiceTarget();
-          rethrow;
+        // The section plays for as long as the child listens. MAIN's turn ends
+        // once it has started, like a section chosen inside the vocabulary.
+        if (vocabularyTarget != null) {
+          unawaited(
+            _vocabularyNavigationController.openVoiceTarget(vocabularyTarget),
+          );
+        } else if (alreadyActive) {
+          unawaited(_vocabularyNavigationController.openRoot());
         }
       case VoiceNavigationDestination.topics:
         final pausedCheckpoint =
