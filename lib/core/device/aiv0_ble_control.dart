@@ -524,6 +524,9 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   MethodChannelAiv0BleControl({
     required bool enabled,
     required bool draftProtocolConfirmed,
+    bool dualModePairingEnabled = const bool.fromEnvironment(
+      'H20_DUAL_MODE_PAIRING',
+    ),
     MethodChannel? methodChannel,
     EventChannel? eventChannel,
     Duration batteryRefreshInterval = const Duration(minutes: 1),
@@ -533,6 +536,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
            (defaultTargetPlatform == TargetPlatform.android ||
                defaultTargetPlatform == TargetPlatform.iOS),
        _codec = Aiv0DraftProtocolCodec(confirmed: draftProtocolConfirmed),
+       _dualModePairingEnabled = dualModePairingEnabled,
        _methodChannel =
            methodChannel ?? const MethodChannel('ailingo_aiv0_ble_control'),
        _eventChannel =
@@ -551,6 +555,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
            : const Aiv0BleStatus.disabled();
 
   final bool _enabled;
+  final bool _dualModePairingEnabled;
   final Aiv0DraftProtocolCodec _codec;
   final MethodChannel _methodChannel;
   final EventChannel _eventChannel;
@@ -592,6 +597,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     );
     final map = await _methodChannel.invokeMapMethod<Object?, Object?>(
       'initialize',
+      <String, Object?>{'enableTransportBridging': _dualModePairingEnabled},
     );
     if (map != null) _updateStatus(map);
   }

@@ -420,6 +420,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   private var lastDisconnectPeripheralState: String?
   private var lastNotificationRecovery: String?
   private var manualDisconnect = false
+  private var transportBridgingEnabled = false
   private var disposed = false
 
   init(
@@ -485,6 +486,8 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     }
     switch call.method {
     case "initialize":
+      let arguments = call.arguments as? [String: Any]
+      transportBridgingEnabled = arguments?["enableTransportBridging"] as? Bool ?? false
       // Do not instantiate CBCentralManager here. iOS may show its Bluetooth
       // prompt at that point; the app first presents the parental disclosure.
       result(snapshot())
@@ -913,16 +916,16 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   }
 
   private func connectPeripheral(_ peripheral: CBPeripheral, using manager: CBCentralManager) {
+    var options: [String: Any] = [:]
+    if transportBridgingEnabled {
+      options[CBConnectPeripheralOptionEnableTransportBridgingKey] = true
+    }
     if #available(iOS 17.0, *) {
       // H20 can drop BLE GATT while Classic Bluetooth HFP renegotiates. Keep
       // recovery owned by CoreBluetooth instead of a Flutter screen lifecycle.
-      manager.connect(
-        peripheral,
-        options: [CBConnectPeripheralOptionEnableAutoReconnect: true]
-      )
-      return
+      options[CBConnectPeripheralOptionEnableAutoReconnect] = true
     }
-    manager.connect(peripheral, options: nil)
+    manager.connect(peripheral, options: options.isEmpty ? nil : options)
   }
 
   private func scheduleReconnect(_ peripheral: CBPeripheral) {

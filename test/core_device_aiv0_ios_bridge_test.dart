@@ -35,6 +35,27 @@ void main() {
     await control.dispose();
   });
 
+  test('iOS forwards the dual-mode pairing setting to CoreBluetooth', () async {
+    MethodCall? initializeCall;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          if (call.method == 'initialize') initializeCall = call;
+          return <Object?, Object?>{'phase': 'idle'};
+        });
+    final control = MethodChannelAiv0BleControl(
+      enabled: true,
+      draftProtocolConfirmed: false,
+      dualModePairingEnabled: true,
+    );
+
+    await control.initialize();
+
+    expect(initializeCall?.arguments, <String, Object?>{
+      'enableTransportBridging': true,
+    });
+    await control.dispose();
+  });
+
   test(
     'iOS connect reads verified BLE status before setup continues',
     () async {
