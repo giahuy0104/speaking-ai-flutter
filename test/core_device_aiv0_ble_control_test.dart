@@ -1,9 +1,76 @@
 import 'dart:typed_data';
 
 import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  test(
+    'parent setup requests system bonding before Android BLE connect',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      const channel = MethodChannel('ailingo_aiv0_ble_control');
+      const events = MethodChannel('ailingo_aiv0_ble_control/events');
+      final methods = <String>[];
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(events, (call) async => null);
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        methods.add(call.method);
+        switch (call.method) {
+          case 'initialize':
+            return <Object?, Object?>{'phase': 'idle'};
+          case 'requestPermissions':
+            return true;
+          case 'scan':
+            return <Object?>[
+              <Object?, Object?>{
+                'id': 'AA:BB:CC:DD:EE:FF',
+                'name': 'HM-D001',
+                'rssi': -35,
+                'advertisesControlService': true,
+              },
+            ];
+          case 'requestDualModeBond':
+            return true;
+          case 'connect':
+            return <Object?, Object?>{
+              'phase': 'connected',
+              'deviceId': 'AA:BB:CC:DD:EE:FF',
+              'deviceName': 'HM-D001',
+            };
+          default:
+            return null;
+        }
+      });
+      final control = MethodChannelAiv0BleControl(
+        enabled: true,
+        draftProtocolConfirmed: false,
+        dualModePairingEnabled: true,
+      );
+      try {
+        expect(
+          await control.autoConnectKnownOrNearby(requestBond: true),
+          isTrue,
+        );
+        expect(
+          methods,
+          containsAllInOrder(<String>['requestDualModeBond', 'connect']),
+        );
+      } finally {
+        await control.dispose();
+        messenger.setMockMethodCallHandler(channel, null);
+        messenger.setMockMethodCallHandler(events, null);
+        debugDefaultTargetPlatformOverride = null;
+      }
+    },
+  );
+
   group('AIV0 Bluetooth adapter state', () {
     test('keeps radio power separate from permission state', () {
       expect(

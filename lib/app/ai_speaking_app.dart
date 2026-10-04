@@ -733,7 +733,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     var bleConnected = bleAlreadyConnected;
     try {
       bleConnected =
-          bleAlreadyConnected || await control.autoConnectKnownOrNearby();
+          bleAlreadyConnected ||
+          await control.autoConnectKnownOrNearby(
+            requestBond: reason == _H20AutoConnectReason.parentSetup,
+          );
     } catch (error) {
       debugPrint('Automatic H20 BLE connection was skipped: $error');
     } finally {

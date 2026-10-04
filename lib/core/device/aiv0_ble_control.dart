@@ -524,6 +524,9 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   MethodChannelAiv0BleControl({
     required bool enabled,
     required bool draftProtocolConfirmed,
+    bool dualModePairingEnabled = const bool.fromEnvironment(
+      'H20_DUAL_MODE_PAIRING',
+    ),
     MethodChannel? methodChannel,
     EventChannel? eventChannel,
     Duration batteryRefreshInterval = const Duration(minutes: 1),
@@ -533,6 +536,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
            (defaultTargetPlatform == TargetPlatform.android ||
                defaultTargetPlatform == TargetPlatform.iOS),
        _codec = Aiv0DraftProtocolCodec(confirmed: draftProtocolConfirmed),
+       _dualModePairingEnabled = dualModePairingEnabled,
        _methodChannel =
            methodChannel ?? const MethodChannel('ailingo_aiv0_ble_control'),
        _eventChannel =
@@ -551,6 +555,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
            : const Aiv0BleStatus.disabled();
 
   final bool _enabled;
+  final bool _dualModePairingEnabled;
   final Aiv0DraftProtocolCodec _codec;
   final MethodChannel _methodChannel;
   final EventChannel _eventChannel;
@@ -721,13 +726,17 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   /// strongest signal; the H20/AIV0 device name is only a safe fallback.
   Future<bool> autoConnectKnownOrNearby({
     Duration scanTimeout = const Duration(seconds: 4),
+    bool requestBond = false,
   }) {
     if (!_enabled || _manualDisconnectRequested) {
       return Future<bool>.value(false);
     }
     final pending = _autoConnectFuture;
     if (pending != null) return pending;
-    final future = _runAutoConnect(scanTimeout);
+    final future = _runAutoConnect(
+      scanTimeout,
+      requestBond: requestBond && _dualModePairingEnabled,
+    );
     _autoConnectFuture = future;
     return future.whenComplete(() {
       if (identical(_autoConnectFuture, future)) {
@@ -736,7 +745,10 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     });
   }
 
-  Future<bool> _runAutoConnect(Duration scanTimeout) async {
+  Future<bool> _runAutoConnect(
+    Duration scanTimeout, {
+    required bool requestBond,
+  }) async {
     await initialize();
     if (_status.isConnected) return true;
     if (_status.phase == Aiv0BlePhase.scanning ||
@@ -756,7 +768,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
       try {
         // This is the fast path for normal daily use: native can reopen the
         // verified GATT identifier directly without waiting for another scan.
-        await connect(savedDeviceId.trim());
+        await _connectCandidate(savedDeviceId.trim(), requestBond: requestBond);
         return true;
       } catch (error) {
         debugPrint(
@@ -781,7 +793,10 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     if (targetId == null || targetId.isEmpty) {
       if (migratingFromH20 && savedDeviceId != null) {
         try {
-          await connect(savedDeviceId.trim());
+          await _connectCandidate(
+            savedDeviceId.trim(),
+            requestBond: requestBond,
+          );
           return true;
         } catch (_) {
           return false;
@@ -791,7 +806,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     }
 
     try {
-      await connect(targetId);
+      await _connectCandidate(targetId, requestBond: requestBond);
       if (candidate != null && candidate.name.trim().isNotEmpty) {
         await preferences.setString(
           _lastDeviceNamePreference,
@@ -806,6 +821,28 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
       debugPrint('Automatic H20 BLE connection failed: $error');
       return false;
     }
+  }
+
+  Future<void> _connectCandidate(
+    String deviceId, {
+    required bool requestBond,
+  }) async {
+    if (requestBond &&
+        defaultTargetPlatform == TargetPlatform.android &&
+        await requestPermissions()) {
+      try {
+        await _methodChannel.invokeMethod<bool>(
+          'requestDualModeBond',
+          <String, Object?>{'deviceId': deviceId},
+        );
+      } catch (error) {
+        debugPrint('H20 system pairing was unavailable: $error');
+      }
+    }
+    if (_manualDisconnectRequested) {
+      throw StateError('H20 connection was cancelled.');
+    }
+    await connect(deviceId);
   }
 
   @override

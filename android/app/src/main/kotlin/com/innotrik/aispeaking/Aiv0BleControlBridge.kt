@@ -19,6 +19,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
@@ -80,6 +81,8 @@ class Aiv0BleControlBridge(
     private var permissionResult: MethodChannel.Result? = null
     private var scanResult: MethodChannel.Result? = null
     private var connectResult: MethodChannel.Result? = null
+    private var bondResult: MethodChannel.Result? = null
+    private var bondPoll: Runnable? = null
     private var pendingWriteResult: MethodChannel.Result? = null
     private var scanCallback: ScanCallback? = null
     private var bluetoothGatt: BluetoothGatt? = null
@@ -113,6 +116,7 @@ class Aiv0BleControlBridge(
             "openBluetoothSettings" -> openBluetoothSettings(result)
             "scan" -> scan(call, result)
             "connect" -> connect(call, result)
+            "requestDualModeBond" -> requestDualModeBond(call, result)
             "disconnect" -> disconnect(result)
             "refreshBattery" -> refreshBattery(result)
             "sendAppState" -> sendAppState(call, result)
@@ -436,6 +440,60 @@ class Aiv0BleControlBridge(
         message = "Đang xác nhận BLE Control 9E3B0001…"
         emitStatus()
         openGatt(device)
+    }
+
+    private fun requestDualModeBond(call: MethodCall, result: MethodChannel.Result) {
+        if (!ensureBluetoothReady(result)) return
+        if (bondResult != null) {
+            result.error("BOND_IN_PROGRESS", "Đang chờ ghép đôi H20.", null)
+            return
+        }
+        val id = call.argument<String>("deviceId")?.trim().orEmpty()
+        val device = runCatching { adapter?.getRemoteDevice(id) }.getOrNull()
+        if (device == null) {
+            result.error("DEVICE_NOT_FOUND", "Không tìm thấy thiết bị H20 để ghép đôi.", null)
+            return
+        }
+        val initialState = runCatching { device.bondState }.getOrNull()
+        if (initialState == BluetoothDevice.BOND_BONDED) {
+            result.success(true)
+            return
+        }
+        val started = initialState == BluetoothDevice.BOND_BONDING ||
+            runCatching { device.createBond() }.getOrDefault(false)
+        if (!started) {
+            result.success(false)
+            return
+        }
+
+        bondResult = result
+        val deadline = SystemClock.elapsedRealtime() + 25_000L
+        var sawBonding = initialState == BluetoothDevice.BOND_BONDING
+        val poll = object : Runnable {
+            override fun run() {
+                if (bondResult !== result) return
+                val state = runCatching { device.bondState }.getOrNull()
+                when {
+                    state == BluetoothDevice.BOND_BONDED -> finishBond(true)
+                    sawBonding && state == BluetoothDevice.BOND_NONE -> finishBond(false)
+                    SystemClock.elapsedRealtime() >= deadline -> finishBond(false)
+                    else -> {
+                        if (state == BluetoothDevice.BOND_BONDING) sawBonding = true
+                        mainHandler.postDelayed(this, 250L)
+                    }
+                }
+            }
+        }
+        bondPoll = poll
+        mainHandler.postDelayed(poll, 250L)
+    }
+
+    private fun finishBond(bonded: Boolean) {
+        bondPoll?.let(mainHandler::removeCallbacks)
+        bondPoll = null
+        val pending = bondResult
+        bondResult = null
+        pending?.success(bonded)
     }
 
     private fun openGatt(device: BluetoothDevice) {
@@ -764,6 +822,7 @@ class Aiv0BleControlBridge(
     }
 
     private fun disconnect(result: MethodChannel.Result) {
+        finishBond(false)
         shouldReconnect = false
         reconnectAttempts = 0
         cancelPendingReconnect()
@@ -947,6 +1006,7 @@ class Aiv0BleControlBridge(
     fun dispose() {
         if (disposed) return
         disposed = true
+        finishBond(false)
         mediaKeyObserver.dispose()
         shouldReconnect = false
         mainHandler.removeCallbacksAndMessages(null)
