@@ -239,9 +239,13 @@ class _CollapsedRailContent extends StatelessWidget {
             ),
           ),
           Positioned.fill(
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(onTap: onPressed),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onPressed,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(onTap: onPressed),
+              ),
             ),
           ),
         ],

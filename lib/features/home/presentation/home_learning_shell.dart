@@ -1074,6 +1074,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   void _showVocabulary() {
+    unawaited(widget.voiceNavigationController?.pause());
     unawaited(_showVocabularyAndWait());
   }
 
@@ -1086,6 +1087,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         }
       });
     }
+    ActiveLearningModuleScope.notifyNavigationExit(context);
     _vocabularyActivationController.activate(autoStart: autoStart);
     await _requestHomePage(1);
   }
@@ -1164,7 +1166,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       duration: _motionDuration,
       curve: Curves.easeOutCubic,
     );
-    if (!_usesNativePageSynchronization) {
+    if (!_usesNativePageSynchronization || targetPage == 1) {
       unawaited(transition);
       return;
     }
