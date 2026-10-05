@@ -4146,6 +4146,7 @@ class _RegistryAudioVoicePromptService extends _FakeVoicePromptService
     Uint8List bytes, {
     bool forcePhoneSpeaker = false,
     bool forceMediaPlayback = false,
+    double? gainDb,
   }) async {
     expect(forceMediaPlayback, isTrue);
     final keys = _keysBySha[sha256.convert(bytes).toString()];
