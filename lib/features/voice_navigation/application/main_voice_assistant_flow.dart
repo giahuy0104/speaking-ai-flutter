@@ -1348,10 +1348,7 @@ class MainVoiceAssistantFlow {
         _activeLearningKind == ActiveLearningModuleKind.vocabulary;
     final promptText = switch (command) {
       ActiveLearningCommand.resume =>
-        isVocabulary ||
-                _activeVoiceNode == ActiveLearningVoiceNode.intro ||
-                _activeVoiceNode == ActiveLearningVoiceNode.core ||
-                _activeVoiceNode == ActiveLearningVoiceNode.challenge
+        isVocabulary || _activeVoiceNode == ActiveLearningVoiceNode.intro
             ? ''
             : 'Cùng học tiếp nhé',
       ActiveLearningCommand.replayCurrent =>
@@ -1383,16 +1380,24 @@ class MainVoiceAssistantFlow {
       ActiveLearningCommand.vocabularyAll ||
       ActiveLearningCommand.vocabularyRoot => '',
     };
+    final promptAudioKey = switch (command) {
+      ActiveLearningCommand.resume =>
+        isVocabulary || _activeVoiceNode == ActiveLearningVoiceNode.intro
+            ? null
+            : MainAssistantAudioKeys.resumeLearning,
+      ActiveLearningCommand.replayCurrent =>
+        _activeVoiceNode == ActiveLearningVoiceNode.song && !isVocabulary
+            ? MainAssistantAudioKeys.songReplay
+            : null,
+      _ => null,
+    };
     return MainVoiceAssistantTurn(
       promptText: (_activeVoiceSelection?.isMainVoiceChoice ?? false)
           ? ''
           : promptText,
-      promptAudioKey:
-          command == ActiveLearningCommand.replayCurrent &&
-              _activeVoiceNode == ActiveLearningVoiceNode.song &&
-              !isVocabulary
-          ? MainAssistantAudioKeys.songReplay
-          : null,
+      promptAudioKey: (_activeVoiceSelection?.isMainVoiceChoice ?? false)
+          ? null
+          : promptAudioKey,
       continueListening: false,
       activeLearningCommand: command,
     );
