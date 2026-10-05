@@ -559,6 +559,92 @@ void main() {
     },
   );
   test(
+    'MAIN pressed while "Đã dừng." is still being spoken resumes after it',
+    () async {
+      registry.register(module);
+      final speaking = Completer<void>();
+      final dispatcher = AivoControlDispatcher(
+        registry: registry,
+        platform: 'iOS',
+        onMain: (_) async {
+          mainCalls++;
+          return MainButtonActionResult.accepted;
+        },
+        onPause: (_) async {
+          await registry.execute(ActiveLearningCommand.stop);
+          // The app awaits speakAssistantPrompt('Đã dừng.') here.
+          await speaking.future;
+          return MainButtonActionResult.accepted;
+        },
+      );
+      addTearDown(dispatcher.dispose);
+      final stop = dispatcher.dispatch(
+        input(Aiv0Button.main, Aiv0ButtonGesture.longPress),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(module.paused, isTrue);
+      final resume = dispatcher.dispatch(
+        input(Aiv0Button.main, Aiv0ButtonGesture.shortPress),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(module.commands, [ActiveLearningCommand.stop]);
+      speaking.complete();
+      await stop;
+      expect(await resume, AivoControlStatus.accepted);
+      expect(module.commands, [
+        ActiveLearningCommand.stop,
+        ActiveLearningCommand.resume,
+      ]);
+      expect(module.paused, isFalse);
+      expect(mainCalls, 0);
+    },
+  );
+  test(
+    'a second LONG while "Đã dừng." is still being spoken keeps the stop',
+    () async {
+      registry.register(module);
+      final speaking = Completer<void>();
+      final dispatcher = AivoControlDispatcher(
+        registry: registry,
+        platform: 'iOS',
+        onMain: (_) async {
+          mainCalls++;
+          return MainButtonActionResult.accepted;
+        },
+        onPause: (_) async {
+          await registry.execute(ActiveLearningCommand.stop);
+          await speaking.future;
+          return MainButtonActionResult.accepted;
+        },
+      );
+      addTearDown(dispatcher.dispose);
+      final stop = dispatcher.dispatch(
+        input(Aiv0Button.main, Aiv0ButtonGesture.longPress),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(
+        await dispatcher.dispatch(
+          input(Aiv0Button.main, Aiv0ButtonGesture.longPress),
+        ),
+        AivoControlStatus.ignored,
+      );
+      final resume = dispatcher.dispatch(
+        input(Aiv0Button.main, Aiv0ButtonGesture.shortPress),
+      );
+      await Future<void>.delayed(Duration.zero);
+      // The resume must wait for the stop prompt, not run underneath it.
+      expect(module.commands, [ActiveLearningCommand.stop]);
+      speaking.complete();
+      await stop;
+      expect(await resume, AivoControlStatus.accepted);
+      expect(module.commands, [
+        ActiveLearningCommand.stop,
+        ActiveLearningCommand.resume,
+      ]);
+      expect(mainCalls, 0);
+    },
+  );
+  test(
     'unavailable navigation is returned without creating an assistant turn',
     () async {
       expect(

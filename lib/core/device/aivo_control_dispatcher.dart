@@ -205,6 +205,7 @@ class AivoControlDispatcher extends ChangeNotifier {
   bool diagnosticsActive = false;
   bool executeTests = false;
   bool _busy = false;
+  Completer<void>? _pauseInFlight;
   int _busyTicket = 0;
   bool _disposed = false;
   int _generation = 0;
@@ -337,12 +338,29 @@ class AivoControlDispatcher extends ChangeNotifier {
     if (!(canExecute?.call() ?? true)) {
       return finish(AivoControlStatus.unavailable);
     }
+    final pausing = _pauseInFlight;
+    if (pausing != null && intent == AivoControlIntent.pauseCurrent) {
+      // A second LONG while "Đã dừng." is still being spoken must not take a
+      // new ticket: its completion would clear _busy under the first pause.
+      return finish(AivoControlStatus.ignored);
+    }
+    if (_busy &&
+        pausing != null &&
+        intent == AivoControlIntent.assistantOrResume) {
+      // MAIN pressed while "Đã dừng." is still being spoken: wait for the stop
+      // to settle, then resume, instead of dropping the press.
+      await pausing.future.timeout(operationTimeout, onTimeout: () {});
+      if (_disposed) return finish(AivoControlStatus.ignored);
+    }
     if (_busy && intent != AivoControlIntent.pauseCurrent) {
       return finish(AivoControlStatus.busy);
     }
     final ticket = ++_generation;
     _busy = true;
     _busyTicket = ticket;
+    final pauseDone = intent == AivoControlIntent.pauseCurrent
+        ? (_pauseInFlight = Completer<void>())
+        : null;
     try {
       final result = await _execute(
         input,
@@ -358,6 +376,10 @@ class AivoControlDispatcher extends ChangeNotifier {
     } finally {
       // A superseded operation must not release the newer pause operation.
       if (_busyTicket == ticket) _busy = false;
+      if (pauseDone != null) {
+        if (identical(_pauseInFlight, pauseDone)) _pauseInFlight = null;
+        pauseDone.complete();
+      }
     }
   }
 
