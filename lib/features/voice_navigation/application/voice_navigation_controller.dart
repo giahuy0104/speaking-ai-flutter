@@ -914,32 +914,10 @@ class VoiceNavigationController extends ChangeNotifier {
       notifyListeners();
       return true;
     }
-    try {
-      final readyCuePlayer = _voicePromptService;
-      // Android owns the cue only in _startSession, after speech.ready.
-      // Playing here as well can double the cue in a continuous wake turn.
-      if (defaultTargetPlatform != TargetPlatform.android &&
-          readyCuePlayer is SpeechReadyCuePlayer) {
-        AudioDiagnostics.event('main.cue.request', {
-          'generation': generation,
-          'caller': 'acknowledge',
-          'buttonSession': _buttonCommandSession,
-        });
-        // AudioServices completion is not guaranteed to arrive promptly while
-        // iOS is switching a Bluetooth HFP route after prompt playback. Never
-        // let a missing ready-cue callback prevent Apple Speech from opening.
-        await (readyCuePlayer as SpeechReadyCuePlayer)
-            .playSpeechReadyCue()
-            .timeout(_speechReadyCueTimeout);
-      }
-    } catch (error) {
-      if (!_disposed && generation == _generation) {
-        _lastError = error;
-      }
-    }
-    if (_disposed || generation != _generation) {
-      return false;
-    }
+    // The ready cue plays in _startSession, after speech.ready, on every
+    // platform. A child answers the moment the cue sounds; on iOS the cue
+    // used to precede the microphone start, so the first word of the command
+    // was lost.
     // Keep the visible prompt state through the ready cue. The previous gap
     // showed an idle "Main" button between the beep and microphone startup,
     // even though the same activation was still in progress.
@@ -1191,9 +1169,7 @@ class VoiceNavigationController extends ChangeNotifier {
         }
         return;
       }
-      if (defaultTargetPlatform == TargetPlatform.android &&
-          _awaitingCommand &&
-          _voicePromptService is SpeechReadyCuePlayer) {
+      if (_awaitingCommand && _voicePromptService is SpeechReadyCuePlayer) {
         try {
           AudioDiagnostics.event('main.cue.request', {
             'generation': generation,

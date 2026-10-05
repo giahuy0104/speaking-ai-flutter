@@ -1154,13 +1154,29 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       readyCueResults.append(result)
       return
     }
-    guard let audioToken = configurePromptAudioSession() else {
-      result(FlutterError(
-        code: "PROMPT_AUDIO_ROUTE_FAILED",
-        message: "Unable to prepare the speech-ready cue route.",
-        details: nil
-      ))
-      return
+    let audioToken: UUID?
+    let expectsHfp: Bool
+    if audioSessionCoordinator.isSpeechCaptureActive {
+      // Flutter requests the cue once the command microphone is open. Setting
+      // the prompt category or the speaker override now would rebuild the
+      // capture graph under Apple Speech, so play on the live capture route.
+      audioSessionCoordinator.trace(
+        stage: "ready_cue_capture_route_reused",
+        caller: "VoicePromptBridge.playSpeechReadyCue"
+      )
+      audioToken = nil
+      expectsHfp = audioSessionCoordinator.hasSelectedTwoWayHfpRoute()
+    } else {
+      guard let promptToken = configurePromptAudioSession() else {
+        result(FlutterError(
+          code: "PROMPT_AUDIO_ROUTE_FAILED",
+          message: "Unable to prepare the speech-ready cue route.",
+          details: nil
+        ))
+        return
+      }
+      audioToken = promptToken
+      expectsHfp = promptExpectsHfp(forcePhoneSpeaker: false)
     }
     audioSessionCoordinator.trace(stage: "ready_cue_started", caller: "VoicePromptBridge.playSpeechReadyCue")
 
@@ -1168,7 +1184,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     readyCueToken = token
     readyCueAudioToken = audioToken
     readyCueResults.append(result)
-    readyCueExpectsHfp = promptExpectsHfp(forcePhoneSpeaker: false)
+    readyCueExpectsHfp = expectsHfp
     // setPreferredInput can return before the Bluetooth voice route is live.
     // Starting this very short WAV then can play it on the phone (or lose it)
     // while the lesson already opens its microphone gate. Android likewise

@@ -1494,6 +1494,39 @@ void main() {
   });
 
   test(
+    'iOS MAIN plays the ready cue only after the command microphone is open',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final speechInput = _FakeNavigationSpeechInput();
+      final voicePrompt = _BlockedReadyCueVoicePromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: voicePrompt,
+      );
+
+      final activation = controller.activateFromMainButton();
+      await voicePrompt.cueStarted.future;
+      // A child answers as soon as the cue plays. Apple Speech must already
+      // be capturing, or the first word of "Bộ từ vựng" is lost.
+      expect(
+        speechInput.events.where((event) => event == 'start'),
+        hasLength(1),
+      );
+      expect(controller.isListening, isFalse);
+
+      voicePrompt.releaseCue();
+      expect(await activation, isTrue);
+      expect(voicePrompt.readyCueCount, 1);
+      expect(controller.isListening, isTrue);
+      expect(controller.isAwaitingCommand, isTrue);
+      await controller.pause();
+      controller.dispose();
+      await speechInput.dispose();
+    },
+  );
+
+  test(
     'Main opens the microphone when the native ready cue never completes',
     () async {
       final speechInput = _FakeNavigationSpeechInput();
