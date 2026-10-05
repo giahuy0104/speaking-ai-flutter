@@ -621,6 +621,43 @@ void main() {
     await speech.dispose();
   });
 
+  test(
+    'iOS ends an answer whose partial trails the audio once the child is quiet',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final speech = _FakeNavigationSpeechInput(stopText: 'Bộ từ vựng');
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: _FakeVoicePromptService(),
+        mainAssistantFlow: MainVoiceAssistantFlow(
+          contentLoader: _loadMainAssistantContent,
+        ),
+        commandSilenceEndpoint: const Duration(milliseconds: 60),
+      );
+      final intents = <VoiceNavigationIntent>[];
+      controller.setIntentResultHandler((intent) {
+        intents.add(intent);
+        return true;
+      });
+      await controller.activateFromMainButton();
+      await _waitUntil(() => controller.isListening);
+
+      // Apple Speech is one word behind and sends no endpoint event. Only
+      // the eight second command window used to end this turn.
+      speech.emitPartial('Bộ từ');
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(speech.stopCalls, 0, reason: 'a short pause is not the end');
+
+      await _waitUntil(() => intents.isNotEmpty);
+      expect(speech.stopCalls, 1);
+      expect(intents.single.destination, VoiceNavigationDestination.vocabulary);
+      await controller.pause();
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
   test('the bare Topics command ends MAIN after a short silence', () async {
     final speech = _FakeNavigationSpeechInput(stopText: 'Chủ đề');
     final controller = VoiceNavigationController(

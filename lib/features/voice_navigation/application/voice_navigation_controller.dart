@@ -144,6 +144,8 @@ class VoiceNavigationController extends ChangeNotifier {
   bool _commandVoiceSeen = false;
   bool _commandSilenceElapsed = false;
   bool _commandAnswerComplete = false;
+  bool _commandAnswerHeard = false;
+  bool _commandLongSilenceElapsed = false;
   VoiceNavigationIntentHandler? _intentHandler;
   VoiceNavigationIntentResultHandler? _intentResultHandler;
   final ValueNotifier<int> _iosTopicRecognitionFailureRevision =
@@ -1498,6 +1500,7 @@ class VoiceNavigationController extends ChangeNotifier {
     if (activity.voiceActive) {
       _commandVoiceSeen = true;
       _commandSilenceElapsed = false;
+      _commandLongSilenceElapsed = false;
       _commandSilenceTimer?.cancel();
       _commandSilenceTimer = null;
     } else if (_commandVoiceSeen &&
@@ -1509,10 +1512,12 @@ class VoiceNavigationController extends ChangeNotifier {
 
   void _trackCommandAnswer(String text) {
     _commandAnswerComplete = _mainAssistantFlow.canEndOnSilence(text);
+    _commandAnswerHeard = true;
     if (_commandVoiceSeen) {
       // The level already marks the end of speech. Partials trail the audio,
       // so a late one must not restart the quiet window.
-      if (_commandAnswerComplete && _commandSilenceElapsed) {
+      if ((_commandAnswerComplete && _commandSilenceElapsed) ||
+          _commandLongSilenceElapsed) {
         unawaited(_finishSession(_generation));
       }
       return;
@@ -1521,8 +1526,17 @@ class VoiceNavigationController extends ChangeNotifier {
     _commandSilenceTimer?.cancel();
     _commandSilenceTimer = null;
     _commandSilenceElapsed = false;
-    if (_commandAnswerComplete) _startCommandSilenceTimer();
+    _commandLongSilenceElapsed = false;
+    if (_commandAnswerComplete || _endsUnfinishedAnswerOnSilence) {
+      _startCommandSilenceTimer();
+    }
   }
+
+  // Apple Speech sends no endpoint event. Without this an answer whose
+  // transcript is not yet a complete command, such as a partial that trails
+  // the audio, waits out the whole command window on iOS.
+  bool get _endsUnfinishedAnswerOnSilence =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
   void _startCommandSilenceTimer() {
     final generation = _generation;
@@ -1532,6 +1546,15 @@ class VoiceNavigationController extends ChangeNotifier {
       _commandSilenceElapsed = true;
       if (_commandAnswerComplete) {
         unawaited(_finishSession(generation));
+      } else if (_endsUnfinishedAnswerOnSilence) {
+        // Three quiet windows in total, so a child who pauses inside
+        // "Chủ đề số ... hai" is not cut off.
+        _commandSilenceTimer = Timer(_commandSilenceEndpoint * 2, () {
+          _commandSilenceTimer = null;
+          if (_disposed || generation != _generation || !_listening) return;
+          _commandLongSilenceElapsed = true;
+          if (_commandAnswerHeard) unawaited(_finishSession(generation));
+        });
       }
     });
   }
@@ -1543,6 +1566,8 @@ class VoiceNavigationController extends ChangeNotifier {
     _commandVoiceSeen = false;
     _commandSilenceElapsed = false;
     _commandAnswerComplete = false;
+    _commandAnswerHeard = false;
+    _commandLongSilenceElapsed = false;
   }
 
   void _markSpeechActivity() {
