@@ -1856,6 +1856,39 @@ class RunnerTests: XCTestCase {
     return 10 * log10(power / Double(range.count))
   }
 
+  func testIOSSpeechTurnStampOverridesTheAudioSessionStringTurnId() {
+    var stamp = IOSSpeechTurnStamp()
+    stamp.beginTurn(7)
+
+    // metadata() merges the audio session's own string turn id first.
+    let stamped = stamp.stamp([
+      "type": "speech.ready",
+      "turnId": "ios-main-1790653450000-a3f9c1",
+    ])
+
+    XCTAssertEqual(stamped["turnId"] as? Int, 7)
+    XCTAssertNil(stamped["turnId"] as? String)
+  }
+
+  func testIOSSpeechTurnStampKeepsTheReplacedTurnIdUntilTheNextStart() {
+    var stamp = IOSSpeechTurnStamp()
+    stamp.beginTurn(7)
+    XCTAssertEqual(stamp.turnId, 7)
+
+    // A replace-active cancel must not clear the id: a late event still
+    // belongs to turn 7 and Dart drops it by number.
+    XCTAssertEqual(stamp.stamp([:])["turnId"] as? Int, 7)
+
+    stamp.beginTurn(8)
+    XCTAssertEqual(stamp.stamp([:])["turnId"] as? Int, 8)
+  }
+
+  func testIOSSpeechTurnStampLeavesPayloadUntouchedBeforeAnyTurn() {
+    let stamp = IOSSpeechTurnStamp()
+    let payload = stamp.stamp(["turnId": "ios-main-1-abc"])
+    XCTAssertEqual(payload["turnId"] as? String, "ios-main-1-abc")
+  }
+
   func testIOSBuiltInMicPolicyExcludesBluetoothOptions() {
     let options = IOSNativeSpeechAudioRoutePolicy.categoryOptions(
       for: .builtInMic

@@ -128,6 +128,21 @@ struct IOSLessonRecordingFormat {
 /// Raises only the persisted child recording (about +8 dB). Recognition still
 /// receives the untouched microphone buffer, so matching accuracy and voice
 /// activity thresholds are unchanged.
+struct IOSSpeechTurnStamp {
+  private(set) var turnId: Int?
+
+  mutating func beginTurn(_ turnId: Int?) {
+    self.turnId = turnId
+  }
+
+  func stamp(_ payload: [String: Any]) -> [String: Any] {
+    guard let turnId else { return payload }
+    var stamped = payload
+    stamped["turnId"] = turnId
+    return stamped
+  }
+}
+
 struct IOSLessonRecordingGain {
   static let defaultLinearGain: Double = 2.5
 
@@ -340,6 +355,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
   private var lastDiagnosticStage = "idle"
   private var firstAnalyzerInputGeneration: Int?
   private var activeRecordingPath: String?
+  private var turnStamp = IOSSpeechTurnStamp()
   private let recordingFileLock = NSLock()
   private var recordingFile: AVAudioFile?
   private var recordingSampleRate = 0
@@ -405,6 +421,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       prepare(locale: Self.locale(from: arguments?["locale"]), result: result)
     case "speech.start":
       let arguments = call.arguments as? [String: Any]
+      let turnId = (arguments?["turnId"] as? NSNumber)?.intValue
       let commandMode = arguments?["commandMode"] as? Bool ?? false
       let audioSource = IOSNativeSpeechAudioSource.fromChannelValue(
         arguments?["audioSource"]
@@ -413,6 +430,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       let recordingPath = (arguments?["recordingPath"] as? String)?
         .trimmingCharacters(in: .whitespacesAndNewlines)
       start(
+        turnId: turnId,
         commandMode: commandMode,
         audioSource: audioSource,
         locale: locale,
@@ -462,6 +480,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
   }
 
   private func start(
+    turnId: Int?,
     commandMode: Bool,
     audioSource: IOSNativeSpeechAudioSource,
     locale: Locale,
@@ -478,6 +497,9 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
         caller: "IOSSpeechRecognizerBridge.start.replaceActive"
       )
     }
+    // Events emitted by that cancel carry the replaced turn's id, so Dart
+    // drops them; only from here on do events belong to the new turn.
+    turnStamp.beginTurn(turnId)
     ensureSpeechAuthorization { [weak self] authorization in
       guard let self else { return }
       guard self.isCurrentStartRequest(requestGeneration) else {
@@ -1772,8 +1794,14 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     guard !disposed else { return }
     var payload = metadata()
     payload["type"] = type
+    payload = turnStamp.stamp(payload)
     payload.merge(values) { _, new in new }
-    eventSink?(payload)
+    let sink = eventSink
+    if Thread.isMainThread {
+      sink?(payload)
+    } else {
+      DispatchQueue.main.async { sink?(payload) }
+    }
   }
 
   private func emitStage(

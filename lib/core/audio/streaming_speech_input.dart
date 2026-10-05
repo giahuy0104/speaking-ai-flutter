@@ -1022,7 +1022,7 @@ class AndroidStreamingSpeechInput
         audioRoute: event['audioRoute'] as String?,
         code: event['code'] as String?,
         message: event['message'] as String?,
-        turnId: event['turnId'] as String?,
+        turnId: event['turnId']?.toString(),
         sequence: (event['sequence'] as num?)?.toInt(),
         elapsedMs: (event['elapsedMs'] as num?)?.toInt(),
         caller: event['caller'] as String?,
