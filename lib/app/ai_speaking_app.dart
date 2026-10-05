@@ -1770,7 +1770,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                   : null,
               useSelectedOutputRoute: () => !_virtualMainPhoneFallback,
             ),
-            prepareSelectedOutput: _prepareAndroidMainHfpRoute,
+            prepareSelectedOutput: _prepareAndroidMainPromptRoute,
             mainSpeechAudioSource: () => _mainSpeechAudioSourceOverride,
             ownsVoicePromptService: true,
             activeLearningCommandHandler: _handleActiveLearningCommand,
@@ -2015,6 +2015,25 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       unawaited(_releaseAndroidMainHfpRouteIfIdle());
     }
     return activated;
+  }
+
+  /// Route check before every MAIN prompt. A module's follow-up question
+  /// (Topic, lesson or vocabulary choice) starts after the MAIN turn that
+  /// opened the module has ended and released its route, so the on-screen
+  /// handset fallback is gone by then. Choose the follow-up route again;
+  /// otherwise Android refuses the prompt without a ready H20 and the child
+  /// gets no microphone.
+  Future<bool> _prepareAndroidMainPromptRoute() {
+    final route = MainButtonActivationPolicy.followUpAudioRoute(
+      isAndroid: !kIsWeb && defaultTargetPlatform == TargetPlatform.android,
+      isH20Ready: _controller?.isH20Ready == true,
+    );
+    if (route == MainButtonAudioRoute.phoneMicrophone &&
+        !_androidMainHfpRouteHeld) {
+      _virtualMainPhoneFallback = true;
+      return Future<bool>.value(true);
+    }
+    return _prepareAndroidMainHfpRoute();
   }
 
   Future<bool> _prepareAndroidMainHfpRoute() {
