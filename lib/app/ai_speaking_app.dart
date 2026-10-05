@@ -1778,8 +1778,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     final activated = await _mainAssistantSession.activate(
       startupReady: _startupReady,
       voiceAccessEnabled: _voiceAccessEnabled,
+      // isBusy also covers the H20 scan/connect phases, which own no audio.
+      // A MAIN press during that search starts the assistant on the phone
+      // microphone instead of being dropped without feedback.
       conversationBusy:
-          conversationController.isBusy ||
+          conversationController.isRecordingStartBlocked ||
           conversationController.isPlaybackPlaying,
       assistantFlowBusy: _mainSpeakingSessionController.isActive,
       mainButtonSessionActive: voiceController.isMainButtonSessionActive,
