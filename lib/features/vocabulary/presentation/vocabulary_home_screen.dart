@@ -664,7 +664,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                   _JourneyCard(
                     key: const Key('vocabulary-family-card'),
                     height: cardHeight,
-                    onPressed: () => _openJourney(_VocabularyJourney.family),
+                    onPressed: () {
+                      _endVoiceChoiceForTouch();
+                      _openJourney(_VocabularyJourney.family);
+                    },
                     child: Row(
                       children: <Widget>[
                         Expanded(
@@ -700,7 +703,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                   _JourneyCard(
                     key: const Key('vocabulary-stars-card'),
                     height: cardHeight,
-                    onPressed: () => _openJourney(_VocabularyJourney.stars),
+                    onPressed: () {
+                      _endVoiceChoiceForTouch();
+                      _openJourney(_VocabularyJourney.stars);
+                    },
                     child: Row(
                       children: <Widget>[
                         Expanded(
@@ -732,7 +738,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                   _JourneyCard(
                     key: const Key('vocabulary-review-card'),
                     height: cardHeight,
-                    onPressed: () => _openJourney(_VocabularyJourney.review),
+                    onPressed: () {
+                      _endVoiceChoiceForTouch();
+                      _openJourney(_VocabularyJourney.review);
+                    },
                     child: Row(
                       children: <Widget>[
                         Expanded(
@@ -922,11 +931,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                 key: ValueKey<String>('vocabulary-${journey.name}-action'),
                 onPressed: visibleEntries.isEmpty || _playingCollection
                     ? null
-                    : () => unawaited(
-                        journey == _VocabularyJourney.review
-                            ? _startReview()
-                            : _playJourney(journey),
-                      ),
+                    : () {
+                        _endVoiceChoiceForTouch();
+                        unawaited(
+                          journey == _VocabularyJourney.review
+                              ? _startReview()
+                              : _playJourney(journey),
+                        );
+                      },
                 icon: _playingCollection
                     ? const SizedBox.square(
                         dimension: 18,
@@ -1288,7 +1300,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                     entries[index].isLearnedWell,
                 statusLabel: statusLabel,
                 active: _activeEntryId == entries[index].id,
-                onPlay: () => unawaited(_playEntry(entries[index])),
+                onPlay: () {
+                  _endVoiceChoiceForTouch();
+                  unawaited(_playEntry(entries[index]));
+                },
               ),
             ),
         ],
@@ -1350,7 +1365,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                         !entries[index].isParentAdded ||
                         entries[index].isLearnedWell,
                     active: _activeEntryId == entries[index].id,
-                    onPlay: () => unawaited(_playEntry(entries[index])),
+                    onPlay: () {
+                      _endVoiceChoiceForTouch();
+                      unawaited(_playEntry(entries[index]));
+                    },
                   ),
                   if (index != entries.length - 1)
                     Divider(
@@ -1361,6 +1379,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
               ],
             ),
     );
+  }
+
+  /// The child answered a spoken question by touch. Close MAIN's pending
+  /// voice choice: its microphone would stay open over the audio the touch
+  /// starts, and the pause it holds would end the queue after the intro.
+  void _endVoiceChoiceForTouch() {
+    _pausedForMainAssistant = false;
+    ActiveLearningModuleScope.notifyNavigationExit(context);
   }
 
   void _openJourney(_VocabularyJourney journey) {

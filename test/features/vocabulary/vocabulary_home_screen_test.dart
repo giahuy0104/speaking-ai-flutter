@@ -1798,6 +1798,69 @@ void main() {
     expect(find.text('Ngôi sao của bạn'), findsOneWidget);
   });
 
+  testWidgets('touch playback ends a pending MAIN voice choice', (
+    tester,
+  ) async {
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final media = _ImmediateLessonMediaService();
+    final now = DateTime(2026, 9, 15);
+    var navigationExits = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: ActiveLearningModuleScope(
+          registry: registry,
+          onNavigationExit: () => navigationExits++,
+          child: DisplayLanguageScope(
+            language: DisplayLanguage.vietnamese,
+            child: VocabularyHomeScreen(
+              isReady: true,
+              isActive: true,
+              store: _MemoryVocabularyStore(
+                List<VocabularyEntry>.generate(
+                  3,
+                  (index) => VocabularyEntry(
+                    id: 'star-$index',
+                    word: 'Sentence ${index + 1}',
+                    meaning: 'Câu ${index + 1}',
+                    addedAt: now.add(Duration(minutes: index)),
+                    earnedAt: now.add(Duration(minutes: index)),
+                    collection: VocabularyCollection.star,
+                    source: VocabularySource.topicCore,
+                    correctAudioPath: 'C:\\audio\\star-$index.wav',
+                  ),
+                ),
+              ),
+              mediaService: media,
+              voicePromptService: _RecordingVoicePromptService(),
+              fixedPromptAudioService:
+                  const _UnavailableFixedPromptAudioService(),
+              onReturnToConversation: () {},
+              onHistory: () {},
+              onSettings: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // MAIN holds the module while it waits for the answer to the menu
+    // question; the child answers on the screen instead.
+    expect(await registry.pauseForMainAssistant(), isTrue);
+
+    await tester.tap(find.byKey(const Key('vocabulary-stars-card')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-stars-action')));
+    await tester.pumpAndSettle();
+
+    expect(navigationExits, greaterThan(0));
+    expect(
+      media.played.where((clip) => clip.uri.path.endsWith('.wav')),
+      hasLength(3),
+    );
+  });
+
   testWidgets(
     'MAIN interruption does not open a vocabulary choice microphone',
     (tester) async {
