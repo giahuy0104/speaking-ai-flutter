@@ -326,9 +326,15 @@ class VoicePromptBridge(
         forcePhoneSpeaker: Boolean = false,
         forceMediaPlayback: Boolean = false,
     ): AudioAttributes {
-        val activeScoRoute = isScoRouteActive()
         val usage =
-            if (!forcePhoneSpeaker && (activeScoRoute || !forceMediaPlayback)) {
+            if (
+                PromptAudioUsage.usesCallStream(
+                    forcePhoneSpeaker,
+                    forceMediaPlayback,
+                    isH20RouteOwned(),
+                    isScoRouteActive(),
+                )
+            ) {
                 AudioAttributes.USAGE_VOICE_COMMUNICATION
             } else {
                 AudioAttributes.USAGE_MEDIA
