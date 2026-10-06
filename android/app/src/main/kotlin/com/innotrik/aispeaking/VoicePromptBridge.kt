@@ -751,12 +751,12 @@ class VoicePromptBridge(
     fun stopForRouteLoss() {
         // Runs on the bridge's main thread before SCO is released. Complete
         // with an error so callers cannot interpret a cut-off prompt as heard.
-        pendingPrompt?.completion?.error("HFP_ROUTE_LOST", "Kết nối âm thanh H20 bị gián đoạn. Hãy thử lại.", null)
+        pendingPrompt?.completion?.error("HFP_ROUTE_LOST", "Kết nối âm thanh HM-D001 bị gián đoạn. Hãy thử lại.", null)
         pendingPrompt = null
         val completion = awaitedResult
         awaitedResult = null
         awaitedUtteranceId = null
-        completion?.error("HFP_ROUTE_LOST", "Kết nối âm thanh H20 bị gián đoạn. Hãy thử lại.", null)
+        completion?.error("HFP_ROUTE_LOST", "Kết nối âm thanh HM-D001 bị gián đoạn. Hãy thử lại.", null)
         completeReadyCue("HFP_ROUTE_LOST")
         textToSpeech?.stop()
         clearSynthesizedPrompt()

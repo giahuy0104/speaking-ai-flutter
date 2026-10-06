@@ -2212,7 +2212,7 @@ void main() {
       throwsA(isA<PlaybackException>()),
     );
 
-    expect(controller.transientMessage, contains('H20'));
+    expect(controller.transientMessage, contains('HM-D001'));
     expect(hfp.stopRouteCount, 1);
     controller.dispose();
   });

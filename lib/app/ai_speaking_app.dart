@@ -587,7 +587,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           .requestNotificationPermission();
       if (!notificationGranted) {
         errors.add(
-          'Cần cấp quyền Thông báo để Android hiển thị phiên học nền với H20.',
+          'Cần cấp quyền Thông báo để Android hiển thị phiên học nền với HM-D001.',
         );
       }
     }
@@ -910,7 +910,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         if (!associated && mounted) {
           setState(() {
             _startupPermissionError =
-                'Phụ huynh cần xác nhận H20 trong cửa sổ thiết bị đồng hành của Android để duy trì phiên học nền.';
+                'Phụ huynh cần xác nhận HM-D001 trong cửa sổ thiết bị đồng hành của Android để duy trì phiên học nền.';
           });
           return true;
         }
@@ -2010,7 +2010,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         final ready = await _prepareAndroidMainHfpRoute();
         if (!ready && mounted && _mainAssistantSession.isActivationPending) {
           conversationController.showH20ConnectionMessage(
-            'Chưa kết nối đủ nút MAIN và micro H20. Hãy bật H20 rồi thử lại.',
+            'Chưa kết nối đủ nút MAIN và micro HM-D001. Hãy bật HM-D001 rồi thử lại.',
           );
         }
         return ready;
@@ -2106,7 +2106,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       final status = controller.hfpAudioStatus;
       if (!status.routeActive || !status.isConnected) {
         throw const HfpAudioException(
-          'Android chưa xác nhận đường loa và micro H20.',
+          'Android chưa xác nhận đường loa và micro HM-D001.',
         );
       }
       _androidMainHfpRouteHeld = true;
@@ -2186,7 +2186,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         message: 'selected_h20_microphone_not_ready',
       );
       controller?.showH20ConnectionMessage(
-        'Chưa kết nối đủ nút MAIN và micro H20. Hãy bật H20 rồi thử lại.',
+        'Chưa kết nối đủ nút MAIN và micro HM-D001. Hãy bật HM-D001 rồi thử lại.',
       );
       return MainButtonActionResult.busy;
     }
@@ -2283,7 +2283,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           }
           if (!routeReady) {
             controller.showH20ConnectionMessage(
-              'Micro H20 chưa sẵn sàng. Hãy kết nối lại thiết bị rồi nhấn MAIN.',
+              'Micro HM-D001 chưa sẵn sàng. Hãy kết nối lại thiết bị rồi nhấn MAIN.',
             );
             return false;
           }

@@ -1258,7 +1258,7 @@ private enum IOSAudioSessionCoordinatorError: LocalizedError {
     case .hfpInputUnavailable:
       return "Không tìm thấy mic HFP đang kết nối."
     case .mainAudioSourceConflict:
-      return "Phiên micro H20 trước đang kết thúc. Hãy thử lại."
+      return "Phiên micro HM-D001 trước đang kết thúc. Hãy thử lại."
     }
   }
 }

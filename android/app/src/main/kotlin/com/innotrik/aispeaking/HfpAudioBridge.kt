@@ -362,7 +362,7 @@ class HfpAudioBridge(
         routeReadiness = null
         routeActive = false
         phase = if (selectedDevice == null) "idle" else "ready"
-        statusMessage = "Kết nối âm thanh H20 bị gián đoạn. Hãy thử lại."
+        statusMessage = "Kết nối âm thanh HM-D001 bị gián đoạn. Hãy thử lại."
         // Publish loss before querying or mutating AudioManager: some OEMs
         // block its calls until SCO teardown ends. Dart must pause its player
         // during that interval instead of continuing on the phone speaker.
@@ -506,9 +506,9 @@ class HfpAudioBridge(
                 }
                 routeActive = false
                 phase = "error"
-                statusMessage = "Không thể chuẩn bị âm thanh H20. Hãy thử lại."
+                statusMessage = "Không thể chuẩn bị âm thanh HM-D001. Hãy thử lại."
                 emitStatus()
-                reply.error("HFP_ROUTE_FAILED", "Không thể chuẩn bị âm thanh H20. Hãy thử lại.", null)
+                reply.error("HFP_ROUTE_FAILED", "Không thể chuẩn bị âm thanh HM-D001. Hãy thử lại.", null)
             }
         }
     }
@@ -733,7 +733,7 @@ class HfpAudioBridge(
             isSelectedCommunicationRouteConfirmed()
         ) {
             phase = "recording"
-            statusMessage = "Đang dùng mic và loa H20 trên đường HFP/SCO hai chiều."
+            statusMessage = "Đang dùng mic và loa HM-D001 trên đường HFP/SCO hai chiều."
             val status = snapshot()
             emitStatus(status)
             result.success(status)
@@ -760,7 +760,7 @@ class HfpAudioBridge(
                 pendingAudioRouteGeneration = generation
                 routeActive = false
                 phase = "connecting"
-                statusMessage = "Đang xác nhận mic và loa H20 trên đường HFP/SCO…"
+                statusMessage = "Đang xác nhận mic và loa HM-D001 trên đường HFP/SCO…"
                 emitStatus()
                 requestSelectedCommunicationDevice(
                     generation = generation,
@@ -812,7 +812,7 @@ class HfpAudioBridge(
                 generation = generation,
                 code = "HFP_ROUTE_FAILED",
                 message =
-                    "Android chưa tìm thấy đúng đường mic và loa H20. Hãy kết nối lại thiết bị rồi thử lại.",
+                    "Android chưa tìm thấy đúng đường mic và loa HM-D001. Hãy kết nối lại thiết bị rồi thử lại.",
             )
             return
         }
@@ -833,7 +833,7 @@ class HfpAudioBridge(
         if (generation != audioRouteRequestGeneration) return
         routeActive = true
         phase = "recording"
-        statusMessage = "Đang dùng mic và loa H20 trên đường HFP/SCO hai chiều."
+        statusMessage = "Đang dùng mic và loa HM-D001 trên đường HFP/SCO hai chiều."
         Log.i(TAG, "H20 HFP/SCO route active")
         emitStatus()
         routeHandler.postDelayed(
@@ -872,7 +872,7 @@ class HfpAudioBridge(
         HfpRouteReadiness.Result.READY -> {
             routeActive = true
             phase = "recording"
-            statusMessage = "Đang dùng mic và loa H20 trên đường HFP/SCO hai chiều."
+            statusMessage = "Đang dùng mic và loa HM-D001 trên đường HFP/SCO hai chiều."
             Log.i(
                 TAG,
                 "H20 HFP/SCO route confirmed: id=${activeDevice?.id}, " +
@@ -891,7 +891,7 @@ class HfpAudioBridge(
                 generation = generation,
                 code = "HFP_ROUTE_TIMEOUT",
                 message =
-                    "Android chưa xác nhận được cả mic và loa H20 trên đường HFP/SCO.",
+                    "Android chưa xác nhận được cả mic và loa HM-D001 trên đường HFP/SCO.",
             )
             return
         }
@@ -978,7 +978,7 @@ class HfpAudioBridge(
     private fun refreshSelectedDeviceStatus() {
         if (pendingAudioRouteResult != null) {
             phase = "connecting"
-            statusMessage = "Đang xác nhận mic và loa H20 trên đường HFP/SCO…"
+            statusMessage = "Đang xác nhận mic và loa HM-D001 trên đường HFP/SCO…"
             emitStatus()
             return
         }
@@ -990,7 +990,7 @@ class HfpAudioBridge(
             isSelectedCommunicationRouteConfirmed()
         ) {
             phase = "recording"
-            statusMessage = "Đang dùng mic và loa H20 trên đường HFP/SCO hai chiều."
+            statusMessage = "Đang dùng mic và loa HM-D001 trên đường HFP/SCO hai chiều."
         } else if (selected != null && isHeadsetConnected(selected)) {
             phase = "ready"
             statusMessage = "HFP đã kết nối; mic Bluetooth sẵn sàng."

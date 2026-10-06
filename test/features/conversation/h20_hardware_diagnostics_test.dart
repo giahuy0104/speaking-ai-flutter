@@ -483,7 +483,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 10));
 
       expect(playback.stopCount, greaterThan(0));
-      expect(controller.errorMessage, contains('Kết nối âm thanh H20'));
+      expect(controller.errorMessage, contains('Kết nối âm thanh HM-D001'));
       await playing;
       controller.dispose();
       await playback.dispose();
@@ -547,7 +547,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 10));
       expect(playback.stopCount, greaterThan(0));
-      expect(controller.errorMessage, contains('Kết nối âm thanh H20'));
+      expect(controller.errorMessage, contains('Kết nối âm thanh HM-D001'));
       await playing;
       controller.dispose();
       await playback.dispose();

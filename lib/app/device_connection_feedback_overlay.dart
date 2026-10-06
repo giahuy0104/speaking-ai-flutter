@@ -23,8 +23,8 @@ class DeviceConnectionFeedbackOverlay extends StatelessWidget {
     final connected = stage == DeviceConnectionFeedbackStage.connected;
     final title = connected ? 'Đã kết nối thiết bị' : 'Đang kết nối thiết bị';
     final detail = connected
-        ? connectedDetail ?? 'Nút MAIN và micro H20 đã sẵn sàng.'
-        : 'HOMI đang kiểm tra nút MAIN và micro H20.';
+        ? connectedDetail ?? 'Nút MAIN và micro HM-D001 đã sẵn sàng.'
+        : 'HOMI đang kiểm tra nút MAIN và micro HM-D001.';
 
     return Stack(
       key: const Key('device-connection-feedback-overlay'),
