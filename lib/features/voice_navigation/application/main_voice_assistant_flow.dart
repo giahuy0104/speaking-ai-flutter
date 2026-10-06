@@ -486,6 +486,16 @@ class MainVoiceAssistantFlow {
         _hasStageSpecificIntent(normalized);
   }
 
+  /// On iOS an unfinished answer waits extra quiet windows so a pause inside
+  /// "Chủ đề số ... hai" is not cut off. A Home answer that does not name
+  /// Chủ đề cannot grow into a number, so one window is enough.
+  bool canEndUnfinishedAnswerEarly(String recognizedText) {
+    if (_stage != MainVoiceAssistantStage.chooseFeature) return false;
+    final normalized = _normalize(recognizedText);
+    return !_containsPhrase(normalized, 'chu de') &&
+        !_containsPhrase(normalized, 'topic');
+  }
+
   /// Returns true only for a complete, unambiguous local command. The 500
   /// fallback phrases are resolved on-device once Android produces a stable
   /// partial transcript; number choices and broad phrases still wait for the

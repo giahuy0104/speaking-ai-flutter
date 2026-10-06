@@ -658,6 +658,69 @@ void main() {
     },
   );
 
+  test('iOS Home ends a stuck partial after one extra quiet window', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final speech = _FakeNavigationSpeechInput(stopText: 'Bộ từ vựng');
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: _FakeVoicePromptService(),
+      mainAssistantFlow: MainVoiceAssistantFlow(
+        contentLoader: _loadMainAssistantContent,
+      ),
+      commandSilenceEndpoint: const Duration(milliseconds: 300),
+    );
+    final intents = <VoiceNavigationIntent>[];
+    controller.setIntentResultHandler((intent) {
+      intents.add(intent);
+      return true;
+    });
+    await controller.activateFromMainButton();
+    await _waitUntil(() => controller.isListening);
+
+    final quiet = Stopwatch()..start();
+    speech.emitPartial('Bộ từ');
+    await _waitUntil(() => speech.stopCalls == 1);
+    // Two quiet windows (600 ms), not the three a Topics number needs.
+    expect(quiet.elapsedMilliseconds, inInclusiveRange(550, 820));
+    await _waitUntil(() => intents.isNotEmpty);
+    expect(intents.single.destination, VoiceNavigationDestination.vocabulary);
+    await controller.pause();
+    controller.dispose();
+    await speech.dispose();
+  });
+
+  test('iOS Home keeps the long quiet window for a Topics number', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final speech = _FakeNavigationSpeechInput(stopText: 'Chủ đề số 2');
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: _FakeVoicePromptService(),
+      mainAssistantFlow: MainVoiceAssistantFlow(
+        contentLoader: _loadMainAssistantContent,
+      ),
+      commandSilenceEndpoint: const Duration(milliseconds: 300),
+    );
+    final intents = <VoiceNavigationIntent>[];
+    controller.setIntentResultHandler((intent) {
+      intents.add(intent);
+      return true;
+    });
+    await controller.activateFromMainButton();
+    await _waitUntil(() => controller.isListening);
+
+    speech.emitPartial('Chủ đề số');
+    await Future<void>.delayed(const Duration(milliseconds: 750));
+    expect(speech.stopCalls, 0, reason: 'the number may still follow');
+    await _waitUntil(() => speech.stopCalls == 1);
+    await _waitUntil(() => intents.isNotEmpty);
+    expect(intents.single.topicNumber, 2);
+    await controller.pause();
+    controller.dispose();
+    await speech.dispose();
+  });
+
   test('the bare Topics command ends MAIN after a short silence', () async {
     final speech = _FakeNavigationSpeechInput(stopText: 'Chủ đề');
     final controller = VoiceNavigationController(

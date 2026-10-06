@@ -145,6 +145,7 @@ class VoiceNavigationController extends ChangeNotifier {
   bool _commandSilenceElapsed = false;
   bool _commandAnswerComplete = false;
   bool _commandAnswerHeard = false;
+  bool _commandAnswerEndsEarly = false;
   bool _commandLongSilenceElapsed = false;
   VoiceNavigationIntentHandler? _intentHandler;
   VoiceNavigationIntentResultHandler? _intentResultHandler;
@@ -1488,6 +1489,9 @@ class VoiceNavigationController extends ChangeNotifier {
 
   void _trackCommandAnswer(String text) {
     _commandAnswerComplete = _mainAssistantFlow.canEndOnSilence(text);
+    _commandAnswerEndsEarly = _mainAssistantFlow.canEndUnfinishedAnswerEarly(
+      text,
+    );
     _commandAnswerHeard = true;
     if (_commandVoiceSeen) {
       // The level already marks the end of speech. Partials trail the audio,
@@ -1524,13 +1528,16 @@ class VoiceNavigationController extends ChangeNotifier {
         unawaited(_finishSession(generation));
       } else if (_endsUnfinishedAnswerOnSilence) {
         // Three quiet windows in total, so a child who pauses inside
-        // "Chủ đề số ... hai" is not cut off.
-        _commandSilenceTimer = Timer(_commandSilenceEndpoint * 2, () {
-          _commandSilenceTimer = null;
-          if (_disposed || generation != _generation || !_listening) return;
-          _commandLongSilenceElapsed = true;
-          if (_commandAnswerHeard) unawaited(_finishSession(generation));
-        });
+        // "Chủ đề số ... hai" is not cut off; two when no number can follow.
+        _commandSilenceTimer = Timer(
+          _commandSilenceEndpoint * (_commandAnswerEndsEarly ? 1 : 2),
+          () {
+            _commandSilenceTimer = null;
+            if (_disposed || generation != _generation || !_listening) return;
+            _commandLongSilenceElapsed = true;
+            if (_commandAnswerHeard) unawaited(_finishSession(generation));
+          },
+        );
       }
     });
   }
@@ -1543,6 +1550,7 @@ class VoiceNavigationController extends ChangeNotifier {
     _commandSilenceElapsed = false;
     _commandAnswerComplete = false;
     _commandAnswerHeard = false;
+    _commandAnswerEndsEarly = false;
     _commandLongSilenceElapsed = false;
   }
 
