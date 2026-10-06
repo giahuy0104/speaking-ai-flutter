@@ -16,6 +16,7 @@ import 'package:ai_speaking_flutter_app/features/listening/domain/listening_cont
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_challenge_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_practice_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_intro_screen.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/main_assistant_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -1509,6 +1510,67 @@ void main() {
     expect(find.byKey(const Key('lesson-practice-screen')), findsNothing);
     expect(registry.hasActiveModule, isFalse);
   });
+
+  testWidgets(
+    'MAIN stop followed by resume speaks assistant prompt and reactivates sentence',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final lesson = _lessonWithSentences(1);
+      final mediaService = _SilentMediaService();
+      final voicePromptService = _KeyedRecordingVoicePromptService();
+
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: MaterialApp(
+            theme: buildAppTheme(),
+            home: LessonPracticeScreen(
+              language: DisplayLanguage.vietnamese,
+              startAge: 3,
+              endAge: 5,
+              topic: listeningCatalogs.first.topics.first,
+              lesson: lesson,
+              progressStore: _MemoryProgressStore(),
+              mediaService: mediaService,
+              voicePromptService: voicePromptService,
+              guideAudioLibrary: LessonGuideAudioLibrary(
+                assetPaths: const <String>[],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(registry.isActiveModulePaused, isFalse);
+
+      // Stop lesson
+      expect(
+        (await registry.execute(ActiveLearningCommand.stop)).wasHandled,
+        isTrue,
+      );
+      await tester.pump();
+      expect(registry.isActiveModulePaused, isTrue);
+      expect(find.text('Đã dừng. Nhấn MAIN để tiếp tục.'), findsOneWidget);
+
+      // Resume lesson
+      expect(
+        (await registry.execute(ActiveLearningCommand.resume)).wasHandled,
+        isTrue,
+      );
+      await tester.pump();
+      expect(registry.isActiveModulePaused, isFalse);
+
+      // Verify that the assistant prompt audio key was played
+      expect(
+        voicePromptService.audioKeys,
+        contains(MainAssistantAudioKeys.resumeLearning),
+      );
+    },
+  );
 }
 
 Widget _subject(

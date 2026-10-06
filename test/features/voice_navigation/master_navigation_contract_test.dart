@@ -689,7 +689,7 @@ void main() {
     );
     final turn = await flow.handle('Tiếp tục');
     expect(turn.activeLearningCommand, ActiveLearningCommand.resume);
-    expect(turn.promptText, isEmpty);
+    expect(turn.promptText, 'Cùng học tiếp nhé');
     expect(turn.continueListening, isFalse);
   });
 
