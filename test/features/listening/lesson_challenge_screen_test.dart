@@ -187,7 +187,7 @@ void main() {
       expect(prompts.spoken, <String>[
         'vi-VN|Tiếp theo là một câu thử thách nhé.',
         'vi-VN|Where is the library?',
-        'vi-VN|Tiếp theo là một câu thử thách nhé.',
+        'vi-VN|Mình tiếp tục câu thử thách nhé.',
         'vi-VN|Where is the library?',
         'vi-VN|Bạn trả lời nhé',
       ]);

@@ -88,6 +88,47 @@ void main() {
     }),
   );
 
+  testWidgets('voice transfer to Vocabulary clears a retained Review page', (
+    tester,
+  ) async {
+    final navigation = VocabularyHomeNavigationController();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: DisplayLanguageScope(
+          language: DisplayLanguage.vietnamese,
+          child: VocabularyHomeScreen(
+            isReady: true,
+            isActive: true,
+            autoStartToday: false,
+            navigationController: navigation,
+            store: _MemoryVocabularyStore(),
+            mediaService: _ImmediateLessonMediaService(),
+            voicePromptService: _RecordingVoicePromptService(),
+            fixedPromptAudioService:
+                const _UnavailableFixedPromptAudioService(),
+            onReturnToConversation: () {},
+            onHistory: () {},
+            onSettings: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('vocabulary-review-card')));
+    await tester.tap(find.byKey(const Key('vocabulary-review-card')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('vocabulary-journey-title')), findsOneWidget);
+
+    await navigation.openVoiceRoot();
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey<String>('vocabulary-journey-landing')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('vocabulary-journey-title')), findsNothing);
+  });
+
   testWidgets(
     'MAIN generic Vocabulary opens unfinished Today',
     (tester) async {

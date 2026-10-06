@@ -794,6 +794,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           await _vocabularyNavigationController.openVoiceTarget(
             vocabularyTarget,
           );
+        } else if (activeKind == ActiveLearningModuleKind.listeningLesson) {
+          await _vocabularyNavigationController.openVoiceRoot();
         }
       case VoiceNavigationDestination.topics:
         final pausedCheckpoint =

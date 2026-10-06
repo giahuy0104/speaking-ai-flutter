@@ -374,6 +374,9 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       await _prepareSelectedLessonOutputWithRetry(request);
       if (!mounted || request != _request) return false;
       if (announceIntro) {
+        // Once the first introduction starts, a later MAIN stop/resume is a
+        // continuation of this challenge, even if the question was interrupted.
+        _initialPromptPending = false;
         await _speakPromptAndWait(
           'Tiếp theo là một câu thử thách nhé.',
           audioKey: ListeningAudioKeys.challengeIntro,

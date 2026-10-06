@@ -2234,6 +2234,42 @@ void main() {
   );
 
   test(
+    'Android Core resume speaks HOMI before handing audio to the lesson',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final speechInput = _FakeNavigationSpeechInput();
+      final voicePrompt = _FakeMainTurnVoicePromptService();
+      final promptsAtHandoff = <String>[];
+      final controller = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: voicePrompt,
+        activeLearningCommandHandler: (command) async {
+          expect(command, ActiveLearningCommand.resume);
+          promptsAtHandoff.add(voicePrompt.spokenTexts.last);
+          return const ActiveLearningCommandResult.handled();
+        },
+      );
+
+      expect(
+        await controller.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: ActiveLearningModuleKind.listeningLesson,
+          activeVoiceContext: const _CoreVoiceContext(),
+        ),
+        isTrue,
+      );
+      expect(await controller.dispatchRecognizedText('Tiếp tục'), isTrue);
+      expect(promptsAtHandoff, <String>[
+        MasterNavigationContract.continueSubject,
+      ]);
+
+      controller.dispose();
+      await speechInput.dispose();
+    },
+  );
+
+  test(
     'iOS lesson MAIN does not stay blocked by a late native turn arm',
     () async {
       final speechInput = _FakeNavigationSpeechInput();
@@ -3029,6 +3065,16 @@ class _SongVoiceContext implements ActiveLearningVoiceContext {
 
   @override
   String get mainVoicePrompt => MasterNavigationContract.songControlPrompt;
+}
+
+class _CoreVoiceContext implements ActiveLearningVoiceContext {
+  const _CoreVoiceContext();
+
+  @override
+  ActiveLearningVoiceNode get mainVoiceNode => ActiveLearningVoiceNode.core;
+
+  @override
+  String get mainVoicePrompt => MasterNavigationContract.coreControlPrompt;
 }
 
 class _TransientFailureNavigationSpeechInput

@@ -1346,9 +1346,10 @@ class MainVoiceAssistantFlow {
       ActiveLearningCommand.resume =>
         isVocabulary ||
                 _activeVoiceNode == ActiveLearningVoiceNode.intro ||
-                _activeVoiceNode == ActiveLearningVoiceNode.core ||
                 _activeVoiceNode == ActiveLearningVoiceNode.challenge
             ? ''
+            : _activeVoiceNode == ActiveLearningVoiceNode.core
+            ? MasterNavigationContract.continueSubject
             : 'Cùng học tiếp nhé',
       ActiveLearningCommand.replayCurrent =>
         isVocabulary || _activeVoiceNode == ActiveLearningVoiceNode.intro

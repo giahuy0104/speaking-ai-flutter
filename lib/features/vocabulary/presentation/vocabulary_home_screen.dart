@@ -59,6 +59,7 @@ class VocabularyHomeNavigationController {
   Future<bool> Function()? _handleBack;
   Future<bool> Function()? _leaveForOtherContent;
   Future<void> Function(VoiceVocabularyTarget target)? _openVoiceTarget;
+  Future<void> Function()? _openVoiceRoot;
 
   Future<bool> handleBack() async => await _handleBack?.call() ?? false;
 
@@ -69,17 +70,23 @@ class VocabularyHomeNavigationController {
     await _openVoiceTarget?.call(target);
   }
 
+  Future<void> openVoiceRoot() async {
+    await _openVoiceRoot?.call();
+  }
+
   void _attach(
     Object owner, {
     required Future<bool> Function() handleBack,
     required Future<bool> Function() leaveForOtherContent,
     required Future<void> Function(VoiceVocabularyTarget target)
     openVoiceTarget,
+    required Future<void> Function() openVoiceRoot,
   }) {
     _owner = owner;
     _handleBack = handleBack;
     _leaveForOtherContent = leaveForOtherContent;
     _openVoiceTarget = openVoiceTarget;
+    _openVoiceRoot = openVoiceRoot;
   }
 
   void _detach(Object owner) {
@@ -88,6 +95,7 @@ class VocabularyHomeNavigationController {
     _handleBack = null;
     _leaveForOtherContent = null;
     _openVoiceTarget = null;
+    _openVoiceRoot = null;
   }
 }
 
@@ -343,6 +351,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         notifyNavigationExit: false,
       ),
       openVoiceTarget: _openVoiceTarget,
+      openVoiceRoot: _openVocabularyRoot,
     );
   }
 
@@ -1622,15 +1631,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   Future<void> _openVocabularyRoot() async {
     if (!mounted || !_isEffectivelyActive) return;
+    final settled = await _leavePlaybackForOtherContent(
+      announceMenu: false,
+      notifyNavigationExit: false,
+    );
+    if (!mounted || !_isEffectivelyActive) return;
     _pausedForMainAssistant = false;
-    _playbackGeneration += 1;
-    _playingCollection = false;
-    _playbackInterrupted = false;
-    _waitingForPlaybackContinuation = false;
-    _awaitingPlaybackEndChoice = false;
     _playbackQueue = const <VocabularyEntry>[];
-    _closeJourney();
-    await _maybeStartToday();
+    if (settled) await _maybeStartToday();
   }
 
   Future<void> _startReview() async {

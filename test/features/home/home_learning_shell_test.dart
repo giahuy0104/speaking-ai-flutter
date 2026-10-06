@@ -5,6 +5,8 @@ import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
+import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
+import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/core/platform/background_learning_session.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/data/demo_conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
@@ -24,6 +26,7 @@ import 'package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabul
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_voice_assistant_flow.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_speaking_session_controller.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_controller.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -31,6 +34,71 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  testWidgets(
+    'Android Challenge voice switch clears retained Vocabulary Review',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final speechInput = _FakeStreamingSpeechInput();
+      final voiceNavigationController = VoiceNavigationController(
+        speechInput: speechInput,
+        ownsSpeechInput: true,
+        voicePromptService: _SilentVoicePromptService(),
+      );
+      addTearDown(voiceNavigationController.dispose);
+      final controller = _controller();
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _app(
+            controller,
+            voiceNavigationController: voiceNavigationController,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const Key('vocabulary-review-card')),
+      );
+      await tester.tap(find.byKey(const Key('vocabulary-review-card')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('vocabulary-journey-title')), findsOneWidget);
+
+      final challenge = _ChallengeVoiceModule();
+      registry.register(challenge);
+      expect(
+        await voiceNavigationController.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: ActiveLearningModuleKind.listeningLesson,
+          activeVoiceContext: challenge,
+        ),
+        isTrue,
+      );
+      bool? transferred;
+      final transfer = voiceNavigationController
+          .dispatchRecognizedText('Bộ từ vựng')
+          .then((value) => transferred = value);
+      for (var index = 0; index < 30 && transferred == null; index += 1) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(transferred, isTrue);
+      await transfer;
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey<String>('vocabulary-journey-landing')),
+        findsOneWidget,
+      );
+      debugDefaultTargetPlatformOverride = null;
+    },
+  );
+
   testWidgets('clears only the visible conversation result', (tester) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final controller = _controller()
@@ -1702,6 +1770,49 @@ ConversationController _controller({
         : AsrMode.androidStreaming,
     beforeRecordingStart: beforeRecordingStart,
   );
+}
+
+class _SilentVoicePromptService implements VoicePromptService {
+  @override
+  Future<void> speak(String text, {String locale = 'vi-VN'}) async {}
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {}
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  Future<void> dispose() async {}
+}
+
+class _ChallengeVoiceModule
+    implements ActiveLearningModuleController, ActiveLearningVoiceContext {
+  bool paused = false;
+
+  @override
+  ActiveLearningModuleKind get moduleKind =>
+      ActiveLearningModuleKind.listeningLesson;
+
+  @override
+  ActiveLearningVoiceNode get mainVoiceNode =>
+      ActiveLearningVoiceNode.challenge;
+
+  @override
+  String get mainVoicePrompt => MasterNavigationContract.challengeControlPrompt;
+
+  @override
+  bool get isPausedForMain => paused;
+
+  @override
+  Future<void> pauseForMainAssistant() async {
+    paused = true;
+  }
+
+  @override
+  Future<ActiveLearningCommandResult> handleMainCommand(
+    ActiveLearningCommand command,
+  ) async => const ActiveLearningCommandResult.handled();
 }
 
 class _FakeStreamingSpeechInput implements StreamingSpeechInput {

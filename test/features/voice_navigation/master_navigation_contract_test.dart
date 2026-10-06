@@ -70,6 +70,25 @@ void main() {
     );
   });
 
+  test('Core resume speaks HOMI before the lesson replays English', () async {
+    final flow = MainVoiceAssistantFlow()
+      ..beginActiveLearning(
+        kind: ActiveLearningModuleKind.listeningLesson,
+        voiceContext: const _VoiceContext(
+          ActiveLearningVoiceNode.core,
+          MasterNavigationContract.coreControlPrompt,
+        ),
+      );
+
+    final turn = await flow.handle('Tiếp tục');
+    expect(turn.promptText, MasterNavigationContract.continueSubject);
+    expect(turn.activeLearningCommand, ActiveLearningCommand.resume);
+    expect(
+      flow.audioKeyForPrompt(turn.promptText),
+      MainAssistantAudioKeys.continueSubject,
+    );
+  });
+
   test(
     'sentence owner chooses the lead after validating its boundary',
     () async {
@@ -712,6 +731,25 @@ void main() {
         reason: '$node review',
       );
     }
+  });
+
+  test('Challenge saying Bộ từ vựng selects the vocabulary root', () async {
+    final flow = MainVoiceAssistantFlow()
+      ..beginActiveLearning(
+        kind: ActiveLearningModuleKind.listeningLesson,
+        voiceContext: const _VoiceContext(
+          ActiveLearningVoiceNode.challenge,
+          MasterNavigationContract.challengeControlPrompt,
+        ),
+      );
+
+    final turn = await flow.handle('Bộ từ vựng');
+    expect(
+      turn.navigationAfterPrompt?.destination,
+      VoiceNavigationDestination.vocabulary,
+    );
+    expect(turn.navigationAfterPrompt?.vocabularyTarget, isNull);
+    expect(turn.activeLearningCommand, isNull);
   });
 
   test('Subject can jump directly to a vocabulary destination', () async {
