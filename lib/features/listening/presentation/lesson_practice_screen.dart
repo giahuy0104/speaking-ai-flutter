@@ -228,7 +228,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       ActiveLearningModuleKind.listeningLesson;
 
   @override
-  bool get isPausedForMain => _pausedForMainAssistant;
+  bool get isPausedForMain => _pausedForMainAssistant || _pausedByStop;
 
   @override
   void initState() {
@@ -669,11 +669,17 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           spokenReply: 'Đã dừng.',
         );
       case ActiveLearningCommand.resume:
+        final wasPausedByStop = _pausedByStop;
         _pausedForMainAssistant = false;
+        _pausedByStop = false;
         // The full EN -> VI -> cue sequence can exceed the registry's command
         // timeout. Hand ownership back immediately and let the screen finish
         // its guarded sequence under the lesson lifecycle ticket.
-        unawaited(_runNavigationSequence(_resumeCoreAfterMain));
+        unawaited(
+          _runNavigationSequence(
+            () => _resumeCoreAfterMain(wasPausedByStop: wasPausedByStop),
+          ),
+        );
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.replayCurrent:
         _pausedForMainAssistant = false;
@@ -779,12 +785,29 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
   }
 
-  Future<void> _resumeCoreAfterMain() async {
+  Future<void> _resumeCoreAfterMain({bool wasPausedByStop = false}) async {
+    _pausedByStop = false;
     if (_challengeEntryPending) {
+      if (wasPausedByStop) {
+        await _navigateWithLead(
+          'Cùng học tiếp nhé',
+          () => _openReview(resumeStage: ListeningResumeStage.challenge),
+          audioKey: MainAssistantAudioKeys.resumeLearning,
+        );
+        return;
+      }
       await _openReview(resumeStage: ListeningResumeStage.challenge);
       return;
     }
     if (!_usesGuideV2) {
+      if (wasPausedByStop) {
+        await _navigateWithLead(
+          'Cùng học tiếp nhé',
+          _startRecording,
+          audioKey: MainAssistantAudioKeys.resumeLearning,
+        );
+        return;
+      }
       await _startRecording();
       return;
     }
@@ -794,6 +817,17 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
     // A resumed Core turn is a new attempt and must always replay the complete
     // EN -> VI -> cue sequence before opening the microphone.
+    if (wasPausedByStop) {
+      await _navigateWithLead(
+        'Cùng học tiếp nhé',
+        () => _activateCurrentSentence(
+          autoPlay: true,
+          restoreExistingRecording: false,
+        ),
+        audioKey: MainAssistantAudioKeys.resumeLearning,
+      );
+      return;
+    }
     await _activateCurrentSentence(
       autoPlay: true,
       restoreExistingRecording: false,
@@ -1267,6 +1301,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       _recordingPath = null;
       _recordingDuration = null;
       _mediaBusy = false;
+      _pausedByStop = true;
       _message = 'Chưa phát lại được bản ghi. Con hãy ghi âm lại nhé.';
     });
   }
@@ -1324,6 +1359,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     _cancelIdleReminder();
     _hideCoachPopup();
     setState(() {
+      _pausedByStop = false;
       _mediaBusy = true;
       _recordingStartPending = true;
       _message = null;
@@ -1567,6 +1603,9 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             return;
           }
           if (widget.lesson.usesV4Flow && !replayedRecording) {
+            debugPrint(
+              'HOMI lesson recording replay failed; evaluatedOutcome=$evaluatedOutcome',
+            );
             _showAttemptReplayFailure();
             return;
           }
@@ -1729,6 +1768,9 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         return;
       }
       if (widget.lesson.usesV4Flow && !replayedRecording) {
+        debugPrint(
+          'HOMI iOS lesson recording replay failed; outcome=$outcome',
+        );
         _showAttemptReplayFailure();
         return;
       }

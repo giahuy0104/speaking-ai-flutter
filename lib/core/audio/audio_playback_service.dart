@@ -405,12 +405,16 @@ class JustAudioPlaybackService
         ),
       );
     } on PlatformException catch (error) {
-      // The arm request and playback preparation can cross by a few
-      // milliseconds. Confirm native ownership once more before surfacing the
-      // iOS insufficient-priority error; Android and every other iOS error
-      // retain their previous behaviour.
-      if (isIosAudioSessionInsufficientPriority(error) &&
-          await _reuseIosNativeAudioSession()) {
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        // When session.configure(...) is called on iOS, if a PlatformException
+        // is thrown (e.g. '!pri' or AVAudioSession category transition error
+        // after Apple Speech stops), catch it gracefully and do not rethrow,
+        // so just_audio can continue playing through the active iOS audio
+        // session instead of aborting playback.
+        AudioDiagnostics.event('audio.session.configure.ios_suppressed', {
+          'code': error.code,
+          'message': error.message,
+        });
         return;
       }
       rethrow;
