@@ -423,6 +423,53 @@ void main() {
     },
   );
 
+  test(
+    'Home accepts an approved feature phrase with lead-in or particle',
+    () async {
+      for (final entry in <String, VoiceNavigationDestination>{
+        'Mở bộ từ vựng': VoiceNavigationDestination.vocabulary,
+        'Bộ từ vựng ạ': VoiceNavigationDestination.vocabulary,
+        'Ừ bộ từ vựng': VoiceNavigationDestination.vocabulary,
+        'Cho con học từ vựng': VoiceNavigationDestination.vocabulary,
+        'Con muốn học chủ đề ạ': VoiceNavigationDestination.topics,
+        'Dịch sang tiếng Anh nhé': VoiceNavigationDestination.conversation,
+      }.entries) {
+        final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
+        flow.begin();
+        final turn = await flow.handle(entry.key);
+        expect(
+          (turn.navigationBeforePrompt ?? turn.navigationAfterPrompt)
+              ?.destination,
+          entry.value,
+          reason: entry.key,
+        );
+      }
+
+      // Any other word around the phrase still re-asks: the menu echo, a
+      // negation, an embedded destination, or a Topics prefix awaiting a number.
+      for (final phrase in <String>[
+        'Học chủ đề hay bộ từ vựng',
+        'hay bộ từ vựng',
+        'Mình không muốn học Chủ đề',
+        'Hôm nay mình học từ vựng ở trường',
+        'Con muốn học chủ đề số',
+      ]) {
+        final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
+        flow.begin();
+        final turn = await flow.handle(phrase);
+        expect(turn.navigationBeforePrompt, isNull, reason: phrase);
+        expect(turn.navigationAfterPrompt, isNull, reason: phrase);
+        expect(turn.continueListening, isTrue, reason: phrase);
+      }
+
+      final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
+      flow.begin();
+      expect(flow.canHandlePartial('Bộ từ vựng ạ'), isTrue);
+      // "Mở chủ đề" may still grow into "Mở chủ đề số hai".
+      expect(flow.canHandlePartial('Mở chủ đề'), isFalse);
+    },
+  );
+
   test('chooses continuous translation after the Main menu', () async {
     final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
 

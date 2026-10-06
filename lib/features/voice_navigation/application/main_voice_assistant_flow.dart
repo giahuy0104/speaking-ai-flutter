@@ -572,7 +572,8 @@ class MainVoiceAssistantFlow {
       _isSpeakingChoice(normalized) ||
           _isTopicChoice(normalized) ||
           _isVocabularyChoice(normalized) ||
-          _isTranslationChoice(normalized),
+          _isTranslationChoice(normalized) ||
+          _wrappedFeatureChoice(normalized) != null,
     MainVoiceAssistantStage.chooseOtherLearning =>
       _isTopicChoice(normalized) ||
           _isVocabularyChoice(normalized) ||
@@ -825,16 +826,20 @@ class MainVoiceAssistantFlow {
         continueListening: true,
       );
     }
-    if (_isVocabularyChoice(normalized)) {
+    final wrapped = _wrappedFeatureChoice(normalized);
+    if (_isVocabularyChoice(normalized) ||
+        wrapped == VoiceNavigationDestination.vocabulary) {
       return _beginVocabularyLearning(
         recognizedText: recognizedText,
         matchedPhrase: 'hoc tu moi',
       );
     }
-    if (_isTopicChoice(normalized)) {
+    if (_isTopicChoice(normalized) ||
+        wrapped == VoiceNavigationDestination.topics) {
       return _beginConfiguredTopicSelection(recognizedText);
     }
-    if (_isTranslationChoice(normalized)) {
+    if (_isTranslationChoice(normalized) ||
+        wrapped == VoiceNavigationDestination.conversation) {
       return _beginContinuousTranslation(recognizedText);
     }
     if (_isSpeakingChoice(normalized)) {
@@ -1899,6 +1904,58 @@ class MainVoiceAssistantFlow {
       _containsPhrase(normalized, 'luyen noi') ||
       _containsPhrase(normalized, 'luyen giao tiep') ||
       _containsPhrase(normalized, 'noi chuyen');
+
+  /// Home also takes an approved feature phrase wrapped in lead-in words or a
+  /// polite particle, such as "mở bộ từ vựng" or "bộ từ vựng ạ". Any other
+  /// word around the phrase, "không" included, still re-asks: MAIN does not
+  /// guess from a destination embedded in a sentence.
+  static VoiceNavigationDestination? _wrappedFeatureChoice(String normalized) {
+    final words = normalized.split(' ');
+    var start = 0;
+    var end = words.length;
+    while (start < end && _leadInWords.contains(words[start])) {
+      start++;
+    }
+    while (end > start && _trailingParticles.contains(words[end - 1])) {
+      end--;
+    }
+    if (start == 0 && end == words.length) return null;
+    final phrase = words.sublist(start, end).join(' ');
+    if (_isVocabularyChoice(phrase)) {
+      return VoiceNavigationDestination.vocabulary;
+    }
+    if (_isTopicChoice(phrase)) return VoiceNavigationDestination.topics;
+    if (_isTranslationChoice(phrase)) {
+      return VoiceNavigationDestination.conversation;
+    }
+    return null;
+  }
+
+  static const Set<String> _leadInWords = {
+    'u',
+    'a',
+    'da',
+    'oi',
+    'homi',
+    'minh',
+    'con',
+    'muon',
+    'cho',
+    'mo',
+    'vao',
+    'chon',
+  };
+
+  static const Set<String> _trailingParticles = {
+    'a',
+    'nhe',
+    'nha',
+    'di',
+    'voi',
+    'ne',
+    'nao',
+    'homi',
+  };
 
   ControlledSpeechState get _activeLearningSpeechState =>
       _activeLearningKind == ActiveLearningModuleKind.vocabulary
