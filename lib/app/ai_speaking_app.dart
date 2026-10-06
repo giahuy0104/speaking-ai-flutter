@@ -63,7 +63,7 @@ import 'device_connection_feedback_overlay.dart';
 import 'h20_battery_alert_policy.dart';
 import 'mascot_assets.dart';
 
-enum _H20AutoConnectReason { background, parentSetup }
+enum _H20AutoConnectReason { background, parentSetup, periodicRetry }
 
 enum _ParentH20GuidanceAction { cancel, primary }
 
@@ -724,7 +724,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     final bleAlreadyConnected = controller.canUseAiv0Ble;
     if (!wasH20Ready) {
       _aiv0AutoConnectAttemptActive = true;
-      _showDeviceConnectionFeedback(DeviceConnectionFeedbackStage.connecting);
+      // A quiet periodic retry must not put a connecting overlay over the
+      // child's screen every minute while the device is switched off.
+      if (reason != _H20AutoConnectReason.periodicRetry) {
+        _showDeviceConnectionFeedback(DeviceConnectionFeedbackStage.connecting);
+      }
     }
     var bleConnected = bleAlreadyConnected;
     try {
@@ -1535,7 +1539,6 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         defaultTargetPlatform != TargetPlatform.android ||
         !_privacyConsentGranted ||
         !_parentSetupCompleted ||
-        _controller?.canUseAiv0Ble != true ||
         _controller?.isH20Ready == true) {
       _androidHfpAutoSelectionTimer?.cancel();
       _androidHfpAutoSelectionTimer = null;
@@ -1546,9 +1549,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     _androidHfpAutoSelectionTimer ??= Timer.periodic(
       const Duration(seconds: 15),
       (_) {
-        if (!mounted ||
-            _controller?.canUseAiv0Ble != true ||
-            _controller?.isH20Ready == true) {
+        if (!mounted || _controller?.isH20Ready == true) {
           _syncAndroidHfpAutoSelectionRetry();
           return;
         }
@@ -1559,6 +1560,21 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
             _audioTurnCoordinator?.currentToken != null ||
             _isGlobalModalOpen ||
             _controller?.hfpAudioStatus.isBusy == true) {
+          return;
+        }
+        if (_controller?.canUseAiv0Ble != true) {
+          // Native BLE gives up after five reconnect attempts (about 23 s).
+          // A HM-D001 switched on later must reconnect without reopening the
+          // app, so keep trying quietly at a cadence the radio can afford.
+          final lastAttempt = _lastAiv0AutoConnectAttempt;
+          if (lastAttempt != null &&
+              DateTime.now().difference(lastAttempt) <
+                  const Duration(seconds: 60)) {
+            return;
+          }
+          unawaited(
+            _autoConnectH20Ble(reason: _H20AutoConnectReason.periodicRetry),
+          );
           return;
         }
         unawaited(_autoSelectConnectedAndroidHfp());
