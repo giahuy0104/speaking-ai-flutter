@@ -714,6 +714,62 @@ void main() {
     }
   });
 
+  test('MAIN keeps vocabulary cross-navigation distinct from replay', () async {
+    for (final choice
+        in <
+          ({
+            ActiveLearningVoiceNode node,
+            String phrase,
+            ActiveLearningCommand command,
+          })
+        >[
+          (
+            node: ActiveLearningVoiceNode.star,
+            phrase: 'Luyện lại',
+            command: ActiveLearningCommand.vocabularyPracticeAgain,
+          ),
+          (
+            node: ActiveLearningVoiceNode.parent,
+            phrase: 'Luyện lại',
+            command: ActiveLearningCommand.vocabularyPracticeAgain,
+          ),
+          (
+            node: ActiveLearningVoiceNode.vocabularyMenu,
+            phrase: 'Luyện lại',
+            command: ActiveLearningCommand.vocabularyPracticeAgain,
+          ),
+          (
+            node: ActiveLearningVoiceNode.review,
+            phrase: 'Ba mẹ đã thêm',
+            command: ActiveLearningCommand.vocabularyParentAdded,
+          ),
+          (
+            node: ActiveLearningVoiceNode.review,
+            phrase: 'Ngôi sao',
+            command: ActiveLearningCommand.vocabularyStars,
+          ),
+          (
+            node: ActiveLearningVoiceNode.listEnd,
+            phrase: 'Học lại',
+            command: ActiveLearningCommand.restart,
+          ),
+        ]) {
+      final flow = MainVoiceAssistantFlow()
+        ..beginActiveLearning(
+          kind: ActiveLearningModuleKind.vocabulary,
+          voiceContext: _VoiceContext(choice.node, 'Chọn nội dung.'),
+        );
+      final turn = await flow.handle(choice.phrase);
+      expect(
+        turn.activeLearningCommand,
+        choice.command,
+        reason: '${choice.node}: ${choice.phrase}',
+      );
+      expect(turn.navigationBeforePrompt, isNull);
+      expect(turn.navigationAfterPrompt, isNull);
+    }
+  });
+
   test('Subject can jump directly to a vocabulary destination', () async {
     final flow = MainVoiceAssistantFlow()
       ..beginActiveLearning(

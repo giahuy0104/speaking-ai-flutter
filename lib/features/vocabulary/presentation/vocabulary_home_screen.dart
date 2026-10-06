@@ -383,7 +383,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         await _playJourney(_VocabularyJourney.stars);
         return;
       case VoiceVocabularyTarget.review:
-        await _runAudioCommand(_startReview);
+        await _runAudioCommand(_openReviewFromVoice);
         return;
     }
   }
@@ -517,13 +517,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         unawaited(_playJourney(_VocabularyJourney.family));
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.vocabularyPracticeAgain:
-        if (_awaitingPlaybackEndChoice && _selectedJourney != null) {
-          _pausedForMainAssistant = false;
-          unawaited(_runAudioCommand(_restartCompletedPlayback));
-          return const ActiveLearningCommandResult.handled();
+        if (!await _prepareReviewFromVoice()) {
+          return const ActiveLearningCommandResult.busy(
+            spokenReply: 'Chưa mở được Luyện lại. Bạn hãy thử lại.',
+          );
         }
-        _pausedForMainAssistant = false;
-        unawaited(_runAudioCommand(_startReview));
+        unawaited(
+          _runAudioCommand(() => _startReview(allowPendingToday: true)),
+        );
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.vocabularyStars:
         _pausedForMainAssistant = false;
@@ -1642,11 +1643,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     await _maybeStartToday();
   }
 
-  Future<void> _startReview() async {
+  Future<void> _startReview({bool allowPendingToday = false}) async {
     if (_openingPractice || !mounted) return;
     _openJourney(_VocabularyJourney.review);
     final active = await widget.sessionStore.readActive();
-    if (active?.mode == VocabularyPracticeMode.today) {
+    if (active?.mode == VocabularyPracticeMode.today && !allowPendingToday) {
       await _speakOnSelectedOutput(VocabularyFlowV3.finishActiveGroupFirst);
       await _runPracticeSession(active!, announceInitialIntro: false);
       return;
@@ -1663,6 +1664,23 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       announceInitialIntro: active?.id != session.id,
       announceInitialResume: active?.id == session.id,
     );
+  }
+
+  Future<void> _openReviewFromVoice() async {
+    if (!await _prepareReviewFromVoice()) return;
+    await _startReview(allowPendingToday: true);
+  }
+
+  Future<bool> _prepareReviewFromVoice() async {
+    if (_openingPractice || !mounted || !_isEffectivelyActive) return false;
+    final settled = await _leavePlaybackForOtherContent(
+      announceMenu: false,
+      notifyNavigationExit: false,
+    );
+    if (!settled || !mounted || !_isEffectivelyActive) return false;
+    _playbackQueue = const <VocabularyEntry>[];
+    _pausedForMainAssistant = false;
+    return true;
   }
 
   Future<void> _runPracticeSession(

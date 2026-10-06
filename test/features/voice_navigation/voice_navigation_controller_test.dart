@@ -17,6 +17,73 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('iOS MAIN dispatches all vocabulary cross-navigation phrases', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    for (final choice
+        in <
+          ({
+            ActiveLearningVoiceNode node,
+            String phrase,
+            ActiveLearningCommand command,
+          })
+        >[
+          (
+            node: ActiveLearningVoiceNode.star,
+            phrase: 'Luyện lại',
+            command: ActiveLearningCommand.vocabularyPracticeAgain,
+          ),
+          (
+            node: ActiveLearningVoiceNode.parent,
+            phrase: 'Luyện lại',
+            command: ActiveLearningCommand.vocabularyPracticeAgain,
+          ),
+          (
+            node: ActiveLearningVoiceNode.vocabularyMenu,
+            phrase: 'Luyện lại',
+            command: ActiveLearningCommand.vocabularyPracticeAgain,
+          ),
+          (
+            node: ActiveLearningVoiceNode.review,
+            phrase: 'Ba mẹ đã thêm',
+            command: ActiveLearningCommand.vocabularyParentAdded,
+          ),
+          (
+            node: ActiveLearningVoiceNode.review,
+            phrase: 'Ngôi sao',
+            command: ActiveLearningCommand.vocabularyStars,
+          ),
+        ]) {
+      final speech = _FakeNavigationSpeechInput();
+      final commands = <ActiveLearningCommand>[];
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: _FakeVoicePromptService(),
+        activeLearningCommandHandler: (command) async {
+          commands.add(command);
+          return const ActiveLearningCommandResult.handled();
+        },
+      );
+      expect(
+        await controller.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: ActiveLearningModuleKind.vocabulary,
+          activeVoiceContext: _VocabularyNavigationVoiceContext(choice.node),
+        ),
+        isTrue,
+        reason: '${choice.node}: ${choice.phrase}',
+      );
+      expect(
+        await controller.dispatchRecognizedText(choice.phrase),
+        isTrue,
+        reason: '${choice.node}: ${choice.phrase}',
+      );
+      expect(commands, <ActiveLearningCommand>[choice.command]);
+      controller.dispose();
+      await speech.dispose();
+    }
+  });
+
   test(
     'iOS retains numbered Topic choice until route installation succeeds',
     () async {
@@ -3162,6 +3229,16 @@ class _SongVoiceContext implements ActiveLearningVoiceContext {
 
   @override
   String get mainVoicePrompt => MasterNavigationContract.songControlPrompt;
+}
+
+class _VocabularyNavigationVoiceContext implements ActiveLearningVoiceContext {
+  const _VocabularyNavigationVoiceContext(this.mainVoiceNode);
+
+  @override
+  final ActiveLearningVoiceNode mainVoiceNode;
+
+  @override
+  String get mainVoicePrompt => 'Chọn nội dung.';
 }
 
 class _TransientFailureNavigationSpeechInput

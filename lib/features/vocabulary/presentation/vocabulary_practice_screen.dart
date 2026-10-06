@@ -987,6 +987,21 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       _finish(VocabularyPracticeResult.vocabularyRoot);
       return const ActiveLearningCommandResult.handled();
     }
+    if (_isReview &&
+        !_completed &&
+        (command == ActiveLearningCommand.vocabularyParentAdded ||
+            command == ActiveLearningCommand.vocabularyStars)) {
+      await pauseForMainAssistant();
+      _session = _session.copyWith(currentIndex: _index);
+      await widget.sessionStore.saveActive(_session);
+      if (!mounted) return const ActiveLearningCommandResult.unavailable();
+      _finish(
+        command == ActiveLearningCommand.vocabularyParentAdded
+            ? VocabularyPracticeResult.parentAdded
+            : VocabularyPracticeResult.stars,
+      );
+      return const ActiveLearningCommandResult.handled();
+    }
     if (_completed) {
       _paused = false;
       if (_isToday && command == ActiveLearningCommand.resume) {

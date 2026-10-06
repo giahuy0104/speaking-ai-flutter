@@ -137,6 +137,8 @@ class VocabularySessionStore {
       'innotrik.vocabulary-review-session-snapshot.v4';
   static const _suspendedReviewKey =
       'innotrik.vocabulary-suspended-review-session.v1';
+  static const _suspendedTodayKey =
+      'innotrik.vocabulary-suspended-today-session.v1';
   static const _todaySuppressedKey = 'innotrik.vocabulary-today-suppressed.v2';
   static const _playbackCheckpointPrefix =
       'innotrik.vocabulary-playback-checkpoint.v2.';
@@ -173,6 +175,32 @@ class VocabularySessionStore {
 
   Future<void> clearActive() async {
     await (await SharedPreferences.getInstance()).remove(_activeKey);
+  }
+
+  Future<void> _saveSuspended(
+    String key,
+    VocabularyPracticeSession session,
+  ) async {
+    await (await SharedPreferences.getInstance()).setString(
+      key,
+      jsonEncode(session.toJson()),
+    );
+  }
+
+  Future<VocabularyPracticeSession?> _readSuspended(
+    String key,
+    VocabularyPracticeMode mode,
+  ) async {
+    try {
+      final raw = (await SharedPreferences.getInstance()).getString(key);
+      if (raw == null) return null;
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, Object?>) return null;
+      final session = VocabularyPracticeSession.fromJson(decoded);
+      return session.isValid && session.mode == mode ? session : null;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<VocabularyReviewSessionSnapshot?> readReviewSessionSnapshot() async {
@@ -219,6 +247,25 @@ class VocabularySessionStore {
     if (active?.mode == VocabularyPracticeMode.today) {
       return _reconcile(active!, vocabularyStore);
     }
+    if (!forceNextGroup) {
+      final suspended = await _readSuspended(
+        _suspendedTodayKey,
+        VocabularyPracticeMode.today,
+      );
+      if (suspended != null) {
+        if (active?.mode == VocabularyPracticeMode.review) {
+          await _saveSuspended(_suspendedReviewKey, active!);
+        }
+        final restored = await _reconcile(suspended, vocabularyStore);
+        await (await SharedPreferences.getInstance()).remove(
+          _suspendedTodayKey,
+        );
+        if (restored != null) return restored;
+        if (active?.mode == VocabularyPracticeMode.review) {
+          await saveActive(active!);
+        }
+      }
+    }
     if (!forceNextGroup && await isTodaySuppressed(currentTime)) {
       return null;
     }
@@ -237,10 +284,7 @@ class VocabularySessionStore {
       return null;
     }
     if (active?.mode == VocabularyPracticeMode.review) {
-      await (await SharedPreferences.getInstance()).setString(
-        _suspendedReviewKey,
-        jsonEncode(active!.toJson()),
-      );
+      await _saveSuspended(_suspendedReviewKey, active!);
     }
     final session = VocabularyPracticeSession(
       id: 'today:${view.dayKey}:${currentTime.microsecondsSinceEpoch}',
@@ -293,30 +337,26 @@ class VocabularySessionStore {
     if (!forceNextGroup && active?.mode == VocabularyPracticeMode.review) {
       return _reconcile(active!, vocabularyStore);
     }
-    if (!forceNextGroup && active?.mode != VocabularyPracticeMode.today) {
+    if (!forceNextGroup) {
       final preferences = await SharedPreferences.getInstance();
-      final raw = preferences.getString(_suspendedReviewKey);
-      if (raw != null) {
-        VocabularyPracticeSession? suspended;
-        try {
-          final decoded = jsonDecode(raw);
-          if (decoded is Map<String, Object?>) {
-            suspended = VocabularyPracticeSession.fromJson(decoded);
-          }
-        } catch (_) {
-          // A corrupt suspended checkpoint falls back to the review snapshot.
+      final suspended = await _readSuspended(
+        _suspendedReviewKey,
+        VocabularyPracticeMode.review,
+      );
+      if (suspended != null) {
+        if (active?.mode == VocabularyPracticeMode.today) {
+          await _saveSuspended(_suspendedTodayKey, active!);
         }
-        if (suspended != null &&
-            suspended.isValid &&
-            suspended.mode == VocabularyPracticeMode.review) {
-          final restored = await _reconcile(suspended, vocabularyStore);
-          if (restored != null) {
-            await preferences.remove(_suspendedReviewKey);
-            return restored;
-          }
+        final restored = await _reconcile(suspended, vocabularyStore);
+        if (restored != null) {
+          await preferences.remove(_suspendedReviewKey);
+          return restored;
         }
-        await preferences.remove(_suspendedReviewKey);
+        if (active?.mode == VocabularyPracticeMode.today) {
+          await saveActive(active!);
+        }
       }
+      await preferences.remove(_suspendedReviewKey);
     }
     final currentTime = now ?? DateTime.now();
     var snapshot = await readReviewSessionSnapshot();
@@ -357,6 +397,9 @@ class VocabularySessionStore {
       correctAudioPaths: const <String, String>{},
       createdAt: currentTime,
     );
+    if (active?.mode == VocabularyPracticeMode.today) {
+      await _saveSuspended(_suspendedTodayKey, active!);
+    }
     await saveActive(session);
     return session;
   }
