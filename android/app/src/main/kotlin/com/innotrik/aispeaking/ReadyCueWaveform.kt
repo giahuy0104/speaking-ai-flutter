@@ -15,9 +15,12 @@ internal object ReadyCueWaveform {
     private const val durationMillis = 120
     private const val fadeMillis = 8
     private const val frequencyHz = 880.0
-    private const val activeRmsDbfs = -21.0
+    // A steady tone at the prompts' -21 dBFS RMS target comes out of a phone
+    // speaker about 10 dB louder than speech at the same RMS, so the cue sits
+    // 12 dB under the target to stay a quiet "ready" tick between prompts.
+    private const val activeRmsDbfs = -33.0
 
-    /** PCM16 mono WAV; the active sine has -21 dBFS RMS before its edge fades. */
+    /** PCM16 mono WAV; the active sine has -33 dBFS RMS before its edge fades. */
     fun wavBytes(): ByteArray {
         val sampleCount = sampleRate * durationMillis / 1_000
         val fadeSamples = sampleRate * fadeMillis / 1_000

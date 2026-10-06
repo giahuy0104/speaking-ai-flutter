@@ -37,16 +37,16 @@ class ReadyCueWaveformTest {
 
         val plateau = samples.copyOfRange(128, samples.size - 128)
         val plateauPeak = plateau.maxOf { abs(it) }
-        assertTrue(plateauPeak < 0.13)
+        assertTrue(plateauPeak < 0.05)
         assertTrue(samples.take(32).maxOf { abs(it) } < plateauPeak * 0.3)
         assertTrue(samples.takeLast(32).maxOf { abs(it) } < plateauPeak * 0.3)
-        assertEquals(-21.0, 20.0 * log10(rms(plateau)), 0.05)
+        assertEquals(-33.0, 20.0 * log10(rms(plateau)), 0.05)
 
         // All interior 10 ms windows retain the same tone energy: there is no
         // hidden silence/restart creating a second beep in the waveform.
         for (start in 160..1_600 step 160) {
             val windowDbfs = 20.0 * log10(rms(samples.copyOfRange(start, start + 160)))
-            assertEquals(-21.0, windowDbfs, 0.15)
+            assertEquals(-33.0, windowDbfs, 0.15)
         }
         val upwardCrossings = (1 until samples.size).count { index ->
             samples[index - 1] <= 0.0 && samples[index] > 0.0
