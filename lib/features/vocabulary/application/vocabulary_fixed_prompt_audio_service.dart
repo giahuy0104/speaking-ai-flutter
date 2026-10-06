@@ -41,6 +41,16 @@ class AssetFirstVocabularyFixedPromptAudioService
     if (prompt == null) return false;
     final registry = _registryService;
     final audioKey = VocabularyAudioKeys.fixedPrompt(prompt);
+    if (audioKey != null &&
+        registry is KeyedSelectedMediaOutputVoicePromptService) {
+      // Word clips and the MAIN lines around a fixed prompt already play on
+      // the selected media output. On the default route the prompt picks its
+      // Android stream from the HM-D001 route state instead, so one line in a
+      // row could come out on the call stream at a different volume.
+      await (registry as KeyedSelectedMediaOutputVoicePromptService)
+          .speakAndWaitOnSelectedMediaOutputWithAudioKey(audioKey, text);
+      return true;
+    }
     if (audioKey != null && registry is KeyedVoicePromptService) {
       await (registry as KeyedVoicePromptService).speakAndWaitWithAudioKey(
         audioKey,

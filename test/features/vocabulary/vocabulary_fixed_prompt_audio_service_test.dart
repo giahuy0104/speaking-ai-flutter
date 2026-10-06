@@ -89,6 +89,25 @@ void main() {
     expect(registry.keys, <String>['vocabulary.flow.parent_listen.vi']);
     expect(media.played, isEmpty);
   });
+  test('fixed guide prompt plays on the selected media output', () async {
+    final media = _RecordingMediaService();
+    final registry = _RecordingSelectedOutputRegistryVoiceService();
+    final service = AssetFirstVocabularyFixedPromptAudioService(
+      mediaService: media,
+      registryService: registry,
+      audioLibrary: LessonGuideAudioLibrary(assetPaths: const <String>[]),
+    );
+
+    expect(
+      await service.playPromptIfAvailable(VocabularyFlowV3.parentSmallIntro),
+      isTrue,
+    );
+    expect(registry.selectedOutputKeys, <String>[
+      'vocabulary.flow.parent_listen.vi',
+    ]);
+    expect(registry.keys, isEmpty);
+    expect(media.played, isEmpty);
+  });
 }
 
 class _RecordingRegistryVoiceService
@@ -115,6 +134,21 @@ class _RecordingRegistryVoiceService
 
   @override
   Future<void> dispose() async {}
+}
+
+class _RecordingSelectedOutputRegistryVoiceService
+    extends _RecordingRegistryVoiceService
+    implements KeyedSelectedMediaOutputVoicePromptService {
+  final List<String> selectedOutputKeys = <String>[];
+
+  @override
+  Future<void> speakAndWaitOnSelectedMediaOutputWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) async {
+    selectedOutputKeys.add(audioKey);
+  }
 }
 
 class _RecordingMediaService extends LessonMediaService {
