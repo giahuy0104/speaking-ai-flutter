@@ -4643,15 +4643,15 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   String _childFriendlyMessage(String message) {
     final normalized = message.toLowerCase();
     if (normalized.contains('prompt_audio_route_failed')) {
-      return 'HOMI chưa phát được lời hướng dẫn qua H20. Bạn kiểm tra kết nối H20 rồi thử lại nhé.';
+      return 'HOMI chưa phát được lời hướng dẫn qua HM-D001. Bạn kiểm tra kết nối HM-D001 rồi thử lại nhé.';
     }
     if (normalized.contains('currentroute là bluetoothhfp')) {
-      return 'iPhone chưa chuyển mic và loa sang H20. Bạn kiểm tra kết nối H20 rồi thử lại nhé.';
+      return 'iPhone chưa chuyển mic và loa sang HM-D001. Bạn kiểm tra kết nối HM-D001 rồi thử lại nhé.';
     }
     if (normalized.contains('hfp_route_lost') ||
         normalized.contains('kết nối âm thanh h20 bị gián đoạn') ||
         normalized.contains('mic h20 bị ngắt kết nối')) {
-      return 'Mic H20 vừa mất đường âm thanh. HOMI đang kết nối lại; bạn thử ghi âm lại nhé.';
+      return 'Mic HM-D001 vừa mất đường âm thanh. HOMI đang kết nối lại; bạn thử ghi âm lại nhé.';
     }
     if (normalized.contains('ready_cue_')) {
       return 'HOMI chưa phát được tín hiệu bắt đầu. Bạn nhấn ghi âm lại nhé.';

@@ -38,6 +38,6 @@ void main() {
       find.byKey(const Key('device-connection-success-icon')),
       findsOneWidget,
     );
-    expect(find.textContaining('Nút MAIN và micro H20'), findsOneWidget);
+    expect(find.textContaining('Nút MAIN và micro HM-D001'), findsOneWidget);
   });
 }

@@ -2149,11 +2149,11 @@ private enum IOSSpeechBridgeError: LocalizedError {
     case .hfpInputUnavailable:
       return "iOS chưa có đầu vào bluetoothHFP đang khả dụng."
     case .hfpRouteLost:
-      return "Kết nối âm thanh H20 đã ngắt trong lúc nghe. Hãy kiểm tra Bluetooth rồi thử lại."
+      return "Kết nối âm thanh HM-D001 đã ngắt trong lúc nghe. Hãy kiểm tra Bluetooth rồi thử lại."
     case let .audioRouteMismatch(expected, actual):
       return "Audio route không đúng nguồn \(expected). Route hiện tại: \(actual)"
     case .audioInputUnavailable:
-      return "iOS chưa mở được micro iPhone hoặc H20 HFP."
+      return "iOS chưa mở được micro iPhone hoặc HM-D001 HFP."
     case .audioBufferCopyFailed:
       return "iOS chưa sao chép được luồng micro cho Apple Speech."
     case .audioConversionUnavailable:

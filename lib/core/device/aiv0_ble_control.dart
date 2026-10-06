@@ -673,7 +673,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     if (!permissionGranted) {
       throw PlatformException(
         code: 'PERMISSION_REQUIRED',
-        message: 'Cần cấp quyền Thiết bị ở gần/Bluetooth để tìm H20.',
+        message: 'Cần cấp quyền Thiết bị ở gần/Bluetooth để tìm HM-D001.',
       );
     }
     final devices = await _methodChannel.invokeListMethod<Object?>(
@@ -695,7 +695,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     if (!permissionGranted) {
       throw PlatformException(
         code: 'PERMISSION_REQUIRED',
-        message: 'Cần cấp quyền Bluetooth để kết nối H20.',
+        message: 'Cần cấp quyền Bluetooth để kết nối HM-D001.',
       );
     }
     final connectedStatus = await _methodChannel

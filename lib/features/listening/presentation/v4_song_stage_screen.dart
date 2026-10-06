@@ -135,7 +135,7 @@ class _V4SongStageScreenState extends State<V4SongStageScreen>
       if (!mounted || request != _request) return;
       setState(() {
         _announcing = false;
-        _message = 'Chưa xác nhận được loa và mic H20. Bạn thử lại nhé.';
+        _message = 'Chưa xác nhận được loa và mic HM-D001. Bạn thử lại nhé.';
       });
       return;
     }
@@ -171,7 +171,7 @@ class _V4SongStageScreenState extends State<V4SongStageScreen>
       if (mounted && request == _request) {
         setState(() {
           _announcing = false;
-          _message = 'Chưa xác nhận được loa H20. Bạn thử lại nhé.';
+          _message = 'Chưa xác nhận được loa HM-D001. Bạn thử lại nhé.';
         });
       }
       return;

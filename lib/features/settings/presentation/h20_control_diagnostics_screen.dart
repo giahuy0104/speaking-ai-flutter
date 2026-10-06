@@ -32,7 +32,7 @@ class _H20ControlDiagnosticsScreenState
     (Aiv0Button.main, Aiv0ButtonGesture.longPress, 'MAIN LONG'),
     (Aiv0Button.volumeUp, Aiv0ButtonGesture.longPress, 'Volume Up LONG'),
     (Aiv0Button.volumeDown, Aiv0ButtonGesture.longPress, 'Volume Down LONG'),
-    (Aiv0Button.power, Aiv0ButtonGesture.shortPress, 'Power H20 SHORT'),
+    (Aiv0Button.power, Aiv0ButtonGesture.shortPress, 'Power HM-D001 SHORT'),
   ];
 
   @override
@@ -62,7 +62,7 @@ class _H20ControlDiagnosticsScreenState
       final last = history.firstOrNull;
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Điều khiển thiết bị H20'),
+          title: const Text('Điều khiển thiết bị HM-D001'),
           actions: [
             IconButton(
               key: const Key('h20-copy-log'),
@@ -73,7 +73,7 @@ class _H20ControlDiagnosticsScreenState
                 );
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Đã sao chép log nút H20.')),
+                  const SnackBar(content: Text('Đã sao chép log nút HM-D001.')),
                 );
               },
               icon: const Icon(Icons.copy_outlined),
@@ -318,7 +318,7 @@ class _H20ControlDiagnosticsScreenState
     Aiv0Button.main => 'MAIN',
     Aiv0Button.volumeUp => 'VOLUME_UP',
     Aiv0Button.volumeDown => 'VOLUME_DOWN',
-    Aiv0Button.power => 'POWER H20',
+    Aiv0Button.power => 'POWER HM-D001',
     Aiv0Button.unknown => 'UNKNOWN',
   };
   static String _gesture(Aiv0ButtonGesture gesture) => switch (gesture) {

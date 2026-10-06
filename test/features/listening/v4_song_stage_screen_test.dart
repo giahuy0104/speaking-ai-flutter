@@ -99,7 +99,7 @@ void main() {
 
     expect(media.playedToCompletion, isEmpty);
     expect(
-      find.text('Chưa xác nhận được loa H20. Bạn thử lại nhé.'),
+      find.text('Chưa xác nhận được loa HM-D001. Bạn thử lại nhé.'),
       findsOneWidget,
     );
   });

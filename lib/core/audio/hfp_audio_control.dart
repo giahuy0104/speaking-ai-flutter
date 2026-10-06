@@ -278,7 +278,7 @@ class MethodChannelHfpAudioControl implements HfpAudioControl {
                   nextStatus.inputDeviceName == null ||
                   nextStatus.outputDeviceName == null)) {
             throw const HfpAudioException(
-              'Android/iOS chưa xác nhận đủ mic và loa H20 trên đường HFP/SCO.',
+              'Android/iOS chưa xác nhận đủ mic và loa HM-D001 trên đường HFP/SCO.',
             );
           }
         }

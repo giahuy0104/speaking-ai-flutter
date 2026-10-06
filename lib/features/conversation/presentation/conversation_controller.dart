@@ -786,7 +786,7 @@ class ConversationController extends ChangeNotifier
             : 'Mic HFP Web • $name';
       }
       return name == null || name.isEmpty
-          ? 'Mic H20 qua HFP'
+          ? 'Mic HM-D001 qua HFP'
           : 'Mic HFP • $name';
     }
     if (!_isWebRuntime && asrMode == AsrMode.androidStreaming) {
@@ -1130,12 +1130,12 @@ class ConversationController extends ChangeNotifier
   Future<List<Aiv0BleDevice>> scanAiv0Devices() async {
     final control = _aiv0BleControl;
     if (control == null || isBusy) return const [];
-    transientMessage = 'Đang quét BLE Control H20/AIV0…';
+    transientMessage = 'Đang quét BLE Control HM-D001/AIV0…';
     notifyListeners();
     try {
       final devices = await control.scan(timeout: const Duration(seconds: 8));
       transientMessage = devices.isEmpty
-          ? 'Không tìm thấy H20. Hãy bật thiết bị và đặt gần điện thoại.'
+          ? 'Không tìm thấy HM-D001. Hãy bật thiết bị và đặt gần điện thoại.'
           : null;
       notifyListeners();
       return devices;
@@ -1234,7 +1234,8 @@ class ConversationController extends ChangeNotifier
         stage: 'MAIN_DART_UNSUPPORTED_RAW',
         values: _mainDiagnosticValues(event: event),
       );
-      transientMessage = 'Đã nhận raw hex chưa hỗ trợ từ H20: ${event.rawHex}.';
+      transientMessage =
+          'Đã nhận raw hex chưa hỗ trợ từ HM-D001: ${event.rawHex}.';
       notifyListeners();
       return;
     }
@@ -1715,7 +1716,7 @@ class ConversationController extends ChangeNotifier
       transientMessage = supportsBrowserHfp
           ? 'Đã chọn mic HFP Web. Trình duyệt sẽ ghi âm từ thiết bị Bluetooth.'
           : supportsAndroidStreaming
-          ? 'Đã chọn H20 làm nguồn âm thanh. Chế độ tiêu chuẩn sẽ nhận dạng qua mic HFP.'
+          ? 'Đã chọn HM-D001 làm nguồn âm thanh. Chế độ tiêu chuẩn sẽ nhận dạng qua mic HFP.'
           : 'Đã chọn mic HFP trên iOS. Apple Speech sẽ nhận âm thanh trực tiếp từ thiết bị Bluetooth.';
       notifyListeners();
     } catch (error) {
@@ -1782,7 +1783,7 @@ class ConversationController extends ChangeNotifier
     if (hfp == null ||
         (!hfp.status.isConnected && hfp.status.deviceId == null) ||
         supportsBrowserHfp) {
-      throw StateError('Hãy kết nối HFP của H20 trước khi kiểm tra micro.');
+      throw StateError('Hãy kết nối HFP của HM-D001 trước khi kiểm tra micro.');
     }
 
     h20HardwareTestResult = null;
@@ -1796,7 +1797,9 @@ class ConversationController extends ChangeNotifier
       _setPlaybackCommunicationRoute(true);
       final route = hfp.status;
       if (!route.routeActive || route.inputDeviceName == null) {
-        throw StateError('Android chưa xác nhận micro H20 trên đường HFP/SCO.');
+        throw StateError(
+          'Android chưa xác nhận micro HM-D001 trên đường HFP/SCO.',
+        );
       }
       await _audioInput.start();
       _h20HardwareAudioInputStarted = true;
@@ -1829,7 +1832,7 @@ class ConversationController extends ChangeNotifier
       _h20HardwareAudioInputStarted = false;
       final routeBeforePlayback = hfpAudioStatus;
       h20HardwareTestPhase = H20HardwareTestPhase.playing;
-      h20HardwareTestMessage = 'Đang phát lại bản ghi cục bộ qua loa H20…';
+      h20HardwareTestMessage = 'Đang phát lại bản ghi cục bộ qua loa HM-D001…';
       notifyListeners();
 
       await _playH20TestUri(Uri.file(capture.filePath));
@@ -1852,7 +1855,7 @@ class ConversationController extends ChangeNotifier
       );
       h20HardwareTestPhase = H20HardwareTestPhase.completed;
       h20HardwareTestMessage =
-          'Đã thu và phát lại hoàn toàn offline. Hãy xác nhận bạn có nghe giọng từ loa H20.';
+          'Đã thu và phát lại hoàn toàn offline. Hãy xác nhận bạn có nghe giọng từ loa HM-D001.';
       notifyListeners();
     } catch (error) {
       await _failH20HardwareTest(error);
@@ -1878,7 +1881,7 @@ class ConversationController extends ChangeNotifier
     if (hfp == null ||
         (!hfp.status.isConnected && hfp.status.deviceId == null) ||
         supportsBrowserHfp) {
-      throw StateError('Hãy kết nối HFP của H20 trước khi kiểm tra loa.');
+      throw StateError('Hãy kết nối HFP của HM-D001 trước khi kiểm tra loa.');
     }
     h20HardwareTestPhase = H20HardwareTestPhase.openingRoute;
     h20HardwareTestMessage = 'Đang mở HFP/SCO để kiểm tra loa…';
@@ -1889,10 +1892,12 @@ class ConversationController extends ChangeNotifier
       _usingHfpRoute = true;
       _setPlaybackCommunicationRoute(true);
       if (!hfp.status.routeActive || hfp.status.outputDeviceName == null) {
-        throw StateError('Android chưa xác nhận loa H20 trên đường HFP/SCO.');
+        throw StateError(
+          'Android chưa xác nhận loa HM-D001 trên đường HFP/SCO.',
+        );
       }
       h20HardwareTestPhase = H20HardwareTestPhase.playing;
-      h20HardwareTestMessage = 'Đang phát file có sẵn trong APK qua H20…';
+      h20HardwareTestMessage = 'Đang phát file có sẵn trong APK qua HM-D001…';
       notifyListeners();
       await _playH20TestUri(MediaAudioKeys.h20SpeakerTestUri);
       final route = hfp.status;
@@ -1905,7 +1910,7 @@ class ConversationController extends ChangeNotifier
       );
       h20HardwareTestPhase = H20HardwareTestPhase.completed;
       h20HardwareTestMessage =
-          'Đã phát file offline. Hãy xác nhận âm thanh phát từ loa H20.';
+          'Đã phát file offline. Hãy xác nhận âm thanh phát từ loa HM-D001.';
       notifyListeners();
     } catch (error) {
       await _failH20HardwareTest(error);
@@ -1922,8 +1927,8 @@ class ConversationController extends ChangeNotifier
     if (current == null) return;
     h20HardwareTestResult = current.copyWith(playbackAudible: audible);
     h20HardwareTestMessage = audible
-        ? 'Đã xác nhận: âm thanh nghe được từ loa H20.'
-        : 'Không nghe từ loa H20. Chưa đạt; cần kiểm tra lại route HFP/SCO.';
+        ? 'Đã xác nhận: âm thanh nghe được từ loa HM-D001.'
+        : 'Không nghe từ loa HM-D001. Chưa đạt; cần kiểm tra lại route HFP/SCO.';
     notifyListeners();
   }
 
@@ -2243,7 +2248,7 @@ class ConversationController extends ChangeNotifier
             debugPrint('Android native recognition start failed: $error');
             if (error is StreamingSpeechInputException) rethrow;
             throw const StreamingSpeechInputException(
-              'Chế độ tiêu chuẩn chưa sẵn sàng. Hãy kiểm tra quyền micro hoặc kết nối H20 rồi thử lại.',
+              'Chế độ tiêu chuẩn chưa sẵn sàng. Hãy kiểm tra quyền micro hoặc kết nối HM-D001 rồi thử lại.',
               code: 'ANDROID_STANDARD_RECOGNITION_UNAVAILABLE',
             );
           }
@@ -3533,7 +3538,7 @@ class ConversationController extends ChangeNotifier
   Future<void> _runHfpRouteStart({required int expectedTurnGeneration}) async {
     final control = _hfpAudioControl;
     if (control == null) {
-      throw const HfpAudioException('Cầu nối âm thanh H20 chưa sẵn sàng.');
+      throw const HfpAudioException('Cầu nối âm thanh HM-D001 chưa sẵn sàng.');
     }
     final startOperation = control.startAudioRoute();
     try {
@@ -3549,7 +3554,7 @@ class ConversationController extends ChangeNotifier
       // the timed-out SCO request cannot reopen after MAIN has moved on.
       await control.stopAudioRoute().catchError((Object _) {});
       throw const PlaybackException(
-        'Không thể chuẩn bị âm thanh H20 trong thời gian cho phép. Bạn thử lại nhé.',
+        'Không thể chuẩn bị âm thanh HM-D001 trong thời gian cho phép. Bạn thử lại nhé.',
       );
     }
   }
@@ -4171,14 +4176,15 @@ class ConversationController extends ChangeNotifier
       }
       if (nextMode == AsrMode.hfpStreaming) {
         if (!canUseHfp) {
-          transientMessage = 'Hãy tìm và kết nối H20 trước khi chọn mic HFP.';
+          transientMessage =
+              'Hãy tìm và kết nối HM-D001 trước khi chọn mic HFP.';
           notifyListeners();
           return;
         }
         _hfpInputSelected = true;
         asrMode = AsrMode.androidStreaming;
         transientMessage =
-            'Đã chọn H20 qua HFP làm nguồn âm thanh cho Chế độ tiêu chuẩn.';
+            'Đã chọn HM-D001 qua HFP làm nguồn âm thanh cho Chế độ tiêu chuẩn.';
         notifyListeners();
         return;
       }
@@ -4303,7 +4309,8 @@ class ConversationController extends ChangeNotifier
     try {
       await cancellation;
       if (!_disposed && generation == _conversationTurnGeneration) {
-        errorMessage = 'Kết nối âm thanh H20 bị gián đoạn. Bạn thử lại nhé.';
+        errorMessage =
+            'Kết nối âm thanh HM-D001 bị gián đoạn. Bạn thử lại nhé.';
         phase = ConversationPhase.error;
         notifyListeners();
       }
@@ -4325,7 +4332,7 @@ class ConversationController extends ChangeNotifier
     if (status?.routeSequence == null || output == null) return;
     if (output == 'builtInSpeaker' || output == 'builtInReceiver') {
       throw const HfpAudioException(
-        'Âm thanh đã chuyển sang loa iPhone. Hãy kết nối lại H20 rồi nghe lại.',
+        'Âm thanh đã chuyển sang loa iPhone. Hãy kết nối lại HM-D001 rồi nghe lại.',
       );
     }
     _iosMediaPlaybackToken = playbackToken;

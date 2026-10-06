@@ -326,10 +326,10 @@ class BackgroundLearningService : Service() {
         val manager = getSystemService(NotificationManager::class.java)
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "Phiên học với H20",
+            "Phiên học với HM-D001",
             NotificationManager.IMPORTANCE_LOW,
         ).apply {
-            description = "Giữ kết nối H20 trong một phiên học đang hoạt động."
+            description = "Giữ kết nối HM-D001 trong một phiên học đang hoạt động."
             setSound(null, null)
             enableVibration(false)
         }
@@ -360,7 +360,7 @@ class BackgroundLearningService : Service() {
         return builder
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("HOMI đang hoạt động")
-            .setContentText("H20, âm thanh và phiên học đang được duy trì.")
+            .setContentText("HM-D001, âm thanh và phiên học đang được duy trì.")
             .setContentIntent(openAppIntent)
             .setOngoing(true)
             .setCategory(Notification.CATEGORY_SERVICE)

@@ -68,7 +68,7 @@ class HomiCompanionDeviceManager(private val host: HomiAndroidHost) {
         if (host.currentActivity == null) {
             result.error(
                 "VISIBLE_ACTIVITY_REQUIRED",
-                "Hãy mở HOMI để phụ huynh xác nhận thiết bị H20.",
+                "Hãy mở HOMI để phụ huynh xác nhận thiết bị HM-D001.",
                 null,
             )
             return
@@ -76,7 +76,7 @@ class HomiCompanionDeviceManager(private val host: HomiAndroidHost) {
         if (pendingResult != null) {
             result.error(
                 "COMPANION_ASSOCIATION_PENDING",
-                "Android đang chờ phụ huynh xác nhận H20.",
+                "Android đang chờ phụ huynh xác nhận HM-D001.",
                 null,
             )
             return
@@ -101,7 +101,7 @@ class HomiCompanionDeviceManager(private val host: HomiAndroidHost) {
                     if (activity == null) {
                         failPending(
                             "VISIBLE_ACTIVITY_REQUIRED",
-                            "Màn hình HOMI đã đóng trước khi xác nhận H20.",
+                            "Màn hình HOMI đã đóng trước khi xác nhận HM-D001.",
                         )
                         return
                     }
@@ -117,7 +117,7 @@ class HomiCompanionDeviceManager(private val host: HomiAndroidHost) {
                     } catch (error: IntentSender.SendIntentException) {
                         failPending(
                             "COMPANION_ASSOCIATION_FAILED",
-                            error.message ?: "Không mở được màn hình xác nhận H20.",
+                            error.message ?: "Không mở được màn hình xác nhận HM-D001.",
                         )
                     }
                 }
@@ -125,7 +125,7 @@ class HomiCompanionDeviceManager(private val host: HomiAndroidHost) {
                 override fun onFailure(error: CharSequence?) {
                     failPending(
                         "COMPANION_ASSOCIATION_FAILED",
-                        error?.toString() ?: "Android không thể đăng ký H20.",
+                        error?.toString() ?: "Android không thể đăng ký HM-D001.",
                     )
                 }
             },
@@ -145,7 +145,7 @@ class HomiCompanionDeviceManager(private val host: HomiAndroidHost) {
         if (resultCode != Activity.RESULT_OK) {
             pending?.error(
                 "COMPANION_ASSOCIATION_CANCELLED",
-                "Phụ huynh chưa xác nhận đăng ký H20.",
+                "Phụ huynh chưa xác nhận đăng ký HM-D001.",
                 null,
             )
             return true

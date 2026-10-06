@@ -244,7 +244,7 @@ class CoordinatedVoicePromptService
             if (routeLoss != null || cancellation.isCancelled) return;
             if (!route.status.routeActive || !route.status.isConnected) {
               routeLoss = const HfpAudioException(
-                'Đường âm thanh H20 đã ngắt. Hãy kết nối lại để tiếp tục.',
+                'Đường âm thanh HM-D001 đã ngắt. Hãy kết nối lại để tiếp tục.',
               );
               // Also invalidates a prompt still loading its authored asset,
               // before there is any native player for the bridge to stop.

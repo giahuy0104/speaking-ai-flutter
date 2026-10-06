@@ -1254,7 +1254,7 @@ void main() {
 
     expect(
       await controller.activateFromMainButton(
-        inputLabelOverride: 'Mic iPhone (giữ BLE H20)',
+        inputLabelOverride: 'Mic iPhone (giữ BLE HM-D001)',
       ),
       isTrue,
     );
@@ -1266,7 +1266,7 @@ void main() {
     expect(voicePrompt.readyCueCount, 1);
     expect(controller.isAwaitingCommand, isTrue);
     expect(controller.isListening, isTrue);
-    expect(controller.activeInputLabel, 'Mic iPhone (giữ BLE H20)');
+    expect(controller.activeInputLabel, 'Mic iPhone (giữ BLE HM-D001)');
     expect(
       await controller.dispatchRecognizedText('Con ghi muốn luyện nói'),
       isTrue,

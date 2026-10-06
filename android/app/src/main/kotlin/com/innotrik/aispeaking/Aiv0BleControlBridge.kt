@@ -95,7 +95,7 @@ class Aiv0BleControlBridge(
     private var disposed = false
     private val connectionTimeout = Runnable {
         if (phase == "connecting" || phase == "reconnecting") {
-            failConnection("Kết nối/đọc GATT của H20 quá thời gian 15 giây.")
+            failConnection("Kết nối/đọc GATT của HM-D001 quá thời gian 15 giây.")
         }
     }
 
@@ -199,7 +199,7 @@ class Aiv0BleControlBridge(
             return
         }
         permissionResult = result
-        message = "Cần quyền Thiết bị ở gần/Bluetooth để tìm H20."
+        message = "Cần quyền Thiết bị ở gần/Bluetooth để tìm HM-D001."
         emitStatus()
         if (!host.requestPermissions(requiredPermissions(), PERMISSION_REQUEST_CODE)) {
             permissionResult = null
@@ -399,7 +399,7 @@ class Aiv0BleControlBridge(
                     .thenByDescending { it.rssi },
             )
             phase = if (stateCharacteristic != null) "connected" else "idle"
-            message = if (devices.isEmpty()) "Không tìm thấy H20/AIV0." else null
+            message = if (devices.isEmpty()) "Không tìm thấy HM-D001/AIV0." else null
             emitStatus()
             pending.success(devices.map { it.toMap() })
         }
@@ -448,7 +448,7 @@ class Aiv0BleControlBridge(
                 device.connectGatt(appContext, false, gattCallback)
             }
         }.getOrElse { error ->
-            failConnection("Không thể mở GATT H20: ${error.message}")
+            failConnection("Không thể mở GATT HM-D001: ${error.message}")
             return
         }
         bluetoothGatt = opened
@@ -792,7 +792,7 @@ class Aiv0BleControlBridge(
         }
         if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
             phase = "error"
-            message = "Không thể tự kết nối lại H20 sau $MAX_RECONNECT_ATTEMPTS lần."
+            message = "Không thể tự kết nối lại HM-D001 sau $MAX_RECONNECT_ATTEMPTS lần."
             connectResult?.error("RECONNECT_FAILED", message, status)
             connectResult = null
             emitStatus()
@@ -801,7 +801,7 @@ class Aiv0BleControlBridge(
         reconnectAttempts += 1
         reconnectCount += 1
         phase = "reconnecting"
-        message = "Đang kết nối lại H20 ($reconnectAttempts/$MAX_RECONNECT_ATTEMPTS)…"
+        message = "Đang kết nối lại HM-D001 ($reconnectAttempts/$MAX_RECONNECT_ATTEMPTS)…"
         Log.w(TAG, "Reconnect $reconnectAttempts/$MAX_RECONNECT_ATTEMPTS status=$status")
         emitStatus()
         val delay = (1_000L shl (reconnectAttempts - 1)).coerceAtMost(8_000L)
@@ -815,7 +815,7 @@ class Aiv0BleControlBridge(
             val device = runCatching { adapter?.getRemoteDevice(id) }.getOrNull()
             if (device == null) {
                 phase = "error"
-                message = "Không còn tìm thấy H20 đã ghép nối."
+                message = "Không còn tìm thấy HM-D001 đã ghép nối."
                 emitStatus()
             } else {
                 openGatt(device)
@@ -924,7 +924,7 @@ class Aiv0BleControlBridge(
             reconnectAttempts = 0
             cancelPendingReconnect()
             phase = "reconnecting"
-            message = "Đang khôi phục kết nối H20…"
+            message = "Đang khôi phục kết nối HM-D001…"
             emitStatus()
             openGatt(device)
         }

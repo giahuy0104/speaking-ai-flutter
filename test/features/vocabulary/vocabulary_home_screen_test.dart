@@ -1950,7 +1950,7 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(SnackBar), findsOneWidget);
     expect(
-      find.text('Kết nối âm thanh H20 bị gián đoạn. Hãy thử lại.'),
+      find.text('Kết nối âm thanh HM-D001 bị gián đoạn. Hãy thử lại.'),
       findsOneWidget,
     );
     expect(find.textContaining('PlatformException'), findsNothing);
@@ -2305,7 +2305,7 @@ class _FailingJourneyVoicePromptService extends _RecordingVoicePromptService {
     if (fail) {
       throw PlatformException(
         code: 'HFP_ROUTE_LOST',
-        message: 'Kết nối âm thanh H20 bị gián đoạn. Hãy thử lại.',
+        message: 'Kết nối âm thanh HM-D001 bị gián đoạn. Hãy thử lại.',
       );
     }
     await super.speakAndWait(text, locale: locale);

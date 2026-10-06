@@ -1368,7 +1368,7 @@ class IOSStreamingSpeechInput extends AndroidStreamingSpeechInput
         (routeControl.status.deviceId == null &&
             !routeControl.status.isConnected)) {
       throw const HfpAudioException(
-        'Hãy kết nối H20 trước khi bắt đầu dịch liên tục.',
+        'Hãy kết nối HM-D001 trước khi bắt đầu dịch liên tục.',
       );
     }
 

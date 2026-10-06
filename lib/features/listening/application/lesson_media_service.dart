@@ -56,7 +56,7 @@ class LessonMediaService {
         if (completion != null && !completion.isCompleted) {
           completion.completeError(
             const HfpAudioException(
-              'Kết nối âm thanh H20 bị gián đoạn. Bạn bấm nghe lại nhé.',
+              'Kết nối âm thanh HM-D001 bị gián đoạn. Bạn bấm nghe lại nhé.',
             ),
           );
         }
@@ -65,7 +65,7 @@ class LessonMediaService {
         unawaited(_playbackService?.stop().catchError((Object _) {}));
         if (_recordingStartedAt != null) {
           const failure = LessonMediaException(
-            'Mic H20 bị ngắt kết nối khi đang ghi âm. Bạn kết nối lại H20 rồi ghi lại nhé.',
+            'Mic HM-D001 bị ngắt kết nối khi đang ghi âm. Bạn kết nối lại HM-D001 rồi ghi lại nhé.',
           );
           final context = _activeContext;
           if (context != null) {
@@ -443,7 +443,7 @@ class LessonMediaService {
       recorderStarted = true;
       if (useSelectedHfp && _hfpAudioControl?.status.routeActive != true) {
         throw const LessonMediaException(
-          'Mic H20 bị ngắt kết nối khi mở ghi âm. Bạn kết nối lại H20 rồi thử lại nhé.',
+          'Mic HM-D001 bị ngắt kết nối khi mở ghi âm. Bạn kết nối lại HM-D001 rồi thử lại nhé.',
         );
       }
       _activePath = path;
@@ -490,7 +490,7 @@ class LessonMediaService {
     }
     if (useSelectedHfp) {
       throw const LessonMediaException(
-        'Chưa mở được mic H20 đã chọn. Hãy kết nối lại H20 rồi thử lại.',
+        'Chưa mở được mic HM-D001 đã chọn. Hãy kết nối lại HM-D001 rồi thử lại.',
       );
     }
     throw const LessonMediaException(
