@@ -22,6 +22,8 @@ class H20ControlObservationTest {
         assertFalse(H20ControlObservation.isObservedMainPacket(downLong))
         assertFalse(H20ControlObservation.isObservedMainPacket(powerShort))
         assertEquals(79, H20ControlObservation.batteryPercent(mainLong))
+        assertEquals(79, H20ControlObservation.batteryPercent(downLong))
+        assertEquals(71, H20ControlObservation.batteryPercent(powerShort))
     }
 
     @Test fun observedMainShortKeepsExactRawBytes() {

@@ -23,7 +23,8 @@ internal object H20ControlObservation {
             (isHmD001Packet(bytes) && (bytes[1].toInt() and 0xff) == 1)
 
     fun batteryPercent(bytes: ByteArray): Int? {
-        if (!isObservedMainPacket(bytes)) return null
+        // HM-D001 reports its battery in every button packet, not only MAIN.
+        if (!isLegacyMainPacket(bytes) && !isHmD001Packet(bytes)) return null
         val raw = (bytes[6].toInt() and 0xff) or ((bytes[7].toInt() and 0xff) shl 8)
         return raw.coerceIn(0, 100)
     }
