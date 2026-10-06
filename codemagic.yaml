@@ -177,11 +177,12 @@ workflows:
           set -euo pipefail
           unset HOMI_IOS_TRANSLATION_SIMULATOR_STUB
           python3 tool/prepare_ios_translation_pods.py device
-          # BUILD_NUMBER is per-workflow; use the app-wide counter for uploads.
-          echo "IPA build number: $PROJECT_BUILD_NUMBER (workflow build: $BUILD_NUMBER)"
+          # Keep the Codemagic counter ahead of builds uploaded outside this app.
+          IPA_BUILD_NUMBER="$((PROJECT_BUILD_NUMBER + 10))"
+          echo "IPA build number: $IPA_BUILD_NUMBER (project build: $PROJECT_BUILD_NUMBER; workflow build: $BUILD_NUMBER)"
           flutter build ipa \
             --release \
-            --build-number="$PROJECT_BUILD_NUMBER" \
+            --build-number="$IPA_BUILD_NUMBER" \
             --export-options-plist="$HOME/export_options.plist" \
             --dart-define=BACKEND_BASE_URL="$BACKEND_BASE_URL" \
             --dart-define=USE_DEMO_BACKEND="$USE_DEMO_BACKEND" \
