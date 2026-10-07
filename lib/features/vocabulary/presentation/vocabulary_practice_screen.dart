@@ -33,6 +33,7 @@ enum VocabularyPracticeResult {
   continueLearning,
   otherContent,
   parentAdded,
+  review,
   stars,
   vocabularyRoot,
 }
@@ -987,6 +988,17 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       _finish(VocabularyPracticeResult.vocabularyRoot);
       return const ActiveLearningCommandResult.handled();
     }
+    if (command == ActiveLearningCommand.vocabularyPracticeAgain) {
+      unawaited(pauseForMainAssistant());
+      if (!_completed) {
+        await widget.sessionStore.saveActive(
+          _session.copyWith(currentIndex: _index),
+        );
+      }
+      if (!mounted) return const ActiveLearningCommandResult.unavailable();
+      _finish(VocabularyPracticeResult.review);
+      return const ActiveLearningCommandResult.handled();
+    }
     if (_isReview &&
         !_completed &&
         (command == ActiveLearningCommand.vocabularyParentAdded ||
@@ -1019,8 +1031,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         return const ActiveLearningCommandResult.handled();
       }
       if (_isToday &&
-          (command == ActiveLearningCommand.vocabularyPracticeAgain ||
-              command == ActiveLearningCommand.restart ||
+          (command == ActiveLearningCommand.restart ||
               command == ActiveLearningCommand.replayCurrent)) {
         _finish(VocabularyPracticeResult.continueLearning);
         return const ActiveLearningCommandResult.handled();
@@ -1101,8 +1112,8 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       case ActiveLearningCommand.nextLesson:
       case ActiveLearningCommand.previousLesson:
       case ActiveLearningCommand.restart:
-      case ActiveLearningCommand.vocabularyParentAdded:
       case ActiveLearningCommand.vocabularyPracticeAgain:
+      case ActiveLearningCommand.vocabularyParentAdded:
       case ActiveLearningCommand.vocabularyStars:
       case ActiveLearningCommand.vocabularyLatest:
       case ActiveLearningCommand.vocabularyAll:

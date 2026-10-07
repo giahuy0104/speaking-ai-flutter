@@ -1673,11 +1673,12 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   Future<bool> _prepareReviewFromVoice() async {
     if (_openingPractice || !mounted || !_isEffectivelyActive) return false;
-    final settled = await _leavePlaybackForOtherContent(
+    await _leavePlaybackForOtherContent(
       announceMenu: false,
       notifyNavigationExit: false,
+      proceedWithoutWaitingForCleanup: true,
     );
-    if (!settled || !mounted || !_isEffectivelyActive) return false;
+    if (!mounted || !_isEffectivelyActive) return false;
     _playbackQueue = const <VocabularyEntry>[];
     _pausedForMainAssistant = false;
     return true;
@@ -1725,6 +1726,22 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
             () => unawaited(_runAudioCommand(_openVocabularyRoot)),
           );
           return;
+        }
+        if (result == VocabularyPracticeResult.review) {
+          _openJourney(_VocabularyJourney.review);
+          final activeBeforeReview = await widget.sessionStore.readActive();
+          final reviewSession = await widget.sessionStore.prepareReview(
+            widget.store,
+          );
+          if (!mounted) return;
+          if (reviewSession == null) {
+            await _speakAndRequestChoice(VocabularyFlowV3.reviewEmpty);
+            return;
+          }
+          session = reviewSession;
+          announceIntro = activeBeforeReview?.id != session.id;
+          announceResume = activeBeforeReview?.id == session.id;
+          continue;
         }
         if (result == VocabularyPracticeResult.parentAdded ||
             result == VocabularyPracticeResult.stars) {
@@ -2293,6 +2310,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   Future<bool> _leavePlaybackForOtherContent({
     bool announceMenu = true,
     bool notifyNavigationExit = true,
+    bool proceedWithoutWaitingForCleanup = false,
   }) async {
     if (_playbackNavigationCleanup != null && announceMenu) return true;
     final activeVocabularyTurn =
@@ -2339,8 +2357,12 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     // An idle vocabulary root owns no child audio. Its defensive stop may
     // still wait on a plugin callback, but MAIN need not hold the next mic for
     // that callback when no vocabulary playback/route lease is active.
-    final settled = announceMenu || hasActiveAudio ? await cleanupResult : true;
-    if (!settled) return false;
+    final settled = proceedWithoutWaitingForCleanup
+        ? true
+        : announceMenu || hasActiveAudio
+        ? await cleanupResult
+        : true;
+    if (!settled && !proceedWithoutWaitingForCleanup) return false;
     if (!announceMenu ||
         !mounted ||
         !_isEffectivelyActive ||
