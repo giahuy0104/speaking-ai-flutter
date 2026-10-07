@@ -80,38 +80,45 @@ final class AudioPromptService {
       });
 
       if (resolution.bytes != null) {
-        try {
-          await _untilCancelled(
-            _playAuthored(
-              resolution.bytes!,
-              request,
-              assetKey: resolution.prompt?.asset,
-            ),
-            cancellation,
-            _authoredPlaybackTimeout(request, resolution),
-          );
-          AudioDiagnostics.event('registry.prompt.authored.completed', {
-            ...diagnosticFields,
-            'source': resolution.source.name,
-          });
-          return stopGeneration == _stopGeneration
-              ? resolution.source
-              : AudioPromptSource.unavailable;
-        } on _AudioPromptCancelled {
-          return AudioPromptSource.unavailable;
-        } catch (error) {
-          if (_isRouteLoss(error)) rethrow;
-          if (stopGeneration != _stopGeneration || !request.allowTtsFallback) {
+        for (var attempt = 1; attempt <= 2; attempt += 1) {
+          try {
+            await _untilCancelled(
+              _playAuthored(
+                resolution.bytes!,
+                request,
+                assetKey: resolution.prompt?.asset,
+              ),
+              cancellation,
+              _authoredPlaybackTimeout(request, resolution),
+            );
+            AudioDiagnostics.event('registry.prompt.authored.completed', {
+              ...diagnosticFields,
+              'source': resolution.source.name,
+              'attempt': attempt,
+            });
+            return stopGeneration == _stopGeneration
+                ? resolution.source
+                : AudioPromptSource.unavailable;
+          } on _AudioPromptCancelled {
             return AudioPromptSource.unavailable;
+          } catch (error) {
+            if (_isRouteLoss(error)) rethrow;
+            if (stopGeneration != _stopGeneration ||
+                !request.allowTtsFallback) {
+              return AudioPromptSource.unavailable;
+            }
+            // Clear the failed native attempt before retrying the full clip.
+            await _stopPlayback();
+            AudioDiagnostics.event(
+              attempt == 1
+                  ? 'registry.prompt.authored.retry'
+                  : 'registry.prompt.authored.fallback',
+              {
+                ...diagnosticFields,
+                'reason': error.runtimeType.toString(),
+              },
+            );
           }
-          // A native decoder/timeout may leave MediaPlayer active. Finish that
-          // exact attempt before TTS starts, otherwise TTS releases it midway
-          // and sounds like an unexplained authored-audio cut-off.
-          await _stopPlayback();
-          AudioDiagnostics.event('registry.prompt.authored.fallback', {
-            ...diagnosticFields,
-            'reason': error.runtimeType.toString(),
-          });
         }
       } else if (resolution.source == AudioPromptSource.unavailable) {
         return AudioPromptSource.unavailable;

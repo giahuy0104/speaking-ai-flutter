@@ -123,6 +123,7 @@ class MainVoiceAssistantFlow {
   ActiveLearningModuleKind? _activeLearningKind;
   ActiveLearningVoiceNode? _activeVoiceNode;
   String? _activeVoicePrompt;
+  String? _activeVoiceContextAudioKey;
   ActiveLearningVoiceSelectionContext? _activeVoiceSelection;
   bool _pausedChoice = false;
   int _flowGeneration = 0;
@@ -161,6 +162,7 @@ class MainVoiceAssistantFlow {
     ActiveLearningVoiceNode.song => MainAssistantAudioKeys.songControls,
     _ when _activeVoicePrompt == null =>
       MainAssistantAudioKeys.activeLearningControls,
+    _ when _activeVoicePrompt != null => _activeVoiceContextAudioKey,
     _ => null,
   };
 
@@ -289,6 +291,11 @@ class MainVoiceAssistantFlow {
     _activeLearningKind = kind;
     _activeVoiceNode = voiceContext?.mainVoiceNode;
     _activeVoicePrompt = voiceContext?.mainVoicePrompt;
+    _activeVoiceContextAudioKey = switch (voiceContext) {
+      ActiveLearningVoicePromptAudioContext context =>
+        context.mainVoicePromptAudioKey,
+      _ => null,
+    };
     _activeVoiceSelection = voiceContext is ActiveLearningVoiceSelectionContext
         ? voiceContext as ActiveLearningVoiceSelectionContext
         : null;
@@ -370,6 +377,7 @@ class MainVoiceAssistantFlow {
     _selectedCatalog = null;
     _selectedTopicNumber = null;
     _selectedTopicContent = null;
+    _activeVoiceContextAudioKey = null;
     _completedTopicNumbers = const <int>{};
     _allowedTopicNumbers = const <int>{};
     _allowedLevelNumbers = const <int>{};

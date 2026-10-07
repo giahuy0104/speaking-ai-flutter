@@ -54,6 +54,15 @@ abstract interface class ActiveLearningVoiceContext {
   String get mainVoicePrompt;
 }
 
+/// Optional authored-audio key for the current MAIN prompt.
+///
+/// Most modules use MAIN's shared prompt catalog. Modules with a dedicated
+/// prompt catalog can expose the matching key so MAIN waits for the same
+/// authored recording used by that module's own voice flow.
+abstract interface class ActiveLearningVoicePromptAudioContext {
+  String? get mainVoicePromptAudioKey;
+}
+
 /// Completion nodes may carry dynamic lesson/level numbers. The owning module
 /// resolves those slots using the same choices displayed on screen.
 abstract interface class ActiveLearningVoiceSelectionContext {

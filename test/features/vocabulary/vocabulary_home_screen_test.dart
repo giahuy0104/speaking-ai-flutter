@@ -81,6 +81,11 @@ void main() {
         findsOneWidget,
       );
       expect(prompts.spokenTexts.last, VocabularyFlowV3.menu);
+      expect(
+        (registry.controller! as ActiveLearningVoicePromptAudioContext)
+            .mainVoicePromptAudioKey,
+        'vocabulary.flow.menu.vi',
+      );
     },
     variant: TargetPlatformVariant({
       TargetPlatform.android,

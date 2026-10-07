@@ -580,6 +580,17 @@ void main() {
     expect(translation.navigationAfterPrompt?.enterMainSpeakingMode, isTrue);
   });
 
+  test('MAIN uses the active vocabulary prompt audio key', () {
+    final flow = MainVoiceAssistantFlow();
+    final prompt = flow.beginActiveLearning(
+      kind: ActiveLearningModuleKind.vocabulary,
+      voiceContext: const _VocabularyMenuVoiceContext(),
+    );
+
+    expect(prompt, 'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?');
+    expect(flow.currentPromptAudioKey, 'vocabulary.flow.menu.vi');
+  });
+
   test('learned parent words hand off to the shared vocabulary flow', () async {
     final flow = MainVoiceAssistantFlow(
       contentLoader: _loadContent,
@@ -1499,6 +1510,24 @@ class _TranslationSourceVoiceContext implements ActiveLearningVoiceContext {
 
   @override
   String get mainVoicePrompt => MasterNavigationContract.coreControlPrompt;
+}
+
+class _VocabularyMenuVoiceContext
+    implements
+        ActiveLearningVoiceContext,
+        ActiveLearningVoicePromptAudioContext {
+  const _VocabularyMenuVoiceContext();
+
+  @override
+  ActiveLearningVoiceNode get mainVoiceNode =>
+      ActiveLearningVoiceNode.vocabularyMenu;
+
+  @override
+  String get mainVoicePrompt =>
+      'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?';
+
+  @override
+  String? get mainVoicePromptAudioKey => 'vocabulary.flow.menu.vi';
 }
 
 class _CompletionVoiceContext

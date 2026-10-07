@@ -173,17 +173,46 @@ void main() {
 
   test('authored decode/autoplay failure uses TTS fallback', () async {
     final fixture = _Fixture.bundle(key: key, locale: locale, bytes: authored);
+    var playCount = 0;
     var ttsCount = 0;
+    var stopCount = 0;
     final service = AudioPromptService(
       resolver: fixture.resolver,
-      playAuthored: (_, _, {assetKey}) async =>
-          throw StateError('autoplay denied'),
+      playAuthored: (_, _, {assetKey}) async {
+        playCount += 1;
+        throw StateError('autoplay denied');
+      },
       playTts: (_) async => ttsCount += 1,
-      stopPlayback: () async {},
+      stopPlayback: () async => stopCount += 1,
     );
 
     expect(await service.play(request()), AudioPromptSource.tts);
+    expect(playCount, 2);
     expect(ttsCount, 1);
+    expect(stopCount, 2);
+  });
+
+  test('retries a transient authored playback failure before TTS', () async {
+    final fixture = _Fixture.bundle(key: key, locale: locale, bytes: authored);
+    var playCount = 0;
+    var ttsCount = 0;
+    var stopCount = 0;
+    final service = AudioPromptService(
+      resolver: fixture.resolver,
+      playAuthored: (_, _, {assetKey}) async {
+        playCount += 1;
+        if (playCount == 1) {
+          throw StateError('transient decoder failure');
+        }
+      },
+      playTts: (_) async => ttsCount += 1,
+      stopPlayback: () async => stopCount += 1,
+    );
+
+    expect(await service.play(request()), AudioPromptSource.bundledAsset);
+    expect(playCount, 2);
+    expect(ttsCount, 0);
+    expect(stopCount, 1);
   });
 
   test('HFP route loss is fail-closed and never falls back to TTS', () async {
@@ -293,7 +322,7 @@ void main() {
     );
 
     expect(await service.play(request()), AudioPromptSource.tts);
-    expect(events, <String>['authored', 'stop', 'tts']);
+    expect(events, <String>['authored', 'stop', 'authored', 'stop', 'tts']);
   });
 
   test('authored budget includes startup and decoder tail allowance', () async {

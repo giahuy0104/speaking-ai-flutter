@@ -65,10 +65,11 @@ VoicePromptService createVoicePromptService({
               'assets/data/challenge_11_12_audio.json',
               'assets/data/challenge_13_15_audio.json',
             ],
-            if (owner == AudioTurnOwner.vocabulary) ...const [
+            if (owner == AudioTurnOwner.mainAssistant ||
+                owner == AudioTurnOwner.vocabulary)
               'assets/data/vocabulary_common_audio.json',
+            if (owner == AudioTurnOwner.vocabulary)
               'assets/data/vocabulary_built_in_audio.json',
-            ],
           ],
           httpClient: httpClient,
         )

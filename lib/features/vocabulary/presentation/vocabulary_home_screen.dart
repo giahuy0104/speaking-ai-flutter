@@ -156,7 +156,10 @@ class VocabularyHomeScreen extends StatefulWidget {
 }
 
 class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
-    implements ActiveLearningModuleController, ActiveLearningVoiceContext {
+    implements
+        ActiveLearningModuleController,
+        ActiveLearningVoiceContext,
+        ActiveLearningVoicePromptAudioContext {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   StreamSubscription<void>? _storeSubscription;
@@ -438,6 +441,12 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     ActiveLearningVoiceNode.star => MasterNavigationContract.coreControlPrompt,
     _ => _lastVoiceChoicePrompt,
   };
+
+  @override
+  String? get mainVoicePromptAudioKey {
+    final prompt = VocabularyFlowV3.fixedPromptForText(mainVoicePrompt);
+    return prompt == null ? null : VocabularyAudioKeys.fixedPrompt(prompt);
+  }
 
   @override
   Future<void> pauseForMainAssistant() async {
