@@ -704,7 +704,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   Future<bool> _executeVoiceNavigation(VoiceNavigationIntent intent) async {
     final useChinese =
         widget.controller.displayLanguage == DisplayLanguage.simplifiedChinese;
-    final activeKind = ActiveLearningModuleScope.read(context)?.activeKind;
+    final activeModule = ActiveLearningModuleScope.read(context);
+    final activeKind = activeModule?.activeKind;
     final leavesActiveModule = switch ((activeKind, intent.destination)) {
       (
         ActiveLearningModuleKind.listeningLesson,
@@ -723,8 +724,29 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         leavesActiveModule &&
         activeKind == ActiveLearningModuleKind.vocabulary &&
         intent.destination == VoiceNavigationDestination.conversation;
+    final iosVocabularyPracticeTransfer =
+        !kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.iOS &&
+        leavesActiveModule &&
+        activeModule?.controller is ActiveLearningNavigationCheckpoint &&
+        (intent.destination == VoiceNavigationDestination.conversation ||
+            intent.destination == VoiceNavigationDestination.topics);
+    if (iosVocabularyPracticeTransfer) {
+      final checkpoint =
+          activeModule!.controller! as ActiveLearningNavigationCheckpoint;
+      if (!await checkpoint.preserveForNavigation()) {
+        _showVoiceNavigationMessage(
+          'Chưa lưu được vị trí học. Bạn hãy thử chuyển lại.',
+        );
+        return false;
+      }
+      if (!mounted || !identical(activeModule.controller, checkpoint)) {
+        return false;
+      }
+    }
     if (leavesActiveModule &&
-        activeKind == ActiveLearningModuleKind.vocabulary) {
+        activeKind == ActiveLearningModuleKind.vocabulary &&
+        !iosVocabularyPracticeTransfer) {
       // A vocabulary practice route sits above this shell and would keep
       // covering the destination. Closing it keeps its checkpoint, like Back.
       Navigator.of(context).popUntil((route) => route.isFirst);
@@ -739,7 +761,9 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       _pausedListeningCheckpoint = await const ActiveListeningSessionStore()
           .read();
     }
-    if (leavesActiveModule && !deferVocabularyExitCommit) {
+    if (leavesActiveModule &&
+        !deferVocabularyExitCommit &&
+        !iosVocabularyPracticeTransfer) {
       // MAIN already paused the source owner, which persisted its exact item
       // checkpoint. A committed module transfer must only clear automatic
       // resume ownership; it must not complete, skip, or reset that source.
@@ -781,6 +805,12 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     switch (intent.destination) {
       case VoiceNavigationDestination.conversation:
         if (!await _showConversationAndWait()) return false;
+        if (!mounted) return false;
+        if (iosVocabularyPracticeTransfer) {
+          // The old practice route stays visible when audio cleanup fails.
+          // Once the conversation page is ready, close that paused route.
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
         if (deferVocabularyExitCommit) {
           widget.onActiveLearningExitCommitted?.call();
         }
@@ -808,6 +838,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           unawaited(_vocabularyNavigationController.openRoot());
         }
       case VoiceNavigationDestination.topics:
+        Route<void>? installedTopicRoute;
         final pausedCheckpoint =
             intent.topicNumber == null &&
                 intent.levelNumber == null &&
@@ -844,6 +875,9 @@ class _HomeLearningShellState extends State<HomeLearningShell>
             _openTopicListening(
               initialVoiceTarget: opensCurrentLevelSelection ? null : target,
               routePushed: routePushed,
+              onRouteCreated: iosVocabularyPracticeTransfer
+                  ? (route) => installedTopicRoute = route
+                  : null,
             ),
           );
           // Navigator.push returns only when the user eventually leaves the
@@ -856,6 +890,15 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                 kIsWeb || defaultTargetPlatform != TargetPlatform.iOS,
           );
           if (!installed) return false;
+          if (!mounted) return false;
+          if (iosVocabularyPracticeTransfer) {
+            final route = installedTopicRoute;
+            if (route == null || !route.isActive) return false;
+            // Replace only the paused practice route under the installed Topic
+            // route. The checkpoint was saved before the new route was pushed.
+            Navigator.of(context).removeRouteBelow(route);
+            widget.onActiveLearningExitCommitted?.call();
+          }
         } else {
           return false;
         }
@@ -1201,6 +1244,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   Future<void> _openTopicListening({
     ListeningVoiceNavigationTarget? initialVoiceTarget,
     Completer<bool>? routePushed,
+    void Function(Route<void> route)? onRouteCreated,
   }) async {
     if (_openingTopics) {
       if (routePushed != null && !routePushed.isCompleted) {
@@ -1292,6 +1336,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           progressStore: widget.listeningProgressStore,
         ),
         settings: const RouteSettings(name: ListeningRouteNames.topicCatalog),
+        onRouteCreated: onRouteCreated,
         foregroundTransitionDuration: routeDuration,
         foregroundReverseTransitionDuration: routeDuration,
         foregroundTransitionsBuilder:

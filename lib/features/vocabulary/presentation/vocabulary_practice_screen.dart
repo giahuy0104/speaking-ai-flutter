@@ -87,7 +87,10 @@ class VocabularyPracticeScreen extends StatefulWidget {
 }
 
 class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
-    implements ActiveLearningModuleController, ActiveLearningVoiceContext {
+    implements
+        ActiveLearningModuleController,
+        ActiveLearningVoiceContext,
+        ActiveLearningNavigationCheckpoint {
   late VocabularyPracticeSession _session;
   late final LessonAttemptEvaluator _attemptEvaluator;
   late final bool _ownsAttemptEvaluator;
@@ -147,6 +150,20 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
 
   @override
   bool get isPausedForMain => _paused;
+
+  @override
+  Future<bool> preserveForNavigation() async {
+    if (!mounted) return false;
+    if (_loading || _completed) return true;
+    try {
+      await widget.sessionStore.saveActive(
+        _session.copyWith(currentIndex: _index),
+      );
+      return mounted;
+    } catch (_) {
+      return false;
+    }
+  }
 
   @override
   void initState() {

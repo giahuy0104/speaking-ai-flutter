@@ -96,6 +96,12 @@ abstract interface class ActiveLearningModuleController {
   );
 }
 
+/// An active route that can persist its exact position before another route
+/// replaces it without a normal Navigator pop.
+abstract interface class ActiveLearningNavigationCheckpoint {
+  Future<bool> preserveForNavigation();
+}
+
 /// One microphone owner and one visible learning owner at a time.
 ///
 /// Learning routes can temporarily stack (for example, the review route sits

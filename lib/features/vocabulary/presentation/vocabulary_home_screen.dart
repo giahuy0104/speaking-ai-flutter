@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -2310,15 +2311,20 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       ActiveLearningModuleScope.notifyNavigationExit(context);
     }
     final journey = _selectedJourney;
+    final deferJourneyClose =
+        !kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.iOS &&
+        !announceMenu &&
+        !notifyNavigationExit;
     // Touch and MAIN use the same cancellation boundary. Update the screen
     // immediately, while an old audio callback can no longer advance its queue.
-    _playbackGeneration++;
+    final cleanupGeneration = ++_playbackGeneration;
     _playbackInterrupted = false;
     _waitingForPlaybackContinuation = false;
     _awaitingPlaybackEndChoice = false;
     _playingCollection = false;
     _activeEntryId = null;
-    _closeJourney();
+    if (!deferJourneyClose) _closeJourney();
     final cleanupResult = _boundPlaybackNavigationCleanup(
       Future.wait<void>(<Future<void>>[
         _voicePromptService.stop().catchError((Object _) {}),
@@ -2341,6 +2347,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     // that callback when no vocabulary playback/route lease is active.
     final settled = announceMenu || hasActiveAudio ? await cleanupResult : true;
     if (!settled) return false;
+    if (deferJourneyClose) {
+      if (!mounted || cleanupGeneration != _playbackGeneration) return false;
+      if (_selectedJourney == journey) _closeJourney();
+    }
     if (!announceMenu ||
         !mounted ||
         !_isEffectivelyActive ||
