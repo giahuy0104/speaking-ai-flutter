@@ -1271,7 +1271,10 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
 
   static func makeReadyCueWavData() -> Data {
     // Match Android ReadyCueWaveform exactly: 120 ms, 880 Hz, 8 ms edge
-    // fades, and -21 dBFS active RMS. HFP carries 16 kHz mono PCM directly.
+    // fades, and -33 dBFS active RMS. A steady tone at the prompts' -21 dBFS
+    // target comes out of a phone speaker about 10 dB louder than speech at
+    // the same RMS, so the cue sits 12 dB under the target to stay a quiet
+    // "ready" tick between prompts. HFP carries 16 kHz mono PCM directly.
     let sampleRate: UInt32 = 16_000
     let sampleCount = Int(sampleRate * 120 / 1_000)
     let dataByteCount = UInt32(sampleCount * MemoryLayout<Int16>.size)
@@ -1291,7 +1294,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
 
     let frequency = 880.0
     let fadeSamples = Double(sampleRate * 8 / 1_000)
-    let amplitude = sqrt(2.0) * pow(10.0, -21.0 / 20.0)
+    let amplitude = sqrt(2.0) * pow(10.0, -33.0 / 20.0)
     for index in 0..<sampleCount {
       let position = Double(index)
       let fadeIn = min(1.0, position / fadeSamples)

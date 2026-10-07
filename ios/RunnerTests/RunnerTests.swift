@@ -393,7 +393,7 @@ class RunnerTests: XCTestCase {
     }
     let meanSquare = activeSamples.reduce(0.0) { $0 + $1 * $1 }
       / Double(activeSamples.count)
-    XCTAssertEqual(20.0 * log10(sqrt(meanSquare)), -21.0, accuracy: 0.25)
+    XCTAssertEqual(20.0 * log10(sqrt(meanSquare)), -33.0, accuracy: 0.25)
   }
 
   func testIOSSpeechRouteMatchesOnlyTheSelectedHfpInput() {
