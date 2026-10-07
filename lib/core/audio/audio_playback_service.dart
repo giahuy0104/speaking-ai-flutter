@@ -191,6 +191,11 @@ class JustAudioPlaybackService
         unawaited(_releaseAudioTurn());
       });
     }
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      _androidFocusReleaseSubscription = completionStream.listen((_) {
+        unawaited(_releaseAndroidAudioFocus());
+      });
+    }
   }
 
   static _DefaultAudioPlayer _createDefaultPlayer() {
@@ -234,6 +239,7 @@ class JustAudioPlaybackService
   final AudioTurnOwner _audioTurnOwner;
   late final Future<AudioSession> _audioSession;
   StreamSubscription<void>? _audioTurnCompletionSubscription;
+  StreamSubscription<void>? _androidFocusReleaseSubscription;
   AudioTurnLease? _audioTurnLease;
   _PlaybackRequest? _turnReleasableFor;
   Future<void>? _playbackSessionPreparation;
@@ -961,6 +967,18 @@ class JustAudioPlaybackService
     } finally {
       await lease?.release();
     }
+    await _releaseAndroidAudioFocus();
+  }
+
+  /// Android keeps the focus just_audio requests for a clip until it is
+  /// abandoned, so the app would stay in the focus stack between clips. A
+  /// recognizer that opens its own microphone (Google below Android 13) takes
+  /// transient focus for every listening window, and the framework then ducks
+  /// or fades every player of the app that lost it, native prompts included.
+  /// Leave the stack as soon as a clip ends.
+  Future<void> _releaseAndroidAudioFocus() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+    await (await _audioSession).setActive(false);
   }
 
   Future<void> _acquireAudioTurn(_PlaybackRequest request) async {
@@ -1002,7 +1020,9 @@ class JustAudioPlaybackService
     _playbackSessionPreparation = null;
     ++_preloadRevision;
     await _audioTurnCompletionSubscription?.cancel();
+    await _androidFocusReleaseSubscription?.cancel();
     await _releaseAudioTurn();
+    await _releaseAndroidAudioFocus();
     await _browserPlayback?.dispose();
     await _player.dispose();
     if (_ownsCache) {
