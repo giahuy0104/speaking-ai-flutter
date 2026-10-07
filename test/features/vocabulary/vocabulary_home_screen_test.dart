@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
+import 'package:ai_speaking_flutter_app/core/session/app_flow_coordinator.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_intent_resolver.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
@@ -2234,6 +2235,219 @@ void main() {
   );
 
   testWidgets(
+    'iOS idle Vocabulary menu keeps MAIN ownership without a stale stop',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final coordinator = AppFlowCoordinator(registry: registry);
+      final voice = _BlockingStopVoicePromptService();
+      final sessions = _GatedReviewSessionStore();
+      addTearDown(() {
+        if (!voice.stopGate.isCompleted) voice.stopGate.complete();
+        if (!sessions.reviewGate.isCompleted) sessions.reviewGate.complete();
+      });
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: ActiveLearningModuleScope(
+            registry: registry,
+            child: DisplayLanguageScope(
+              language: DisplayLanguage.vietnamese,
+              child: VocabularyHomeScreen(
+                isReady: true,
+                isActive: true,
+                autoStartToday: false,
+                store: _MemoryVocabularyStore(_starAndReviewEntries()),
+                sessionStore: sessions,
+                mediaService: _ImmediateLessonMediaService(),
+                voicePromptService: voice,
+                fixedPromptAudioService:
+                    const _UnavailableFixedPromptAudioService(),
+                onReturnToConversation: () {},
+                onHistory: () {},
+                onSettings: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final pause = await coordinator.pauseForMainAssistant();
+      expect(pause.paused, isTrue);
+      expect(pause.hasActiveModule, isTrue);
+      expect(pause.activeKind, ActiveLearningModuleKind.vocabulary);
+      expect(voice.stopCalls, 0);
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+
+      var commandFinished = false;
+      final command = coordinator
+          .execute(ActiveLearningCommand.vocabularyPracticeAgain)
+          .then((result) {
+            commandFinished = true;
+            return result;
+          });
+      await tester.pump();
+      expect(commandFinished, isFalse);
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+
+      sessions.reviewGate.complete();
+      await tester.pump();
+      expect((await command).wasHandled, isTrue);
+      await tester.pumpAndSettle();
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      expect(voice.stopCalls, 0);
+      voice.stopGate.complete();
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 3));
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'iOS menu MAIN waits for the existing audio release before Review',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final navigation = VocabularyHomeNavigationController();
+      final audio = _BlockingVocabularyAudioService();
+      addTearDown(() {
+        if (!audio.stopGate.isCompleted) audio.stopGate.complete();
+        if (!audio.speechGate.isCompleted) audio.speechGate.complete();
+      });
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: MaterialApp(
+            theme: buildAppTheme(),
+            home: DisplayLanguageScope(
+              language: DisplayLanguage.vietnamese,
+              child: VocabularyHomeScreen(
+                isReady: true,
+                autoStartToday: false,
+                store: _MemoryVocabularyStore(_fourWayNavigationEntries()),
+                navigationController: navigation,
+                mediaService: _ImmediateLessonMediaService(),
+                voicePromptService: const _FakeVoicePromptService(),
+                vocabularyAudioService: audio,
+                fixedPromptAudioService:
+                    const _UnavailableFixedPromptAudioService(),
+                onReturnToConversation: () {},
+                onHistory: () {},
+                onSettings: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        (await registry.execute(
+          ActiveLearningCommand.vocabularyParentAdded,
+        )).wasHandled,
+        isTrue,
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(audio.spoken, isNotEmpty);
+
+      expect(await navigation.handleBack(), isTrue);
+      await tester.pump();
+      expect(
+        find.byKey(const ValueKey<String>('vocabulary-journey-landing')),
+        findsOneWidget,
+      );
+      expect(audio.stopCalls, 1);
+
+      var pauseFinished = false;
+      final pause = registry.pauseForMainAssistant().then((result) {
+        pauseFinished = true;
+        return result;
+      });
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(pauseFinished, isFalse);
+      expect(audio.stopCalls, 1);
+      audio.stopGate.complete();
+      await tester.pump();
+      expect(await pause, isTrue);
+      expect(audio.stopCalls, 1);
+
+      expect(
+        (await registry.execute(
+          ActiveLearningCommand.vocabularyPracticeAgain,
+        )).wasHandled,
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 3));
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'iOS MAIN cancels a pending automatic Today entry before opening Review',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final entries = _starAndReviewEntries();
+      final sessions = _GatedTodaySessionStore(entries.first.id);
+      addTearDown(() {
+        if (!sessions.todayGate.isCompleted) sessions.todayGate.complete();
+      });
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: ActiveLearningModuleScope(
+            registry: registry,
+            child: DisplayLanguageScope(
+              language: DisplayLanguage.vietnamese,
+              child: VocabularyHomeScreen(
+                isReady: true,
+                isActive: true,
+                autoStartToday: true,
+                store: _MemoryVocabularyStore(entries),
+                sessionStore: sessions,
+                mediaService: _ImmediateLessonMediaService(),
+                voicePromptService: const _FakeVoicePromptService(),
+                fixedPromptAudioService:
+                    const _UnavailableFixedPromptAudioService(),
+                onReturnToConversation: () {},
+                onHistory: () {},
+                onSettings: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(sessions.todayStarted, isTrue);
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      sessions.todayGate.complete();
+      await tester.pump();
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+
+      expect(
+        (await registry.execute(
+          ActiveLearningCommand.vocabularyPracticeAgain,
+        )).wasHandled,
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      expect(
+        (await sessions.readActive())?.mode,
+        VocabularyPracticeMode.review,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 3));
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
     'Vocabulary root opens Review while preserving an unfinished Today group',
     (tester) async {
       final registry = ActiveLearningModuleRegistry();
@@ -2579,6 +2793,58 @@ class _FakeVoicePromptService implements VoicePromptService {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _BlockingStopVoicePromptService extends _RecordingVoicePromptService {
+  final stopGate = Completer<void>();
+  int stopCalls = 0;
+
+  @override
+  Future<void> stop() {
+    stopCalls++;
+    return stopGate.future;
+  }
+}
+
+class _GatedReviewSessionStore extends VocabularySessionStore {
+  final reviewGate = Completer<void>();
+
+  @override
+  Future<VocabularyPracticeSession?> prepareReview(
+    VocabularyStore store, {
+    DateTime? now,
+    bool forceNextGroup = false,
+  }) async {
+    await reviewGate.future;
+    return super.prepareReview(store, now: now, forceNextGroup: forceNextGroup);
+  }
+}
+
+class _GatedTodaySessionStore extends VocabularySessionStore {
+  _GatedTodaySessionStore(this.entryId);
+
+  final String entryId;
+  final todayGate = Completer<void>();
+  bool todayStarted = false;
+
+  @override
+  Future<VocabularyPracticeSession?> prepareToday(
+    VocabularyStore store, {
+    DateTime? now,
+    bool forceNextGroup = false,
+  }) async {
+    todayStarted = true;
+    await todayGate.future;
+    return VocabularyPracticeSession(
+      id: 'today:pending-voice',
+      mode: VocabularyPracticeMode.today,
+      entryIds: <String>[entryId],
+      currentIndex: 0,
+      results: const <String, bool>{},
+      correctAudioPaths: const <String, String>{},
+      createdAt: DateTime(2026, 10, 7),
+    );
+  }
 }
 
 class _InterruptibleVoicePromptService implements VoicePromptService {

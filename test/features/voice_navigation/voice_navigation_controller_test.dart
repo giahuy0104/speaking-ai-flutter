@@ -1474,6 +1474,222 @@ void main() {
     );
   }
 
+  test(
+    'iOS Vocabulary prepares the translation screen before its prompts',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final speech = _FakeNavigationSpeechInput();
+      final prompt = _TranslationTransferPromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+      );
+      final intents = <VoiceNavigationIntent>[];
+      var preparedBeforePrompt = false;
+      controller.setIntentResultHandler((intent) {
+        if (intent.prepareOnly) {
+          preparedBeforePrompt = prompt.spokenTexts.isEmpty;
+        }
+        intents.add(intent);
+        return true;
+      });
+      expect(
+        await controller.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: ActiveLearningModuleKind.vocabulary,
+          promptAlreadySpoken: true,
+        ),
+        isTrue,
+      );
+
+      final transfer = controller.dispatchRecognizedText('Dịch tiếng Anh');
+      await _waitUntil(() => intents.isNotEmpty);
+      expect(intents, hasLength(1));
+      expect(
+        intents.single.destination,
+        VoiceNavigationDestination.conversation,
+      );
+      expect(intents.single.prepareOnly, isTrue);
+      expect(intents.single.enterMainSpeakingMode, isFalse);
+      expect(preparedBeforePrompt, isTrue);
+      expect(
+        controller.mainAssistantStage,
+        MainVoiceAssistantStage.activeLearning,
+      );
+
+      await _waitUntil(() => prompt.spokenTexts.length == 1);
+      expect(intents, hasLength(1));
+      prompt.transition.complete();
+      await _waitUntil(() => prompt.spokenTexts.length == 2);
+      expect(intents, hasLength(1));
+      prompt.intro.complete();
+      expect(await transfer, isTrue);
+      expect(intents, hasLength(2));
+      expect(intents.last.prepareOnly, isFalse);
+      expect(intents.last.enterMainSpeakingMode, isTrue);
+      expect(controller.mainAssistantStage, MainVoiceAssistantStage.idle);
+
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
+  test('iOS Vocabulary keeps its choice if visual preparation fails', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final speech = _FakeNavigationSpeechInput();
+    final prompt = _TranslationTransferPromptService();
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: prompt,
+    );
+    final intents = <VoiceNavigationIntent>[];
+    controller.setIntentResultHandler((intent) {
+      intents.add(intent);
+      return false;
+    });
+    expect(
+      await controller.activateFromMainButton(
+        activeLearning: true,
+        activeLearningKind: ActiveLearningModuleKind.vocabulary,
+        promptAlreadySpoken: true,
+      ),
+      isTrue,
+    );
+
+    expect(await controller.dispatchRecognizedText('Dịch tiếng Anh'), isFalse);
+    expect(intents, hasLength(1));
+    expect(intents.single.prepareOnly, isTrue);
+    expect(prompt.spokenTexts, isEmpty);
+    expect(controller.isAwaitingCommand, isTrue);
+    expect(
+      controller.mainAssistantStage,
+      MainVoiceAssistantStage.activeLearning,
+    );
+
+    await controller.pause();
+    controller.dispose();
+    await speech.dispose();
+  });
+
+  for (final (phrase, topicNumber) in <(String, int?)>[
+    ('Học Chủ đề', null),
+    ('Chủ đề số 2', 2),
+  ]) {
+    test('iOS Vocabulary prepares $phrase before the Topic prompt', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final speech = _FakeNavigationSpeechInput();
+      final prompt = _TopicTransferPromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+      );
+      controller.setChildAge(6);
+      final intents = <VoiceNavigationIntent>[];
+      var preparedBeforePrompt = false;
+      controller.setIntentResultHandler((intent) {
+        if (intent.prepareOnly) {
+          preparedBeforePrompt = prompt.spokenTexts.isEmpty;
+        }
+        intents.add(intent);
+        return true;
+      });
+      expect(
+        await controller.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: ActiveLearningModuleKind.vocabulary,
+          promptAlreadySpoken: true,
+        ),
+        isTrue,
+      );
+
+      final transfer = controller.dispatchRecognizedText(phrase);
+      await _waitUntil(() => prompt.spokenTexts.isNotEmpty);
+      expect(preparedBeforePrompt, isTrue);
+      expect(
+        prompt.spokenTexts.single,
+        MasterNavigationContract.switchedToSubject,
+      );
+      expect(intents, hasLength(1));
+      final preparation = intents.single;
+      expect(preparation.prepareOnly, isTrue);
+      expect(preparation.destination, VoiceNavigationDestination.topics);
+      expect(preparation.topicNumber, topicNumber);
+      expect(preparation.childAge, 6);
+      expect(preparation.enterMainSpeakingMode, isFalse);
+      expect(
+        controller.mainAssistantStage,
+        MainVoiceAssistantStage.activeLearning,
+      );
+
+      prompt.transition.complete();
+      expect(await transfer, isTrue);
+      expect(intents, hasLength(2));
+      final navigation = intents.last;
+      expect(navigation.prepareOnly, isFalse);
+      expect(navigation.destination, VoiceNavigationDestination.topics);
+      expect(preparation.recognizedText, navigation.recognizedText);
+      expect(preparation.matchedPhrase, navigation.matchedPhrase);
+      expect(preparation.topicNumber, navigation.topicNumber);
+      expect(preparation.lessonNumber, navigation.lessonNumber);
+      expect(preparation.levelNumber, navigation.levelNumber);
+      expect(preparation.childAge, navigation.childAge);
+      expect(preparation.openLesson, navigation.openLesson);
+      expect(preparation.relearnTopic, navigation.relearnTopic);
+      expect(preparation.relearnLesson, navigation.relearnLesson);
+      expect(preparation.relearnLevel, navigation.relearnLevel);
+      expect(preparation.vocabularyTarget, navigation.vocabularyTarget);
+      expect(controller.mainAssistantStage, MainVoiceAssistantStage.idle);
+
+      controller.dispose();
+      await speech.dispose();
+    });
+  }
+
+  test(
+    'iOS Vocabulary retains its Topic choice when preparation fails',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final speech = _FakeNavigationSpeechInput();
+      final prompt = _TopicTransferPromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+      );
+      final intents = <VoiceNavigationIntent>[];
+      controller.setIntentResultHandler((intent) {
+        intents.add(intent);
+        return false;
+      });
+      expect(
+        await controller.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: ActiveLearningModuleKind.vocabulary,
+          promptAlreadySpoken: true,
+        ),
+        isTrue,
+      );
+
+      expect(await controller.dispatchRecognizedText('Chủ đề số 2'), isFalse);
+      expect(intents, hasLength(1));
+      expect(intents.single.prepareOnly, isTrue);
+      expect(intents.single.topicNumber, 2);
+      expect(prompt.spokenTexts, isEmpty);
+      expect(controller.isAwaitingCommand, isTrue);
+      expect(
+        controller.mainAssistantStage,
+        MainVoiceAssistantStage.activeLearning,
+      );
+
+      await controller.pause();
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
+
   for (final failIntro in [false, true]) {
     test(
       'cancelled/failed translation intro ($failIntro) has safe terminal handoff',
@@ -3358,6 +3574,18 @@ class _TranslationTransferPromptService
       await transition.future;
     } else if (text == MasterNavigationContract.translationIntro) {
       await intro.future;
+    }
+  }
+}
+
+class _TopicTransferPromptService extends _FakeMainTurnVoicePromptService {
+  final transition = Completer<void>();
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    await super.speakAndWait(text, locale: locale);
+    if (text == MasterNavigationContract.switchedToSubject) {
+      await transition.future;
     }
   }
 }

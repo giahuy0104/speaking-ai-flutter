@@ -112,6 +112,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   int _requestedPage = 0;
   int _pageNavigationGeneration = 0;
   bool _openingTopics = false;
+  Completer<void>? _preparedTopicVoiceGate;
+  Route<void>? _preparedTopicRoute;
   ActiveListeningSessionCheckpoint? _pausedListeningCheckpoint;
   Completer<void>? _topicRouteClosedCompleter;
   bool _tutorialActive = false;
@@ -243,6 +245,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
   @override
   void dispose() {
+    _releasePreparedTopicVoiceGate();
     WidgetsBinding.instance.removeObserver(this);
     _voiceNavigationRestartTimer?.cancel();
     widget.controller.removeListener(_onConversationControllerChanged);
@@ -702,6 +705,42 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   Future<bool> _executeVoiceNavigation(VoiceNavigationIntent intent) async {
+    if (intent.prepareOnly) {
+      if (intent.destination != VoiceNavigationDestination.conversation &&
+          intent.destination != VoiceNavigationDestination.topics) {
+        return false;
+      }
+      final activeModule = ActiveLearningModuleScope.read(context);
+      // A practice route owns a durable checkpoint and is transferred by the
+      // existing final navigation step after MAIN releases its native turn.
+      if (activeModule?.controller is ActiveLearningNavigationCheckpoint) {
+        return true;
+      }
+      if (intent.destination == VoiceNavigationDestination.conversation) {
+        if (_page != 1) return true;
+        if (!await _vocabularyNavigationController.leaveForOtherContent()) {
+          _showVoiceNavigationMessage(
+            'Âm thanh Từ vựng chưa dừng hẳn. Hãy thử chuyển lại sau một chút.',
+          );
+          return false;
+        }
+        if (!mounted) return false;
+        final pageGeneration = _pageNavigationGeneration;
+        if (!await _requestHomePage(0)) {
+          if (mounted && _pageNavigationGeneration == pageGeneration + 1) {
+            await _requestHomePage(1, animate: false);
+          }
+          return false;
+        }
+        widget.onActiveLearningExitCommitted?.call();
+        return true;
+      }
+    } else if (intent.destination == VoiceNavigationDestination.topics &&
+        _preparedTopicVoiceGate != null) {
+      final preparedRoute = _preparedTopicRoute;
+      _releasePreparedTopicVoiceGate();
+      return mounted && _openingTopics && preparedRoute?.isActive == true;
+    }
     final useChinese =
         widget.controller.displayLanguage == DisplayLanguage.simplifiedChinese;
     final activeModule = ActiveLearningModuleScope.read(context);
@@ -870,13 +909,22 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           await _closeTopicListeningIfNeeded();
         }
         if (mounted) {
+          final topicVoiceGate = intent.prepareOnly ? Completer<void>() : null;
+          if (topicVoiceGate != null) {
+            _preparedTopicVoiceGate = topicVoiceGate;
+          }
           final routePushed = Completer<bool>();
           unawaited(
             _openTopicListening(
               initialVoiceTarget: opensCurrentLevelSelection ? null : target,
+              initialVoiceActivationGate: topicVoiceGate?.future,
               routePushed: routePushed,
-              onRouteCreated: iosVocabularyPracticeTransfer
-                  ? (route) => installedTopicRoute = route
+              onRouteCreated:
+                  !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+                  ? (route) {
+                      installedTopicRoute = route;
+                      if (topicVoiceGate != null) _preparedTopicRoute = route;
+                    }
                   : null,
             ),
           );
@@ -889,8 +937,34 @@ class _HomeLearningShellState extends State<HomeLearningShell>
             onTimeout: () =>
                 kIsWeb || defaultTargetPlatform != TargetPlatform.iOS,
           );
-          if (!installed) return false;
-          if (!mounted) return false;
+          if (!installed || !mounted) {
+            _releasePreparedTopicVoiceGate(topicVoiceGate);
+            return false;
+          }
+          if (!kIsWeb &&
+              defaultTargetPlatform == TargetPlatform.iOS &&
+              _page == 1) {
+            final pageGeneration = _pageNavigationGeneration;
+            if (!await _requestHomePage(0, animate: false)) {
+              if (!mounted) {
+                _releasePreparedTopicVoiceGate(topicVoiceGate);
+                return false;
+              }
+              final route = installedTopicRoute;
+              if (route != null && route.isActive) {
+                Navigator.of(context).removeRoute(route);
+              }
+              if (_pageNavigationGeneration == pageGeneration + 1) {
+                await _requestHomePage(1, animate: false);
+              }
+              _releasePreparedTopicVoiceGate(topicVoiceGate);
+              return false;
+            }
+          }
+          if (!mounted) {
+            _releasePreparedTopicVoiceGate(topicVoiceGate);
+            return false;
+          }
           if (iosVocabularyPracticeTransfer) {
             final route = installedTopicRoute;
             if (route == null || !route.isActive) return false;
@@ -919,6 +993,16 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     if (closed != null) {
       await closed;
     }
+  }
+
+  void _releasePreparedTopicVoiceGate([Completer<void>? expected]) {
+    final gate = _preparedTopicVoiceGate;
+    if (gate == null || (expected != null && !identical(expected, gate))) {
+      return;
+    }
+    _preparedTopicVoiceGate = null;
+    _preparedTopicRoute = null;
+    if (!gate.isCompleted) gate.complete();
   }
 
   void _showVoiceNavigationMessage(String message) {
@@ -1162,11 +1246,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       ActiveLearningModuleScope.notifyNavigationExit(context);
       unawaited(widget.voiceNavigationController?.pause());
     }
-    await _requestHomePage(0);
-    return mounted;
+    return _requestHomePage(0);
   }
 
-  Future<void> _requestHomePage(int page) async {
+  Future<bool> _requestHomePage(int page, {bool animate = true}) async {
     _requestedPage = page;
     final generation = ++_pageNavigationGeneration;
     if (_page != page && mounted) {
@@ -1174,9 +1257,21 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     }
     await _moveToRequestedPage(
       animate:
+          animate &&
           WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,
       generation: generation,
     );
+    if (!mounted ||
+        generation != _pageNavigationGeneration ||
+        _requestedPage != page ||
+        _page != page) {
+      return false;
+    }
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) return true;
+    final visiblePage = _pageController.hasClients
+        ? _pageController.page
+        : null;
+    return visiblePage != null && (visiblePage - page).abs() < 0.001;
   }
 
   Future<void> _moveToRequestedPage({
@@ -1243,6 +1338,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
   Future<void> _openTopicListening({
     ListeningVoiceNavigationTarget? initialVoiceTarget,
+    Future<void>? initialVoiceActivationGate,
     Completer<bool>? routePushed,
     void Function(Route<void> route)? onRouteCreated,
   }) async {
@@ -1283,6 +1379,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
               _pauseVoiceNavigation('listening_media_opened'),
           onVoiceNavigationResume: _resumeVoiceNavigation,
           initialVoiceTarget: initialVoiceTarget,
+          initialVoiceActivationGate: initialVoiceActivationGate,
           onTopicSelected: (index) => _activeVoiceTopicIndex = index,
           onChildAgeChanged: widget.onChildAgeChanged,
           iosTopicRecognitionFailureRevision: widget
@@ -1371,6 +1468,13 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         rethrow;
       }
     } finally {
+      if (initialVoiceActivationGate != null &&
+          identical(
+            _preparedTopicVoiceGate?.future,
+            initialVoiceActivationGate,
+          )) {
+        _releasePreparedTopicVoiceGate();
+      }
       if (routePushed != null && !routePushed.isCompleted) {
         routePushed.complete(false);
       }

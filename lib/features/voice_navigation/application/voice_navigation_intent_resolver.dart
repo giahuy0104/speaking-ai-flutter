@@ -26,6 +26,7 @@ class VoiceNavigationIntent {
     this.relearnLesson = false,
     this.relearnLevel = false,
     this.enterMainSpeakingMode = false,
+    this.prepareOnly = false,
     this.vocabularyTarget,
   });
 
@@ -41,6 +42,9 @@ class VoiceNavigationIntent {
   final bool relearnLesson;
   final bool relearnLevel;
   final bool enterMainSpeakingMode;
+
+  /// Shows the destination before its acknowledgement, without starting its mic.
+  final bool prepareOnly;
   final VoiceVocabularyTarget? vocabularyTarget;
 }
 

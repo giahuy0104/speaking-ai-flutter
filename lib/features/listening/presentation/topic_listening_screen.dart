@@ -59,6 +59,7 @@ class TopicListeningScreen extends StatefulWidget {
     this.onVoiceNavigationPause,
     this.onVoiceNavigationResume,
     this.initialVoiceTarget,
+    this.initialVoiceActivationGate,
     this.onTopicSelected,
     this.onLessonSelectionRequested,
     this.onLevelTopicSelectionRequested,
@@ -82,6 +83,9 @@ class TopicListeningScreen extends StatefulWidget {
   final Future<void> Function()? onVoiceNavigationPause;
   final VoidCallback? onVoiceNavigationResume;
   final ListeningVoiceNavigationTarget? initialVoiceTarget;
+
+  /// Keeps the catalog visible while an earlier MAIN response owns the audio.
+  final Future<void>? initialVoiceActivationGate;
   final ValueChanged<int>? onTopicSelected;
   final TopicLessonSelectionPrompt? onLessonSelectionRequested;
   final LevelTopicSelectionPrompt? onLevelTopicSelectionRequested;
@@ -527,6 +531,12 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
         _completedV4LessonActivities = progress.completedV4LessonActivities;
         _startedLessonIds = progress.startedLessonIds;
       });
+      await widget.initialVoiceActivationGate;
+      if (!mounted) return;
+      if (widget.initialVoiceActivationGate != null &&
+          ModalRoute.of(context)?.isCurrent != true) {
+        return;
+      }
       final courseId = '${_catalog.startAge}-${_catalog.endAge}';
       final courseCompleted = await widget.progressStore.isCourseCompleted(
         courseId,

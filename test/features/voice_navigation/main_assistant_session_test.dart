@@ -209,6 +209,31 @@ void main() {
     expect(harness.activationStates, <bool>[true, false]);
   });
 
+  test('failed learning pause does not open the global MAIN menu', () async {
+    final module = _FakeActiveModule(kind: ActiveLearningModuleKind.vocabulary)
+      ..failPause = true;
+    final harness = _SessionHarness(module: module);
+    addTearDown(harness.dispose);
+    var activationCalls = 0;
+
+    final activated = await harness.session.activate(
+      startupReady: true,
+      voiceAccessEnabled: true,
+      conversationBusy: false,
+      assistantFlowBusy: false,
+      canContinue: () => true,
+      activateVoice: ({required activeLearning, activeLearningKind}) async {
+        activationCalls++;
+        return true;
+      },
+    );
+
+    expect(activated, isFalse);
+    expect(activationCalls, 0);
+    expect(module.pauseCount, 1);
+    expect(harness.activationStates, <bool>[true, false]);
+  });
+
   test(
     'failed MAIN activation resumes the interrupted learning module',
     () async {
@@ -298,6 +323,7 @@ class _FakeActiveModule implements ActiveLearningModuleController {
   final ActiveLearningModuleKind kind;
   int pauseCount = 0;
   bool paused = false;
+  bool failPause = false;
   Future<void>? pauseGate;
   final List<ActiveLearningCommand> commands = <ActiveLearningCommand>[];
 
@@ -310,6 +336,7 @@ class _FakeActiveModule implements ActiveLearningModuleController {
   @override
   Future<void> pauseForMainAssistant() async {
     pauseCount += 1;
+    if (failPause) throw StateError('learning audio is still stopping');
     paused = true;
     await pauseGate;
   }
