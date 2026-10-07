@@ -97,8 +97,6 @@ class HfpAudioBridge(
     @Volatile private var disposed = false
     @Volatile private var disposalRequested = false
     private var routeReadiness: HfpRouteReadiness? = null
-    private var recognizerTeardownHold: MethodChannel.Result? = null
-    private var recognizerTeardownDeadlineMs = 0L
     private var activeRouteRecovery: HfpRouteReadiness? = null
     private var activeRouteRecoveryGeneration: Int? = null
     private var activeRouteRecoveryReason: String? = null
@@ -708,7 +706,7 @@ class HfpAudioBridge(
 
     private fun startAudioRoute(result: MethodChannel.Result) {
         if (!ensureBluetoothReady(result)) return
-        if (pendingAudioRouteResult != null || recognizerTeardownHold != null) {
+        if (pendingAudioRouteResult != null) {
             result.error(
                 "HFP_ROUTE_PENDING",
                 "Android đang mở đường mic HFP/SCO.",
@@ -729,67 +727,19 @@ class HfpAudioBridge(
         // Other recording clients can restore their earlier audio mode while
         // Android still reports the selected SCO device. Reclaim communication
         // mode and reconfirm the route before reusing it in that case.
-        if (routeActive && isSelectedCommunicationRouteStable()) {
-            val holdMs = RecognizerCaptureGuard.remainingMs(SystemClock.elapsedRealtime())
-            if (holdMs > 0) {
-                holdForRecognizerTeardown(result, holdMs)
-                return
-            }
-            reportReusedAudioRoute(result)
-            return
-        }
-        beginAudioRouteStart(result)
-    }
-
-    private fun isSelectedCommunicationRouteStable(): Boolean =
-        audioManager.mode == AudioManager.MODE_IN_COMMUNICATION &&
+        if (
+            routeActive &&
+            audioManager.mode == AudioManager.MODE_IN_COMMUNICATION &&
             isSelectedCommunicationRouteConfirmed()
-
-    private fun reportReusedAudioRoute(result: MethodChannel.Result) {
-        phase = "recording"
-        statusMessage = "Đang dùng mic và loa HM-D001 trên đường HFP/SCO hai chiều."
-        val status = snapshot()
-        emitStatus(status)
-        result.success(status)
-    }
-
-    /**
-     * Google's recognizer captures the microphone itself while the HM-D001
-     * route is active and restores the audio mode when its session ends, a
-     * little after its last callback. A prompt that starts in that gap plays on
-     * a route that is about to be torn down and goes silent until the route
-     * recovers. Keep the caller waiting until the teardown has either landed
-     * (then rebuild the route before replying) or stayed away for the whole
-     * guard window.
-     */
-    private fun holdForRecognizerTeardown(result: MethodChannel.Result, holdMs: Long) {
-        recognizerTeardownHold = result
-        recognizerTeardownDeadlineMs = SystemClock.elapsedRealtime() + holdMs
-        AudioDiagnostics.event("hfp.recognizer_teardown.hold", mapOf("holdMs" to holdMs))
-        pollRecognizerTeardown(result)
-    }
-
-    private fun pollRecognizerTeardown(result: MethodChannel.Result) {
-        if (disposed || recognizerTeardownHold !== result) return
-        if (!isSelectedCommunicationRouteStable()) {
-            recognizerTeardownHold = null
-            AudioDiagnostics.event("hfp.recognizer_teardown.rebuild")
-            beginAudioRouteStart(result)
+        ) {
+            phase = "recording"
+            statusMessage = "Đang dùng mic và loa HM-D001 trên đường HFP/SCO hai chiều."
+            val status = snapshot()
+            emitStatus(status)
+            result.success(status)
             return
         }
-        if (SystemClock.elapsedRealtime() >= recognizerTeardownDeadlineMs) {
-            recognizerTeardownHold = null
-            AudioDiagnostics.event("hfp.recognizer_teardown.quiet")
-            reportReusedAudioRoute(result)
-            return
-        }
-        routeHandler.postDelayed(
-            { pollRecognizerTeardown(result) },
-            AUDIO_ROUTE_CONFIRM_INTERVAL_MS,
-        )
-    }
 
-    private fun beginAudioRouteStart(result: MethodChannel.Result) {
         clearActiveRouteRecovery()
         val generation = ++audioRouteRequestGeneration
         routeReadiness = HfpRouteReadiness(SystemClock.elapsedRealtime())
@@ -996,14 +946,6 @@ class HfpAudioBridge(
             pending.error(
                 "HFP_ROUTE_CANCELLED",
                 "Đã dừng trước khi đường mic HFP/SCO sẵn sàng.",
-                null,
-            )
-        }
-        recognizerTeardownHold?.let { held ->
-            recognizerTeardownHold = null
-            held.error(
-                "HFP_ROUTE_CANCELLED",
-                "Đã dừng trong lúc chờ bộ nhận diện trả lại đường HFP/SCO.",
                 null,
             )
         }

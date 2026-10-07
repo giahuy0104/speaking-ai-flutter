@@ -526,16 +526,6 @@ class AndroidSpeechRecognizerBridge(
         AudioDiagnostics.event("speech.notification_restored", mapOf("to" to previous))
     }
 
-    /**
-     * Google's own capture on the HM-D001 route ends with an audio-mode restore
-     * that lands after this callback; let the HFP bridge hold the next route
-     * request until it has.
-     */
-    private fun markRecognizerCaptureEnded() {
-        if (!listening || appMicrophone != null || !isScoRouteActive()) return
-        RecognizerCaptureGuard.markEnded(SystemClock.elapsedRealtime())
-    }
-
     private fun isScoRouteActive(): Boolean {
         @Suppress("DEPRECATION")
         val bluetoothScoOn = audioManager?.isBluetoothScoOn == true
@@ -855,7 +845,6 @@ class AndroidSpeechRecognizerBridge(
         val retired = recognizer
         recognizer = null
         recognizerMode = null
-        markRecognizerCaptureEnded()
         listening = false
         activeRequireOnDevice = false
         closeInjectedAudio()
@@ -1215,7 +1204,6 @@ class AndroidSpeechRecognizerBridge(
             "Speech recognition failed: error=$error generation=$recognitionGeneration mode=$recognizerMode " +
                 "requiredOnDevice=$wasRequiredOnDevice",
         )
-        markRecognizerCaptureEnded()
         listening = false
         closeInjectedAudio()
         activeRequireOnDevice = false
@@ -1241,7 +1229,6 @@ class AndroidSpeechRecognizerBridge(
     }
 
     override fun onResults(results: Bundle?) {
-        markRecognizerCaptureEnded()
         listening = false
         closeInjectedAudio()
         activeRequireOnDevice = false
