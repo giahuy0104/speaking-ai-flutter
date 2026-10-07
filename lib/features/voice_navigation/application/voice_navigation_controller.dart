@@ -45,6 +45,7 @@ class VoiceNavigationController extends ChangeNotifier {
     Duration microphoneStartRetryDelay = const Duration(seconds: 2),
     Duration pauseDrainTimeout = const Duration(seconds: 2),
     Duration commandSilenceEndpoint = const Duration(milliseconds: 700),
+    Duration commandPhraseSilenceEndpoint = const Duration(milliseconds: 1200),
     ActiveLearningCommandHandler? activeLearningCommandHandler,
     SelectedOutputPreparation? prepareSelectedOutput,
     NativeSpeechAudioSource? Function()? mainSpeechAudioSource,
@@ -63,6 +64,7 @@ class VoiceNavigationController extends ChangeNotifier {
        _microphoneStartRetryDelay = microphoneStartRetryDelay,
        _pauseDrainTimeout = pauseDrainTimeout,
        _commandSilenceEndpoint = commandSilenceEndpoint,
+       _commandPhraseSilenceEndpoint = commandPhraseSilenceEndpoint,
        _activeLearningCommandHandler = activeLearningCommandHandler,
        _prepareSelectedOutput = prepareSelectedOutput,
        _mainSpeechAudioSource = mainSpeechAudioSource {
@@ -121,6 +123,7 @@ class VoiceNavigationController extends ChangeNotifier {
   final Duration _microphoneStartRetryDelay;
   final Duration _pauseDrainTimeout;
   final Duration _commandSilenceEndpoint;
+  final Duration _commandPhraseSilenceEndpoint;
   final ActiveLearningCommandHandler? _activeLearningCommandHandler;
   final SelectedOutputPreparation? _prepareSelectedOutput;
   final NativeSpeechAudioSource? Function()? _mainSpeechAudioSource;
@@ -138,12 +141,14 @@ class VoiceNavigationController extends ChangeNotifier {
   Timer? _partialIntentTimer;
   Timer? _commandWindowTimer;
   Timer? _commandSilenceTimer;
+  Timer? _commandPhraseSilenceTimer;
   final AdaptiveVoiceActivityDetector _commandVoiceActivity =
       AdaptiveVoiceActivityDetector();
   final Stopwatch _listeningClock = Stopwatch();
   bool _commandVoiceSeen = false;
   bool _commandSilenceElapsed = false;
   bool _commandAnswerComplete = false;
+  bool _commandTranscriptSeen = false;
   VoiceNavigationIntentHandler? _intentHandler;
   VoiceNavigationIntentResultHandler? _intentResultHandler;
   final ValueNotifier<int> _iosTopicRecognitionFailureRevision =
@@ -1488,8 +1493,8 @@ class VoiceNavigationController extends ChangeNotifier {
   }
 
   // A complete number answer ends the turn once the child has been quiet for
-  // _commandSilenceEndpoint. Otherwise Android waits for Google's command
-  // endpoint and iOS for Apple Speech or the command window, seconds later.
+  // _commandSilenceEndpoint. Otherwise Android waits for the longer phrase
+  // silence and iOS for Apple Speech or the command window, seconds later.
   void _trackCommandVoice(double dbfs) {
     final activity = _commandVoiceActivity.addSample(
       dbfs,
@@ -1500,14 +1505,25 @@ class VoiceNavigationController extends ChangeNotifier {
       _commandSilenceElapsed = false;
       _commandSilenceTimer?.cancel();
       _commandSilenceTimer = null;
-    } else if (_commandVoiceSeen &&
+      _commandPhraseSilenceTimer?.cancel();
+      _commandPhraseSilenceTimer = null;
+      return;
+    }
+    if (_commandVoiceSeen &&
         !_commandSilenceElapsed &&
         _commandSilenceTimer == null) {
       _startCommandSilenceTimer();
     }
+    if (_commandTranscriptSeen && _commandPhraseSilenceTimer == null) {
+      _startCommandPhraseSilenceTimer();
+    }
   }
 
   void _trackCommandAnswer(String text) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      _commandTranscriptSeen = true;
+      _startCommandPhraseSilenceTimer();
+    }
     _commandAnswerComplete = _mainAssistantFlow.canEndOnSilence(text);
     if (_commandVoiceSeen) {
       // The level already marks the end of speech. Partials trail the audio,
@@ -1536,9 +1552,28 @@ class VoiceNavigationController extends ChangeNotifier {
     });
   }
 
+  // Google keeps a command open for seconds after its offline recognizer has
+  // the words: with HM-D001 the result reached the app 2.7-4.1 s later. Any
+  // transcript therefore ends the turn after _commandPhraseSilenceEndpoint,
+  // counted from the later of the last partial and the end of the voice, so a
+  // child who is still talking is not cut off. The final transcript is still
+  // what gets handled.
+  void _startCommandPhraseSilenceTimer() {
+    final generation = _generation;
+    _commandPhraseSilenceTimer?.cancel();
+    _commandPhraseSilenceTimer = Timer(_commandPhraseSilenceEndpoint, () {
+      _commandPhraseSilenceTimer = null;
+      if (_disposed || generation != _generation || !_listening) return;
+      unawaited(_finishSession(generation));
+    });
+  }
+
   void _resetCommandSilence() {
     _commandSilenceTimer?.cancel();
     _commandSilenceTimer = null;
+    _commandPhraseSilenceTimer?.cancel();
+    _commandPhraseSilenceTimer = null;
+    _commandTranscriptSeen = false;
     _commandVoiceActivity.reset();
     _commandVoiceSeen = false;
     _commandSilenceElapsed = false;
@@ -1797,6 +1832,8 @@ class VoiceNavigationController extends ChangeNotifier {
     _partialIntentTimer = null;
     _commandSilenceTimer?.cancel();
     _commandSilenceTimer = null;
+    _commandPhraseSilenceTimer?.cancel();
+    _commandPhraseSilenceTimer = null;
     _noSpeechTimer?.cancel();
     _noSpeechTimer = null;
     _maximumSessionTimer?.cancel();
