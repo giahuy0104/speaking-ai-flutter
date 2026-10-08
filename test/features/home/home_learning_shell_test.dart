@@ -37,6 +37,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  _rebuildCountTests();
   testWidgets('clears only the visible conversation result', (tester) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final controller = _controller()
@@ -2075,6 +2076,36 @@ Future<void> _pumpFrames(WidgetTester tester) async {
   for (var frame = 0; frame < 20; frame++) {
     await tester.pump(const Duration(milliseconds: 200));
   }
+}
+
+void _rebuildCountTests() {
+  testWidgets(
+    'controller notifications that change nothing the shell reads do not '
+    'rebuild the home pages',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final controller = _controller();
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(_app(controller));
+      await tester.pumpAndSettle();
+
+      final rebuilds = <String, int>{};
+      debugOnRebuildDirtyWidget = (element, _) {
+        final name = element.widget.runtimeType.toString();
+        rebuilds[name] = (rebuilds[name] ?? 0) + 1;
+      };
+      addTearDown(() => debugOnRebuildDirtyWidget = null);
+
+      for (var index = 0; index < 10; index += 1) {
+        controller.clearMessage();
+        await tester.pump();
+      }
+
+      expect(rebuilds['VocabularyHomeScreen'], isNull);
+      expect(rebuilds['HomeLearningShell'], isNull);
+    },
+  );
 }
 
 Widget _app(
