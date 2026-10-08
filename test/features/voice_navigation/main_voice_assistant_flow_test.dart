@@ -675,6 +675,46 @@ void main() {
     },
   );
 
+  test(
+    'Home and Dịch open a vocabulary section named outside the vocabulary',
+    () async {
+      final starts = <String, void Function(MainVoiceAssistantFlow)>{
+        'Home': (flow) => flow.begin(),
+        'after Dịch stop': (flow) => flow.beginAfterTranslationStop(),
+        'other learning': (flow) => flow.beginOtherLearning(),
+      };
+      for (final start in starts.entries) {
+        for (final entry in <String, VoiceVocabularyTarget>{
+          'Luyện lại': VoiceVocabularyTarget.review,
+          'Mình muốn luyện lại': VoiceVocabularyTarget.review,
+          'Ngôi sao': VoiceVocabularyTarget.star,
+          'Ba mẹ đã thêm': VoiceVocabularyTarget.parent,
+        }.entries) {
+          final reason = '${start.key}: ${entry.key}';
+          final flow = MainVoiceAssistantFlow();
+          start.value(flow);
+          expect(flow.canHandle(entry.key), isTrue, reason: reason);
+          expect(flow.canHandlePartial(entry.key), isTrue, reason: reason);
+
+          final turn = await flow.handle(entry.key);
+          expect(
+            turn.navigationAfterPrompt?.destination,
+            VoiceNavigationDestination.vocabulary,
+            reason: reason,
+          );
+          expect(
+            turn.navigationAfterPrompt?.vocabularyTarget,
+            entry.value,
+            reason: reason,
+          );
+          expect(turn.promptText, isEmpty, reason: reason);
+          expect(turn.continueListening, isFalse, reason: reason);
+          expect(flow.stage, MainVoiceAssistantStage.idle, reason: reason);
+        }
+      }
+    },
+  );
+
   test('moves to the next sentence in an active lesson', () async {
     final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
     expect(

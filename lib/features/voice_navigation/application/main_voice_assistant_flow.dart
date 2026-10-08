@@ -530,13 +530,16 @@ class MainVoiceAssistantFlow {
     }
     return switch (_stage) {
       MainVoiceAssistantStage.chooseFeature ||
-      MainVoiceAssistantStage.chooseOtherLearning ||
+      MainVoiceAssistantStage.chooseOtherLearning =>
+        _isUnambiguousFeatureChoice(normalized) ||
+            _vocabularyTarget(normalized) != null,
       MainVoiceAssistantStage.chooseModuleSwitch ||
       MainVoiceAssistantStage.chooseAlternativeAfterLearning =>
         _isUnambiguousFeatureChoice(normalized),
       MainVoiceAssistantStage.chooseAfterTranslationStop =>
         _isTopicChoice(normalized) ||
             _isVocabularyChoice(normalized) ||
+            _vocabularyTarget(normalized) != null ||
             _isContinueTranslationChoice(normalized),
       MainVoiceAssistantStage.chooseVocabularyCollection =>
         _isParentVocabularyChoice(normalized) ||
@@ -583,10 +586,12 @@ class MainVoiceAssistantFlow {
           _isTopicChoice(normalized) ||
           _isVocabularyChoice(normalized) ||
           _isTranslationChoice(normalized) ||
-          _wrappedFeatureChoice(normalized) != null,
+          _wrappedFeatureChoice(normalized) != null ||
+          _vocabularyTarget(normalized) != null,
     MainVoiceAssistantStage.chooseOtherLearning =>
       _isTopicChoice(normalized) ||
           _isVocabularyChoice(normalized) ||
+          _vocabularyTarget(normalized) != null ||
           _isContinueTranslationChoice(normalized),
     MainVoiceAssistantStage.chooseModuleSwitch =>
       _isTopicChoice(normalized) ||
@@ -595,6 +600,7 @@ class MainVoiceAssistantFlow {
     MainVoiceAssistantStage.chooseAfterTranslationStop =>
       _isTopicChoice(normalized) ||
           _isVocabularyChoice(normalized) ||
+          _vocabularyTarget(normalized) != null ||
           _isContinueTranslationChoice(normalized),
     MainVoiceAssistantStage.chooseAlternativeAfterLearning =>
       _isVocabularyChoice(normalized) || _isTranslationChoice(normalized),
@@ -852,6 +858,8 @@ class MainVoiceAssistantFlow {
         wrapped == VoiceNavigationDestination.conversation) {
       return _beginContinuousTranslation(recognizedText);
     }
+    final section = _vocabularySectionTurn(recognizedText, normalized);
+    if (section != null) return section;
     if (_isSpeakingChoice(normalized)) {
       return _beginContinuousTranslation(recognizedText);
     }
@@ -859,6 +867,23 @@ class MainVoiceAssistantFlow {
       promptText: openingPrompt,
       promptAudioKey: MainAssistantAudioKeys.openMenu,
       continueListening: true,
+    );
+  }
+
+  /// Ba mẹ đã thêm, Ngôi sao and Luyện lại open their vocabulary section from
+  /// Home and Dịch, as they already do from inside a lesson.
+  /// The destination section speaks its own introduction.
+  MainVoiceAssistantTurn? _vocabularySectionTurn(
+    String recognizedText,
+    String normalized,
+  ) {
+    final target = _vocabularyTarget(normalized);
+    if (target == null) return null;
+    return _moduleNavigationTurn(
+      recognizedText: recognizedText,
+      destination: VoiceNavigationDestination.vocabulary,
+      promptText: '',
+      vocabularyTarget: target,
     );
   }
 
@@ -890,6 +915,8 @@ class MainVoiceAssistantFlow {
     if (_isContinueTranslationChoice(normalized)) {
       return _beginContinuousTranslation(recognizedText, resuming: true);
     }
+    final section = _vocabularySectionTurn(recognizedText, normalized);
+    if (section != null) return section;
     if (_isSpeakingChoice(normalized)) {
       return _beginContinuousTranslation(recognizedText);
     }
@@ -928,6 +955,8 @@ class MainVoiceAssistantFlow {
     if (_isContinueTranslationChoice(normalized)) {
       return _beginContinuousTranslation(recognizedText, resuming: true);
     }
+    final section = _vocabularySectionTurn(recognizedText, normalized);
+    if (section != null) return section;
     return const MainVoiceAssistantTurn(
       promptText: afterTranslationStopPrompt,
       promptAudioKey: MainAssistantAudioKeys.chooseTranslation,

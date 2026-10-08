@@ -17,6 +17,47 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('MAIN from Dịch opens the named vocabulary section', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    for (final afterStop in <bool>[false, true]) {
+      for (final entry in <String, VoiceVocabularyTarget>{
+        'Luyện lại': VoiceVocabularyTarget.review,
+        'Ngôi sao': VoiceVocabularyTarget.star,
+        'Ba mẹ đã thêm': VoiceVocabularyTarget.parent,
+      }.entries) {
+        final reason = '${afterStop ? 'after stop' : 'translating'}: '
+            '${entry.key}';
+        final controller = VoiceNavigationController(
+          speechInput: _FakeNavigationSpeechInput(),
+          voicePromptService: _FakeVoicePromptService(),
+        );
+        final intents = <VoiceNavigationIntent>[];
+        controller.setIntentHandler(intents.add);
+        if (afterStop) await controller.waitForMainAfterTranslationStop();
+
+        expect(
+          await controller.activateFromMainButton(),
+          isTrue,
+          reason: reason,
+        );
+        expect(
+          await controller.dispatchRecognizedText(entry.key),
+          isTrue,
+          reason: reason,
+        );
+        expect(intents, hasLength(1), reason: reason);
+        expect(
+          intents.single.destination,
+          VoiceNavigationDestination.vocabulary,
+          reason: reason,
+        );
+        expect(intents.single.vocabularyTarget, entry.value, reason: reason);
+        controller.dispose();
+      }
+    }
+  });
+
   test('iOS MAIN dispatches all vocabulary cross-navigation phrases', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
