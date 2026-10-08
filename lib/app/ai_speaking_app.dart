@@ -173,6 +173,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   Future<bool>? _androidHfpAutoSelectionFuture;
   Timer? _androidHfpAutoSelectionTimer;
   Future<bool>? _iosHfpAutoSelectionFuture;
+  Timer? _iosUnifiedConnectionRetryTimer;
   bool _iosBleWasConnected = false;
   bool _iosHfpAutoSelectionPending = false;
   Future<bool>? _androidMainHfpRoutePreparation;
@@ -422,6 +423,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (_privacyConsentGranted && _parentSetupCompleted) {
       _startBackgroundWork();
       _syncAndroidHfpAutoSelectionRetry();
+      _syncIosUnifiedConnectionRetry();
       // Stored parental consent allows us to query the existing native grants.
       // Without this refresh `_microphonePermissionGranted` remains false on
       // every cold launch even though iOS already authorized the app, hiding
@@ -488,6 +490,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     setState(() => _parentSetupCompleted = true);
     if (_privacyConsentGranted) {
       _startBackgroundWork();
+      _syncIosUnifiedConnectionRetry();
       if (defaultTargetPlatform == TargetPlatform.android) {
         _syncAndroidHfpAutoSelectionRetry();
         if (_controller?.canUseAiv0Ble == true &&
@@ -645,6 +648,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       _startupPermissionError = null;
     });
     _syncAndroidHfpAutoSelectionRetry();
+    _syncIosUnifiedConnectionRetry();
   }
 
   Future<void> _autoConnectH20Ble({
@@ -1532,6 +1536,54 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         _androidHfpAutoSelectionFuture = null;
       }
     });
+  }
+
+  void _syncIosUnifiedConnectionRetry() {
+    if (!_usesIosHfpLifecycle ||
+        !_config.enableAiv0BleControl ||
+        !_privacyConsentGranted ||
+        !_parentSetupCompleted) {
+      _iosUnifiedConnectionRetryTimer?.cancel();
+      _iosUnifiedConnectionRetryTimer = null;
+      return;
+    }
+    // Bluetooth Classic may connect after HOMI is already open. Keep looking
+    // for the verified BLE MAIN link and matching HFP input without asking the
+    // parent to scan or select a second device.
+    _iosUnifiedConnectionRetryTimer ??= Timer.periodic(
+      const Duration(seconds: 15),
+      (_) {
+        if (!mounted ||
+            !_startupReady ||
+            !_bluetoothPermissionGranted ||
+            WidgetsBinding.instance.lifecycleState !=
+                AppLifecycleState.resumed ||
+            !_canRestoreHfpAfterMainFlow ||
+            _isAppAudioPlaybackActive ||
+            _audioTurnCoordinator?.currentToken != null ||
+            _isGlobalModalOpen) {
+          return;
+        }
+        final controller = _controller;
+        if (controller == null) return;
+        if (controller.canUseAiv0Ble) {
+          if (!controller.usesHfpInput && !controller.hfpAudioStatus.isBusy) {
+            _iosHfpAutoSelectionPending = true;
+            unawaited(_autoSelectAvailableIosHfp());
+          }
+          return;
+        }
+        final lastAttempt = _lastAiv0AutoConnectAttempt;
+        if (lastAttempt != null &&
+            DateTime.now().difference(lastAttempt) <
+                const Duration(seconds: 60)) {
+          return;
+        }
+        unawaited(
+          _autoConnectH20Ble(reason: _H20AutoConnectReason.periodicRetry),
+        );
+      },
+    );
   }
 
   void _syncAndroidHfpAutoSelectionRetry() {
@@ -2917,6 +2969,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     WidgetsBinding.instance.removeObserver(this);
     _offlineSpeechModelTimer?.cancel();
     _androidHfpAutoSelectionTimer?.cancel();
+    _iosUnifiedConnectionRetryTimer?.cancel();
     _deviceConnectionFeedbackTimer?.cancel();
     unawaited(_aiv0BleFeedbackSubscription?.cancel());
     unawaited(_audioTurnDiagnosticSubscription?.cancel());

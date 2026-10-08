@@ -56,6 +56,26 @@ void main() {
     await control.dispose();
   });
 
+  test('HM-D001 transport bridging is enabled for normal iOS builds', () async {
+    MethodCall? initializeCall;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          if (call.method == 'initialize') initializeCall = call;
+          return <Object?, Object?>{'phase': 'idle'};
+        });
+    final control = MethodChannelAiv0BleControl(
+      enabled: true,
+      draftProtocolConfirmed: false,
+    );
+
+    await control.initialize();
+
+    expect(initializeCall?.arguments, <String, Object?>{
+      'enableTransportBridging': true,
+    });
+    await control.dispose();
+  });
+
   test(
     'iOS connect reads verified BLE status before setup continues',
     () async {

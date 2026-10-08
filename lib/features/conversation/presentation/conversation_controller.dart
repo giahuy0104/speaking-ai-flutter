@@ -1676,6 +1676,7 @@ class ConversationController extends ChangeNotifier
       final device = selectLikelyH20HfpDevice(
         devices,
         bleDeviceName: bleDeviceName,
+        connectedOnly: requireConnected,
       );
       if (device == null || (requireConnected && !device.isConnected)) {
         return false;

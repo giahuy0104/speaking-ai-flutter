@@ -525,7 +525,8 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     required bool enabled,
     required bool draftProtocolConfirmed,
     bool dualModePairingEnabled = const bool.fromEnvironment(
-      'H20_DUAL_MODE_PAIRING',
+      'HM_D001_SINGLE_PAIRING',
+      defaultValue: true,
     ),
     MethodChannel? methodChannel,
     EventChannel? eventChannel,
