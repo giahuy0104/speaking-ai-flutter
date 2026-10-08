@@ -109,6 +109,11 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   _authoredVocabularySuggestionProvider;
   late final MinhqndDictionaryProvider _vocabularyDictionaryProvider;
   int _page = 0;
+  // Controller values the shell last rendered; see
+  // _onConversationControllerChanged.
+  DisplayLanguage? _builtDisplayLanguage;
+  bool? _builtInputAvailable;
+  int? _builtChildAge;
   int _requestedPage = 0;
   int _pageNavigationGeneration = 0;
   bool _openingTopics = false;
@@ -411,150 +416,148 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: widget.controller,
-      builder: (context, _) {
-        final screenSize = MediaQuery.sizeOf(context);
-        final compact = screenSize.height < 900;
-        final safeTop = MediaQuery.paddingOf(context).top;
-        final railTop = (screenSize.height * (compact ? 0.27 : 0.25))
-            .clamp(safeTop + 148, screenSize.height - 238)
-            .toDouble();
-        return DisplayLanguageScope(
-          language: widget.controller.displayLanguage,
-          child: PopScope<void>(
-            canPop: _page == 0,
-            onPopInvokedWithResult: (didPop, _) {
-              if (!didPop && _page == 1) {
-                unawaited(_handleVocabularyBack());
-              }
-            },
-            child: Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Stack(
+    _builtDisplayLanguage = widget.controller.displayLanguage;
+    _builtInputAvailable = widget.controller.isInputAvailable;
+    _builtChildAge = widget.controller.childAge;
+    final screenSize = MediaQuery.sizeOf(context);
+    final compact = screenSize.height < 900;
+    final safeTop = MediaQuery.paddingOf(context).top;
+    final railTop = (screenSize.height * (compact ? 0.27 : 0.25))
+        .clamp(safeTop + 148, screenSize.height - 238)
+        .toDouble();
+    return DisplayLanguageScope(
+      language: widget.controller.displayLanguage,
+      child: PopScope<void>(
+        canPop: _page == 0,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop && _page == 1) {
+            unawaited(_handleVocabularyBack());
+          }
+        },
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Stack(
+            children: <Widget>[
+              PageView(
+                key: const Key('home-learning-page-view'),
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                // Keep the adjacent vocabulary state mounted so a spoken
+                // navigation command can activate its non-visual workflow
+                // while Android has stopped drawing frames for screen lock.
+                allowImplicitScrolling: true,
+                onPageChanged: _handlePageChanged,
                 children: <Widget>[
-                  PageView(
-                    key: const Key('home-learning-page-view'),
-                    controller: _pageController,
-                    physics: const NeverScrollableScrollPhysics(),
-                    // Keep the adjacent vocabulary state mounted so a spoken
-                    // navigation command can activate its non-visual workflow
-                    // while Android has stopped drawing frames for screen lock.
-                    allowImplicitScrolling: true,
-                    onPageChanged: _handlePageChanged,
-                    children: <Widget>[
-                      HeroMode(
-                        enabled: _page == 0,
-                        child: ConversationScreen(
-                          controller: widget.controller,
-                          speakActionKey: _speakActionKey,
-                          resultPanelKey: _resultPanelKey,
-                          historyButtonKey: _historyButtonKey,
-                          settingsButtonKey: _settingsButtonKey,
-                          onOpenHistory: _showHistory,
-                          onOpenSettings: _showSettings,
-                        ),
-                      ),
-                      HeroMode(
-                        enabled: _page == 1,
-                        child: VocabularyHomeScreen(
-                          isReady: widget.controller.isInputAvailable,
-                          isActive: _page == 1,
-                          navigationController: _vocabularyNavigationController,
-                          activationController: _vocabularyActivationController,
-                          childAge: widget.controller.childAge,
-                          audioDependencies: widget.controller,
-                          vocabularyAudioService: widget.vocabularyAudioService,
-                          autoStartToday: true,
-                          onRequestVoiceChoice:
-                              widget.onVocabularyVoiceChoiceRequested,
-                          suggestionProvider:
-                              widget.vocabularySuggestionProvider ??
-                              _authoredVocabularySuggestionProvider.call,
-                          curriculumDuplicateChecker:
-                              _authoredVocabularySuggestionProvider
-                                  .containsInCurriculum,
-                          dictionaryProvider: _vocabularyDictionaryProvider,
-                          translator: (input) async {
-                            final translation = await widget.controller
-                                .translateVocabulary(input);
-                            return VocabularyTranslation(
-                              englishText: translation.englishText,
-                              vietnameseText: translation.vietnameseText,
-                            );
-                          },
-                          onReturnToConversation: _showConversation,
-                          onHistory: _showHistory,
-                          onSettings: _showSettings,
-                        ),
-                      ),
-                    ],
+                  HeroMode(
+                    enabled: _page == 0,
+                    child: ConversationScreen(
+                      controller: widget.controller,
+                      speakActionKey: _speakActionKey,
+                      resultPanelKey: _resultPanelKey,
+                      historyButtonKey: _historyButtonKey,
+                      settingsButtonKey: _settingsButtonKey,
+                      onOpenHistory: _showHistory,
+                      onOpenSettings: _showSettings,
+                    ),
                   ),
-                  if (_page == 0) ...<Widget>[
-                    PositionedDirectional(
-                      top: railTop,
-                      start: 0,
-                      child: KeyedSubtree(
-                        key: _vocabularyTabKey,
-                        child: HomeModeRail(
-                          key: const Key('vocabulary-edge-tab'),
-                          edge: HomeRailEdge.left,
-                          label: context.tr('Từ vựng', '词汇'),
-                          icon: Icons.menu_book_rounded,
-                          color: AppColors.primaryNavy,
-                          onPressed: _showVocabulary,
-                        ),
-                      ),
+                  HeroMode(
+                    enabled: _page == 1,
+                    child: VocabularyHomeScreen(
+                      isReady: widget.controller.isInputAvailable,
+                      isActive: _page == 1,
+                      navigationController: _vocabularyNavigationController,
+                      activationController: _vocabularyActivationController,
+                      childAge: widget.controller.childAge,
+                      audioDependencies: widget.controller,
+                      vocabularyAudioService: widget.vocabularyAudioService,
+                      autoStartToday: true,
+                      onRequestVoiceChoice:
+                          widget.onVocabularyVoiceChoiceRequested,
+                      suggestionProvider:
+                          widget.vocabularySuggestionProvider ??
+                          _authoredVocabularySuggestionProvider.call,
+                      curriculumDuplicateChecker:
+                          _authoredVocabularySuggestionProvider
+                              .containsInCurriculum,
+                      dictionaryProvider: _vocabularyDictionaryProvider,
+                      translator: (input) async {
+                        final translation = await widget.controller
+                            .translateVocabulary(input);
+                        return VocabularyTranslation(
+                          englishText: translation.englishText,
+                          vietnameseText: translation.vietnameseText,
+                        );
+                      },
+                      onReturnToConversation: _showConversation,
+                      onHistory: _showHistory,
+                      onSettings: _showSettings,
                     ),
-                    PositionedDirectional(
-                      top: railTop,
-                      end: 0,
-                      child: KeyedSubtree(
-                        key: _topicTabKey,
-                        child: HomeModeRail(
-                          key: const Key('topic-listening-edge-tab'),
-                          edge: HomeRailEdge.right,
-                          label: context.tr('Chủ đề', '主题'),
-                          icon: Icons.grid_view_rounded,
-                          color: AppColors.primaryNavy,
-                          onPressed: _openTopicListening,
-                        ),
-                      ),
-                    ),
-                  ],
-                  if (_tutorialActive)
-                    Positioned.fill(
-                      child: UserOnboardingTour(
-                        steps: _tutorialSteps,
-                        currentIndex: _tutorialStep,
-                        onPrevious: _tutorialStep == 0
-                            ? null
-                            : _previousTutorialStep,
-                        onNext: _nextTutorialStep,
-                        onSkip: _skipTutorial,
-                      ),
-                    ),
+                  ),
                 ],
               ),
-              bottomNavigationBar: HomiBottomNavigation(
-                selectedIndex: _page == 0 ? 0 : 3,
-                onConversation: _showConversation,
-                onTopics: _openTopicListening,
-                onMain: widget.onScreenMainPressed == null
-                    ? null
-                    : () => unawaited(widget.onScreenMainPressed!()),
-                onVocabulary: _showVocabulary,
-                onHistory: _showHistory,
-                conversationKey: const Key('home-conversation-tab'),
-                topicsKey: const Key('home-topics-tab'),
-                mainKey: const Key('home-main-button'),
-                vocabularyKey: const Key('home-vocabulary-tab'),
-                historyKey: const Key('home-history-tab'),
-              ),
-            ),
+              if (_page == 0) ...<Widget>[
+                PositionedDirectional(
+                  top: railTop,
+                  start: 0,
+                  child: KeyedSubtree(
+                    key: _vocabularyTabKey,
+                    child: HomeModeRail(
+                      key: const Key('vocabulary-edge-tab'),
+                      edge: HomeRailEdge.left,
+                      label: context.tr('Từ vựng', '词汇'),
+                      icon: Icons.menu_book_rounded,
+                      color: AppColors.primaryNavy,
+                      onPressed: _showVocabulary,
+                    ),
+                  ),
+                ),
+                PositionedDirectional(
+                  top: railTop,
+                  end: 0,
+                  child: KeyedSubtree(
+                    key: _topicTabKey,
+                    child: HomeModeRail(
+                      key: const Key('topic-listening-edge-tab'),
+                      edge: HomeRailEdge.right,
+                      label: context.tr('Chủ đề', '主题'),
+                      icon: Icons.grid_view_rounded,
+                      color: AppColors.primaryNavy,
+                      onPressed: _openTopicListening,
+                    ),
+                  ),
+                ),
+              ],
+              if (_tutorialActive)
+                Positioned.fill(
+                  child: UserOnboardingTour(
+                    steps: _tutorialSteps,
+                    currentIndex: _tutorialStep,
+                    onPrevious: _tutorialStep == 0
+                        ? null
+                        : _previousTutorialStep,
+                    onNext: _nextTutorialStep,
+                    onSkip: _skipTutorial,
+                  ),
+                ),
+            ],
           ),
-        );
-      },
+          bottomNavigationBar: HomiBottomNavigation(
+            selectedIndex: _page == 0 ? 0 : 3,
+            onConversation: _showConversation,
+            onTopics: _openTopicListening,
+            onMain: widget.onScreenMainPressed == null
+                ? null
+                : () => unawaited(widget.onScreenMainPressed!()),
+            onVocabulary: _showVocabulary,
+            onHistory: _showHistory,
+            conversationKey: const Key('home-conversation-tab'),
+            topicsKey: const Key('home-topics-tab'),
+            mainKey: const Key('home-main-button'),
+            vocabularyKey: const Key('home-vocabulary-tab'),
+            historyKey: const Key('home-history-tab'),
+          ),
+        ),
+      ),
     );
   }
 
@@ -608,6 +611,15 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       widget.controller.isInputAvailable;
 
   void _onConversationControllerChanged() {
+    // The controller notifies on every phase and microphone-level change.
+    // Rebuild the shell (and the vocabulary page it hosts) only when a value
+    // the shell itself renders has changed, so a tab transition is not
+    // competing with a rebuild per audio sample.
+    if (widget.controller.displayLanguage != _builtDisplayLanguage ||
+        widget.controller.isInputAvailable != _builtInputAvailable ||
+        widget.controller.childAge != _builtChildAge) {
+      setState(() {});
+    }
     // This listener owns Android's optional, always-on wake-word session only.
     // iOS uses the same VoiceNavigationController for an explicit MAIN turn.
     // Pausing when continuous navigation is disabled therefore cancelled an

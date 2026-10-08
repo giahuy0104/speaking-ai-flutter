@@ -156,6 +156,32 @@ void main() {
     expect(groupLabel.style?.color, theme.colorScheme.primary);
   });
 
+  testWidgets('journey text halos never use blurred shadows', (tester) async {
+    // A blurred text shadow is an offscreen pass per text per shadow; ten
+    // journey rows of them made every transition into this screen jank.
+    for (final themeMode in <ThemeMode>[ThemeMode.light, ThemeMode.dark]) {
+      await tester.pumpWidget(buildSubject(themeMode: themeMode));
+      await tester.pumpAndSettle();
+
+      final shadows = tester
+          .widgetList<Text>(
+            find.descendant(
+              of: find.byKey(const Key('topic-listening-screen')),
+              matching: find.byType(Text),
+            ),
+          )
+          .expand((text) => text.style?.shadows ?? const <Shadow>[])
+          .toList();
+
+      expect(shadows, isNotEmpty, reason: '$themeMode journey has halos');
+      expect(
+        shadows.where((shadow) => shadow.blurRadius > 0),
+        isEmpty,
+        reason: '$themeMode journey halos must stay unblurred',
+      );
+    }
+  });
+
   testWidgets('topic navigation exposes the shared MAIN action', (
     tester,
   ) async {
