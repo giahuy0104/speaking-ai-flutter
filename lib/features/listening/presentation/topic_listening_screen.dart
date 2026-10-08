@@ -2131,18 +2131,36 @@ class _TopicDetails extends StatelessWidget {
   }
 }
 
+// The halo is eight unblurred copies of the glyphs offset by about 1 px.
+// A blurred text shadow costs an offscreen Gaussian pass per text per
+// shadow; with ten journey rows that was the dominant raster cost of every
+// transition into or out of this screen and of scrolling it. Offset copies
+// stay in the glyph pipeline.
 const _journeyTextShadows = <Shadow>[
-  Shadow(color: Colors.white, blurRadius: 2),
-  Shadow(color: Colors.white, blurRadius: 7),
-  Shadow(color: Colors.white, offset: Offset(0, 1), blurRadius: 3),
+  Shadow(color: Colors.white, offset: Offset(-1.2, 0)),
+  Shadow(color: Colors.white, offset: Offset(1.2, 0)),
+  Shadow(color: Colors.white, offset: Offset(0, -1.2)),
+  Shadow(color: Colors.white, offset: Offset(0, 1.2)),
+  Shadow(color: Colors.white, offset: Offset(-0.85, -0.85)),
+  Shadow(color: Colors.white, offset: Offset(0.85, -0.85)),
+  Shadow(color: Colors.white, offset: Offset(-0.85, 0.85)),
+  Shadow(color: Colors.white, offset: Offset(0.85, 0.85)),
+];
+
+const _journeyTextShadowsDark = <Shadow>[
+  Shadow(color: Colors.black54, offset: Offset(-1.2, 0)),
+  Shadow(color: Colors.black54, offset: Offset(1.2, 0)),
+  Shadow(color: Colors.black54, offset: Offset(0, -1.2)),
+  Shadow(color: Colors.black54, offset: Offset(0, 1.2)),
+  Shadow(color: Colors.black54, offset: Offset(-0.85, -0.85)),
+  Shadow(color: Colors.black54, offset: Offset(0.85, -0.85)),
+  Shadow(color: Colors.black54, offset: Offset(-0.85, 0.85)),
+  Shadow(color: Colors.black54, offset: Offset(0.85, 0.85)),
 ];
 
 List<Shadow> _journeyTextShadowsFor(BuildContext context) =>
     Theme.of(context).brightness == Brightness.dark
-    ? const <Shadow>[
-        Shadow(color: Colors.black54, blurRadius: 3),
-        Shadow(color: Colors.black38, blurRadius: 7),
-      ]
+    ? _journeyTextShadowsDark
     : _journeyTextShadows;
 
 class _JourneyPathPainter extends CustomPainter {
