@@ -752,7 +752,8 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     if (_status.isConnected) return true;
     if (_status.phase == Aiv0BlePhase.scanning ||
         _status.phase == Aiv0BlePhase.connecting ||
-        _status.phase == Aiv0BlePhase.reconnecting) {
+        (_status.phase == Aiv0BlePhase.reconnecting &&
+            defaultTargetPlatform != TargetPlatform.iOS)) {
       return false;
     }
 

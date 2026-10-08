@@ -1557,11 +1557,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
             !_startupReady ||
             !_bluetoothPermissionGranted ||
             WidgetsBinding.instance.lifecycleState !=
-                AppLifecycleState.resumed ||
-            !_canRestoreHfpAfterMainFlow ||
-            _isAppAudioPlaybackActive ||
-            _audioTurnCoordinator?.currentToken != null ||
-            _isGlobalModalOpen) {
+                AppLifecycleState.resumed) {
           return;
         }
         final controller = _controller;

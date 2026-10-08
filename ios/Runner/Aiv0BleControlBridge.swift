@@ -388,6 +388,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   private var scanTimeoutWorkItem: DispatchWorkItem?
   private var connectTimeoutWorkItem: DispatchWorkItem?
   private var reconnectWorkItem: DispatchWorkItem?
+  private var systemReconnectWatchdogWorkItem: DispatchWorkItem?
   private var deferredRecoveryWorkItem: DispatchWorkItem?
   private var notificationRefreshWorkItem: DispatchWorkItem?
   private var notificationRefreshTimeoutWorkItem: DispatchWorkItem?
@@ -928,7 +929,48 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     manager.connect(peripheral, options: options.isEmpty ? nil : options)
   }
 
+  private func scheduleSystemReconnectWatchdog(_ peripheral: CBPeripheral) {
+    systemReconnectWatchdogWorkItem?.cancel()
+    let item = DispatchWorkItem { [weak self, weak peripheral] in
+      guard let self, let peripheral,
+        !self.manualDisconnect, !self.disposed,
+        self.connectedPeripheral?.identifier == peripheral.identifier,
+        !(self.phase == "connected" && peripheral.state == .connected)
+      else { return }
+      self.systemReconnectWatchdogWorkItem = nil
+      self.audioSessionCoordinator.trace(
+        stage: "ble_system_reconnect_stalled",
+        caller: "Aiv0BleControlBridge",
+        values: ["peripheralState": String(describing: peripheral.state)]
+      )
+      if peripheral.state == .connected {
+        self.deferredReconnectPeripheral = peripheral
+        self.resumeDeferredBluetoothRecovery()
+        return
+      }
+      // Stop the system-owned pending request before starting the app's
+      // bounded reconnect. CoreBluetooth may report its cancellation later.
+      self.requestPeripheralDisconnect(
+        peripheral,
+        caller: "Aiv0BleControlBridge.systemReconnectWatchdog",
+        code: "system_reconnect_stalled"
+      )
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self, weak peripheral] in
+        guard let self, let peripheral,
+          !self.manualDisconnect, !self.disposed,
+          self.connectedPeripheral?.identifier == peripheral.identifier,
+          peripheral.state != .connected
+        else { return }
+        self.scheduleReconnect(peripheral)
+      }
+    }
+    systemReconnectWatchdogWorkItem = item
+    DispatchQueue.main.asyncAfter(deadline: .now() + 20, execute: item)
+  }
+
   private func scheduleReconnect(_ peripheral: CBPeripheral) {
+    systemReconnectWatchdogWorkItem?.cancel()
+    systemReconnectWatchdogWorkItem = nil
     if shouldDeferBluetoothReconnect() {
       deferredReconnectPeripheral = peripheral
       phase = "reconnecting"
@@ -1018,6 +1060,8 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   private func cancelReconnectTasks() {
     reconnectWorkItem?.cancel()
     reconnectWorkItem = nil
+    systemReconnectWatchdogWorkItem?.cancel()
+    systemReconnectWatchdogWorkItem = nil
     deferredRecoveryWorkItem?.cancel()
     deferredRecoveryWorkItem = nil
     deferredReconnectPeripheral = nil
@@ -1735,6 +1779,8 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
       return
     }
     peripheral.delegate = self
+    systemReconnectWatchdogWorkItem?.cancel()
+    systemReconnectWatchdogWorkItem = nil
     phase = "connecting"
     message = "Đang xác minh dịch vụ BLE Control…"
     lastNotificationRecovery = "connected • peripheral=\(peripheral.state) • notify=discovering"
@@ -1856,6 +1902,12 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
         caller: "Aiv0BleControlBridge"
       )
       emitStatus()
+      if peripheral.state == .connected {
+        deferredReconnectPeripheral = peripheral
+        resumeDeferredBluetoothRecovery()
+      } else {
+        scheduleSystemReconnectWatchdog(peripheral)
+      }
     case .scheduleManualReconnect:
       scheduleReconnect(peripheral)
     }
