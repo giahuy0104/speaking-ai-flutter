@@ -692,6 +692,101 @@ void main() {
     },
   );
 
+  test('Android MAIN ends a command after the phrase silence', () async {
+    final speech = _FakeNavigationSpeechInput(stopText: 'Bộ từ vựng');
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: _FakeVoicePromptService(),
+      mainAssistantFlow: MainVoiceAssistantFlow(
+        contentLoader: _loadMainAssistantContent,
+      ),
+      commandPhraseSilenceEndpoint: const Duration(milliseconds: 80),
+    );
+    final intents = <VoiceNavigationIntent>[];
+    controller.setIntentHandler(intents.add);
+    await controller.activateFromMainButton();
+    await _waitUntil(() => controller.isListening);
+
+    // Google's last partial still misses the final syllable and its own
+    // end-of-speech arrives seconds after the child stopped.
+    speech.emitPartial('Bộ tư vấn');
+    await Future<void>.delayed(const Duration(milliseconds: 30));
+    expect(speech.stopCalls, 0);
+    await _waitUntil(() => intents.isNotEmpty);
+    expect(speech.stopCalls, 1);
+    expect(intents.single.destination, VoiceNavigationDestination.vocabulary);
+    await controller.pause();
+    controller.dispose();
+    await speech.dispose();
+  });
+
+  test('a voice that resumes holds the Android phrase silence open', () async {
+    final speech = _FakeNavigationSpeechInput(stopText: 'Bộ từ vựng');
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: _FakeVoicePromptService(),
+      mainAssistantFlow: MainVoiceAssistantFlow(
+        contentLoader: _loadMainAssistantContent,
+      ),
+      commandPhraseSilenceEndpoint: const Duration(milliseconds: 120),
+    );
+    final intents = <VoiceNavigationIntent>[];
+    controller.setIntentHandler(intents.add);
+    await controller.activateFromMainButton();
+    await _waitUntil(() => controller.isListening);
+
+    // Room level for calibration, then the first word and its partial.
+    for (var i = 0; i < 8; i++) {
+      speech.emitAmplitude(-58);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+    for (var i = 0; i < 6; i++) {
+      speech.emitAmplitude(i.isEven ? -22 : -16);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+    speech.emitPartial('Bộ');
+    // The child keeps talking for longer than the phrase silence.
+    for (var i = 0; i < 6; i++) {
+      speech.emitAmplitude(i.isEven ? -22 : -16);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+    expect(speech.stopCalls, 0);
+    expect(controller.isListening, isTrue);
+
+    speech.emitAmplitude(-58);
+    await _waitUntil(() => intents.isNotEmpty);
+    expect(speech.stopCalls, 1);
+    await controller.pause();
+    controller.dispose();
+    await speech.dispose();
+  });
+
+  test('iOS MAIN keeps waiting for its own endpoint after a phrase', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final speech = _FakeNavigationSpeechInput(stopText: 'Bộ từ vựng');
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: _FakeVoicePromptService(),
+      mainAssistantFlow: MainVoiceAssistantFlow(
+        contentLoader: _loadMainAssistantContent,
+      ),
+      commandPhraseSilenceEndpoint: const Duration(milliseconds: 60),
+    );
+    final intents = <VoiceNavigationIntent>[];
+    controller.setIntentHandler(intents.add);
+    await controller.activateFromMainButton();
+    await _waitUntil(() => controller.isListening);
+
+    speech.emitPartial('Bộ tư vấn');
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    expect(speech.stopCalls, 0);
+    expect(controller.isListening, isTrue);
+    await controller.pause();
+    controller.dispose();
+    await speech.dispose();
+  });
+
   test(
     'Android continuous wake emits one cue at command microphone readiness',
     () async {

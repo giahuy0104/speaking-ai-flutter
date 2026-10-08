@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -202,16 +203,27 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   bool get _isEffectivelyActive =>
       widget.isActive || (widget.activationController?.isActive ?? false);
 
+  VoicePromptService _createVoicePromptService() {
+    // A prompt here starts inside the 750 ms Android keeps the HM-D001 route
+    // after a MAIN turn. Without a lease of its own that route closes under
+    // the prompt, which stalls for seconds and resumes on the media stream.
+    final route = !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+        ? widget.audioDependencies?.createLearningAudioRouteControl()
+        : null;
+    return createVoicePromptService(
+      coordinator: widget.audioDependencies?.audioTurnCoordinator,
+      owner: AudioTurnOwner.vocabulary,
+      selectedOutputRoute: route,
+      useSelectedOutputRoute: () => route?.status.isConnected ?? false,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     _ownsVoicePromptService = widget.voicePromptService == null;
     _voicePromptService =
-        widget.voicePromptService ??
-        createVoicePromptService(
-          coordinator: widget.audioDependencies?.audioTurnCoordinator,
-          owner: AudioTurnOwner.vocabulary,
-        );
+        widget.voicePromptService ?? _createVoicePromptService();
     _ownsMediaService = widget.mediaService == null;
     _mediaService =
         widget.mediaService ??

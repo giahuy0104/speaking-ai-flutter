@@ -4,6 +4,10 @@ import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
 import 'dart:convert';
 
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
+import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
+import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
+import 'package:ai_speaking_flutter_app/core/audio/learning_audio_dependencies.dart';
+import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
@@ -27,6 +31,32 @@ void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
+
+  testWidgets('Android vocabulary prompt leases the connected HM-D001 route', (
+    tester,
+  ) async {
+    final route = _GatedHfpRoute(BluetoothAudioConnectionPhase.ready);
+    await _requestMenuPromptWithRoute(tester, route);
+    expect(route.startCalls, 1);
+  });
+
+  testWidgets('vocabulary prompt leaves a disconnected HM-D001 route alone', (
+    tester,
+  ) async {
+    final route = _GatedHfpRoute(BluetoothAudioConnectionPhase.idle);
+    await _requestMenuPromptWithRoute(tester, route);
+    expect(route.startCalls, 0);
+  });
+
+  testWidgets(
+    'iOS vocabulary prompt keeps its current route',
+    (tester) async {
+      final route = _GatedHfpRoute(BluetoothAudioConnectionPhase.ready);
+      await _requestMenuPromptWithRoute(tester, route);
+      expect(route.startCalls, 0);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
 
   testWidgets(
     'MAIN generic Vocabulary returns from Stars to the menu',
@@ -2186,6 +2216,118 @@ class _BlockingVocabularyAudioService implements VocabularyContentAudioService {
 
   @override
   void dispose() {}
+}
+
+/// Mounts the screen with the prompt service it builds for itself and asks for
+/// the menu prompt, leaving that prompt parked wherever it waits for a route.
+Future<void> _requestMenuPromptWithRoute(
+  WidgetTester tester,
+  _GatedHfpRoute route,
+) async {
+  final registry = ActiveLearningModuleRegistry();
+  addTearDown(registry.dispose);
+  final dependencies = _RoutedLearningDependencies(route);
+  addTearDown(dependencies.audioTurnCoordinator.dispose);
+  tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+    const MethodChannel('ailingo_voice_prompt'),
+    (_) async => null,
+  );
+  addTearDown(
+    () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('ailingo_voice_prompt'),
+      null,
+    ),
+  );
+  await tester.pumpWidget(
+    ActiveLearningModuleScope(
+      registry: registry,
+      child: MaterialApp(
+        theme: buildAppTheme(),
+        home: DisplayLanguageScope(
+          language: DisplayLanguage.vietnamese,
+          child: VocabularyHomeScreen(
+            isReady: true,
+            isActive: true,
+            store: _MemoryVocabularyStore(),
+            mediaService: _ImmediateLessonMediaService(),
+            audioDependencies: dependencies,
+            fixedPromptAudioService:
+                const _UnavailableFixedPromptAudioService(),
+            onReturnToConversation: () {},
+            onHistory: () {},
+            onSettings: () {},
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.pump();
+  unawaited(registry.execute(ActiveLearningCommand.vocabularyRoot));
+  for (var i = 0; i < 5; i += 1) {
+    await tester.pump(const Duration(milliseconds: 20));
+  }
+  // Dispose before opening the gate so no prompt reaches the native player.
+  await tester.pumpWidget(const SizedBox.shrink());
+  route.gate.complete();
+  await tester.pump();
+}
+
+class _RoutedLearningDependencies implements LearningAudioDependencies {
+  _RoutedLearningDependencies(this._route);
+
+  final HfpAudioControl _route;
+
+  @override
+  final AudioTurnCoordinator audioTurnCoordinator = AudioTurnCoordinator();
+
+  @override
+  StreamingSpeechInput? get learningSpeechInput => null;
+
+  @override
+  HfpAudioControl? createLearningAudioRouteControl() => _route;
+}
+
+class _GatedHfpRoute implements HfpAudioControl {
+  _GatedHfpRoute(this._phase);
+
+  final BluetoothAudioConnectionPhase _phase;
+  final Completer<void> gate = Completer<void>();
+  int startCalls = 0;
+
+  @override
+  bool get usesBrowserAudioInput => false;
+
+  @override
+  BluetoothAudioStatus get status =>
+      BluetoothAudioStatus(phase: _phase, routeActive: true);
+
+  @override
+  Stream<BluetoothAudioStatus> get statusChanges =>
+      const Stream<BluetoothAudioStatus>.empty();
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<List<HfpAudioDevice>> findDevices() async => const <HfpAudioDevice>[];
+
+  @override
+  Future<void> connect(HfpAudioDevice device) async {}
+
+  @override
+  Future<void> disconnect() async {}
+
+  @override
+  Future<void> startAudioRoute() {
+    startCalls += 1;
+    return gate.future;
+  }
+
+  @override
+  Future<void> stopAudioRoute() async {}
+
+  @override
+  Future<void> dispose() async {}
 }
 
 class _RecordingVoicePromptService implements VoicePromptService {

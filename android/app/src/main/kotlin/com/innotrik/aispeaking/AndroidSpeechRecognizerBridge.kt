@@ -3,11 +3,15 @@ package com.innotrik.aispeaking
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.AudioDeviceInfo
 import android.media.AudioFormat
+import android.media.AudioManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.os.SystemClock
 import android.speech.RecognitionListener
@@ -60,6 +64,12 @@ class AndroidSpeechRecognizerBridge(
     private var injectedAudioRead: ParcelFileDescriptor? = null
     private var injectedAudioWrite: ParcelFileDescriptor? = null
     private var injectedAudioThread: Thread? = null
+    private var appMicrophone: AppMicrophoneAudioSource? = null
+    private var duckedNotificationVolume: Int? = null
+    private val restoreNotificationStream = Runnable { restoreNotificationStreamNow() }
+    private var lastAppMicrophoneRmsAtMs = 0L
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private val audioManager = appContext.getSystemService(AudioManager::class.java)
 
     init {
         methodChannel.setMethodCallHandler(this)
@@ -401,17 +411,127 @@ class AndroidSpeechRecognizerBridge(
         closeInjectedAudio()
         resetCapturedAudio()
 
-        listening = true
-        activeRequireOnDevice = requireOnDevice
-        bindTurnListener()
-        recognizer?.startListening(
+        val intent =
             createRecognizerIntent(
                 commandMode = commandMode,
                 locale = locale,
                 preferOnDevice = preferOnDevice || requireOnDevice,
-            ),
-        )
+            )
+        attachAppMicrophone(intent)
+        listening = true
+        activeRequireOnDevice = requireOnDevice
+        bindTurnListener()
+        recognizer?.startListening(intent)
         result.success(true)
+    }
+
+    /**
+     * Supplies the phone microphone to the recognizer from the app (Android
+     * 13+). Google's recognition service plays start/stop earcons on the
+     * notification stream only when it opens the microphone itself, so with
+     * app-supplied audio a MAIN listening window no longer jumps about 17 dB
+     * above the prompts around it. An active HM-D001 call route keeps the
+     * recognizer's own capture, which follows that route today. Below Android
+     * 13 the service ignores app-supplied audio, so the notification stream is
+     * turned down for the window instead.
+     */
+    private fun attachAppMicrophone(intent: Intent) {
+        if (isScoRouteActive()) return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            duckNotificationStream()
+            return
+        }
+        val source = AppMicrophoneAudioSource(capturedAudioSampleRate, ::onAppMicrophoneFrame)
+        val readSide = source.start()
+        if (readSide == null) {
+            Log.w(logTag, "App microphone unavailable; the recognizer opens its own microphone")
+            return
+        }
+        appMicrophone = source
+        injectedAudioRead = readSide
+        intent.putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE, readSide)
+        intent.putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE_CHANNEL_COUNT, 1)
+        intent.putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE_ENCODING, AudioFormat.ENCODING_PCM_16BIT)
+        intent.putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE_SAMPLING_RATE, capturedAudioSampleRate)
+        AudioDiagnostics.event(
+            "speech.app_microphone",
+            mapOf("generation" to recognitionGeneration, "turnId" to clientTurnId),
+        )
+    }
+
+    /** Runs on the capture thread; AudioRecord already delivers little-endian PCM16. */
+    private fun onAppMicrophoneFrame(buffer: ByteArray, count: Int) {
+        capturedPcm.write(buffer, 0, count)
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastAppMicrophoneRmsAtMs < appMicrophoneRmsIntervalMs) return
+        lastAppMicrophoneRmsAtMs = now
+        val rmsDb = PcmLevel.recognizerRmsDb(PcmLevel.dbfs(buffer, count))
+        val turnId = clientTurnId
+        mainHandler.post {
+            if (appMicrophone == null) return@post
+            events?.success(
+                mapOf(
+                    "type" to "speech.rms",
+                    "turnId" to turnId,
+                    "rmsDb" to rmsDb,
+                ),
+            )
+        }
+    }
+
+    /**
+     * Android 12 and older: Google's recognizer still opens the microphone
+     * itself and plays its earcons on the notification stream. Lower that
+     * stream to index 1 for the listening window and put it back when the
+     * window ends. Index 0 would change the ringer mode, which needs
+     * Do Not Disturb access, so the beep is only made quiet, not removed.
+     */
+    private fun duckNotificationStream() {
+        val manager = audioManager ?: return
+        mainHandler.removeCallbacks(restoreNotificationStream)
+        if (duckedNotificationVolume != null) return
+        val current =
+            try {
+                manager.getStreamVolume(AudioManager.STREAM_NOTIFICATION)
+            } catch (_: RuntimeException) {
+                return
+            }
+        if (current <= duckedNotificationIndex) return
+        try {
+            manager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, duckedNotificationIndex, 0)
+        } catch (_: SecurityException) {
+            return
+        }
+        duckedNotificationVolume = current
+        AudioDiagnostics.event(
+            "speech.notification_ducked",
+            mapOf("from" to current, "to" to duckedNotificationIndex),
+        )
+    }
+
+    /** The end earcon is still sounding when the result arrives; restore after it. */
+    private fun scheduleNotificationStreamRestore() {
+        if (duckedNotificationVolume == null) return
+        mainHandler.removeCallbacks(restoreNotificationStream)
+        mainHandler.postDelayed(restoreNotificationStream, notificationRestoreDelayMs)
+    }
+
+    private fun restoreNotificationStreamNow() {
+        val previous = duckedNotificationVolume ?: return
+        duckedNotificationVolume = null
+        try {
+            audioManager?.setStreamVolume(AudioManager.STREAM_NOTIFICATION, previous, 0)
+        } catch (_: SecurityException) {
+        }
+        AudioDiagnostics.event("speech.notification_restored", mapOf("to" to previous))
+    }
+
+    private fun isScoRouteActive(): Boolean {
+        @Suppress("DEPRECATION")
+        val bluetoothScoOn = audioManager?.isBluetoothScoOn == true
+        return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            audioManager?.communicationDevice?.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO) ||
+            bluetoothScoOn
     }
 
     private fun createRecognizerIntent(
@@ -1047,7 +1167,7 @@ class AndroidSpeechRecognizerBridge(
     }
 
     override fun onRmsChanged(rmsdB: Float) {
-        if (pendingFileResult != null) return
+        if (pendingFileResult != null || appMicrophone != null) return
         events?.success(
             mapOf(
                 "type" to "speech.rms",
@@ -1058,7 +1178,7 @@ class AndroidSpeechRecognizerBridge(
     }
 
     override fun onBufferReceived(buffer: ByteArray?) {
-        if (capturedAudioFile != null || buffer == null || buffer.size < 2) {
+        if (capturedAudioFile != null || appMicrophone != null || buffer == null || buffer.size < 2) {
             return
         }
 
@@ -1194,6 +1314,9 @@ class AndroidSpeechRecognizerBridge(
     }
 
     private fun closeInjectedAudio() {
+        scheduleNotificationStreamRestore()
+        appMicrophone?.stop()
+        appMicrophone = null
         injectedAudioThread?.interrupt()
         injectedAudioThread = null
         try {
@@ -1310,6 +1433,8 @@ class AndroidSpeechRecognizerBridge(
         )
         recognizer?.cancel()
         closeInjectedAudio()
+        mainHandler.removeCallbacks(restoreNotificationStream)
+        restoreNotificationStreamNow()
         recognizer?.destroy()
         recognizer = null
         recognizerMode = null
@@ -1341,6 +1466,9 @@ class AndroidSpeechRecognizerBridge(
         const val wavHeaderBytes = 44
         const val minimumCapturedPcmBytes = 1600
         const val injectedAudioBufferBytes = 8192
+        const val appMicrophoneRmsIntervalMs = 100L
+        const val duckedNotificationIndex = 1
+        const val notificationRestoreDelayMs = 800L
         const val logTag = "HomiSpeech"
     }
 }
