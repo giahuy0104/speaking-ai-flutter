@@ -66,8 +66,32 @@ Aiv0BleDevice? selectAiv0AutoConnectCandidate(
   List<Aiv0BleDevice> devices, {
   String? savedDeviceId,
   String? savedDeviceName,
+  Iterable<String> connectedHfpDeviceIds = const <String>[],
 }) {
   if (devices.isEmpty) return null;
+  final connectedIds = connectedHfpDeviceIds
+      .map((id) => id.trim().toUpperCase())
+      .where((id) => id.isNotEmpty)
+      .toSet();
+  if (connectedIds.isNotEmpty) {
+    final sameDevice =
+        devices
+            .where(
+              (device) => connectedIds.contains(device.id.trim().toUpperCase()),
+            )
+            .toList(growable: false)
+          ..sort((a, b) => b.rssi.compareTo(a.rssi));
+    if (sameDevice.isNotEmpty) return sameDevice.first;
+    // A different LE address cannot be matched to one of several nearby units.
+    final plausible = devices
+        .where(
+          (device) =>
+              device.name.trim().toLowerCase() == 'hm-d001' ||
+              device.advertisesControlService,
+        )
+        .toList(growable: false);
+    return plausible.length == 1 ? plausible.single : null;
+  }
   final hmD001Devices =
       devices
           .where((device) => device.name.trim().toLowerCase() == 'hm-d001')
@@ -525,7 +549,8 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     required bool enabled,
     required bool draftProtocolConfirmed,
     bool dualModePairingEnabled = const bool.fromEnvironment(
-      'H20_DUAL_MODE_PAIRING',
+      'HM_D001_SINGLE_PAIRING',
+      defaultValue: true,
     ),
     MethodChannel? methodChannel,
     EventChannel? eventChannel,
@@ -727,6 +752,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   Future<bool> autoConnectKnownOrNearby({
     Duration scanTimeout = const Duration(seconds: 4),
     bool requestBond = false,
+    Iterable<String> connectedHfpDeviceIds = const <String>[],
   }) {
     if (!_enabled || _manualDisconnectRequested) {
       return Future<bool>.value(false);
@@ -736,6 +762,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     final future = _runAutoConnect(
       scanTimeout,
       requestBond: requestBond && _dualModePairingEnabled,
+      connectedHfpDeviceIds: connectedHfpDeviceIds.toList(growable: false),
     );
     _autoConnectFuture = future;
     return future.whenComplete(() {
@@ -748,6 +775,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   Future<bool> _runAutoConnect(
     Duration scanTimeout, {
     required bool requestBond,
+    required List<String> connectedHfpDeviceIds,
   }) async {
     await initialize();
     if (_status.isConnected) return true;
@@ -764,7 +792,11 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
         savedDeviceName?.toLowerCase().contains('h20') ?? false;
     if (savedDeviceId != null &&
         savedDeviceId.trim().isNotEmpty &&
-        !migratingFromH20) {
+        !migratingFromH20 &&
+        (connectedHfpDeviceIds.isEmpty ||
+            connectedHfpDeviceIds.any(
+              (id) => id.toUpperCase() == savedDeviceId.trim().toUpperCase(),
+            ))) {
       try {
         // This is the fast path for normal daily use: native can reopen the
         // verified GATT identifier directly without waiting for another scan.
@@ -788,10 +820,13 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
       devices,
       savedDeviceId: savedDeviceId,
       savedDeviceName: savedDeviceName,
+      connectedHfpDeviceIds: connectedHfpDeviceIds,
     );
     final targetId = candidate?.id;
     if (targetId == null || targetId.isEmpty) {
-      if (migratingFromH20 && savedDeviceId != null) {
+      if (migratingFromH20 &&
+          savedDeviceId != null &&
+          connectedHfpDeviceIds.isEmpty) {
         try {
           await _connectCandidate(
             savedDeviceId.trim(),

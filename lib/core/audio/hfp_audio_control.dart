@@ -33,10 +33,12 @@ class HfpAudioDevice {
 HfpAudioDevice? selectLikelyH20HfpDevice(
   Iterable<HfpAudioDevice> devices, {
   String? bleDeviceName,
+  bool connectedOnly = false,
 }) {
   final normalizedBleName = _normalizeH20DeviceName(bleDeviceName ?? '');
   final candidates = devices
       .where((device) {
+        if (connectedOnly && !device.isConnected) return false;
         final normalizedName = _normalizeH20DeviceName(device.displayName);
         if (normalizedName.isEmpty) return false;
         final matchesBleName =

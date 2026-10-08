@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -188,6 +186,40 @@ void main() {
   });
 
   group('AIV0 automatic connection selection', () {
+    test(
+      'does not guess between two BLE units with different HFP addresses',
+      () {
+        const devices = <Aiv0BleDevice>[
+          Aiv0BleDevice(id: 'AA:AA', name: 'HM-D001', rssi: -30),
+          Aiv0BleDevice(id: 'BB:BB', name: 'HM-D001', rssi: -75),
+        ];
+
+        expect(
+          selectAiv0AutoConnectCandidate(
+            devices,
+            connectedHfpDeviceIds: const <String>['CC:CC'],
+          ),
+          isNull,
+        );
+      },
+    );
+
+    test('prefers the HM-D001 already connected through Classic HFP', () {
+      const devices = <Aiv0BleDevice>[
+        Aiv0BleDevice(id: 'AA:AA', name: 'HM-D001', rssi: -30),
+        Aiv0BleDevice(id: 'BB:BB', name: 'HM-D001', rssi: -75),
+      ];
+
+      expect(
+        selectAiv0AutoConnectCandidate(
+          devices,
+          savedDeviceId: 'AA:AA',
+          connectedHfpDeviceIds: const <String>['bb:bb'],
+        )?.id,
+        'BB:BB',
+      );
+    });
+
     test('prefers the previously verified H20 address', () {
       const devices = <Aiv0BleDevice>[
         Aiv0BleDevice(

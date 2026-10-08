@@ -30,6 +30,21 @@ void main() {
     );
   });
 
+  test(
+    'connected-only selection skips a paired but disconnected HFP profile',
+    () {
+      const devices = <HfpAudioDevice>[
+        HfpAudioDevice(id: 'paired', name: 'HM-D001', isConnected: false),
+        HfpAudioDevice(id: 'live', name: 'HM-D001', isConnected: true),
+      ];
+
+      expect(
+        selectLikelyH20HfpDevice(devices, connectedOnly: true)?.id,
+        'live',
+      );
+    },
+  );
+
   test('automatic H20 selection accepts known ODM device names', () {
     const devices = <HfpAudioDevice>[
       HfpAudioDevice(id: 'odm', name: 'INNOTRIK HFP', isConnected: true),

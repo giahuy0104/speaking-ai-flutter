@@ -722,6 +722,26 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
 
     final wasH20Ready = controller.isH20Ready;
     final bleAlreadyConnected = controller.canUseAiv0Ble;
+    final connectedHfpDeviceIds = <String>[];
+    if (defaultTargetPlatform == TargetPlatform.android &&
+        !bleAlreadyConnected) {
+      try {
+        final hfpDevices =
+            await _nativeHfpAudioControl?.findDevices() ??
+            const <HfpAudioDevice>[];
+        connectedHfpDeviceIds.addAll(
+          hfpDevices
+              .where(
+                (device) =>
+                    device.isConnected &&
+                    selectLikelyH20HfpDevice(<HfpAudioDevice>[device]) != null,
+              )
+              .map((device) => device.id),
+        );
+      } catch (error) {
+        debugPrint('Connected HM-D001 HFP lookup was skipped: $error');
+      }
+    }
     if (!wasH20Ready) {
       _aiv0AutoConnectAttemptActive = true;
       // A quiet periodic retry must not put a connecting overlay over the
@@ -735,7 +755,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       bleConnected =
           bleAlreadyConnected ||
           await control.autoConnectKnownOrNearby(
-            requestBond: reason == _H20AutoConnectReason.parentSetup,
+            requestBond:
+                reason == _H20AutoConnectReason.parentSetup &&
+                connectedHfpDeviceIds.isEmpty,
+            connectedHfpDeviceIds: connectedHfpDeviceIds,
           );
     } catch (error) {
       debugPrint('Automatic H20 BLE connection was skipped: $error');

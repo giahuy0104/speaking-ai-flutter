@@ -61,4 +61,62 @@ void main() {
       await control.dispose();
     },
   );
+
+  test(
+    'connected Classic HM-D001 takes priority over a stale BLE address',
+    () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{
+        'aiv0_ble_last_device_id': 'AA:AA',
+        'aiv0_ble_last_device_name': 'HM-D001',
+      });
+      final connectedIds = <String>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            switch (call.method) {
+              case 'initialize':
+                return <Object?, Object?>{'phase': 'idle'};
+              case 'requestPermissions':
+                return true;
+              case 'scan':
+                return <Map<String, Object?>>[
+                  <String, Object?>{
+                    'id': 'AA:AA',
+                    'name': 'HM-D001',
+                    'rssi': -30,
+                  },
+                  <String, Object?>{
+                    'id': 'BB:BB',
+                    'name': 'HM-D001',
+                    'rssi': -80,
+                  },
+                ];
+              case 'connect':
+                final id = (call.arguments as Map<Object?, Object?>)['deviceId']
+                    .toString();
+                connectedIds.add(id);
+                return <Object?, Object?>{
+                  'phase': 'connected',
+                  'deviceId': id,
+                  'deviceName': 'HM-D001',
+                  'mainNotificationState': 'notifying',
+                };
+              default:
+                return null;
+            }
+          });
+      final control = MethodChannelAiv0BleControl(
+        enabled: true,
+        draftProtocolConfirmed: false,
+      );
+
+      expect(
+        await control.autoConnectKnownOrNearby(
+          connectedHfpDeviceIds: const <String>['BB:BB'],
+        ),
+        isTrue,
+      );
+      expect(connectedIds, <String>['BB:BB']);
+      await control.dispose();
+    },
+  );
 }
