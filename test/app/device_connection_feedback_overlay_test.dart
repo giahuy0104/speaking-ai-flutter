@@ -4,6 +4,43 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('iOS reconnect notice stays small and does not block taps', (
+    tester,
+  ) async {
+    var taps = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: Scaffold(
+          body: Stack(
+            children: <Widget>[
+              Positioned.fill(
+                child: TextButton(
+                  onPressed: () => taps += 1,
+                  child: const Text('Continue'),
+                ),
+              ),
+              const Center(child: IosBleReconnectNotice()),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Đang kết nối lại HM-D001…'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('ios-ble-reconnect-notice')),
+        matching: find.byType(ModalBarrier),
+      ),
+      findsNothing,
+    );
+    await tester.tapAt(
+      tester.getCenter(find.byKey(const Key('ios-ble-reconnect-notice'))),
+    );
+    expect(taps, 1);
+  });
+
   testWidgets('shows HOMI progress while H20 transports are connecting', (
     tester,
   ) async {

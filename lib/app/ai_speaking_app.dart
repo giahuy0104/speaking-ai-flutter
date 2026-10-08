@@ -167,6 +167,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   StreamSubscription<AudioTurnDiagnostic>? _audioTurnDiagnosticSubscription;
   Timer? _deviceConnectionFeedbackTimer;
   DeviceConnectionFeedbackStage? _deviceConnectionFeedbackStage;
+  Timer? _iosBleReconnectNoticeTimer;
+  bool _iosBleReconnectNoticeVisible = false;
+  bool _iosBleHasConnectedOnce = false;
   final DeviceConnectionFeedbackGate _deviceConnectionFeedbackGate =
       DeviceConnectionFeedbackGate();
   bool _aiv0AutoConnectAttemptActive = false;
@@ -252,8 +255,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) {
+      _hideIosBleReconnectNotice();
       return;
     }
+    final bleStatus = _aiv0BleControl?.status;
+    if (bleStatus != null) _updateIosBleReconnectNotice(bleStatus);
     unawaited(_prepareOfflineLanguageModels());
     if (_retryParentH20SetupOnResume && _privacyConsentGranted) {
       _retryParentH20SetupOnResume = false;
@@ -1230,6 +1236,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (_usesIosHfpLifecycle) {
       _deviceConnectionFeedbackGate.clear();
       _hideDeviceConnectionFeedback();
+      _updateIosBleReconnectNotice(status);
       final justConnected = status.isConnected && !_iosBleWasConnected;
       _iosBleWasConnected = status.isConnected;
       if (!status.isConnected) {
@@ -1353,6 +1360,51 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     _deviceConnectionFeedbackTimer = null;
     if (!mounted || _deviceConnectionFeedbackStage == null) return;
     setState(() => _deviceConnectionFeedbackStage = null);
+  }
+
+  void _updateIosBleReconnectNotice(Aiv0BleStatus status) {
+    if (!_usesIosHfpLifecycle) return;
+    if (status.isConnected) {
+      _iosBleHasConnectedOnce = true;
+      _hideIosBleReconnectNotice();
+      return;
+    }
+    final recovering =
+        status.phase == Aiv0BlePhase.scanning ||
+        status.phase == Aiv0BlePhase.connecting ||
+        status.phase == Aiv0BlePhase.reconnecting;
+    if (!_iosBleHasConnectedOnce ||
+        !_startupReady ||
+        !recovering ||
+        WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+      _hideIosBleReconnectNotice();
+      return;
+    }
+    if (_iosBleReconnectNoticeVisible || _iosBleReconnectNoticeTimer != null) {
+      return;
+    }
+    _iosBleReconnectNoticeTimer = Timer(const Duration(seconds: 2), () {
+      _iosBleReconnectNoticeTimer = null;
+      final current = _aiv0BleControl?.status;
+      if (!mounted ||
+          !_startupReady ||
+          current == null ||
+          current.isConnected ||
+          (current.phase != Aiv0BlePhase.scanning &&
+              current.phase != Aiv0BlePhase.connecting &&
+              current.phase != Aiv0BlePhase.reconnecting) ||
+          WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+        return;
+      }
+      setState(() => _iosBleReconnectNoticeVisible = true);
+    });
+  }
+
+  void _hideIosBleReconnectNotice() {
+    _iosBleReconnectNoticeTimer?.cancel();
+    _iosBleReconnectNoticeTimer = null;
+    if (!mounted || !_iosBleReconnectNoticeVisible) return;
+    setState(() => _iosBleReconnectNoticeVisible = false);
   }
 
   bool get _isAppAudioPlaybackActive {
@@ -2967,6 +3019,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     _androidHfpAutoSelectionTimer?.cancel();
     _iosUnifiedConnectionRetryTimer?.cancel();
     _deviceConnectionFeedbackTimer?.cancel();
+    _iosBleReconnectNoticeTimer?.cancel();
     unawaited(_aiv0BleFeedbackSubscription?.cancel());
     unawaited(_audioTurnDiagnosticSubscription?.cancel());
     unawaited(_offlineTranslator.close());
@@ -3044,6 +3097,16 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                 if (_deviceConnectionFeedbackStage != null)
                   DeviceConnectionFeedbackOverlay(
                     stage: _deviceConnectionFeedbackStage!,
+                  ),
+                if (_iosBleReconnectNoticeVisible)
+                  const Positioned(
+                    top: 0,
+                    left: 16,
+                    right: 16,
+                    child: SafeArea(
+                      bottom: false,
+                      child: Center(child: IosBleReconnectNotice()),
+                    ),
                   ),
               ],
             ),

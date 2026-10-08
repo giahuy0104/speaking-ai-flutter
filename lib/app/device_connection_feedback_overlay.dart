@@ -5,6 +5,51 @@ import 'mascot_assets.dart';
 
 enum DeviceConnectionFeedbackStage { connecting, connected }
 
+/// A small status notice for iOS BLE recovery that never blocks app controls.
+class IosBleReconnectNotice extends StatelessWidget {
+  const IosBleReconnectNotice({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return IgnorePointer(
+      child: Semantics(
+        liveRegion: true,
+        child: Material(
+          key: const Key('ios-ble-reconnect-notice'),
+          color: theme.colorScheme.surface,
+          elevation: 6,
+          borderRadius: BorderRadius.circular(18),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 350),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2.5),
+                  ),
+                  const SizedBox(width: 12),
+                  Flexible(
+                    child: Text(
+                      'Đang kết nối lại HM-D001…',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Short, app-owned feedback for device setup. Callers can describe BLE-only
 /// success while the HFP microphone is still being selected.
 class DeviceConnectionFeedbackOverlay extends StatelessWidget {
