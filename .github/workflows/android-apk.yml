@@ -24,8 +24,9 @@ jobs:
           --dart-define-from-file=dart_defines.production.json
           --dart-define=ENABLE_AIV0_BLE_CONTROL=true
           --dart-define=ENABLE_HFP_AUDIO=true
+      - run: echo "ARTIFACT_NAME=homi-android-${GITHUB_REF_NAME//\//-}-${GITHUB_SHA::8}" >> "$GITHUB_ENV"
       - uses: actions/upload-artifact@v4
         with:
-          name: homi-android-${{ github.ref_name }}-${{ github.sha }}
+          name: ${{ env.ARTIFACT_NAME }}
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error

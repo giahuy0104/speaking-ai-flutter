@@ -47,6 +47,7 @@ jobs:
           python3 tool/prepare_ios_translation_pods.py device
           BUILD_NUMBER=$(( $(app-store-connect get-latest-testflight-build-number 6804089228) + 1 ))
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
+          echo "ARTIFACT_NAME=homi-ios-$BUILD_NUMBER-${GITHUB_REF_NAME//\//-}-${GITHUB_SHA::8}" >> "$GITHUB_ENV"
           flutter build ipa --release --build-number="$BUILD_NUMBER" \
             --export-options-plist="$RUNNER_TEMP/export_options.plist" \
             --dart-define-from-file=dart_defines.production.json \
@@ -59,7 +60,7 @@ jobs:
             --dart-define=ENABLE_HFP_AUDIO=true
       - uses: actions/upload-artifact@v4
         with:
-          name: homi-ios-${{ env.BUILD_NUMBER }}-${{ github.ref_name }}-${{ github.sha }}
+          name: ${{ env.ARTIFACT_NAME }}
           path: build/ios/ipa/*.ipa
           if-no-files-found: error
       - name: Upload to TestFlight
