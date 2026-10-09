@@ -932,6 +932,9 @@ class Aiv0BleControlBridge(
         stopScan(complete = true)
         connectResult?.error("BLUETOOTH_DISABLED", "Bluetooth đang tắt.", null)
         connectResult = null
+        pendingWriteResult?.error("BLUETOOTH_DISABLED", "Bluetooth đang tắt.", null)
+        pendingWriteResult = null
+        finishBond(false)
         closeGatt()
         reconnectAttempts = 0
         phase = "idle"
