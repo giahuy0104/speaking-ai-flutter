@@ -1036,7 +1036,9 @@ class VoiceNavigationController extends ChangeNotifier {
             _mainAssistantFlow.silenceRetryPrompt,
         promptAudioKey: _mainNoSpeechRetryPromptOverride == null
             ? _mainAssistantFlow.silenceRetryAudioKey
-            : null,
+            : _mainAssistantFlow.audioKeyForPrompt(
+                _mainNoSpeechRetryPromptOverride!,
+              ),
       );
       if (prompted && !_disposed && generation == _generation) {
         await _runStartSession(generation);
