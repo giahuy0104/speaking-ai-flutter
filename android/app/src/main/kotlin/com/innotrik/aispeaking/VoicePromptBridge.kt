@@ -52,6 +52,10 @@ class VoicePromptBridge(
     private val readyCueResults = mutableListOf<MethodChannel.Result>()
     var isH20RouteOwned: () -> Boolean = { false }
     private val levelWorker = Executors.newSingleThreadExecutor()
+    // Builds and releases prompt players in order, so a new player is never
+    // created in the media server while the previous one is being torn down,
+    // and never waits behind a loudness analysis.
+    private val playerWorker = Executors.newSingleThreadExecutor()
     private var synthesizedPromptId: String? = null
     private var synthesizedPromptFile: File? = null
     private var synthesizedPromptGainMillibels = 0
@@ -454,27 +458,71 @@ class VoicePromptBridge(
         }
 
         releasePromptPlayback()
-        val player = MediaPlayer()
         promptPlaybackId = utteranceId
         promptPlaybackFile = audioFile
+        val attributes = voicePromptAudioAttributes(
+            forcePhoneSpeaker = synthesizedPromptForcePhoneSpeaker,
+            forceMediaPlayback = synthesizedPromptForceMediaPlayback,
+        )
+        val preferredDevice = if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            !synthesizedPromptForcePhoneSpeaker
+        ) {
+            audioManager.communicationDevice
+                ?.takeIf { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
+        } else {
+            null
+        }
+        // MediaPlayer() and setDataSource() block on the media server (the
+        // extractor sniffs the file before setDataSource returns), about
+        // 30 ms on a Pixel 8, and landed on the first frames of the tab
+        // transition that starts this prompt. The player is built on the
+        // worker behind the release of the previous one; it is registered
+        // and prepared on the main thread only if this prompt is still
+        // current.
+        playerWorker.execute {
+            val player = MediaPlayer()
+            val failure = runCatching {
+                player.setAudioAttributes(attributes)
+                preferredDevice?.let { player.setPreferredDevice(it) }
+                player.setDataSource(audioFile.absolutePath)
+                player.setVolume(1.0f, 1.0f)
+            }.exceptionOrNull()
+            mainHandler.post {
+                if (promptPlaybackId != utteranceId) {
+                    releaseOffMainThread(player)
+                    return@post
+                }
+                if (failure != null) {
+                    releaseOffMainThread(player)
+                    finishPromptPlayback(
+                        utteranceId,
+                        failure.message ?: "TTS playback failed.",
+                    )
+                    return@post
+                }
+                startPromptPlayer(
+                    player,
+                    utteranceId,
+                    audioFile,
+                    gainMillibels,
+                    levelKey,
+                    gainFromManifest,
+                )
+            }
+        }
+    }
+
+    private fun startPromptPlayer(
+        player: MediaPlayer,
+        utteranceId: String,
+        audioFile: File,
+        gainMillibels: Int,
+        levelKey: String?,
+        gainFromManifest: Boolean,
+    ) {
         promptPlayer = player
         try {
-            player.setAudioAttributes(
-                voicePromptAudioAttributes(
-                    forcePhoneSpeaker = synthesizedPromptForcePhoneSpeaker,
-                    forceMediaPlayback = synthesizedPromptForceMediaPlayback,
-                ),
-            )
-            if (
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-                !synthesizedPromptForcePhoneSpeaker
-            ) {
-                audioManager.communicationDevice
-                    ?.takeIf { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
-                    ?.let { player.setPreferredDevice(it) }
-            }
-            player.setDataSource(audioFile.absolutePath)
-            player.setVolume(1.0f, 1.0f)
             player.setOnPreparedListener { preparedPlayer ->
                 if (promptPlayer !== preparedPlayer || promptPlaybackId != utteranceId) {
                     return@setOnPreparedListener
@@ -610,7 +658,7 @@ class VoicePromptBridge(
         file: File? = null,
     ) {
         if (player == null && enhancer == null && file == null) return
-        levelWorker.execute {
+        playerWorker.execute {
             runCatching { enhancer?.release() }
             runCatching { player?.release() }
             file?.delete()
@@ -807,5 +855,6 @@ class VoicePromptBridge(
         textToSpeech?.shutdown()
         textToSpeech = null
         levelWorker.shutdown()
+        playerWorker.shutdown()
     }
 }
