@@ -32,6 +32,9 @@ enum LessonPlaybackRoute { selectedLessonDevice, phoneSpeaker }
 /// a completion-aware clip that is paused never reports its end.
 const Duration _pausedPlaybackResumeDelay = Duration(seconds: 1);
 
+/// A pause this close to the end is left to report completion by itself.
+const Duration _pausedPlaybackEndMargin = Duration(milliseconds: 500);
+
 class LessonMediaService {
   LessonMediaService({
     AudioRecorder? recorder,
@@ -40,11 +43,13 @@ class LessonMediaService {
     AudioTurnCoordinator? audioTurnCoordinator,
     AudioTurnOwner audioTurnOwner = AudioTurnOwner.listeningLesson,
     LessonRecordingHistoryStore? historyStore,
+    Stream<AudioInterruptionEvent>? audioInterruptionEvents,
   }) : _recorder = recorder,
        _playbackService = playbackService,
        _hfpAudioControl = hfpAudioControl,
        _audioTurnCoordinator = audioTurnCoordinator,
        _audioTurnOwner = audioTurnOwner,
+       _audioInterruptionEvents = audioInterruptionEvents,
        historyStore = historyStore ?? const LessonRecordingHistoryStore() {
     if (!kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
@@ -88,6 +93,7 @@ class LessonMediaService {
   final HfpAudioControl? _hfpAudioControl;
   final AudioTurnCoordinator? _audioTurnCoordinator;
   final AudioTurnOwner _audioTurnOwner;
+  final Stream<AudioInterruptionEvent>? _audioInterruptionEvents;
   DateTime? _recordingStartedAt;
   String? _activePath;
   _ActiveLessonRecording? _activeContext;
@@ -183,6 +189,37 @@ class LessonMediaService {
     await _activePlayback.play(uri);
   }
 
+  Stream<AudioInterruptionEvent> get _interruptions =>
+      _audioInterruptionEvents ??
+      Stream.fromFuture(
+        AudioSession.instance,
+      ).asyncExpand((session) => session.interruptionEventStream);
+
+  bool _isNearPlaybackEnd(AudioPlaybackService playback) {
+    if (playback is! ProgressAwareAudioPlaybackService) return false;
+    final progress = playback as ProgressAwareAudioPlaybackService;
+    final duration = progress.duration;
+    return duration != null &&
+        duration - progress.position < _pausedPlaybackEndMargin;
+  }
+
+  /// BLE/HFP can confirm the selected route a fraction after a clip is
+  /// requested. Match the challenge prompts' single short retry so a take
+  /// replay is not dropped by that transition, unless playback was stopped.
+  Future<void> _preparePlaybackRouteWithRetry(
+    LessonPlaybackRoute route,
+    int generation,
+  ) async {
+    try {
+      await _preparePlaybackRoute(route);
+    } on HfpAudioException {
+      _requireCurrentPlayback(generation);
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      _requireCurrentPlayback(generation);
+      await _preparePlaybackRoute(route);
+    }
+  }
+
   void _requireCurrentPlayback(int generation) {
     if (generation != _playbackRequestGeneration) {
       throw const LessonMediaException('Lượt phát âm thanh đã dừng.');
@@ -261,7 +298,7 @@ class LessonMediaService {
   }) async {
     final generation = ++_playbackRequestGeneration;
     final playback = _activePlayback;
-    await _preparePlaybackRoute(route);
+    await _preparePlaybackRouteWithRetry(route, generation);
     _requireCurrentPlayback(generation);
     // Keep authored clips, prompts, and child replays deterministic even after
     // Android switches between media and HFP communication attributes.
@@ -280,6 +317,7 @@ class LessonMediaService {
     var started = false;
     var playStarted = false;
     var resumed = false;
+    var interrupted = false;
     Timer? resumeTimer;
     final CompletionAwareAudioPlaybackService? completionPlayback =
         playback is CompletionAwareAudioPlaybackService
@@ -302,9 +340,13 @@ class LessonMediaService {
           // outlives the delay is a stalled clip.
           resumeTimer?.cancel();
           resumeTimer = Timer(_pausedPlaybackResumeDelay, () {
+            // just_audio resumes an interruption pause by itself, and a play()
+            // during the interruption would cancel that automatic resume.
             if (!playStarted ||
+                interrupted ||
                 completed.isCompleted ||
-                generation != _playbackRequestGeneration) {
+                generation != _playbackRequestGeneration ||
+                _isNearPlaybackEnd(playback)) {
               return;
             }
             resumed = true;
@@ -328,6 +370,11 @@ class LessonMediaService {
           completed.completeError(error, stackTrace);
         }
       },
+    );
+    final interruptionSubscription = _interruptions.listen(
+      (event) =>
+          interrupted = event.begin && event.type != AudioInterruptionType.duck,
+      onError: (Object _) {},
     );
     StreamSubscription<void>? completionSubscription;
     try {
@@ -355,6 +402,7 @@ class LessonMediaService {
       resumeTimer?.cancel();
       await Future.wait<void>(<Future<void>>[
         subscription.cancel(),
+        interruptionSubscription.cancel(),
         if (completionSubscription != null) completionSubscription.cancel(),
       ]);
       if (identical(_activePlaybackCompletion, completed)) {
