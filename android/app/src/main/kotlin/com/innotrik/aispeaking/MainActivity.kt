@@ -2,7 +2,9 @@ package com.innotrik.aispeaking
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -12,6 +14,37 @@ class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         HomiAndroidRuntime.attachActivity(this)
         super.onCreate(savedInstanceState)
+        preferHighestRefreshRate()
+    }
+
+    /**
+     * Xiaomi, Samsung and other OEMs keep third-party windows at 60 Hz on a
+     * 90/120 Hz panel unless the window asks for a display mode. Flutter
+     * animates at the mode the window gets, so ask for the fastest mode that
+     * keeps the current resolution.
+     */
+    private fun preferHighestRefreshRate() {
+        val display = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            display
+        } else {
+            @Suppress("DEPRECATION")
+            windowManager.defaultDisplay
+        } ?: return
+        val current = display.mode
+        val fastest = display.supportedModes
+            .filter {
+                it.physicalWidth == current.physicalWidth &&
+                    it.physicalHeight == current.physicalHeight
+            }
+            .maxByOrNull { it.refreshRate } ?: return
+        window.attributes = window.attributes.apply {
+            preferredDisplayModeId = fastest.modeId
+        }
+        Log.i(
+            "HomiDisplay",
+            "Display mode ${current.modeId} at ${current.refreshRate} Hz; " +
+                "preferring mode ${fastest.modeId} at ${fastest.refreshRate} Hz",
+        )
     }
 
     override fun provideFlutterEngine(context: Context): FlutterEngine =
