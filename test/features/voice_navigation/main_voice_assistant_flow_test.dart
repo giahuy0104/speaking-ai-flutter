@@ -12,6 +12,33 @@ import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_en
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('MAIN opens every topic 1–10 for all five age groups', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    final content = await AssetListeningContentRepository().load();
+    for (final group in content.groups) {
+      final numbers = group.topics.map((topic) => topic.number).toList();
+      for (final number in numbers) {
+        final flow = MainVoiceAssistantFlow(contentLoader: () async => content);
+        flow.beginTopicSelection(
+          childAge: group.startAge,
+          topicNumbers: numbers,
+          completedTopicNumbers: [],
+        );
+        final turn = await flow.handle('Chủ đề $number');
+        expect(turn.navigationBeforePrompt?.topicNumber, number);
+        expect(turn.navigationBeforePrompt?.childAge, group.startAge);
+        expect(turn.continueListening, isFalse);
+        flow.beginCourseRelearnTopicSelection(
+          childAge: group.startAge,
+          topicNumbers: numbers,
+        );
+        final replay = await flow.handle('Học lại Chủ đề $number');
+        expect(replay.navigationBeforePrompt?.topicNumber, number);
+        expect(replay.navigationBeforePrompt?.relearnTopic, isTrue);
+      }
+    }
+  });
+
   for (final loaderFails in [false, true]) {
     test(
       'late Topic loading keeps the newer MAIN Level choice (failure=$loaderFails)',
@@ -22,20 +49,16 @@ void main() {
           contentLoader: () => pendingContent.future,
           childAge: 6,
         );
-        flow.beginLevelTopicSelection(
+        flow.beginTopicSelection(
           childAge: 6,
-          levelNumber: 1,
           topicNumbers: [1, 2, 3],
           completedTopicNumbers: [],
-          announceLevel: false,
         );
         final previousTurn = flow.handle('Chủ đề 3');
-        flow.beginLevelTopicSelection(
+        flow.beginTopicSelection(
           childAge: 6,
-          levelNumber: 2,
           topicNumbers: [2],
           completedTopicNumbers: [],
-          announceLevel: false,
         );
         final currentPrompt = flow.currentPrompt;
         if (loaderFails) {
@@ -50,7 +73,7 @@ void main() {
         expect(oldTurn.navigationBeforePrompt, isNull);
         expect(oldTurn.navigationAfterPrompt, isNull);
         expect(oldTurn.promptText, isEmpty);
-        final outsideCurrentLevel = await flow.handle('Chủ đề 3');
+        final outsideCurrentLevel = await flow.handle('Chủ đề 11');
         expect(outsideCurrentLevel.continueListening, isTrue);
         expect(outsideCurrentLevel.navigationBeforePrompt, isNull);
         expect(flow.stage, MainVoiceAssistantStage.chooseTopicAfterCompletion);
@@ -177,12 +200,10 @@ void main() {
           contentLoader: _loadThreeTopicContent,
           childAge: 6,
         );
-        flow.beginLevelTopicSelection(
+        flow.beginTopicSelection(
           childAge: 6,
-          levelNumber: 1,
           topicNumbers: const <int>[1, 2, 3],
           completedTopicNumbers: const <int>[],
-          announceLevel: false,
         );
         expect(flow.canHandle(entry.key), isTrue, reason: entry.key);
         expect(flow.canHandlePartial(entry.key), isFalse, reason: entry.key);
@@ -198,24 +219,22 @@ void main() {
   );
 
   test(
-    'numbered direct commands do not bypass the current Level topic list',
+    'numbered direct commands can choose topics outside old Level ranges',
     () async {
       final flow = MainVoiceAssistantFlow(
         contentLoader: _loadContent,
         childAge: 6,
       );
-      flow.beginLevelTopicSelection(
+      flow.beginTopicSelection(
         childAge: 6,
-        levelNumber: 1,
         topicNumbers: const <int>[1, 2, 3],
         completedTopicNumbers: const <int>[],
-        announceLevel: false,
       );
       final turn = await flow.handle('Topic number four');
-      expect(turn.continueListening, isTrue);
-      expect(turn.navigationBeforePrompt, isNull);
+      expect(turn.continueListening, isFalse);
+      expect(turn.navigationBeforePrompt?.topicNumber, 4);
       expect(turn.navigationAfterPrompt, isNull);
-      expect(flow.stage, MainVoiceAssistantStage.chooseTopicAfterCompletion);
+      expect(flow.stage, MainVoiceAssistantStage.idle);
     },
   );
 
@@ -226,12 +245,10 @@ void main() {
     );
     expect(flow.canEndOnSilence('Chủ đề số 2'), isFalse);
 
-    flow.beginLevelTopicSelection(
+    flow.beginTopicSelection(
       childAge: 6,
-      levelNumber: 1,
       topicNumbers: const <int>[1, 2, 3],
       completedTopicNumbers: const <int>[],
-      announceLevel: false,
     );
     expect(flow.canEndOnSilence('Chủ đề số 2'), isTrue);
     expect(flow.canEndOnSilence('số hai'), isTrue);
@@ -267,23 +284,21 @@ void main() {
       childAge: 6,
     );
 
-    final levelPrompt = flow.beginLevelTopicSelection(
+    final levelPrompt = flow.beginTopicSelection(
       childAge: 6,
-      levelNumber: 1,
       topicNumbers: const <int>[1, 2, 3],
       completedTopicNumbers: const <int>[2],
-      announceLevel: true,
     );
     expect(
       flow.audioKeyForPrompt(levelPrompt),
-      MainAssistantAudioKeys.levelTopicSelection(1),
+      MainAssistantAudioKeys.chooseTopic(10),
     );
-    expect(flow.silenceRetryAudioKey, MainAssistantAudioKeys.chooseTopic(3));
+    expect(flow.silenceRetryAudioKey, MainAssistantAudioKeys.chooseTopic(10));
 
-    final invalid = await flow.handle('Chủ đề số 9');
+    final invalid = await flow.handle('Chủ đề số 11');
     expect(
       flow.audioKeyForPrompt(invalid.promptText),
-      MainAssistantAudioKeys.invalidTopic(3),
+      MainAssistantAudioKeys.invalidTopic(10),
     );
 
     final replay = await flow.handle('Chủ đề số 2');
@@ -331,16 +346,14 @@ void main() {
         topicNumber: 3,
       );
       final selections = <void Function(MainVoiceAssistantFlow)>[
-        (flow) => flow.beginLevelTopicSelection(
+        (flow) => flow.beginTopicSelection(
           childAge: 6,
-          levelNumber: 1,
           topicNumbers: [1, 2, 3],
           completedTopicNumbers: [],
-          announceLevel: false,
         ),
-        (flow) => flow.beginCourseRelearnLevelSelection(
+        (flow) => flow.beginCourseRelearnTopicSelection(
           childAge: 6,
-          levelNumbers: [1, 2, 3],
+          topicNumbers: [1, 2, 3],
         ),
         (flow) => flow.beginLessonSelectionForTopic(
           childAge: 6,
@@ -773,7 +786,7 @@ void main() {
         'Chủ đề khác',
         'Bài khác',
         'Học bài khác',
-        'Đổi Level',
+        'Đổi Chủ đề',
         'Bài số 2',
       ]) {
         final stage = phrase == 'Chủ đề khác'
@@ -870,7 +883,7 @@ void main() {
   test('all V4 completion stages retain global MAIN routes', () async {
     for (final stage in V4CompletionStage.values) {
       for (final phrase in <String>[
-        'Đổi Level',
+        'Đổi Chủ đề',
         'Ngôi sao',
         'Dịch tiếng Anh',
         'Học Bộ từ vựng',
@@ -886,7 +899,7 @@ void main() {
           (turn.navigationBeforePrompt ?? turn.navigationAfterPrompt)
               ?.destination,
           switch (phrase) {
-            'Đổi Level' => VoiceNavigationDestination.topics,
+            'Đổi Chủ đề' => VoiceNavigationDestination.topics,
             'Ngôi sao' ||
             'Học Bộ từ vựng' => VoiceNavigationDestination.vocabulary,
             _ => VoiceNavigationDestination.conversation,
@@ -1059,20 +1072,15 @@ void main() {
     () async {
       final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
 
-      flow.beginLevelTopicSelection(
+      flow.beginTopicSelection(
         childAge: 6,
-        levelNumber: 1,
         topicNumbers: const <int>[1, 2, 3],
         completedTopicNumbers: const <int>[],
-        announceLevel: false,
       );
 
       final invalidTopic = await flow.handle('Con chọn chủ đề số mười lăm');
       expect(invalidTopic.continueListening, isTrue);
-      expect(
-        invalidTopic.promptText,
-        'Level này có 3 Chủ đề. Bạn chọn lại nhé.',
-      );
+      expect(invalidTopic.promptText, 'Bạn chọn Chủ đề từ số 1 đến số 10 nhé.');
     },
   );
 
@@ -1081,12 +1089,10 @@ void main() {
     () async {
       final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
 
-      flow.beginLevelTopicSelection(
+      flow.beginTopicSelection(
         childAge: 6,
-        levelNumber: 1,
         topicNumbers: const <int>[1, 2, 3],
         completedTopicNumbers: const <int>[],
-        announceLevel: false,
       );
 
       expect(flow.canHandlePartial('Chủ đề'), isFalse);
@@ -1112,15 +1118,13 @@ void main() {
     expect(openingEcho.navigationAfterPrompt, isNull);
     expect(flow.stage, MainVoiceAssistantStage.chooseFeature);
 
-    flow.beginLevelTopicSelection(
+    flow.beginTopicSelection(
       childAge: 6,
-      levelNumber: 1,
       topicNumbers: const <int>[1, 2, 3],
       completedTopicNumbers: const <int>[],
-      announceLevel: false,
     );
     final topicPromptEcho = await flow.handle(
-      'Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?',
+      'Có 10 Chủ đề. Bạn muốn chọn Chủ đề số mấy?',
     );
     expect(topicPromptEcho.navigationBeforePrompt, isNull);
     expect(flow.stage, MainVoiceAssistantStage.chooseTopicAfterCompletion);
@@ -1132,17 +1136,18 @@ void main() {
       final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
 
       expect(
-        flow.beginLevelTopicSelection(
+        flow.beginTopicSelection(
           childAge: 6,
-          levelNumber: 1,
           topicNumbers: const <int>[1, 2, 3],
           completedTopicNumbers: const <int>[3, 5],
-          announceLevel: false,
         ),
-        'Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?',
+        'Có 10 Chủ đề. Bạn muốn chọn Chủ đề số mấy?',
       );
       expect(flow.stage, MainVoiceAssistantStage.chooseTopicAfterCompletion);
-      expect(flow.canHandle('Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?'), isFalse);
+      expect(
+        flow.canHandle('Có 10 Chủ đề. Bạn muốn chọn Chủ đề số mấy?'),
+        isFalse,
+      );
 
       final completedTopic = await flow.handle('Con chọn chủ đề số 3');
       expect(completedTopic.continueListening, isTrue);
@@ -1154,7 +1159,10 @@ void main() {
       expect(flow.stage, MainVoiceAssistantStage.confirmReplayTopic);
 
       final declineTurn = await flow.handle('Chủ đề khác');
-      expect(declineTurn.promptText, 'Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?');
+      expect(
+        declineTurn.promptText,
+        'Có 10 Chủ đề. Bạn muốn chọn Chủ đề số mấy?',
+      );
       expect(flow.stage, MainVoiceAssistantStage.chooseTopicAfterCompletion);
 
       await flow.handle('Chủ đề số 3');
@@ -1166,63 +1174,58 @@ void main() {
     },
   );
 
+  test('uses ten-topic selection and opens the mic-ready flow', () async {
+    final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
+
+    expect(
+      flow.beginTopicSelection(
+        childAge: 6,
+        topicNumbers: const <int>[1, 2, 3],
+        completedTopicNumbers: const <int>[3],
+      ),
+      'Có 10 Chủ đề. Bạn muốn chọn Chủ đề số mấy?',
+    );
+
+    final locked = await flow.handle('Chủ đề số 11');
+    expect(locked.promptText, 'Bạn chọn Chủ đề từ số 1 đến số 10 nhé.');
+    expect(locked.continueListening, isTrue);
+
+    final completed = await flow.handle('Chủ đề số 3');
+    expect(
+      completed.promptText,
+      'Chủ đề 3 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 3?',
+    );
+    expect(completed.continueListening, isTrue);
+
+    final replay = await flow.handle('Học lại');
+    expect(replay.promptText, isEmpty);
+    expect(replay.continueListening, isFalse);
+    expect(replay.navigationBeforePrompt?.topicNumber, 3);
+    expect(replay.navigationBeforePrompt?.relearnTopic, isTrue);
+  });
+
   test(
-    'uses Level-scoped topic selection and opens the mic-ready flow',
+    'completed Course asks for a Topic and opens only that replay branch',
     () async {
       final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
 
       expect(
-        flow.beginLevelTopicSelection(
+        flow.beginCourseRelearnTopicSelection(
           childAge: 6,
-          levelNumber: 1,
           topicNumbers: const <int>[1, 2, 3],
-          completedTopicNumbers: const <int>[3],
-          announceLevel: true,
         ),
-        'Bắt đầu Level 1. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?',
+        MainVoiceAssistantFlow.courseRelearnTopicPrompt,
       );
 
-      final locked = await flow.handle('Chủ đề số 4');
-      expect(locked.promptText, 'Level này có 3 Chủ đề. Bạn chọn lại nhé.');
-      expect(locked.continueListening, isTrue);
-
-      final completed = await flow.handle('Chủ đề số 3');
-      expect(
-        completed.promptText,
-        'Chủ đề 3 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 3?',
-      );
-      expect(completed.continueListening, isTrue);
-
-      final replay = await flow.handle('Học lại');
-      expect(replay.promptText, isEmpty);
-      expect(replay.continueListening, isFalse);
-      expect(replay.navigationBeforePrompt?.topicNumber, 3);
-      expect(replay.navigationBeforePrompt?.relearnTopic, isTrue);
-    },
-  );
-
-  test(
-    'completed Course asks for a Level and opens that relearn branch',
-    () async {
-      final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
-
-      expect(
-        flow.beginCourseRelearnLevelSelection(
-          childAge: 6,
-          levelNumbers: const <int>[1, 2, 3],
-        ),
-        MainVoiceAssistantFlow.courseRelearnLevelPrompt,
-      );
-
-      final invalid = await flow.handle('Level 4');
-      expect(invalid.promptText, 'Bạn chọn Level 1, 2, 3 nhé.');
+      final invalid = await flow.handle('Chủ đề 11');
+      expect(invalid.promptText, 'Bạn chọn Chủ đề từ số 1 đến số 10 nhé.');
       expect(invalid.continueListening, isTrue);
 
-      final selected = await flow.handle('Học lại Level 2');
+      final selected = await flow.handle('Học lại Chủ đề 2');
       expect(selected.promptText, isEmpty);
       expect(selected.continueListening, isFalse);
-      expect(selected.navigationBeforePrompt?.levelNumber, 2);
-      expect(selected.navigationBeforePrompt?.relearnLevel, isTrue);
+      expect(selected.navigationBeforePrompt?.topicNumber, 2);
+      expect(selected.navigationBeforePrompt?.relearnTopic, isTrue);
       expect(selected.navigationBeforePrompt?.childAge, 6);
     },
   );
@@ -1231,12 +1234,10 @@ void main() {
     'accepts named alternatives and rejects yes/no for completed topics',
     () async {
       final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
-      flow.beginLevelTopicSelection(
+      flow.beginTopicSelection(
         childAge: 6,
-        levelNumber: 1,
         topicNumbers: const <int>[1, 2, 3],
         completedTopicNumbers: const <int>[3],
-        announceLevel: false,
       );
 
       await flow.handle('Chủ đề số 3');
@@ -1246,7 +1247,10 @@ void main() {
       expect(rejected.navigationBeforePrompt, isNull);
       expect(flow.stage, MainVoiceAssistantStage.confirmReplayTopic);
       final declineTurn = await flow.handle('Chủ đề khác');
-      expect(declineTurn.promptText, 'Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?');
+      expect(
+        declineTurn.promptText,
+        'Có 10 Chủ đề. Bạn muốn chọn Chủ đề số mấy?',
+      );
       expect(flow.stage, MainVoiceAssistantStage.chooseTopicAfterCompletion);
 
       await flow.handle('Chủ đề số 3');
@@ -1262,12 +1266,10 @@ void main() {
     'uses the current choice retry instead of treating Mình muốn bài khác as yes',
     () async {
       final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
-      flow.beginLevelTopicSelection(
+      flow.beginTopicSelection(
         childAge: 6,
-        levelNumber: 1,
         topicNumbers: const <int>[1, 2, 3],
         completedTopicNumbers: const <int>[3],
-        announceLevel: false,
       );
       await flow.handle('Chủ đề số 3');
 
@@ -1284,12 +1286,10 @@ void main() {
     'uses the current choice retry instead of treating Không biết as no',
     () async {
       final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
-      flow.beginLevelTopicSelection(
+      flow.beginTopicSelection(
         childAge: 6,
-        levelNumber: 1,
         topicNumbers: const <int>[1, 2, 3],
         completedTopicNumbers: const <int>[3],
-        announceLevel: false,
       );
       await flow.handle('Chủ đề số 3');
 
@@ -1307,17 +1307,15 @@ void main() {
       contentLoader: _loadContent,
       childAge: 6,
     );
-    flow.beginLevelTopicSelection(
+    flow.beginTopicSelection(
       childAge: 6,
-      levelNumber: 1,
       topicNumbers: const <int>[1, 2, 3],
       completedTopicNumbers: const <int>[],
-      announceLevel: false,
     );
 
     final retry = await flow.handle('Chủ đề số 15');
 
-    expect(retry.promptText, 'Level này có 3 Chủ đề. Bạn chọn lại nhé.');
+    expect(retry.promptText, 'Bạn chọn Chủ đề từ số 1 đến số 10 nhé.');
     expect(retry.continueListening, isTrue);
     expect(flow.stage, MainVoiceAssistantStage.chooseTopicAfterCompletion);
   });
@@ -1329,18 +1327,16 @@ void main() {
         contentLoader: _loadContent,
         childAge: 6,
       );
-      flow.beginLevelTopicSelection(
+      flow.beginTopicSelection(
         childAge: 6,
-        levelNumber: 1,
         topicNumbers: const <int>[1, 2, 3],
         completedTopicNumbers: const <int>[],
-        announceLevel: false,
       );
       await flow.handle('Chủ đề số 15');
 
       final retry = await flow.handle('Chủ đề số 0');
 
-      expect(retry.promptText, 'Level này có 3 Chủ đề. Bạn chọn lại nhé.');
+      expect(retry.promptText, 'Bạn chọn Chủ đề từ số 1 đến số 10 nhé.');
       expect(retry.continueListening, isTrue);
       expect(flow.stage, MainVoiceAssistantStage.chooseTopicAfterCompletion);
     },
@@ -1391,12 +1387,10 @@ void main() {
 
   test('opens an unfinished topic without asking to replay it', () async {
     final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
-    flow.beginLevelTopicSelection(
+    flow.beginTopicSelection(
       childAge: 6,
-      levelNumber: 1,
       topicNumbers: const <int>[1, 2, 3],
       completedTopicNumbers: const <int>[1, 2],
-      announceLevel: false,
     );
 
     final topicTurn = await flow.handle('Con muốn học chủ đề số 3');
@@ -1518,7 +1512,6 @@ class _CompletionVoiceContext
     currentLesson: 1,
     nextLesson: 2,
     topicNumber: 1,
-    nextLevel: 2,
   );
 
   @override
@@ -1531,11 +1524,9 @@ class _CompletionVoiceContext
         stage: stage,
         currentLesson: 1,
         nextLesson: 2,
-        nextLevel: 2,
       )) {
         V4CompletionAction.nextLesson ||
-        V4CompletionAction.nextTopic ||
-        V4CompletionAction.startNextLevel => ActiveLearningCommand.nextLesson,
+        V4CompletionAction.nextTopic => ActiveLearningCommand.nextLesson,
         V4CompletionAction.relearnCurrentLesson ||
         V4CompletionAction.relearnTopic => ActiveLearningCommand.restart,
         V4CompletionAction.stop => ActiveLearningCommand.stop,
@@ -1572,6 +1563,14 @@ Future<ListeningContentCatalog> _loadContent() async {
         startAge: 6,
         endAge: 7,
         topics: <ListeningTopicContent>[
+          for (var number = 4; number <= 10; number++)
+            ListeningTopicContent(
+              id: 'fixture-topic-$number',
+              number: number,
+              titleVi: 'Chủ đề $number',
+              titleEn: 'Topic $number',
+              lessons: [_lesson(1, 'Bài $number')],
+            ),
           ListeningTopicContent(
             id: 'a067_t02',
             number: 2,

@@ -13,7 +13,8 @@ void main() {
       );
 
       expect(ControlledSpeechLexicon.version, 'V0.2-homi-fallback');
-      expect(phraseCount, 393);
+      // 393 existing phrases plus 30 exact vocabulary section aliases.
+      expect(phraseCount, 423);
     },
   );
 

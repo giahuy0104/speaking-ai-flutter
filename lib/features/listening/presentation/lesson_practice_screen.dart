@@ -63,7 +63,6 @@ class LessonPracticeScreen extends StatefulWidget {
     this.voicePromptService,
     this.topicContent,
     this.contentGroup,
-    this.levelContent,
     this.initialResumeStage = ListeningResumeStage.core,
     this.isRelearn = false,
     this.relearnTopicSequence = false,
@@ -87,7 +86,6 @@ class LessonPracticeScreen extends StatefulWidget {
   final VoicePromptService? voicePromptService;
   final ListeningTopicContent? topicContent;
   final ListeningContentAgeGroup? contentGroup;
-  final ListeningLevelContent? levelContent;
   final ListeningResumeStage initialResumeStage;
   final bool isRelearn;
   final bool relearnTopicSequence;
@@ -104,7 +102,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         ActiveLearningVoiceContext,
         ActiveLearningVoiceSelectionContext {
   String? _mainCompletionPrompt;
-  int? _mainCompletionNextLevel;
 
   @override
   ActiveLearningVoiceNode get mainVoiceNode => ActiveLearningVoiceNode.core;
@@ -124,8 +121,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     if (stage == null) return null;
     return switch (_resolveV4CompletionTranscript(transcript, stage)) {
       V4CompletionAction.nextLesson ||
-      V4CompletionAction.nextTopic ||
-      V4CompletionAction.startNextLevel => ActiveLearningCommand.nextLesson,
+      V4CompletionAction.nextTopic => ActiveLearningCommand.nextLesson,
       V4CompletionAction.relearnCurrentLesson ||
       V4CompletionAction.relearnTopic => ActiveLearningCommand.restart,
       V4CompletionAction.stop => ActiveLearningCommand.stop,
@@ -2250,8 +2246,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       return switch (_activeV4CompletionStage) {
         V4CompletionStage.topicEnd || V4CompletionStage.topicEndOneRemaining =>
           V4CompletionAction.relearnTopic,
-        V4CompletionStage.courseRelearnLevel =>
-          V4CompletionAction.relearnLevel1,
         _ => V4CompletionAction.relearnCurrentLesson,
       };
     }
@@ -2261,7 +2255,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         V4CompletionStage.lessonEnd => V4CompletionAction.nextLesson,
         V4CompletionStage.topicEnd ||
         V4CompletionStage.topicEndOneRemaining => V4CompletionAction.nextTopic,
-        V4CompletionStage.nextLevel => V4CompletionAction.startNextLevel,
         _ => null,
       };
     }
@@ -2751,61 +2744,35 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     ListeningPendingChoiceStage? resumePendingStage,
   }) async {
     if (!mounted || _v4CompletionChoiceVisible) return;
+    if (await _allTopicsInAgeGroupCompleted()) {
+      final courseId = '${widget.startAge}-${widget.endAge}';
+      await widget.progressStore.markCourseCompleted(courseId);
+      if (!await widget.progressStore.hasCourseCompletionEventCreated(
+        courseId,
+      )) {
+        await _speakLessonPrompt('Bạn đã hoàn thành khóa học rồi!');
+        await widget.progressStore.markCourseCompletionEventCreated(courseId);
+      }
+      await widget.progressStore.clearPendingCompletionChoice(widget.lesson.id);
+      widget.onTopicCompleted?.call();
+      await _returnToTopicSelection();
+      return;
+    }
+    // Preserve the persisted enum indices. A legacy next-Level choice is
+    // resolved from current age-group progress, never replayed as a Level.
+    if (resumePendingStage == ListeningPendingChoiceStage.nextLevel) {
+      final remaining = await _incompleteTopicsInAgeGroup();
+      resumePendingStage = remaining.length == 1
+          ? ListeningPendingChoiceStage.topicEndOneRemaining
+          : ListeningPendingChoiceStage.topicEnd;
+    }
     if (resumePendingStage != null) {
       await _runPendingV4Choice(
         pendingStage: resumePendingStage,
         stage: _completionStageFor(resumePendingStage),
         actions: _completionActionsFor(resumePendingStage),
-        nextLevel: resumePendingStage == ListeningPendingChoiceStage.nextLevel
-            ? (widget.levelContent?.number ?? 0) + 1
-            : null,
-        beforePrompt: () => _announcePendingChoiceMilestone(resumePendingStage),
-      );
-      return;
-    }
-
-    final level = widget.levelContent;
-    final allTopicsCompleted =
-        level != null && await _allTopicsInCurrentLevelCompleted();
-    final levelCompletionAlreadyCreated =
-        level != null &&
-        await widget.progressStore.hasLevelCompletionEventCreated(level.id);
-    if (level != null && allTopicsCompleted && !levelCompletionAlreadyCreated) {
-      final levels =
-          widget.contentGroup?.levels ?? const <ListeningLevelContent>[];
-      final isLastLevel =
-          levels.isNotEmpty && levels.last.number == level.number;
-      if (isLastLevel) {
-        final courseId = '${widget.startAge}-${widget.endAge}';
-        await widget.progressStore.markCourseCompleted(courseId);
-        final courseMilestoneCreated = await widget.progressStore
-            .hasCourseCompletionEventCreated(courseId);
-        if (!courseMilestoneCreated) {
-          await _speakLessonPrompt('Bạn đã hoàn thành khóa học rồi!');
-          await widget.progressStore.markCourseCompletionEventCreated(courseId);
-        }
-        await widget.progressStore.markLevelCompletionEventCreated(level.id);
-        await widget.progressStore.clearPendingCompletionChoice(
-          widget.lesson.id,
-        );
-        _returnToListening();
-        return;
-      }
-
-      await _runPendingV4Choice(
-        pendingStage: ListeningPendingChoiceStage.nextLevel,
-        stage: V4CompletionStage.nextLevel,
-        actions: const <V4CompletionAction>[
-          V4CompletionAction.startNextLevel,
-          V4CompletionAction.stop,
-        ],
-        nextLevel: level.number + 1,
-        beforePrompt: () async {
-          await _speakLessonPrompt(
-            'Bạn đã hoàn thành Level ${level.number} rồi!',
-          );
-          await widget.progressStore.markLevelCompletionEventCreated(level.id);
-        },
+        beforePrompt: () =>
+            _announcePendingChoiceMilestone(resumePendingStage!),
       );
       return;
     }
@@ -2825,7 +2792,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
 
     widget.onTopicCompleted?.call();
-    final remainingTopics = await _incompleteTopicsInCurrentLevel();
+    final remainingTopics = await _incompleteTopicsInAgeGroup();
     final oneRemaining = remainingTopics.length == 1;
     await _runPendingV4Choice(
       pendingStage: oneRemaining
@@ -2846,7 +2813,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     required ListeningPendingChoiceStage pendingStage,
     required V4CompletionStage stage,
     required List<V4CompletionAction> actions,
-    int? nextLevel,
     Future<void> Function()? beforePrompt,
   }) async {
     await widget.progressStore.savePendingCompletionChoice(
@@ -2855,7 +2821,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     );
     await beforePrompt?.call();
     if (!mounted) return;
-    final action = await _showV4Choice(stage, actions, nextLevel: nextLevel);
+    final action = await _showV4Choice(stage, actions);
     final selectedTopicNumber = _iosSelectedCompletionTopicNumber;
     _iosSelectedCompletionTopicNumber = null;
     if (action == null) return;
@@ -2885,13 +2851,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         }
         return;
       case ListeningPendingChoiceStage.nextLevel:
-        final level = widget.levelContent;
-        if (level != null) {
-          await _speakLessonPrompt(
-            'Bạn đã hoàn thành Level ${level.number} rồi!',
-          );
-          await widget.progressStore.markLevelCompletionEventCreated(level.id);
-        }
+        // Legacy pending values are remapped before this method is called.
         return;
     }
   }
@@ -2902,7 +2862,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         ListeningPendingChoiceStage.topicEnd => V4CompletionStage.topicEnd,
         ListeningPendingChoiceStage.topicEndOneRemaining =>
           V4CompletionStage.topicEndOneRemaining,
-        ListeningPendingChoiceStage.nextLevel => V4CompletionStage.nextLevel,
+        ListeningPendingChoiceStage.nextLevel => V4CompletionStage.topicEnd,
       };
 
   List<V4CompletionAction> _completionActionsFor(
@@ -2921,16 +2881,16 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         V4CompletionAction.stop,
       ],
     ListeningPendingChoiceStage.nextLevel => const <V4CompletionAction>[
-      V4CompletionAction.startNextLevel,
+      V4CompletionAction.nextTopic,
+      V4CompletionAction.relearnTopic,
       V4CompletionAction.stop,
     ],
   };
 
   Future<V4CompletionAction?> _showV4Choice(
     V4CompletionStage stage,
-    List<V4CompletionAction> actions, {
-    int? nextLevel,
-  }) async {
+    List<V4CompletionAction> actions,
+  ) async {
     if (!mounted) return null;
     _iosSelectedCompletionTopicNumber = null;
     _iosIncompleteCompletionTopicNumbers = const <int>[];
@@ -2939,7 +2899,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         (stage == V4CompletionStage.topicEnd ||
             stage == V4CompletionStage.topicEndOneRemaining)) {
       _iosIncompleteCompletionTopicNumbers =
-          await _incompleteTopicsInCurrentLevel();
+          await _incompleteTopicsInAgeGroup();
       if (!mounted) return null;
     }
     final nextLessonNumber = _nextLessonInTopic?.number;
@@ -2949,7 +2909,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       currentLesson: widget.lesson.number,
       nextLesson: nextLessonNumber,
       topicNumber: topicNumber,
-      nextLevel: nextLevel,
     );
     final audioKey = switch (stage) {
       V4CompletionStage.lessonEnd when nextLessonNumber != null =>
@@ -2961,16 +2920,14 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         ListeningAudioKeys.completionTopicReplay(topicNumber),
       V4CompletionStage.topicEndOneRemaining =>
         ListeningAudioKeys.completionTopicOneRemaining,
-      V4CompletionStage.nextLevel when nextLevel != null =>
-        ListeningAudioKeys.completionLevelStart(nextLevel),
-      V4CompletionStage.courseRelearnLevel => ListeningAudioKeys.chooseLevel,
+      V4CompletionStage.courseRelearnTopic =>
+        MainAssistantAudioKeys.courseRelearnTopic,
       _ => null,
     };
     await _speakLessonPrompt(prompt, audioKey: audioKey);
     if (!mounted) return null;
     _v4CompletionChoiceVisible = true;
     _mainCompletionPrompt = prompt;
-    _mainCompletionNextLevel = nextLevel;
     _activeV4CompletionStage = stage;
     _activeV4CompletionActions = List<V4CompletionAction>.unmodifiable(actions);
     final resultFuture = showModalBottomSheet<V4CompletionAction>(
@@ -3076,7 +3033,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         await _openRelearnCurrentLesson();
         return;
       case V4CompletionAction.nextTopic:
-        final remaining = await _incompleteTopicsInCurrentLevel();
+        final remaining = await _incompleteTopicsInAgeGroup();
         if (!kIsWeb &&
             defaultTargetPlatform == TargetPlatform.iOS &&
             selectedTopicNumber != null &&
@@ -3084,9 +3041,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           final topic = widget.contentGroup?.topics
               .where((candidate) => candidate.number == selectedTopicNumber)
               .firstOrNull;
-          if (topic != null &&
-              widget.levelContent?.topicNumbers.contains(topic.number) ==
-                  true) {
+          if (topic != null) {
             await _openContentTopic(topic);
             return;
           }
@@ -3098,59 +3053,16 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           if (topic != null) await _openContentTopic(topic);
           return;
         }
-        await _returnToTopicSelection(
-          levelNumber: widget.levelContent?.number ?? 1,
-          announceLevel: false,
-        );
+        await _returnToTopicSelection();
         return;
       case V4CompletionAction.relearnTopic:
         final topic = widget.topicContent;
         if (topic != null) await _openContentTopic(topic, relearn: true);
         return;
-      case V4CompletionAction.startNextLevel:
-        final nextLevel = widget.contentGroup?.level(
-          (widget.levelContent?.number ?? 0) + 1,
-        );
-        if (nextLevel != null) await _openLevel(nextLevel);
-        return;
-      case V4CompletionAction.relearnLevel1:
-        final level = widget.contentGroup?.level(1);
-        if (level != null) await _openLevel(level, relearn: true);
-        return;
-      case V4CompletionAction.relearnLevel2:
-        final level = widget.contentGroup?.level(2);
-        if (level != null) await _openLevel(level, relearn: true);
-        return;
-      case V4CompletionAction.relearnLevel3:
-        final level = widget.contentGroup?.level(3);
-        if (level != null) await _openLevel(level, relearn: true);
-        return;
       case V4CompletionAction.stop:
         _returnToListening();
         return;
     }
-  }
-
-  Future<void> _openLevel(
-    ListeningLevelContent level, {
-    bool relearn = false,
-  }) async {
-    final group = widget.contentGroup;
-    if (group == null || level.topicNumbers.isEmpty) return;
-    if (relearn) {
-      final lessonIds = group.topics
-          .where((topic) => level.topicNumbers.contains(topic.number))
-          .expand((topic) => topic.lessons)
-          .map((lesson) => lesson.id);
-      await widget.progressStore.resetLevelForRelearn(
-        levelId: level.id,
-        lessonIds: lessonIds,
-      );
-    }
-    await _returnToTopicSelection(
-      levelNumber: level.number,
-      announceLevel: true,
-    );
   }
 
   Future<void> _openContentTopic(
@@ -3178,10 +3090,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
     final selectedLesson = lesson;
     if (selectedLesson == null) {
-      await _returnToTopicSelection(
-        levelNumber: topic.levelNumber,
-        announceLevel: false,
-      );
+      await _returnToTopicSelection();
       return;
     }
     unawaited(
@@ -3215,7 +3124,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         controller: widget.controller,
         topicContent: topic,
         contentGroup: widget.contentGroup,
-        levelContent: widget.contentGroup?.level(topic.levelNumber),
         progressStore: widget.progressStore,
         mediaService: widget.mediaService,
         guideAudioLibrary: _guideAudioLibrary,
@@ -3263,44 +3171,31 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         topic.lessons.last.id == widget.lesson.id;
   }
 
-  Future<bool> _allTopicsInCurrentLevelCompleted() async {
+  Future<bool> _allTopicsInAgeGroupCompleted() async {
     final group = widget.contentGroup;
-    final level = widget.levelContent;
-    if (group == null || level == null || !_isLastLessonInTopic) return false;
+    if (group == null || !_isLastLessonInTopic) return false;
     final progress = await widget.progressStore.readAll();
     final activities = await widget.progressStore
         .readCompletedV4LessonActivities();
-    return ListeningCurriculumFlow.allTopicsInLevelCompleted(
-      group,
-      level,
-      progress,
-      activities,
-    );
+    return ListeningCurriculumFlow.courseCompleted(group, progress, activities);
   }
 
-  Future<List<int>> _incompleteTopicsInCurrentLevel() async {
+  Future<List<int>> _incompleteTopicsInAgeGroup() async {
     final group = widget.contentGroup;
-    final level = widget.levelContent;
-    if (group == null || level == null) return const <int>[];
+    if (group == null) return const <int>[];
     final progress = await widget.progressStore.readAll();
     final activities = await widget.progressStore
         .readCompletedV4LessonActivities();
     return ListeningCurriculumFlow.incompleteTopicNumbers(
       group,
-      level,
       progress,
       activities,
     );
   }
 
-  Future<void> _returnToTopicSelection({
-    required int levelNumber,
-    required bool announceLevel,
-  }) async {
+  Future<void> _returnToTopicSelection() async {
     await widget.progressStore.saveTopicSelectionCheckpoint(
       '${widget.startAge}-${widget.endAge}',
-      levelNumber: levelNumber,
-      announceLevel: announceLevel,
     );
     if (mounted) _returnToListening();
   }
@@ -3396,7 +3291,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         controller: widget.controller,
         topicContent: widget.topicContent,
         contentGroup: widget.contentGroup,
-        levelContent: widget.levelContent,
         progressStore: widget.progressStore,
         mediaService: widget.mediaService,
         relearnFromBeginning: continueRelearn,
@@ -3468,7 +3362,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         controller: widget.controller,
         topicContent: widget.topicContent,
         contentGroup: widget.contentGroup,
-        levelContent: widget.levelContent,
         progressStore: widget.progressStore,
         mediaService: widget.mediaService,
         relearnFromBeginning: true,
@@ -3848,15 +3741,12 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         transcript,
       );
       if (selected != null) {
-        final inCurrentLevel =
-            widget.levelContent?.topicNumbers.contains(selected) == true;
         final hasContent =
             widget.contentGroup?.topics.any(
               (topic) => topic.number == selected,
             ) ==
             true;
-        if (inCurrentLevel &&
-            hasContent &&
+        if (hasContent &&
             _iosIncompleteCompletionTopicNumbers.contains(selected)) {
           _iosSelectedCompletionTopicNumber = selected;
           return V4CompletionAction.nextTopic;
@@ -3870,7 +3760,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       allowedActions: _activeV4CompletionActions,
       currentLesson: widget.lesson.number,
       nextLesson: _nextLessonInTopic?.number,
-      nextLevel: _mainCompletionNextLevel,
     );
   }
 

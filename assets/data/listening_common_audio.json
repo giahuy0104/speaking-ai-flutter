@@ -21,7 +21,7 @@
     },
     {
       "key": "listening.navigation.choose_level.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?",
       "asset": "assets/audio/listening-common/listening.navigation.choose_level.vi.mp3",
@@ -2187,7 +2187,7 @@
     },
     {
       "key": "listening.completion.level.start.2.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Bạn muốn bắt đầu Level 2 hay dừng lại?",
       "asset": "assets/audio/listening-common/listening.completion.level.start.2.vi.mp3",
@@ -2201,7 +2201,7 @@
     },
     {
       "key": "listening.completion.level.start.3.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Bạn muốn bắt đầu Level 3 hay dừng lại?",
       "asset": "assets/audio/listening-common/listening.completion.level.start.3.vi.mp3",
@@ -2584,7 +2584,7 @@
     },
     {
       "key": "listening.milestone.level.1.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Bạn đã hoàn thành Level 1 rồi!",
       "asset": "assets/audio/listening-common/listening.milestone.level.1.vi.mp3",
@@ -2598,7 +2598,7 @@
     },
     {
       "key": "listening.milestone.level.2.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Bạn đã hoàn thành Level 2 rồi!",
       "asset": "assets/audio/listening-common/listening.milestone.level.2.vi.mp3",
@@ -2612,7 +2612,7 @@
     },
     {
       "key": "listening.milestone.level.3.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Bạn đã hoàn thành Level 3 rồi!",
       "asset": "assets/audio/listening-common/listening.milestone.level.3.vi.mp3",
@@ -6293,7 +6293,7 @@
     },
     {
       "key": "listening.navigation.locked_level.1.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Bạn cần hoàn thành Level 1 trước nhé.",
       "asset": "assets/audio/listening-common/listening.navigation.locked_level.1.vi.mp3",
@@ -6307,7 +6307,7 @@
     },
     {
       "key": "listening.navigation.locked_level.2.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Bạn cần hoàn thành Level 2 trước nhé.",
       "asset": "assets/audio/listening-common/listening.navigation.locked_level.2.vi.mp3",
@@ -6321,7 +6321,7 @@
     },
     {
       "key": "listening.navigation.locked_level.3.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Bạn cần hoàn thành Level 3 trước nhé.",
       "asset": "assets/audio/listening-common/listening.navigation.locked_level.3.vi.mp3",

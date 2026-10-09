@@ -36,7 +36,6 @@ class LessonIntroScreen extends StatefulWidget {
     this.controller,
     this.topicContent,
     this.contentGroup,
-    this.levelContent,
     this.guideAudioLibrary,
     this.voicePromptService,
     this.leadPrompt,
@@ -56,7 +55,6 @@ class LessonIntroScreen extends StatefulWidget {
   final LearningAudioDependencies? controller;
   final ListeningTopicContent? topicContent;
   final ListeningContentAgeGroup? contentGroup;
-  final ListeningLevelContent? levelContent;
   final ListeningProgressStore progressStore;
   final LessonMediaService mediaService;
   final LessonGuideAudioLibrary? guideAudioLibrary;
@@ -815,7 +813,6 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
         controller: widget.controller,
         topicContent: widget.topicContent,
         contentGroup: widget.contentGroup,
-        levelContent: widget.levelContent,
         progressStore: widget.progressStore,
         mediaService: widget.mediaService,
         guideAudioLibrary: _guideAudioLibrary,
@@ -848,7 +845,6 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
         controller: widget.controller,
         topicContent: widget.topicContent,
         contentGroup: widget.contentGroup,
-        levelContent: widget.levelContent,
         progressStore: widget.progressStore,
         mediaService: widget.mediaService,
         guideAudioLibrary: _guideAudioLibrary,
@@ -912,7 +908,6 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
     controller: widget.controller,
     topicContent: widget.topicContent,
     contentGroup: widget.contentGroup,
-    levelContent: widget.levelContent,
     progressStore: widget.progressStore,
     mediaService: widget.mediaService,
     guideAudioLibrary: _guideAudioLibrary,

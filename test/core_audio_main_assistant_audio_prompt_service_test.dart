@@ -9,6 +9,46 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  test(
+    'ten-topic and course-replay prompts play the supplied recordings',
+    () async {
+      final delegate = _Delegate();
+      final service = MainAssistantAudioPromptService(
+        delegate: delegate,
+        enabled: true,
+        preferBundledAudio: true,
+      );
+      addTearDown(service.dispose);
+      const prompts = <String, String>{
+        'assistant.topic.choose_10.vi':
+            'Có 10 Chủ đề. Bạn muốn chọn Chủ đề số mấy?',
+        'assistant.topic.invalid_10.vi':
+            'Bạn chọn Chủ đề từ số 1 đến số 10 nhé.',
+        'assistant.topic.choose_course_relearn.vi':
+            'Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Chủ đề số mấy?',
+      };
+      for (final prompt in prompts.entries) {
+        expect(
+          await service.authoredPromptBudgetForKey(
+            prompt.key,
+            text: prompt.value,
+          ),
+          isNotNull,
+        );
+        await service.speakAndWaitWithAudioKey(prompt.key, prompt.value);
+      }
+      expect(delegate.events, ['authored', 'authored', 'authored']);
+      expect(
+        delegate.authoredAudio.map((bytes) => sha256.convert(bytes).toString()),
+        [
+          '9366d589707cbc5377920a6a829e5cfbb0f06114fd52011a5c1ef3f5dba0cb85',
+          '349f8c3748e2838ae4b5730f471688eaaf08bdb7245ca6d1ff13dec9cd720d6d',
+          'c9e71b1b1fa61b3e5e4fa53afb84e83ec8886cc3e6d603f0b7aa95f4c0adafda',
+        ],
+      );
+    },
+  );
+
   test('factory uses platform TTS and preserves text and locale', () async {
     const channel = MethodChannel('ailingo_voice_prompt');
     final calls = <MethodCall>[];
@@ -209,6 +249,7 @@ class _Delegate
         StyledMediaOutputVoicePromptService,
         MainTurnVoicePromptService {
   final events = <String>[];
+  final authoredAudio = <Uint8List>[];
 
   @override
   Future<void> speak(String text, {String locale = 'vi-VN'}) async {
@@ -253,6 +294,7 @@ class _Delegate
     bool forceMediaPlayback = false,
   }) async {
     events.add('authored');
+    authoredAudio.add(bytes);
   }
 
   @override

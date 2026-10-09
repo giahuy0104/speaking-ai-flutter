@@ -3,31 +3,11 @@ import 'package:ai_speaking_flutter_app/features/listening/domain/listening_curr
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  final topics = <ListeningTopicContent>[
-    _topic(1),
-    _topic(2),
-    _topic(3),
-    _topic(4, levelNumber: 2),
-  ];
-  final levels = <ListeningLevelContent>[
-    const ListeningLevelContent(
-      id: 'level-1',
-      number: 1,
-      titleVi: 'Level 1',
-      topicNumbers: <int>[1, 2, 3],
-    ),
-    const ListeningLevelContent(
-      id: 'level-2',
-      number: 2,
-      titleVi: 'Level 2',
-      topicNumbers: <int>[4],
-    ),
-  ];
+  final topics = List.generate(10, (index) => _topic(index + 1));
   final group = ListeningContentAgeGroup(
     startAge: 3,
     endAge: 5,
     topics: topics,
-    levels: levels,
   );
 
   test('topics are peers while lessons remain sequential', () {
@@ -69,74 +49,52 @@ void main() {
     );
   });
 
-  test('level completion depends on every topic, not numeric order', () {
+  test('course requires all ten topics regardless of completion order', () {
     final progress = <String, int>{
-      for (final number in <int>[1, 2])
-        for (final lesson in topics[number - 1].lessons) lesson.id: 1,
+      for (final topic in topics.skip(1))
+        for (final lesson in topic.lessons) lesson.id: 1,
     };
-
     expect(
-      ListeningCurriculumFlow.allTopicsInLevelCompleted(
-        group,
-        levels.first,
-        progress,
-        const <String>{},
-      ),
+      ListeningCurriculumFlow.courseCompleted(group, progress, {}),
       isFalse,
     );
-
-    for (final lesson in topics[2].lessons) {
+    expect(
+      ListeningCurriculumFlow.incompleteTopicNumbers(group, progress, {}),
+      [1],
+    );
+    for (final lesson in topics.first.lessons) {
       progress[lesson.id] = 1;
     }
     expect(
-      ListeningCurriculumFlow.allTopicsInLevelCompleted(
-        group,
-        levels.first,
-        progress,
-        const <String>{},
-      ),
+      ListeningCurriculumFlow.courseCompleted(group, progress, {}),
       isTrue,
+    );
+    expect(
+      ListeningCurriculumFlow.incompleteTopicNumbers(group, progress, {}),
+      isEmpty,
     );
   });
 
-  test('the next Level unlocks only after all previous topics complete', () {
-    expect(
-      ListeningCurriculumFlow.levelUnlocked(
-        group,
-        levels[1],
-        const <String, int>{},
-        const <String>{},
-      ),
-      isFalse,
-    );
+  test('remaining topics include all previous level ranges', () {
     final progress = <String, int>{
       for (final topic in topics.take(3))
         for (final lesson in topic.lessons) lesson.id: 1,
     };
     expect(
-      ListeningCurriculumFlow.levelUnlocked(
-        group,
-        levels[1],
-        progress,
-        const <String>{},
-      ),
-      isTrue,
+      ListeningCurriculumFlow.incompleteTopicNumbers(group, progress, {}),
+      [4, 5, 6, 7, 8, 9, 10],
+    );
+    expect(
+      ListeningCurriculumFlow.courseCompleted(group, progress, {}),
+      isFalse,
     );
   });
 
-  test('patch retains earned access without crediting replacement Cores', () {
+  test('patch retains lesson access without crediting replacement Cores', () {
     final progress = <String, int>{
       '__topic-patch-v42-unlocked-level:3-5': 2,
       '__topic-patch-v42-unlocked-lesson:${topics.first.lessons[1].id}': 1,
     };
-    expect(
-      ListeningCurriculumFlow.currentUnlockedLevelNumber(group, progress, {}),
-      2,
-    );
-    expect(
-      ListeningCurriculumFlow.levelUnlocked(group, levels[1], progress, {}),
-      isTrue,
-    );
     expect(
       ListeningCurriculumFlow.lessonUnlocked(topics.first, 1, progress, {}),
       isTrue,
@@ -146,35 +104,8 @@ void main() {
       ListeningTopicLearningState.notStarted,
     );
     expect(
-      ListeningCurriculumFlow.allTopicsInLevelCompleted(
-        group,
-        levels.first,
-        progress,
-        {},
-      ),
+      ListeningCurriculumFlow.courseCompleted(group, progress, {}),
       isFalse,
-    );
-  });
-
-  test('young-course access never becomes a prerequisite for six-seven', () {
-    final older = ListeningContentAgeGroup(
-      startAge: 6,
-      endAge: 7,
-      topics: topics,
-      levels: levels,
-    );
-    final youngOnly = {'__topic-patch-v42-unlocked-level:3-5': 2};
-    expect(
-      ListeningCurriculumFlow.levelUnlocked(older, levels.first, {}, {}),
-      isTrue,
-    );
-    expect(
-      ListeningCurriculumFlow.levelUnlocked(older, levels[1], youngOnly, {}),
-      isFalse,
-    );
-    expect(
-      ListeningCurriculumFlow.currentUnlockedLevelNumber(older, youngOnly, {}),
-      1,
     );
   });
 }

@@ -23,6 +23,77 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  for (final completedCount in [3, 10]) {
+    testWidgets(
+      'legacy next-Level pending resumes safely with $completedCount completed topics',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        await _usePhoneSurface(tester);
+        final topics = List.generate(
+          10,
+          (index) => ListeningTopicContent(
+            id: 'topic-${index + 1}',
+            number: index + 1,
+            titleVi: 'Chủ đề ${index + 1}',
+            titleEn: 'Topic ${index + 1}',
+            lessons: [_v4Lesson(number: index + 1)],
+          ),
+        );
+        final group = ListeningContentAgeGroup(
+          startAge: 3,
+          endAge: 5,
+          topics: topics,
+        );
+        final lesson = topics[2].lessons.single;
+        final store = _TopicTransitionProgressStore()
+          ..coreStarted = true
+          ..pendingCompletionChoice = ListeningPendingChoiceStage.nextLevel;
+        for (final topic in topics.take(completedCount)) {
+          final current = topic.lessons.single;
+          store.progress[current.id] = current.sentences.length;
+          store.completedV4LessonActivities.add(current.id);
+        }
+        final before = Map<String, int>.of(store.progress);
+        final voice = _KeyedRecordingVoicePromptService();
+        await tester.pumpWidget(
+          _subject(
+            lesson,
+            store,
+            Key('legacy-$completedCount'),
+            topicContent: topics[2],
+            contentGroup: group,
+            voicePromptService: voice,
+            initialResumeStage: ListeningResumeStage.waitingForChoice,
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(voice.spoken.any((text) => text.contains('Level')), isFalse);
+        expect(store.progress, before);
+        if (completedCount == 3) {
+          expect(
+            find.byKey(const ValueKey('v4-choice-nextTopic')),
+            findsOneWidget,
+          );
+          expect(
+            store.pendingCompletionChoice,
+            ListeningPendingChoiceStage.topicEnd,
+          );
+          expect(store.courseCompleted, isFalse);
+          await tester.tap(find.byKey(const ValueKey('v4-choice-stop')));
+          await tester.pumpAndSettle();
+        } else {
+          expect(store.courseCompleted, isTrue);
+          expect(store.courseCompletionEvent, isTrue);
+          expect(store.selectionSaved, isTrue);
+          expect(store.pendingCompletionChoice, isNull);
+          expect(voice.audioKeys, contains(ListeningAudioKeys.milestoneCourse));
+        }
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+    );
+  }
+
   testWidgets(
     'finishing Topic 1 continues the remaining Topic at its unfinished lesson',
     (tester) async {
@@ -92,7 +163,6 @@ void main() {
           const Key('topic-one-completion'),
           topicContent: firstTopic,
           contentGroup: group,
-          levelContent: level,
           voicePromptService: voice,
           mediaService: media,
           initialResumeStage: ListeningResumeStage.waitingForChoice,
@@ -194,7 +264,6 @@ void main() {
             Key('ios-explicit-$transcript'),
             topicContent: topics.first,
             contentGroup: group,
-            levelContent: level,
             controller: _LearningAudioDependencies(speech),
             voicePromptService: _SilentVoicePromptService(),
             mediaService: media,
@@ -1583,7 +1652,6 @@ Widget _subject(
   LearningAudioDependencies? controller,
   ListeningTopicContent? topicContent,
   ListeningContentAgeGroup? contentGroup,
-  ListeningLevelContent? levelContent,
   LessonCompletionChoiceRecognizer? completionChoiceRecognizer,
   ListeningResumeStage initialResumeStage = ListeningResumeStage.core,
   VoidCallback? onCommunicationRequested,
@@ -1611,7 +1679,6 @@ Widget _subject(
       controller: controller,
       topicContent: topicContent,
       contentGroup: contentGroup,
-      levelContent: levelContent,
       completionChoiceRecognizer: completionChoiceRecognizer,
       initialResumeStage: initialResumeStage,
       onCommunicationRequested: onCommunicationRequested,
@@ -1907,6 +1974,30 @@ class _MemoryProgressStore extends ListeningProgressStore {
 }
 
 class _TopicTransitionProgressStore extends _MemoryProgressStore {
+  bool courseCompleted = false;
+  bool courseCompletionEvent = false;
+  bool selectionSaved = false;
+
+  @override
+  Future<void> markCourseCompleted(String courseId) async {
+    courseCompleted = true;
+  }
+
+  @override
+  Future<bool> hasCourseCompletionEventCreated(String courseId) async =>
+      courseCompletionEvent;
+  @override
+  Future<bool> markCourseCompletionEventCreated(String courseId) async {
+    final first = !courseCompletionEvent;
+    courseCompletionEvent = true;
+    return first;
+  }
+
+  @override
+  Future<void> saveTopicSelectionCheckpoint(String courseId) async {
+    selectionSaved = true;
+  }
+
   final Map<String, int> progress = {};
   final Map<String, int> cursors = {};
   final Map<String, ListeningResumeStage> stages = {};

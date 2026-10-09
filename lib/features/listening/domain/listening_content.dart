@@ -66,6 +66,8 @@ class ListeningContentAgeGroup {
   final int startAge;
   final int endAge;
   final List<ListeningTopicContent> topics;
+  /// Legacy metadata retained for the 4.2 progress migration and historical IDs.
+  /// Navigation and completion use [topics] directly.
   final List<ListeningLevelContent> levels;
 
   ListeningLevelContent? level(int number) {
@@ -146,6 +148,7 @@ class ListeningTopicContent {
   final String titleEn;
   final List<ListeningLessonContent> lessons;
   final List<ListeningLessonContent> songs;
+  /// Legacy authored metadata; never used as a navigation or unlock gate.
   final int levelNumber;
 
   int get sentenceCount =>

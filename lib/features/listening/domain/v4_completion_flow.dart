@@ -4,8 +4,7 @@ enum V4CompletionStage {
   lessonEnd,
   topicEnd,
   topicEndOneRemaining,
-  nextLevel,
-  courseRelearnLevel,
+  courseRelearnTopic,
 }
 
 enum V4CompletionAction {
@@ -14,10 +13,6 @@ enum V4CompletionAction {
   stop,
   nextTopic,
   relearnTopic,
-  startNextLevel,
-  relearnLevel1,
-  relearnLevel2,
-  relearnLevel3,
 }
 
 String v4CompletionPrompt(
@@ -25,7 +20,6 @@ String v4CompletionPrompt(
   int? currentLesson,
   int? nextLesson,
   int? topicNumber,
-  int? nextLevel,
 }) {
   return switch (stage) {
     V4CompletionStage.lessonEnd =>
@@ -38,13 +32,8 @@ String v4CompletionPrompt(
           : 'Bạn muốn học chủ đề khác hay học lại?',
     V4CompletionStage.topicEndOneRemaining =>
       'Bạn còn một Chủ đề chưa học. Bạn muốn học tiếp hay học lại?',
-    V4CompletionStage.nextLevel =>
-      'Bạn muốn bắt đầu Level ${nextLevel ?? ''} hay dừng lại?'.replaceAll(
-        'Level  ',
-        'Level ',
-      ),
-    V4CompletionStage.courseRelearnLevel =>
-      'Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?',
+    V4CompletionStage.courseRelearnTopic =>
+      'Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Chủ đề số mấy?',
   };
 }
 
@@ -55,10 +44,6 @@ String v4CompletionActionLabel(V4CompletionAction action) {
     V4CompletionAction.stop => 'Dừng lại',
     V4CompletionAction.nextTopic => 'Chủ đề khác',
     V4CompletionAction.relearnTopic => 'Học lại chủ đề',
-    V4CompletionAction.startNextLevel => 'Bắt đầu Level tiếp theo',
-    V4CompletionAction.relearnLevel1 => 'Học lại Level 1',
-    V4CompletionAction.relearnLevel2 => 'Học lại Level 2',
-    V4CompletionAction.relearnLevel3 => 'Học lại Level 3',
   };
 }
 
@@ -71,22 +56,11 @@ class V4CompletionChoiceResolver {
     Iterable<V4CompletionAction> allowedActions = V4CompletionAction.values,
     int? currentLesson,
     int? nextLesson,
-    int? nextLevel,
   }) {
     final value = _normalize(transcript);
     if (value.isEmpty) return null;
     if (value.contains(' hay ') || value.contains(' hoac ')) return null;
     final allowed = allowedActions.toSet();
-    if (stage == V4CompletionStage.nextLevel && nextLevel != null) {
-      final explicit = _numberedChoice(value, 'level');
-      if (explicit != null) {
-        return explicit == nextLevel &&
-                allowed.contains(V4CompletionAction.startNextLevel)
-            ? V4CompletionAction.startNextLevel
-            : null;
-      }
-    }
-
     V4CompletionAction? result;
     if (MasterNavigationContract.matches('STOP_GLOBAL', transcript) ||
         MasterNavigationContract.legacy('INT-001', transcript) ||
@@ -131,22 +105,7 @@ class V4CompletionChoiceResolver {
                     ])
               ? V4CompletionAction.relearnTopic
               : null,
-        V4CompletionStage.nextLevel =>
-          MasterNavigationContract.matches('NEXT_LEVEL', transcript) ||
-                  _hasAny(value, const <String>[
-                    'level tiep theo',
-                    'bat dau level',
-                    'hoc level',
-                    'hoc tiep',
-                    'di tiep',
-                    'tiep tuc',
-                    'next level',
-                    'start level',
-                    'continue',
-                  ])
-              ? V4CompletionAction.startNextLevel
-              : null,
-        V4CompletionStage.courseRelearnLevel => _levelAction(value),
+        V4CompletionStage.courseRelearnTopic => null,
       };
     }
     return result != null && allowed.contains(result) ? result : null;
@@ -238,15 +197,6 @@ class V4CompletionChoiceResolver {
       'muoi': 10,
     };
     return int.tryParse(match.group(1)!) ?? spoken[match.group(1)!];
-  }
-
-  static V4CompletionAction? _levelAction(String value) {
-    return switch (_numberedChoice(value, 'level')) {
-      1 => V4CompletionAction.relearnLevel1,
-      2 => V4CompletionAction.relearnLevel2,
-      3 => V4CompletionAction.relearnLevel3,
-      _ => null,
-    };
   }
 
   static bool _hasAny(String value, Iterable<String> phrases) =>

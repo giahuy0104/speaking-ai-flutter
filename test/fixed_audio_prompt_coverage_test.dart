@@ -79,7 +79,8 @@ void main() {
       final text = _normalize(source['text'] as String);
       final entry = entriesByPack[pack]?['$key\u0000$locale'];
       expect(entry, isNotNull, reason: '$pack: $key');
-      expect(_normalize(entry!['text'] as String), text, reason: key);
+      expect(entry!['enabled'], source['retired'] != true, reason: key);
+      expect(_normalize(entry['text'] as String), text, reason: key);
       expect(entry['textHash'], _textHash(text), reason: key);
       expect(entry['modelId'], 'eleven_v3', reason: key);
       expect(

@@ -232,8 +232,8 @@ class VoiceNavigationController extends ChangeNotifier {
     _intentHandler = handler;
   }
 
-  /// iOS MAIN waits for the destination to confirm that navigation started.
-  /// The legacy handler remains unchanged for Android and other callers.
+  /// iOS MAIN and direct vocabulary targets wait for destination readiness.
+  /// Other Android navigation retains its existing handler.
   void setIntentResultHandler(VoiceNavigationIntentResultHandler? handler) {
     _intentResultHandler = handler;
   }
@@ -311,32 +311,28 @@ class VoiceNavigationController extends ChangeNotifier {
     _translationStoppedAwaitingMain = false;
   }
 
-  Future<bool> activateLevelTopicSelection({
+  Future<bool> activateTopicSelection({
     required int childAge,
-    required int levelNumber,
     required List<int> topicNumbers,
     required List<int> completedTopicNumbers,
-    required bool announceLevel,
   }) async {
     return _activateMainAssistantFlow(
-      () => _mainAssistantFlow.beginLevelTopicSelection(
+      () => _mainAssistantFlow.beginTopicSelection(
         childAge: childAge,
-        levelNumber: levelNumber,
         topicNumbers: topicNumbers,
         completedTopicNumbers: completedTopicNumbers,
-        announceLevel: announceLevel,
       ),
     );
   }
 
-  Future<bool> activateCourseRelearnLevelSelection({
+  Future<bool> activateCourseRelearnTopicSelection({
     required int childAge,
-    required List<int> levelNumbers,
+    required List<int> topicNumbers,
   }) async {
     return _activateMainAssistantFlow(
-      () => _mainAssistantFlow.beginCourseRelearnLevelSelection(
+      () => _mainAssistantFlow.beginCourseRelearnTopicSelection(
         childAge: childAge,
-        levelNumbers: levelNumbers,
+        topicNumbers: topicNumbers,
       ),
     );
   }
@@ -601,12 +597,10 @@ class VoiceNavigationController extends ChangeNotifier {
             matchedPhrase: navigationAfterPrompt.matchedPhrase,
             topicNumber: navigationAfterPrompt.topicNumber,
             lessonNumber: navigationAfterPrompt.lessonNumber,
-            levelNumber: navigationAfterPrompt.levelNumber,
             childAge: navigationAfterPrompt.childAge,
             openLesson: navigationAfterPrompt.openLesson,
             relearnTopic: navigationAfterPrompt.relearnTopic,
             relearnLesson: navigationAfterPrompt.relearnLesson,
-            relearnLevel: navigationAfterPrompt.relearnLevel,
             prepareOnly: true,
             vocabularyTarget: navigationAfterPrompt.vocabularyTarget,
           )
@@ -768,8 +762,7 @@ class VoiceNavigationController extends ChangeNotifier {
     if (navigationAfterPrompt != null) {
       final dispatched = await _dispatchIntent(navigationAfterPrompt);
       if (!dispatched &&
-          !kIsWeb &&
-          defaultTargetPlatform == TargetPlatform.iOS) {
+          (iosNavigation || navigationAfterPrompt.vocabularyTarget != null)) {
         notifyListeners();
         return false;
       }
@@ -1088,10 +1081,18 @@ class VoiceNavigationController extends ChangeNotifier {
 
   Future<bool> _dispatchIntent(VoiceNavigationIntent intent) async {
     final handler = _intentHandler;
-    final resultHandler = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+    final resultHandler =
+        ((!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) ||
+            intent.vocabularyTarget != null)
         ? _intentResultHandler
         : null;
     if ((handler == null && resultHandler == null) || _disposed) {
+      if (!_disposed && intent.vocabularyTarget != null) {
+        _lastError = const StreamingSpeechInputException(
+          'Chưa mở được nội dung Từ vựng. Bạn hãy thử lại.',
+          code: 'NAVIGATION_DESTINATION_UNAVAILABLE',
+        );
+      }
       return false;
     }
     AudioDiagnostics.event('navigation.dispatch', {
@@ -1101,6 +1102,12 @@ class VoiceNavigationController extends ChangeNotifier {
     if (resultHandler != null) {
       try {
         final installed = await resultHandler(intent);
+        if (!installed && intent.vocabularyTarget != null) {
+          _lastError = const StreamingSpeechInputException(
+            'Chưa mở được nội dung Từ vựng. Bạn hãy thử lại.',
+            code: 'NAVIGATION_DESTINATION_UNAVAILABLE',
+          );
+        }
         AudioDiagnostics.event('navigation.handler.completed', {
           'generation': _generation,
           'destination': intent.destination.name,

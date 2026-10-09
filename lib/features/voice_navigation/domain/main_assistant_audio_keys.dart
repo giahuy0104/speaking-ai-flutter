@@ -36,15 +36,11 @@ abstract final class MainAssistantAudioKeys {
   static const lessonNotFound = 'assistant.main.lesson_not_found.vi';
   static const topicNotFound = 'assistant.main.topic_not_found.vi';
   static const catalogLoadError = 'assistant.main.catalog_load_error.vi';
-  static const courseRelearnLevel = 'assistant.level.choose_course_relearn.vi';
-  static const chooseRelearnLevel = 'assistant.level.choose_relearn.vi';
+  static const courseRelearnTopic = 'assistant.topic.choose_course_relearn.vi';
   static const topicWithoutLessons =
       'assistant.topic.no_lessons_choose_other.vi';
   static const startNow = 'assistant.main.start_now.vi';
   static const songReplay = 'assistant.main.song_replay.vi';
-
-  static String levelTopicSelection(int levelNumber) =>
-      'assistant.topic.level_selection.$levelNumber.vi';
 
   static String chooseTopic(int topicCount) =>
       'assistant.topic.choose_$topicCount.vi';

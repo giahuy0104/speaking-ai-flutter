@@ -576,7 +576,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           : null,
     );
     widget.voiceNavigationController?.setIntentResultHandler(
-      widget.config.enableVoiceNavigation && iosResultHandler
+      widget.config.enableVoiceNavigation
           ? _handleVoiceNavigationIntentResult
           : null,
     );
@@ -705,6 +705,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   Future<bool> _executeVoiceNavigation(VoiceNavigationIntent intent) async {
+    if (intent.vocabularyTarget != null &&
+        !_vocabularyNavigationController.isAttached) {
+      return false;
+    }
     if (intent.prepareOnly) {
       if (intent.destination != VoiceNavigationDestination.conversation &&
           intent.destination != VoiceNavigationDestination.topics) {
@@ -862,16 +866,29 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         // showing the page again starts nothing by itself.
         final alreadyActive = _vocabularyActivationController.isActive;
         await _showVocabularyAndWait(autoStart: vocabularyTarget == null);
-        if (!kIsWeb &&
-            defaultTargetPlatform == TargetPlatform.iOS &&
-            (!mounted || _page != 1)) {
+        if (!mounted ||
+            _page != 1 ||
+            _requestedPage != 1 ||
+            (vocabularyTarget != null &&
+                !_vocabularyNavigationController.isAttached)) {
           return false;
         }
         // The section plays for as long as the child listens. MAIN's turn ends
         // once it has started, like a section chosen inside the vocabulary.
         if (vocabularyTarget != null) {
+          final navigationGeneration = _pageNavigationGeneration;
           unawaited(
-            _vocabularyNavigationController.openVoiceTarget(vocabularyTarget),
+            _vocabularyNavigationController
+                .openVoiceTarget(vocabularyTarget)
+                .catchError((Object error) {
+                  if (mounted &&
+                      navigationGeneration == _pageNavigationGeneration &&
+                      _page == 1) {
+                    _showVoiceNavigationMessage(
+                      'Chưa mở được nội dung. Bạn hãy thử lại hoặc chạm vào mục muốn học.',
+                    );
+                  }
+                }),
           );
         } else if (alreadyActive) {
           unawaited(_vocabularyNavigationController.openRoot());
@@ -879,17 +896,14 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       case VoiceNavigationDestination.topics:
         Route<void>? installedTopicRoute;
         final pausedCheckpoint =
-            intent.topicNumber == null &&
-                intent.levelNumber == null &&
-                !intent.openLesson
+            intent.topicNumber == null && !intent.openLesson
             ? _pausedListeningCheckpoint
             : null;
         if (pausedCheckpoint != null) {
           _pausedListeningCheckpoint = null;
         }
-        final opensCurrentLevelSelection =
+        final opensTopicSelection =
             intent.topicNumber == null &&
-            intent.levelNumber == null &&
             !intent.openLesson &&
             pausedCheckpoint == null;
         final fallbackTopicIndex = _activeVoiceTopicIndex;
@@ -898,11 +912,9 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           openLesson: intent.openLesson || pausedCheckpoint != null,
           topicNumber: intent.topicNumber ?? pausedCheckpoint?.topicNumber,
           lessonNumber: intent.lessonNumber ?? pausedCheckpoint?.lessonNumber,
-          levelNumber: intent.levelNumber,
           childAge: intent.childAge ?? pausedCheckpoint?.childAge,
           relearnTopic: intent.relearnTopic,
           relearnLesson: intent.relearnLesson,
-          relearnLevel: intent.relearnLevel,
           fallbackTopicIndex: fallbackTopicIndex,
         );
         if (_openingTopics) {
@@ -916,7 +928,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           final routePushed = Completer<bool>();
           unawaited(
             _openTopicListening(
-              initialVoiceTarget: opensCurrentLevelSelection ? null : target,
+              initialVoiceTarget: opensTopicSelection ? null : target,
               initialVoiceActivationGate: topicVoiceGate?.future,
               routePushed: routePushed,
               onRouteCreated:
@@ -1402,30 +1414,26 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                       completedLessonNumbers: completedLessonNumbers,
                     );
               },
-          onLevelTopicSelectionRequested:
+          onTopicSelectionRequested:
               ({
                 required childAge,
-                required levelNumber,
                 required topicNumbers,
                 required completedTopicNumbers,
-                required announceLevel,
               }) async {
                 return await widget.voiceNavigationController
-                        ?.activateLevelTopicSelection(
+                        ?.activateTopicSelection(
                           childAge: childAge,
-                          levelNumber: levelNumber,
                           topicNumbers: topicNumbers,
                           completedTopicNumbers: completedTopicNumbers,
-                          announceLevel: announceLevel,
                         ) ??
                     false;
               },
-          onCourseRelearnLevelSelectionRequested:
-              ({required childAge, required levelNumbers}) async {
+          onCourseRelearnTopicSelectionRequested:
+              ({required childAge, required topicNumbers}) async {
                 return await widget.voiceNavigationController
-                        ?.activateCourseRelearnLevelSelection(
+                        ?.activateCourseRelearnTopicSelection(
                           childAge: childAge,
-                          levelNumbers: levelNumbers,
+                          topicNumbers: topicNumbers,
                         ) ??
                     false;
               },

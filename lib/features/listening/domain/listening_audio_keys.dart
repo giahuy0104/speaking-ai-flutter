@@ -1,6 +1,5 @@
 abstract final class ListeningAudioKeys {
   static const chooseTopic = 'listening.navigation.choose_topic.vi';
-  static const chooseLevel = 'listening.navigation.choose_level.vi';
   static const chooseLesson = 'listening.navigation.choose_lesson.vi';
   static const replayTopic = 'listening.navigation.replay_topic.vi';
   static const replayLesson = 'listening.navigation.replay_lesson.vi';
@@ -27,9 +26,6 @@ abstract final class ListeningAudioKeys {
   static const reviewCompletedChooseLesson =
       'listening.review.completed.choose_lesson.vi';
 
-  static String lockedLevel(int levelNumber) =>
-      'listening.navigation.locked_level.$levelNumber.vi';
-
   static String lockedLesson(int lessonNumber) =>
       'listening.navigation.locked_lesson.$lessonNumber.vi';
 
@@ -45,17 +41,11 @@ abstract final class ListeningAudioKeys {
   static String completionTopicReplay(int topicNumber) =>
       'listening.completion.topic.replay.$topicNumber.vi';
 
-  static String completionLevelStart(int levelNumber) =>
-      'listening.completion.level.start.$levelNumber.vi';
-
   static String milestoneLesson(int lessonNumber) =>
       'listening.milestone.lesson.$lessonNumber.vi';
 
   static String milestoneTopic(int topicNumber) =>
       'listening.milestone.topic.$topicNumber.vi';
-
-  static String milestoneLevel(int levelNumber) =>
-      'listening.milestone.level.$levelNumber.vi';
 
   /// Resolves the finite, context-dependent prompts used by the Topic module.
   /// Unknown lesson content is intentionally left to its sentence-specific key.
@@ -73,12 +63,6 @@ abstract final class ListeningAudioKeys {
       return challengeInvalidContent;
     }
 
-    final lockedLevelMatch = RegExp(
-      r'^Bạn cần hoàn thành Level (\d+) trước nhé\.$',
-    ).firstMatch(value);
-    if (lockedLevelMatch != null) {
-      return lockedLevel(int.parse(lockedLevelMatch.group(1)!));
-    }
     final lockedLessonMatch = RegExp(
       r'^Bạn cần học xong Bài (\d+) trước nhé\.$',
     ).firstMatch(value);
@@ -112,12 +96,6 @@ abstract final class ListeningAudioKeys {
     if (topicChoiceMatch != null) {
       return completionTopicReplay(int.parse(topicChoiceMatch.group(1)!));
     }
-    final nextLevelMatch = RegExp(
-      r'^Bạn muốn bắt đầu Level (\d+) hay dừng lại\?$',
-    ).firstMatch(value);
-    if (nextLevelMatch != null) {
-      return completionLevelStart(int.parse(nextLevelMatch.group(1)!));
-    }
     final lessonMilestoneMatch = RegExp(
       r'^Bạn đã hoàn thành Bài (\d+) rồi!$',
     ).firstMatch(value);
@@ -129,12 +107,6 @@ abstract final class ListeningAudioKeys {
     ).firstMatch(value);
     if (topicMilestoneMatch != null) {
       return milestoneTopic(int.parse(topicMilestoneMatch.group(1)!));
-    }
-    final levelMilestoneMatch = RegExp(
-      r'^Bạn đã hoàn thành Level (\d+) rồi!$',
-    ).firstMatch(value);
-    if (levelMilestoneMatch != null) {
-      return milestoneLevel(int.parse(levelMilestoneMatch.group(1)!));
     }
     return null;
   }

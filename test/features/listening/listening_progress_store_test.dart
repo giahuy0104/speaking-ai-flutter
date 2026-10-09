@@ -5,6 +5,48 @@ import 'package:ai_speaking_flutter_app/features/listening/data/listening_progre
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test(
+    'legacy level checkpoints map to age-group selection without modifying history',
+    () async {
+      final fixture = await _ProgressFixture.create();
+      addTearDown(fixture.dispose);
+      final original = <String, int>{
+        '__listening-topic-patch-v42': 42,
+        '3-5::topic-selection-level': 3,
+        '3-5::topic-selection-announce': 1,
+        'c35-l1-t01-b01': 4,
+        'c35-l1-t01-b01::current-sentence': 2,
+        'c35-l1-t01-b01::resume-stage': ListeningResumeStage.challenge.index,
+        'c35-l1-t01-b01::earned-star::mission:legacy': 1,
+        '3-5::course-completed': 1,
+        '3-5::course-completion-event-created': 1,
+        'c35-l1::level-mission-passed': 1,
+      };
+      await fixture.file.writeAsString(jsonEncode(original));
+      await fixture.store.readAll(); // Allow the existing 4.2 migration once.
+      final before = await fixture.file.readAsString();
+      for (var attempt = 0; attempt < 2; attempt++) {
+        expect(
+          await fixture.store.readTopicSelectionCheckpoint('3-5'),
+          isNotNull,
+        );
+      }
+      expect(await fixture.file.readAsString(), before);
+      await fixture.store.saveTopicSelectionCheckpoint('3-5');
+      final after =
+          jsonDecode(await fixture.file.readAsString()) as Map<String, dynamic>;
+      final beforeData = jsonDecode(before) as Map<String, dynamic>;
+      for (final entry in beforeData.entries.where(
+        (entry) => !entry.key.contains('::topic-selection-'),
+      )) {
+        expect(after[entry.key], entry.value, reason: entry.key);
+      }
+      expect(after['3-5::topic-selection-age-group'], 1);
+      expect(after.containsKey('3-5::topic-selection-level'), isFalse);
+      expect(await fixture.store.readTotalEarnedStars(), 1);
+    },
+  );
+
   test('resume sentence can move backward without losing completion', () async {
     final fixture = await _ProgressFixture.create();
     addTearDown(fixture.dispose);
@@ -303,17 +345,12 @@ void main() {
       final fixture = await _ProgressFixture.create();
       addTearDown(fixture.dispose);
 
-      await fixture.store.saveTopicSelectionCheckpoint(
-        '3-5',
-        levelNumber: 2,
-        announceLevel: true,
-      );
+      await fixture.store.saveTopicSelectionCheckpoint('3-5');
 
       final checkpoint = await fixture.store.readTopicSelectionCheckpoint(
         '3-5',
       );
-      expect(checkpoint?.levelNumber, 2);
-      expect(checkpoint?.announceLevel, isTrue);
+      expect(checkpoint, isNotNull);
       expect(await fixture.store.readAll(), isEmpty);
 
       await fixture.store.clearTopicSelectionCheckpoint('3-5');

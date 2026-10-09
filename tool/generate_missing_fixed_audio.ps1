@@ -264,7 +264,8 @@ $catalog = Get-Content -LiteralPath $CatalogPath -Raw -Encoding utf8 | ConvertFr
 if ($catalog.schemaVersion -ne 1 -or $catalog.modelId -ne $modelId -or $catalog.outputFormat -ne $outputFormat) {
   throw 'The fixed audio catalog has an unsupported synthesis contract.'
 }
-$prompts = @($catalog.prompts)
+# Retired Level prompts remain in the historical inventory only.
+$prompts = @($catalog.prompts | Where-Object { $_.retired -ne $true })
 if (-not $SkipLessonIntroStatePrompts) {
   $prompts += @(Get-LessonIntroStatePrompts)
 }
@@ -304,9 +305,11 @@ foreach ($prompt in $prompts) {
     $info = if ($assetFile) { Get-AudioInfo $assetFile } else { $null }
     $validExisting = $null -ne $info -and
       $entry.textHash -eq $textHash -and
-      $entry.modelId -eq $modelId -and
-      $entry.voiceId -eq $voiceByLanguage[$language] -and
-      [double]$entry.speed -eq [double]$speedByLanguage[$language] -and
+      ($entry.source -eq 'user-supplied' -or (
+        $entry.modelId -eq $modelId -and
+        $entry.voiceId -eq $voiceByLanguage[$language] -and
+        [double]$entry.speed -eq [double]$speedByLanguage[$language]
+      )) -and
       $entry.sha256 -eq $info.checksum -and
       [int64]$entry.sizeBytes -eq [int64]$info.size
   }

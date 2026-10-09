@@ -336,8 +336,8 @@ void main() {
   test('6–7 course unlocks independently of 3–5 Alphabet completion', () {
     final group = catalog.groups.singleWhere((item) => item.startAge == 6);
     expect(
-      ListeningCurriculumFlow.levelUnlocked(group, group.levels.first, {}, {}),
-      isTrue,
+      ListeningCurriculumFlow.incompleteTopicNumbers(group, {}, {}),
+      List.generate(10, (index) => index + 1),
     );
     for (final topic in group.topics.take(2)) {
       expect(ListeningCurriculumFlow.lessonUnlocked(topic, 0, {}, {}), isTrue);

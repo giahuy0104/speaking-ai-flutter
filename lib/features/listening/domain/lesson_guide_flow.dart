@@ -183,9 +183,6 @@ abstract final class LessonAgeFeedbackLibrary {
 const String v4SongPrealertAudioId = 'SONG_PREALERT';
 const String v4ChallengeIntroAudioId = 'CHALLENGE_INTRO';
 const String v4ChallengeIntro = 'Tiếp theo là một câu thử thách nhé.';
-const String v4MissionIntroAudioId = 'MISSION_INTRO';
-const String v4MissionIntro =
-    'Tiếp theo là Nhiệm vụ cuối Level. Bạn sẽ có bốn câu thử thách.';
 const String v4SongPrealertTemplate =
     'Tiếp theo là một câu thử thách. Xong rồi mình nghe bài hát [SONG_TITLE] nhé.';
 const String v4SongStartCueAudioId = 'SONG_START_CUE';

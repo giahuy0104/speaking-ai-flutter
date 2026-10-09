@@ -29,7 +29,6 @@ class TopicLessonListScreen extends StatefulWidget {
     required this.topic,
     required this.content,
     this.contentGroup,
-    this.levelContent,
     this.controller,
     this.onMainPressed,
     this.onVocabularyRequested,
@@ -54,7 +53,6 @@ class TopicLessonListScreen extends StatefulWidget {
   final ListeningTopic topic;
   final ListeningTopicContent content;
   final ListeningContentAgeGroup? contentGroup;
-  final ListeningLevelContent? levelContent;
   final LearningAudioDependencies? controller;
   final Future<void> Function()? onMainPressed;
   final VoidCallback? onVocabularyRequested;
@@ -609,7 +607,6 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
           controller: widget.controller,
           topicContent: widget.content,
           contentGroup: widget.contentGroup,
-          levelContent: widget.levelContent,
           progressStore: widget.progressStore,
           mediaService: _mediaService,
           voicePromptService: _voicePromptService,

@@ -26,6 +26,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  test('an unattached vocabulary destination reports failure', () async {
+    final navigation = VocabularyHomeNavigationController();
+    expect(navigation.isAttached, isFalse);
+    await expectLater(
+      navigation.openVoiceTarget(VoiceVocabularyTarget.star),
+      throwsStateError,
+    );
+  });
   setUp(() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });

@@ -5,6 +5,11 @@ turns its line-oriented IT/TTS export into deterministic runtime data and an
 ASR/assistant lexicon.  It never invents questions: every
 Challenge and Mission comes from the authored bank in the source file.
 
+This is the legacy V4 source parser, before the V5 and 4.2 migrations.
+Its source Level labels are retained to preserve published IDs and historical
+migration joins, not to gate the current age-group topic flow. Current selection
+prompts are maintained in topic_dynamic_audio_prompts.json.
+
 Usage (from the repository root):
   python tool/generate_v4_listening_content.py \
     "C:\\Users\\Windows\\Downloads\\AIV0_HOMI_Spec_..._V4_...txt"

@@ -2062,6 +2062,140 @@ void main() {
       TargetPlatform.iOS,
     }),
   );
+  for (final source in [
+    'translation active',
+    'translation stopped',
+    'translation idle',
+    'topic selection',
+  ]) {
+    for (final target in ['Ba mẹ đã thêm', 'Ngôi sao', 'Luyện lại']) {
+      testWidgets(
+        'MAIN transfers $source directly to $target without starting Today',
+        (tester) async {
+          SharedPreferences.setMockInitialValues(<String, Object>{});
+          tester.view.physicalSize = const Size(390, 844);
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          final date = DateTime(2026, 9, 15);
+          await const VocabularyStore().write([
+            _todayWord(),
+            VocabularyEntry(
+              id: 'parent-destination',
+              word: 'Family',
+              meaning: 'Gia đình',
+              addedAt: date,
+              parentState: ParentVocabularyState.unlocked,
+              unlockedAt: date,
+            ),
+            VocabularyEntry(
+              id: 'star-destination',
+              word: 'Moon',
+              meaning: 'Mặt trăng',
+              addedAt: date,
+              status: VocabularyLearningStatus.learnedWell,
+              source: VocabularySource.topicCore,
+              earnedAt: date,
+              collection: VocabularyCollection.star,
+            ),
+            VocabularyEntry(
+              id: 'review-destination',
+              word: 'Banana',
+              meaning: 'Chuối',
+              addedAt: date,
+              status: VocabularyLearningStatus.needsPractice,
+              source: VocabularySource.topicCore,
+            ),
+          ]);
+          final events = <String>[];
+          final navigation = VoiceNavigationController(
+            speechInput: _FakeStreamingSpeechInput(),
+            ownsSpeechInput: true,
+            voicePromptService: _NavigationOrderPrompt(events),
+          );
+          final controller = _controller();
+          await tester.pumpWidget(
+            _app(
+              controller,
+              voiceNavigationController: navigation,
+              vocabularyAudioService: _NavigationOrderAudio(events),
+            ),
+          );
+          await tester.pumpAndSettle();
+          if (source == 'topic selection') {
+            expect(await navigation.activateFromMainButton(), isTrue);
+            unawaited(navigation.dispatchRecognizedText('Chủ đề'));
+            await _pumpFrames(tester);
+            expect(find.byType(TopicListeningScreen), findsOneWidget);
+            await navigation.activateTopicSelection(
+              childAge: 6,
+              topicNumbers: List.generate(10, (index) => index + 1),
+              completedTopicNumbers: [],
+            );
+          } else if (source == 'translation active') {
+            expect(
+              await navigation.activateOtherLearningFromSpeaking(),
+              isTrue,
+            );
+          } else {
+            if (source == 'translation stopped') {
+              await navigation.waitForMainAfterTranslationStop();
+            }
+            expect(await navigation.activateFromMainButton(), isTrue);
+          }
+          events.clear();
+          bool? completed;
+          unawaited(
+            navigation
+                .dispatchRecognizedText(target)
+                .then((value) => completed = value),
+          );
+          await _pumpFrames(tester);
+          expect(completed, isTrue);
+          expect(find.byType(TopicListeningScreen), findsNothing);
+          if (target == 'Luyện lại') {
+            expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+          } else {
+            expect(
+              tester
+                  .widget<Text>(
+                    find.byKey(const Key('vocabulary-journey-title')),
+                  )
+                  .data,
+              target == 'Ngôi sao' ? 'Ngôi sao của bạn' : target,
+            );
+          }
+          expect(
+            events.where((event) => event == 'vocabulary:Apple:en-US'),
+            isEmpty,
+          );
+          final audioIndex = events.indexWhere(
+            (event) => event.startsWith('vocabulary:'),
+          );
+          if (audioIndex >= 0) {
+            expect(events.indexOf('end-main'), lessThan(audioIndex));
+          }
+          expect(events, contains('end-main'));
+          expect(
+            (await const VocabularyStore().read()).map((entry) => entry.id),
+            containsAll([
+              'today-word',
+              'parent-destination',
+              'star-destination',
+              'review-destination',
+            ]),
+          );
+          navigation.dispose();
+          controller.dispose();
+          await tester.pumpWidget(const SizedBox.shrink());
+        },
+        variant: TargetPlatformVariant({
+          TargetPlatform.android,
+          TargetPlatform.iOS,
+        }),
+      );
+    }
+  }
 }
 
 VocabularyEntry _todayWord() => VocabularyEntry(
@@ -2243,15 +2377,8 @@ class _HomeListeningProgressStore extends ListeningProgressStore {
   ) async => _selectionCheckpoint;
 
   @override
-  Future<void> saveTopicSelectionCheckpoint(
-    String courseId, {
-    required int levelNumber,
-    required bool announceLevel,
-  }) async {
-    _selectionCheckpoint = ListeningTopicSelectionCheckpoint(
-      levelNumber: levelNumber,
-      announceLevel: announceLevel,
-    );
+  Future<void> saveTopicSelectionCheckpoint(String courseId) async {
+    _selectionCheckpoint = ListeningTopicSelectionCheckpoint();
   }
 
   @override
@@ -2476,6 +2603,47 @@ class _FakePlaybackService implements AudioPlaybackService {
   @override
   Future<void> stop() async {}
 
+  @override
+  Future<void> dispose() async {}
+}
+
+class _NavigationOrderPrompt
+    implements VoicePromptService, MainTurnVoicePromptService {
+  _NavigationOrderPrompt(this.events);
+  final List<String> events;
+  @override
+  Future<String?> beginMainTurn() async => 'test-main';
+  @override
+  Future<void> endMainTurn(String reason, {String? turnId}) async {
+    events.add('end-main');
+  }
+
+  @override
+  Future<void> speak(String text, {String locale = 'vi-VN'}) async {}
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {}
+  @override
+  Future<void> stop() async {}
+  @override
+  Future<void> dispose() async {}
+}
+
+class _NavigationOrderAudio implements VocabularyContentAudioService {
+  _NavigationOrderAudio(this.events);
+  final List<String> events;
+  @override
+  Future<void> prefetch(String text, {required String locale}) async {}
+  @override
+  Future<VocabularyAudioSource> speakAndWait(
+    String text, {
+    required String locale,
+  }) async {
+    events.add('vocabulary:$text:$locale');
+    return VocabularyAudioSource.nativeTts;
+  }
+
+  @override
+  Future<void> stop() async {}
   @override
   Future<void> dispose() async {}
 }

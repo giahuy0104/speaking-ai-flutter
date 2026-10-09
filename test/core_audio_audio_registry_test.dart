@@ -566,6 +566,35 @@ void main() {
     final listeningRegistry = listening as VoicePromptAudioRegistryAdapter;
     final vocabularyRegistry = vocabulary as VoicePromptAudioRegistryAdapter;
 
+    const suppliedTopicPrompts = <String, String>{
+      'assistant.topic.choose_10.vi':
+          'Có 10 Chủ đề. Bạn muốn chọn Chủ đề số mấy?',
+      'assistant.topic.invalid_10.vi': 'Bạn chọn Chủ đề từ số 1 đến số 10 nhé.',
+      'assistant.topic.choose_course_relearn.vi':
+          'Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Chủ đề số mấy?',
+    };
+    for (final registry in [mainRegistry, listeningRegistry]) {
+      for (final entry in suppliedTopicPrompts.entries) {
+        final resolved = await registry.resolver.resolve(
+          AudioPromptRequest(
+            key: AudioPromptKey(entry.key),
+            fallbackText: entry.value,
+            locale: 'vi-VN',
+            allowTtsFallback: false,
+          ),
+        );
+        expect(
+          resolved.source,
+          AudioPromptSource.bundledAsset,
+          reason: entry.key,
+        );
+        expect(
+          resolved.prompt!.asset,
+          'assets/audio/assistant-core/${entry.key}.mp3',
+        );
+      }
+    }
+
     expect(await mainRegistry.repository.activeManifests(), hasLength(2));
     expect(await listeningRegistry.repository.activeManifests(), hasLength(12));
     expect(await vocabularyRegistry.repository.activeManifests(), hasLength(3));

@@ -47,9 +47,30 @@ abstract final class MasterNavigationContract {
       'TRANSLATE_SWITCH_CONFIRM',
     ],
     'SWITCH_MODULE_MENU': ['LEARNING_ANY_EXCEPT_OTHER_CONTENT_END'],
-    'OPEN_PARENT': ['LEARNING_ANY', 'TRANSLATE_SWITCH_CONFIRM'],
-    'OPEN_STAR': ['LEARNING_ANY', 'TRANSLATE_SWITCH_CONFIRM'],
-    'OPEN_REVIEW': ['LEARNING_ANY', 'TRANSLATE_SWITCH_CONFIRM'],
+    'OPEN_PARENT': [
+      'MAIN',
+      'LEARNING_ANY',
+      'SUBJECT_ANY',
+      'MODULE_SWITCH',
+      'TRANSLATE_SWITCH_CONFIRM',
+      'TRANSLATE_MAIN_AFTER_STOP',
+    ],
+    'OPEN_STAR': [
+      'MAIN',
+      'LEARNING_ANY',
+      'SUBJECT_ANY',
+      'MODULE_SWITCH',
+      'TRANSLATE_SWITCH_CONFIRM',
+      'TRANSLATE_MAIN_AFTER_STOP',
+    ],
+    'OPEN_REVIEW': [
+      'MAIN',
+      'LEARNING_ANY',
+      'SUBJECT_ANY',
+      'MODULE_SWITCH',
+      'TRANSLATE_SWITCH_CONFIRM',
+      'TRANSLATE_MAIN_AFTER_STOP',
+    ],
     'CONTINUE_GLOBAL': ['LEARNING_ANY'],
     'GO_TO_TOPIC_SELECTION': ['SUBJECT_ANY'],
     'OTHER_CONTENT': [
@@ -92,7 +113,6 @@ abstract final class MasterNavigationContract {
     'RESUME_ACTIVITY': ['ACTIVE_RESUME'],
     'NEXT_LESSON': ['LESSON_END'],
     'RELEARN_LESSON': ['LESSON_END'],
-    'NEXT_LEVEL': ['LEVEL_END'],
   };
 
   static const Map<String, List<String>> phrases = {
@@ -118,13 +138,6 @@ abstract final class MasterNavigationContract {
       'Quay về đầu Bài',
       'Quay về bắt đầu',
       'Quay về từ đầu',
-    ],
-    'NEXT_LEVEL': [
-      'Mở khóa',
-      'Học Level tiếp theo',
-      'Mình muốn sang Level mới',
-      'Mở Level tiếp theo',
-      'Tiếp tục Level mới',
     ],
     'STOP_GLOBAL': [
       'Dừng lại',
@@ -436,9 +449,6 @@ abstract final class MasterNavigationContract {
       'Đổi bài',
       'Học bài khác',
       'Chọn bài khác',
-      'Level khác',
-      'Đổi Level',
-      'Học Level khác',
       'Bài số 2',
       'Học Bài 2',
     ],

@@ -14,14 +14,9 @@ void main() {
     expect(LessonGuideFlowV2.beforeSentence.text, 'Nói theo mình nhé.');
   });
 
-  test('keeps the exact V4.1 Challenge and Mission introductions', () {
+  test('keeps the exact V4.1 Challenge introduction', () {
     expect(v4ChallengeIntroAudioId, 'CHALLENGE_INTRO');
     expect(v4ChallengeIntro, 'Tiếp theo là một câu thử thách nhé.');
-    expect(v4MissionIntroAudioId, 'MISSION_INTRO');
-    expect(
-      v4MissionIntro,
-      'Tiếp theo là Nhiệm vụ cuối Level. Bạn sẽ có bốn câu thử thách.',
-    );
   });
 
   test('selects only approved V4 feedback for each age band', () {

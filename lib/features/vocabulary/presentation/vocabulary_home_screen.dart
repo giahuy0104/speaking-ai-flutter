@@ -71,13 +71,19 @@ class VocabularyHomeNavigationController {
   Future<void> Function(VoiceVocabularyTarget target)? _openVoiceTarget;
   Future<void> Function()? _openRoot;
 
+  bool get isAttached => _openVoiceTarget != null;
+
   Future<bool> handleBack() async => await _handleBack?.call() ?? false;
 
   Future<bool> leaveForOtherContent() async =>
       await _leaveForOtherContent?.call() ?? true;
 
   Future<void> openVoiceTarget(VoiceVocabularyTarget target) async {
-    await _openVoiceTarget?.call(target);
+    final open = _openVoiceTarget;
+    if (open == null) {
+      throw StateError('Vocabulary destination is unavailable.');
+    }
+    await open(target);
   }
 
   /// Restarts the vocabulary entry flow on a screen that is already active.

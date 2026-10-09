@@ -21,7 +21,7 @@ enum ListeningPendingChoiceStage {
   lessonEnd,
   topicEnd,
   topicEndOneRemaining,
-  nextLevel,
+  nextLevel, // Legacy index 3; normalized to the topic/course flow on resume.
 }
 
 enum ListeningSessionResult {
@@ -32,13 +32,7 @@ enum ListeningSessionResult {
 }
 
 class ListeningTopicSelectionCheckpoint {
-  const ListeningTopicSelectionCheckpoint({
-    required this.levelNumber,
-    required this.announceLevel,
-  });
-
-  final int levelNumber;
-  final bool announceLevel;
+  const ListeningTopicSelectionCheckpoint();
 }
 
 class ListeningProgressStore {
@@ -77,6 +71,8 @@ class ListeningProgressStore {
   static const String _courseCompletedSuffix = '::course-completed';
   static const String _courseCompletionEventSuffix =
       '::course-completion-event-created';
+  static const String _topicSelectionAgeGroupSuffix =
+      '::topic-selection-age-group';
   static const String _topicSelectionLevelSuffix = '::topic-selection-level';
   static const String _topicSelectionAnnounceSuffix =
       '::topic-selection-announce';
@@ -118,6 +114,7 @@ class ListeningProgressStore {
           key.endsWith(_lessonRelearnPendingSuffix) ||
           key.endsWith(_courseCompletedSuffix) ||
           key.endsWith(_courseCompletionEventSuffix) ||
+          key.endsWith(_topicSelectionAgeGroupSuffix) ||
           key.endsWith(_topicSelectionLevelSuffix) ||
           key.endsWith(_topicSelectionAnnounceSuffix),
     );
@@ -285,7 +282,8 @@ class ListeningProgressStore {
     await _writeRaw(progress);
   }
 
-  /// A level becomes complete only after its authored four-question mission
+  /// Legacy mission record kept for old installations and historical results.
+  /// A former level became complete only after its authored four-question mission
   /// reaches the V4 pass threshold. This marker is intentionally separate
   /// from per-lesson sentence progress so topic totals remain accurate.
   Future<bool> hasPassedLevelMission(String levelId) async {
@@ -621,14 +619,11 @@ class ListeningProgressStore {
         .toSet();
   }
 
-  Future<void> saveTopicSelectionCheckpoint(
-    String courseId, {
-    required int levelNumber,
-    required bool announceLevel,
-  }) async {
+  Future<void> saveTopicSelectionCheckpoint(String courseId) async {
     final progress = await _readRaw();
-    progress['$courseId$_topicSelectionLevelSuffix'] = levelNumber;
-    progress['$courseId$_topicSelectionAnnounceSuffix'] = announceLevel ? 1 : 0;
+    progress['$courseId$_topicSelectionAgeGroupSuffix'] = 1;
+    progress.remove('$courseId$_topicSelectionLevelSuffix');
+    progress.remove('$courseId$_topicSelectionAnnounceSuffix');
     await _writeRaw(progress);
   }
 
@@ -636,17 +631,19 @@ class ListeningProgressStore {
     String courseId,
   ) async {
     final progress = await _readRaw();
-    final level = progress['$courseId$_topicSelectionLevelSuffix'];
-    if (level == null || level <= 0) return null;
-    return ListeningTopicSelectionCheckpoint(
-      levelNumber: level,
-      announceLevel: progress['$courseId$_topicSelectionAnnounceSuffix'] == 1,
-    );
+    if (progress['$courseId$_topicSelectionAgeGroupSuffix'] != 1 &&
+        (progress['$courseId$_topicSelectionLevelSuffix'] ?? 0) <= 0) {
+      return null;
+    }
+    // Old level checkpoints resolve to the same age-group picker without
+    // touching lessons, stars, completion history or content migration data.
+    return const ListeningTopicSelectionCheckpoint();
   }
 
   Future<void> clearTopicSelectionCheckpoint(String courseId) async {
     final progress = await _readRaw();
     progress
+      ..remove('$courseId$_topicSelectionAgeGroupSuffix')
       ..remove('$courseId$_topicSelectionLevelSuffix')
       ..remove('$courseId$_topicSelectionAnnounceSuffix');
     await _writeRaw(progress);

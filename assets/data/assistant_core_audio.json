@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "pack": "assistant-core",
-  "version": "v2",
+  "version": "v3",
   "enabled": true,
   "prompts": [
     {
@@ -471,7 +471,7 @@
     },
     {
       "key": "assistant.topic.choose_3.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
       "asset": "assets/audio/assistant-core/assistant.topic.choose_3.vi.mp3",
@@ -485,7 +485,7 @@
     },
     {
       "key": "assistant.topic.invalid_3.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Level này có 3 Chủ đề. Bạn chọn lại nhé.",
       "asset": "assets/audio/assistant-core/assistant.topic.invalid_3.vi.mp3",
@@ -499,7 +499,7 @@
     },
     {
       "key": "assistant.topic.choose_4.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Có 4 Chủ đề. Bạn chọn Chủ đề số mấy?",
       "asset": "assets/audio/assistant-core/assistant.topic.choose_4.vi.mp3",
@@ -513,7 +513,7 @@
     },
     {
       "key": "assistant.topic.invalid_4.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Level này có 4 Chủ đề. Bạn chọn lại nhé.",
       "asset": "assets/audio/assistant-core/assistant.topic.invalid_4.vi.mp3",
@@ -527,7 +527,7 @@
     },
     {
       "key": "assistant.level.choose_relearn.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Bạn chọn Level 1, 2, 3 nhé.",
       "asset": "assets/audio/assistant-core/assistant.level.choose_relearn.vi.mp3",
@@ -1045,7 +1045,7 @@
     },
     {
       "key": "assistant.level.choose_course_relearn.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?",
       "asset": "assets/audio/assistant-core/assistant.level.choose_course_relearn.vi.mp3",
@@ -1070,6 +1070,42 @@
       "voiceId": "5CVDNcIPiOYgRUQuxXd7",
       "modelId": "eleven_v3",
       "speed": 0.9
+    },
+    {
+      "key": "assistant.topic.choose_10.vi",
+      "enabled": true,
+      "locale": "vi-VN",
+      "text": "Có 10 Chủ đề. Bạn muốn chọn Chủ đề số mấy?",
+      "asset": "assets/audio/assistant-core/assistant.topic.choose_10.vi.mp3",
+      "durationSeconds": 2.847313,
+      "sha256": "9366d589707cbc5377920a6a829e5cfbb0f06114fd52011a5c1ef3f5dba0cb85",
+      "sizeBytes": 62495,
+      "textHash": "49c7b7a778d9a312e18ee8913e3427e16984bad131bd1a932744ef23ca83c7f4",
+      "source": "user-supplied"
+    },
+    {
+      "key": "assistant.topic.choose_course_relearn.vi",
+      "enabled": true,
+      "locale": "vi-VN",
+      "text": "Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Chủ đề số mấy?",
+      "asset": "assets/audio/assistant-core/assistant.topic.choose_course_relearn.vi.mp3",
+      "durationSeconds": 3.78775,
+      "sha256": "c9e71b1b1fa61b3e5e4fa53afb84e83ec8886cc3e6d603f0b7aa95f4c0adafda",
+      "sizeBytes": 77542,
+      "textHash": "ea3eaa4efb6086cb36d26cfd85b5c05eda10814512ca378054d099155e94daa2",
+      "source": "user-supplied"
+    },
+    {
+      "key": "assistant.topic.invalid_10.vi",
+      "enabled": true,
+      "locale": "vi-VN",
+      "text": "Bạn chọn Chủ đề từ số 1 đến số 10 nhé.",
+      "asset": "assets/audio/assistant-core/assistant.topic.invalid_10.vi.mp3",
+      "durationSeconds": 2.925688,
+      "sha256": "349f8c3748e2838ae4b5730f471688eaaf08bdb7245ca6d1ff13dec9cd720d6d",
+      "sizeBytes": 63749,
+      "textHash": "a957ccea60dcdddeea4c5446e4329bdd1f61879704af7f08a8485e48b22bbaf1",
+      "source": "user-supplied"
     }
   ],
   "minimumAppVersion": "1.0.8"

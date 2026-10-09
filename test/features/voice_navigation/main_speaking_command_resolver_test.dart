@@ -43,6 +43,12 @@ void main() {
       'Học Chủ đề',
       'Chuyển sang Chủ đề',
       'Chuyển sang Bộ từ vựng',
+      'Ba mẹ đã thêm',
+      'Ngôi sao',
+      'Luyện lại',
+      'Tôi nhìn thấy ngôi sao',
+      'Ba mẹ đã thêm một câu cho tôi',
+      'Tôi muốn luyện lại đoạn văn',
     ]) {
       expect(resolver.resolve(text), isNull, reason: text);
     }
