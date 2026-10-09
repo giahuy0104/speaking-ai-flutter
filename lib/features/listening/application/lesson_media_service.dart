@@ -27,6 +27,11 @@ class LessonRecording {
 /// callers that explicitly need to leave the selected lesson route.
 enum LessonPlaybackRoute { selectedLessonDevice, phoneSpeaker }
 
+/// How long a clip may stay paused before it is resumed once. just_audio
+/// pauses on becoming-noisy (and on iOS route-loss) without ever resuming, and
+/// a completion-aware clip that is paused never reports its end.
+const Duration _pausedPlaybackResumeDelay = Duration(seconds: 1);
+
 class LessonMediaService {
   LessonMediaService({
     AudioRecorder? recorder,
@@ -273,6 +278,9 @@ class LessonMediaService {
     }
     _activePlaybackCompletion = completed;
     var started = false;
+    var playStarted = false;
+    var resumed = false;
+    Timer? resumeTimer;
     final CompletionAwareAudioPlaybackService? completionPlayback =
         playback is CompletionAwareAudioPlaybackService
         ? playback as CompletionAwareAudioPlaybackService
@@ -281,10 +289,38 @@ class LessonMediaService {
       (playing) {
         if (playing) {
           started = true;
+          resumeTimer?.cancel();
         } else if (completionPlayback == null &&
             started &&
             !completed.isCompleted) {
           completed.complete();
+        } else if (completionPlayback != null &&
+            started &&
+            !resumed &&
+            !completed.isCompleted) {
+          // The end of a clip reports completion first, so only a pause that
+          // outlives the delay is a stalled clip.
+          resumeTimer?.cancel();
+          resumeTimer = Timer(_pausedPlaybackResumeDelay, () {
+            if (!playStarted ||
+                completed.isCompleted ||
+                generation != _playbackRequestGeneration) {
+              return;
+            }
+            resumed = true;
+            unawaited(
+              playback
+                  .play(uri)
+                  .then<void>(
+                    (_) {},
+                    onError: (Object error, StackTrace stackTrace) {
+                      if (!completed.isCompleted) {
+                        completed.completeError(error, stackTrace);
+                      }
+                    },
+                  ),
+            );
+          });
         }
       },
       onError: (Object error, StackTrace stackTrace) {
@@ -297,6 +333,7 @@ class LessonMediaService {
     try {
       await playback.play(uri);
       started = true;
+      playStarted = true;
       // Subscribe only after this source has actually started. just_audio's
       // state stream can replay ProcessingState.completed from the previous
       // source when a listener is attached, which must not finish the new
@@ -315,6 +352,7 @@ class LessonMediaService {
       );
       await completed.future.timeout(timeout);
     } finally {
+      resumeTimer?.cancel();
       await Future.wait<void>(<Future<void>>[
         subscription.cancel(),
         if (completionSubscription != null) completionSubscription.cancel(),
