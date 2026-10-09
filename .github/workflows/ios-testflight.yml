@@ -1,0 +1,69 @@
+# Builds the signed App Store IPA on the self-hosted runner on the m4 Mac (labels: self-hosted,
+# macOS, ARM64) and, on request, uploads it to TestFlight. Nothing secret is stored in GitHub:
+# the Apple Distribution identity is in ~/Library/Keychains/homi-signing.keychain-db on the runner
+# (password in ~/.appstoreconnect/homi/kc_pass), the App Store profile is installed under
+# ~/Library/Developer/Xcode/UserData/Provisioning Profiles, and ~/.appstoreconnect/homi/env.sh
+# exports the App Store Connect API key for codemagic-cli-tools, which is on the runner's PATH.
+# When the profile expires, refresh it on the runner Mac with:
+#   source ~/.appstoreconnect/homi/env.sh && app-store-connect fetch-signing-files com.innotrik.aispeaking --type IOS_APP_STORE
+name: ios-testflight
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: Upload the IPA to TestFlight (group HOMI Test)
+        type: boolean
+        default: false
+
+concurrency:
+  group: ios-testflight-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ipa:
+    runs-on: [self-hosted, macOS, ARM64]
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+      - run: flutter --version && xcodebuild -version
+      - run: flutter pub get
+      - name: Apply the App Store profile to the Xcode project
+        # codemagic-cli-tools matches profiles against certificates in the default keychain only,
+        # so the signing keychain is the default for this step and the login keychain is restored
+        # afterwards; xcodebuild itself finds the identity through the keychain search list.
+        run: |
+          KC=~/Library/Keychains/homi-signing.keychain-db
+          security list-keychains -d user -s ~/Library/Keychains/login.keychain-db "$KC"
+          security unlock-keychain -p "$(cat ~/.appstoreconnect/homi/kc_pass)" "$KC"
+          trap 'security default-keychain -s ~/Library/Keychains/login.keychain-db' EXIT
+          security default-keychain -s "$KC"
+          xcode-project use-profiles --project ios/Runner.xcodeproj --export-options-plist "$RUNNER_TEMP/export_options.plist"
+      - name: Build the signed IPA
+        # Same dart-defines as the Codemagic ios-app-store workflow; the build number is one past
+        # the latest TestFlight build, like the manual TestFlight recipe.
+        run: |
+          source ~/.appstoreconnect/homi/env.sh
+          python3 tool/prepare_ios_translation_pods.py device
+          BUILD_NUMBER=$(( $(app-store-connect get-latest-testflight-build-number 6804089228) + 1 ))
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
+          flutter build ipa --release --build-number="$BUILD_NUMBER" \
+            --export-options-plist="$RUNNER_TEMP/export_options.plist" \
+            --dart-define-from-file=dart_defines.production.json \
+            --dart-define=CHILD_AGE=6 \
+            --dart-define=PREFER_BLE_STREAMING=false \
+            --dart-define=REALTIME_BATCH_FALLBACK=true \
+            --dart-define=REALTIME_FALLBACK_BUFFER_BYTES=15728640 \
+            --dart-define=ENABLE_AIV0_BLE_CONTROL=true \
+            --dart-define=AIV0_DRAFT_PROTOCOL_CONFIRMED=false \
+            --dart-define=ENABLE_HFP_AUDIO=true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: homi-ios-${{ env.BUILD_NUMBER }}-${{ github.ref_name }}-${{ github.sha }}
+          path: build/ios/ipa/*.ipa
+          if-no-files-found: error
+      - name: Upload to TestFlight
+        if: inputs.upload
+        run: |
+          source ~/.appstoreconnect/homi/env.sh
+          app-store-connect publish --path build/ios/ipa/*.ipa --testflight --beta-group "HOMI Test" --expire-build-submitted-for-review
