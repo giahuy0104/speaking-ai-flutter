@@ -13,8 +13,10 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
@@ -41,6 +43,8 @@ class Aiv0BleControlBridge(
         private const val PERMISSION_REQUEST_CODE = 7395
         private const val ENABLE_BLUETOOTH_REQUEST_CODE = 7396
         private const val MAX_RECONNECT_ATTEMPTS = 5
+        private const val GATT_CONNECTION_TIMEOUT = 8
+        private const val ADAPTER_ON_RECONNECT_DELAY_MS = 1_000L
         private const val DUPLICATE_WINDOW_MS = 750L
         private const val TAG = "Aiv0BleControl"
         private const val RUNTIME_PREFERENCES = "homi_android_runtime"
@@ -97,14 +101,39 @@ class Aiv0BleControlBridge(
     private var lastDisconnectEpochMs: Long? = null
     private var disposed = false
     private val connectionTimeout = Runnable {
-        if (phase == "connecting" || phase == "reconnecting") {
+        if (phase == "reconnecting" && shouldReconnect) {
+            // An unanswered reconnect (device not advertising yet, Bluetooth
+            // just switched back on) takes the next backoff step instead of
+            // ending automatic recovery.
+            closeGatt()
+            continueAfterLinkLoss(GATT_CONNECTION_TIMEOUT)
+        } else if (phase == "connecting" || phase == "reconnecting") {
             failConnection("Kết nối/đọc GATT của HM-D001 quá thời gian 15 giây.")
+        }
+    }
+    private val adapterStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action != BluetoothAdapter.ACTION_STATE_CHANGED) return
+            when (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)) {
+                BluetoothAdapter.STATE_TURNING_OFF, BluetoothAdapter.STATE_OFF ->
+                    handleAdapterOff()
+                BluetoothAdapter.STATE_ON -> handleAdapterOn()
+            }
         }
     }
 
     init {
         methodChannel.setMethodCallHandler(this)
         eventChannel.setStreamHandler(this)
+        val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Protected system broadcast sent by the Bluetooth process; see
+            // the matching note in HfpAudioBridge.
+            appContext.registerReceiver(adapterStateReceiver, filter, Context.RECEIVER_EXPORTED)
+        } else {
+            @Suppress("DEPRECATION")
+            appContext.registerReceiver(adapterStateReceiver, filter)
+        }
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -841,6 +870,10 @@ class Aiv0BleControlBridge(
         bluetoothGatt = null
         runCatching { gatt.close() }
         clearCharacteristics()
+        continueAfterLinkLoss(status)
+    }
+
+    private fun continueAfterLinkLoss(status: Int) {
         lastDisconnectCode = status.toString()
         lastDisconnectEpochMs = System.currentTimeMillis()
         if (!shouldReconnect || disposed) {
@@ -863,7 +896,10 @@ class Aiv0BleControlBridge(
         message = "Đang kết nối lại HM-D001 ($reconnectAttempts/$MAX_RECONNECT_ATTEMPTS)…"
         Log.w(TAG, "Reconnect $reconnectAttempts/$MAX_RECONNECT_ATTEMPTS status=$status")
         emitStatus()
-        val delay = (1_000L shl (reconnectAttempts - 1)).coerceAtMost(8_000L)
+        scheduleReconnect((1_000L shl (reconnectAttempts - 1)).coerceAtMost(8_000L))
+    }
+
+    private fun scheduleReconnect(delay: Long) {
         val expectedId = deviceId
         val retry = Runnable {
             reconnectRunnable = null
@@ -882,6 +918,38 @@ class Aiv0BleControlBridge(
         }
         reconnectRunnable = retry
         mainHandler.postDelayed(retry, delay)
+    }
+
+    /**
+     * Bluetooth switched off: a GATT opened now can only time out, and some
+     * stacks never report the disconnect of the live link. Drop everything
+     * but the intent to reconnect, which [handleAdapterOn] resumes.
+     */
+    private fun handleAdapterOff() {
+        if (disposed || phase == "disabled") return
+        mainHandler.removeCallbacks(connectionTimeout)
+        cancelPendingReconnect()
+        stopScan(complete = true)
+        connectResult?.error("BLUETOOTH_DISABLED", "Bluetooth đang tắt.", null)
+        connectResult = null
+        closeGatt()
+        reconnectAttempts = 0
+        phase = "idle"
+        message = "Bluetooth đang tắt."
+        emitStatus()
+    }
+
+    private fun handleAdapterOn() {
+        if (disposed || !shouldReconnect || bluetoothGatt != null ||
+            phase == "connecting" || phase == "reconnecting" ||
+            !hasPermissions() || deviceId == null
+        ) return
+        Log.i(TAG, "Bluetooth is back on; reopening $deviceName")
+        reconnectAttempts = 0
+        phase = "reconnecting"
+        message = "Đang khôi phục kết nối HM-D001…"
+        emitStatus()
+        scheduleReconnect(ADAPTER_ON_RECONNECT_DELAY_MS)
     }
 
     private fun cancelPendingReconnect() {
@@ -1007,6 +1075,7 @@ class Aiv0BleControlBridge(
         if (disposed) return
         disposed = true
         finishBond(false)
+        runCatching { appContext.unregisterReceiver(adapterStateReceiver) }
         mediaKeyObserver.dispose()
         shouldReconnect = false
         mainHandler.removeCallbacksAndMessages(null)

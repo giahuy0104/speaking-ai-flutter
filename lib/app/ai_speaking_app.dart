@@ -767,6 +767,13 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
     if (!bleConnected) {
       _hideDeviceConnectionFeedback();
+      if (defaultTargetPlatform == TargetPlatform.android &&
+          await control.readBluetoothAdapterState() ==
+              Aiv0BluetoothAdapterState.poweredOff) {
+        // An attempt that could not run must not hold the retry throttle
+        // while Bluetooth is off; the next tick retries once it is back.
+        _lastAiv0AutoConnectAttempt = null;
+      }
       return;
     }
     debugPrint('H20 BLE Control connected automatically.');
