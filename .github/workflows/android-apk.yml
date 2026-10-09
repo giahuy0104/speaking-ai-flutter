@@ -1,0 +1,31 @@
+# Builds the Android APK on the self-hosted runner on the m4 Mac (labels: self-hosted, macOS, ARM64).
+# The runner service does not source a shell profile: Flutter, Java 21 and the Android SDK are on
+# the PATH captured when the runner was registered, so no setup-* actions are needed here.
+# Without android/key.properties on the runner the release build is debug-signed (see build.gradle.kts).
+name: android-apk
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: [self-hosted, macOS, ARM64]
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - run: flutter --version && java -version
+      - run: flutter pub get
+      - run: >
+          flutter build apk --release
+          --dart-define-from-file=dart_defines.production.json
+          --dart-define=ENABLE_AIV0_BLE_CONTROL=true
+          --dart-define=ENABLE_HFP_AUDIO=true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: homi-android-${{ github.ref_name }}-${{ github.sha }}
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
