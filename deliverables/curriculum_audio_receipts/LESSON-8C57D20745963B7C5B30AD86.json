@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T03-B02\\C67-L1-T03-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T03-B02-Q05",
+  "sourceText": "Voi có thể đi: Elephants can walk hay Birds can fly?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Voi có thể đi:",
+      "spoken_text": "Voi có thể đi:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Elephants can walk",
+      "spoken_text": "Elephants can walk",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Birds can fly?",
+      "spoken_text": "Birds can fly?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-8C57D20745963B7C5B30AD86",
+  "text": "Voi có thể đi: Elephants can walk hay Birds can fly?",
+  "asset": "assets/audio/CURRICULUM/8c57d20745963b7c5b30ad86.vi.v1.mp3",
+  "sha256": "b3bf5ead65428f73244f1ac15d10e12f6374ea70c8f29eded9aaa73c01fdc505",
+  "durationSeconds": 7.954172
+}

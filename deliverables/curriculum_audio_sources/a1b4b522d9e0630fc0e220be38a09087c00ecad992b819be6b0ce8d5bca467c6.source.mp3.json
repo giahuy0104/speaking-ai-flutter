@@ -1,0 +1,20 @@
+{
+  "signature": "a1b4b522d9e0630fc0e220be38a09087c00ecad992b819be6b0ce8d5bca467c6",
+  "request": {
+    "text": "How Much?.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "20626e0a3fc5ace8d976dc54ef36d79bf005460f23559dff08c453b4959d9c9c",
+  "requestId": "9ML6bSzYWVE9cw76yR80",
+  "createdAt": "2026-09-15T23:27:03.534Z"
+}

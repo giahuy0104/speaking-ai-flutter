@@ -1,0 +1,20 @@
+{
+  "id": "RUN-138",
+  "signature": "762191b850ca01b9141b52ffb5d0ddf10925f7940ad10dce09eb796380e155c1",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bây giờ con thử nói lại lần nữa nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:15:21.426Z",
+  "requestId": "rTbheyhFP2ELUQocreSs",
+  "characterCost": "20",
+  "sourceSha256": "ebc6ed838212015d71cbeba5c7d58b9182896d839a69b93f8a9212396bf4d97b"
+}

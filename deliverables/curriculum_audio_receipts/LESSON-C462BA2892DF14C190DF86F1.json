@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07-B01\\C1112-L3-T07-B01-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T07-B01-Q02",
+  "sourceText": "Bận Chủ nhật: At three hay Busy Sunday?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bận Chủ nhật:",
+      "spoken_text": "Bận Chủ nhật:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "At three",
+      "spoken_text": "At three",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Busy Sunday?",
+      "spoken_text": "Busy Sunday?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-C462BA2892DF14C190DF86F1",
+  "text": "Bận Chủ nhật: At three hay Busy Sunday?",
+  "asset": "assets/audio/CURRICULUM/c462ba2892df14c190df86f1.vi.v1.mp3",
+  "sha256": "8a985f51c78c4ffa40b2c5e233131cfc8f190c3de098021bd639859bd609633e",
+  "durationSeconds": 4.382041
+}

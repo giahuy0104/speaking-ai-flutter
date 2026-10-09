@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T10-B01\\C1315-L3-T10-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T10-B01-Q05",
+  "sourceText": "Mình định tập thể dục nhiều hơn: I plan to exercise more hay I want to save money?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình định tập thể dục nhiều hơn:",
+      "spoken_text": "Mình định tập thể dục nhiều hơn:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "I plan to exercise more",
+      "spoken_text": "I plan to exercise more",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "I want to save money?",
+      "spoken_text": "I want to save money?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-6800279554AD9CC7158F07D1",
+  "text": "Mình định tập thể dục nhiều hơn: I plan to exercise more hay I want to save money?",
+  "asset": "assets/audio/CURRICULUM/6800279554ad9cc7158f07d1.vi.v1.mp3",
+  "sha256": "15c427057032cf31997753927966de3a5481a928646024e1408a14d7dfa9ae7d",
+  "durationSeconds": 8.739274
+}

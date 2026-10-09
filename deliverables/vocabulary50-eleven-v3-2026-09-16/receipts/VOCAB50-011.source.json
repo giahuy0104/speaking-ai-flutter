@@ -1,0 +1,22 @@
+{
+  "id": "VOCAB50-011",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Chưa có nội dung ở phần này. Bạn muốn học Ngôi sao hay Luyện lại?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "2VjhY7SHNbBmpAwKOBSS",
+  "historyItemId": "ReqHLAhgtOE7VOZrgFMe",
+  "characterCost": "36",
+  "createdAt": "2026-09-16T03:20:07.157Z",
+  "sourceSha256": "a0d73ea9b332541ba8321f036722d0994f18a02b7b5360aa912909bd0481cf17"
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T06-B01\\C810-L2-T06-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T06-B01-Q05",
+  "sourceText": "Tai nghe: Headphones hay Phone?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Tai nghe:",
+      "spoken_text": "Tai nghe:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Headphones",
+      "spoken_text": "Headphones",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Phone?",
+      "spoken_text": "Phone?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-1D6D8164ED1FB4E8375D4C30",
+  "text": "Tai nghe: Headphones hay Phone?",
+  "asset": "assets/audio/CURRICULUM/1d6d8164ed1fb4e8375d4c30.vi.v1.mp3",
+  "sha256": "42ffa53ad5f7c531b860e900a9c3f8c42f367b74eda0d88363d698d40303017d",
+  "durationSeconds": 3.979206
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T05-B02\\C1315-L2-T05-B02-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T05-B02-Q02",
+  "sourceText": "Nghỉ một chút: Get some sleep hay Take a break?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nghỉ một chút:",
+      "spoken_text": "Nghỉ một chút:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Get some sleep",
+      "spoken_text": "Get some sleep",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Take a break?",
+      "spoken_text": "Take a break?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-00C2E17D0FFFF3563359FAFC",
+  "text": "Nghỉ một chút: Get some sleep hay Take a break?",
+  "asset": "assets/audio/CURRICULUM/00c2e17d0ffff3563359fafc.vi.v1.mp3",
+  "sha256": "ea69f24f7e4e728271243514ccdd5dfe5ca34d33c5a644ec8cd774fd9fbfabab",
+  "durationSeconds": 4.25517
+}

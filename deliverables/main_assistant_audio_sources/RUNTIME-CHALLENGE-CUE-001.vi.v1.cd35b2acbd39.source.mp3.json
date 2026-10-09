@@ -1,0 +1,21 @@
+{
+  "id": "RUNTIME-CHALLENGE-CUE-001",
+  "signature": "cd35b2acbd397eb122839499251a3acc4e5cc5a7878e7d1e289cd7cf104b1e3c",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn trả lời nhé",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "createdAt": "2026-09-17T12:57:52.898Z",
+  "requestId": "OFTNR3hk4nP0VBvpy1z4",
+  "characterCost": "8",
+  "sourceSha256": "eb3aad23f1a0781593f22861a205983fdc00fbcaad92b5610c69d38d01aefe32"
+}

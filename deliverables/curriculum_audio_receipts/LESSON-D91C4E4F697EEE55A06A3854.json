@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T06-B02\\C1112-L2-T06-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T06-B02-Q05",
+  "sourceText": "Nói với người lớn: Tell an adult hay Keep passwords private?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nói với người lớn:",
+      "spoken_text": "Nói với người lớn:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Tell an adult",
+      "spoken_text": "Tell an adult",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Keep passwords private?",
+      "spoken_text": "Keep passwords private?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-D91C4E4F697EEE55A06A3854",
+  "text": "Nói với người lớn: Tell an adult hay Keep passwords private?",
+  "asset": "assets/audio/CURRICULUM/d91c4e4f697eee55a06a3854.vi.v1.mp3",
+  "sha256": "95a8742baae865b2cce4a618901f0c46f8b092f935be53d9ea83962fbf6ec4a3",
+  "durationSeconds": 5.91093
+}

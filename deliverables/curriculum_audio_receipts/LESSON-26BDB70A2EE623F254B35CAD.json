@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T06-B02\\C810-L2-T06-B02-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T06-B02-Q08",
+  "sourceText": "HOMI nói: Computer. Bạn dùng nó để học. Do homework hay Make calls?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 46
+    },
+    {
+      "language": "en",
+      "text": "Computer.",
+      "spoken_text": "Computer.",
+      "input_index": 47
+    },
+    {
+      "language": "vi",
+      "text": "Bạn dùng nó để học.",
+      "spoken_text": "Bạn dùng nó để học.",
+      "input_index": 48
+    },
+    {
+      "language": "en",
+      "text": "Do homework",
+      "spoken_text": "Do homework",
+      "input_index": 49
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 50
+    },
+    {
+      "language": "en",
+      "text": "Make calls?",
+      "spoken_text": "Make calls?",
+      "input_index": 51
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-26BDB70A2EE623F254B35CAD",
+  "text": "HOMI nói: Computer. Bạn dùng nó để học. Do homework hay Make calls?",
+  "asset": "assets/audio/CURRICULUM/26bdb70a2ee623f254b35cad.vi.v1.mp3",
+  "sha256": "7e8b30b7c19c6b4095bad9140313f643ab9c53e21582e87ecb338b8f5d4373d0",
+  "durationSeconds": 6.947937
+}

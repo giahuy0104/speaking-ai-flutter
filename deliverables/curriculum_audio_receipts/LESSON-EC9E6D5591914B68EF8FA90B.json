@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T06-B01\\C67-L2-T06-B01-T04_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T06-B01-T04_VI",
+  "sourceText": "Khuỵu đầu gối.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Khuỵu đầu gối.",
+      "generation_key": "b664227568a4cc56"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-EC9E6D5591914B68EF8FA90B",
+  "text": "Khuỵu đầu gối.",
+  "asset": "assets/audio/CURRICULUM/ec9e6d5591914b68ef8fa90b.vi.v1.mp3",
+  "sha256": "9dbce207518a286506b22a3b075d47e8581405b3765b2e45c7f296743358497a",
+  "durationSeconds": 1.326735
+}

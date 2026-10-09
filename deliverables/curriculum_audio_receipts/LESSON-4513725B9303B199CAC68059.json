@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T04-B01\\C1315-L2-T04-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T04-B01-Q05",
+  "sourceText": "Tiết kiệm tiền: Save money hay Spend money?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Tiết kiệm tiền:",
+      "spoken_text": "Tiết kiệm tiền:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Save money",
+      "spoken_text": "Save money",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Spend money?",
+      "spoken_text": "Spend money?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-4513725B9303B199CAC68059",
+  "text": "Tiết kiệm tiền: Save money hay Spend money?",
+  "asset": "assets/audio/CURRICULUM/4513725b9303b199cac68059.vi.v1.mp3",
+  "sha256": "03eb3123812924f4e2356421c5275f84aaad2c8061906de97ee09c943b2f0f23",
+  "durationSeconds": 4.594422
+}

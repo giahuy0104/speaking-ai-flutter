@@ -1,0 +1,22 @@
+{
+  "number": 16,
+  "id": "VOCAB50-016",
+  "text": "Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-016.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "ca10f9872346a90d51b0546fe1e5c69bd70c8e78b2756aef77c75e793356e3a5",
+  "bytes": 54796,
+  "sourceDurationSeconds": 3.04,
+  "durationSeconds": 3.36356,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "EMTFgFzGteC3avunVCaY",
+  "characterCost": "25",
+  "createdAt": "2026-09-16T03:20:21.051Z"
+}

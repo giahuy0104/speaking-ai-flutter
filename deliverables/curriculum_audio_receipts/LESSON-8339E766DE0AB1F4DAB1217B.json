@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T06-B02\\C1315-L2-T06-B02-T06_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T06-B02-T06_VI",
+  "sourceText": "Chặn người dùng lạ.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Chặn người dùng lạ.",
+      "generation_key": "ec19bacbfe27dfcc"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-8339E766DE0AB1F4DAB1217B",
+  "text": "Chặn người dùng lạ.",
+  "asset": "assets/audio/CURRICULUM/8339e766de0ab1f4dab1217b.vi.v1.mp3",
+  "sha256": "605c3f8f02b45fd08286eefb37cdcc90a28ca08e7779906fa0fa0946ccd05ada",
+  "durationSeconds": 1.76093
+}

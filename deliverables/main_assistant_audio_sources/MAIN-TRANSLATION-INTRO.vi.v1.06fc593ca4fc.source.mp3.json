@@ -1,0 +1,20 @@
+{
+  "id": "MAIN-TRANSLATION-INTRO",
+  "signature": "06fc593ca4fce74e8f458c89404f4f786e25c84243212dd2ed18fbbe5e5cb43c",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình cùng dịch sang tiếng Anh nha. Bạn cứ nói từng câu. Muốn dừng thì nói “dừng lại”.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:12:35.014Z",
+  "requestId": "XlRhfFuo8ES9T65RgYsl",
+  "characterCost": "47",
+  "sourceSha256": "ee2a7d6dada6cfe65d40049445c739358c9f12c1922f2982dd09fe905c277e3a"
+}

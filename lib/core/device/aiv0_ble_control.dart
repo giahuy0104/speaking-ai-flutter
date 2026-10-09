@@ -17,15 +17,13 @@ enum Aiv0BlePhase {
   error,
 }
 
-/// V1 exposes one application-controlled physical button: MAIN.
-///
-/// Power and volume stay local to the device. Unknown values are retained in
-/// the raw log instead of being interpreted as a retired REPLAY command.
-enum Aiv0Button { main, unknown }
+/// Additional buttons are domain values for simulation, NOT firmware IDs.
+/// The production parser still recognizes only observed MAIN packets.
+enum Aiv0Button { main, unknown, volumeUp, volumeDown, power }
 
 enum Aiv0ButtonGesture { shortPress, longPress, release, unknown }
 
-enum Aiv0AppState { idle, recording, processing, ready, playing, error }
+enum Aiv0AppState { idle, recording, processing, ready, playing, error, paused }
 
 enum Aiv0AppResult {
   accepted,
@@ -96,6 +94,7 @@ class Aiv0ButtonEvent {
     required this.rawBytes,
     required this.receivedAt,
     this.deviceId,
+    this.transportSource,
     this.button = Aiv0Button.unknown,
     this.gesture = Aiv0ButtonGesture.unknown,
     this.sequence,
@@ -105,11 +104,13 @@ class Aiv0ButtonEvent {
     this.isObservedH20Packet = false,
     this.isDraftPacket = false,
     this.isDuplicate = false,
+    this.rawDescription,
   });
 
   final Uint8List rawBytes;
   final DateTime receivedAt;
   final String? deviceId;
+  final String? transportSource;
   final Aiv0Button button;
   final Aiv0ButtonGesture gesture;
   final int? sequence;
@@ -119,6 +120,7 @@ class Aiv0ButtonEvent {
   final bool isObservedH20Packet;
   final bool isDraftPacket;
   final bool isDuplicate;
+  final String? rawDescription;
 
   /// Whether this notification has enough information to enter the unified
   /// MAIN handler. Observed H20 packets are actionable even while the separate
@@ -147,9 +149,10 @@ class Aiv0DraftProtocolCodec {
     DateTime? receivedAt,
   }) {
     // Real H20 firmware 1.0.0 packet observed on 9E3B0002:
-    //   01 BB SS GG FF FF PP 00 UU UU UU UU
-    // BB is MAIN (01), SS increments once per press, GG is the gesture,
-    // PP is the battery percentage and UU is uptime in milliseconds (LE).
+    //   01 BB SS 01 FF FF PP 00 UU UU UU UU
+    // BB is MAIN (01), SS is a transport sequence, PP is the battery
+    // percentage and UU is uptime in milliseconds (LE). The current firmware
+    // exposes one MAIN action only; it does not expose long-press or release.
     //
     // Decode this independently from [confirmed]. That flag still protects
     // the unconfirmed 8-byte APP State writer; receiving MAIN must not require
@@ -158,8 +161,7 @@ class Aiv0DraftProtocolCodec {
         bytes.length == buttonPacketLength &&
         bytes[0] == protocolVersion &&
         bytes[1] == 0x01 &&
-        bytes[3] >= 0x01 &&
-        bytes[3] <= 0x03;
+        bytes[3] == 0x01;
     if (isObservedH20Packet) {
       final data = ByteData.sublistView(bytes);
       return Aiv0ButtonEvent(
@@ -167,12 +169,7 @@ class Aiv0DraftProtocolCodec {
         deviceId: deviceId,
         receivedAt: receivedAt ?? DateTime.now(),
         button: Aiv0Button.main,
-        gesture: switch (bytes[3]) {
-          0x01 => Aiv0ButtonGesture.shortPress,
-          0x02 => Aiv0ButtonGesture.longPress,
-          0x03 => Aiv0ButtonGesture.release,
-          _ => Aiv0ButtonGesture.unknown,
-        },
+        gesture: Aiv0ButtonGesture.shortPress,
         sequence: bytes[2],
         flags: data.getUint16(4, Endian.little),
         batteryPercent: data.getUint16(6, Endian.little).clamp(0, 100),
@@ -236,6 +233,58 @@ class Aiv0DraftProtocolCodec {
   }
 }
 
+class Aiv0BleDiagnosticEvent {
+  Aiv0BleDiagnosticEvent({
+    required this.occurredAt,
+    required this.stage,
+    required this.metadata,
+    this.caller,
+    this.code,
+    this.message,
+    this.audioRoute,
+    this.turnId,
+  });
+
+  factory Aiv0BleDiagnosticEvent.fromMap(Map<Object?, Object?> map) {
+    final eventEpochMs = (map['eventEpochMs'] as num?)?.toInt() ?? 0;
+    final metadata = <String, Object?>{};
+    for (final entry in map.entries) {
+      final key = entry.key?.toString();
+      if (key == null || _coreKeys.contains(key)) continue;
+      metadata[key] = entry.value;
+    }
+    return Aiv0BleDiagnosticEvent(
+      occurredAt: DateTime.fromMillisecondsSinceEpoch(eventEpochMs),
+      stage: map['stage']?.toString() ?? '',
+      caller: map['caller']?.toString(),
+      code: map['code']?.toString(),
+      message: map['message']?.toString(),
+      audioRoute: map['audioRoute']?.toString(),
+      turnId: map['turnId']?.toString(),
+      metadata: Map<String, Object?>.unmodifiable(metadata),
+    );
+  }
+
+  static const _coreKeys = <String>{
+    'eventEpochMs',
+    'stage',
+    'caller',
+    'code',
+    'message',
+    'audioRoute',
+    'turnId',
+  };
+
+  final DateTime occurredAt;
+  final String stage;
+  final String? caller;
+  final String? code;
+  final String? message;
+  final String? audioRoute;
+  final String? turnId;
+  final Map<String, Object?> metadata;
+}
+
 class Aiv0BleStatus {
   const Aiv0BleStatus({
     required this.phase,
@@ -252,14 +301,26 @@ class Aiv0BleStatus {
     this.packetCount = 0,
     this.invalidPacketCount = 0,
     this.duplicatePacketCount = 0,
+    this.remoteMainCount = 0,
+    this.remoteMainDuplicateCount = 0,
+    this.remoteMainCommandsEnabled = false,
+    this.lastMainTransportSource,
     this.reconnectCount = 0,
+    this.peripheralState,
+    this.mainNotificationState,
+    this.lastDisconnectCode,
+    this.lastDisconnectMessage,
+    this.lastDisconnectAt,
+    this.lastNotificationRecovery,
+    this.deferredRecoveryRepeatCount = 0,
+    this.diagnosticTimeline = const <Aiv0BleDiagnosticEvent>[],
   });
 
   const Aiv0BleStatus.disabled()
     : this(
         phase: Aiv0BlePhase.disabled,
         protocolConfirmed: false,
-        message: 'BLE Control AIV0 chỉ hỗ trợ trên APK Android.',
+        message: 'BLE Control AIV0 chỉ hỗ trợ trên Android/iOS native.',
       );
 
   factory Aiv0BleStatus.fromMap(
@@ -267,11 +328,34 @@ class Aiv0BleStatus {
     required bool protocolConfirmed,
   }) {
     final rawPhase = map['phase']?.toString();
+    final reportedPhase = Aiv0BlePhase.values.firstWhere(
+      (value) => value.name == rawPhase,
+      orElse: () => Aiv0BlePhase.idle,
+    );
+    final peripheralState = _normalizePeripheralState(
+      map['peripheralState']?.toString(),
+    );
+    final phase =
+        reportedPhase == Aiv0BlePhase.connected &&
+            peripheralState != null &&
+            peripheralState != 'connected'
+        ? Aiv0BlePhase.reconnecting
+        : reportedPhase;
+    final lastDisconnectEpochMs = (map['lastDisconnectEpochMs'] as num?)
+        ?.toInt();
+    final diagnosticTimeline =
+        (map['diagnosticTimeline'] as List<Object?>? ?? const <Object?>[])
+            .whereType<Map<Object?, Object?>>()
+            .map(Aiv0BleDiagnosticEvent.fromMap)
+            .where(
+              (event) =>
+                  event.stage.isNotEmpty &&
+                  event.occurredAt.millisecondsSinceEpoch > 0,
+            )
+            .toList(growable: false)
+          ..sort((left, right) => left.occurredAt.compareTo(right.occurredAt));
     return Aiv0BleStatus(
-      phase: Aiv0BlePhase.values.firstWhere(
-        (value) => value.name == rawPhase,
-        orElse: () => Aiv0BlePhase.idle,
-      ),
+      phase: phase,
       protocolConfirmed: protocolConfirmed,
       deviceId: map['deviceId']?.toString(),
       deviceName: map['deviceName']?.toString(),
@@ -285,7 +369,24 @@ class Aiv0BleStatus {
       packetCount: (map['packetCount'] as num?)?.toInt() ?? 0,
       invalidPacketCount: (map['invalidPacketCount'] as num?)?.toInt() ?? 0,
       duplicatePacketCount: (map['duplicatePacketCount'] as num?)?.toInt() ?? 0,
+      remoteMainCount: (map['remoteMainCount'] as num?)?.toInt() ?? 0,
+      remoteMainDuplicateCount:
+          (map['remoteMainDuplicateCount'] as num?)?.toInt() ?? 0,
+      remoteMainCommandsEnabled: map['remoteMainCommandsEnabled'] == true,
+      lastMainTransportSource: map['lastMainTransportSource']?.toString(),
       reconnectCount: (map['reconnectCount'] as num?)?.toInt() ?? 0,
+      peripheralState: peripheralState,
+      mainNotificationState: map['mainNotificationState']?.toString(),
+      lastDisconnectCode: map['lastDisconnectCode']?.toString(),
+      lastDisconnectMessage: map['lastDisconnectMessage']?.toString(),
+      lastDisconnectAt:
+          lastDisconnectEpochMs == null || lastDisconnectEpochMs <= 0
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(lastDisconnectEpochMs),
+      lastNotificationRecovery: map['lastNotificationRecovery']?.toString(),
+      deferredRecoveryRepeatCount:
+          (map['deferredRecoveryRepeatCount'] as num?)?.toInt() ?? 0,
+      diagnosticTimeline: diagnosticTimeline,
     );
   }
 
@@ -303,9 +404,32 @@ class Aiv0BleStatus {
   final int packetCount;
   final int invalidPacketCount;
   final int duplicatePacketCount;
+  final int remoteMainCount;
+  final int remoteMainDuplicateCount;
+  final bool remoteMainCommandsEnabled;
+  final String? lastMainTransportSource;
   final int reconnectCount;
+  final String? peripheralState;
+  final String? mainNotificationState;
+  final String? lastDisconnectCode;
+  final String? lastDisconnectMessage;
+  final DateTime? lastDisconnectAt;
+  final String? lastNotificationRecovery;
+  final int deferredRecoveryRepeatCount;
+  final List<Aiv0BleDiagnosticEvent> diagnosticTimeline;
 
   bool get isConnected => phase == Aiv0BlePhase.connected;
+
+  static String? _normalizePeripheralState(String? value) {
+    final state = value?.trim();
+    return switch (state) {
+      'CBPeripheralState(rawValue: 0)' => 'disconnected',
+      'CBPeripheralState(rawValue: 1)' => 'connecting',
+      'CBPeripheralState(rawValue: 2)' => 'connected',
+      'CBPeripheralState(rawValue: 3)' => 'disconnecting',
+      _ => state,
+    };
+  }
 }
 
 abstract interface class Aiv0BleControl {
@@ -317,6 +441,7 @@ abstract interface class Aiv0BleControl {
   Future<List<Aiv0BleDevice>> scan({Duration timeout});
   Future<void> connect(String deviceId);
   Future<void> disconnect();
+  Future<void> markParentDiagnosticsOpened();
   Future<void> sendAppState({
     required Aiv0AppState state,
     required Aiv0AppResult result,
@@ -325,24 +450,50 @@ abstract interface class Aiv0BleControl {
   Future<void> dispose();
 }
 
+enum Aiv0BluetoothAdapterState {
+  poweredOn,
+  poweredOff,
+  unauthorized,
+  unsupported,
+  resetting,
+  unknown;
+
+  factory Aiv0BluetoothAdapterState.fromNative(Object? value) {
+    return switch (value?.toString()) {
+      'poweredOn' => Aiv0BluetoothAdapterState.poweredOn,
+      'poweredOff' => Aiv0BluetoothAdapterState.poweredOff,
+      'unauthorized' => Aiv0BluetoothAdapterState.unauthorized,
+      'unsupported' => Aiv0BluetoothAdapterState.unsupported,
+      'resetting' => Aiv0BluetoothAdapterState.resetting,
+      _ => Aiv0BluetoothAdapterState.unknown,
+    };
+  }
+}
+
 class MethodChannelAiv0BleControl implements Aiv0BleControl {
   MethodChannelAiv0BleControl({
     required bool enabled,
     required bool draftProtocolConfirmed,
     MethodChannel? methodChannel,
     EventChannel? eventChannel,
+    Duration batteryRefreshInterval = const Duration(minutes: 1),
   }) : _enabled =
            enabled &&
            !kIsWeb &&
-           defaultTargetPlatform == TargetPlatform.android,
+           (defaultTargetPlatform == TargetPlatform.android ||
+               defaultTargetPlatform == TargetPlatform.iOS),
        _codec = Aiv0DraftProtocolCodec(confirmed: draftProtocolConfirmed),
        _methodChannel =
            methodChannel ?? const MethodChannel('ailingo_aiv0_ble_control'),
        _eventChannel =
            eventChannel ??
            const EventChannel('ailingo_aiv0_ble_control/events'),
+       _batteryRefreshInterval = batteryRefreshInterval,
        _status =
-           enabled && !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+           enabled &&
+               !kIsWeb &&
+               (defaultTargetPlatform == TargetPlatform.android ||
+                   defaultTargetPlatform == TargetPlatform.iOS)
            ? Aiv0BleStatus(
                phase: Aiv0BlePhase.idle,
                protocolConfirmed: draftProtocolConfirmed,
@@ -353,6 +504,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   final Aiv0DraftProtocolCodec _codec;
   final MethodChannel _methodChannel;
   final EventChannel _eventChannel;
+  final Duration _batteryRefreshInterval;
   final _statusController = StreamController<Aiv0BleStatus>.broadcast();
   final _buttonController = StreamController<Aiv0ButtonEvent>.broadcast();
   static const _lastDeviceIdPreference = 'aiv0_ble_last_device_id';
@@ -360,7 +512,10 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   StreamSubscription<Object?>? _eventSubscription;
   Aiv0BleStatus _status;
   Future<void> _writeQueue = Future<void>.value();
+  Future<void> _diagnosticWriteQueue = Future<void>.value();
   Future<bool>? _autoConnectFuture;
+  Timer? _batteryRefreshTimer;
+  bool _batteryRefreshInFlight = false;
   bool _manualDisconnectRequested = false;
 
   @override
@@ -391,13 +546,71 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     if (map != null) _updateStatus(map);
   }
 
-  /// Requests the Nearby devices/Bluetooth permissions used by AIV0 before
-  /// the child operates the physical MAIN button.
+  /// Observation only: native adapters must not claim audio focus or infer
+  /// accessory buttons from phone volume/power keys.
+  Future<void> setControlContext({
+    required bool learningActive,
+    required bool diagnosticsActive,
+  }) async {
+    if (!_enabled) return;
+    try {
+      await _methodChannel.invokeMethod<void>('setControlContext', {
+        'learningActive': learningActive,
+        'diagnosticsActive': diagnosticsActive,
+      });
+    } on MissingPluginException {
+      // Older native builds have no media-key observation support.
+    }
+  }
+
+  /// Requests the platform Bluetooth permission used by AIV0 before the child
+  /// operates the physical MAIN button.
   Future<bool> requestPermissions() async {
     if (!_enabled) return true;
     await initialize();
     return await _methodChannel.invokeMethod<bool>('requestPermissions') ??
         false;
+  }
+
+  /// Returns the radio state separately from the Bluetooth permission state.
+  /// A granted permission does not mean the user has turned Bluetooth on.
+  Future<Aiv0BluetoothAdapterState> readBluetoothAdapterState() async {
+    if (!_enabled) return Aiv0BluetoothAdapterState.unsupported;
+    await initialize();
+    try {
+      final value = await _methodChannel.invokeMethod<Object?>(
+        'bluetoothAdapterState',
+      );
+      return Aiv0BluetoothAdapterState.fromNative(value);
+    } on MissingPluginException {
+      return Aiv0BluetoothAdapterState.unknown;
+    }
+  }
+
+  /// Android displays the system-owned enable-Bluetooth confirmation. iOS
+  /// cannot turn the radio on programmatically and therefore returns false.
+  Future<bool> requestEnableBluetooth() async {
+    if (!_enabled) return false;
+    try {
+      return await _methodChannel.invokeMethod<bool>(
+            'requestEnableBluetooth',
+          ) ??
+          false;
+    } on MissingPluginException {
+      return false;
+    }
+  }
+
+  /// Opens the supported system settings destination for the current OS.
+  /// Android opens Bluetooth settings; iOS opens HOMI's Settings page.
+  Future<bool> openBluetoothSettings() async {
+    if (!_enabled) return false;
+    try {
+      return await _methodChannel.invokeMethod<bool>('openBluetoothSettings') ??
+          false;
+    } on MissingPluginException {
+      return false;
+    }
   }
 
   @override
@@ -428,6 +641,13 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     if (!_enabled) return;
     _manualDisconnectRequested = false;
     await initialize();
+    final permissionGranted = await requestPermissions();
+    if (!permissionGranted) {
+      throw PlatformException(
+        code: 'PERMISSION_REQUIRED',
+        message: 'Cần cấp quyền Bluetooth để kết nối H20.',
+      );
+    }
     await _methodChannel.invokeMethod<void>('connect', <String, Object?>{
       'deviceId': deviceId,
     });
@@ -440,10 +660,10 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   }
 
   /// Reconnects BLE Control without requiring a second user action after H20
-  /// has already been paired through Android Bluetooth/HFP.
+  /// has already been paired through the system Bluetooth/HFP settings.
   ///
   /// The previously verified BLE address is preferred. On first use (or when
-  /// Android rotates the BLE address), the advertised 9E3B0001 service is the
+  /// the saved native identifier changes), advertised 9E3B0001 service is the
   /// strongest signal; the H20/AIV0 device name is only a safe fallback.
   Future<bool> autoConnectKnownOrNearby({
     Duration scanTimeout = const Duration(seconds: 4),
@@ -475,8 +695,8 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     final savedDeviceId = preferences.getString(_lastDeviceIdPreference);
     if (savedDeviceId != null && savedDeviceId.trim().isNotEmpty) {
       try {
-        // This is the fast path for normal daily use: Android can reopen the
-        // verified GATT address directly without waiting for another scan.
+        // This is the fast path for normal daily use: native can reopen the
+        // verified GATT identifier directly without waiting for another scan.
         await connect(savedDeviceId.trim());
         return true;
       } catch (error) {
@@ -526,6 +746,41 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   }
 
   @override
+  Future<void> markParentDiagnosticsOpened() async {
+    if (!_enabled || defaultTargetPlatform != TargetPlatform.iOS) return;
+    final map = await _methodChannel.invokeMapMethod<Object?, Object?>(
+      'markParentDiagnosticsOpened',
+    );
+    if (map != null) _updateStatus(map);
+  }
+
+  /// Appends one Flutter-side MAIN lifecycle boundary to the native iOS
+  /// BLE/HFP timeline. Calls are serialized so their order still reflects the
+  /// real dispatcher order when cancellation and assistant activation overlap.
+  Future<void> recordMainDiagnostic({
+    required String stage,
+    String? message,
+    Map<String, Object?> values = const <String, Object?>{},
+  }) {
+    if (!_enabled || defaultTargetPlatform != TargetPlatform.iOS) {
+      return Future<void>.value();
+    }
+    final write = _diagnosticWriteQueue.catchError((Object _) {}).then((
+      _,
+    ) async {
+      await _methodChannel
+          .invokeMethod<void>('recordMainDiagnostic', <String, Object?>{
+            'stage': stage,
+            'message': ?message,
+            'dartEventEpochMs': DateTime.now().millisecondsSinceEpoch,
+            'values': values,
+          });
+    });
+    _diagnosticWriteQueue = write;
+    return write;
+  }
+
+  @override
   Future<void> sendAppState({
     required Aiv0AppState state,
     required Aiv0AppResult result,
@@ -548,6 +803,60 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
 
   void _handleEvent(Object? event) {
     if (event is! Map<Object?, Object?>) return;
+    if (event['type'] == 'controlObservation') {
+      final source = event['source']?.toString();
+      if (source != 'iosRemoteCommand' && source != 'androidMediaKey') return;
+      // Never turn an OS command into an accessory MAIN/Power/Volume guess.
+      // Export only allowlisted command names/numbers, never arbitrary native
+      // diagnostic messages (which may contain speech or credentials).
+      final command = event['mediaCommand']?.toString();
+      const commands = {
+        'play',
+        'pause',
+        'togglePlayPause',
+        'nextTrack',
+        'previousTrack',
+        'stop',
+        'next',
+        'previous',
+        'playPause',
+        'headsetHook',
+        'fastForward',
+        'rewind',
+        'volumeUp',
+        'volumeDown',
+      };
+      final description = <String>[
+        if (commands.contains(command)) 'command=$command',
+        for (final key in [
+          'keyCode',
+          'action',
+          'repeatCount',
+          'holdDurationMs',
+        ])
+          if (event[key] is num) '$key=${(event[key] as num).toInt()}',
+      ].join(' ');
+      _buttonController.add(
+        Aiv0ButtonEvent(
+          rawBytes: Uint8List(0),
+          receivedAt:
+              _dateTimeFromEpochMilliseconds(event['receivedAtEpochMs']) ??
+              DateTime.now(),
+          deviceId: event['deviceId']?.toString(),
+          transportSource: source,
+          gesture: switch (event['gesture']) {
+            'longPress' => Aiv0ButtonGesture.longPress,
+            'release' => Aiv0ButtonGesture.release,
+            _ => Aiv0ButtonGesture.unknown,
+          },
+          rawDescription: description.isEmpty
+              ? 'unknown native command'
+              : description,
+          isDuplicate: event['duplicate'] == true,
+        ),
+      );
+      return;
+    }
     if (event['type'] == 'button') {
       final bytes = (event['bytes'] as List<Object?>? ?? const [])
           .whereType<num>()
@@ -563,6 +872,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
           rawBytes: buttonEvent.rawBytes,
           receivedAt: buttonEvent.receivedAt,
           deviceId: buttonEvent.deviceId,
+          transportSource: event['transportSource']?.toString(),
           button: buttonEvent.button,
           gesture: buttonEvent.gesture,
           sequence: buttonEvent.sequence,
@@ -592,10 +902,40 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   void _setStatus(Aiv0BleStatus value) {
     _status = value;
     _statusController.add(value);
+    _synchronizeBatteryRefresh(value);
+  }
+
+  void _synchronizeBatteryRefresh(Aiv0BleStatus value) {
+    if (!_enabled || !value.isConnected) {
+      _batteryRefreshTimer?.cancel();
+      _batteryRefreshTimer = null;
+      return;
+    }
+    if (_batteryRefreshTimer != null) return;
+    _batteryRefreshTimer = Timer.periodic(
+      _batteryRefreshInterval,
+      (_) => unawaited(_refreshBattery()),
+    );
+  }
+
+  Future<void> _refreshBattery() async {
+    if (_batteryRefreshInFlight || !_status.isConnected) return;
+    _batteryRefreshInFlight = true;
+    try {
+      await _methodChannel.invokeMethod<bool>('refreshBattery');
+    } on MissingPluginException {
+      // Older app binaries keep their one-time battery reading.
+    } on PlatformException catch (error) {
+      debugPrint('H20 battery refresh skipped: ${error.code}');
+    } finally {
+      _batteryRefreshInFlight = false;
+    }
   }
 
   @override
   Future<void> dispose() async {
+    _batteryRefreshTimer?.cancel();
+    _batteryRefreshTimer = null;
     await _eventSubscription?.cancel();
     _eventSubscription = null;
     if (_enabled) {

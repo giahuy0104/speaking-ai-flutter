@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T01-B02\\C810-L1-T01-B02-T04_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T01-B02-T04_VI",
+  "sourceText": "Chơi sau giờ học.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Chơi sau giờ học.",
+      "generation_key": "cd7f352fe1b7e0e9"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-6FB358BD5B0BE0F99FAD8A8F",
+  "text": "Chơi sau giờ học.",
+  "asset": "assets/audio/CURRICULUM/6fb358bd5b0be0f99fad8a8f.vi.v1.mp3",
+  "sha256": "1d27c61ef981a01a5b61446b635f9b287ec22690257f946eb09d9a954e5af0c4",
+  "durationSeconds": 1.675034
+}

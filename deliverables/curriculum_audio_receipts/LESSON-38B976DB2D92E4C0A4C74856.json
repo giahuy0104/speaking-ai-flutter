@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T09\\C67-L3-M08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-M08",
+  "sourceText": "Bạn muốn nói 'Ở cửa hàng.' Hoàn thành câu: At the... shop hay library?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn muốn nói 'Ở cửa hàng.' Hoàn thành câu:",
+      "text": "Bạn muốn nói 'Ở cửa hàng.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Ở cửa hàng.' Hoàn thành câu:",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "source_text": "At the... shop",
+      "text": "At the... shop",
+      "spoken_text": "At the... shop",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "source_text": "library?",
+      "text": "library?",
+      "spoken_text": "library?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": "d4b7e10edcc7ee2566773c38cad347fd6e0e6480bfca18f70707294717fcf315",
+  "id": "LESSON-38B976DB2D92E4C0A4C74856",
+  "text": "Bạn muốn nói 'Ở cửa hàng.' Hoàn thành câu: At the... shop hay library?",
+  "asset": "assets/audio/CURRICULUM/38b976db2d92e4c0a4c74856.vi.v1.mp3",
+  "sha256": "d4b7e10edcc7ee2566773c38cad347fd6e0e6480bfca18f70707294717fcf315",
+  "durationSeconds": 7.93941
+}

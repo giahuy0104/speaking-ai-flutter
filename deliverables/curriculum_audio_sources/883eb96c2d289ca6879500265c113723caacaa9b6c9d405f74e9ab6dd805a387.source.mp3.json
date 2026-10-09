@@ -1,0 +1,20 @@
+{
+  "signature": "883eb96c2d289ca6879500265c113723caacaa9b6c9d405f74e9ab6dd805a387",
+  "request": {
+    "text": "Getting There.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "19a625978f9f1bb2931b05ec2a763d56d4e9a785bcc6180dff3884a7fa72c27f",
+  "requestId": "brli3JCVLSd2HfWf1QJ7",
+  "createdAt": "2026-09-15T23:27:27.644Z"
+}

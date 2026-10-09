@@ -1,0 +1,41 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\4e27ec1b2df27eaeac64fc99745c5c51a8802e0927282869b0dcd7915538f213.tempo.mp3",
+      "signature": "4e27ec1b2df27eaeac64fc99745c5c51a8802e0927282869b0dcd7915538f213",
+      "request": {
+        "text": "Bạn cần học xong Bài 3 trước nhé.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "67cb54d48deb4f04fe11cb240e8508507a234d6f725eedd5c74a98d9b14c1d3f",
+      "requestId": "o1RSeEodLsUYIH9CzX7u",
+      "createdAt": "2026-09-15T23:23:12.599Z"
+    }
+  ],
+  "id": "LESSON-49B11585E4C02271189494D9",
+  "text": "Bạn cần học xong Bài 3 trước nhé.",
+  "asset": "assets/audio/CURRICULUM/49b11585e4c02271189494d9.vi.v1.mp3",
+  "sha256": "4aa1657bba1d025f89c3772131fbf02325b3cbe2b3e2946fb2af76ae02e9e541",
+  "durationSeconds": 2.118458,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

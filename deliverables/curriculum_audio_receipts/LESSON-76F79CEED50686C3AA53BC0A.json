@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T05-B02\\C67-L2-T05-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T05-B02-Q05",
+  "sourceText": "Miếng dán hình ngôi sao: Star sticker hay Round clock?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Miếng dán hình ngôi sao:",
+      "spoken_text": "Miếng dán hình ngôi sao:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Star sticker",
+      "spoken_text": "Star sticker",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Round clock?",
+      "spoken_text": "Round clock?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-76F79CEED50686C3AA53BC0A",
+  "text": "Miếng dán hình ngôi sao: Star sticker hay Round clock?",
+  "asset": "assets/audio/CURRICULUM/76f79ceed50686c3aa53bc0a.vi.v1.mp3",
+  "sha256": "f8c4590ef4995a3e12b692c448530245dd8e6dde7ef6648a367b1e3b2b041cbe",
+  "durationSeconds": 5.427007
+}

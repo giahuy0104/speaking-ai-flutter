@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T02\\C1112-L1-M06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-M06",
+  "sourceText": "Bạn muốn nói 'Mình luyện tiếng Anh mỗi ngày.' Hoàn thành câu: I... practice English daily hay take short breaks?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn muốn nói 'Mình luyện tiếng Anh mỗi ngày.' Hoàn thành câu:",
+      "text": "Bạn muốn nói 'Mình luyện tiếng Anh mỗi ngày.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mình luyện tiếng Anh mỗi ngày.' Hoàn thành câu:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "source_text": "I... practice English daily",
+      "text": "I... practice English daily",
+      "spoken_text": "I... practice English daily",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "source_text": "take short breaks?",
+      "text": "take short breaks?",
+      "spoken_text": "take short breaks?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": "853f6fbea2ccb84f66cd8861f7239cbb1d0aafd93a680c071c31a837a7c97f81",
+  "id": "LESSON-307EBBAB92E5BE339D2A0C90",
+  "text": "Bạn muốn nói 'Mình luyện tiếng Anh mỗi ngày.' Hoàn thành câu: I... practice English daily hay take short breaks?",
+  "asset": "assets/audio/CURRICULUM/307ebbab92e5be339d2a0c90.vi.v1.mp3",
+  "sha256": "853f6fbea2ccb84f66cd8861f7239cbb1d0aafd93a680c071c31a837a7c97f81",
+  "durationSeconds": 11.970975
+}

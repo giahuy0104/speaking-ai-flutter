@@ -35,6 +35,8 @@ class AdaptiveVoiceActivityDetector {
     this.startMarginDb = 10,
     this.stopMarginDb = 6,
     this.noisyFloorDbfs = -36,
+    this.minimumStartThresholdDbfs = -46,
+    this.minimumStopThresholdDbfs = -50,
   });
 
   final Duration calibrationDuration;
@@ -44,6 +46,10 @@ class AdaptiveVoiceActivityDetector {
   final double startMarginDb;
   final double stopMarginDb;
   final double noisyFloorDbfs;
+
+  /// Capture-specific sensitivity; defaults preserve navigation/translation.
+  final double minimumStartThresholdDbfs;
+  final double minimumStopThresholdDbfs;
 
   final List<double> _calibrationSamples = <double>[];
   bool _calibrated = false;
@@ -57,12 +63,13 @@ class AdaptiveVoiceActivityDetector {
 
   double get noiseFloorDbfs => _noiseFloorDbfs;
 
-  double get startThresholdDbfs =>
-      (_noiseFloorDbfs + startMarginDb).clamp(-46.0, -8.0).toDouble();
+  double get startThresholdDbfs => (_noiseFloorDbfs + startMarginDb)
+      .clamp(minimumStartThresholdDbfs, -8.0)
+      .toDouble();
 
   double get stopThresholdDbfs {
     final adaptive = (_noiseFloorDbfs + stopMarginDb)
-        .clamp(-50.0, -12.0)
+        .clamp(minimumStopThresholdDbfs, -12.0)
         .toDouble();
     return adaptive < startThresholdDbfs - 3
         ? adaptive

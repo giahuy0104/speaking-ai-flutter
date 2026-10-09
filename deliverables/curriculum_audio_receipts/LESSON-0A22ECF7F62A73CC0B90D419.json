@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T08-B02\\C1315-L3-T08-B02-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T08-B02-Q08",
+  "sourceText": "Bạn muốn nói 'Bạn uống gì không.' Hoàn thành câu: Anything... else hay to drink?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Bạn uống gì không.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Bạn uống gì không.' Hoàn thành câu:",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Anything... else",
+      "spoken_text": "Anything... else",
+      "input_index": 45
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 46
+    },
+    {
+      "language": "en",
+      "text": "to drink?",
+      "spoken_text": "to drink?",
+      "input_index": 47
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-0A22ECF7F62A73CC0B90D419",
+  "text": "Bạn muốn nói 'Bạn uống gì không.' Hoàn thành câu: Anything... else hay to drink?",
+  "asset": "assets/audio/CURRICULUM/0a22ecf7f62a73cc0b90d419.vi.v1.mp3",
+  "sha256": "c53c515021eb2cfe31a60f597105f99e59f4b0dae1337e0c9a89a8f7b4da07d6",
+  "durationSeconds": 8.969138
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T09-B02\\C1315-L3-T09-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T09-B02-Q04",
+  "sourceText": "Nó hữu ích hơn: This works better for me hay It's more useful?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nó hữu ích hơn:",
+      "spoken_text": "Nó hữu ích hơn:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "This works better for me",
+      "spoken_text": "This works better for me",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "It's more useful?",
+      "spoken_text": "It's more useful?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-86A1F4708F028A7EBA625D85",
+  "text": "Nó hữu ích hơn: This works better for me hay It's more useful?",
+  "asset": "assets/audio/CURRICULUM/86a1f4708f028a7eba625d85.vi.v1.mp3",
+  "sha256": "d4020738a1a36f2e17976284fb746ad4de228b1903dd47da3620c15193f93895",
+  "durationSeconds": 6.957551
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T04-B03\\C1112-L2-T04-B03-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T04-B03-Q08",
+  "sourceText": "Bạn muốn nói 'Cái nào nhanh hơn.' Hoàn thành câu: Which is... cheaper hay faster?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Cái nào nhanh hơn.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Cái nào nhanh hơn.' Hoàn thành câu:",
+      "input_index": 46
+    },
+    {
+      "language": "en",
+      "text": "Which is... cheaper",
+      "spoken_text": "Which is... cheaper",
+      "input_index": 47
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 48
+    },
+    {
+      "language": "en",
+      "text": "faster?",
+      "spoken_text": "faster?",
+      "input_index": 49
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-0DE79FD06BD00F7702FB1991",
+  "text": "Bạn muốn nói 'Cái nào nhanh hơn.' Hoàn thành câu: Which is... cheaper hay faster?",
+  "asset": "assets/audio/CURRICULUM/0de79fd06bd00f7702fb1991.vi.v1.mp3",
+  "sha256": "0f881dab5259d512617375a2e0d9983746c9cbcc4a9b1b63a715a8cf4ac06ddc",
+  "durationSeconds": 11.050862
+}

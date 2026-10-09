@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T01-B01\\C35-L1-T01-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T01-B01-Q03",
+  "sourceText": "Con mèo: Cat hay Dog?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Con mèo:",
+      "spoken_text": "Con mèo:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Cat",
+      "spoken_text": "Cat",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Dog?",
+      "spoken_text": "Dog?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-54CBF9DE9CED7E471EF0972A",
+  "text": "Con mèo: Cat hay Dog?",
+  "asset": "assets/audio/CURRICULUM/54cbf9de9ced7e471ef0972a.vi.v1.mp3",
+  "sha256": "66c6a1f3ea50c8fb59fc92c231cc55f7cd451127a5d55e2815c038fbb6c88cf7",
+  "durationSeconds": 3.596531
+}

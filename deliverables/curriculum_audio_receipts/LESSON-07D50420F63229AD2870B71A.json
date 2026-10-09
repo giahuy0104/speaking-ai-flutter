@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T05-B02\\C1112-L2-T05-B02-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T05-B02-Q03",
+  "sourceText": "Bạn nên ngủ sớm: You should sleep early hay You should exercise daily?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn nên ngủ sớm:",
+      "spoken_text": "Bạn nên ngủ sớm:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "You should sleep early",
+      "spoken_text": "You should sleep early",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "You should exercise daily?",
+      "spoken_text": "You should exercise daily?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-07D50420F63229AD2870B71A",
+  "text": "Bạn nên ngủ sớm: You should sleep early hay You should exercise daily?",
+  "asset": "assets/audio/CURRICULUM/07d50420f63229ad2870b71a.vi.v1.mp3",
+  "sha256": "fafe452fbf113706e52386d04d5c05e07e497782c40aa57d22621653c913c624",
+  "durationSeconds": 6.712721
+}

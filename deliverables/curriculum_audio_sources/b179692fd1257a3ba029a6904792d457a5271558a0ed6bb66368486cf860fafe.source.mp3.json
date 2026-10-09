@@ -1,0 +1,20 @@
+{
+  "signature": "b179692fd1257a3ba029a6904792d457a5271558a0ed6bb66368486cf860fafe",
+  "request": {
+    "text": "Make a Plan.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "c0a84811a511c4087f19093403fbc1d7db1244eea6f7ea45d5575c73cbdbdb51",
+  "requestId": "ltKzVkptULZ1zNjSkXpx",
+  "createdAt": "2026-09-15T23:26:49.879Z"
+}

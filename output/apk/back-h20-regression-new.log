@@ -1,0 +1,136 @@
+Resolving dependencies...
+Downloading packages...
+  archive 4.0.9 (4.3.0 available)
+  cli_util 0.4.2 (0.6.0 available)
+  clock 1.1.2 (1.1.3 available)
+  code_assets 1.2.1 (2.0.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  image 4.9.1 (4.10.1 available)
+  jni 1.0.0 (1.0.3 available)
+  jni_flutter 1.0.1 (1.0.3 available)
+  local_auth_android 2.0.9 (2.0.10 available)
+  local_auth_darwin 2.0.3 (2.0.4 available)
+  local_auth_windows 2.0.1 (2.0.2 available)
+  matcher 0.12.19 (0.12.20 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.0 (1.19.0 available)
+  objective_c 9.4.1 (9.6.0 available)
+  package_config 2.2.0 (3.0.0 available)
+  platform 3.1.6 (3.2.0 available)
+  posix 6.5.0 (6.5.2 available)
+  pub_semver 2.2.0 (2.2.1 available)
+  record_android 2.1.2 (2.2.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  record_web 2.1.1 (2.1.3 available)
+  record_windows 2.2.2 (2.3.0 available)
+  shared_preferences_android 2.4.27 (2.4.28 available)
+  shared_preferences_foundation 2.5.6 (2.5.7 available)
+  stack_trace 1.12.1 (1.12.2 available)
+  synchronized 3.4.1 (3.4.2 available)
+  test_api 0.7.11 (0.7.14 available)
+  url_launcher_android 6.3.32 (6.3.33 available)
+  url_launcher_ios 6.4.1 (6.4.2 available)
+  url_launcher_linux 3.2.2 (3.2.3 available)
+  url_launcher_macos 3.2.5 (3.2.6 available)
+  url_launcher_windows 3.1.5 (3.1.6 available)
+  vector_math 2.2.0 (2.4.2 available)
+  vm_service 15.2.0 (15.3.0 available)
+  win32 6.3.0 (6.4.0 available)
+  yaml 3.1.3 (3.1.4 available)
+Got dependencies!
+37 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart
+00:00 +0: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:00 +1: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:00 +2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:00 +3: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:00 +4: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:00 +5: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:00 +6: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:00 +7: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:00 +8: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:00 +9: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:00 +10: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:01 +11: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:01 +12: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:01 +13: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:01 +14: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:01 +15: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:01 +16: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:01 +17: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+pumpAndSettle timed out
+
+When the exception was thrown, this was the stack:
+#0      WidgetTester.pumpAndSettle.<anonymous closure> (package:flutter_test/src/widget_tester.dart:717:11)
+<asynchronous suspension>
+#1      TestAsyncUtils.guard.<anonymous closure> (package:flutter_test/src/test_async_utils.dart:130:27)
+<asynchronous suspension>
+#2      main.<anonymous closure> (file:///D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart:66:9)
+<asynchronous suspension>
+#3      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  paused silent lesson exits via screen Back with stalled audio
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:12 +17 -1: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio [E]
+  Test failed. See exception logs above.
+  The test description was: paused silent lesson exits via screen Back with stalled audio
+  
+Warning: At least one test in this suite creates an HttpClient. When running a test suite that uses
+TestWidgetsFlutterBinding, all HTTP requests will return status code 400, and no network request
+will actually be made. Any test expecting a real network connection and status code will fail.
+To test code that needs an HttpClient, provide your own HttpClient implementation to the code under
+test, so that your test can consistently provide a testable response to the code under test.
+00:12 +17 -1: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via system Back with stalled audio
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+pumpAndSettle timed out
+
+When the exception was thrown, this was the stack:
+#0      WidgetTester.pumpAndSettle.<anonymous closure> (package:flutter_test/src/widget_tester.dart:717:11)
+<asynchronous suspension>
+#1      TestAsyncUtils.guard.<anonymous closure> (package:flutter_test/src/test_async_utils.dart:130:27)
+<asynchronous suspension>
+#2      main.<anonymous closure> (file:///D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart:66:9)
+<asynchronous suspension>
+#3      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  paused silent lesson exits via system Back with stalled audio
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:22 +17 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via system Back with stalled audio [E]
+  Test failed. See exception logs above.
+  The test description was: paused silent lesson exits via system Back with stalled audio
+  
+00:22 +17 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: leaving during completion ting releases the already-open mic
+00:22 +18 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: Android end-of-lesson "(Học lại, 1, true)" opens the selected learning flow
+00:22 +19 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: Android end-of-lesson "(Bài 2, 2, false)" opens the selected learning flow
+00:22 +20 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: Android completion arms command ASR before ting, not Core mic
+00:23 +21 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: next does not autoplay and previous plays praise without sentence audio
+00:23 +22 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: previous sentence is persisted and restored after re-entry
+00:23 +23 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: MAIN previous command replays the previous sentence flow
+00:23 +24 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: review from beginning resets the resume sentence
+00:23 +25 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: V4 resume ignores an archived attempt and restarts EN-VI-mic
+00:24 +26 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: V4 marks the lesson complete only after its authored challenge finishes
+00:24 +27 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: V4 resumes the exact completion choice after interruption
+00:24 +28 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: V4 resumes an interrupted song from its beginning
+00:24 +29 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: completion remains usable on a compact phone
+00:24 +30 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: MAIN commands pause, resume, and leave the lesson for home
+00:25 +31 -2: Some tests failed.
+
+Failing tests:
+  D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+  D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via system Back with stalled audio

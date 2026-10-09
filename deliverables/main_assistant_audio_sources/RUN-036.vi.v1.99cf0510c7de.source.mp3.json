@@ -1,0 +1,20 @@
+{
+  "id": "RUN-036",
+  "signature": "99cf0510c7de29ad5699aa3621e2770a6500e137f0a2a3a49a20c9c169efcfc0",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bi cô chưa chọn được bài học. Con thử lại nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:12:17.183Z",
+  "requestId": "br1HLPDo4gvlgW2qUhVx",
+  "characterCost": "25",
+  "sourceSha256": "df9ed211f1298e33c5672f27aa773fd788c64947ab5ef90aafcfd3aced44dce7"
+}

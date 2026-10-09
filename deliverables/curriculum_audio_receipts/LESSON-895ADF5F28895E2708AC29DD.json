@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T04-B02\\C1315-L2-T04-B02-T05_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T04-B02-T05_EN",
+  "sourceText": "I'll save my money.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "I'll save my money.",
+      "generation_key": "c11dc4d2f8786464"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-895ADF5F28895E2708AC29DD",
+  "text": "I'll save my money.",
+  "asset": "assets/audio/CURRICULUM/895adf5f28895e2708ac29dd.en.v1.mp3",
+  "sha256": "74f4c9225f68c5a318ff2789c27b636d3691cbdd5943f204b67dd0cbffcad38d",
+  "durationSeconds": 2.007075
+}

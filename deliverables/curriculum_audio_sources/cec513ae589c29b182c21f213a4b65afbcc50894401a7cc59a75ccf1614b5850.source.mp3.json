@@ -1,0 +1,20 @@
+{
+  "signature": "cec513ae589c29b182c21f213a4b65afbcc50894401a7cc59a75ccf1614b5850",
+  "request": {
+    "text": "Buy or Save?",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "784fec5dce508dee1328bc699068c86b04820aae202fd54aa1a06b1ef9b544fd",
+  "requestId": "LXIrcZP1zcSVrDDyh61h",
+  "createdAt": "2026-09-15T23:29:59.003Z"
+}

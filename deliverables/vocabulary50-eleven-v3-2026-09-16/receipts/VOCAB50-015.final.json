@@ -1,0 +1,22 @@
+{
+  "number": 15,
+  "id": "VOCAB50-015",
+  "text": "Mình luyện tiếp nhé.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-015.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "2479b376c78e394678ec4cd9f0dda197c47e3fa4f0cf11b4ccfafd648e529b6c",
+  "bytes": 23449,
+  "sourceDurationSeconds": 1.28,
+  "durationSeconds": 1.405964,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "MZxLHzQCDSv1QivQxze3",
+  "characterCost": "11",
+  "createdAt": "2026-09-16T03:20:18.751Z"
+}

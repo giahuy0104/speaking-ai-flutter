@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T04-B02\\C1315-L2-T04-B02-T01_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T04-B02-T01_VI",
+  "sourceText": "Nó có đáng không?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nó có đáng không?",
+      "generation_key": "be681efbf5589c93"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-3F04D5C8D2C51609388CBE8D",
+  "text": "Nó có đáng không?",
+  "asset": "assets/audio/CURRICULUM/3f04d5c8d2c51609388cbe8d.vi.v1.mp3",
+  "sha256": "54b67ec74e2d6b9d2bc1ff8b18a08ecfea60fbab8d87a0f7fc8894a256c6ea1f",
+  "durationSeconds": 1.412063
+}

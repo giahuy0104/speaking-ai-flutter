@@ -1,0 +1,41 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\ae21649c2d9e84c6bc3f4eaef4986e34fe991fba92df2d61a9e267f1e7e6bdd3.tempo.mp3",
+      "signature": "ae21649c2d9e84c6bc3f4eaef4986e34fe991fba92df2d61a9e267f1e7e6bdd3",
+      "request": {
+        "text": "Nghe thật kỹ nhé.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "e464b5a59fc137e5c0970628d252131f274672728d4c6f3a0987b0528c728c4b",
+      "requestId": "At6KbL7h4mWpTamZKIsP",
+      "createdAt": "2026-09-15T23:15:40.179Z"
+    }
+  ],
+  "id": "LESSON-89C9B6D37348FD2C867AFF32",
+  "text": "Nghe thật kỹ nhé.",
+  "asset": "assets/audio/CURRICULUM/89c9b6d37348fd2c867aff32.vi.v1.mp3",
+  "sha256": "1f3c14d79594f2f921429afe3f7d71686f2c125e84d39f8b8bb256768536d004",
+  "durationSeconds": 1.051224,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

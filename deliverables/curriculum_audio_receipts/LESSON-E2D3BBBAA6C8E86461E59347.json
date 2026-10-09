@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T06-B02\\C810-L2-T06-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T06-B02-Q05",
+  "sourceText": "Nghe nhạc: Listen to music hay Make calls?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nghe nhạc:",
+      "spoken_text": "Nghe nhạc:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Listen to music",
+      "spoken_text": "Listen to music",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Make calls?",
+      "spoken_text": "Make calls?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E2D3BBBAA6C8E86461E59347",
+  "text": "Nghe nhạc: Listen to music hay Make calls?",
+  "asset": "assets/audio/CURRICULUM/e2d3bbbaa6c8e86461e59347.vi.v1.mp3",
+  "sha256": "95cb8b6e108cd5fda43d3e3a1a21057d23debca18e98f41b56d459f0109e6047",
+  "durationSeconds": 4.666916
+}

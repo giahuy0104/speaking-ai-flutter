@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T06-B01\\C1315-L2-T06-B01-Q01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T06-B01-Q01",
+  "sourceText": "Mật khẩu: Password hay Phone number?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mật khẩu:",
+      "spoken_text": "Mật khẩu:",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "text": "Password",
+      "spoken_text": "Password",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "text": "Phone number?",
+      "spoken_text": "Phone number?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-0CB8C65F033D0329ED156574",
+  "text": "Mật khẩu: Password hay Phone number?",
+  "asset": "assets/audio/CURRICULUM/0cb8c65f033d0329ed156574.vi.v1.mp3",
+  "sha256": "992c40f39dbd6cb83569aee38ee31cee7d35cb23975c64576cf1bdc7e88b80da",
+  "durationSeconds": 3.876236
+}

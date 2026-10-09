@@ -1,0 +1,20 @@
+{
+  "signature": "d546e0c1477ac7b47b16325d4e8ddafa77a01897a500333553f1292f7f7b0561",
+  "request": {
+    "text": "J to R Letters",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "8a820d0ba6ed7a7c8fec565bc307f85150f86eac699488d75247aec81f25f54a",
+  "requestId": "DN3sbLBiydwA8ugrAYVX",
+  "createdAt": "2026-09-15T23:23:03.677Z"
+}

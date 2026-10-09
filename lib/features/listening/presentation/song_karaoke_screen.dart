@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
 import '../../../app/mascot_assets.dart';
 import '../../../core/device/active_learning_module.dart';
+import '../../../core/navigation/active_learning_navigation.dart';
 import '../../../l10n/display_language.dart';
+import '../../voice_navigation/domain/master_navigation_contract.dart';
 import '../application/lesson_media_service.dart';
 import '../domain/listening_content.dart';
 
@@ -42,7 +44,7 @@ class SongKaraokeScreen extends StatefulWidget {
 }
 
 class _SongKaraokeScreenState extends State<SongKaraokeScreen>
-    implements ActiveLearningModuleController {
+    implements ActiveLearningModuleController, ActiveLearningVoiceContext {
   Timer? _autoPlayTimer;
   Timer? _countdownTimer;
   StreamSubscription<bool>? _playingSubscription;
@@ -70,6 +72,12 @@ class _SongKaraokeScreenState extends State<SongKaraokeScreen>
 
   @override
   bool get isPausedForMain => _pausedForMainAssistant;
+
+  @override
+  ActiveLearningVoiceNode get mainVoiceNode => ActiveLearningVoiceNode.song;
+
+  @override
+  String get mainVoicePrompt => MasterNavigationContract.songControlPrompt;
 
   Uri? get _songUri => widget.lesson.fullAudioUri;
 
@@ -460,7 +468,7 @@ class _SongKaraokeScreenState extends State<SongKaraokeScreen>
       if (mounted) {
         setState(() {
           _message = context.tr(
-            'Chưa thể phát bài hát. Con hãy bấm Phát nhạc để thử lại.',
+            'Chưa thể phát bài hát. Bạn hãy bấm Phát nhạc để thử lại.',
             '暂时无法播放歌曲，请点击播放重试。',
           );
         });
@@ -508,6 +516,9 @@ class _SongKaraokeScreenState extends State<SongKaraokeScreen>
     _resumePlaybackAfterMain = false;
     _resumeAutoPlayAfterMain = false;
     setState(() => _message = null);
+    if (replay) {
+      await widget.mediaService.rewindPlayback();
+    }
     if (replay || resumePlayback) {
       await _playSong();
     } else if (resumeAutoPlay) {
@@ -557,8 +568,9 @@ class _SongKaraokeScreenState extends State<SongKaraokeScreen>
     if (!mounted) {
       return;
     }
-    await Navigator.of(context).pushReplacement<void, void>(
-      MaterialPageRoute<void>(builder: widget.practiceBuilder),
+    await pushReplacementForActiveLearning<void, void>(
+      context,
+      widget.practiceBuilder,
     );
   }
 
@@ -588,10 +600,13 @@ class _SongKaraokeScreenState extends State<SongKaraokeScreen>
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.nextLesson:
       case ActiveLearningCommand.previousLesson:
+      case ActiveLearningCommand.vocabularyParentAdded:
       case ActiveLearningCommand.vocabularyPracticeAgain:
       case ActiveLearningCommand.vocabularyStars:
+      case ActiveLearningCommand.vocabularyLatest:
+      case ActiveLearningCommand.vocabularyAll:
         return const ActiveLearningCommandResult.unavailable(
-          spokenReply: 'Con hãy học xong bài hát này trước nhé.',
+          spokenReply: 'Bạn hãy học xong bài hát này trước nhé.',
         );
       case ActiveLearningCommand.exitToHome:
         await pauseForMainAssistant();
@@ -634,8 +649,9 @@ class _SongKaraokeScreenState extends State<SongKaraokeScreen>
       return;
     }
     if (action == _SongEndAction.practice) {
-      await Navigator.of(context).pushReplacement<void, void>(
-        MaterialPageRoute<void>(builder: widget.practiceBuilder),
+      await pushReplacementForActiveLearning<void, void>(
+        context,
+        widget.practiceBuilder,
       );
     } else {
       Navigator.of(context).pop();
@@ -690,7 +706,10 @@ class _SongHeader extends StatelessWidget {
             color: Colors.white.withValues(alpha: 0.9),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.music_note_rounded, color: Color(0xFF155EEF)),
+          child: const Icon(
+            Icons.music_note_rounded,
+            color: AppColors.primaryNavy,
+          ),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -791,7 +810,7 @@ class _KaraokeLyrics extends StatelessWidget {
                           '${words[index]}${index == words.length - 1 ? '' : ' '}',
                       style: currentStyle?.copyWith(
                         color: index < highlightedWordCount
-                            ? const Color(0xFF2536E8)
+                            ? AppColors.accentPink
                             : AppColors.ink,
                       ),
                     ),
@@ -806,7 +825,7 @@ class _KaraokeLyrics extends StatelessWidget {
               translationLine,
               key: const Key('song-karaoke-translation-line'),
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: const Color(0xFF47628F),
+                color: AppColors.softNavy,
                 fontSize: compact ? 20 : 25,
                 height: 1.25,
                 fontWeight: FontWeight.w700,
@@ -908,8 +927,8 @@ class _SongPlayer extends StatelessWidget {
                     key: const Key('song-karaoke-progress'),
                     value: progress,
                     minHeight: 7,
-                    color: AppColors.indigo,
-                    backgroundColor: const Color(0xFFDCE5F7),
+                    color: AppColors.accentPink,
+                    backgroundColor: AppColors.mintBorder,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -1024,7 +1043,7 @@ class _SongEndDialog extends StatelessWidget {
         ),
       ),
       title: Text(
-        context.tr('Con muốn làm gì tiếp?', '接下来想做什么？'),
+        context.tr('Bạn muốn làm gì tiếp?', '接下来想做什么？'),
         textAlign: TextAlign.center,
       ),
       content: Column(
@@ -1032,7 +1051,7 @@ class _SongEndDialog extends StatelessWidget {
         children: <Widget>[
           Text(
             context.tr(
-              'Con có thể luyện từng dòng của “$songTitle” hoặc kết thúc tại đây.',
+              'Bạn có thể luyện từng dòng của “$songTitle” hoặc kết thúc tại đây.',
               '你可以逐句练习《$songTitle》，也可以在这里结束。',
             ),
             textAlign: TextAlign.center,

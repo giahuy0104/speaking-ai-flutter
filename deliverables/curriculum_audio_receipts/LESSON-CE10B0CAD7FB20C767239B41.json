@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T04-B02\\C1112-L2-T04-B02-T02_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T04-B02-T02_EN",
+  "sourceText": "I ride my bike.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "I ride my bike.",
+      "generation_key": "64d56a34c9360d93"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-CE10B0CAD7FB20C767239B41",
+  "text": "I ride my bike.",
+  "asset": "assets/audio/CURRICULUM/ce10b0cad7fb20c767239b41.en.v1.mp3",
+  "sha256": "6d4581b5735589c67361d44e092fe6678589463f2ff18935005f4e97fc6a7d25",
+  "durationSeconds": 2.146395
+}

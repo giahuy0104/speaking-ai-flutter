@@ -1,0 +1,41 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\ba91ec9816b4d81eba423e6a3edbf764744c8dda9de9307928d2e3f40b742af3.tempo.mp3",
+      "signature": "ba91ec9816b4d81eba423e6a3edbf764744c8dda9de9307928d2e3f40b742af3",
+      "request": {
+        "text": "Sắp đến giờ tàu chạy.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "89013362e5cccca83172b991a9f5619caf9ebcbb22f18223358a16bf4f9fa894",
+      "requestId": "BX8j82OtKxV5RhvXEcXf",
+      "createdAt": "2026-09-15T23:21:12.515Z"
+    }
+  ],
+  "id": "LESSON-0610C56206C766CF0A2EF6EC",
+  "text": "Sắp đến giờ tàu chạy.",
+  "asset": "assets/audio/CURRICULUM/0610c56206c766cf0a2ef6ec.vi.v1.mp3",
+  "sha256": "3ce65d1521d473f34aff58f1ce88303297207e988f7731724b3685b0d94b7a95",
+  "durationSeconds": 1.589342,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

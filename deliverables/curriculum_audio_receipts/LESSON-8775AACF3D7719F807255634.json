@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T03\\C1315-L1-M12_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-M12",
+  "sourceText": "Bạn cần diễn đạt \"Vì mình thích nó\". Because I enjoy it hay Why?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Vì mình thích nó\".",
+      "text": "Bạn cần diễn đạt \"Vì mình thích nó\".",
+      "spoken_text": "Bạn cần diễn đạt \"Vì mình thích nó\".",
+      "input_index": 70
+    },
+    {
+      "language": "en",
+      "source_text": "Because I enjoy it",
+      "text": "Because I enjoy it",
+      "spoken_text": "Because I enjoy it",
+      "input_index": 71
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 72
+    },
+    {
+      "language": "en",
+      "source_text": "Why?",
+      "text": "Why?",
+      "spoken_text": "Why?",
+      "input_index": 73
+    }
+  ],
+  "sourceSha256": "7a31fe971c6b49b3821dc8ed03de99a7bc4eb23c4ee9b49f9c0c4dea5deae20c",
+  "id": "LESSON-8775AACF3D7719F807255634",
+  "text": "Bạn cần diễn đạt \"Vì mình thích nó\". Because I enjoy it hay Why?",
+  "asset": "assets/audio/CURRICULUM/8775aacf3d7719f807255634.vi.v1.mp3",
+  "sha256": "7a31fe971c6b49b3821dc8ed03de99a7bc4eb23c4ee9b49f9c0c4dea5deae20c",
+  "durationSeconds": 6.852336
+}

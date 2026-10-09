@@ -1,0 +1,398 @@
+{
+  "at": "2026-09-17T14:27:19.133Z",
+  "count": 14,
+  "receipts": [
+    {
+      "id": "GAP66-020",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn chưa có Ngôi sao nào. Bạn muốn học phần Ba mẹ đã thêm hay Luyện lại?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "mKLPGfS9D4FvhAstmGWv",
+      "historyItemId": "dmlbMMOioJJEujW4V90U",
+      "characterCost": "48",
+      "createdAt": "2026-09-17T14:24:58.807Z",
+      "sourceSha256": "d6963b684029b8f146179859b311a3ffdaec096a895449b4f0b41d5f160d567e",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-020.vi.v1.mp3",
+      "finalSha256": "b566fb2e8205d6d00c91087f8ec4f3ae848ded436fa3766f46bbb555c8d53fe3",
+      "sourceDurationSeconds": 5.84,
+      "durationSeconds": 6.488413,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 104951
+    },
+    {
+      "id": "GAP66-023",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn đã nghe hết Ngôi sao rồi. Bạn muốn học nội dung khác hay học lại?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "ybqWDR6ATNmbyWUHNQNc",
+      "historyItemId": "pD2nGsHypfMHT7SQ0ipP",
+      "characterCost": "47",
+      "createdAt": "2026-09-17T14:25:07.054Z",
+      "sourceSha256": "7270c7f825537311e23921f9b96eee0b30c900ff0a83e172ec244efbd588fb15",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-023.vi.v1.mp3",
+      "finalSha256": "f15e464b7a8503f9e6d69de2811f6c12eb47d7a1d06f20b3e79e2ce536c8c4d4",
+      "sourceDurationSeconds": 5.84,
+      "durationSeconds": 6.480816,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 104951
+    },
+    {
+      "id": "GAP66-024",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn đã nghe hết rồi. Bạn muốn học nội dung khác hay học lại?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "gMszbnjrIoaO6i2IdWN5",
+      "historyItemId": "tms9ONg01JAANQvYuUJA",
+      "characterCost": "42",
+      "createdAt": "2026-09-17T14:25:09.901Z",
+      "sourceSha256": "bbbb3c97e09e7e5a516383b9f78a6a91f57215fd76d5aedda71fe484df3e768f",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-024.vi.v1.mp3",
+      "finalSha256": "0f9fba7a7190f1c6a610d14f40ac1fc38bee390dc5eed01e19f208afac2ba691",
+      "sourceDurationSeconds": 4.96,
+      "durationSeconds": 5.497075,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 89069
+    },
+    {
+      "id": "GAP66-040",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn học Ngôi sao hay Luyện lại?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "i5rWDaBcNV6x2tngoqt8",
+      "historyItemId": "yry590nWGevUJJGpdmiH",
+      "characterCost": "29",
+      "createdAt": "2026-09-17T14:25:45.834Z",
+      "sourceSha256": "7f7a6268d449ccb6e02b8eefffb813e5be80fbcd5364e48e6f1abac7eaab01f1",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-040.vi.v1.mp3",
+      "finalSha256": "19e1248d8f393469a410db69ac83048842d1f9dc5f478f3a99cd9b9d79c6ee04",
+      "sourceDurationSeconds": 3.2,
+      "durationSeconds": 3.543537,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 57722
+    },
+    {
+      "id": "GAP66-041",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn học nội dung khác hay học lại?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "qaBrNUO6q6jtyvKxRyHI",
+      "historyItemId": "XiuHiCqzAeHeND6egYjm",
+      "characterCost": "30",
+      "createdAt": "2026-09-17T14:25:47.926Z",
+      "sourceSha256": "60095ca4a4dc9815a0980c361feca2a66f29d13cba97349d6683e69a01ffd73e",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-041.vi.v1.mp3",
+      "finalSha256": "2ca187e4cb656bbdf4e1d5260322b6a729d2176a783e3031ee00c139572a140e",
+      "sourceDurationSeconds": 3.52,
+      "durationSeconds": 3.907823,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 63573
+    },
+    {
+      "id": "GAP66-042",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn học nội dung khác hay học tiếp?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "tZrm0jCQ1fmhr4K4tk5Z",
+      "historyItemId": "hNMwzwXEm3ZhiKyZ0WrH",
+      "characterCost": "31",
+      "createdAt": "2026-09-17T14:25:50.013Z",
+      "sourceSha256": "92ba16bdeed1a073cb30f0c8e2ec35aa0408b552fa90f366431dbb27dffe9f1a",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-042.vi.v1.mp3",
+      "finalSha256": "f7628ec5c530ded4b1f3f8b2798f74f3311fe39085f0ad1b4f3fca9d8f1af5ae",
+      "sourceDurationSeconds": 3.6,
+      "durationSeconds": 3.986735,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 64827
+    },
+    {
+      "id": "GAP66-043",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn học phần Ba mẹ đã thêm hay Luyện lại?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "Xne1k0FXkZ8d7IoWpq9A",
+      "historyItemId": "Dt2uIbP0B0WDcQvfUvbb",
+      "characterCost": "34",
+      "createdAt": "2026-09-17T14:25:52.443Z",
+      "sourceSha256": "4530372aa4314971218ced70748c17addbb9cc9f3504e6af7d6f91287a92be42",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-043.vi.v1.mp3",
+      "finalSha256": "29651568ed4a9de6a3b0c29891f3af8c4068890c55e4cc4bfd9fa9058cc47d0a",
+      "sourceDurationSeconds": 4,
+      "durationSeconds": 4.438095,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 71933
+    },
+    {
+      "id": "GAP66-044",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "n0bS0zSHtEJhYSZUShVe",
+      "historyItemId": "dhWEQCjohI0oCl8i2DVc",
+      "characterCost": "34",
+      "createdAt": "2026-09-17T14:25:54.755Z",
+      "sourceSha256": "c4aae62792359d2d0471d7abc9bceced0b736cb1e39e01951fd3f84bbfbdcefa",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-044.vi.v1.mp3",
+      "finalSha256": "8eed8056cddd909034ac530bb22d676aab2f3e6c757c3e03c9e51c88b953d7f9",
+      "sourceDurationSeconds": 3.92,
+      "durationSeconds": 4.352268,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 70679
+    },
+    {
+      "id": "GAP66-045",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "vWa8rPuQf6CfBz8LH9uC",
+      "historyItemId": "SVw0F8KoU6hgzyRUJM4c",
+      "characterCost": "40",
+      "createdAt": "2026-09-17T14:25:57.472Z",
+      "sourceSha256": "b6684eaa813478af0780faa40bff521123a130b3ec4a376019e637e2568e9053",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-045.vi.v1.mp3",
+      "finalSha256": "2e89193c80b3b57ff3f8a3ca0d52a39f690b6859926befc5cdab4ad8cf39011c",
+      "sourceDurationSeconds": 4.8,
+      "durationSeconds": 5.319705,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 86143
+    },
+    {
+      "id": "GAP66-048",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn nghe lại, nghe câu trước hay dừng lại?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "ek0nNbuZ6EHgUs8XS9ei",
+      "historyItemId": "eps5X09kJHLCMFEuL2zg",
+      "characterCost": "35",
+      "createdAt": "2026-09-17T14:26:05.447Z",
+      "sourceSha256": "dfebed0c4a715bdffbe1025971989b9cff2543fffe389398a16d2a5a86db6ab2",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-048.vi.v1.mp3",
+      "finalSha256": "e16f003a71fb4a4a6e4ff176eea01d926f4b9600b02890a2db6d2f9b2bf5e9c0",
+      "sourceDurationSeconds": 3.36,
+      "durationSeconds": 3.720658,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 60648
+    },
+    {
+      "id": "GAP66-049",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Bạn muốn nghe lại, nghe câu trước, câu tiếp theo hay dừng lại?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "rwyVFCVHhTRzTiN7AsXn",
+      "historyItemId": "jX9NOtbnNrSWbpgJCp7s",
+      "characterCost": "43",
+      "createdAt": "2026-09-17T14:26:08.311Z",
+      "sourceSha256": "49ba72be291cf04a483ab80235b0210716d97cc4b96b0a4a44a4bc36b31c73ca",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-049.vi.v1.mp3",
+      "finalSha256": "67f6f51cadfbe7025f89ded2b1b10f50771fc5c3b02e5d3ea1b0137b85a87867",
+      "sourceDurationSeconds": 4.88,
+      "durationSeconds": 5.406259,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 87397
+    },
+    {
+      "id": "GAP66-061",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Chưa có nội dung ở phần này. Bạn muốn học Ngôi sao hay Luyện lại?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "SaG3syUKDkqsVU2vX0xC",
+      "historyItemId": "ZXG4vHjcrElQiMvek4q2",
+      "characterCost": "45",
+      "createdAt": "2026-09-17T14:26:51.044Z",
+      "sourceSha256": "13d59184a9625c778c4173d8fa4fdfb3c21f9a67706bf53de0fe8525f0e5521e",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-061.vi.v1.mp3",
+      "finalSha256": "dc52a8a90afdfe1e7020ccd146674cdf2de62091f72809761c729658331c414b",
+      "sourceDurationSeconds": 5.6,
+      "durationSeconds": 6.209592,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 100354
+    },
+    {
+      "id": "GAP66-065",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Không có nội dung cần luyện lại. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "ZCLAU198Kld0jZBf0OKw",
+      "historyItemId": "xX51YPQbFlQfRIvTte6O",
+      "characterCost": "52",
+      "createdAt": "2026-09-17T14:27:01.756Z",
+      "sourceSha256": "2c0a377b222c7e70f426746a8077fcf089f313f7ba874fd00cafc316b925b5bd",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-065.vi.v1.mp3",
+      "finalSha256": "680770c31c23d2af41c3a407fc0aac6f4835304895cf8ea10289d766e824c4b7",
+      "sourceDurationSeconds": 6.08,
+      "durationSeconds": 6.743129,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 109131
+    },
+    {
+      "id": "GAP66-066",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Mình đã luyện xong rồi. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "zHtVg3Z1QiM49Arh2saL",
+      "historyItemId": "3gWudnuzAmzY0FWWoR3y",
+      "characterCost": "47",
+      "createdAt": "2026-09-17T14:27:04.969Z",
+      "sourceSha256": "4ffe35ffe461b973882dcda1cd65a62b480b9b3e24f59c8f9a085a88e41ba7d6",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-066.vi.v1.mp3",
+      "finalSha256": "94a5720979a112bd797c070d0e740d25a3137b0c42791f430dfdc0ad08759ef2",
+      "sourceDurationSeconds": 6,
+      "durationSeconds": 6.655737,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 107459
+    }
+  ]
+}

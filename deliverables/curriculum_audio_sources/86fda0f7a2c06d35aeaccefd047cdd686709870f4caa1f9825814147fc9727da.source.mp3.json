@@ -1,0 +1,20 @@
+{
+  "signature": "86fda0f7a2c06d35aeaccefd047cdd686709870f4caa1f9825814147fc9727da",
+  "request": {
+    "text": "Monkey?",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "913adeff4b151adeca852f46146c55a4589b19923490ea0128e37cb2494cddf0",
+  "requestId": "iwMPZUbrXxnGhP5f7HGj",
+  "createdAt": "2026-09-15T23:17:37.707Z"
+}

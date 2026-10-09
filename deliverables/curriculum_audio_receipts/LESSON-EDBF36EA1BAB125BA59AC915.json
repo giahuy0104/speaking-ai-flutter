@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T04-B01\\C810-L2-T04-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T04-B01-Q05",
+  "sourceText": "Bệnh viện: Hospital hay School?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bệnh viện:",
+      "spoken_text": "Bệnh viện:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Hospital",
+      "spoken_text": "Hospital",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "School?",
+      "spoken_text": "School?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-EDBF36EA1BAB125BA59AC915",
+  "text": "Bệnh viện: Hospital hay School?",
+  "asset": "assets/audio/CURRICULUM/edbf36ea1bab125ba59ac915.vi.v1.mp3",
+  "sha256": "7315e59dc09cb5782039fcbe75fec5f87612c6b8b28a40ddb60fe99ca311213a",
+  "durationSeconds": 3.819297
+}

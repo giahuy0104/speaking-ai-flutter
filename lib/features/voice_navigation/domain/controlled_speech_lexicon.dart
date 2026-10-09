@@ -1,3 +1,5 @@
+import 'homi_fallback_catalog.dart';
+
 enum ControlledSpeechState {
   root,
   translateMenu,
@@ -22,8 +24,12 @@ enum ControlledSpeechIntent {
   courseRestartCurrent,
   courseNextLesson,
   coursePreviousLesson,
+  vocabularyParentAdded,
   vocabularyPracticeAgain,
   vocabularyStars,
+  vocabularyLatest,
+  vocabularyAll,
+  vocabularyOtherContent,
 }
 
 class ControlledSpeechRule {
@@ -69,15 +75,20 @@ class ControlledSpeechMatch {
 class ControlledSpeechLexicon {
   const ControlledSpeechLexicon();
 
-  static const String version = 'V0.1';
+  static const String version = 'V0.2-homi-fallback';
 
-  static const List<ControlledSpeechRule> rules = <ControlledSpeechRule>[
+  /// The original controlled grammar plus the approved HOMI child variants.
+  ///
+  /// Each fallback intent is added only to its matching interaction state.
+  /// This is deliberate: phrases such as "nói lại" and "học lại" have
+  /// different meanings in a lesson, a vocabulary review, and a root menu.
+  static final List<ControlledSpeechRule> rules = <ControlledSpeechRule>[
     ControlledSpeechRule(
       intent: ControlledSpeechIntent.globalStop,
       states: <ControlledSpeechState>{},
       priority: 0,
       global: true,
-      phrases: <String>[
+      phrases: _mergePhrases('INT-001', <String>[
         'Dừng lại',
         'Dừng',
         'Thôi',
@@ -89,13 +100,13 @@ class ControlledSpeechLexicon {
         'Không muốn nữa',
         'Con không thích',
         'Im lặng',
-      ],
+      ]),
     ),
     ControlledSpeechRule(
       intent: ControlledSpeechIntent.navCourse,
       states: <ControlledSpeechState>{ControlledSpeechState.root},
       priority: 1,
-      phrases: <String>[
+      phrases: _mergePhrases('INT-002', <String>[
         'Học theo chủ đề',
         'Bắt đầu học',
         'Con muốn học',
@@ -107,13 +118,13 @@ class ControlledSpeechLexicon {
         'Học cái này',
         'Học bây giờ',
         'Chủ đề',
-      ],
+      ]),
     ),
     ControlledSpeechRule(
       intent: ControlledSpeechIntent.navVocabulary,
       states: <ControlledSpeechState>{ControlledSpeechState.root},
       priority: 1,
-      phrases: <String>[
+      phrases: _mergePhrases('INT-003', <String>[
         'Học từ mới',
         'Con muốn học từ',
         'Học từ vựng',
@@ -122,13 +133,13 @@ class ControlledSpeechLexicon {
         'Học từ',
         'Học mới',
         'Con học từ này',
-      ],
+      ]),
     ),
     ControlledSpeechRule(
       intent: ControlledSpeechIntent.navTranslate,
       states: <ControlledSpeechState>{ControlledSpeechState.root},
       priority: 1,
-      phrases: <String>[
+      phrases: _mergePhrases('INT-004', <String>[
         'Dịch sang tiếng Anh',
         'Dịch',
         'Con muốn dịch',
@@ -140,7 +151,7 @@ class ControlledSpeechLexicon {
         'Dịch câu này',
         'Dịch cái này',
         'Dịch từ',
-      ],
+      ]),
     ),
     ControlledSpeechRule(
       intent: ControlledSpeechIntent.translateSingle,
@@ -167,7 +178,7 @@ class ControlledSpeechLexicon {
       intent: ControlledSpeechIntent.translateContinuous,
       states: <ControlledSpeechState>{ControlledSpeechState.translateMenu},
       priority: 1,
-      phrases: <String>[
+      phrases: _mergePhrases('INT-006', <String>[
         'Dịch liên tục',
         'Dịch nhiều',
         'Dịch liên tiếp',
@@ -177,28 +188,32 @@ class ControlledSpeechLexicon {
         'Dịch nhiều câu',
         'Dịch tiếp',
         'Nói tiếp',
-      ],
+      ]),
     ),
     ControlledSpeechRule(
       intent: ControlledSpeechIntent.courseContinue,
       states: <ControlledSpeechState>{
         ControlledSpeechState.root,
         ControlledSpeechState.course,
+        ControlledSpeechState.vocabulary,
       },
       priority: 1,
-      phrases: <String>[
+      phrases: _mergePhrases('INT-007', <String>[
         'Tiếp tục học',
         'Học tiếp',
         'Tiếp tục bài này',
         'Học tiếp đi',
         'Con muốn học nữa',
-      ],
+        'Nghe tiếp',
+        'Nghe thêm',
+        'Luyện tiếp',
+      ]),
     ),
     ControlledSpeechRule(
       intent: ControlledSpeechIntent.courseNextSentence,
       states: <ControlledSpeechState>{ControlledSpeechState.course},
       priority: 1,
-      phrases: <String>[
+      phrases: _mergePhrases('INT-008', <String>[
         'Câu tiếp theo',
         'Qua câu tiếp',
         'Câu sau',
@@ -206,20 +221,20 @@ class ControlledSpeechLexicon {
         'Câu nữa',
         'Tiếp đi',
         'Câu tiếp',
-      ],
+      ]),
     ),
     ControlledSpeechRule(
       intent: ControlledSpeechIntent.coursePreviousSentence,
       states: <ControlledSpeechState>{ControlledSpeechState.course},
       priority: 1,
-      phrases: <String>[
+      phrases: _mergePhrases('INT-009', <String>[
         'Câu trước',
         'Quay lại câu trước',
         'Lùi một câu',
         'Câu hồi nãy',
         'Quay lại',
         'Về trước',
-      ],
+      ]),
     ),
     ControlledSpeechRule(
       intent: ControlledSpeechIntent.courseReplayCurrent,
@@ -228,7 +243,7 @@ class ControlledSpeechLexicon {
         ControlledSpeechState.translationResult,
       },
       priority: 1,
-      phrases: <String>[
+      phrases: _mergePhrases('INT-010', <String>[
         'Nghe lại',
         'Nói lại',
         'Đọc lại câu này',
@@ -237,25 +252,25 @@ class ControlledSpeechLexicon {
         'Nói lại đi',
         'Lặp lại',
         'Lần nữa',
-      ],
+      ]),
     ),
     ControlledSpeechRule(
       intent: ControlledSpeechIntent.courseRestartCurrent,
       states: <ControlledSpeechState>{ControlledSpeechState.course},
       priority: 1,
-      phrases: <String>[
+      phrases: _mergePhrases('INT-011', <String>[
         'Học lại từ đầu',
         'Học từ đầu',
         'Làm lại bài này',
         'Học lại',
         'Lại từ đầu',
-      ],
+      ]),
     ),
     ControlledSpeechRule(
       intent: ControlledSpeechIntent.courseNextLesson,
       states: <ControlledSpeechState>{ControlledSpeechState.course},
       priority: 1,
-      phrases: <String>[
+      phrases: _mergePhrases('INT-012', <String>[
         'Bài tiếp theo',
         'Qua bài mới',
         'Bài sau',
@@ -263,26 +278,37 @@ class ControlledSpeechLexicon {
         'Bài nữa',
         'Học bài khác',
         'Bài mới',
-      ],
+      ]),
     ),
     ControlledSpeechRule(
       intent: ControlledSpeechIntent.coursePreviousLesson,
       states: <ControlledSpeechState>{ControlledSpeechState.course},
       priority: 1,
-      phrases: <String>[
+      phrases: _mergePhrases('INT-013', <String>[
         'Bài trước',
         'Quay lại bài trước',
         'Bài hồi nãy',
         'Bài trước đó',
         'Quay lại bài cũ',
         'Bài lúc nãy',
+      ]),
+    ),
+    ControlledSpeechRule(
+      intent: ControlledSpeechIntent.vocabularyParentAdded,
+      states: <ControlledSpeechState>{ControlledSpeechState.vocabulary},
+      priority: 1,
+      phrases: <String>[
+        'Ba mẹ đã thêm',
+        'Học Ba mẹ đã thêm',
+        'Nghe Ba mẹ đã thêm',
+        'Nội dung Ba mẹ đã thêm',
       ],
     ),
     ControlledSpeechRule(
       intent: ControlledSpeechIntent.vocabularyPracticeAgain,
       states: <ControlledSpeechState>{ControlledSpeechState.vocabulary},
       priority: 1,
-      phrases: <String>[
+      phrases: _mergePhrases('INT-014', <String>[
         'Luyện lại',
         'Học lại phần chưa thuộc',
         'Luyện từ khó',
@@ -290,13 +316,13 @@ class ControlledSpeechLexicon {
         'Học lại',
         'Mấy câu khó',
         'Luyện nữa',
-      ],
+      ]),
     ),
     ControlledSpeechRule(
       intent: ControlledSpeechIntent.vocabularyStars,
       states: <ControlledSpeechState>{ControlledSpeechState.vocabulary},
       priority: 1,
-      phrases: <String>[
+      phrases: _mergePhrases('INT-015', <String>[
         'Ngôi sao của con',
         'Xem ngôi sao',
         'Học phần con đã thuộc',
@@ -305,14 +331,32 @@ class ControlledSpeechLexicon {
         'Xem sao',
         'Muốn ngôi sao',
         'Nhìn ngôi sao',
-      ],
+      ]),
+    ),
+    ControlledSpeechRule(
+      intent: ControlledSpeechIntent.vocabularyLatest,
+      states: <ControlledSpeechState>{ControlledSpeechState.vocabulary},
+      priority: 1,
+      phrases: <String>['Nội dung mới nhất', 'Ngôi sao mới nhất', 'Mới nhất'],
+    ),
+    ControlledSpeechRule(
+      intent: ControlledSpeechIntent.vocabularyAll,
+      states: <ControlledSpeechState>{ControlledSpeechState.vocabulary},
+      priority: 1,
+      phrases: <String>['Nghe lại tất cả', 'Nghe tất cả', 'Tất cả'],
+    ),
+    ControlledSpeechRule(
+      intent: ControlledSpeechIntent.vocabularyOtherContent,
+      states: <ControlledSpeechState>{ControlledSpeechState.vocabulary},
+      priority: 1,
+      phrases: <String>['Học nội dung khác', 'Nội dung khác', 'Học phần khác'],
     ),
     ControlledSpeechRule(
       intent: ControlledSpeechIntent.globalHelp,
       states: <ControlledSpeechState>{},
       priority: 2,
       global: true,
-      phrases: <String>[
+      phrases: _mergePhrases('INT-016', <String>[
         'Giúp con với',
         'Con không biết',
         'Phải làm gì?',
@@ -323,7 +367,7 @@ class ControlledSpeechLexicon {
         'Không hiểu',
         'Sao đây?',
         'Nói gì?',
-      ],
+      ]),
     ),
   ];
 
@@ -332,6 +376,16 @@ class ControlledSpeechLexicon {
     Map<String, List<_IndexedControlledSpeechRule>>
   >
   _index = _buildIndex();
+
+  static List<String> _mergePhrases(
+    String fallbackIntentId,
+    List<String> existingPhrases,
+  ) {
+    return <String>{
+      ...existingPhrases,
+      ...?HomiFallbackCatalog.childPhrasesByIntent[fallbackIntentId],
+    }.toList(growable: false);
+  }
 
   ControlledSpeechMatch? resolve(
     String transcript, {

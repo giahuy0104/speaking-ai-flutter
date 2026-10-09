@@ -10,6 +10,7 @@ import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_i
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_practice_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_review_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/song_karaoke_screen.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -105,6 +106,13 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
+    final voiceContext = registry.controller as ActiveLearningVoiceContext;
+    expect(voiceContext.mainVoiceNode, ActiveLearningVoiceNode.song);
+    expect(
+      voiceContext.mainVoicePrompt,
+      MasterNavigationContract.songControlPrompt,
+    );
+
     expect(await registry.pauseForMainAssistant(), isTrue);
     await tester.pump();
     expect(registry.isActiveModulePaused, isTrue);
@@ -122,6 +130,7 @@ void main() {
     await tester.pump(const Duration(seconds: 2));
     await tester.pump();
     expect(mediaService.playCalls, 1);
+    expect(mediaService.lastPlayPosition, const Duration(seconds: 9));
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
@@ -304,7 +313,13 @@ void main() {
     );
     await tester.pump();
     await tester.tap(find.byKey(const Key('skip-lesson-intro')));
-    await tester.pumpAndSettle();
+    for (
+      var attempt = 0;
+      attempt < 12 && find.byType(LessonPracticeScreen).evaluate().isEmpty;
+      attempt += 1
+    ) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
 
     expect(find.byType(SongKaraokeScreen), findsNothing);
     expect(find.byType(LessonReviewScreen), findsNothing);
@@ -451,6 +466,7 @@ class _KaraokeMediaService extends LessonMediaService {
   int playToCompletionCalls = 0;
   int preloadCalls = 0;
   int stopCalls = 0;
+  Duration? lastPlayPosition;
   bool playing = false;
   bool _disposed = false;
 
@@ -478,8 +494,14 @@ class _KaraokeMediaService extends LessonMediaService {
   Future<void> unlockPlaybackForUserGesture() async {}
 
   @override
-  Future<void> play(Uri uri) async {
+  Future<void> play(
+    Uri uri, {
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
+  }) async {
     playCalls += 1;
+    lastPlayPosition = position;
     playing = true;
     if (!_disposed) {
       _playingController.add(true);
@@ -490,6 +512,9 @@ class _KaraokeMediaService extends LessonMediaService {
   Future<void> playToCompletion(
     Uri uri, {
     Duration timeout = const Duration(seconds: 45),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
   }) async {
     playToCompletionCalls += 1;
   }
@@ -522,6 +547,11 @@ class _KaraokeMediaService extends LessonMediaService {
 }
 
 class _MemoryProgressStore extends ListeningProgressStore {
+  @override
+  Future<bool> hasStartedLessonCore(String lessonId) async => false;
+
+  @override
+  Future<void> markLessonCoreStarted(String lessonId) async {}
   const _MemoryProgressStore();
 
   @override

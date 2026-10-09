@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T10-B01\\C1112-L3-T10-B01-Q01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T10-B01-Q01",
+  "sourceText": "Tắt đèn: Turn off the lights hay Save water?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Tắt đèn:",
+      "spoken_text": "Tắt đèn:",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "text": "Turn off the lights",
+      "spoken_text": "Turn off the lights",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "text": "Save water?",
+      "spoken_text": "Save water?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-F28EF2FB54963A03928B86E9",
+  "text": "Tắt đèn: Turn off the lights hay Save water?",
+  "asset": "assets/audio/CURRICULUM/f28ef2fb54963a03928b86e9.vi.v1.mp3",
+  "sha256": "35073e51fd9af7446c562f973357d62bbd0e15a5fef3575074d1ccccdd7099a2",
+  "durationSeconds": 4.254512
+}

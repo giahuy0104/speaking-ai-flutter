@@ -1,0 +1,20 @@
+{
+  "signature": "aa0949fe8a4e9c71943040bc433d7dad078c1ff302cda8cf1aab4424458335f9",
+  "request": {
+    "text": "Help a Friend",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "86164559117ff7a7ae339e94acb1b041adb1f5861ade5efcb582ad917eaadcc4",
+  "requestId": "LleAjRYM4TrJEuKwUtON",
+  "createdAt": "2026-09-15T23:27:15.174Z"
+}

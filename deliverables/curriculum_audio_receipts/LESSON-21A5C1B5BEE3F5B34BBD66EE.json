@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T05-B02\\C810-L2-T05-B02-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T05-B02-Q08",
+  "sourceText": "HOMI nói: Cold today. Bạn chọn việc phù hợp. Wear a jacket hay Play outside?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 46
+    },
+    {
+      "language": "en",
+      "text": "Cold today.",
+      "spoken_text": "Cold today.",
+      "input_index": 47
+    },
+    {
+      "language": "vi",
+      "text": "Bạn chọn việc phù hợp.",
+      "spoken_text": "Bạn chọn việc phù hợp.",
+      "input_index": 48
+    },
+    {
+      "language": "en",
+      "text": "Wear a jacket",
+      "spoken_text": "Wear a jacket",
+      "input_index": 49
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 50
+    },
+    {
+      "language": "en",
+      "text": "Play outside?",
+      "spoken_text": "Play outside?",
+      "input_index": 51
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-21A5C1B5BEE3F5B34BBD66EE",
+  "text": "HOMI nói: Cold today. Bạn chọn việc phù hợp. Wear a jacket hay Play outside?",
+  "asset": "assets/audio/CURRICULUM/21a5c1b5bee3f5b34bbd66ee.vi.v1.mp3",
+  "sha256": "8575c04c40077358e4d97966564855486d2c88a30e39c5ce4488ed904c583857",
+  "durationSeconds": 8.487823
+}

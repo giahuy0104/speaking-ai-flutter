@@ -1,0 +1,20 @@
+RESTORE CONFIRMED — 2026-09-17 21:16 local time
+Device: ORH6S4ZT85BMWGSK
+Package: com.innotrik.aispeaking
+Original APK: original-release-2011.apk
+adb install -r: Performing Streamed Install / Success (exit 0)
+Version: 1.0.8, versionCode 2011
+Package lastUpdateTime: 2026-09-17 21:16:01
+
+SHA256 original backup:
+e68b7f6b2f56c34daba8843c649932b5a856ba7b5fdbdc289e427b8db98f4965
+SHA256 restored build/app/outputs/flutter-apk/app-release.apk:
+e68b7f6b2f56c34daba8843c649932b5a856ba7b5fdbdc289e427b8db98f4965
+SHA256 base.apk read directly on the connected Android device:
+e68b7f6b2f56c34daba8843c649932b5a856ba7b5fdbdc289e427b8db98f4965
+
+Launched com.innotrik.aispeaking/.MainActivity successfully.
+Home UI captured in 36-restored.xml; no app uninstall or data clear performed.
+Diagnostic APK remains only as a local evidence artifact, not installed.
+Normal app testing created recordings/a translation history item and may have saved learning position.
+No production code or audio assets were changed during this diagnostic audit.

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T02-B01\\C1112-L1-T02-B01-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T02-B01-Q06",
+  "sourceText": "Bạn muốn diễn đạt \"Xem lại ghi chú\". Practice English hay Review notes?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Xem lại ghi chú\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Xem lại ghi chú\".",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Practice English",
+      "spoken_text": "Practice English",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Review notes?",
+      "spoken_text": "Review notes?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9888E68A30B42EA9B9CB5CB8",
+  "text": "Bạn muốn diễn đạt \"Xem lại ghi chú\". Practice English hay Review notes?",
+  "asset": "assets/audio/CURRICULUM/9888e68a30b42ea9b9cb5cb8.vi.v1.mp3",
+  "sha256": "04dfd903d3c19dd34e9b0215ecd0dd29ef85d30361362bdea2f8d28605df3231",
+  "durationSeconds": 6.745873
+}

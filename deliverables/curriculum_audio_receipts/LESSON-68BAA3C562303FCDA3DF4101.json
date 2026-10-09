@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T03-B01\\C67-L1-T03-B01-Q01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T03-B01-Q01",
+  "sourceText": "Con voi: Elephant hay Mouse?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Con voi:",
+      "spoken_text": "Con voi:",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "text": "Elephant",
+      "spoken_text": "Elephant",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "text": "Mouse?",
+      "spoken_text": "Mouse?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-68BAA3C562303FCDA3DF4101",
+  "text": "Con voi: Elephant hay Mouse?",
+  "asset": "assets/audio/CURRICULUM/68baa3c562303fcda3df4101.vi.v1.mp3",
+  "sha256": "e4300ff20c938d49b58cec7a296b91edeedf60228363485c8d422e35636213b4",
+  "durationSeconds": 4.013625
+}

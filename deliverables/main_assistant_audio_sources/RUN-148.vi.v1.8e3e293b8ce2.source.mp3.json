@@ -1,0 +1,20 @@
+{
+  "id": "RUN-148",
+  "signature": "8e3e293b8ce2c29b2b4903add42042ef5c1573145d3ab0214c9c605e37abc3c0",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn đã hoàn thành khóa học rồi!",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:15:36.062Z",
+  "requestId": "DWF6QlAmb9jREKVMTyMV",
+  "characterCost": "17",
+  "sourceSha256": "c2765e89a9f6c5b023288c7cb0dbc1abb7905d0330e813d36ec68b2b4f7ee7bf"
+}

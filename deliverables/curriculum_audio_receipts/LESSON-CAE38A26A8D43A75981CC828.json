@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T04-B02\\C810-L2-T04-B02-T05_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T04-B02-T05_VI",
+  "sourceText": "Bên cạnh trường học.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bên cạnh trường học.",
+      "generation_key": "c5c0e3a65919c2a9"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-CAE38A26A8D43A75981CC828",
+  "text": "Bên cạnh trường học.",
+  "asset": "assets/audio/CURRICULUM/cae38a26a8d43a75981cc828.vi.v1.mp3",
+  "sha256": "0bad9f81cebe39e9cd736d5f2c8bfbf456ffcda5ab0573cdc8ae2021544a416f",
+  "durationSeconds": 1.675034
+}

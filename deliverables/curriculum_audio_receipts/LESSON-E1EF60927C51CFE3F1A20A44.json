@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T08\\C810-L3-M04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-M04",
+  "sourceText": "Bạn cần nói \"Bạn ổn không\". Are you okay? hay I'm sad?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần nói \"Bạn ổn không\".",
+      "text": "Bạn cần nói \"Bạn ổn không\".",
+      "spoken_text": "Bạn cần nói \"Bạn ổn không\".",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "source_text": "Are you okay?",
+      "text": "Are you okay?",
+      "spoken_text": "Are you okay?",
+      "input_index": 21
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 22
+    },
+    {
+      "language": "en",
+      "source_text": "I'm sad?",
+      "text": "I'm sad?",
+      "spoken_text": "I'm sad?",
+      "input_index": 23
+    }
+  ],
+  "sourceSha256": "ee7fc6203ed6c1ece1ee140700fcc56b03420912dcfe06c6f86812bb815979f2",
+  "id": "LESSON-E1EF60927C51CFE3F1A20A44",
+  "text": "Bạn cần nói \"Bạn ổn không\". Are you okay? hay I'm sad?",
+  "asset": "assets/audio/CURRICULUM/e1ef60927c51cfe3f1a20a44.vi.v1.mp3",
+  "sha256": "ee7fc6203ed6c1ece1ee140700fcc56b03420912dcfe06c6f86812bb815979f2",
+  "durationSeconds": 5.325374
+}

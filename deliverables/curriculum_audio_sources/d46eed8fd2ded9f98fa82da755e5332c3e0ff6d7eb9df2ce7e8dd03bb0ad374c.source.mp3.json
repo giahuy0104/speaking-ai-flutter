@@ -1,0 +1,20 @@
+{
+  "signature": "d46eed8fd2ded9f98fa82da755e5332c3e0ff6d7eb9df2ce7e8dd03bb0ad374c",
+  "request": {
+    "text": "Food Words.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "27ceedec227508b1b221e04800bb9b8c0fde1cdff4c2fb4cc729bf2ce176e605",
+  "requestId": "l5OqQuj9rCenhl8kdD8d",
+  "createdAt": "2026-09-15T23:23:59.881Z"
+}

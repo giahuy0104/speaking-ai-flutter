@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07\\C1112-L3-M03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-M03",
+  "sourceText": "Bạn cần diễn đạt \"Bận Chủ nhật\". Busy Sunday hay At three?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Bận Chủ nhật\".",
+      "text": "Bạn cần diễn đạt \"Bận Chủ nhật\".",
+      "spoken_text": "Bạn cần diễn đạt \"Bận Chủ nhật\".",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "source_text": "Busy Sunday",
+      "text": "Busy Sunday",
+      "spoken_text": "Busy Sunday",
+      "input_index": 15
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 16
+    },
+    {
+      "language": "en",
+      "source_text": "At three?",
+      "text": "At three?",
+      "spoken_text": "At three?",
+      "input_index": 17
+    }
+  ],
+  "sourceSha256": "fc22d142794b4056f16f22eb952ea2bef8f1a5f1a97347b81b3ff285a4184762",
+  "id": "LESSON-BE80765E7868BF6DF625BB67",
+  "text": "Bạn cần diễn đạt \"Bận Chủ nhật\". Busy Sunday hay At three?",
+  "asset": "assets/audio/CURRICULUM/be80765e7868bf6df625bb67.vi.v1.mp3",
+  "sha256": "fc22d142794b4056f16f22eb952ea2bef8f1a5f1a97347b81b3ff285a4184762",
+  "durationSeconds": 5.943673
+}

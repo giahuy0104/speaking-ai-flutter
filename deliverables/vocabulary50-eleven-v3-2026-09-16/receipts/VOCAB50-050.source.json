@@ -1,0 +1,22 @@
+{
+  "id": "VOCAB50-050",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+  "request": {
+    "text": "One more time.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "FhNUVW0rPp4RuMnB3srL",
+  "historyItemId": "uw7yQVCyrVd3L6FtrwD0",
+  "characterCost": "8",
+  "createdAt": "2026-09-16T03:21:30.242Z",
+  "sourceSha256": "1bfed4389342e5df1c5b85c282aa6dcef84a1cf8ccb5cce0d2e344e465b465b2"
+}

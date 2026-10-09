@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T01-B01\\C1112-L1-T01-B01-T04_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T01-B01-T04_VI",
+  "sourceText": "Phụ giúp ở nhà.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Phụ giúp ở nhà.",
+      "generation_key": "0ab3fe265dd46910"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-A1BF5FAE68748AE980E1F8E8",
+  "text": "Phụ giúp ở nhà.",
+  "asset": "assets/audio/CURRICULUM/a1bf5fae68748ae980e1f8e8.vi.v1.mp3",
+  "sha256": "546de8cc693b7da2ca49c6914d0b89b7d3f90ba463c80446ca683bee9052be65",
+  "durationSeconds": 1.58737
+}

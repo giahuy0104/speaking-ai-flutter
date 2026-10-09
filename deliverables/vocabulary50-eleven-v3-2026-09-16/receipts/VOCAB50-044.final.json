@@ -1,0 +1,22 @@
+{
+  "number": 44,
+  "id": "VOCAB50-044",
+  "text": "Nghe lại rồi thử nhé.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "reserve-variant",
+  "file": "audio/VOCAB50-044.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "838189ceaba9aaf447ee6b2f49435d277c5cbcbfdee936d3720c694f5dd93aa8",
+  "bytes": 20942,
+  "sourceDurationSeconds": 1.12,
+  "durationSeconds": 1.228821,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "kdz6ChWTUMbXVkrm66RF",
+  "characterCost": "12",
+  "createdAt": "2026-09-16T03:21:22.618Z"
+}

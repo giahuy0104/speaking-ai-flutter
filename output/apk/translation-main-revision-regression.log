@@ -1,0 +1,319 @@
+Resolving dependencies...
+Downloading packages...
+  archive 4.0.9 (4.3.0 available)
+  cli_util 0.4.2 (0.6.0 available)
+  clock 1.1.2 (1.1.3 available)
+  code_assets 1.2.1 (2.0.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  image 4.9.1 (4.10.1 available)
+  jni 1.0.0 (1.0.3 available)
+  jni_flutter 1.0.1 (1.0.3 available)
+  local_auth_android 2.0.9 (2.0.10 available)
+  local_auth_darwin 2.0.3 (2.0.4 available)
+  local_auth_windows 2.0.1 (2.0.2 available)
+  matcher 0.12.19 (0.12.20 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.0 (1.19.0 available)
+  objective_c 9.4.1 (9.6.0 available)
+  package_config 2.2.0 (3.0.0 available)
+  platform 3.1.6 (3.2.0 available)
+  posix 6.5.0 (6.5.2 available)
+  pub_semver 2.2.0 (2.2.1 available)
+  record_android 2.1.2 (2.2.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  record_web 2.1.1 (2.1.3 available)
+  record_windows 2.2.2 (2.3.0 available)
+  shared_preferences_android 2.4.27 (2.4.28 available)
+  shared_preferences_foundation 2.5.6 (2.5.7 available)
+  stack_trace 1.12.1 (1.12.2 available)
+  synchronized 3.4.1 (3.4.2 available)
+  test_api 0.7.11 (0.7.14 available)
+  url_launcher_android 6.3.32 (6.3.33 available)
+  url_launcher_ios 6.4.1 (6.4.2 available)
+  url_launcher_linux 3.2.2 (3.2.3 available)
+  url_launcher_macos 3.2.5 (3.2.6 available)
+  url_launcher_windows 3.1.5 (3.1.6 available)
+  vector_math 2.2.0 (2.4.2 available)
+  vm_service 15.2.0 (15.3.0 available)
+  win32 6.3.0 (6.4.0 available)
+  yaml 3.1.3 (3.1.4 available)
+Got dependencies!
+37 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/active_learning_command_resolver_test.dart
+00:00 +0: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/active_learning_command_resolver_test.dart: maps Vietnamese active lesson commands deterministically
+00:00 +1: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/active_learning_command_resolver_test.dart: does not treat lesson content as a control command
+00:00 +2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/active_learning_command_resolver_test.dart: maps skip to next item only inside Vocabulary
+00:00 +3: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/controlled_speech_lexicon_test.dart: contains the approved HOMI fallback expansion of the controlled grammar
+00:00 +4: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/controlled_speech_lexicon_test.dart: every controlled phrase resolves to its declared intent
+00:00 +5: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/controlled_speech_lexicon_test.dart: routes duplicated phrases by the current state
+00:00 +6: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/controlled_speech_lexicon_test.dart: normalizes Vietnamese accents, punctuation and whitespace
+00:00 +7: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/controlled_speech_lexicon_test.dart: global stop wins across N-best candidates and every state
+00:00 +8: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/controlled_speech_lexicon_test.dart: does not guess from an uncontrolled sentence
+00:00 +9: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/homi_fallback_catalog_test.dart: HomiFallbackCatalog preserves the approved catalog counts and structurally valid records
+00:00 +10: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/homi_fallback_catalog_test.dart: HomiFallbackCatalog keeps colliding commands explicit for state-aware callers
+00:00 +11: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/homi_fallback_catalog_test.dart: HomiFallbackCatalog recognizes representative controlled-command fallback variants
+00:00 +12: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/homi_fallback_catalog_test.dart: HomiFallbackCatalog provides main-assistant yes, no, and number choices safely
+00:00 +13: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/homi_fallback_catalog_test.dart: HomiFallbackCatalog keeps continuous translation requests out of one-shot translation
+00:00 +14: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/homi_fallback_catalog_test.dart: HomiFallbackCatalog accepts approved HOMI wake-word variants but not incidental mentions
+00:00 +15: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_assistant_session_test.dart: rejects MAIN while conversation owns audio outside learning
+00:00 +16: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_assistant_session_test.dart: pauses learning before activating MAIN with typed context
+00:00 +17: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_assistant_session_test.dart: failed MAIN activation resumes the interrupted learning module
+00:00 +18: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_assistant_session_test.dart: serializes repeated MAIN activation attempts
+00:01 +19: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_speaking_command_resolver_test.dart: detects requests to learn something else
+00:01 +20: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_speaking_command_resolver_test.dart: only the exact approved stop exits continuous translation
+00:01 +21: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_speaking_command_resolver_test.dart: keeps unapproved non-translation stop requests out of this flow
+00:01 +22: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_speaking_command_resolver_test.dart: keeps ordinary speaking sentences in the translation flow
+00:01 +23: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_speaking_fallback_flow_test.dart: leave translation hands the choice to navigation immediately
+00:01 +24: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_speaking_fallback_flow_test.dart: only exact Dừng lại exits, other stop phrases remain translation content
+00:01 +25: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_speaking_fallback_flow_test.dart: help repeats translation guidance without switching module
+00:01 +26: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_speaking_session_controller_test.dart: exits speaking mode after ten seconds of waiting for Main
+00:01 +27: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_speaking_session_controller_test.dart: suspends idle timeout while a speaking turn is active
+00:01 +28: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_speaking_session_controller_test.dart: repeated synchronization does not extend the ready timeout
+00:01 +29: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: fast path accepts unambiguous fallback phrases but defers broad input
+00:01 +30: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: fast path accepts unambiguous fallback phrases but defers broad input
+00:01 +31: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: fast path accepts unambiguous fallback phrases but defers broad input
+00:01 +32: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: fast path accepts unambiguous fallback phrases but defers broad input
+00:01 +33: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_speaking_session_controller_test.dart: does not open assistant until current capture is cancelled
+00:01 +34: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: chooses continuous translation after the Main menu
+00:01 +35: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: chooses continuous translation after the Main menu
+00:01 +36: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: accepts short child-friendly continuous speaking choices
+00:01 +37: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: opens continuous translation directly from the Main choice
+00:01 +38: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: after translation stop offers topic, vocabulary, or stop
+00:01 +39: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: offers all three top-level choices from Main
+00:01 +40: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: learned parent words hand off to the shared vocabulary flow
+00:01 +41: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: accepts every D04 topic-learning synonym from Main
+00:01 +42: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: accepts every D05 vocabulary-learning synonym from Main
+00:01 +43: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: vocabulary content selection belongs to the destination screen
+00:01 +44: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: moves to the next sentence in an active lesson
+00:01 +45: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: active lesson prompt offers pause and leaving the lesson
+00:01 +46: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: accepts a natural phrase containing next
+00:02 +47: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: moves to the previous sentence in an active lesson
+00:02 +48: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: maps every D07 and D08 command to the active lesson module
+00:02 +49: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: routes the workbook phrase Học bài khác to the next lesson in an active course
+00:02 +50: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: offers translation or vocabulary after leaving an active lesson
+00:02 +51: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: can choose translation after leaving an active lesson
+00:02 +52: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: missing profile age is handed to Topics without asking for spoken age
+00:02 +53: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: uses the saved age and skips asking age for topic learning
+00:02 +54: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: offers topics or vocabulary after leaving speaking practice
+00:02 +55: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: understands Vietnamese number words and rejects out-of-range choices
+00:02 +56: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: does not treat its own spoken prompts as child selections
+00:02 +57: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every literal MAIN sample hands off to the correct existing module
+00:02 +58: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every literal MAIN sample hands off to the correct existing module
+00:02 +59: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every literal MAIN sample hands off to the correct existing module
+00:02 +60: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every literal MAIN sample hands off to the correct existing module
+00:02 +61: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every literal MAIN sample hands off to the correct existing module
+00:02 +62: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every literal MAIN sample hands off to the correct existing module
+00:02 +63: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every literal MAIN sample hands off to the correct existing module
+00:02 +64: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every literal MAIN sample hands off to the correct existing module
+00:02 +65: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every literal MAIN sample hands off to the correct existing module
+00:02 +66: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every literal MAIN sample hands off to the correct existing module
+00:02 +67: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every literal MAIN sample hands off to the correct existing module
+00:02 +68: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every literal MAIN sample hands off to the correct existing module
+00:02 +69: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every literal MAIN sample hands off to the correct existing module
+00:02 +70: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every literal MAIN sample hands off to the correct existing module
+00:02 +71: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every literal MAIN sample hands off to the correct existing module
+00:02 +72: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: MAIN does not guess from an embedded destination or closed-choice answer
+00:02 +73: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: after stop and switch menus accept continue translation in their own state
+00:02 +74: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: numbers are scoped to the current menu and cannot come from free speech
+00:02 +75: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: paused choice retains its question and allowed topics for reactivation
+00:02 +76: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: vocabulary choices are closed and replay keeps its scope
+00:02 +77: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: unsupported activity commands cannot escape to generic grammar
+00:02 +78: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: active context supplies help and stop without touching study data
+00:02 +79: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: FINAL T09 repairs ambiguous lesson continuation and rejects locked numbers
+00:02 +80: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: MAIN-only configuration never starts or acknowledges voice wake
+00:02 +81: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: two silent active-module windows dispatch STOP rather than resume
+00:02 +82: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: silent topic selection resumes the same Level when MAIN is pressed again
+00:02 +83: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: silent topic selection resumes the same Level when MAIN is pressed again
+00:02 +84: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_intent_resolver_test.dart: VoiceNavigationIntentResolver recognizes vocabulary commands with and without accents
+00:02 +85: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: navigation transcript is handled without entering conversation
+00:02 +86: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_intent_resolver_test.dart: VoiceNavigationIntentResolver recognizes all supported topic-learning synonyms
+00:02 +87: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main button speaks the menu then starts the speaking flow
+00:02 +88: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main button speaks the menu then starts the speaking flow
+00:02 +89: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main button speaks the menu then starts the speaking flow
+00:02 +90: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main button speaks the menu then starts the speaking flow
+00:02 +91: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main button speaks the menu then starts the speaking flow
+00:02 +92: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main button speaks the menu then starts the speaking flow
+00:02 +93: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main button speaks the menu then starts the speaking flow
+00:03 +93: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/web_batch_streaming_speech_input_test.dart: uploads Web MAIN audio while speaking and finalizes Batch
+{"event":"main_cloud_batch_latency","audioStartMs":1,"uploadSessionReadyMs":1,"firstChunkMs":4,"speechDetectedMs":3,"captureStopMs":0,"batchFinalizeMs":2,"totalMs":7,"usedBluetoothInput":false}
+00:03 +94: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main button speaks the menu then starts the speaking flow
+00:03 +94: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/web_batch_streaming_speech_input_test.dart: emits completed after speech followed by VAD silence
+{"event":"main_cloud_batch_latency","audioStartMs":0,"uploadSessionReadyMs":0,"firstChunkMs":null,"speechDetectedMs":0,"captureStopMs":0,"batchFinalizeMs":0,"totalMs":18,"usedBluetoothInput":false}
+00:03 +95: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main button speaks the menu then starts the speaking flow
+00:03 +96: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main button speaks the menu then starts the speaking flow
+00:03 +96: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/web_batch_streaming_speech_input_test.dart: opens the native HFP route before iOS MAIN capture
+{"event":"main_cloud_batch_latency","audioStartMs":0,"uploadSessionReadyMs":0,"firstChunkMs":null,"speechDetectedMs":0,"captureStopMs":0,"batchFinalizeMs":0,"totalMs":1,"usedBluetoothInput":false}
+00:03 +97: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main button speaks the menu then starts the speaking flow
+00:03 +97: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/web_batch_streaming_speech_input_test.dart: uses the phone recorder when the iOS HFP route fails
+HOMI Batch HFP route failed; falling back to phone mic: HFP route unavailable
+00:03 +98: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main button speaks the menu then starts the speaking flow
+00:03 +99: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: MAIN handles an unambiguous fallback phrase from a stable partial
+00:03 +100: D:/Documents/ai-speaking-flutter-app/test/features/conversation/continuous_translation_session_test.dart: deduplicates one pending start and resets before the next turn
+00:03 +101: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS MAIN prompts use the selected H20 media output
+00:03 +102: D:/Documents/ai-speaking-flutter-app/test/features/conversation/continuous_translation_session_test.dart: primary action unlocks playback before manually stopping
+00:03 +103: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Android MAIN prompts use the selected H20 HFP output
+00:03 +104: D:/Documents/ai-speaking-flutter-app/test/features/conversation/continuous_translation_session_test.dart: push-to-talk released while opening stops as soon as mic is ready
+00:03 +105: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main opens the microphone when the native ready cue never completes
+00:03 +106: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main opens the microphone when the native ready cue never completes
+00:03 +107: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main opens the microphone when the native ready cue never completes
+00:03 +108: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main opens the microphone when the native ready cue never completes
+00:03 +109: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main opens the microphone when the native ready cue never completes
+00:03 +110: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main opens the microphone when the native ready cue never completes
+00:03 +111: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main opens the microphone when the native ready cue never completes
+00:03 +112: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main opens the microphone when the native ready cue never completes
+00:03 +113: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main opens the microphone when the native ready cue never completes
+00:03 +114: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:03 +115: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:03 +116: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:03 +117: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:03 +117: D:/Documents/ai-speaking-flutter-app/test/features/conversation/h20_hardware_diagnostics_test.dart: confirmed MAIN toggles offline recording and duplicate is ignored
+H20 MAIN: received • seq=1 • actionable
+H20 MAIN: dispatching • shortPress • seq=1
+H20 MAIN: accepted • seq=1
+H20 MAIN: received • seq=1 • duplicate
+H20 MAIN: duplicate ignored • seq=1
+H20 MAIN: received • seq=2 • actionable
+H20 MAIN: dispatching • shortPress • seq=2
+H20 MAIN: accepted • seq=2
+00:03 +118: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:03 +118: D:/Documents/ai-speaking-flutter-app/test/features/conversation/h20_hardware_diagnostics_test.dart: observed raw MAIN toggles capture without APP State writes
+H20 MAIN: received • seq=16 • actionable
+H20 MAIN: dispatching • shortPress • seq=16
+H20 MAIN: accepted • seq=16
+00:03 +119: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:03 +120: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:03 +121: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:04 +121: D:/Documents/ai-speaking-flutter-app/test/features/conversation/h20_hardware_diagnostics_test.dart: BLE long press stops once and release does not restart capture
+H20 MAIN: received • seq=1 • actionable
+H20 MAIN: dispatching • shortPress • seq=1
+H20 MAIN: accepted • seq=1
+H20 MAIN: received • seq=2 • actionable
+H20 MAIN: dispatching • longPress • seq=2
+H20 MAIN: accepted • seq=2
+H20 MAIN: received • seq=2 • actionable
+H20 MAIN: dispatching • release • seq=2
+H20 MAIN: accepted • seq=2
+00:04 +122: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:04 +123: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:04 +124: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:04 +125: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:04 +126: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:04 +127: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:04 +128: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:04 +129: D:/Documents/ai-speaking-flutter-app/test/features/conversation/h20_hardware_diagnostics_test.dart: completed turn stays blocked until its microphone cleanup finishes
+00:04 +130: D:/Documents/ai-speaking-flutter-app/test/features/conversation/h20_hardware_diagnostics_test.dart: completed turn stays blocked until its microphone cleanup finishes
+00:04 +131: D:/Documents/ai-speaking-flutter-app/test/features/conversation/h20_hardware_diagnostics_test.dart: completed turn stays blocked until its microphone cleanup finishes
+00:04 +132: D:/Documents/ai-speaking-flutter-app/test/features/conversation/h20_hardware_diagnostics_test.dart: completed turn stays blocked until its microphone cleanup finishes
+00:04 +133: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +134: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +135: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +136: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +137: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +138: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +139: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +140: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +141: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +142: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +143: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +144: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +145: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +146: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +147: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +148: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +149: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +150: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +151: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +152: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +153: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +154: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +155: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +156: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +157: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +158: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +159: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +160: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +161: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +162: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +163: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +164: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +165: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +166: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +167: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Main speaking turn waits for its configured no-speech timeout
+00:04 +168: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: prepares Worker transcript during silence and commits without Batch or duplicate ASR
+00:04 +169: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: prepares Worker transcript during silence and commits without Batch or duplicate ASR
+00:04 +170: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: prepares Worker transcript during silence and commits without Batch or duplicate ASR
+00:04 +171: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: manual MAIN stop asks the child to retry when Android reports no speech
+00:05 +172: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: manual MAIN stop asks the child to retry when Android reports no speech
+00:05 +173: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: manual MAIN stop asks the child to retry when Android reports no speech
+00:05 +174: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: manual MAIN stop asks the child to retry when Android reports no speech
+00:05 +175: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: manual MAIN stop asks the child to retry when Android reports no speech
+00:05 +176: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: manual MAIN stop asks the child to retry when Android reports no speech
+00:05 +177: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: manual MAIN stop asks the child to retry when Android reports no speech
+00:05 +178: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: manual MAIN stop asks the child to retry when Android reports no speech
+00:05 +179: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: retries a transient speculative preview on the same PCM snapshot
+00:05 +180: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: retries a transient speculative preview on the same PCM snapshot
+00:05 +181: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: retries a transient speculative preview on the same PCM snapshot
+00:05 +182: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: retries a transient speculative preview on the same PCM snapshot
+00:05 +183: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: retries a transient speculative preview on the same PCM snapshot
+00:05 +184: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: retries a transient speculative preview on the same PCM snapshot
+00:05 +185: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: retries a transient speculative preview on the same PCM snapshot
+00:05 +186: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: retries a transient speculative preview on the same PCM snapshot
+00:05 +187: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: retries a transient speculative preview on the same PCM snapshot
+00:05 +188: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: retries a transient speculative preview on the same PCM snapshot
+00:05 +189: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: long MAIN suppresses a translation already processing
+00:05 +190: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: long MAIN suppresses a translation already processing
+00:05 +191: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: long MAIN suppresses a translation already processing
+00:05 +192: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: long MAIN suppresses a translation already processing
+00:05 +193: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: long MAIN suppresses a translation already processing
+00:05 +194: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: long MAIN suppresses a translation already processing
+00:05 +195: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: long MAIN suppresses a translation already processing
+00:05 +196: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: long MAIN suppresses a translation already processing
+00:05 +197: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: long MAIN suppresses a translation already processing
+00:05 +198: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: long MAIN suppresses a translation already processing
+00:05 +199: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: long MAIN suppresses a translation already processing
+00:05 +200: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: long MAIN suppresses a translation already processing
+00:05 +201: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: long MAIN suppresses a translation already processing
+00:06 +202: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: keeps late preview HTTP work alive without delaying finalize
+00:07 +202: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: native transcript is corrected before online conversation translation
+Applied an exact on-device Vietnamese transcript correction.
+00:07 +203: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: keeps late preview HTTP work alive without delaying finalize
+00:07 +204: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Android partial transcript ends the turn after a quiet window even without further RMS events
+00:07 +205: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Android partial transcript ends the turn after a quiet window even without further RMS events
+00:07 +206: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Android partial transcript ends the turn after a quiet window even without further RMS events
+00:07 +207: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Android partial transcript ends the turn after a quiet window even without further RMS events
+00:07 +208: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Android partial transcript ends the turn after a quiet window even without further RMS events
+00:07 +209: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Android partial transcript ends the turn after a quiet window even without further RMS events
+00:07 +210: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Android partial transcript ends the turn after a quiet window even without further RMS events
+00:07 +211: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Android partial transcript ends the turn after a quiet window even without further RMS events
+00:07 +212: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Android partial transcript ends the turn after a quiet window even without further RMS events
+00:07 +213: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Android partial transcript ends the turn after a quiet window even without further RMS events
+00:07 +214: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Android partial transcript ends the turn after a quiet window even without further RMS events
+00:07 +215: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Android partial transcript ends the turn after a quiet window even without further RMS events
+00:07 +216: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Android partial transcript ends the turn after a quiet window even without further RMS events
+00:07 +217: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Android partial transcript ends the turn after a quiet window even without further RMS events
+00:07 +218: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Android partial transcript ends the turn after a quiet window even without further RMS events
+00:07 +219: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Android partial transcript ends the turn after a quiet window even without further RMS events
+00:07 +220: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Android partial transcript ends the turn after a quiet window even without further RMS events
+00:07 +221: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: Android partial transcript ends the turn after a quiet window even without further RMS events
+00:08 +222: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: opens vocabulary, returns to communication, and opens topics
+00:08 +223: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: one-word Android partial also ends after the quiet window
+00:08 +224: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: protects settings with the parent access gate
+00:08 +225: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: Android opens settings directly when no gate is injected
+00:09 +226: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: Android opens recent history without device authentication
+00:09 +227: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: Android changes the listening age group without device authentication
+00:09 +228: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: reports settings modal visibility until the sheet closes
+00:10 +229: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: iOS keeps header, side navigation, and hardware MAIN flow
+00:10 +230: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: opens vocabulary from a recognized voice command
+00:11 +231: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: starts continuous voice navigation on Android
+00:11 +232: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: pauses Android voice navigation whenever the app leaves foreground
+00:12 +233: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: keeps an explicit Android MAIN command mic alive in background
+00:12 +234: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: rearms an Android background session without opening a busy microphone
+00:12 +235: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: promotes a companion-restored Android session when the app is visible
+00:12 +236: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: MAIN rejects free lesson selection before a module is chosen
+00:12 +237: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: iOS restores an active lesson checkpoint only after returning foreground
+00:12 +238: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: Main flow uses the saved age and topic owner to open the first lesson
+00:13 +239: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: Main speaking choice hands off to the automatic speaking session
+00:13 +240: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: translation choice enters continuous translation directly
+00:13 +241: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: leaving listening waits for the continuous translation microphone handoff
+00:14 +242: All tests passed!

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07-B03\\C1112-L3-T07-B03-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T07-B03-Q03",
+  "sourceText": "Xin lỗi, mình bận: Sorry, I'm busy hay Maybe another time?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Xin lỗi, mình bận:",
+      "spoken_text": "Xin lỗi, mình bận:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Sorry, I'm busy",
+      "spoken_text": "Sorry, I'm busy",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Maybe another time?",
+      "spoken_text": "Maybe another time?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-0CF96D216307B8C5E75AF4DD",
+  "text": "Xin lỗi, mình bận: Sorry, I'm busy hay Maybe another time?",
+  "asset": "assets/audio/CURRICULUM/0cf96d216307b8c5e75af4dd.vi.v1.mp3",
+  "sha256": "fd36502aa2e3f7296f13584398b2e5489d5d0e73bcba283ed01c42aa77ab379e",
+  "durationSeconds": 5.799093
+}

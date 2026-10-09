@@ -1,0 +1,53 @@
+[
+  {
+    "id": "parent_vocabulary",
+    "finite": false,
+    "text": "VocabularyEntry.word / meaning",
+    "locales": [
+      "en-US",
+      "vi-VN"
+    ],
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart:1989",
+    "route": "dictionary remote TTS + local cache first; callback to authored wrapper then device TTS on failure",
+    "note": "Applies to parent-origin entries even when displayed in Today, Review or Stars. Local device store not read."
+  },
+  {
+    "id": "suggested_parent_sentences",
+    "finite": false,
+    "text": "I can {word}. / This is my {word}. / It is {color}. / corresponding Vietnamese",
+    "source": "lib/features/vocabulary/application/local_vocabulary_suggestion_provider.dart",
+    "route": "Only becomes speakable after user selects/saves; then uses vocabulary entry route"
+  },
+  {
+    "id": "offline_translation",
+    "finite": false,
+    "text": "Translated English result",
+    "locales": [
+      "en-US"
+    ],
+    "source": "lib/features/conversation/presentation/conversation_controller.dart:3714",
+    "route": "Android styled device TTS bypasses authored lookup; other wrapper calls match assets if exact, otherwise device TTS"
+  },
+  {
+    "id": "online_translation",
+    "finite": false,
+    "text": "Backend-generated translation or local rule result",
+    "source": "lib/features/conversation/presentation/conversation_controller.dart:3624",
+    "route": "preferredPlaybackUri or result.audioUri played directly; no URI means no playback at this callsite",
+    "note": "Production synthesis provider/model not verified; cannot label this Eleven v3 merely from frontend manifests."
+  },
+  {
+    "id": "history",
+    "finite": false,
+    "text": "Previously stored translations",
+    "source": "lib/features/conversation/presentation/conversation_controller.dart:3880",
+    "route": "Replay stored audioUri; no new fixed authored sentence"
+  },
+  {
+    "id": "child_recordings",
+    "finite": false,
+    "isHomiSpeech": false,
+    "source": "lib/features/vocabulary/presentation/vocabulary_home_screen.dart:1519",
+    "route": "Stored child voice in Stars/recording history; exclude from HOMI synthesis inventory"
+  }
+]

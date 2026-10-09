@@ -33,6 +33,13 @@ android {
         versionName = flutter.versionName
     }
 
+    lint {
+        // Flutter regenerates local.properties on Windows using a path syntax
+        // that Gradle accepts but Android Lint's PropertyEscape check rejects.
+        // Keep every app/source check enabled and ignore only that generated file rule.
+        disable += "PropertyEscape"
+    }
+
     signingConfigs {
         if (hasReleaseSigning) {
             create("release") {
@@ -51,6 +58,10 @@ android {
             signingConfig = signingConfigs.getByName(
                 if (hasReleaseSigning) "release" else "debug",
             )
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }
@@ -63,4 +74,14 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    testImplementation("junit:junit:4.13.2")
+    implementation("androidx.work:work-runtime:2.11.1")
+    // Vosk uses JNA to enter libvosk. Select the Android AAR explicitly;
+    // resolving the default JAR can leave native initialization blocked on
+    // some OEM builds even when the .so files happen to be packaged.
+    implementation("net.java.dev.jna:jna:5.18.1@aar")
+    implementation("com.alphacephei:vosk-android:0.3.75")
 }

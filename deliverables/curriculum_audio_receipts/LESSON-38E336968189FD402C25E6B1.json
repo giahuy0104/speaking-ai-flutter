@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T06-B02\\C1315-L2-T06-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T06-B02-Q05",
+  "sourceText": "Không chia sẻ số điện thoại: Don't share your number hay Block unknown users?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Không chia sẻ số điện thoại:",
+      "spoken_text": "Không chia sẻ số điện thoại:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Don't share your number",
+      "spoken_text": "Don't share your number",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Block unknown users?",
+      "spoken_text": "Block unknown users?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-38E336968189FD402C25E6B1",
+  "text": "Không chia sẻ số điện thoại: Don't share your number hay Block unknown users?",
+  "asset": "assets/audio/CURRICULUM/38e336968189fd402c25e6b1.vi.v1.mp3",
+  "sha256": "7df8e639fe1e5fba755d3df1cc7c546d199fc7d956db51cbbc480f4b8ce2b792",
+  "durationSeconds": 6.861156
+}

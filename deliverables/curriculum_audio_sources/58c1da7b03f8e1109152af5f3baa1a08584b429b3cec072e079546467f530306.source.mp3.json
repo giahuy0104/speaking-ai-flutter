@@ -1,0 +1,20 @@
+{
+  "signature": "58c1da7b03f8e1109152af5f3baa1a08584b429b3cec072e079546467f530306",
+  "request": {
+    "text": "Classroom Talk",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "8c6af1f2ca5c6ddffea4b2423b638ee0c049ed517270f257898e79a385911419",
+  "requestId": "7A7eXWAQOWJJj9qN5jys",
+  "createdAt": "2026-09-15T23:26:28.869Z"
+}

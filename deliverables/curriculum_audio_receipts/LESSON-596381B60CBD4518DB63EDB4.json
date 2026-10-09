@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T10-B01\\C35-L3-T10-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T10-B01-Q03",
+  "sourceText": "Chơi: Play hay Bath?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Chơi:",
+      "spoken_text": "Chơi:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Play",
+      "spoken_text": "Play",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Bath?",
+      "spoken_text": "Bath?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-596381B60CBD4518DB63EDB4",
+  "text": "Chơi: Play hay Bath?",
+  "asset": "assets/audio/CURRICULUM/596381b60cbd4518db63edb4.vi.v1.mp3",
+  "sha256": "7cabfe2c56283e267f16fab4166d811fee970a604b0b5ba91d94f0f702683567",
+  "durationSeconds": 3.495283
+}

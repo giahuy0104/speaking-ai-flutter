@@ -1,0 +1,22 @@
+{
+  "number": 5,
+  "id": "VOCAB50-005",
+  "text": "Đây là câu đầu tiên. Mình nghe lại nhé.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-005.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "e114f3f817f74f73ca3b5eb40c6fa466c044daae20ab21c53f1f400fe5404e3c",
+  "bytes": 39332,
+  "sourceDurationSeconds": 2.16,
+  "durationSeconds": 2.389025,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "RBxg13QuxVSFBIURjxMd",
+  "characterCost": "21",
+  "createdAt": "2026-09-16T03:19:43.179Z"
+}

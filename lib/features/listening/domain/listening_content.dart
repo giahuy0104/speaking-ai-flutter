@@ -5,17 +5,24 @@ import 'package:flutter/services.dart';
 
 @immutable
 class ListeningContentCatalog {
-  const ListeningContentCatalog({required this.groups});
+  const ListeningContentCatalog({
+    required this.groups,
+    this.contentVersion = '',
+  });
 
   factory ListeningContentCatalog.fromJson(Map<String, Object?> json) {
     final groups = (json['groups'] as List<Object?>? ?? const <Object?>[])
         .whereType<Map<String, Object?>>()
         .map(ListeningContentAgeGroup.fromJson)
         .toList(growable: false);
-    return ListeningContentCatalog(groups: groups);
+    return ListeningContentCatalog(
+      groups: groups,
+      contentVersion: json['contentVersion'] as String? ?? '',
+    );
   }
 
   final List<ListeningContentAgeGroup> groups;
+  final String contentVersion;
 
   ListeningTopicContent topic({
     required int startAge,
@@ -38,6 +45,7 @@ class ListeningContentAgeGroup {
     required this.startAge,
     required this.endAge,
     required this.topics,
+    this.levels = const <ListeningLevelContent>[],
   });
 
   factory ListeningContentAgeGroup.fromJson(Map<String, Object?> json) {
@@ -48,12 +56,58 @@ class ListeningContentAgeGroup {
           .whereType<Map<String, Object?>>()
           .map(ListeningTopicContent.fromJson)
           .toList(growable: false),
+      levels: (json['levels'] as List<Object?>? ?? const <Object?>[])
+          .whereType<Map<String, Object?>>()
+          .map(ListeningLevelContent.fromJson)
+          .toList(growable: false),
     );
   }
 
   final int startAge;
   final int endAge;
   final List<ListeningTopicContent> topics;
+  final List<ListeningLevelContent> levels;
+
+  ListeningLevelContent? level(int number) {
+    for (final candidate in levels) {
+      if (candidate.number == number) return candidate;
+    }
+    return null;
+  }
+}
+
+@immutable
+class ListeningLevelContent {
+  const ListeningLevelContent({
+    required this.id,
+    required this.number,
+    required this.titleVi,
+    required this.topicNumbers,
+    this.missionBank = const <ListeningMissionContent>[],
+  });
+
+  factory ListeningLevelContent.fromJson(Map<String, Object?> json) {
+    return ListeningLevelContent(
+      id: json['id'] as String? ?? '',
+      number: json['number'] as int? ?? 0,
+      titleVi: json['titleVi'] as String? ?? '',
+      topicNumbers:
+          (json['topicNumbers'] as List<Object?>? ?? const <Object?>[])
+              .whereType<num>()
+              .map((value) => value.toInt())
+              .toList(growable: false),
+      missionBank: (json['missionBank'] as List<Object?>? ?? const <Object?>[])
+          .whereType<Map<String, Object?>>()
+          .map(ListeningMissionContent.fromJson)
+          .toList(growable: false),
+    );
+  }
+
+  final String id;
+  final int number;
+  final String titleVi;
+  final List<int> topicNumbers;
+  final List<ListeningMissionContent> missionBank;
 }
 
 @immutable
@@ -65,6 +119,7 @@ class ListeningTopicContent {
     required this.titleEn,
     required this.lessons,
     this.songs = const <ListeningLessonContent>[],
+    this.levelNumber = 0,
   });
 
   factory ListeningTopicContent.fromJson(Map<String, Object?> json) {
@@ -81,6 +136,7 @@ class ListeningTopicContent {
           .whereType<Map<String, Object?>>()
           .map(ListeningLessonContent.fromJson)
           .toList(growable: false),
+      levelNumber: json['levelNumber'] as int? ?? 0,
     );
   }
 
@@ -90,6 +146,7 @@ class ListeningTopicContent {
   final String titleEn;
   final List<ListeningLessonContent> lessons;
   final List<ListeningLessonContent> songs;
+  final int levelNumber;
 
   int get sentenceCount =>
       lessons.fold<int>(0, (count, lesson) => count + lesson.sentences.length);
@@ -112,6 +169,161 @@ enum ListeningLessonType {
   }
 }
 
+enum ListeningLessonEntryKind {
+  hook,
+  microObjective;
+
+  static ListeningLessonEntryKind fromJson(Object? value) {
+    return value == 'hook'
+        ? ListeningLessonEntryKind.hook
+        : ListeningLessonEntryKind.microObjective;
+  }
+}
+
+@immutable
+class ListeningLessonEntry {
+  const ListeningLessonEntry({required this.kind, required this.text});
+
+  factory ListeningLessonEntry.fromJson(Map<String, Object?> json) {
+    return ListeningLessonEntry(
+      kind: ListeningLessonEntryKind.fromJson(json['kind']),
+      text: json['text'] as String? ?? '',
+    );
+  }
+
+  final ListeningLessonEntryKind kind;
+  final String text;
+}
+
+@immutable
+class ListeningChallengeContent {
+  const ListeningChallengeContent({
+    required this.id,
+    required this.format,
+    required this.prompt,
+    required this.choices,
+    required this.correctAnswer,
+    required this.correctVietnamese,
+    required this.targetId,
+  });
+
+  factory ListeningChallengeContent.fromJson(Map<String, Object?> json) {
+    return ListeningChallengeContent(
+      id: json['id'] as String? ?? '',
+      format: json['format'] as String? ?? '',
+      prompt: json['prompt'] as String? ?? '',
+      choices: (json['choices'] as List<Object?>? ?? const <Object?>[])
+          .whereType<String>()
+          .toList(growable: false),
+      correctAnswer: json['correctAnswer'] as String? ?? '',
+      correctVietnamese: json['correctVietnamese'] as String? ?? '',
+      targetId: json['targetId'] as String? ?? '',
+    );
+  }
+
+  final String id;
+  final String format;
+  final String prompt;
+  final List<String> choices;
+  final String correctAnswer;
+  final String correctVietnamese;
+  final String targetId;
+}
+
+@immutable
+class ListeningMissionContent {
+  const ListeningMissionContent({
+    required this.id,
+    required this.topicNumber,
+    required this.format,
+    required this.prompt,
+    required this.choices,
+    required this.correctAnswer,
+    required this.coverageTargetId,
+    this.correctVietnamese = '',
+  });
+
+  factory ListeningMissionContent.fromJson(Map<String, Object?> json) {
+    return ListeningMissionContent(
+      id: json['id'] as String? ?? '',
+      topicNumber: json['topicNumber'] as int? ?? 0,
+      format: json['format'] as String? ?? '',
+      prompt: json['prompt'] as String? ?? '',
+      choices: (json['choices'] as List<Object?>? ?? const <Object?>[])
+          .whereType<String>()
+          .toList(growable: false),
+      correctAnswer: json['correctAnswer'] as String? ?? '',
+      correctVietnamese: json['correctVietnamese'] as String? ?? '',
+      coverageTargetId: json['coverageTargetId'] as String? ?? '',
+    );
+  }
+
+  final String id;
+  final int topicNumber;
+  final String format;
+  final String prompt;
+  final List<String> choices;
+  final String correctAnswer;
+  final String correctVietnamese;
+  final String coverageTargetId;
+}
+
+enum ListeningRolePlaySpeaker {
+  child,
+  homi;
+
+  static ListeningRolePlaySpeaker fromJson(Object? value) {
+    return value == 'child'
+        ? ListeningRolePlaySpeaker.child
+        : ListeningRolePlaySpeaker.homi;
+  }
+}
+
+@immutable
+class ListeningRolePlayTurn {
+  const ListeningRolePlayTurn({
+    required this.speaker,
+    required this.english,
+    required this.vietnamese,
+  });
+
+  factory ListeningRolePlayTurn.fromJson(Map<String, Object?> json) {
+    return ListeningRolePlayTurn(
+      speaker: ListeningRolePlaySpeaker.fromJson(json['speaker']),
+      english: json['english'] as String? ?? '',
+      vietnamese: json['vietnamese'] as String? ?? '',
+    );
+  }
+
+  final ListeningRolePlaySpeaker speaker;
+  final String english;
+  final String vietnamese;
+}
+
+@immutable
+class ListeningRolePlayContent {
+  const ListeningRolePlayContent({
+    required this.scenarioVi,
+    required this.turns,
+    this.openingHint,
+  });
+
+  factory ListeningRolePlayContent.fromJson(Map<String, Object?> json) {
+    return ListeningRolePlayContent(
+      scenarioVi: json['scenarioVi'] as String? ?? '',
+      openingHint: json['openingHint'] as String?,
+      turns: (json['turns'] as List<Object?>? ?? const <Object?>[])
+          .whereType<Map<String, Object?>>()
+          .map(ListeningRolePlayTurn.fromJson)
+          .toList(growable: false),
+    );
+  }
+
+  final String scenarioVi;
+  final String? openingHint;
+  final List<ListeningRolePlayTurn> turns;
+}
+
 @immutable
 class ListeningLessonContent {
   const ListeningLessonContent({
@@ -129,11 +341,18 @@ class ListeningLessonContent {
     this.reviewPause = const Duration(seconds: 2),
     this.autoAdvanceDelay = const Duration(seconds: 2),
     this.introAudioUri,
+    this.combinedHookAudioUri,
     this.outroAudioUri,
     this.dialogueTransitionAudioId,
     this.dialogueTransitionAudioUri,
     this.fullAudioId,
     this.fullAudioUri,
+    this.entry,
+    this.challengeBank = const <ListeningChallengeContent>[],
+    this.rolePlay,
+    this.songTitle,
+    this.songAudioId,
+    this.songAudioUri,
   });
 
   factory ListeningLessonContent.fromJson(Map<String, Object?> json) {
@@ -163,11 +382,28 @@ class ListeningLessonContent {
               .map(ListeningSentenceContent.fromJson)
               .toList(growable: false),
       introAudioUri: _readUri(json['introAudioUrl']),
+      combinedHookAudioUri: _readUri(json['combinedHookAudioUrl']),
       outroAudioUri: _readUri(json['outroAudioUrl']),
       dialogueTransitionAudioId: json['dialogueTransitionAudioId'] as String?,
       dialogueTransitionAudioUri: _readUri(json['dialogueTransitionAudioUrl']),
       fullAudioId: json['fullAudioId'] as String?,
       fullAudioUri: _readUri(json['fullAudioUrl']),
+      entry: json['entry'] is Map<String, Object?>
+          ? ListeningLessonEntry.fromJson(json['entry'] as Map<String, Object?>)
+          : null,
+      challengeBank:
+          (json['challengeBank'] as List<Object?>? ?? const <Object?>[])
+              .whereType<Map<String, Object?>>()
+              .map(ListeningChallengeContent.fromJson)
+              .toList(growable: false),
+      rolePlay: json['rolePlay'] is Map<String, Object?>
+          ? ListeningRolePlayContent.fromJson(
+              json['rolePlay'] as Map<String, Object?>,
+            )
+          : null,
+      songTitle: json['songTitle'] as String?,
+      songAudioId: json['songAudioId'] as String?,
+      songAudioUri: _readUri(json['songAudioUrl']),
     );
   }
 
@@ -185,11 +421,34 @@ class ListeningLessonContent {
   final List<ListeningSentenceContent> sentences;
   final List<ListeningSentenceContent> karaokeLines;
   final Uri? introAudioUri;
+  final Uri? combinedHookAudioUri;
   final Uri? outroAudioUri;
   final String? dialogueTransitionAudioId;
   final Uri? dialogueTransitionAudioUri;
   final String? fullAudioId;
   final Uri? fullAudioUri;
+  final ListeningLessonEntry? entry;
+  final List<ListeningChallengeContent> challengeBank;
+  final ListeningRolePlayContent? rolePlay;
+  final String? songTitle;
+
+  /// V4 song production is an independent handoff. Do not fall back to
+  /// [fullAudioUri], which belongs to the older standalone song lessons.
+  final String? songAudioId;
+  final Uri? songAudioUri;
+
+  bool get usesV4Flow => entry != null && challengeBank.isNotEmpty;
+
+  bool get hasV4SongStage =>
+      usesV4Flow && (songTitle?.trim().isNotEmpty ?? false);
+
+  /// Published catalog lessons use the same listen -> repeat -> evaluate state
+  /// machine. Keeping the check in the content model removes two duplicated UI
+  /// gates; the catalog integrity test ensures no released lesson misses it.
+  bool get usesGuidedPractice =>
+      type != ListeningLessonType.song &&
+      sentences.isNotEmpty &&
+      (usesV4Flow || RegExp(r'^A\d+_T\d+_L\d+$').hasMatch(code));
 }
 
 @immutable
@@ -206,6 +465,8 @@ class ListeningSentenceContent {
     this.vietnameseAudioUri,
     this.karaokeStart,
     this.karaokeEnd,
+    this.recognitionVariants = const <String>[],
+    this.requiresAllExpectedTokens = false,
   });
 
   factory ListeningSentenceContent.fromJson(Map<String, Object?> json) {
@@ -221,6 +482,12 @@ class ListeningSentenceContent {
       vietnameseAudioUri: _readUri(json['vietnameseAudioUrl']),
       karaokeStart: _readDurationMs(json['karaokeStartMs']),
       karaokeEnd: _readDurationMs(json['karaokeEndMs']),
+      recognitionVariants:
+          (json['recognitionVariants'] as List<Object?>? ?? const <Object?>[])
+              .whereType<String>()
+              .toList(growable: false),
+      requiresAllExpectedTokens:
+          json['requiresAllExpectedTokens'] as bool? ?? false,
     );
   }
 
@@ -235,10 +502,20 @@ class ListeningSentenceContent {
   final Uri? vietnameseAudioUri;
   final Duration? karaokeStart;
   final Duration? karaokeEnd;
+  final List<String> recognitionVariants;
+  final bool requiresAllExpectedTokens;
 }
 
 Uri? _readUri(Object? value) {
   if (value is! String || value.trim().isEmpty) {
+    return null;
+  }
+  if ((value.startsWith('asset:///assets/audio/CURRICULUM/') ||
+          value.contains('/homi/audio/CURRICULUM/')) &&
+      !const bool.fromEnvironment(
+        'HOMI_CURRICULUM_AUTHORED_AUDIO',
+        defaultValue: true,
+      )) {
     return null;
   }
   return Uri.tryParse(value.trim());
@@ -286,16 +563,19 @@ class AssetListeningContentRepository {
     }
     final pending = _load();
     _sharedDefaultCatalogFuture = pending;
-    pending.then<void>((catalog) {
-      _sharedDefaultCatalog = catalog;
-      if (identical(_sharedDefaultCatalogFuture, pending)) {
-        _sharedDefaultCatalogFuture = null;
-      }
-    }, onError: (Object _, StackTrace _) {
-      if (identical(_sharedDefaultCatalogFuture, pending)) {
-        _sharedDefaultCatalogFuture = null;
-      }
-    });
+    pending.then<void>(
+      (catalog) {
+        _sharedDefaultCatalog = catalog;
+        if (identical(_sharedDefaultCatalogFuture, pending)) {
+          _sharedDefaultCatalogFuture = null;
+        }
+      },
+      onError: (Object _, StackTrace _) {
+        if (identical(_sharedDefaultCatalogFuture, pending)) {
+          _sharedDefaultCatalogFuture = null;
+        }
+      },
+    );
     return pending;
   }
 

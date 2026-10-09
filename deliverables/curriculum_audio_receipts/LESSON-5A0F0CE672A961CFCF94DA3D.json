@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T04-B03\\C810-L2-T04-B03-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T04-B03-Q06",
+  "sourceText": "HOMI nói: Where's the library? Bạn chỉ đường. Go straight hay Thank you?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Where's the library?",
+      "spoken_text": "Where's the library?",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "Bạn chỉ đường.",
+      "spoken_text": "Bạn chỉ đường.",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Go straight",
+      "spoken_text": "Go straight",
+      "input_index": 33
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 34
+    },
+    {
+      "language": "en",
+      "text": "Thank you?",
+      "spoken_text": "Thank you?",
+      "input_index": 35
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-5A0F0CE672A961CFCF94DA3D",
+  "text": "HOMI nói: Where's the library? Bạn chỉ đường. Go straight hay Thank you?",
+  "asset": "assets/audio/CURRICULUM/5a0f0ce672a961cfcf94da3d.vi.v1.mp3",
+  "sha256": "80cbe447b4e2aab367a089de8dbeefcaf671fe477f8b0d86b328db51d1002d05",
+  "durationSeconds": 6.624671
+}

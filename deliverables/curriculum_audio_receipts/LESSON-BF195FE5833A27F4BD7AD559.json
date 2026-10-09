@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T09\\C1315-L3-M07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-M07",
+  "sourceText": "Bạn cần diễn đạt \"Bạn thích cái nào hơn\". Which one do you prefer? hay I prefer this one?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Bạn thích cái nào hơn\".",
+      "text": "Bạn cần diễn đạt \"Bạn thích cái nào hơn\".",
+      "spoken_text": "Bạn cần diễn đạt \"Bạn thích cái nào hơn\".",
+      "input_index": 37
+    },
+    {
+      "language": "en",
+      "source_text": "Which one do you prefer?",
+      "text": "Which one do you prefer?",
+      "spoken_text": "Which one do you prefer?",
+      "input_index": 38
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 39
+    },
+    {
+      "language": "en",
+      "source_text": "I prefer this one?",
+      "text": "I prefer this one?",
+      "spoken_text": "I prefer this one?",
+      "input_index": 40
+    }
+  ],
+  "sourceSha256": "eb836e0aa90d6b8b7981e1ce02c17de839ef0a970d9f2446e363df58930fbb6a",
+  "id": "LESSON-BF195FE5833A27F4BD7AD559",
+  "text": "Bạn cần diễn đạt \"Bạn thích cái nào hơn\". Which one do you prefer? hay I prefer this one?",
+  "asset": "assets/audio/CURRICULUM/bf195fe5833a27f4bd7ad559.vi.v1.mp3",
+  "sha256": "eb836e0aa90d6b8b7981e1ce02c17de839ef0a970d9f2446e363df58930fbb6a",
+  "durationSeconds": 8.031066
+}

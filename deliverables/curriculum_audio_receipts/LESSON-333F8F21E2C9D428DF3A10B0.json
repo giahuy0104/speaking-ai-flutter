@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T10-B01\\C810-L3-T10-B01-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T10-B01-Q04",
+  "sourceText": "Ăn kem: Take photos hay Eat ice cream?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Ăn kem:",
+      "spoken_text": "Ăn kem:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Take photos",
+      "spoken_text": "Take photos",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Eat ice cream?",
+      "spoken_text": "Eat ice cream?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-333F8F21E2C9D428DF3A10B0",
+  "text": "Ăn kem: Take photos hay Eat ice cream?",
+  "asset": "assets/audio/CURRICULUM/333f8f21e2c9d428df3a10b0.vi.v1.mp3",
+  "sha256": "7d99dc911a07564f1c1d50a18cf252b515bfdc5360b6574357811b4b4e1112d1",
+  "durationSeconds": 4.056145
+}

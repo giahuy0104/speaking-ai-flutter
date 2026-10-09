@@ -1,0 +1,20 @@
+{
+  "signature": "77ca26b417a1dda5e5f2154343c16241d07356a45d8ef9185c636bc7fee54d2d",
+  "request": {
+    "text": "Cow",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "16615f34a6e3c29db84170c4157d41c3dbfbe4be71e37702fc64474c2649cf4b",
+  "requestId": "UbWZjt2bn8Jn6NcZ8cuE",
+  "createdAt": "2026-09-15T23:16:08.273Z"
+}

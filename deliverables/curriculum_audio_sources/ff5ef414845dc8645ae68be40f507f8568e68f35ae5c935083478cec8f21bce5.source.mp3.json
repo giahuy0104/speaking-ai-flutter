@@ -1,0 +1,20 @@
+{
+  "signature": "ff5ef414845dc8645ae68be40f507f8568e68f35ae5c935083478cec8f21bce5",
+  "request": {
+    "text": "Có một tin nhắn lạ.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "907be324228c69f583ae9e3e17d46913214e9a2665b7f6eab3c9f8174a5f7005",
+  "requestId": "FxFqw5MQb90eKk9wOEiy",
+  "createdAt": "2026-09-15T23:20:01.863Z"
+}

@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T02\\C1112-L1-M07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-M07",
+  "sourceText": "Bạn cần diễn đạt \"Lập kế hoạch\". Make a plan hay Practice English?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Lập kế hoạch\".",
+      "text": "Bạn cần diễn đạt \"Lập kế hoạch\".",
+      "spoken_text": "Bạn cần diễn đạt \"Lập kế hoạch\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "source_text": "Make a plan",
+      "text": "Make a plan",
+      "spoken_text": "Make a plan",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "source_text": "Practice English?",
+      "text": "Practice English?",
+      "spoken_text": "Practice English?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": "e8f2217ded57d59456c57fadcf818fb1de0799f69a6828685222133abc2a2b9b",
+  "id": "LESSON-AEBB6557E9635749C785695E",
+  "text": "Bạn cần diễn đạt \"Lập kế hoạch\". Make a plan hay Practice English?",
+  "asset": "assets/audio/CURRICULUM/aebb6557e9635749c785695e.vi.v1.mp3",
+  "sha256": "e8f2217ded57d59456c57fadcf818fb1de0799f69a6828685222133abc2a2b9b",
+  "durationSeconds": 6.319773
+}

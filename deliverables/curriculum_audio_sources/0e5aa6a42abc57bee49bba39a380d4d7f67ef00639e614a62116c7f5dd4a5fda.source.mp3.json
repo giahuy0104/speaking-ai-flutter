@@ -1,0 +1,20 @@
+{
+  "signature": "0e5aa6a42abc57bee49bba39a380d4d7f67ef00639e614a62116c7f5dd4a5fda",
+  "request": {
+    "text": "My Skills.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "4e2531c62131ecb878ec4fdba091b443e3b3dea7bf061a144627a7bb1e462a8b",
+  "requestId": "TyEKxfT6vBtdUns0P2Uy",
+  "createdAt": "2026-09-15T23:27:59.581Z"
+}

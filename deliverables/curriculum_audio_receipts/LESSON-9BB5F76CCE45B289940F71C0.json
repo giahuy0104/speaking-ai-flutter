@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T09-B02\\C67-L3-T09-B02-T02_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T09-B02-T02_VI",
+  "sourceText": "Ở công viên.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Ở công viên.",
+      "generation_key": "b918ffbb3a8dc44f"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9BB5F76CCE45B289940F71C0",
+  "text": "Ở công viên.",
+  "asset": "assets/audio/CURRICULUM/9bb5f76cce45b289940f71c0.vi.v1.mp3",
+  "sha256": "bb399463ec792efbbba94f17e7d8b3c9c36e51fe9f025f87a8d467da9b6cdf2c",
+  "durationSeconds": 1.412063
+}

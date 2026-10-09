@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T01-B02\\C1315-L1-T01-B02-Q09_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T01-B02-Q09",
+  "sourceText": "Bạn muốn nói mình thư giãn vào buổi tối. I relax in the evening hay I read at night?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói mình thư giãn vào buổi tối.",
+      "spoken_text": "Bạn muốn nói mình thư giãn vào buổi tối.",
+      "input_index": 48
+    },
+    {
+      "language": "en",
+      "text": "I relax in the evening",
+      "spoken_text": "I relax in the evening",
+      "input_index": 49
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 50
+    },
+    {
+      "language": "en",
+      "text": "I read at night?",
+      "spoken_text": "I read at night?",
+      "input_index": 51
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-48CB1B38681041A4879AADE1",
+  "text": "Bạn muốn nói mình thư giãn vào buổi tối. I relax in the evening hay I read at night?",
+  "asset": "assets/audio/CURRICULUM/48cb1b38681041a4879aade1.vi.v1.mp3",
+  "sha256": "c7e463aae7e7fbdbcde21f9c5b29c1b215cd0270243e58d6b8a8bebf13e53268",
+  "durationSeconds": 8.508957
+}

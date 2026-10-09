@@ -1,0 +1,22 @@
+{
+  "number": 34,
+  "id": "VOCAB50-034",
+  "text": "Bạn thử trả lời nhé.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-034.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "4a90b3b105603271b064311fae9a93534d1e2d7143cb14604c151a3b5c76cc33",
+  "bytes": 36406,
+  "sourceDurationSeconds": 2,
+  "durationSeconds": 2.213673,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "dSX7STPkf3rAY6OMK4A0",
+  "characterCost": "11",
+  "createdAt": "2026-09-16T03:21:01.756Z"
+}

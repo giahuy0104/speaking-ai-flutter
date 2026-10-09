@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T03-B01\\C1112-L1-T03-B01-Q01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T03-B01-Q01",
+  "sourceText": "Vẽ tốt: Draw well hay Solve problems?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Vẽ tốt:",
+      "spoken_text": "Vẽ tốt:",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "text": "Draw well",
+      "spoken_text": "Draw well",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "text": "Solve problems?",
+      "spoken_text": "Solve problems?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-1D8A7D6E166B3F22405E8533",
+  "text": "Vẽ tốt: Draw well hay Solve problems?",
+  "asset": "assets/audio/CURRICULUM/1d8a7d6e166b3f22405e8533.vi.v1.mp3",
+  "sha256": "c5218e05b7756647ac922d034b5cd9c80a933e0f914c47f5a418c43fea13e192",
+  "durationSeconds": 4.34576
+}

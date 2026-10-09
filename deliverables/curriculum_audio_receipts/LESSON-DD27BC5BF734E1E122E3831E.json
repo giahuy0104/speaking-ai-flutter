@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T05\\C1112-L2-M07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-M07",
+  "sourceText": "Bạn cần diễn đạt \"Ăn sáng\". Eat breakfast hay Sleep early?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Ăn sáng\".",
+      "text": "Bạn cần diễn đạt \"Ăn sáng\".",
+      "spoken_text": "Bạn cần diễn đạt \"Ăn sáng\".",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "source_text": "Eat breakfast",
+      "text": "Eat breakfast",
+      "spoken_text": "Eat breakfast",
+      "input_index": 39
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 40
+    },
+    {
+      "language": "en",
+      "source_text": "Sleep early?",
+      "text": "Sleep early?",
+      "spoken_text": "Sleep early?",
+      "input_index": 41
+    }
+  ],
+  "sourceSha256": "e0e69cc497fcbffe30c5bd5b1f8c1761c40c57216c1c8fb6d4ba07636d572220",
+  "id": "LESSON-DD27BC5BF734E1E122E3831E",
+  "text": "Bạn cần diễn đạt \"Ăn sáng\". Eat breakfast hay Sleep early?",
+  "asset": "assets/audio/CURRICULUM/dd27bc5bf734e1e122e3831e.vi.v1.mp3",
+  "sha256": "e0e69cc497fcbffe30c5bd5b1f8c1761c40c57216c1c8fb6d4ba07636d572220",
+  "durationSeconds": 6.035351
+}

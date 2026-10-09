@@ -1,0 +1,43 @@
+Running Gradle task 'assembleRelease'...                        
+Font asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 23860 bytes (98.5% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+The message received from the daemon indicates that the daemon has disappeared.
+Build request sent: Build{id=116e6817-dd1a-43b9-a68c-55e83d196605, currentDir=D:\Documents\ai-speaking-flutter-app\android}
+Attempting to read last messages from the daemon log...
+Daemon pid: 21692
+  log file: C:\Users\Windows\.gradle\daemon\9.1.0\daemon-21692.out.log
+----- Last 20 lines from daemon log file - daemon-21692.out.log -----
+2026-09-16T00:49:59.145+0700 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] Command execution: started DaemonCommandExecution[command = Build{id=116e6817-dd1a-43b9-a68c-55e83d196605, currentDir=D:\Documents\ai-speaking-flutter-app\android}, connection = DefaultDaemonConnection: socket connection from /127.0.0.1:62342 to /127.0.0.1:62343] after 0.0048 minutes of idle
+2026-09-16T00:49:59.145+0700 [INFO] [org.gradle.launcher.daemon.server.DaemonRegistryUpdater] Marking the daemon as busy, address: [ffc4a7ee-00d8-490f-bb64-ae80727100b1 port:62342, addresses:[localhost/127.0.0.1]]
+2026-09-16T00:49:59.145+0700 [DEBUG] [org.gradle.launcher.daemon.registry.PersistentDaemonRegistry] Marking busy by address: [ffc4a7ee-00d8-490f-bb64-ae80727100b1 port:62342, addresses:[localhost/127.0.0.1]]
+2026-09-16T00:49:59.150+0700 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Waiting to acquire exclusive lock on daemon addresses registry.
+2026-09-16T00:49:59.152+0700 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Lock acquired on daemon addresses registry.
+2026-09-16T00:49:59.159+0700 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Releasing lock on daemon addresses registry.
+2026-09-16T00:49:59.160+0700 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] resetting idle timer
+2026-09-16T00:49:59.160+0700 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] daemon is running. Sleeping until state changes.
+2026-09-16T00:49:59.164+0700 [INFO] [org.gradle.launcher.daemon.server.exec.StartBuildOrRespondWithBusy] Daemon is about to start building Build{id=116e6817-dd1a-43b9-a68c-55e83d196605, currentDir=D:\Documents\ai-speaking-flutter-app\android}. Dispatching build started information...
+2026-09-16T00:49:59.166+0700 [DEBUG] [org.gradle.launcher.daemon.server.SynchronizedDispatchConnection] thread 32: dispatching org.gradle.launcher.daemon.protocol.BuildStarted@b619c94
+2026-09-16T00:49:59.173+0700 [DEBUG] [org.gradle.launcher.daemon.server.exec.EstablishBuildEnvironment] Configuring env variables: [PATH, USERDOMAIN_ROAMINGPROFILE, GRADLE_OPTS, PROCESSOR_LEVEL, SYSTEMDRIVE, POWERSHELL_EXECUTABLE, GIT_PAGER, ALLUSERSPROFILE, CODEX_MCP_NODE_PATH, PROCESSOR_ARCHITECTURE, __COMPAT_LAYER, DRIVERDATA, GH_PAGER, PROGRAMFILES, MOZ_PLUGIN_PATH, CODEX_APP_TOOLS_PIPE_PATH, COLORTERM, PSMODULEPATH, NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S, PROGRAMDATA, DIRNAME, USERNAME, CMD_LINE_ARGS, EXIT_WITH_ERRORLEVEL, CODEX_INTERNAL_ORIGINATOR_OVERRIDE, ONEDRIVE, APP_HOME, CODEX_SAGE_BACKFILL_TRACKER_TAB_REUSE, MINGIT_PATH, PATHEXT, API_KEY_21ST, PAGER, CODEX_HOME, SNAPSHOT_PATH, CODEX_PERMISSION_PROFILE, SHARED_BIN, WINDIR, LOG_FORMAT, HOMEPATH, LC_ALL, PROCESSOR_IDENTIFIER, PUBLIC, LC_CTYPE, CACHE_DIR, CODEX_SESSION_ID, ZES_ENABLE_SYSMAN, _SKIP, LOCALAPPDATA, COMMONPROGRAMFILES(X86), USERDOMAIN, DART_SDK_PATH, LOGONSERVER, JAVA_HOME, FLUTTER_TOOLS_DIR, PROMPT, RUST_LOG, PROGRAMFILES(X86), FLUTTER_ROOT, TERM, LANG, APPDATA, PROGRAMW6432, SYSTEMROOT, JAVA_EXE, CODEX_THREAD_ID, NO_COLOR, CODEX_CI, DART, OS, COMMONPROGRAMW6432, COMPUTERNAME, COMMONPROGRAMFILES, COMSPEC, PROCESSOR_REVISION, CLASSPATH, APP_BASE_NAME, =D:, TEMP, FLUTTER_ALREADY_LOCKED, HOMEDRIVE, USERPROFILE, TMP, CODEX_VERSION, NUMBER_OF_PROCESSORS]
+2026-09-16T00:49:59.188+0700 [DEBUG] [org.gradle.launcher.daemon.server.exec.LogToClient] About to start relaying all logs to the client via the connection.
+2026-09-16T00:49:59.189+0700 [INFO] [org.gradle.launcher.daemon.server.exec.LogToClient] The client will now receive all logging from the daemon (pid: 21692). The daemon log file: C:\Users\Windows\.gradle\daemon\9.1.0\daemon-21692.out.log
+2026-09-16T00:49:59.191+0700 [DEBUG] [org.gradle.launcher.daemon.server.exec.RequestStopIfSingleUsedDaemon] Requesting daemon stop after processing Build{id=116e6817-dd1a-43b9-a68c-55e83d196605, currentDir=D:\Documents\ai-speaking-flutter-app\android}
+2026-09-16T00:49:59.192+0700 [LIFECYCLE] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] Daemon will be stopped at the end of the build 
+2026-09-16T00:49:59.192+0700 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] Stop as soon as idle requested. The daemon is busy
+2026-09-16T00:49:59.192+0700 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] daemon stop has been requested. Sleeping until state changes.
+2026-09-16T00:49:59.199+0700 [DEBUG] [org.gradle.launcher.daemon.server.exec.ExecuteBuild] The daemon has started executing the build.
+2026-09-16T00:49:59.199+0700 [DEBUG] [org.gradle.launcher.daemon.server.exec.ExecuteBuild] Executing build with daemon context: DefaultDaemonContext[uid=7e75b852-3f36-408d-8d8a-a4d7cd6faa21,javaHome=C:\Program Files\Android\Android Studio\jbr,javaVersion=21,javaVendor=JetBrains s.r.o.,daemonRegistryDir=C:\Users\Windows\.gradle\daemon,pid=21692,idleTimeout=120000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-XX:MaxMetaspaceSize=512m,-XX:ReservedCodeCacheSize=128m,-XX:+HeapDumpOnOutOfMemoryError,-XX:ActiveProcessorCount=4,-Xmx2G,-Dfile.encoding=UTF-8,-Duser.country=US,-Duser.language=en,-Duser.variant]
+Font asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 23860 bytes (98.5% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.----- End of the daemon log -----
+
+JVM crash log found: file:///D:/Documents/ai-speaking-flutter-app/android/hs_err_pid21692.log
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Gradle build daemon disappeared unexpectedly (it may have been killed or may have crashed)
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+Running Gradle task 'assembleRelease'...                          426,3s
+Gradle task assembleRelease failed with exit code 1

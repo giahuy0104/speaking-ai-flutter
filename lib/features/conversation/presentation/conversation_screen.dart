@@ -4,11 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
 import '../../../app/learning_scenery.dart';
-import '../../../config/app_config.dart';
+import '../../../app/scenic_app_header.dart';
 import '../../../l10n/display_language.dart';
-import '../../home/presentation/scenic_app_header.dart';
-import '../../settings/presentation/history_sheet.dart';
-import '../../settings/presentation/settings_sheet.dart';
 import 'conversation_controller.dart';
 import 'widgets/result_panel.dart';
 import 'widgets/speak_action_bar.dart';
@@ -17,12 +14,8 @@ import 'widgets/voice_hero.dart';
 class ConversationScreen extends StatelessWidget {
   const ConversationScreen({
     required this.controller,
-    required this.config,
-    this.themeMode = ThemeMode.system,
-    this.onThemeModeChanged,
-    this.onChildAgeChanged,
-    this.onStartTutorial,
-    this.onModalVisibilityChanged,
+    required this.onOpenHistory,
+    required this.onOpenSettings,
     this.speakActionKey,
     this.resultPanelKey,
     this.historyButtonKey,
@@ -31,12 +24,8 @@ class ConversationScreen extends StatelessWidget {
   });
 
   final ConversationController controller;
-  final AppConfig config;
-  final ThemeMode themeMode;
-  final ValueChanged<ThemeMode>? onThemeModeChanged;
-  final ValueChanged<int>? onChildAgeChanged;
-  final VoidCallback? onStartTutorial;
-  final ValueChanged<bool>? onModalVisibilityChanged;
+  final VoidCallback onOpenHistory;
+  final VoidCallback onOpenSettings;
   final Key? speakActionKey;
   final Key? resultPanelKey;
   final Key? historyButtonKey;
@@ -53,14 +42,15 @@ class ConversationScreen extends StatelessWidget {
           child: Scaffold(
             backgroundColor: Colors.transparent,
             body: LearningScenery(
+              overlayOpacity: 0.025,
               child: SafeArea(
                 bottom: false,
                 child: Column(
                   children: <Widget>[
                     ScenicAppHeader(
                       isReady: controller.isInputAvailable,
-                      onHistory: () => _showHistory(context),
-                      onSettings: () => _showSettings(context),
+                      onHistory: onOpenHistory,
+                      onSettings: onOpenSettings,
                       historyButtonKey: historyButtonKey,
                       settingsButtonKey: settingsButtonKey,
                     ),
@@ -71,10 +61,10 @@ class ConversationScreen extends StatelessWidget {
                           child: SingleChildScrollView(
                             key: const Key('conversation-home-scroll'),
                             padding: EdgeInsets.fromLTRB(
-                              28,
-                              compact ? 44 : 70,
-                              28,
-                              18,
+                              24,
+                              compact ? 8 : 28,
+                              24,
+                              10,
                             ),
                             child: Column(
                               children: <Widget>[
@@ -88,7 +78,7 @@ class ConversationScreen extends StatelessWidget {
                                     controller.stopRecording(manual: true),
                                   ),
                                 ),
-                                SizedBox(height: compact ? 24 : 28),
+                                SizedBox(height: compact ? 8 : 18),
                                 ResultPanel(
                                   key: resultPanelKey,
                                   result: controller.result,
@@ -129,42 +119,6 @@ class ConversationScreen extends StatelessWidget {
       },
     );
   }
-
-  Future<void> _showSettings(BuildContext context) async {
-    onModalVisibilityChanged?.call(true);
-    try {
-      await showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        showDragHandle: true,
-        builder: (_) => SettingsSheet(
-          controller: controller,
-          themeMode: themeMode,
-          onThemeModeChanged: onThemeModeChanged,
-          onChildAgeChanged: onChildAgeChanged,
-          onStartTutorial: onStartTutorial,
-        ),
-      );
-    } finally {
-      onModalVisibilityChanged?.call(false);
-    }
-  }
-
-  Future<void> _showHistory(BuildContext context) async {
-    onModalVisibilityChanged?.call(true);
-    try {
-      await showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        showDragHandle: true,
-        builder: (_) => HistorySheet(controller: controller),
-      );
-    } finally {
-      onModalVisibilityChanged?.call(false);
-    }
-  }
 }
 
 class _InlineMessage extends StatelessWidget {
@@ -180,7 +134,11 @@ class _InlineMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isError ? Theme.of(context).colorScheme.error : AppColors.ink;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final color = isError
+        ? theme.colorScheme.error
+        : (isDark ? theme.colorScheme.onTertiaryContainer : AppColors.ink);
     final localizedMessage = context.trKnown(message);
     return Semantics(
       liveRegion: true,
@@ -188,7 +146,11 @@ class _InlineMessage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
         decoration: BoxDecoration(
-          color: isError ? const Color(0xFFFFF1F0) : AppColors.lavender,
+          color: isError
+              ? theme.colorScheme.errorContainer
+              : (isDark
+                    ? theme.colorScheme.tertiaryContainer
+                    : AppColors.lavender),
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(

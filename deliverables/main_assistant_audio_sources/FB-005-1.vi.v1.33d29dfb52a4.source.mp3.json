@@ -1,0 +1,20 @@
+{
+  "id": "FB-005-1",
+  "signature": "33d29dfb52a4cd6bc77925b378328633530a7fe5d5165727e15c6ec9cb95bbfa",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn nói số bài, ví dụ “bài số 1”.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:10:40.268Z",
+  "requestId": "wEgTWrHLzcp1aRW9vaWu",
+  "characterCost": "18",
+  "sourceSha256": "9f9c6555bf32eae07d1b4ef0a27b0f05c54887b6e5189e197ce5fef56d2e7390"
+}

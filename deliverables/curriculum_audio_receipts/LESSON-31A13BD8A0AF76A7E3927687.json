@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T09-B02\\C1315-L3-T09-B02-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T09-B02-Q08",
+  "sourceText": "Bạn muốn diễn đạt \"Mình sẽ chọn cái này\". I'll choose this one hay Which one do you prefer?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Mình sẽ chọn cái này\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Mình sẽ chọn cái này\".",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "I'll choose this one",
+      "spoken_text": "I'll choose this one",
+      "input_index": 45
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 46
+    },
+    {
+      "language": "en",
+      "text": "Which one do you prefer?",
+      "spoken_text": "Which one do you prefer?",
+      "input_index": 47
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-31A13BD8A0AF76A7E3927687",
+  "text": "Bạn muốn diễn đạt \"Mình sẽ chọn cái này\". I'll choose this one hay Which one do you prefer?",
+  "asset": "assets/audio/CURRICULUM/31a13bd8a0af76a7e3927687.vi.v1.mp3",
+  "sha256": "cc5d0b47fd5b165a23e8dce2d75e7bb0d125fdc91accfbde98ac6749821f2aa1",
+  "durationSeconds": 7.430612
+}

@@ -1,0 +1,16 @@
+{
+  "id": "VOCAB50-038",
+  "startedAt": "2026-09-16T03:21:05.613Z",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "request": {
+    "text": "Nghe câu đúng nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  }
+}

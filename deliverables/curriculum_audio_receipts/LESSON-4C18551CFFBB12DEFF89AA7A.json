@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T03-B02\\C67-L1-T03-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T03-B02-Q06",
+  "sourceText": "Bạn muốn nói \"Chim có thể bay\". Monkeys can climb hay Birds can fly?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Chim có thể bay\".",
+      "spoken_text": "Bạn muốn nói \"Chim có thể bay\".",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Monkeys can climb",
+      "spoken_text": "Monkeys can climb",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Birds can fly?",
+      "spoken_text": "Birds can fly?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-4C18551CFFBB12DEFF89AA7A",
+  "text": "Bạn muốn nói \"Chim có thể bay\". Monkeys can climb hay Birds can fly?",
+  "asset": "assets/audio/CURRICULUM/4c18551cffbb12deff89aa7a.vi.v1.mp3",
+  "sha256": "571066cf5a5f5b850ad54ebb5602ca241db38437da34b9fb7c23bc15a2b47698",
+  "durationSeconds": 7.16619
+}

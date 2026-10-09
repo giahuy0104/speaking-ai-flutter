@@ -1,0 +1,22 @@
+{
+  "number": 7,
+  "id": "VOCAB50-007",
+  "text": "Đã có nội dung mới cho bạn. Bắt đầu học thôi!",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-007.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "3c0888890aad534976c0c17796c5ba5017dcddb8b5fe03b3969d02f1e3f359e9",
+  "bytes": 46437,
+  "sourceDurationSeconds": 2.56,
+  "durationSeconds": 2.830091,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "QvmmzAqeDrHRZN7ovyqT",
+  "characterCost": "25",
+  "createdAt": "2026-09-16T03:19:46.945Z"
+}

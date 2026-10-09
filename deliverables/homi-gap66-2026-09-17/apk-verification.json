@@ -1,0 +1,11 @@
+{
+  "apk": "D:\\Code\\HuaMei\\App_noi\\flutter\\20_17th9_v2\\speaking-ai-flutter\\build\\app\\outputs\\flutter-apk\\app-release.apk",
+  "apkSha256": "ec6d53ee30dfca4ab5a4faf789e118ed60331a1b8387e612db2017d21d77c421",
+  "bundledAndChecksumVerified": 66,
+  "unwantedStagingArtifacts": 0,
+  "modelId": "eleven_v3",
+  "vietnameseVoiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "vietnameseSpeed": 0.9,
+  "englishVoiceId": "Nhs7eitvQWFTQBsf0yiT",
+  "englishSpeed": 0.75
+}

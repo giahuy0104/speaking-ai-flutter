@@ -1,0 +1,22 @@
+{
+  "number": 12,
+  "id": "VOCAB50-012",
+  "text": "Bạn muốn học Ngôi sao hay Luyện lại?",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-012.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "51b39f899aaa2a6318be4bfb5ce8637b40446ae7c328a6685d134de1866b98a8",
+  "bytes": 40586,
+  "sourceDurationSeconds": 2.24,
+  "durationSeconds": 2.47737,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "gfPGyqc4OQ7lvf5S29W5",
+  "characterCost": "20",
+  "createdAt": "2026-09-16T03:20:09.710Z"
+}

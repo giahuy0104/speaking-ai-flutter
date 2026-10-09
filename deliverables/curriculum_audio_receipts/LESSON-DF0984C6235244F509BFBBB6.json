@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T02\\C1315-L1-M07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-M07",
+  "sourceText": "Bạn cần diễn đạt \"Đạt điểm tốt hơn\". Get better grades hay Read more books?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Đạt điểm tốt hơn\".",
+      "text": "Bạn cần diễn đạt \"Đạt điểm tốt hơn\".",
+      "spoken_text": "Bạn cần diễn đạt \"Đạt điểm tốt hơn\".",
+      "input_index": 40
+    },
+    {
+      "language": "en",
+      "source_text": "Get better grades",
+      "text": "Get better grades",
+      "spoken_text": "Get better grades",
+      "input_index": 41
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "source_text": "Read more books?",
+      "text": "Read more books?",
+      "spoken_text": "Read more books?",
+      "input_index": 43
+    }
+  ],
+  "sourceSha256": "d0547f819599b8719b3ae2204f05eab37f00b97a34fe2f72da89d3cd2fa77c59",
+  "id": "LESSON-DF0984C6235244F509BFBBB6",
+  "text": "Bạn cần diễn đạt \"Đạt điểm tốt hơn\". Get better grades hay Read more books?",
+  "asset": "assets/audio/CURRICULUM/df0984c6235244f509bfbbb6.vi.v1.mp3",
+  "sha256": "d0547f819599b8719b3ae2204f05eab37f00b97a34fe2f72da89d3cd2fa77c59",
+  "durationSeconds": 7.4161
+}

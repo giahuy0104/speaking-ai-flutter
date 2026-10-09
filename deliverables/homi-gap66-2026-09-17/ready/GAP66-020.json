@@ -1,0 +1,28 @@
+{
+  "id": "GAP66-020",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình chưa hiểu. Bạn chưa có Ngôi sao nào. Bạn muốn học phần Ba mẹ đã thêm hay Luyện lại?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "mKLPGfS9D4FvhAstmGWv",
+  "historyItemId": "dmlbMMOioJJEujW4V90U",
+  "characterCost": "48",
+  "createdAt": "2026-09-17T14:24:58.807Z",
+  "sourceSha256": "d6963b684029b8f146179859b311a3ffdaec096a895449b4f0b41d5f160d567e",
+  "asset": "assets/audio/MAIN/GAP66/GAP66-020.vi.v1.mp3",
+  "finalSha256": "b566fb2e8205d6d00c91087f8ec4f3ae848ded436fa3766f46bbb555c8d53fe3",
+  "sourceDurationSeconds": 5.84,
+  "durationSeconds": 6.488413,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 104951
+}

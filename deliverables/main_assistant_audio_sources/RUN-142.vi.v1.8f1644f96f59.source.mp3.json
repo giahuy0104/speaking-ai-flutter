@@ -1,0 +1,20 @@
+{
+  "id": "RUN-142",
+  "signature": "8f1644f96f59791cf8f35ff188ab8f9cbc98d31db0297d73ad6845a9e9b16112",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn còn một Chủ đề chưa học. Bạn muốn học tiếp hay học lại?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:15:31.874Z",
+  "requestId": "T8O5pqp5LNN4btusDlPn",
+  "characterCost": "32",
+  "sourceSha256": "67669f6d3637687e586be8481c03a6f53c587c01e59ec5adf94d40c88aae8d8c"
+}

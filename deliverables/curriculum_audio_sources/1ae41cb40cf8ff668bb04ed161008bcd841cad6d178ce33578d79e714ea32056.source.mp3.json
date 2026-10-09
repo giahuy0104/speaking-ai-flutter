@@ -1,0 +1,20 @@
+{
+  "signature": "1ae41cb40cf8ff668bb04ed161008bcd841cad6d178ce33578d79e714ea32056",
+  "request": {
+    "text": "Bạn đoán xem con gì?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "146b3bec6e95ec4c023efcc35cff91b4af8a16c5325c28c92fe5a67f311164c1",
+  "requestId": "JJYc7aw5LfJvlhOELpnA",
+  "createdAt": "2026-09-15T23:16:00.750Z"
+}

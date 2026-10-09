@@ -1,0 +1,22 @@
+{
+  "number": 29,
+  "id": "VOCAB50-029",
+  "text": "Đúng rồi!",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-029.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "10309fa4f483eea09f73f9676802b7ef7be2a58c925d808136014cd5a13cb5e9",
+  "bytes": 13836,
+  "sourceDurationSeconds": 0.72,
+  "durationSeconds": 0.788934,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "0Cz6TdUfFCerZM3dCPcG",
+  "characterCost": "5",
+  "createdAt": "2026-09-16T03:20:54.634Z"
+}

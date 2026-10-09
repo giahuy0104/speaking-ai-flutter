@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B01\\C1112-L3-T09-B01-T05_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B01-T05_EN",
+  "sourceText": "I'm late for class.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "I'm late for class.",
+      "generation_key": "0384693b1fa0c740"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-DD5209EBD80CE09773AC10CF",
+  "text": "I'm late for class.",
+  "asset": "assets/audio/CURRICULUM/dd5209ebd80ce09773ac10cf.en.v1.mp3",
+  "sha256": "1c8e1d3567a37b83e37b8315a15e81dadcf554b1bd8dc9e3c49e3a2bcb82acd1",
+  "durationSeconds": 2.564354
+}

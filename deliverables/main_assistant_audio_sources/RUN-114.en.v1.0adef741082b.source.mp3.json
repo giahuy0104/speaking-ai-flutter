@@ -1,0 +1,20 @@
+{
+  "id": "RUN-114",
+  "signature": "0adef741082b3302e3ffc92674914bdfb987f9063530cfa028bfce39a5383e84",
+  "provider": "elevenlabs",
+  "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+  "request": {
+    "text": "Try again.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:14:33.994Z",
+  "requestId": "liMnmZzk3fwArLuTulTx",
+  "characterCost": "6",
+  "sourceSha256": "3fa4b70bf722f9215348e3020d55cc8423b8ade43fe6247d33f8946e1a98e0b8"
+}

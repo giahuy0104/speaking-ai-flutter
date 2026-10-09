@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T01-B03\\C67-L1-T01-B03-T01_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T01-B03-T01_VI",
+  "sourceText": "Trường học.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Trường học.",
+      "generation_key": "31e58211058d78e3"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-2F1829B8EA6E11B5C06A9F52",
+  "text": "Trường học.",
+  "asset": "assets/audio/CURRICULUM/2f1829b8ea6e11b5c06a9f52.vi.v1.mp3",
+  "sha256": "63e0e3aa7b67088ac464b3282fe4133d5c68b35c6a169678a200d260e83f11f7",
+  "durationSeconds": 1.326735
+}

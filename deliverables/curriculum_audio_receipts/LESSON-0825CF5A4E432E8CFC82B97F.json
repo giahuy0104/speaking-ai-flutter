@@ -1,0 +1,41 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\fbf2a66fe0cfa8d6ad0357df2b32c980079429ceab137ac1222ae9a242c615dc.tempo.mp3",
+      "signature": "fbf2a66fe0cfa8d6ad0357df2b32c980079429ceab137ac1222ae9a242c615dc",
+      "request": {
+        "text": "Nó có thể làm gì nhỉ?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "2f8a1bd783a99d6c0f6c78402a83e7f740501da1e0d45a3a47c6901804985b77",
+      "requestId": "SeJvGoavwLLu1GOJD139",
+      "createdAt": "2026-09-15T23:17:41.962Z"
+    }
+  ],
+  "id": "LESSON-0825CF5A4E432E8CFC82B97F",
+  "text": "Nó có thể làm gì nhỉ?",
+  "asset": "assets/audio/CURRICULUM/0825cf5a4e432e8cfc82b97f.vi.v1.mp3",
+  "sha256": "7e34e85eb8c72d2aac4a8572131ea5a2f187985b643345eeee9681394097b858",
+  "durationSeconds": 1.494195,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T04-B02\\C1112-L2-T04-B02-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T04-B02-Q02",
+  "sourceText": "Mình đi xe đạp: I take a taxi hay I ride my bike?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình đi xe đạp:",
+      "spoken_text": "Mình đi xe đạp:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "I take a taxi",
+      "spoken_text": "I take a taxi",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "I ride my bike?",
+      "spoken_text": "I ride my bike?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9BA7CA952BACD408CF914AFB",
+  "text": "Mình đi xe đạp: I take a taxi hay I ride my bike?",
+  "asset": "assets/audio/CURRICULUM/9ba7ca952bacd408cf914afb.vi.v1.mp3",
+  "sha256": "759f95f480778f1ad56cfeec4a3d4d7405ae14a1acdf6925b2b0e99e011fbbd1",
+  "durationSeconds": 5.803946
+}

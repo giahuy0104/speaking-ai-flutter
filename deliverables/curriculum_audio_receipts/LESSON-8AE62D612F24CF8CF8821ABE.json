@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T10\\C810-L3-M11_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-M11",
+  "sourceText": "Bạn cần nói \"Đi xe đạp\". Ride a bike hay Take a taxi?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần nói \"Đi xe đạp\".",
+      "text": "Bạn cần nói \"Đi xe đạp\".",
+      "spoken_text": "Bạn cần nói \"Đi xe đạp\".",
+      "input_index": 64
+    },
+    {
+      "language": "en",
+      "source_text": "Ride a bike",
+      "text": "Ride a bike",
+      "spoken_text": "Ride a bike",
+      "input_index": 65
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 66
+    },
+    {
+      "language": "en",
+      "source_text": "Take a taxi?",
+      "text": "Take a taxi?",
+      "spoken_text": "Take a taxi?",
+      "input_index": 67
+    }
+  ],
+  "sourceSha256": "156dbd63dde7b27522505158427ae39e74424579b59806438c32277c22f1b9ca",
+  "id": "LESSON-8AE62D612F24CF8CF8821ABE",
+  "text": "Bạn cần nói \"Đi xe đạp\". Ride a bike hay Take a taxi?",
+  "asset": "assets/audio/CURRICULUM/8ae62d612f24cf8cf8821abe.vi.v1.mp3",
+  "sha256": "156dbd63dde7b27522505158427ae39e74424579b59806438c32277c22f1b9ca",
+  "durationSeconds": 5.574785
+}

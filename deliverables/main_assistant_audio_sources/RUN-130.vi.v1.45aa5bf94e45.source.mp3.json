@@ -1,0 +1,20 @@
+{
+  "id": "RUN-130",
+  "signature": "45aa5bf94e45a5a5ddf6f3d8f1580d55c27fd1863a8799ba2b20758ae212273c",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Con hãy nói “Luyện lại từ đầu” hoặc “Bài tiếp theo” nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:15:03.040Z",
+  "requestId": "f5LLAqWoUj7Y5i6qNUI5",
+  "characterCost": "31",
+  "sourceSha256": "8270013367ad107ec174be894efaad18653fc1080319aba79fbe2e1fbaf0e4f9"
+}

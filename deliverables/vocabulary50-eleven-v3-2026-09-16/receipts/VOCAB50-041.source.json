@@ -1,0 +1,22 @@
+{
+  "id": "VOCAB50-041",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "HOMI chưa nghe rõ. Thử lại nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "d9BtoSHVJtnTLNhLJMWV",
+  "historyItemId": "Ob7oN96IcypWIaYU9InV",
+  "characterCost": "17",
+  "createdAt": "2026-09-16T03:21:15.093Z",
+  "sourceSha256": "4b4bfc905fec0f0a32b95e766ccfbd99b3ee48fb20f80d38f71bf23016eec6be"
+}

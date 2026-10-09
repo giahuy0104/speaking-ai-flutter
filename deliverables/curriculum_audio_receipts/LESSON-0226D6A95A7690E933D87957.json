@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T08-B01\\C810-L3-T08-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T08-B01-Q05",
+  "sourceText": "Mình lo lắng: I'm worried hay I'm happy?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình lo lắng:",
+      "spoken_text": "Mình lo lắng:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "I'm worried",
+      "spoken_text": "I'm worried",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "I'm happy?",
+      "spoken_text": "I'm happy?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-0226D6A95A7690E933D87957",
+  "text": "Mình lo lắng: I'm worried hay I'm happy?",
+  "asset": "assets/audio/CURRICULUM/0226d6a95a7690e933d87957.vi.v1.mp3",
+  "sha256": "6541802a4cf7f8793d0689d1eb40bfcdcf2f5b3f1ffa49660d0b72a981f654ca",
+  "durationSeconds": 4.259683
+}

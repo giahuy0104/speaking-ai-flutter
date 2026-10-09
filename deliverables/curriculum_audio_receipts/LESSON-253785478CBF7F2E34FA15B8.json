@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T05-B02\\C810-L2-T05-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T05-B02-Q04",
+  "sourceText": "Uống nước: Wear a jacket hay Drink water?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Uống nước:",
+      "spoken_text": "Uống nước:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Wear a jacket",
+      "spoken_text": "Wear a jacket",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Drink water?",
+      "spoken_text": "Drink water?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-253785478CBF7F2E34FA15B8",
+  "text": "Uống nước: Wear a jacket hay Drink water?",
+  "asset": "assets/audio/CURRICULUM/253785478cbf7f2e34fa15b8.vi.v1.mp3",
+  "sha256": "a006c4a448c515ed8dbf2872ef22cf60589f4d0df80a5c3dbbff7ce0d49a4dec",
+  "durationSeconds": 5.06551
+}

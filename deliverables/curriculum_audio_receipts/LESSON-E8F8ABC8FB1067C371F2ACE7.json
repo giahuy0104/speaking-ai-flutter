@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T04-B02\\C810-L2-T04-B02-T03_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T04-B02-T03_VI",
+  "sourceText": "Rẽ phải.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Rẽ phải.",
+      "generation_key": "4516c331bbff2915"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E8F8ABC8FB1067C371F2ACE7",
+  "text": "Rẽ phải.",
+  "asset": "assets/audio/CURRICULUM/e8f8abc8fb1067c371f2ace7.vi.v1.mp3",
+  "sha256": "2dd503c1dd58db5ae90aaf76ba87987fb185cbacf614b349c3817fee746cdee1",
+  "durationSeconds": 1.063764
+}

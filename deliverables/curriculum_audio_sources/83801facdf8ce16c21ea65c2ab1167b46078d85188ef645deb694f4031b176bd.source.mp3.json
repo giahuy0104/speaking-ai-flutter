@@ -1,0 +1,20 @@
+{
+  "signature": "83801facdf8ce16c21ea65c2ab1167b46078d85188ef645deb694f4031b176bd",
+  "request": {
+    "text": "S to Z Letters",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "f757cef6d47c257c3d4c080c762518ecb9bbbef2005d193a738bec304238f3da",
+  "requestId": "EOz5xd0n7CK3GtgudsCY",
+  "createdAt": "2026-09-15T23:23:09.766Z"
+}

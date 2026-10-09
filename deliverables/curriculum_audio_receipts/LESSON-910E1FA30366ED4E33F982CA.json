@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T08-B01\\C810-L3-T08-B01-T04_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T08-B01-T04_VI",
+  "sourceText": "Mình mệt.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình mệt.",
+      "generation_key": "572ed3554f8dfe69"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-910E1FA30366ED4E33F982CA",
+  "text": "Mình mệt.",
+  "asset": "assets/audio/CURRICULUM/910e1fa30366ed4e33f982ca.vi.v1.mp3",
+  "sha256": "20d495151d50b4ad5dbeb0bac0140832e93b23d73a2153125a6976f171ffcbc1",
+  "durationSeconds": 1.499728
+}

@@ -1,0 +1,20 @@
+{
+  "signature": "9ad3df5e037bcbe2e54b7e5ab7aad6bc5ad5f8262da65577aacedec8fa7dcb47",
+  "request": {
+    "text": "Study Routine",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "600ca897842a671e36cb23054b08b3f984d4a14aa9592184ef4f5f566ebb66f6",
+  "requestId": "Ch6MFnZUc0fETZw3XXcO",
+  "createdAt": "2026-09-15T23:27:57.637Z"
+}

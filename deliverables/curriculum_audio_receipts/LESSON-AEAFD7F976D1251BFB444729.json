@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09\\C1112-L3-M07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-M07",
+  "sourceText": "Bạn cần diễn đạt \"Kiểm tra lại cặp đi\". Check your bag again hay Ask the teacher?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Kiểm tra lại cặp đi\".",
+      "text": "Bạn cần diễn đạt \"Kiểm tra lại cặp đi\".",
+      "spoken_text": "Bạn cần diễn đạt \"Kiểm tra lại cặp đi\".",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "source_text": "Check your bag again",
+      "text": "Check your bag again",
+      "spoken_text": "Check your bag again",
+      "input_index": 39
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 40
+    },
+    {
+      "language": "en",
+      "source_text": "Ask the teacher?",
+      "text": "Ask the teacher?",
+      "spoken_text": "Ask the teacher?",
+      "input_index": 41
+    }
+  ],
+  "sourceSha256": "bfb1e2dba7c997c2b10586129d3082ba8ba48fed0f0f0664b27969a493d51317",
+  "id": "LESSON-AEAFD7F976D1251BFB444729",
+  "text": "Bạn cần diễn đạt \"Kiểm tra lại cặp đi\". Check your bag again hay Ask the teacher?",
+  "asset": "assets/audio/CURRICULUM/aeafd7f976d1251bfb444729.vi.v1.mp3",
+  "sha256": "bfb1e2dba7c997c2b10586129d3082ba8ba48fed0f0f0664b27969a493d51317",
+  "durationSeconds": 7.696689
+}

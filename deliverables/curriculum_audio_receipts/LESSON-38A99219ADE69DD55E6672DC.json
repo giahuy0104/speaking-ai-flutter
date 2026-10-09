@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T08-B01\\C1315-L3-T08-B01-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T08-B01-Q04",
+  "sourceText": "Món ăn kèm: Dessert hay Side dish?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Món ăn kèm:",
+      "spoken_text": "Món ăn kèm:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Dessert",
+      "spoken_text": "Dessert",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Side dish?",
+      "spoken_text": "Side dish?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-38A99219ADE69DD55E6672DC",
+  "text": "Món ăn kèm: Dessert hay Side dish?",
+  "asset": "assets/audio/CURRICULUM/38a99219ade69dd55e6672dc.vi.v1.mp3",
+  "sha256": "181fbb4cb3c486c8bf696a693bb75e7d4ca2d6287bc8e71e3f921b5ab94c52e7",
+  "durationSeconds": 4.020907
+}

@@ -3,14 +3,14 @@ import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-import '../../conversation/presentation/conversation_controller.dart';
+import '../../../core/audio/main_assistant_audio_state.dart';
 import '../application/main_speaking_session_controller.dart';
 import '../application/voice_navigation_controller.dart';
 
 class MainVoiceAssistantButton extends StatelessWidget {
   const MainVoiceAssistantButton({
     required this.voiceController,
-    required this.conversationController,
+    required this.audioState,
     required this.speakingSessionController,
     required this.isActivationPending,
     required this.onPressed,
@@ -20,7 +20,7 @@ class MainVoiceAssistantButton extends StatelessWidget {
   });
 
   final VoiceNavigationController voiceController;
-  final ConversationController conversationController;
+  final MainAssistantAudioState audioState;
   final MainSpeakingSessionController speakingSessionController;
   final bool isActivationPending;
   final Future<void> Function() onPressed;
@@ -32,7 +32,7 @@ class MainVoiceAssistantButton extends StatelessWidget {
     return AnimatedBuilder(
       animation: Listenable.merge(<Listenable>[
         voiceController,
-        conversationController,
+        audioState,
         speakingSessionController,
       ]),
       builder: (context, _) {
@@ -42,15 +42,16 @@ class MainVoiceAssistantButton extends StatelessWidget {
         final canActivate =
             !isActivationPending &&
             !isSpeakingMode &&
-            !conversationController.isBusy &&
-            !conversationController.isPlaybackPlaying &&
+            !audioState.isBusy &&
+            !audioState.isPlaybackPlaying &&
             !isAssistantBusy;
+        final microphoneError = voiceController.lastErrorMessage;
         final label = isSpeakingMode
             ? switch (speakingState) {
                 MainSpeakingSessionState.ready => 'Đang chuẩn bị...',
                 MainSpeakingSessionState.recording => 'Đang nghe...',
                 MainSpeakingSessionState.processing =>
-                  conversationController.isPreparingMicrophone
+                  audioState.isPreparingMicrophone
                       ? 'Đang chuẩn bị...'
                       : 'Đang dịch...',
                 MainSpeakingSessionState.playing => 'Đang phát...',
@@ -58,11 +59,19 @@ class MainVoiceAssistantButton extends StatelessWidget {
               }
             : voiceController.isMainButtonSessionActive &&
                   voiceController.isAcknowledgingWakeWord
-            ? 'Bi cô đang nói...'
+            ? 'HOMI đang nói...'
             : voiceController.isMainButtonSessionActive &&
-                  (voiceController.isAwaitingCommand ||
-                      voiceController.isListening)
+                  voiceController.isListening
             ? 'Đang nghe...'
+            : voiceController.isMainButtonSessionActive &&
+                  microphoneError != null
+            ? 'Đang thử lại mic...'
+            : voiceController.isMainButtonSessionActive &&
+                  (voiceController.isStarting ||
+                      voiceController.isAwaitingCommand)
+            ? 'Đang chuẩn bị mic...'
+            : microphoneError != null
+            ? 'Thử lại mic'
             : 'Main';
         final icon = isSpeakingMode
             ? switch (speakingState) {
@@ -73,20 +82,34 @@ class MainVoiceAssistantButton extends StatelessWidget {
                 MainSpeakingSessionState.inactive => Icons.auto_awesome_rounded,
               }
             : voiceController.isMainButtonSessionActive &&
-                  voiceController.isAwaitingCommand
+                  voiceController.isListening
             ? Icons.hearing_rounded
+            : voiceController.isMainButtonSessionActive &&
+                  microphoneError != null
+            ? Icons.sync_problem_rounded
+            : voiceController.isMainButtonSessionActive &&
+                  (voiceController.isStarting ||
+                      voiceController.isAwaitingCommand)
+            ? Icons.mic_none_rounded
             : voiceController.isMainButtonSessionActive &&
                   voiceController.isAcknowledgingWakeWord
             ? Icons.campaign_rounded
+            : microphoneError != null
+            ? Icons.error_outline_rounded
             : Icons.auto_awesome_rounded;
+        final microphoneStatus = microphoneError == null
+            ? '${voiceController.activeInputLabel}: $label'
+            : '$microphoneError Bấm Main để thử lại.';
 
         return Semantics(
           button: true,
           label: canActivate
-              ? 'Main, gọi Bi cô để chọn tính năng'
+              ? microphoneError == null
+                    ? 'Main, gọi HOMI để chọn tính năng'
+                    : microphoneStatus
               : isSpeakingMode
               ? '$label, ứng dụng sẽ tự động chuyển sang lượt tiếp theo'
-              : '$label, vui lòng chờ',
+              : '$microphoneStatus Vui lòng chờ.',
           child: RawGestureDetector(
             gestures: <Type, GestureRecognizerFactory>{
               LongPressGestureRecognizer:
@@ -108,6 +131,7 @@ class MainVoiceAssistantButton extends StatelessWidget {
             child: FloatingActionButton.extended(
               key: const Key('main-voice-assistant-button'),
               heroTag: 'main-voice-assistant-button',
+              tooltip: microphoneStatus,
               onPressed: canActivate ? () => unawaited(onPressed()) : null,
               icon: Icon(icon),
               label: Text(label),

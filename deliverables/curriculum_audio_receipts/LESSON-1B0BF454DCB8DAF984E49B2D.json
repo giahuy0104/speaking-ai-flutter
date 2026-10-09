@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T06-B01\\C810-L2-T06-B01-T01_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T06-B01-T01_EN",
+  "sourceText": "Phone.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Phone.",
+      "generation_key": "5c4b1d6eacea31c2"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-1B0BF454DCB8DAF984E49B2D",
+  "text": "Phone.",
+  "asset": "assets/audio/CURRICULUM/1b0bf454dcb8daf984e49b2d.en.v1.mp3",
+  "sha256": "1167c57db610f0b5ba4b65de6607c9bb10de768b1d400fc9c92bd6eb3a2f00ac",
+  "durationSeconds": 2.564354
+}

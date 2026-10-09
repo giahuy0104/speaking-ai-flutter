@@ -1,13 +1,102 @@
 import 'dart:convert';
 
 import 'package:ai_speaking_flutter_app/config/app_config.dart';
+import 'package:ai_speaking_flutter_app/features/listening/application/lesson_audio_format.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_attempt_evaluator.dart';
+import 'package:ai_speaking_flutter_app/features/listening/application/lesson_recording_storage.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/lesson_guide_flow.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  group('shared iOS on-device grading', () {
+    test('silence does not consume an incorrect-answer retry', () {
+      expect(
+        evaluateNativeLessonTranscripts(
+          expectedEnglish: 'K. Kite.',
+          transcripts: const <String>['', '  '],
+        ),
+        LessonAttemptOutcome.noResponse,
+      );
+    });
+
+    test('uses authored alternatives without weakening strict targets', () {
+      expect(
+        evaluateNativeLessonTranscripts(
+          expectedEnglish: 'K. Kite.',
+          transcripts: const <String>['cat', 'kite'],
+          acceptedVariants: const <String>['Kite'],
+          requireAllExpectedTokens: true,
+        ),
+        LessonAttemptOutcome.good,
+      );
+      expect(
+        evaluateNativeLessonTranscripts(
+          expectedEnglish: 'K. Kite.',
+          transcripts: const <String>['kite'],
+          requireAllExpectedTokens: true,
+        ),
+        LessonAttemptOutcome.retry,
+      );
+    });
+
+    test('Apple no-speech and unclear failures remain distinct', () {
+      for (final code in <String>[
+        'NO_SPEECH',
+        'NO_RESPONSE',
+        'SPEECH_TIMEOUT',
+        'AUDIO_TOO_SHORT',
+      ]) {
+        expect(
+          nativeLessonRecognitionFailureOutcome(code),
+          LessonAttemptOutcome.noResponse,
+        );
+      }
+      expect(
+        nativeLessonRecognitionFailureOutcome('SF_SPEECH_RECOGNIZER_FAILED'),
+        LessonAttemptOutcome.unclear,
+      );
+    });
+  });
+
+  test('Android recorded recognizer uses the HOMI offline channel', () async {
+    const channel = MethodChannel('test.homi-offline-speech');
+    MethodCall? receivedCall;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          receivedCall = call;
+          return <String, Object?>{
+            'text': 'play soccer',
+            'alternatives': <String>['play football'],
+            'engine': 'vosk',
+          };
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null),
+    );
+    const recognizer = MethodChannelLessonRecordedSpeechRecognizer(
+      channel: channel,
+    );
+
+    final recognition = await recognizer.recognizeFile(
+      path: 'attempt.wav',
+      locale: 'en-US',
+      preferOnDevice: true,
+      requireOnDevice: true,
+    );
+
+    expect(receivedCall?.method, 'recognizeFile');
+    expect(receivedCall?.arguments, containsPair('path', 'attempt.wav'));
+    expect(recognition.transcript, 'play soccer');
+    expect(recognition.alternatives, <String>['play football']);
+  });
+
   test(
     'returns good only when backend confirms the target English words',
     () async {
@@ -37,6 +126,41 @@ void main() {
       final outcome = await _evaluate(evaluator);
 
       expect(outcome, LessonAttemptOutcome.retry);
+      evaluator.dispose();
+    },
+  );
+
+  test(
+    'does not trust a loose backend match when its transcript omits words',
+    () async {
+      final evaluator = BackendLessonAttemptEvaluator(
+        config: _config,
+        client: _lessonAttemptClient(
+          matched: true,
+          transcript: 'School starts eight',
+        ),
+      );
+
+      expect(
+        await _evaluate(evaluator, expectedEnglish: 'School starts at eight'),
+        LessonAttemptOutcome.retry,
+      );
+      evaluator.dispose();
+    },
+  );
+
+  test(
+    'accepts a matching recognizer transcript after a stale backend false negative',
+    () async {
+      final evaluator = BackendLessonAttemptEvaluator(
+        config: _config,
+        client: _lessonAttemptClient(matched: false, transcript: 'Make calls.'),
+      );
+
+      expect(
+        await _evaluate(evaluator, expectedEnglish: 'Make calls.'),
+        LessonAttemptOutcome.good,
+      );
       evaluator.dispose();
     },
   );
@@ -75,11 +199,17 @@ void main() {
     await expectLater(
       _evaluate(evaluator),
       throwsA(
-        isA<LessonAttemptEvaluationException>().having(
-          (error) => error.toString(),
-          'message',
-          'Chưa kết nối được máy chủ. Con thử lại sau nhé.',
-        ),
+        isA<LessonAttemptEvaluationException>()
+            .having(
+              (error) => error.toString(),
+              'message',
+              'Chưa kết nối được máy chủ. Bạn thử lại sau nhé.',
+            )
+            .having(
+              (error) => error.backendUnavailable,
+              'backend unavailable',
+              isTrue,
+            ),
       ),
     );
     evaluator.dispose();
@@ -91,6 +221,7 @@ void main() {
       final requestedPaths = <String>[];
       final evaluator = BackendLessonAttemptEvaluator(
         config: _config,
+        retryDelay: _skipRetryDelay,
         client: MockClient((request) async {
           if (request.method == 'GET') {
             return http.Response.bytes(<int>[1, 2, 3], 200);
@@ -120,6 +251,7 @@ void main() {
     () async {
       final evaluator = BackendLessonAttemptEvaluator(
         config: _config,
+        retryDelay: _skipRetryDelay,
         client: MockClient((request) async {
           if (request.method == 'GET') {
             return http.Response.bytes(<int>[1, 2, 3], 200);
@@ -159,7 +291,7 @@ void main() {
     },
   );
 
-  test('fallback keeps an ASR failure separate from a wrong answer', () async {
+  test('V4 fallback requires the complete Alphabet target', () async {
     final evaluator = BackendLessonAttemptEvaluator(
       config: _config,
       client: MockClient((request) async {
@@ -169,22 +301,198 @@ void main() {
         if (request.url.path == '/api/listening/evaluate-attempt') {
           return http.Response('<html>Not Found</html>', 404);
         }
-        return _jsonResponse(<String, Object?>{
-          'error': <String, Object?>{
-            'code': 'ASR_FAILED',
-            'message': 'Cloudflare Workers AI không dịch được đoạn ghi âm này.',
-          },
-        }, 502);
+        return _jsonResponse(<String, Object?>{'englishText': 'Apple.'}, 200);
       }),
     );
 
-    expect(await _evaluate(evaluator), LessonAttemptOutcome.unclear);
+    expect(
+      await _evaluate(
+        evaluator,
+        expectedEnglish: 'A. Apple.',
+        requireAllExpectedTokens: true,
+      ),
+      LessonAttemptOutcome.retry,
+    );
     evaluator.dispose();
+  });
+
+  test(
+    'fallback reports an ASR service failure without blaming speech',
+    () async {
+      final evaluator = BackendLessonAttemptEvaluator(
+        config: _config,
+        retryDelay: _skipRetryDelay,
+        client: MockClient((request) async {
+          if (request.method == 'GET') {
+            return http.Response.bytes(<int>[1, 2, 3], 200);
+          }
+          if (request.url.path == '/api/listening/evaluate-attempt') {
+            return http.Response('<html>Not Found</html>', 404);
+          }
+          return _jsonResponse(<String, Object?>{
+            'error': <String, Object?>{
+              'code': 'ASR_FAILED',
+              'message':
+                  'Cloudflare Workers AI không dịch được đoạn ghi âm này.',
+            },
+          }, 502);
+        }),
+      );
+
+      await expectLater(_evaluate(evaluator), throwsA(_scoringServiceFailure));
+      evaluator.dispose();
+    },
+  );
+
+  for (final useLegacyRoute in <bool>[false, true]) {
+    final route = useLegacyRoute ? 'legacy audio route' : 'lesson route';
+    for (final statusCode in <int>[429, 500, 502, 503, 504]) {
+      test(
+        '$route does not treat ASR_FAILED $statusCode as child speech',
+        () async {
+          final evaluator = BackendLessonAttemptEvaluator(
+            config: _config,
+            retryDelay: _skipRetryDelay,
+            client: _scoringErrorClient(
+              statusCode: statusCode,
+              code: 'ASR_FAILED',
+              useLegacyRoute: useLegacyRoute,
+            ),
+          );
+          addTearDown(evaluator.dispose);
+
+          await expectLater(
+            _evaluate(evaluator),
+            throwsA(_scoringServiceFailure),
+          );
+        },
+      );
+    }
+
+    test(
+      '$route keeps genuine low confidence separate from service failure',
+      () async {
+        final evaluator = BackendLessonAttemptEvaluator(
+          config: _config,
+          retryDelay: _skipRetryDelay,
+          client: _scoringErrorClient(
+            statusCode: 422,
+            code: 'ASR_LOW_CONFIDENCE',
+            useLegacyRoute: useLegacyRoute,
+          ),
+        );
+        addTearDown(evaluator.dispose);
+
+        expect(await _evaluate(evaluator), LessonAttemptOutcome.unclear);
+      },
+    );
+
+    test('$route does not treat upstream timeout as child silence', () async {
+      final evaluator = BackendLessonAttemptEvaluator(
+        config: _config,
+        retryDelay: _skipRetryDelay,
+        client: _scoringErrorClient(
+          statusCode: 503,
+          code: 'SPEECH_TIMEOUT',
+          useLegacyRoute: useLegacyRoute,
+        ),
+      );
+      addTearDown(evaluator.dispose);
+
+      await expectLater(_evaluate(evaluator), throwsA(_scoringServiceFailure));
+    });
+  }
+
+  test('overloaded online scorer does not activate offline scoring', () async {
+    final recognizer = _FakeLessonRecordedSpeechRecognizer(
+      const LessonRecordedSpeechRecognition(transcript: "I'm An"),
+    );
+    final evaluator = BackendFirstLessonAttemptEvaluator(
+      backendEvaluator: BackendLessonAttemptEvaluator(
+        config: _config,
+        retryDelay: _skipRetryDelay,
+        client: _scoringErrorClient(statusCode: 429, code: 'ASR_FAILED'),
+      ),
+      recognizer: recognizer,
+    );
+    addTearDown(evaluator.dispose);
+
+    await expectLater(_evaluate(evaluator), throwsA(_scoringServiceFailure));
+    expect(recognizer.calls, 0);
+  });
+
+  test(
+    'retries a temporary scorer failure and preserves the verdict',
+    () async {
+      var scoringCalls = 0;
+      final delays = <Duration>[];
+      final evaluator = BackendLessonAttemptEvaluator(
+        config: _config,
+        retryDelay: (delay) async => delays.add(delay),
+        client: MockClient((request) async {
+          if (request.method == 'GET') {
+            return http.Response.bytes(<int>[1, 2, 3], 200);
+          }
+          scoringCalls += 1;
+          if (scoringCalls == 1) {
+            return _jsonResponse(<String, Object?>{
+              'error': <String, Object?>{'code': 'ASR_FAILED'},
+            }, 503);
+          }
+          return _jsonResponse(<String, Object?>{
+            'matched': true,
+            'transcript': "I'm An",
+          }, 200);
+        }),
+      );
+      addTearDown(evaluator.dispose);
+
+      expect(await _evaluate(evaluator), LessonAttemptOutcome.good);
+      expect(scoringCalls, 2);
+      expect(delays, const <Duration>[Duration(milliseconds: 400)]);
+    },
+  );
+
+  test('honors a bounded Retry-After before retrying 429', () async {
+    var scoringCalls = 0;
+    final delays = <Duration>[];
+    final evaluator = BackendLessonAttemptEvaluator(
+      config: _config,
+      retryDelay: (delay) async => delays.add(delay),
+      client: MockClient((request) async {
+        if (request.method == 'GET') {
+          return http.Response.bytes(<int>[1, 2, 3], 200);
+        }
+        scoringCalls += 1;
+        if (scoringCalls == 1) {
+          return http.Response(
+            jsonEncode(<String, Object?>{
+              'error': <String, Object?>{'code': 'ASR_FAILED'},
+            }),
+            429,
+            headers: const <String, String>{
+              'content-type': 'application/json',
+              'retry-after': '9',
+            },
+          );
+        }
+        return _jsonResponse(<String, Object?>{
+          'matched': true,
+          'transcript': "I'm An",
+        }, 200);
+      }),
+    );
+    addTearDown(evaluator.dispose);
+
+    expect(await _evaluate(evaluator), LessonAttemptOutcome.good);
+    expect(scoringCalls, 2);
+    expect(delays, const <Duration>[Duration(seconds: 5)]);
   });
 
   test('handles a non-JSON server error without FormatException', () async {
     final evaluator = BackendLessonAttemptEvaluator(
       config: _config,
+      retryDelay: _skipRetryDelay,
       client: MockClient((request) async {
         if (request.method == 'GET') {
           return http.Response.bytes(<int>[1, 2, 3], 200);
@@ -199,27 +507,364 @@ void main() {
         isA<LessonAttemptEvaluationException>().having(
           (error) => error.toString(),
           'message',
-          'Máy chủ chưa xử lý được câu nói. Con thử lại sau nhé.',
+          'Dịch vụ chấm điểm đang bận. Bạn thử lại sau nhé.',
         ),
       ),
     );
     evaluator.dispose();
   });
+
+  group('basic Apple Speech lesson matching', () {
+    test('accepts exact speech and common contraction/name variants', () {
+      expect(matchesRecognizedLessonEnglish('I am An', "I'm Anne"), isTrue);
+      expect(matchesRecognizedLessonEnglish("I'm An", 'Amen'), isTrue);
+    });
+
+    test('allows a short recognizer prefix around the target sentence', () {
+      expect(
+        matchesRecognizedLessonEnglish('I am hungry', 'Okay I am hungry'),
+        isTrue,
+      );
+    });
+
+    test('keeps silence and a different sentence out of the pass result', () {
+      expect(matchesRecognizedLessonEnglish('I am hungry', ''), isFalse);
+      expect(
+        matchesRecognizedLessonEnglish('I am hungry', 'I want the bathroom'),
+        isFalse,
+      );
+    });
+
+    test('requires the complete target word count', () {
+      expect(
+        matchesRecognizedLessonEnglish(
+          'School starts at eight',
+          'School starts eight',
+        ),
+        isFalse,
+      );
+      expect(matchesRecognizedLessonEnglish('Play soccer', 'Play'), isFalse);
+    });
+
+    test('accepts one light ASR substitution without an omitted word', () {
+      expect(
+        matchesRecognizedLessonEnglish('Play soccer', 'Play socket'),
+        isTrue,
+      );
+    });
+
+    test('also applies encouraging matching to authored alternatives', () {
+      expect(
+        matchesRecognizedLessonEnglish(
+          'I would like some water',
+          'Can I have water',
+          acceptedVariants: const ['Can I have some water'],
+        ),
+        isFalse,
+      );
+      expect(
+        matchesRecognizedLessonEnglish(
+          'I would like some water',
+          'Can I have sum water',
+          acceptedVariants: const ['Can I have some water'],
+        ),
+        isTrue,
+      );
+    });
+
+    test('keeps single words and explicitly strict phrases strict', () {
+      expect(matchesRecognizedLessonEnglish('Shirt', 'Short'), isFalse);
+      expect(
+        matchesRecognizedLessonEnglish(
+          'A B C',
+          'A B',
+          requireAllExpectedTokens: true,
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('Android backend-first offline fallback', () {
+    test(
+      'keeps the normal backend result without calling on-device ASR',
+      () async {
+        final backend = _FakeAttemptEvaluator.outcome(
+          LessonAttemptOutcome.good,
+        );
+        final recognizer = _FakeLessonRecordedSpeechRecognizer(
+          const LessonRecordedSpeechRecognition(transcript: 'wrong answer'),
+        );
+        final evaluator = BackendFirstLessonAttemptEvaluator(
+          backendEvaluator: backend,
+          recognizer: recognizer,
+        );
+
+        expect(
+          await _evaluateBackendFirst(evaluator),
+          LessonAttemptOutcome.good,
+        );
+        expect(backend.calls, 1);
+        expect(recognizer.calls, 0);
+      },
+    );
+
+    test(
+      'uses strict English on-device ASR only after connectivity failure',
+      () async {
+        final backend = _FakeAttemptEvaluator.error(
+          const LessonAttemptEvaluationException(
+            'offline',
+            backendUnavailable: true,
+          ),
+        );
+        final recognizer = _FakeLessonRecordedSpeechRecognizer(
+          const LessonRecordedSpeechRecognition(transcript: "I'm ready!"),
+        );
+        final evaluator = BackendFirstLessonAttemptEvaluator(
+          backendEvaluator: backend,
+          recognizer: recognizer,
+        );
+
+        expect(
+          await _evaluateBackendFirst(
+            evaluator,
+            expectedEnglish: 'I am ready.',
+          ),
+          LessonAttemptOutcome.good,
+        );
+        expect(recognizer.calls, 1);
+        expect(recognizer.lastPath, endsWith('.wav'));
+        expect(recognizer.lastLocale, 'en-US');
+        expect(recognizer.lastPreferOnDevice, isTrue);
+        expect(recognizer.lastRequireOnDevice, isTrue);
+      },
+    );
+
+    test(
+      'skips the backend immediately when network transport is gone',
+      () async {
+        final backend = _FakeAttemptEvaluator.outcome(
+          LessonAttemptOutcome.retry,
+        );
+        final recognizer = _FakeLessonRecordedSpeechRecognizer(
+          const LessonRecordedSpeechRecognition(transcript: 'I am ready'),
+        );
+        final evaluator = BackendFirstLessonAttemptEvaluator(
+          backendEvaluator: backend,
+          recognizer: recognizer,
+          networkTransportAvailable: () async => false,
+        );
+
+        expect(
+          await _evaluateBackendFirst(evaluator, expectedEnglish: "I'm ready"),
+          LessonAttemptOutcome.good,
+        );
+        expect(backend.calls, 0);
+        expect(recognizer.calls, 1);
+      },
+    );
+
+    test(
+      'accepts alternatives and returns retry for different speech',
+      () async {
+        final matching = BackendFirstLessonAttemptEvaluator(
+          backendEvaluator: _offlineBackend(),
+          recognizer: _FakeLessonRecordedSpeechRecognizer(
+            const LessonRecordedSpeechRecognition(
+              transcript: 'I want rice',
+              alternatives: <String>['I am ready'],
+            ),
+          ),
+        );
+        expect(
+          await _evaluateBackendFirst(matching, expectedEnglish: "I'm ready"),
+          LessonAttemptOutcome.good,
+        );
+
+        final different = BackendFirstLessonAttemptEvaluator(
+          backendEvaluator: _offlineBackend(),
+          recognizer: _FakeLessonRecordedSpeechRecognizer(
+            const LessonRecordedSpeechRecognition(transcript: 'I want rice'),
+          ),
+        );
+        expect(
+          await _evaluateBackendFirst(different, expectedEnglish: 'I am ready'),
+          LessonAttemptOutcome.retry,
+        );
+      },
+    );
+
+    test('separates silence and timeout from unclear ASR', () async {
+      final empty = BackendFirstLessonAttemptEvaluator(
+        backendEvaluator: _offlineBackend(),
+        recognizer: _FakeLessonRecordedSpeechRecognizer(
+          const LessonRecordedSpeechRecognition(transcript: ''),
+        ),
+      );
+      expect(
+        await _evaluateBackendFirst(empty),
+        LessonAttemptOutcome.noResponse,
+      );
+
+      for (final code in <String>['SPEECH_NO_MATCH']) {
+        final evaluator = BackendFirstLessonAttemptEvaluator(
+          backendEvaluator: _offlineBackend(),
+          recognizer: _FakeLessonRecordedSpeechRecognizer.error(code),
+        );
+        expect(
+          await _evaluateBackendFirst(evaluator),
+          LessonAttemptOutcome.unclear,
+        );
+      }
+      final timeout = BackendFirstLessonAttemptEvaluator(
+        backendEvaluator: _offlineBackend(),
+        recognizer: _FakeLessonRecordedSpeechRecognizer.error('SPEECH_TIMEOUT'),
+      );
+      expect(
+        await _evaluateBackendFirst(timeout),
+        LessonAttemptOutcome.noResponse,
+      );
+    });
+
+    test(
+      'preserves backend error when local model or WAV is unavailable',
+      () async {
+        for (final code in <String>[
+          'ON_DEVICE_SPEECH_UNAVAILABLE',
+          'RECORDED_AUDIO_FILE_INVALID',
+        ]) {
+          final backendError = const LessonAttemptEvaluationException(
+            'Chưa kết nối được máy chủ. Bạn thử lại sau nhé.',
+            backendUnavailable: true,
+          );
+          final evaluator = BackendFirstLessonAttemptEvaluator(
+            backendEvaluator: _FakeAttemptEvaluator.error(backendError),
+            recognizer: _FakeLessonRecordedSpeechRecognizer.error(code),
+          );
+          await expectLater(
+            _evaluateBackendFirst(evaluator),
+            throwsA(
+              isA<LessonAttemptEvaluationException>().having(
+                (error) => error.message,
+                'message',
+                backendError.message,
+              ),
+            ),
+          );
+        }
+      },
+    );
+
+    test(
+      'does not use local ASR for a non-connectivity backend failure',
+      () async {
+        final recognizer = _FakeLessonRecordedSpeechRecognizer(
+          const LessonRecordedSpeechRecognition(transcript: 'I am ready'),
+        );
+        final evaluator = BackendFirstLessonAttemptEvaluator(
+          backendEvaluator: _FakeAttemptEvaluator.error(
+            const LessonAttemptEvaluationException('server rejected request'),
+          ),
+          recognizer: recognizer,
+        );
+
+        await expectLater(
+          _evaluateBackendFirst(evaluator),
+          throwsA(isA<LessonAttemptEvaluationException>()),
+        );
+        expect(recognizer.calls, 0);
+      },
+    );
+  });
+
+  test('uses WAV on Android and preserves existing backend extensions', () {
+    expect(
+      lessonRecordingFileExtension(platform: TargetPlatform.android),
+      'wav',
+    );
+    expect(lessonRecordingFileExtension(platform: TargetPlatform.iOS), 'm4a');
+    expect(lessonAudioExtensionForPath(r'C:\recordings\answer.WAV'), 'wav');
+    expect(lessonAudioExtensionForPath('/recordings/legacy.m4a'), 'm4a');
+    expect(
+      lessonAudioExtensionForPath('blob:https://example.test/attempt'),
+      'webm',
+    );
+  });
+
+  test('default Android evaluator is backend-first with offline fallback', () {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final evaluator = createDefaultLessonAttemptEvaluator();
+    expect(evaluator, isA<BackendFirstLessonAttemptEvaluator>());
+    (evaluator as DisposableLessonAttemptEvaluator).dispose();
+  });
 }
 
+Future<LessonAttemptOutcome> _evaluateBackendFirst(
+  LessonAttemptEvaluator evaluator, {
+  String expectedEnglish = 'I am ready',
+}) => evaluator.evaluate(
+  lessonCode: 'A035_T01_L01',
+  sentenceId: 'A035_T01_L01_S01',
+  expectedEnglish: expectedEnglish,
+  recordingPath: r'C:\recordings\attempt.wav',
+  recordingDuration: const Duration(seconds: 2),
+  attemptNumber: 1,
+  childAge: 4,
+);
+
 Future<LessonAttemptOutcome> _evaluate(
-  BackendLessonAttemptEvaluator evaluator,
-) {
+  LessonAttemptEvaluator evaluator, {
+  String expectedEnglish = "I'm An",
+  bool requireAllExpectedTokens = false,
+}) {
   return evaluator.evaluate(
     lessonCode: 'A035_T01_L01',
     sentenceId: 'A035_T01_L01_S01',
-    expectedEnglish: "I'm An",
+    expectedEnglish: expectedEnglish,
     recordingPath: 'blob:https://example.test/attempt',
     recordingDuration: const Duration(seconds: 2),
     attemptNumber: 1,
     childAge: 4,
+    requireAllExpectedTokens: requireAllExpectedTokens,
   );
 }
+
+final Matcher _scoringServiceFailure = isA<LessonAttemptEvaluationException>()
+    .having(
+      (error) => error.message,
+      'service message',
+      'Dịch vụ chấm điểm đang bận. Bạn thử lại sau nhé.',
+    )
+    .having(
+      (error) => error.backendUnavailable,
+      'offline fallback eligible',
+      false,
+    );
+
+MockClient _scoringErrorClient({
+  required int statusCode,
+  required String code,
+  bool useLegacyRoute = false,
+}) => MockClient((request) async {
+  if (request.method == 'GET') {
+    return http.Response.bytes(<int>[1, 2, 3], 200);
+  }
+  if (useLegacyRoute && request.url.path == '/api/listening/evaluate-attempt') {
+    return http.Response('<html>Not Found</html>', 404);
+  }
+  expect(
+    request.url.path,
+    useLegacyRoute ? '/api/audio/translate' : '/api/listening/evaluate-attempt',
+  );
+  return _jsonResponse(<String, Object?>{
+    'error': <String, Object?>{
+      'code': code,
+      'message': 'Upstream recognition response.',
+    },
+  }, statusCode);
+});
 
 MockClient _lessonAttemptClient({
   required bool matched,
@@ -256,3 +901,71 @@ final AppConfig _config = AppConfig(
   useDemoBackend: false,
   childAge: 4,
 );
+
+Future<void> _skipRetryDelay(Duration _) async {}
+
+_FakeAttemptEvaluator _offlineBackend() => _FakeAttemptEvaluator.error(
+  const LessonAttemptEvaluationException('offline', backendUnavailable: true),
+);
+
+class _FakeLessonRecordedSpeechRecognizer
+    implements LessonRecordedSpeechRecognizer {
+  _FakeLessonRecordedSpeechRecognizer(this.result) : errorCode = null;
+
+  _FakeLessonRecordedSpeechRecognizer.error(this.errorCode) : result = null;
+
+  final LessonRecordedSpeechRecognition? result;
+  final String? errorCode;
+  int calls = 0;
+  String? lastPath;
+  String? lastLocale;
+  bool? lastPreferOnDevice;
+  bool? lastRequireOnDevice;
+
+  @override
+  Future<LessonRecordedSpeechRecognition> recognizeFile({
+    required String path,
+    String locale = 'vi-VN',
+    bool preferOnDevice = false,
+    bool requireOnDevice = false,
+  }) async {
+    calls += 1;
+    lastPath = path;
+    lastLocale = locale;
+    lastPreferOnDevice = preferOnDevice;
+    lastRequireOnDevice = requireOnDevice;
+    final code = errorCode;
+    if (code != null) {
+      throw LessonRecordedSpeechRecognitionException(code, code);
+    }
+    return result!;
+  }
+}
+
+class _FakeAttemptEvaluator implements LessonAttemptEvaluator {
+  _FakeAttemptEvaluator.outcome(this.result) : error = null;
+
+  _FakeAttemptEvaluator.error(this.error) : result = null;
+
+  final LessonAttemptOutcome? result;
+  final Object? error;
+  int calls = 0;
+
+  @override
+  Future<LessonAttemptOutcome> evaluate({
+    required String lessonCode,
+    required String sentenceId,
+    required String expectedEnglish,
+    required String recordingPath,
+    required Duration recordingDuration,
+    required int attemptNumber,
+    required int childAge,
+    Iterable<String> acceptedVariants = const <String>[],
+    bool requireAllExpectedTokens = false,
+  }) async {
+    calls += 1;
+    final failure = error;
+    if (failure != null) throw failure;
+    return result!;
+  }
+}

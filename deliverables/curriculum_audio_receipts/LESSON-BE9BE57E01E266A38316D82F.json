@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T01-B02\\C1315-L1-T01-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T01-B02-Q04",
+  "sourceText": "Mình đọc sách vào ban đêm: I sleep before eleven hay I read at night?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình đọc sách vào ban đêm:",
+      "spoken_text": "Mình đọc sách vào ban đêm:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "I sleep before eleven",
+      "spoken_text": "I sleep before eleven",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "I read at night?",
+      "spoken_text": "I read at night?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-BE9BE57E01E266A38316D82F",
+  "text": "Mình đọc sách vào ban đêm: I sleep before eleven hay I read at night?",
+  "asset": "assets/audio/CURRICULUM/be9be57e01e266a38316d82f.vi.v1.mp3",
+  "sha256": "bb3e44aaefe691dcb9f4a8fcb8591867ea01239aa22bff91ff49ce0c98e06b9a",
+  "durationSeconds": 6.640703
+}

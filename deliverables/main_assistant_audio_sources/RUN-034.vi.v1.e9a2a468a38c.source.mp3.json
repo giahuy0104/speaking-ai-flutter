@@ -1,0 +1,20 @@
+{
+  "id": "RUN-034",
+  "signature": "e9a2a468a38c0511022596775e3dfe23bab824a0f6676293c444ce778cc28440",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bi cô chưa tải được bài học. Con thử lại sau nhé",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:12:07.557Z",
+  "requestId": "WijKcyMaEVP0cfmQ6Oof",
+  "characterCost": "26",
+  "sourceSha256": "d625fe990cf7d945d203214b72e3af8f7bf3f26cac1b10130364b8ae0c366d0c"
+}

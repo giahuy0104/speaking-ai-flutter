@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T10-B01\\C1315-L3-T10-B01-T01_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T10-B01-T01_VI",
+  "sourceText": "Mình định học nhiều hơn.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình định học nhiều hơn.",
+      "generation_key": "c17790353f179349"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-C6B0C3E682C3E0D877AA8B81",
+  "text": "Mình định học nhiều hơn.",
+  "asset": "assets/audio/CURRICULUM/c6b0c3e682c3e0d877aa8b81.vi.v1.mp3",
+  "sha256": "dbe1a96d1abb64c826841b7d8cfee38ffe6b1752bd8be44197242ef0412dd03d",
+  "durationSeconds": 1.791134
+}

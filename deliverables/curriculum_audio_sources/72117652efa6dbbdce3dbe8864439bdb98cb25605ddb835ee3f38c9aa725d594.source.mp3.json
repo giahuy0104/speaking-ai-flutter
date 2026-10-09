@@ -1,0 +1,20 @@
+{
+  "signature": "72117652efa6dbbdce3dbe8864439bdb98cb25605ddb835ee3f38c9aa725d594",
+  "request": {
+    "text": "Stress Signs",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "1cbdd04c9918884e3568b6e595389454eeec237684719bf43ceb3fb3963bbf97",
+  "requestId": "JvM4kQWXKgvMFNXqMs3C",
+  "createdAt": "2026-09-15T23:30:08.753Z"
+}

@@ -1,0 +1,20 @@
+{
+  "signature": "812247b4090d0b299cf01cc229d9c334f18f5b3ff63ae92b4d269beb0959af8a",
+  "request": {
+    "text": "Numbers 11-20.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "b2f880d83145d6ab8d27cde042fcd892e2d006ab1ba2ebe2533f17fc2da24308",
+  "requestId": "yI9qw6lkcY4XANdh7vvT",
+  "createdAt": "2026-09-15T23:25:00.379Z"
+}

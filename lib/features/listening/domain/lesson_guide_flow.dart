@@ -1,12 +1,214 @@
+import 'listening_audio_keys.dart';
+
 enum LessonEntryGuideKind { first, newLesson, resume }
 
-enum LessonAttemptOutcome { good, unclear, retry, needsPractice }
+enum LessonAttemptOutcome { good, unclear, noResponse, retry, needsPractice }
+
+enum LessonFeedbackKind { correct, retry, give, noResponse, asr, skip }
+
+/// Reuses the approved V4 feedback library without inventing new praise or
+/// retry wording in individual lesson screens.
+abstract final class LessonAgeFeedbackLibrary {
+  static const Set<String> englishMessages = <String>{
+    'Great!',
+    'Good job!',
+    'Exactly.',
+    'Nice.',
+    'Good.',
+    'Try again.',
+    'One more time.',
+  };
+
+  static String localeFor(String message) =>
+      englishMessages.contains(message.trim()) ? 'en-US' : 'vi-VN';
+
+  static String audioKeyFor(String message) => switch (message.trim()) {
+    'Đúng rồi!' => 'assistant.feedback.v4.correct.vi',
+    'Mình thử lại nhé.' => 'assistant.feedback.v4.try_again.vi',
+    'Bạn thử nói nhé.' => 'assistant.feedback.v4.invite_speak.vi',
+    'Bạn thử lại nhé.' => 'assistant.feedback.v4.retry.vi',
+    'Giỏi lắm!' => 'listening.feedback.age.gioi.vi',
+    'Tốt lắm!' => 'listening.feedback.age.tot.vi',
+    'Nghe lại rồi thử nhé.' => 'listening.feedback.age.listen_retry.vi',
+    'HOMI nói mẫu nhé.' => 'listening.feedback.age.homi_model.vi',
+    'Mình nghe câu đúng nhé.' => 'listening.feedback.age.hear_correct.vi',
+    'Mình thử một lần nhé.' => 'listening.feedback.age.try_once.vi',
+    'HOMI chưa nghe rõ. Bạn nói lại nhé.' =>
+      'listening.feedback.age.not_clear_repeat.vi',
+    'Được rồi. HOMI nói mẫu nhé.' =>
+      'listening.feedback.age.homi_model_after_skip.vi',
+    'Bạn thử trả lời nhé.' => 'listening.feedback.age.answer.vi',
+    'Great!' => 'listening.feedback.age.great.en',
+    'Good job!' => 'listening.feedback.age.good_job.en',
+    'Thử lại nhé.' => 'listening.feedback.age.retry.vi',
+    'HOMI nói đáp án nhé.' => 'listening.feedback.age.homi_answer.vi',
+    'Nghe câu đúng nhé.' => 'listening.feedback.age.correct_answer.vi',
+    'Được. Nghe câu đúng nhé.' => 'listening.feedback.age.skip_correct.vi',
+    'Exactly.' => 'listening.feedback.age.exactly.en',
+    'Nice.' => 'listening.feedback.age.nice.en',
+    'Good.' => 'listening.feedback.age.good.en',
+    'Try again.' => 'listening.feedback.age.try_again.en',
+    'One more time.' => 'listening.feedback.age.one_more_time.en',
+    'HOMI chưa nghe rõ. Thử lại nhé.' =>
+      'listening.feedback.age.not_clear_retry.vi',
+    _ => throw ArgumentError.value(message, 'message', 'Unknown feedback'),
+  };
+
+  static List<String> messages({
+    required int age,
+    required LessonFeedbackKind kind,
+  }) {
+    if (age <= 5) {
+      return switch (kind) {
+        LessonFeedbackKind.correct => const <String>[
+          'Đúng rồi!',
+          'Giỏi lắm!',
+          'Tốt lắm!',
+        ],
+        LessonFeedbackKind.retry => const <String>[
+          'Mình thử lại nhé.',
+          'Nghe lại rồi thử nhé.',
+        ],
+        LessonFeedbackKind.give => const <String>[
+          'HOMI nói mẫu nhé.',
+          'Mình nghe câu đúng nhé.',
+        ],
+        LessonFeedbackKind.noResponse => const <String>[
+          'Bạn thử nói nhé.',
+          'Mình thử một lần nhé.',
+        ],
+        LessonFeedbackKind.asr => const <String>[
+          'HOMI chưa nghe rõ. Bạn nói lại nhé.',
+        ],
+        LessonFeedbackKind.skip => const <String>[
+          'Được rồi. HOMI nói mẫu nhé.',
+        ],
+      };
+    }
+    if (age <= 7) {
+      return switch (kind) {
+        LessonFeedbackKind.correct => const <String>['Đúng rồi!', 'Giỏi lắm!'],
+        LessonFeedbackKind.retry => const <String>[
+          'Bạn thử lại nhé.',
+          'Nghe lại rồi thử nhé.',
+        ],
+        LessonFeedbackKind.give => const <String>[
+          'HOMI nói mẫu nhé.',
+          'Mình nghe câu đúng nhé.',
+        ],
+        LessonFeedbackKind.noResponse => const <String>['Bạn thử trả lời nhé.'],
+        LessonFeedbackKind.asr => const <String>[
+          'HOMI chưa nghe rõ. Bạn nói lại nhé.',
+        ],
+        LessonFeedbackKind.skip => const <String>[
+          'Được rồi. HOMI nói mẫu nhé.',
+        ],
+      };
+    }
+    if (age <= 10) {
+      return switch (kind) {
+        LessonFeedbackKind.correct => const <String>[
+          'Great!',
+          'Good job!',
+          'Đúng rồi!',
+        ],
+        LessonFeedbackKind.retry => const <String>[
+          'Thử lại nhé.',
+          'Nghe lại rồi thử nhé.',
+        ],
+        LessonFeedbackKind.give => const <String>[
+          'HOMI nói đáp án nhé.',
+          'Nghe câu đúng nhé.',
+        ],
+        LessonFeedbackKind.noResponse => const <String>['Bạn thử trả lời nhé.'],
+        LessonFeedbackKind.asr => const <String>[
+          'HOMI chưa nghe rõ. Bạn nói lại nhé.',
+        ],
+        LessonFeedbackKind.skip => const <String>['Được. Nghe câu đúng nhé.'],
+      };
+    }
+    if (age <= 12) {
+      return switch (kind) {
+        LessonFeedbackKind.correct => const <String>[
+          'Great!',
+          'Exactly.',
+          'Nice.',
+        ],
+        LessonFeedbackKind.retry => const <String>['Thử lại nhé.'],
+        LessonFeedbackKind.give => const <String>[
+          'Nghe câu đúng nhé.',
+          'HOMI nói mẫu nhé.',
+        ],
+        LessonFeedbackKind.noResponse => const <String>['Bạn thử trả lời nhé.'],
+        LessonFeedbackKind.asr => const <String>[
+          'HOMI chưa nghe rõ. Bạn nói lại nhé.',
+        ],
+        LessonFeedbackKind.skip => const <String>['Được. Nghe câu đúng nhé.'],
+      };
+    }
+    return switch (kind) {
+      LessonFeedbackKind.correct => const <String>[
+        'Exactly.',
+        'Nice.',
+        'Good.',
+      ],
+      LessonFeedbackKind.retry => const <String>[
+        'Try again.',
+        'One more time.',
+      ],
+      LessonFeedbackKind.give => const <String>[
+        'Nghe câu đúng nhé.',
+        'HOMI nói mẫu nhé.',
+      ],
+      LessonFeedbackKind.noResponse => const <String>['Bạn thử trả lời nhé.'],
+      LessonFeedbackKind.asr => const <String>[
+        'HOMI chưa nghe rõ. Thử lại nhé.',
+      ],
+      LessonFeedbackKind.skip => const <String>['Được. Nghe câu đúng nhé.'],
+    };
+  }
+
+  static String message({
+    required int age,
+    required LessonFeedbackKind kind,
+    int variationIndex = 0,
+  }) {
+    final approved = messages(age: age, kind: kind);
+    return approved[variationIndex % approved.length];
+  }
+}
+
+/// V4 content supplies these cues as audio sources. Keep their text centralized
+/// so the runtime and future recorded assets always use the same wording.
+const String v4SongPrealertAudioId = 'SONG_PREALERT';
+const String v4ChallengeIntroAudioId = 'CHALLENGE_INTRO';
+const String v4ChallengeIntro = 'Tiếp theo là một câu thử thách nhé.';
+const String v4MissionIntroAudioId = 'MISSION_INTRO';
+const String v4MissionIntro =
+    'Tiếp theo là Nhiệm vụ cuối Level. Bạn sẽ có bốn câu thử thách.';
+const String v4SongPrealertTemplate =
+    'Tiếp theo là một câu thử thách. Xong rồi mình nghe bài hát [SONG_TITLE] nhé.';
+const String v4SongStartCueAudioId = 'SONG_START_CUE';
+const String v4SongStartCueTemplate = 'Bây giờ cùng nghe [SONG_TITLE] nhé.';
+
+String v4SongPrealert(String songTitle) =>
+    v4SongPrealertTemplate.replaceAll('[SONG_TITLE]', songTitle.trim());
+
+String v4SongStartCue(String songTitle) =>
+    v4SongStartCueTemplate.replaceAll('[SONG_TITLE]', songTitle.trim());
 
 class LessonGuidePrompt {
-  const LessonGuidePrompt({required this.audioCode, required this.text});
+  const LessonGuidePrompt({
+    required this.audioCode,
+    required this.text,
+    this.audioKey,
+    this.locale = 'vi-VN',
+  });
 
   final String audioCode;
   final String text;
+  final String? audioKey;
+  final String locale;
 }
 
 abstract interface class LessonAttemptEvaluator {
@@ -18,6 +220,8 @@ abstract interface class LessonAttemptEvaluator {
     required Duration recordingDuration,
     required int attemptNumber,
     required int childAge,
+    Iterable<String> acceptedVariants = const <String>[],
+    bool requireAllExpectedTokens = false,
   });
 }
 
@@ -35,6 +239,8 @@ class RecordedAttemptEvaluator implements LessonAttemptEvaluator {
     required Duration recordingDuration,
     required int attemptNumber,
     required int childAge,
+    Iterable<String> acceptedVariants = const <String>[],
+    bool requireAllExpectedTokens = false,
   }) async => LessonAttemptOutcome.good;
 }
 
@@ -49,87 +255,136 @@ class LessonGuideFlowV2 {
   /// English sample before its Vietnamese meaning is played.
   static const Duration englishToVietnamesePause = Duration(seconds: 2);
 
+  /// Lets the previous recognition/audio session finish releasing the input
+  /// route before an ASR/no-response retry claims the microphone again.
+  static const Duration unclearRetryMicrophoneSettleDelay = Duration(
+    milliseconds: 300,
+  );
+
   static const LessonGuidePrompt beforeSentence = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_BEFORE_SENTENCE',
-    text: 'Nói theo cô nhé.',
+    text: 'Nói theo mình nhé.',
+    audioKey: ListeningAudioKeys.guideStart,
   );
 
   static const LessonGuidePrompt afterSample = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_AFTER_SAMPLE',
-    text: 'Bây giờ đến lượt con. Con nói lại nhé.',
+    text: 'Bây giờ đến lượt bạn. Bạn nói lại nhé.',
+    audioKey: ListeningAudioKeys.guideYourTurn,
   );
+
+  static const LessonGuidePrompt lastItemComplete = LessonGuidePrompt(
+    audioCode: 'CORE_LAST_NEXT',
+    text: 'Đây là câu cuối. Bạn hãy hoàn thành câu này nhé.',
+    audioKey: 'assistant.learning.last_item_complete.vi',
+  );
+
+  /// The approved V4 Core speak-cue library. Callers rotate by target index;
+  /// adjacent targets therefore never repeat the same cue.
+  static const List<LessonGuidePrompt> coreSpeakCues = <LessonGuidePrompt>[
+    LessonGuidePrompt(
+      audioCode: 'CORE_SPEAK_01',
+      text: 'Bạn nói lại nhé.',
+      audioKey: 'assistant.guide.core_speak_01.vi',
+    ),
+    LessonGuidePrompt(
+      audioCode: 'CORE_SPEAK_02',
+      text: 'Đến lượt bạn.',
+      audioKey: 'assistant.guide.your_turn.vi',
+    ),
+    LessonGuidePrompt(
+      audioCode: 'CORE_SPEAK_03',
+      text: 'Bạn thử nói nhé.',
+      audioKey: 'assistant.feedback.v4.invite_speak.vi',
+    ),
+    LessonGuidePrompt(
+      audioCode: 'CORE_SPEAK_04',
+      text: 'Nói lại câu này.',
+      audioKey: 'assistant.guide.core_speak_04.vi',
+    ),
+    LessonGuidePrompt(
+      audioCode: 'CORE_SPEAK_05',
+      text: 'Bạn nói tiếng Anh nhé.',
+      audioKey: 'assistant.guide.core_speak_05.vi',
+    ),
+  ];
+
+  static LessonGuidePrompt coreSpeakCue(int targetIndex) =>
+      coreSpeakCues[targetIndex.abs() % coreSpeakCues.length];
 
   static const LessonGuidePrompt completionChoice = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_COMPLETION_CHOICE',
-    text: 'Con hãy nói “Luyện lại từ đầu” hoặc “Bài tiếp theo” nhé.',
+    text: 'Bạn hãy nói “Luyện lại từ đầu” hoặc “Bài tiếp theo” nhé.',
   );
 
   static const LessonGuidePrompt completionChoiceUnclear = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_COMPLETION_CHOICE_UNCLEAR',
-    text: 'Nói lại lựa chọn của con nhé',
+    text: 'Bạn nói lại lựa chọn nhé.',
   );
 
   static const LessonGuidePrompt topicCompleted = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_TOPIC_COMPLETED',
-    text: 'Con đã học xong chủ đề này rồi. Con chọn tiếp chủ đề mới nhé.',
+    text: 'Bạn đã học xong chủ đề này rồi. Bạn chọn tiếp chủ đề mới nhé.',
+    audioKey: ListeningAudioKeys.guideCompleted,
   );
 
   static const LessonGuidePrompt good = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_GOOD',
-    text: 'Con làm tốt lắm',
+    text: 'Bạn làm tốt lắm',
   );
 
   static const LessonGuidePrompt unclear = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_UNCLEAR',
-    text: 'Cô chưa nghe rõ. Con nói lại nhé.',
+    text: 'HOMI chưa nghe rõ. Bạn nói lại nhé.',
   );
 
   static const LessonGuidePrompt focusAndRetry = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_FOCUS_RETRY',
-    text: 'Con tập trung học đi',
+    text: 'Bạn tập trung học nhé.',
   );
 
   static const LessonGuidePrompt moveToNext = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_MOVE_TO_NEXT',
     text: 'Mình cùng học câu khác nhé!',
+    audioKey: ListeningAudioKeys.guideContinue,
   );
 
   static const LessonGuidePrompt retryFirst = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_RETRY_1',
-    text: 'Gần được rồi! Con nghe lại câu này nhé.',
+    text: 'Gần được rồi! Bạn nghe lại câu này nhé.',
   );
 
   static const LessonGuidePrompt retrySecond = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_RETRY_2',
-    text: 'Bây giờ con thử nói lại lần nữa nhé.',
+    text: 'Bây giờ bạn thử nói lại lần nữa nhé.',
   );
 
   static const LessonGuidePrompt needsPractice = LessonGuidePrompt(
     audioCode: 'AI_GUIDE_NEEDS_PRACTICE',
-    text: 'Con đã cố gắng rồi! Mình sẽ luyện thêm sau. Cùng học câu tiếp nào.',
+    text: 'Bạn đã cố gắng rồi! Mình sẽ luyện thêm sau. Cùng học câu tiếp nào.',
   );
 
   static LessonGuidePrompt entry({
     required String lessonCode,
-    required String lessonTitleEn,
+    required String lessonTitle,
     required LessonEntryGuideKind kind,
   }) {
     return switch (kind) {
       LessonEntryGuideKind.first => LessonGuidePrompt(
         audioCode: '${lessonCode}_FIRST',
         text:
-            'Chào con! Hôm nay mình bắt đầu với bài “$lessonTitleEn”. '
-            'Con nghe cô trước, rồi nói lại theo cô. Nếu muốn nghe lại hoặc '
-            'dừng, con bấm nút Main nhé.',
+            'Chào bạn! Hôm nay mình bắt đầu với bài “$lessonTitle”. '
+            'Bạn nghe mình trước, rồi nói lại theo mình. Nếu muốn nghe lại hoặc '
+            'dừng, bạn bấm nút Main nhé.',
       ),
       LessonEntryGuideKind.newLesson => LessonGuidePrompt(
         audioCode: '${lessonCode}_NEW',
-        text: 'Hôm nay mình học bài “$lessonTitleEn” nhé. Bắt đầu nào!',
+        text: 'Hôm nay mình học bài “$lessonTitle” nhé. Bắt đầu nào!',
       ),
       LessonEntryGuideKind.resume => LessonGuidePrompt(
         audioCode: '${lessonCode}_RESUME',
         text:
-            'Mình học tiếp bài “$lessonTitleEn” nhé. Bắt đầu từ chỗ lúc '
+            'Mình học tiếp bài “$lessonTitle” nhé. Bắt đầu từ chỗ lúc '
             'trước nào!',
       ),
     };
@@ -137,11 +392,11 @@ class LessonGuideFlowV2 {
 
   static LessonGuidePrompt ending({
     required String lessonCode,
-    required String lessonTitleEn,
+    required String lessonTitleVi,
   }) => LessonGuidePrompt(
     audioCode: '${lessonCode}_END',
     text:
-        'Giỏi lắm! Con đã học xong bài “$lessonTitleEn” rồi. '
-        'Con muốn luyện lại từ đầu hay học bài tiếp theo?',
+        'Giỏi lắm! Bạn đã học xong bài “$lessonTitleVi” rồi. '
+        'Bạn muốn luyện lại từ đầu hay học bài tiếp theo?',
   );
 }

@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T05-B02\\C810-L2-T05-B02-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T05-B02-Q07",
+  "sourceText": "HOMI nói: Windy today. Bạn chọn việc phù hợp. Fly a kite hay Drink water?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Windy today.",
+      "spoken_text": "Windy today.",
+      "input_index": 39
+    },
+    {
+      "language": "vi",
+      "text": "Bạn chọn việc phù hợp.",
+      "spoken_text": "Bạn chọn việc phù hợp.",
+      "input_index": 40
+    },
+    {
+      "language": "en",
+      "text": "Fly a kite",
+      "spoken_text": "Fly a kite",
+      "input_index": 41
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Drink water?",
+      "spoken_text": "Drink water?",
+      "input_index": 43
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-D77B58D3B13AB1DF7CD5DAE8",
+  "text": "HOMI nói: Windy today. Bạn chọn việc phù hợp. Fly a kite hay Drink water?",
+  "asset": "assets/audio/CURRICULUM/d77b58d3b13ab1df7cd5dae8.vi.v1.mp3",
+  "sha256": "50b958b9c80a85ffe8de18c4e64e04ef787a7610107a8c0d20079a9daae9a13b",
+  "durationSeconds": 8.923764
+}

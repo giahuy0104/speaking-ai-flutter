@@ -1,0 +1,20 @@
+{
+  "id": "RUN-132",
+  "signature": "a53ccc579bbf4850f7d6a3980615cfb9250bc8b603f17f63c5e245b0cd50f187",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Con đã học xong chủ đề này rồi. Con chọn tiếp chủ đề mới nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:15:08.164Z",
+  "requestId": "um6JDxOx1FBREZ8HqFFc",
+  "characterCost": "34",
+  "sourceSha256": "200b5791f60699a72cefbb0b736dc2de2053a8ddb186dae0a81cca8cdd1d3792"
+}

@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\MP3\\ROLEPLAY_09\\ROLEPLAY_09_TURN_05_HOMI_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "ROLEPLAY_09_TURN_05_EN",
+  "sourceText": "Anything else?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75, VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Anything else?",
+      "generation_key": "cb273d11ab2ebb2a"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7E637162CED67C391F686C01",
+  "text": "Anything else?",
+  "asset": "assets/audio/CURRICULUM/7e637162ced67c391f686c01.en.v1.mp3",
+  "sha256": "b59e025cc27a4e61e4dc9ce4279117689dd3e30b6e3870c104f7248a38302c19",
+  "durationSeconds": 1.171156
+}

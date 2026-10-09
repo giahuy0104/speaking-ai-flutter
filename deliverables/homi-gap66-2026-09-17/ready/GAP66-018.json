@@ -1,0 +1,28 @@
+{
+  "id": "GAP66-018",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình chưa hiểu.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "1BeS69pBFjAiCszMrAoa",
+  "historyItemId": "8YEEKwSPuzD1LrvWW1A3",
+  "characterCost": "8",
+  "createdAt": "2026-09-17T14:24:53.818Z",
+  "sourceSha256": "753da7f4a29efb2de163564bcfbf869b09be5626289ec86ef2797c0735136117",
+  "asset": "assets/audio/MAIN/GAP66/GAP66-018.vi.v1.mp3",
+  "finalSha256": "a88aa751ced52a40d512bbe493790d5434dcd42ece3f5db41e37f04d97543a8e",
+  "sourceDurationSeconds": 0.88,
+  "durationSeconds": 0.968073,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 16762
+}

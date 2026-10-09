@@ -1,0 +1,20 @@
+{
+  "signature": "bc96441d28de06a5cbf9d5167f983f88fdd43f7ca6b2317f60ca2149d5c3478f",
+  "request": {
+    "text": "Raise your hands?",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "969951d62b741eb553e143268f1d92cf51c5003f970c3c2da6d112034bd244b6",
+  "requestId": "lSuSxVM39K78A0TLijxQ",
+  "createdAt": "2026-09-15T23:17:58.447Z"
+}

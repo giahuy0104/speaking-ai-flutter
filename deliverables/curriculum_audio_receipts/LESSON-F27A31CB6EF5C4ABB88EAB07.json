@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T06-B02\\C1112-L2-T06-B02-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T06-B02-Q08",
+  "sourceText": "HOMI nói: Message. Bạn gặp chuyện đáng lo. Tell an adult hay Don't share photos?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Message.",
+      "spoken_text": "Message.",
+      "input_index": 45
+    },
+    {
+      "language": "vi",
+      "text": "Bạn gặp chuyện đáng lo.",
+      "spoken_text": "Bạn gặp chuyện đáng lo.",
+      "input_index": 46
+    },
+    {
+      "language": "en",
+      "text": "Tell an adult",
+      "spoken_text": "Tell an adult",
+      "input_index": 47
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 48
+    },
+    {
+      "language": "en",
+      "text": "Don't share photos?",
+      "spoken_text": "Don't share photos?",
+      "input_index": 49
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-F27A31CB6EF5C4ABB88EAB07",
+  "text": "HOMI nói: Message. Bạn gặp chuyện đáng lo. Tell an adult hay Don't share photos?",
+  "asset": "assets/audio/CURRICULUM/f27a31cb6ef5c4abb88eab07.vi.v1.mp3",
+  "sha256": "127f1a08e2bd066c259f6d517435e7b269e4108d5a4c40bef1421eb8f287701a",
+  "durationSeconds": 8.039274
+}

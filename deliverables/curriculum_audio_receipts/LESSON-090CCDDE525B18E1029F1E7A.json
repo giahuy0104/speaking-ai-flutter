@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T02-B02\\C1112-L1-T02-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T02-B02-Q04",
+  "sourceText": "Mình nghỉ giải lao ngắn: I check my work hay I take short breaks?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình nghỉ giải lao ngắn:",
+      "spoken_text": "Mình nghỉ giải lao ngắn:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "I check my work",
+      "spoken_text": "I check my work",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "I take short breaks?",
+      "spoken_text": "I take short breaks?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-090CCDDE525B18E1029F1E7A",
+  "text": "Mình nghỉ giải lao ngắn: I check my work hay I take short breaks?",
+  "asset": "assets/audio/CURRICULUM/090ccdde525b18e1029f1e7a.vi.v1.mp3",
+  "sha256": "fdfd5d9a542a19bf846bdee17c1605965a3fba2b936ce07eb6ae062dab858369",
+  "durationSeconds": 5.687483
+}

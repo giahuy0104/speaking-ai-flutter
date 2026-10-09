@@ -1,0 +1,20 @@
+{
+  "signature": "888837dff6c5fdca0dd04107304cca093b4ac02a5200ea8d69f69827d9933402",
+  "request": {
+    "text": "My Goal",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "58b0dd2ba81f7570fc2e823538218154a68e1c8763dcb23687997a4184d08bad",
+  "requestId": "uDhKC09OZimW3jdpWOzG",
+  "createdAt": "2026-09-15T23:29:29.352Z"
+}

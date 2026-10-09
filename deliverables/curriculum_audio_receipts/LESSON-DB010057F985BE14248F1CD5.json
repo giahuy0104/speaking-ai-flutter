@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T05-B01\\C810-L2-T05-B01-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T05-B01-Q04",
+  "sourceText": "Hôm nay trời nóng: Cold today hay Hot today?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Hôm nay trời nóng:",
+      "spoken_text": "Hôm nay trời nóng:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Cold today",
+      "spoken_text": "Cold today",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Hot today?",
+      "spoken_text": "Hot today?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-DB010057F985BE14248F1CD5",
+  "text": "Hôm nay trời nóng: Cold today hay Hot today?",
+  "asset": "assets/audio/CURRICULUM/db010057f985be14248f1cd5.vi.v1.mp3",
+  "sha256": "bab97714a7dd575b78d0aab56ddb1cbdc03a101f25d1f74e70aaeb09f82abd0a",
+  "durationSeconds": 5.276621
+}

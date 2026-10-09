@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T10-B02\\C1112-L3-T10-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T10-B02-Q05",
+  "sourceText": "Trồng cây: Plant a tree hay Reuse your bag?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Trồng cây:",
+      "spoken_text": "Trồng cây:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Plant a tree",
+      "spoken_text": "Plant a tree",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Reuse your bag?",
+      "spoken_text": "Reuse your bag?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-1F6878CF2584C2285235706C",
+  "text": "Trồng cây: Plant a tree hay Reuse your bag?",
+  "asset": "assets/audio/CURRICULUM/1f6878cf2584c2285235706c.vi.v1.mp3",
+  "sha256": "30408eb51520d617d18a8c873b384d83585652ae51cff2fa386878f445847d77",
+  "durationSeconds": 5.165556
+}

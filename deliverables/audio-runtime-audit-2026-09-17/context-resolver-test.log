@@ -1,0 +1,209 @@
+00:00 +0: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/tool/audio_audit_runtime_test.dart
+00:00 +0: execute every current and conditional utterance on all three resolver routes
+00:14 +0 -1: execute every current and conditional utterance on all three resolver routes [E]
+  Expected: empty
+    Actual: [
+              {
+                'text': 'Bạn chọn một trong các lựa chọn trên màn hình nhé.',
+                'locale': 'vi-VN',
+                'route': 'normal',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bạn chọn một trong các lựa chọn trên màn hình nhé.',
+                'locale': 'vi-VN',
+                'route': 'selected',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bạn chọn một trong các lựa chọn trên màn hình nhé.',
+                'locale': 'vi-VN',
+                'route': 'phone',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bạn muốn nghe lại, học câu tiếp theo, học câu trước hay dừng lại?',
+                'locale': 'vi-VN',
+                'route': 'normal',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bạn muốn nghe lại, học câu tiếp theo, học câu trước hay dừng lại?',
+                'locale': 'vi-VN',
+                'route': 'selected',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bạn muốn nghe lại, học câu tiếp theo, học câu trước hay dừng lại?',
+                'locale': 'vi-VN',
+                'route': 'phone',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bạn muốn nghe lại, nghe câu trước hay dừng lại?',
+                'locale': 'vi-VN',
+                'route': 'normal',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bạn muốn nghe lại, nghe câu trước hay dừng lại?',
+                'locale': 'vi-VN',
+                'route': 'selected',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bạn muốn nghe lại, nghe câu trước hay dừng lại?',
+                'locale': 'vi-VN',
+                'route': 'phone',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bạn muốn nghe lại, nghe câu trước, câu tiếp theo hay dừng lại?',
+                'locale': 'vi-VN',
+                'route': 'normal',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bạn muốn nghe lại, nghe câu trước, câu tiếp theo hay dừng lại?',
+                'locale': 'vi-VN',
+                'route': 'selected',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bạn muốn nghe lại, nghe câu trước, câu tiếp theo hay dừng lại?',
+                'locale': 'vi-VN',
+                'route': 'phone',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bắt đầu Level 1. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?',
+                'locale': 'vi-VN',
+                'route': 'normal',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bắt đầu Level 1. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?',
+                'locale': 'vi-VN',
+                'route': 'selected',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bắt đầu Level 1. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?',
+                'locale': 'vi-VN',
+                'route': 'phone',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bắt đầu Level 2. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?',
+                'locale': 'vi-VN',
+                'route': 'normal',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bắt đầu Level 2. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?',
+                'locale': 'vi-VN',
+                'route': 'selected',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bắt đầu Level 2. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?',
+                'locale': 'vi-VN',
+                'route': 'phone',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bắt đầu Level 3. Có 4 Chủ đề. Bạn chọn Chủ đề số mấy?',
+                'locale': 'vi-VN',
+                'route': 'normal',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bắt đầu Level 3. Có 4 Chủ đề. Bạn chọn Chủ đề số mấy?',
+                'locale': 'vi-VN',
+                'route': 'selected',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Bắt đầu Level 3. Có 4 Chủ đề. Bạn chọn Chủ đề số mấy?',
+                'locale': 'vi-VN',
+                'route': 'phone',
+                'scopes': ['current'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Chủ đề 1 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 1?',
+                'locale': 'vi-VN',
+                'route': 'normal',
+                'scopes': ['current', 'compatibility'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Chủ đề 1 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 1?',
+                'locale': 'vi-VN',
+                'route': 'selected',
+                'scopes': ['current', 'compatibility'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              {
+                'text': 'Chủ đề 1 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 1?',
+                'locale': 'vi-VN',
+                'route': 'phone',
+                'scopes': ['current', 'compatibility'],
+                'source': 'native_tts',
+                'methods': ['speakAndWait']
+              },
+              ...
+            ]
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  tool\audio_audit_runtime_test.dart 65:5             main.<fn>
+  
+00:14 +0 -1: characterize first manifest timeout persisting after storage recovers
+00:15 +1 -1: Some tests failed.
+
+Failing tests:
+  D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/tool/audio_audit_runtime_test.dart: execute every current and conditional utterance on all three resolver routes

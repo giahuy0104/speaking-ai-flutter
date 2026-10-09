@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T05-B01\\C810-L2-T05-B01-T01_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T05-B01-T01_EN",
+  "sourceText": "Sunny today.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Sunny today.",
+      "generation_key": "8b69d7c503b7642b"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-C6A98B20DE894170F9A5A789",
+  "text": "Sunny today.",
+  "asset": "assets/audio/CURRICULUM/c6a98b20de894170f9a5a789.en.v1.mp3",
+  "sha256": "66a84875ba2cc3cbb15fb58dfd13ebe8ed0186eb71e86bbafda3c426d34d10e9",
+  "durationSeconds": 1.690703
+}

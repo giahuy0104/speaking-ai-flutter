@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\838e8f1ce5db26643c8ada199cb0bd5e395a5af055c75b26bf478daa59597572.tempo.mp3",
+      "signature": "838e8f1ce5db26643c8ada199cb0bd5e395a5af055c75b26bf478daa59597572",
+      "request": {
+        "text": "Wake up",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "0144a4acea3aa8146214e5314c7b8f24fc20af9943f041c36fec19a0e8a8eda8",
+      "requestId": "6Yvw3v7ZBV2MuIF1f1w6",
+      "createdAt": "2026-09-15T23:17:04.611Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732.tempo.mp3",
+      "signature": "bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732",
+      "request": {
+        "text": "hay",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "587b62310066af72f7481443c9fccef371a1ad2d8d537d3d1e9b16ebd3efc8b4",
+      "requestId": "Y8EyPPYGalhB5eNl9yAL",
+      "createdAt": "2026-09-15T23:15:44.925Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\2d7633eecbbf935ed4f33c650b65f353010a0971b92157074f0f4e61ce2619e8.tempo.mp3",
+      "signature": "2d7633eecbbf935ed4f33c650b65f353010a0971b92157074f0f4e61ce2619e8",
+      "request": {
+        "text": "Sleep?",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "276c6b793b88f07d54527250ecedde48b8d582f6a408954b2f59594d310438c6",
+      "requestId": "BqumTyshKSBe9hehjDSA",
+      "createdAt": "2026-09-15T23:17:07.084Z"
+    }
+  ],
+  "id": "LESSON-642D1353557FACA0DD8C2051",
+  "text": "Wake up hay Sleep?",
+  "asset": "assets/audio/CURRICULUM/642d1353557faca0dd8c2051.vi.v1.mp3",
+  "sha256": "1b2341bd456eaa7458f724c97466d24d1973c7475848f3182d6293366cc4b28a",
+  "durationSeconds": 3.036259,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

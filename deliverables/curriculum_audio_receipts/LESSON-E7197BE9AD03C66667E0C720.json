@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T09-B01\\C810-L3-T09-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T09-B01-Q08",
+  "sourceText": "Bạn cần nói \"Đã thăm bà\". Fell down hay Visited Grandma?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn cần nói \"Đã thăm bà\".",
+      "spoken_text": "Bạn cần nói \"Đã thăm bà\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Fell down",
+      "spoken_text": "Fell down",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Visited Grandma?",
+      "spoken_text": "Visited Grandma?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E7197BE9AD03C66667E0C720",
+  "text": "Bạn cần nói \"Đã thăm bà\". Fell down hay Visited Grandma?",
+  "asset": "assets/audio/CURRICULUM/e7197be9ad03c66667e0c720.vi.v1.mp3",
+  "sha256": "44625305f933c4d58273c91ed8f3f8258c1ffb793742c5976eaca5bfac3639c5",
+  "durationSeconds": 5.797166
+}
