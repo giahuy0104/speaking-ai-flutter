@@ -310,6 +310,57 @@ void main() {
   );
 
   test(
+    'completion-aware playback resumes once when a pause is never lifted',
+    () async {
+      final playback = _CompletionAwareControlledPlaybackService();
+      final mediaService = LessonMediaService(playbackService: playback);
+      var completed = false;
+
+      final future = mediaService
+          .playToCompletion(Uri.parse('https://example.test/take.wav'))
+          .then((_) => completed = true);
+      await Future<void>.delayed(Duration.zero);
+
+      // just_audio pauses on becoming-noisy and never resumes by itself.
+      playback.pauseTemporarily();
+      await Future<void>.delayed(const Duration(milliseconds: 1200));
+      expect(playback.playCalls, 2);
+      expect(completed, isFalse);
+
+      playback.pauseTemporarily();
+      await Future<void>.delayed(const Duration(milliseconds: 1200));
+      expect(playback.playCalls, 2);
+
+      playback.finish();
+      await future;
+      expect(completed, isTrue);
+
+      await mediaService.dispose();
+    },
+  );
+
+  test(
+    'completion-aware playback does not resume after the clip is stopped',
+    () async {
+      final playback = _CompletionAwareControlledPlaybackService();
+      final mediaService = LessonMediaService(playbackService: playback);
+
+      final future = mediaService.playToCompletion(
+        Uri.parse('https://example.test/take.wav'),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      playback.pauseTemporarily();
+      await mediaService.stopPlayback();
+      await future;
+      await Future<void>.delayed(const Duration(milliseconds: 1200));
+      expect(playback.playCalls, 1);
+
+      await mediaService.dispose();
+    },
+  );
+
+  test(
     'completion-aware playback ignores a completed state from the old source',
     () async {
       final playback = _StaleCompletionPlaybackService();
@@ -855,6 +906,7 @@ class _CompletionAwareControlledPlaybackService
     implements AudioPlaybackService, CompletionAwareAudioPlaybackService {
   final StreamController<bool> _playing = StreamController<bool>.broadcast();
   final StreamController<void> _completed = StreamController<void>.broadcast();
+  int playCalls = 0;
 
   @override
   Stream<bool> get playingStream => _playing.stream;
@@ -864,6 +916,7 @@ class _CompletionAwareControlledPlaybackService
 
   @override
   Future<PlaybackStartMetrics> play(Uri uri) async {
+    playCalls += 1;
     _playing.add(true);
     return const PlaybackStartMetrics(
       audioLoadDuration: Duration.zero,
