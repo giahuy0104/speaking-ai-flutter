@@ -588,12 +588,33 @@ class VoicePromptBridge(
 
     private fun releasePromptPlayback() {
         promptPlaybackId = null
-        promptLoudnessEnhancer?.release()
+        val enhancer = promptLoudnessEnhancer
+        val player = promptPlayer
+        val file = promptPlaybackFile
         promptLoudnessEnhancer = null
-        promptPlayer?.release()
         promptPlayer = null
-        promptPlaybackFile?.delete()
         promptPlaybackFile = null
+        releaseOffMainThread(player, enhancer, file)
+    }
+
+    /**
+     * MediaPlayer.release() waits for the media server to tear the player
+     * down, 25 ms on the emulator and about 70 ms on a Pixel 8. Every tab
+     * change that stops a prompt paid that on the main thread as the first
+     * frame of the transition. The fields are cleared synchronously so late
+     * callbacks fail their identity checks; only the teardown moves.
+     */
+    private fun releaseOffMainThread(
+        player: MediaPlayer?,
+        enhancer: LoudnessEnhancer? = null,
+        file: File? = null,
+    ) {
+        if (player == null && enhancer == null && file == null) return
+        levelWorker.execute {
+            runCatching { enhancer?.release() }
+            runCatching { player?.release() }
+            file?.delete()
+        }
     }
 
     private fun completeAwaited(
@@ -739,7 +760,7 @@ class VoicePromptBridge(
         readyCueCompletion = null
         val player = readyCuePlayer
         readyCuePlayer = null
-        runCatching { player?.release() }
+        releaseOffMainThread(player)
         val completions = readyCueResults.toList()
         readyCueResults.clear()
         for (completion in completions) {
