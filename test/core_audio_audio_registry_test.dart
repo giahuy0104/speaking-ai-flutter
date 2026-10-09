@@ -609,7 +609,7 @@ void main() {
     final listeningRegistry = listening as VoicePromptAudioRegistryAdapter;
     final vocabularyRegistry = vocabulary as VoicePromptAudioRegistryAdapter;
 
-    expect(await mainRegistry.repository.activeManifests(), hasLength(2));
+    expect(await mainRegistry.repository.activeManifests(), hasLength(3));
     expect(await listeningRegistry.repository.activeManifests(), hasLength(12));
     expect(await vocabularyRegistry.repository.activeManifests(), hasLength(3));
 
@@ -623,6 +623,13 @@ void main() {
     expect(
       await mainRegistry.repository.find(
         AudioPromptKey('listening.navigation.start_lesson.1.vi'),
+        'vi-VN',
+      ),
+      isNotNull,
+    );
+    expect(
+      await mainRegistry.repository.find(
+        AudioPromptKey('vocabulary.flow.menu.vi'),
         'vi-VN',
       ),
       isNotNull,

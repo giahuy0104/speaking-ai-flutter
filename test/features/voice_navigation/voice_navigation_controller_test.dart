@@ -12,6 +12,7 @@ import 'package:ai_speaking_flutter_app/features/voice_navigation/application/vo
 import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/presentation/main_voice_assistant_button.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_flow_v3.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -1193,6 +1194,33 @@ void main() {
       await speech.dispose();
     },
   );
+
+  test('silent vocabulary retry plays the authored clip, not TTS', () async {
+    final speech = _FakeNavigationSpeechInput(stopText: '');
+    final prompt = _KeyedFakeVoicePromptService();
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: prompt,
+      commandWindowDuration: const Duration(milliseconds: 25),
+      activeLearningCommandHandler: (command) async =>
+          const ActiveLearningCommandResult.handled(),
+    );
+    await controller.activateFromMainButton(
+      activeLearning: true,
+      activeLearningKind: ActiveLearningModuleKind.vocabulary,
+      noSpeechRetryPrompt: VocabularyFlowV3.todayCompletion,
+      noSpeechExitPrompt: 'Mình tạm dừng nhé.',
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+
+    final retry = prompt.keyedPlays.where(
+      (play) => play.$2 == VocabularyFlowV3.todayCompletion,
+    );
+    expect(retry, isNotEmpty);
+    expect(retry.first.$1, 'vocabulary.flow.today_completed.vi');
+    controller.dispose();
+    await speech.dispose();
+  });
 
   test('two silent song windows pause the song at its checkpoint', () async {
     final speech = _FakeNavigationSpeechInput(stopText: '');
@@ -3224,6 +3252,21 @@ class _FakeVoicePromptService
 
   @override
   Future<void> dispose() async {}
+}
+
+class _KeyedFakeVoicePromptService extends _FakeVoicePromptService
+    implements KeyedVoicePromptService {
+  final List<(String, String)> keyedPlays = <(String, String)>[];
+
+  @override
+  Future<void> speakAndWaitWithAudioKey(
+    String audioKey,
+    String text, {
+    String locale = 'vi-VN',
+  }) async {
+    keyedPlays.add((audioKey, text));
+    spokenTexts.add(text);
+  }
 }
 
 class _FakeMainTurnVoicePromptService extends _FakeVoicePromptService

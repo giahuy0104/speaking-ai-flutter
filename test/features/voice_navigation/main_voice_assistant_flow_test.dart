@@ -8,7 +8,9 @@ import 'package:ai_speaking_flutter_app/features/voice_navigation/application/ma
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_intent_resolver.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/main_assistant_audio_keys.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_flow_v3.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -529,6 +531,26 @@ void main() {
       expect(turn.navigationAfterPrompt?.enterMainSpeakingMode, isTrue);
     },
   );
+
+  test('MAIN keys every vocabulary fixed prompt to its authored clip', () {
+    final flow = MainVoiceAssistantFlow(
+      contentLoader: () async => throw StateError('unused'),
+      childAge: 6,
+    );
+
+    // Prompts that share text (e.g. the three "học tiếp" lines) share one
+    // clip, so any of their keys is correct.
+    for (final prompt in VocabularyFlowV3.fixedPrompts) {
+      final sameText = VocabularyFlowV3.fixedPrompts
+          .where((other) => other.text == prompt.text)
+          .map(VocabularyAudioKeys.fixedPrompt);
+      expect(
+        flow.audioKeyForPrompt(prompt.text),
+        isIn(sameText),
+        reason: prompt.stateId,
+      );
+    }
+  });
 
   test('after translation stop offers topic, vocabulary, or stop', () async {
     final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);

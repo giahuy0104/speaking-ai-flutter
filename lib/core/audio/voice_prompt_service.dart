@@ -65,10 +65,13 @@ VoicePromptService createVoicePromptService({
               'assets/data/challenge_11_12_audio.json',
               'assets/data/challenge_13_15_audio.json',
             ],
-            if (owner == AudioTurnOwner.vocabulary) ...const [
+            // MAIN re-asks and retries the vocabulary menus with the module's
+            // own text; without the pack they fall to the platform voice.
+            if (owner == AudioTurnOwner.mainAssistant ||
+                owner == AudioTurnOwner.vocabulary)
               'assets/data/vocabulary_common_audio.json',
+            if (owner == AudioTurnOwner.vocabulary)
               'assets/data/vocabulary_built_in_audio.json',
-            ],
           ],
           httpClient: httpClient,
         )

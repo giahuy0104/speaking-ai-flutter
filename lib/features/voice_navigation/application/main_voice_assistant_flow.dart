@@ -4,7 +4,9 @@ import '../../listening/domain/listening_audio_keys.dart';
 import '../../listening/domain/listening_content.dart';
 import '../../listening/domain/v4_completion_flow.dart';
 import '../../vocabulary/data/vocabulary_store.dart';
+import '../../vocabulary/domain/vocabulary_audio_keys.dart';
 import '../../vocabulary/domain/vocabulary_entry.dart';
+import '../../vocabulary/domain/vocabulary_flow_v3.dart';
 import '../domain/controlled_speech_lexicon.dart';
 import '../domain/homi_fallback_catalog.dart';
 import '../domain/master_navigation_contract.dart';
@@ -246,6 +248,10 @@ class MainVoiceAssistantFlow {
       return MainAssistantAudioKeys.replayTopic(
         int.parse(replayTopic.group(1)!),
       );
+    }
+    final vocabularyPrompt = VocabularyFlowV3.fixedPromptForText(value);
+    if (vocabularyPrompt != null) {
+      return VocabularyAudioKeys.fixedPrompt(vocabularyPrompt);
     }
     return ListeningAudioKeys.topicContextPrompt(value);
   }
