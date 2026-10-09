@@ -101,14 +101,11 @@ class Aiv0BleControlBridge(
     private var lastDisconnectEpochMs: Long? = null
     private var disposed = false
     private val connectionTimeout = Runnable {
-        if (phase == "reconnecting" && shouldReconnect) {
-            // An unanswered reconnect (device not advertising yet, Bluetooth
-            // just switched back on) takes the next backoff step instead of
-            // ending automatic recovery.
-            closeGatt()
-            continueAfterLinkLoss(GATT_CONNECTION_TIMEOUT)
-        } else if (phase == "connecting" || phase == "reconnecting") {
-            failConnection("Kết nối/đọc GATT của HM-D001 quá thời gian 15 giây.")
+        if (phase == "connecting" || phase == "reconnecting") {
+            failOrRetry(
+                "Kết nối/đọc GATT của HM-D001 quá thời gian 15 giây.",
+                GATT_CONNECTION_TIMEOUT,
+            )
         }
     }
     private val adapterStateReceiver = object : BroadcastReceiver() {
@@ -556,11 +553,16 @@ class Aiv0BleControlBridge(
                         // Do not publish a stale value from the previous GATT
                         // session before this peripheral has been read.
                         batteryPercent = null
-                        phase = "connecting"
+                        // An automatic recovery stays "reconnecting" so a
+                        // stalled discovery takes the next backoff step.
+                        if (phase != "reconnecting") phase = "connecting"
                         message = "Đang đọc dịch vụ BLE Control…"
                         emitStatus()
                         if (!gatt.discoverServices()) {
-                            failConnection("Không thể bắt đầu đọc GATT services.")
+                            failOrRetry(
+                                "Không thể bắt đầu đọc GATT services.",
+                                BluetoothGatt.GATT_FAILURE,
+                            )
                         }
                     }
                     BluetoothProfile.STATE_DISCONNECTED -> handleDisconnected(gatt, status)
@@ -572,7 +574,7 @@ class Aiv0BleControlBridge(
             mainHandler.post {
                 if (gatt !== bluetoothGatt) return@post
                 if (status != BluetoothGatt.GATT_SUCCESS) {
-                    failConnection("Không đọc được GATT services (mã $status).")
+                    failOrRetry("Không đọc được GATT services (mã $status).", status)
                     return@post
                 }
                 val service = gatt.getService(Aiv0BleProtocol.controlServiceUuid)
@@ -645,7 +647,7 @@ class Aiv0BleControlBridge(
                 if (gatt !== bluetoothGatt) return@post
                 if (descriptor.uuid != Aiv0BleProtocol.clientCharacteristicConfigUuid) return@post
                 if (status != BluetoothGatt.GATT_SUCCESS) {
-                    failConnection("Không bật được Indicate 9E3B0002 (mã $status).")
+                    failOrRetry("Không bật được Indicate 9E3B0002 (mã $status).", status)
                     return@post
                 }
                 phase = "connected"
@@ -958,6 +960,21 @@ class Aiv0BleControlBridge(
     private fun cancelPendingReconnect() {
         reconnectRunnable?.let(mainHandler::removeCallbacks)
         reconnectRunnable = null
+    }
+
+    /**
+     * A GATT step that failed while recovering automatically (link loss,
+     * Bluetooth switched back on, background session) takes the next backoff
+     * step: right after an adapter toggle the link can come up while service
+     * discovery never answers. A connect requested by Dart reports the failure.
+     */
+    private fun failOrRetry(reason: String, status: Int) {
+        if (phase == "reconnecting" && shouldReconnect) {
+            closeGatt()
+            continueAfterLinkLoss(status)
+        } else {
+            failConnection(reason)
+        }
     }
 
     private fun failConnection(reason: String) {
