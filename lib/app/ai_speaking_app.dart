@@ -1508,7 +1508,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (controller == null || ble == null || !controller.canUseAiv0Ble) {
       return Future<bool>.value(false);
     }
-    if (controller.usesHfpInput) {
+    if (controller.usesHfpInput && controller.hfpAudioStatus.isConnected) {
       _iosHfpAutoSelectionPending = false;
       return Future<bool>.value(true);
     }
@@ -1546,7 +1546,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     await Future<void>.delayed(const Duration(milliseconds: 400));
     if (!mounted ||
         !controller.canUseAiv0Ble ||
-        controller.usesHfpInput ||
+        (controller.usesHfpInput && controller.hfpAudioStatus.isConnected) ||
         !_canRestoreHfpAfterMainFlow ||
         controller.hfpAudioStatus.isBusy ||
         _isAppAudioPlaybackActive ||
@@ -1615,7 +1615,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         final controller = _controller;
         if (controller == null) return;
         if (controller.canUseAiv0Ble) {
-          if (!controller.usesHfpInput && !controller.hfpAudioStatus.isBusy) {
+          if (!(controller.usesHfpInput &&
+                  controller.hfpAudioStatus.isConnected) &&
+              !controller.hfpAudioStatus.isBusy) {
             _iosHfpAutoSelectionPending = true;
             unawaited(_autoSelectAvailableIosHfp());
           }

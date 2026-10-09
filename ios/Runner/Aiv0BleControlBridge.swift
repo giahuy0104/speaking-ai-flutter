@@ -881,7 +881,9 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     connectTimeoutWorkItem?.cancel()
     let item = DispatchWorkItem { [weak self] in
       guard let self, self.pendingConnectResult != nil else { return }
-      if let peripheral = self.connectedPeripheral {
+      // A still-pending connect request has no CoreBluetooth timeout and may
+      // legitimately wait for the headset; only report this attempt as failed.
+      if let peripheral = self.connectedPeripheral, peripheral.state != .connecting {
         self.requestPeripheralDisconnect(
           peripheral,
           caller: "Aiv0BleControlBridge.connectTimeout",
@@ -914,6 +916,20 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     let result = pendingConnectResult
     pendingConnectResult = nil
     result?(FlutterError(code: code, message: message, details: nil))
+  }
+
+  /// CoreBluetooth drops every connection and pending request when the adapter
+  /// leaves poweredOn and does not promise a disconnect callback. Clear all
+  /// per-link state, keeping only the saved peripheral for the poweredOn retry.
+  private func resetForUnavailableAdapter() {
+    connectTimeoutWorkItem?.cancel()
+    connectTimeoutWorkItem = nil
+    cancelReconnectTasks()
+    reconnectAttempt = 0
+    failPendingConnect(code: "BLUETOOTH_DISABLED", message: "Bluetooth đang tắt.")
+    pendingWriteResult?(FlutterError(code: "BLUETOOTH_DISABLED", message: "Bluetooth đang tắt.", details: nil))
+    pendingWriteResult = nil
+    resetCharacteristics()
   }
 
   private func connectPeripheral(_ peripheral: CBPeripheral, using manager: CBCentralManager) {
@@ -1692,8 +1708,20 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
   }
 
   func centralManagerDidUpdateState(_ central: CBCentralManager) {
+    audioSessionCoordinator.trace(
+      stage: "ble_central_state",
+      caller: "Aiv0BleControlBridge.centralManagerDidUpdateState",
+      message: String(describing: central.state),
+      values: ["peripheralState": connectedPeripheral.map { String(describing: $0.state) } ?? "unavailable"]
+    )
     switch central.state {
     case .poweredOn:
+      // Peripheral objects from before a Bluetooth off/on are not guaranteed valid.
+      if let saved = connectedPeripheral,
+         let fresh = central.retrievePeripherals(withIdentifiers: [saved.identifier]).first {
+        connectedPeripheral = fresh
+        fresh.delegate = self
+      }
       if let restoredPeripheral = connectedPeripheral,
          stateCharacteristic == nil,
          restoredPeripheral.state == .disconnected {
@@ -1718,6 +1746,7 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
         message = nil
       }
     case .poweredOff:
+      resetForUnavailableAdapter()
       phase = "error"
       message = "Bluetooth đang tắt."
     case .unauthorized:
@@ -1727,6 +1756,7 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
       phase = "disabled"
       message = "Thiết bị iOS không hỗ trợ BLE."
     case .resetting:
+      resetForUnavailableAdapter()
       phase = "idle"
       message = "Bluetooth đang khởi động lại…"
     case .unknown:
