@@ -33,11 +33,9 @@ void main() {
 
     final keyed = service as KeyedVoicePromptService;
     for (final text in <String>[
-      'Bạn cần hoàn thành Level 1 trước nhé.',
       'Bạn cần học xong Bài 2 trước nhé.',
       'Bạn đã hoàn thành Chủ đề 7 rồi!',
       'Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 7?',
-      'Bạn muốn bắt đầu Level 3 hay dừng lại?',
       'Tiếp theo là một câu thử thách nhé.',
       'Bạn muốn bắt đầu Bài 1 hay dừng lại?',
       'Có 2 Bài học. Bạn chọn từ số 1 đến số 2.',

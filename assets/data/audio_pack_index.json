@@ -8,7 +8,7 @@
       "version": "v3",
       "minimumAppVersion": "1.0.8",
       "manifest": "assets/data/assistant_core_audio.json",
-      "manifestSha256": "2d80c6de21687c0ede909f26b70e1680085b43e2c8d8c2e5ea720d4f18f4c12e",
+      "manifestSha256": "764b8a2048741cbddcb56f37f172389d548016a29822d742c60598739dbf1d5d",
       "audioCount": 81,
       "sizeBytes": 2574642,
       "preloadGroup": "shared"
@@ -18,7 +18,7 @@
       "version": "v1",
       "minimumAppVersion": "1.0.8",
       "manifest": "assets/data/listening_common_audio.json",
-      "manifestSha256": "5ab6427a92cec62a93cb485f8cc1d7de4a3f6d1f3db2d460bb16b1d06c607db7",
+      "manifestSha256": "d319f59f41b0000d6c0412a1278eea727570d89f73d157bbf691892508c327bf",
       "audioCount": 442,
       "sizeBytes": 26404776,
       "preloadGroup": "shared"
