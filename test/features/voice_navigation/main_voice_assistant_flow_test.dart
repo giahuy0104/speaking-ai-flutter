@@ -485,6 +485,45 @@ void main() {
     },
   );
 
+  test('Home accepts a near-miss of an approved feature phrase', () async {
+    // Apple Speech heard "Bộ từ vựng" as "Bộ tư vấn" twice in a row and MAIN
+    // re-asked, then paused, although the child had answered both times.
+    for (final entry in <String, VoiceNavigationDestination>{
+      'Bộ tư vấn': VoiceNavigationDestination.vocabulary,
+      'Bộ tư vấn ạ': VoiceNavigationDestination.vocabulary,
+      'Bộ tư dựng': VoiceNavigationDestination.vocabulary,
+      'Học chủ đền': VoiceNavigationDestination.topics,
+      'Dịch tiến Anh': VoiceNavigationDestination.conversation,
+    }.entries) {
+      final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
+      flow.begin();
+      final turn = await flow.handle(entry.key);
+      expect(
+        (turn.navigationBeforePrompt ?? turn.navigationAfterPrompt)
+            ?.destination,
+        entry.value,
+        reason: entry.key,
+      );
+    }
+
+    // A single syllable, more than one changed syllable, a menu echo, or a
+    // syllable that lost most of its letters still re-asks.
+    for (final phrase in <String>[
+      'Dịnh',
+      'Bộ tư',
+      'Bộ tư dẫn',
+      'hay bộ tư vấn',
+      'Học chủ tề',
+    ]) {
+      final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
+      flow.begin();
+      final turn = await flow.handle(phrase);
+      expect(turn.navigationBeforePrompt, isNull, reason: phrase);
+      expect(turn.navigationAfterPrompt, isNull, reason: phrase);
+      expect(turn.continueListening, isTrue, reason: phrase);
+    }
+  });
+
   test('chooses continuous translation after the Main menu', () async {
     final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
 
