@@ -346,7 +346,7 @@ class VoiceNavigationIntentResolver {
       for (var end = start; end <= endLimit; end += 1) {
         candidate += words[end];
         if (_compactWakePhrases.any(
-          (phrase) => _editDistanceAtMost(candidate, phrase, 1),
+          (phrase) => editDistanceAtMost(candidate, phrase, 1),
         )) {
           return true;
         }
@@ -355,7 +355,7 @@ class VoiceNavigationIntentResolver {
     return false;
   }
 
-  static bool _editDistanceAtMost(String left, String right, int limit) {
+  static bool editDistanceAtMost(String left, String right, int limit) {
     if ((left.length - right.length).abs() > limit) {
       return false;
     }

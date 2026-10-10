@@ -668,6 +668,10 @@ class MainVoiceAssistantFlow {
     if (!stageCanHandle &&
         !isPromptEcho &&
         _stage != MainVoiceAssistantStage.idle) {
+      final nearestPhrase = _nearestFeaturePhrase(normalized);
+      if (nearestPhrase != null && canHandle(nearestPhrase)) {
+        return handle(nearestPhrase);
+      }
       final fallback = _fallbackForUnrecognizedInput();
       if (fallback != null) {
         return fallback;
@@ -1909,16 +1913,9 @@ class MainVoiceAssistantFlow {
   /// guess from a destination embedded in a sentence.
   static VoiceNavigationDestination? _wrappedFeatureChoice(String normalized) {
     final words = normalized.split(' ');
-    var start = 0;
-    var end = words.length;
-    while (start < end && _leadInWords.contains(words[start])) {
-      start++;
-    }
-    while (end > start && _trailingParticles.contains(words[end - 1])) {
-      end--;
-    }
-    if (start == 0 && end == words.length) return null;
-    final phrase = words.sublist(start, end).join(' ');
+    final unwrapped = _unwrappedFeatureWords(words);
+    if (unwrapped.length == words.length) return null;
+    final phrase = unwrapped.join(' ');
     if (_isVocabularyChoice(phrase)) {
       return VoiceNavigationDestination.vocabulary;
     }
@@ -1927,6 +1924,71 @@ class MainVoiceAssistantFlow {
       return VoiceNavigationDestination.conversation;
     }
     return null;
+  }
+
+  static List<String> _unwrappedFeatureWords(List<String> words) {
+    var start = 0;
+    var end = words.length;
+    while (start < end && _leadInWords.contains(words[start])) {
+      start++;
+    }
+    while (end > start && _trailingParticles.contains(words[end - 1])) {
+      end--;
+    }
+    return words.sublist(start, end);
+  }
+
+  /// ASR returns near-misses for the three top-level choices: Apple Speech
+  /// heard "Bộ từ vựng" as "Bộ tư vấn" twice in a row and MAIN re-asked, then
+  /// paused. When no approved phrase matches exactly, accept the one
+  /// destination whose phrase differs from the unwrapped transcript in a
+  /// single syllable: by at most two letters for a syllable of four or more
+  /// letters, one letter for a three-letter syllable. Single-syllable phrases
+  /// such as "Dịch" stay exact, and the menu echo "hay bộ từ vựng" is not
+  /// "vào bộ từ vựng" because "hay" would need two of its three letters.
+  static const List<String> _featurePhraseIntents = <String>[
+    'OPEN_SUBJECT',
+    'OPEN_VOCAB',
+    'OPEN_TRANSLATE',
+  ];
+
+  static String? _nearestFeaturePhrase(String normalized) {
+    final words = _unwrappedFeatureWords(normalized.split(' '));
+    if (words.length < 2) return null;
+    String? nearestPhrase;
+    String? nearestIntent;
+    for (final intent in _featurePhraseIntents) {
+      for (final phrase
+          in MasterNavigationContract.phrases[intent] ?? const <String>[]) {
+        final approved = _normalize(phrase).split(' ');
+        if (approved.length != words.length) continue;
+        var differing = 0;
+        var near = true;
+        for (var index = 0; index < words.length && near; index += 1) {
+          if (words[index] == approved[index]) continue;
+          differing += 1;
+          near =
+              differing == 1 && _isNearSyllable(words[index], approved[index]);
+        }
+        if (!near || differing == 0) continue;
+        if (nearestIntent != null && nearestIntent != intent) return null;
+        nearestPhrase ??= phrase;
+        nearestIntent = intent;
+      }
+    }
+    return nearestPhrase;
+  }
+
+  static bool _isNearSyllable(String heard, String approved) {
+    final longest = heard.length > approved.length
+        ? heard.length
+        : approved.length;
+    if (longest < 3) return false;
+    return VoiceNavigationIntentResolver.editDistanceAtMost(
+      heard,
+      approved,
+      longest >= 4 ? 2 : 1,
+    );
   }
 
   static const Set<String> _leadInWords = {
