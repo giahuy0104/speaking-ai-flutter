@@ -138,6 +138,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   bool _recording = false;
   bool _mediaBusy = false;
   bool _evaluatingAttempt = false;
+  Future<bool>? _attemptReplayBeforeSpokenFeedback;
   String? _recordingPath;
   Duration? _recordingDuration;
   String? _message;
@@ -1535,30 +1536,29 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         setState(() => _evaluatingAttempt = true);
         var shouldOpenMicrophoneAgain = false;
         try {
-          LessonAttemptOutcome? evaluatedOutcome;
-          var replayedRecording = false;
           // Recognition/scoring and child-voice replay are independent. Start
-          // them together, but apply feedback only after replay has completed
-          // so assistant audio can never overlap the child's voice.
-          await Future.wait<void>(<Future<void>>[
-            _playAttemptRecordingToCompletion(
-              recording,
-            ).then<void>((replayed) => replayedRecording = replayed),
-            _attemptEvaluator
-                .evaluate(
-                  lessonCode: widget.lesson.code,
-                  sentenceId: evaluatedSentence.id,
-                  expectedEnglish: evaluatedSentence.english,
-                  recordingPath: recording.filePath,
-                  recordingDuration: recording.duration,
-                  attemptNumber: evaluatedAttemptNumber,
-                  childAge: widget.startAge,
-                  acceptedVariants: evaluatedSentence.recognitionVariants,
-                  requireAllExpectedTokens:
-                      evaluatedSentence.requiresAllExpectedTokens,
-                )
-                .then<void>((outcome) => evaluatedOutcome = outcome),
-          ]);
+          // them together and show the result as soon as it is known; spoken
+          // feedback waits for the replay in _playPrompt so assistant audio
+          // can never overlap the child's voice.
+          final replay = _playAttemptRecordingToCompletion(recording);
+          final LessonAttemptOutcome evaluatedOutcome;
+          try {
+            evaluatedOutcome = await _attemptEvaluator.evaluate(
+              lessonCode: widget.lesson.code,
+              sentenceId: evaluatedSentence.id,
+              expectedEnglish: evaluatedSentence.english,
+              recordingPath: recording.filePath,
+              recordingDuration: recording.duration,
+              attemptNumber: evaluatedAttemptNumber,
+              childAge: widget.startAge,
+              acceptedVariants: evaluatedSentence.recognitionVariants,
+              requireAllExpectedTokens:
+                  evaluatedSentence.requiresAllExpectedTokens,
+            );
+          } catch (_) {
+            await replay;
+            rethrow;
+          }
           if (!_isCurrentEvaluation(
             evaluationRequest,
             evaluatedSentenceIndex,
@@ -1566,18 +1566,21 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           )) {
             return;
           }
-          if (widget.lesson.usesV4Flow && !replayedRecording) {
-            _showAttemptReplayFailure();
-            return;
-          }
           setState(() => _mediaBusy = false);
-          shouldOpenMicrophoneAgain = await _applyAttemptOutcome(
-            evaluatedOutcome!,
-            evaluationRequest: evaluationRequest,
-            sentenceIndex: evaluatedSentenceIndex,
-            sentence: evaluatedSentence,
-            attemptNumber: evaluatedAttemptNumber,
-          );
+          _attemptReplayBeforeSpokenFeedback = replay;
+          try {
+            shouldOpenMicrophoneAgain = await _applyAttemptOutcome(
+              evaluatedOutcome,
+              evaluationRequest: evaluationRequest,
+              sentenceIndex: evaluatedSentenceIndex,
+              sentence: evaluatedSentence,
+              attemptNumber: evaluatedAttemptNumber,
+            );
+          } finally {
+            if (identical(_attemptReplayBeforeSpokenFeedback, replay)) {
+              _attemptReplayBeforeSpokenFeedback = null;
+            }
+          }
         } finally {
           if (mounted &&
               _lessonSession.isCurrentAttemptEvaluation(evaluationRequest)) {
@@ -4145,6 +4148,15 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
     final pauseGeneration = _lessonSession.mainPauseTicket;
     setState(() => _message = prompt.text);
+    final pendingReplay = _attemptReplayBeforeSpokenFeedback;
+    if (pendingReplay != null) {
+      await pendingReplay;
+      if (!mounted ||
+          _pausedForMainAssistant ||
+          !_lessonSession.isCurrentMainPause(pauseGeneration)) {
+        return;
+      }
+    }
     final audioKey = prompt.audioKey;
     final promptService = _voicePromptService;
     if (audioKey != null && promptService is KeyedVoicePromptService) {

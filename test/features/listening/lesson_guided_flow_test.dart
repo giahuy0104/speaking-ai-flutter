@@ -1096,6 +1096,82 @@ void main() {
     expect(mediaService.playedUris.last.toString(), contains('latest.m4a'));
   });
 
+  testWidgets('shows praise at once but speaks it only after the replay', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final mediaService = _BlockingAttemptPlaybackMediaService();
+    final voicePrompts = _FakeVoicePromptService();
+
+    await tester.pumpWidget(
+      _subject(
+        _lesson(code: 'A035_T01_L01', sentenceCount: 2),
+        mediaService,
+        guideAudioLibrary: _silentGuideAudioLibrary(),
+        attemptEvaluator: _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
+          LessonAttemptOutcome.good,
+        ]),
+        voicePromptService: voicePrompts,
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+    await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+    await tester.pump();
+    await mediaService.recordingPlaybackStarted.future;
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byKey(const Key('lesson-praise-fireworks')), findsOneWidget);
+    expect(find.text('Bạn làm tốt lắm'), findsOneWidget);
+    expect(voicePrompts.spoken, isNot(contains('vi-VN|Bạn làm tốt lắm')));
+
+    mediaService.finishRecordingPlayback();
+    await _pumpGuidedSpeechTurn(tester);
+
+    expect(voicePrompts.spoken, contains('vi-VN|Bạn làm tốt lắm'));
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('shows retry feedback at once but speaks it after the replay', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final mediaService = _BlockingAttemptPlaybackMediaService();
+    final voicePrompts = _FakeVoicePromptService();
+    const retryText = 'Gần được rồi! Bạn nghe lại câu này nhé.';
+
+    await tester.pumpWidget(
+      _subject(
+        _lesson(code: 'A035_T01_L01', sentenceCount: 2),
+        mediaService,
+        guideAudioLibrary: _silentGuideAudioLibrary(),
+        attemptEvaluator: _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
+          LessonAttemptOutcome.retry,
+        ]),
+        voicePromptService: voicePrompts,
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+    await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+    await tester.pump();
+    await mediaService.recordingPlaybackStarted.future;
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text(retryText), findsOneWidget);
+    expect(voicePrompts.spoken, isNot(contains('vi-VN|$retryText')));
+
+    mediaService.finishRecordingPlayback();
+    await _pumpGuidedSpeechTurn(tester);
+
+    expect(voicePrompts.spoken, contains('vi-VN|$retryText'));
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
   testWidgets('V4 also replays the child recording before scoring', (
     tester,
   ) async {
@@ -1135,7 +1211,7 @@ void main() {
     expect(mediaService.lastRecordingPlaybackGainFixed, isTrue);
   });
 
-  testWidgets('V4 does not award a Star when child replay fails', (
+  testWidgets('V4 keeps a scored take when its replay fails', (
     tester,
   ) async {
     await _usePhoneSurface(tester);
@@ -1157,13 +1233,12 @@ void main() {
     await tester.tap(find.byKey(const Key('record-lesson-sentence')));
     await _pumpGuidedSpeechTurn(tester);
 
-    expect(find.text('Sentence 1'), findsOneWidget);
     expect(
       find.text('Chưa phát lại được bản ghi. Con hãy ghi âm lại nhé.'),
-      findsOneWidget,
+      findsNothing,
     );
-    expect(progressStore.earnedStars, isEmpty);
-    expect(progressStore.sessionResults, isEmpty);
+    expect(progressStore.earnedStars, contains('core:GUIDED-FLOW_S1'));
+    expect(progressStore.sessionResults[0], ListeningSessionResult.achieved);
   });
 
   testWidgets('V2 keeps scoring a valid attempt if replay fails', (
