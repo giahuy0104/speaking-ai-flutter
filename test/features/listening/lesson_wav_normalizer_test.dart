@@ -204,6 +204,50 @@ void main() {
     expect(stereo, originalCopy);
   });
 
+  group('trimLessonWavSilence', () {
+    test('cuts the quiet before and after speech to its margins', () {
+      final quiet = List<int>.filled(16000, 0);
+      final wav = _wav([
+        ...quiet,
+        ..._speech(seconds: 1, dbfs: -20),
+        ...quiet,
+      ], channels: 1);
+      final trimmed = _samples(trimLessonWavSilence(wav));
+      // 200 ms before the first word, the 1 s of speech, 300 ms after the
+      // last; the pauses between the words stay.
+      expect(trimmed.length, 24000);
+      expect(trimmed.sublist(0, 3200), everyElement(0));
+      expect(trimmed.sublist(3200, 3300), isNot(everyElement(0)));
+      expect(trimmed.sublist(19200 + 3200), everyElement(0));
+    });
+
+    test('keeps a recording that is only noise or a short knock', () {
+      final noise = _wav(_noise(seconds: 2, dbfs: -40), channels: 1);
+      expect(trimLessonWavSilence(noise), same(noise));
+      final knock = _wav([
+        ..._noise(seconds: 1, dbfs: -60),
+        ..._tone(seconds: 1, dbfs: -10).sublist(0, 960),
+        ..._noise(seconds: 1, dbfs: -60),
+      ], channels: 1);
+      expect(trimLessonWavSilence(knock), same(knock));
+    });
+
+    test('keeps speech that already fills the recording', () {
+      final full = _wav(_speech(seconds: 2, dbfs: -20), channels: 1);
+      expect(trimLessonWavSilence(full), same(full));
+    });
+
+    test('leaves stereo and unsupported containers unchanged', () {
+      final stereo = _wav([
+        ...List<int>.filled(32000, 0),
+        ..._speech(seconds: 1, dbfs: -20),
+        ..._speech(seconds: 1, dbfs: -20),
+        ...List<int>.filled(32000, 0),
+      ]);
+      expect(trimLessonWavSilence(stereo), same(stereo));
+    });
+  });
+
   group('new lesson recording finalization', () {
     late Directory temporary;
     late File recording;

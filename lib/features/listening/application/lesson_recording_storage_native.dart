@@ -66,8 +66,8 @@ Future<String?> resolveLessonRecording(
   if (defaultTargetPlatform == TargetPlatform.android &&
       path.toLowerCase().endsWith('.wav')) {
     final original = await recording.readAsBytes();
-    final normalized = normalizeLessonWavLoudness(
-      normalizeAndroidLessonWav(original),
+    final normalized = trimLessonWavSilence(
+      normalizeLessonWavLoudness(normalizeAndroidLessonWav(original)),
     );
     if (!identical(original, normalized)) {
       // Write and flush a sibling first. A same-directory rename replaces the

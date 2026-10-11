@@ -253,6 +253,124 @@ Uint8List normalizeLessonWavLoudness(Uint8List source) {
   return output;
 }
 
+/// Kept before the first speech window, so a soft onset survives.
+const Duration _lessonRecordingTrimLead = Duration(milliseconds: 200);
+
+/// Kept after the last speech window, so the final syllable's decay survives.
+const Duration _lessonRecordingTrimTail = Duration(milliseconds: 300);
+
+/// Cuts the quiet around a mono PCM16 lesson capture: the child's reaction
+/// time before the first word and the silence the endpoint detector waits for
+/// after the last one, which the replay otherwise plays back in full. Speech is
+/// every 20 ms window above the midpoint, in dB, between the noise floor and
+/// the speech level, measured as the pause gate measures them; 200 ms stay
+/// before the first such window and 300 ms after the last. Pauses between
+/// words are untouched. A recording whose speech is under 100 ms or less than
+/// 6 dB above its floor is returned unchanged, as is any other container.
+Uint8List trimLessonWavSilence(Uint8List source) {
+  final data = ByteData.sublistView(source);
+  bool hasTag(int offset, String tag) =>
+      offset + tag.length <= source.length &&
+      Iterable<int>.generate(
+        tag.length,
+      ).every((index) => source[offset + index] == tag.codeUnitAt(index));
+  if (source.length < 12 || !hasTag(0, 'RIFF') || !hasTag(8, 'WAVE')) {
+    return source;
+  }
+  final riffEnd = data.getUint32(4, Endian.little) + 8;
+  int? formatOffset;
+  int? formatLength;
+  int? pcmOffset;
+  int? pcmLength;
+  var offset = 12;
+  while (offset + 8 <= riffEnd && riffEnd <= source.length) {
+    final size = data.getUint32(offset + 4, Endian.little);
+    final chunkStart = offset + 8;
+    final chunkEnd = chunkStart + size;
+    if (chunkEnd > riffEnd) return source;
+    if (hasTag(offset, 'fmt ')) {
+      formatOffset = chunkStart;
+      formatLength = size;
+    }
+    if (hasTag(offset, 'data')) {
+      pcmOffset = chunkStart;
+      pcmLength = size;
+    }
+    offset = chunkEnd + (size & 1);
+  }
+  if (formatOffset == null ||
+      formatLength == null ||
+      formatLength < 16 ||
+      pcmOffset == null ||
+      pcmLength == null) {
+    return source;
+  }
+  final channels = data.getUint16(formatOffset + 2, Endian.little);
+  final sampleRate = data.getUint32(formatOffset + 4, Endian.little);
+  final bits = data.getUint16(formatOffset + 14, Endian.little);
+  if (data.getUint16(formatOffset, Endian.little) != 1 ||
+      channels != 1 ||
+      bits != 16 ||
+      sampleRate <= 0 ||
+      pcmLength.isOdd) {
+    return source;
+  }
+  final sampleCount = pcmLength ~/ 2;
+  if (sampleCount == 0) return source;
+  final windowSamples = math.max(1, sampleRate ~/ 50);
+  final windowPowers = <double>[];
+  for (var start = 0; start < sampleCount; start += windowSamples) {
+    final end = math.min(sampleCount, start + windowSamples);
+    var energy = 0.0;
+    for (var index = start; index < end; index += 1) {
+      final scaled =
+          data.getInt16(pcmOffset + index * 2, Endian.little) / 32768.0;
+      energy += scaled * scaled;
+    }
+    windowPowers.add(energy / (end - start));
+  }
+  final ranked = windowPowers.toList()..sort((a, b) => b.compareTo(a));
+  final measured = ranked.length > 2 ? ranked.sublist(2) : ranked;
+  final strongest = measured.first;
+  if (strongest <= 0) return source;
+  final gate = math.max(math.pow(10, -5).toDouble(), strongest / 1000);
+  final active = measured.where((power) => power >= gate).toList();
+  // Under 100 ms above the gate is a knock, not speech.
+  if (active.length < 5) return source;
+  final rmsPower = active.reduce((a, b) => a + b) / active.length;
+  final floorPower = math.max(
+    1e-10,
+    ranked[ranked.length - 1 - ranked.length ~/ 10],
+  );
+  if (10 * math.log(rmsPower / floorPower) / math.ln10 < 6) return source;
+  final threshold = math.sqrt(floorPower * rmsPower);
+  final firstWindow = windowPowers.indexWhere((power) => power >= threshold);
+  final lastWindow = windowPowers.lastIndexWhere((power) => power >= threshold);
+  if (firstWindow < 0) return source;
+  final startSample = math.max(
+    0,
+    firstWindow * windowSamples -
+        _lessonRecordingTrimLead.inMilliseconds * sampleRate ~/ 1000,
+  );
+  final endSample = math.min(
+    sampleCount,
+    (lastWindow + 1) * windowSamples +
+        _lessonRecordingTrimTail.inMilliseconds * sampleRate ~/ 1000,
+  );
+  if (startSample == 0 && endSample == sampleCount) return source;
+  final pcm = Uint8List.sublistView(
+    source,
+    pcmOffset + startSample * 2,
+    pcmOffset + endSample * 2,
+  );
+  final header = buildPcm16WavHeader(
+    pcmByteLength: pcm.length,
+    sampleRate: sampleRate,
+    channelCount: 1,
+  );
+  return Uint8List.fromList(<int>[...header, ...pcm]);
+}
+
 /// Per-sample gain reduction that keeps `sample * multiplier` under
 /// [ceiling]. It ramps down over 5 ms before a peak and recovers over 60 ms,
 /// so limiting a peak does not click or pump.
