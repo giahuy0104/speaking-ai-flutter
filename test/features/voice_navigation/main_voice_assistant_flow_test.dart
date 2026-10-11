@@ -510,10 +510,48 @@ void main() {
     // syllable that lost most of its letters still re-asks.
     for (final phrase in <String>[
       'Dịnh',
-      'Bộ tư',
       'Bộ tư dẫn',
       'hay bộ tư vấn',
       'Học chủ tề',
+    ]) {
+      final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
+      flow.begin();
+      final turn = await flow.handle(phrase);
+      expect(turn.navigationBeforePrompt, isNull, reason: phrase);
+      expect(turn.navigationAfterPrompt, isNull, reason: phrase);
+      expect(turn.continueListening, isTrue, reason: phrase);
+    }
+  });
+
+  test('Home accepts the start of an approved feature phrase', () async {
+    // A turn that ends on a partial result keeps only the first syllables of
+    // the answer. Two or more that begin the phrases of one destination only
+    // are that destination.
+    for (final entry in <String, VoiceNavigationDestination>{
+      'Bộ từ': VoiceNavigationDestination.vocabulary,
+      'Bộ tư': VoiceNavigationDestination.vocabulary,
+      'Mở bộ từ': VoiceNavigationDestination.vocabulary,
+      'Học chủ': VoiceNavigationDestination.topics,
+      'Dịch tiếng': VoiceNavigationDestination.conversation,
+    }.entries) {
+      final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
+      flow.begin();
+      final turn = await flow.handle(entry.key);
+      expect(
+        (turn.navigationBeforePrompt ?? turn.navigationAfterPrompt)
+            ?.destination,
+        entry.value,
+        reason: entry.key,
+      );
+    }
+    // One syllable, a start shared by several destinations, or a menu echo
+    // fragment still re-asks.
+    for (final phrase in <String>[
+      'Bộ',
+      'Chuyển sang',
+      'Vào học',
+      'Mở phần',
+      'hay bộ từ',
     ]) {
       final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
       flow.begin();

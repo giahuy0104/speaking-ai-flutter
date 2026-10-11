@@ -1982,6 +1982,10 @@ class MainVoiceAssistantFlow {
   /// letters, one letter for a three-letter syllable. Single-syllable phrases
   /// such as "Dịch" stay exact, and the menu echo "hay bộ từ vựng" is not
   /// "vào bộ từ vựng" because "hay" would need two of its three letters.
+  /// A turn that ended on a partial result or lost its last syllable carries
+  /// the start of the phrase instead: "Bộ từ" for "Bộ từ vựng". Two or more
+  /// leading syllables that begin the phrases of one destination only are
+  /// that destination; "chuyển sang" begins phrases of every destination.
   static const List<String> _featurePhraseIntents = <String>[
     'OPEN_SUBJECT',
     'OPEN_VOCAB',
@@ -2012,7 +2016,28 @@ class MainVoiceAssistantFlow {
         nearestIntent = intent;
       }
     }
-    return nearestPhrase;
+    return nearestPhrase ?? _truncatedFeaturePhrase(words);
+  }
+
+  static String? _truncatedFeaturePhrase(List<String> words) {
+    String? truncatedPhrase;
+    String? truncatedIntent;
+    for (final intent in _featurePhraseIntents) {
+      for (final phrase
+          in MasterNavigationContract.phrases[intent] ?? const <String>[]) {
+        final approved = _normalize(phrase).split(' ');
+        if (approved.length <= words.length) continue;
+        var matches = true;
+        for (var index = 0; index < words.length && matches; index += 1) {
+          matches = words[index] == approved[index];
+        }
+        if (!matches) continue;
+        if (truncatedIntent != null && truncatedIntent != intent) return null;
+        truncatedPhrase ??= phrase;
+        truncatedIntent = intent;
+      }
+    }
+    return truncatedPhrase;
   }
 
   static bool _isNearSyllable(String heard, String approved) {
