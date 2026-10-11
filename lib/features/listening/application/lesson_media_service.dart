@@ -665,7 +665,12 @@ class LessonMediaService {
     sampleRate: 16000,
     bitRate: 64000,
     numChannels: 1,
-    autoGain: true,
+    // Android's automatic gain control keeps raising the input between the
+    // child's words, so the room reads as speech to the endpoint detector and
+    // a take runs to its six-second cap, or an opening burst of raised noise
+    // passes for speech and the take ends a second in. The saved take is
+    // levelled afterwards, so the gain is not needed for replay or scoring.
+    autoGain: kIsWeb || defaultTargetPlatform != TargetPlatform.android,
     echoCancel: true,
     noiseSuppress: true,
     // record_android pauses on any audio-focus loss and never resumes by

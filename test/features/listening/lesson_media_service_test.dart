@@ -844,6 +844,7 @@ void main() {
       IosAudioCategoryOption.defaultToSpeaker,
     ]);
     expect(hfpRecord.encoder, AudioEncoder.aacLc);
+    expect(hfpRecord.autoGain, isTrue);
   });
 
   test('Android capture leaves routing owned by HFP bridge and phone flow', () {
@@ -857,6 +858,9 @@ void main() {
       expect(recordConfig.encoder, AudioEncoder.wav);
       expect(recordConfig.sampleRate, 16000);
       expect(recordConfig.numChannels, 1);
+      // The endpoint detector reads the microphone level; gain control would
+      // keep raising the room between words.
+      expect(recordConfig.autoGain, isFalse);
       expect(recordConfig.androidConfig.manageBluetooth, isFalse);
       expect(
         recordConfig.androidConfig.audioSource,
