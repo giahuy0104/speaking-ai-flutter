@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
+import 'package:ai_speaking_flutter_app/features/listening/application/listening_voice_navigation_target.dart';
 import 'package:ai_speaking_flutter_app/features/listening/data/listening_progress_store.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_catalog.dart';
@@ -39,6 +40,7 @@ void main() {
     VoidCallback? onVocabularyRequested,
     LessonMediaService? mediaService,
     VoicePromptService? voicePromptService,
+    ListeningVoiceNavigationTarget? initialVoiceTarget,
   }) {
     return MaterialApp(
       theme: buildAppTheme(),
@@ -69,6 +71,7 @@ void main() {
           mediaService: mediaService,
           voicePromptService:
               voicePromptService ?? _ImmediateVoicePromptService(),
+          initialVoiceTarget: initialVoiceTarget,
         ),
       ),
     );
@@ -415,6 +418,50 @@ void main() {
       TargetPlatform.android,
     }),
   );
+
+  testWidgets('a voice target keeps the catalog hidden until it returns', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      buildSubject(
+        childAge: 3,
+        progressStore: _LessonIntroProgressStore()..coreStarted = true,
+        mediaService: _SelectedOutputMediaService(),
+        voicePromptService: _SelectedOutputVoicePromptService(),
+        initialVoiceTarget: const ListeningVoiceNavigationTarget(
+          recognizedText: 'Chủ đề 1',
+          openLesson: true,
+          topicNumber: 1,
+          lessonNumber: 1,
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byKey(const Key('topic-listening-screen')), findsNothing);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byType(LessonIntroScreen, skipOffstage: false), findsOneWidget);
+    expect(
+      find.byKey(const Key('topic-listening-screen'), skipOffstage: false),
+      findsNothing,
+    );
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    navigator.pop();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byKey(const Key('topic-header-english-title')), findsOneWidget);
+    expect(
+      find.byKey(const Key('topic-listening-screen'), skipOffstage: false),
+      findsNothing,
+    );
+    navigator.pop();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byKey(const Key('topic-listening-screen')), findsOneWidget);
+  });
 
   testWidgets('shows bilingual topic and lesson titles', (tester) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));

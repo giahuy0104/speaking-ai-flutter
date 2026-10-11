@@ -118,6 +118,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
   late final VoicePromptService _voicePromptService;
   late final bool _ownsVoicePromptService;
   bool _initialVoiceTargetHandled = false;
+  bool _catalogHiddenForVoiceTarget = false;
   ListeningContentAgeGroup? _activeVoiceTopicGroup;
   bool _activeVoiceTopicRelearn = false;
   int? _activeVoiceTopicRevision;
@@ -128,6 +129,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
   @override
   void initState() {
     super.initState();
+    _catalogHiddenForVoiceTarget = widget.initialVoiceTarget != null;
     final requestedAge = widget.initialVoiceTarget?.childAge ?? widget.childAge;
     AudioDiagnostics.event('screen.topics.init');
     if (AudioDiagnostics.enabled) {
@@ -257,6 +259,16 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_catalogHiddenForVoiceTarget) {
+      return const Scaffold(
+        backgroundColor: Colors.transparent,
+        body: LearningScenery(
+          imageAlignment: Alignment.topCenter,
+          overlayOpacity: 0.36,
+          child: SizedBox.expand(),
+        ),
+      );
+    }
     return DisplayLanguageScope(
       language: widget.language,
       child: Scaffold(
@@ -556,6 +568,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
       debugPrint(
         'HOMI topic content/progress load failed: $error\n$stackTrace',
       );
+      _revealCatalog();
       // The topic catalog remains usable while lesson content is unavailable.
     }
   }
@@ -830,24 +843,36 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
       return;
     }
     _initialVoiceTargetHandled = true;
-    final topicIndex = target.resolveTopicIndex(_catalog);
-    if (topicIndex == null) {
-      return;
+    try {
+      final topicIndex = target.resolveTopicIndex(_catalog);
+      if (topicIndex == null) {
+        return;
+      }
+      await Future<void>.delayed(Duration.zero);
+      if (!mounted) {
+        return;
+      }
+      await _openTopic(
+        _catalog.topics[topicIndex],
+        topicIndex,
+        initialLessonNumber: target.openLesson
+            ? target.resolvedLessonNumber
+            : null,
+        requestVoiceLessonSelection: false,
+        forceRelearnTopic: target.relearnTopic,
+        forceRelearnLesson: target.relearnLesson,
+      );
+    } finally {
+      _revealCatalog();
     }
-    await Future<void>.delayed(Duration.zero);
-    if (!mounted) {
-      return;
-    }
-    await _openTopic(
-      _catalog.topics[topicIndex],
-      topicIndex,
-      initialLessonNumber: target.openLesson
-          ? target.resolvedLessonNumber
-          : null,
-      requestVoiceLessonSelection: false,
-      forceRelearnTopic: target.relearnTopic,
-      forceRelearnLesson: target.relearnLesson,
-    );
+  }
+
+  /// A voice target opens its topic on top of this catalog as soon as the
+  /// content loads. The catalog stays out of sight until that route returns,
+  /// so the child does not see it flash between HOMI's reply and the lesson.
+  void _revealCatalog() {
+    if (!mounted || !_catalogHiddenForVoiceTarget) return;
+    setState(() => _catalogHiddenForVoiceTarget = false);
   }
 
   Future<void> _openTopicSongs(ListeningTopic topic, int topicIndex) async {
@@ -1030,6 +1055,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
         settings: const RouteSettings(name: ListeningRouteNames.topicLessons),
       );
       await route;
+      _revealCatalog();
       await _reloadProgress();
       final checkpoint = await widget.progressStore
           .readTopicSelectionCheckpoint(
