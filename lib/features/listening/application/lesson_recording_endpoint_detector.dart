@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
@@ -53,6 +54,9 @@ class LessonRecordingEndpointDetector {
   bool _levelHeardSpeech = false;
   bool _endpointSent = false;
   int _generation = 0;
+  int _levelSamples = 0;
+  double _peakDbfs = -160;
+  double _lastDbfs = -160;
   DateTime? _sustainedVoiceStartedAt;
   DateTime? _earlyVoiceStartedAt;
   DateTime? _earlyVoiceLastHeardAt;
@@ -87,6 +91,9 @@ class LessonRecordingEndpointDetector {
     _speechDetected = false;
     _levelHeardSpeech = false;
     _endpointSent = false;
+    _levelSamples = 0;
+    _peakDbfs = -160;
+    _lastDbfs = -160;
     _sustainedVoiceStartedAt = null;
     _earlyVoiceStartedAt = null;
     _earlyVoiceMinimum = null;
@@ -144,6 +151,9 @@ class LessonRecordingEndpointDetector {
     // minimum, and room noise then reads as speech for the whole turn.
     if (_signalStartedAt == null && dbfs <= _noSignalDbfs) return;
     final startedAt = _signalStartedAt ??= _now();
+    _levelSamples += 1;
+    _lastDbfs = dbfs;
+    if (dbfs > _peakDbfs) _peakDbfs = dbfs;
     final activity = _voiceActivityDetector.addSample(
       dbfs,
       elapsed: _now().difference(startedAt),
@@ -255,6 +265,26 @@ class LessonRecordingEndpointDetector {
     final callback = _onEndpoint;
     _onEndpoint = null;
     _sustainedVoiceStartedAt = null;
+    final signalStartedAt = _signalStartedAt;
+    // One line per take, so a tester's logcat shows what the level detector
+    // saw when a take ran to the cap or ended early.
+    debugPrint(
+      jsonEncode(<String, Object?>{
+        'event': 'lesson_take_endpoint',
+        'reason': reason.name,
+        'speechDetected': _speechDetected,
+        'levelHeardSpeech': _levelHeardSpeech,
+        'levelSamples': _levelSamples,
+        'signalMs': signalStartedAt == null
+            ? null
+            : _now().difference(signalStartedAt).inMilliseconds,
+        'peakDbfs': _peakDbfs,
+        'lastDbfs': _lastDbfs,
+        'noiseFloorDbfs': _voiceActivityDetector.noiseFloorDbfs,
+        'startThresholdDbfs': _voiceActivityDetector.startThresholdDbfs,
+        'stopThresholdDbfs': _voiceActivityDetector.stopThresholdDbfs,
+      }),
+    );
     callback?.call(reason);
   }
 }
