@@ -861,6 +861,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
         requestVoiceLessonSelection: false,
         forceRelearnTopic: target.relearnTopic,
         forceRelearnLesson: target.relearnLesson,
+        coverLessonList: true,
       );
     } finally {
       _revealCatalog();
@@ -951,6 +952,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     bool requestVoiceLessonSelection = true,
     bool forceRelearnTopic = false,
     bool forceRelearnLesson = false,
+    bool coverLessonList = false,
   }) async {
     _activeVoiceTopicGroup = null;
     _activeVoiceTopicRevision = null;
@@ -1047,6 +1049,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           voicePromptService: _voicePromptService,
           initialLessonNumber: lessonNumber,
           initialLessonLeadPrompt: resumePrompt,
+          coverUntilInitialLessonReturns: coverLessonList,
           relearnInitialLesson: forceRelearnLesson || relearnTopicSequence,
           relearnTopicSequence: relearnTopicSequence,
           onTopicCompleted: () => topicCompletedDuringVisit = true,

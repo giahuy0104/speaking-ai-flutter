@@ -448,11 +448,17 @@ void main() {
       find.byKey(const Key('topic-listening-screen'), skipOffstage: false),
       findsNothing,
     );
+    // The lesson list underneath stays covered as well.
+    expect(
+      find.byKey(const Key('topic-lesson-list-cover'), skipOffstage: false),
+      findsOneWidget,
+    );
     final navigator = tester.state<NavigatorState>(find.byType(Navigator));
     navigator.pop();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.byKey(const Key('topic-header-english-title')), findsOneWidget);
+    expect(find.byKey(const Key('topic-lesson-list-cover')), findsNothing);
     expect(
       find.byKey(const Key('topic-listening-screen'), skipOffstage: false),
       findsNothing,

@@ -39,6 +39,7 @@ class TopicLessonListScreen extends StatefulWidget {
     this.voicePromptService,
     this.initialLessonNumber,
     this.initialLessonLeadPrompt,
+    this.coverUntilInitialLessonReturns = false,
     this.relearnInitialLesson = false,
     this.relearnTopicSequence = false,
     this.songsOnly = false,
@@ -66,6 +67,11 @@ class TopicLessonListScreen extends StatefulWidget {
   /// A prompt still playing when the initial lesson opens; its intro waits
   /// for it instead of the navigation.
   final Future<void>? initialLessonLeadPrompt;
+
+  /// Keeps the list out of sight while [initialLessonNumber] opens on top of
+  /// it, so a voice command lands on the lesson without the list showing
+  /// underneath. The list appears once that lesson returns.
+  final bool coverUntilInitialLessonReturns;
   final bool relearnInitialLesson;
   final bool relearnTopicSequence;
   final bool songsOnly;
@@ -94,6 +100,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
   late final VoicePromptService _voicePromptService;
   late final bool _ownsVoicePromptService;
   bool _initialLessonOpened = false;
+  bool _coveredForInitialLesson = false;
 
   @override
   void initState() {
@@ -113,6 +120,9 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
           owner: AudioTurnOwner.listeningLesson,
         );
     _progressFuture = _loadProgress();
+    _coveredForInitialLesson =
+        widget.coverUntilInitialLessonReturns &&
+        widget.initialLessonNumber != null;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_openInitialLesson());
     });
@@ -465,28 +475,40 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
                   },
                 ),
               ),
+              // Drawn over the list, so the topic header's hero stays in the
+              // tree while the list is covered.
+              if (_coveredForInitialLesson)
+                const Positioned.fill(
+                  key: Key('topic-lesson-list-cover'),
+                  child: LearningScenery(
+                    overlayOpacity: 0.36,
+                    child: SizedBox.expand(),
+                  ),
+                ),
             ],
           ),
         ),
-        bottomNavigationBar: KeyedSubtree(
-          key: const Key('listening-bottom-navigation'),
-          child: HomiBottomNavigation(
-            selectedIndex: 1,
-            onConversation: () =>
-                Navigator.of(context).popUntil((route) => route.isFirst),
-            onTopics: _goBack,
-            onMain: widget.onMainPressed == null
-                ? null
-                : () => unawaited(widget.onMainPressed!()),
-            onVocabulary: _openVocabulary,
-            onHistory: _showHistory,
-            conversationKey: const Key('listening-conversation-tab'),
-            topicsKey: const Key('listening-topics-tab'),
-            mainKey: const Key('listening-main-button'),
-            vocabularyKey: const Key('listening-vocabulary-tab'),
-            historyKey: const Key('listening-history-tab'),
-          ),
-        ),
+        bottomNavigationBar: _coveredForInitialLesson
+            ? null
+            : KeyedSubtree(
+                key: const Key('listening-bottom-navigation'),
+                child: HomiBottomNavigation(
+                  selectedIndex: 1,
+                  onConversation: () =>
+                      Navigator.of(context).popUntil((route) => route.isFirst),
+                  onTopics: _goBack,
+                  onMain: widget.onMainPressed == null
+                      ? null
+                      : () => unawaited(widget.onMainPressed!()),
+                  onVocabulary: _openVocabulary,
+                  onHistory: _showHistory,
+                  conversationKey: const Key('listening-conversation-tab'),
+                  topicsKey: const Key('listening-topics-tab'),
+                  mainKey: const Key('listening-main-button'),
+                  vocabularyKey: const Key('listening-vocabulary-tab'),
+                  historyKey: const Key('listening-history-tab'),
+                ),
+              ),
       ),
     );
   }
@@ -505,6 +527,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
     }
     _initialLessonOpened = true;
     if (widget.content.lessons.isEmpty) {
+      _revealLessonList();
       return;
     }
     ListeningLessonContent? lesson;
@@ -525,13 +548,23 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
           ),
         ),
       );
+      _revealLessonList();
       return;
     }
-    await _startLesson(
-      lesson,
-      reviewFromBeginning: widget.relearnInitialLesson,
-      leadPrompt: widget.initialLessonLeadPrompt,
-    );
+    try {
+      await _startLesson(
+        lesson,
+        reviewFromBeginning: widget.relearnInitialLesson,
+        leadPrompt: widget.initialLessonLeadPrompt,
+      );
+    } finally {
+      _revealLessonList();
+    }
+  }
+
+  void _revealLessonList() {
+    if (!mounted || !_coveredForInitialLesson) return;
+    setState(() => _coveredForInitialLesson = false);
   }
 
   Future<void> _startLesson(
