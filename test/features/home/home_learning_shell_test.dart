@@ -19,10 +19,15 @@ import 'package:ai_speaking_flutter_app/features/listening/presentation/listenin
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_lesson_list_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_listening_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
+import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:ai_speaking_flutter_app/features/settings/application/parent_media_settings.dart';
 import 'package:ai_speaking_flutter_app/features/settings/presentation/history_sheet.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_audio_service.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_session_store.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_store.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_practice_screen.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_voice_assistant_flow.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_speaking_session_controller.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_controller.dart';
@@ -1247,6 +1252,124 @@ void main() {
   );
 
   testWidgets(
+    'review practice closes before English translation starts and keeps its checkpoint',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      const entryId = 'review-translation-handoff';
+      await const VocabularyStore().write(<VocabularyEntry>[
+        VocabularyEntry(
+          id: entryId,
+          word: 'After school.',
+          meaning: 'Sau giờ học.',
+          addedAt: DateTime(2026, 10, 12),
+          collection: VocabularyCollection.review,
+          status: VocabularyLearningStatus.needsPractice,
+          source: VocabularySource.topicCore,
+        ),
+      ]);
+      final registry = ActiveLearningModuleRegistry();
+      final speechInput = _FakeStreamingSpeechInput();
+      final voiceNavigationController = VoiceNavigationController(
+        speechInput: speechInput,
+        ownsSpeechInput: true,
+        voicePromptService: _SilentVoicePromptService(),
+      );
+      final controller = _controller();
+      var translationStarted = false;
+      var practiceVisibleWhenStarted = true;
+      double? pageWhenTranslationStarted;
+      late PageController pageController;
+      var navigationExits = 0;
+      addTearDown(registry.dispose);
+      addTearDown(controller.dispose);
+      addTearDown(voiceNavigationController.dispose);
+
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          onNavigationExit: () => navigationExits += 1,
+          child: _app(
+            controller,
+            voiceNavigationController: voiceNavigationController,
+            vocabularyMediaService: _ImmediateVocabularyMediaService(),
+            vocabularyVoicePromptService: _SilentVoicePromptService(),
+            onMainSpeakingModeStarted: () async {
+              practiceVisibleWhenStarted = find
+                  .byType(VocabularyPracticeScreen)
+                  .evaluate()
+                  .isNotEmpty;
+              pageWhenTranslationStarted = pageController.page;
+              translationStarted = true;
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      pageController = tester
+          .widget<PageView>(find.byKey(const Key('home-learning-page-view')))
+          .controller!;
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const Key('vocabulary-review-card')),
+      );
+      await tester.tap(find.byKey(const Key('vocabulary-review-card')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-review-action')));
+      for (
+        var index = 0;
+        index < 20 && find.byType(VocabularyPracticeScreen).evaluate().isEmpty;
+        index++
+      ) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(
+        (await const VocabularySessionStore().readActive())?.entryIds,
+        contains(entryId),
+      );
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      expect(registry.activeKind, ActiveLearningModuleKind.vocabulary);
+      final navigationExitsBeforeTransfer = navigationExits;
+
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect(
+        await voiceNavigationController.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: ActiveLearningModuleKind.vocabulary,
+          activeVoiceContext: registry.controller as ActiveLearningVoiceContext,
+        ),
+        isTrue,
+      );
+      final dispatch = voiceNavigationController.dispatchRecognizedText(
+        'Dịch sang tiếng Anh',
+      );
+      for (var index = 0; index < 20 && !translationStarted; index++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(await dispatch, isTrue);
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(translationStarted, isTrue);
+      expect(practiceVisibleWhenStarted, isFalse);
+      expect(pageWhenTranslationStarted, closeTo(0, 0.001));
+      expect(navigationExits, navigationExitsBeforeTransfer + 1);
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+      expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
+      expect(
+        (await const VocabularySessionStore().readActive())?.entryIds,
+        contains(entryId),
+      );
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+    variant: TargetPlatformVariant({TargetPlatform.android}),
+  );
+
+  testWidgets(
     'native platforms show conversation before translation MAIN starts from vocabulary',
     (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -1566,6 +1689,8 @@ Widget _app(
   int childAge = 6,
   VoiceNavigationController? voiceNavigationController,
   VocabularyContentAudioService? vocabularyAudioService,
+  LessonMediaService? vocabularyMediaService,
+  VoicePromptService? vocabularyVoicePromptService,
   Future<ListeningContentCatalog>? listeningContentFuture,
   MainSpeakingSessionController? speakingSessionController,
   VoidCallback? onActiveLearningExitCommitted,
@@ -1583,6 +1708,8 @@ Widget _app(
     controller: controller,
     voiceNavigationController: voiceNavigationController,
     vocabularyAudioService: vocabularyAudioService,
+    vocabularyMediaService: vocabularyMediaService,
+    vocabularyVoicePromptService: vocabularyVoicePromptService,
     speakingSessionController: speakingSessionController,
     listeningContentFuture: listeningContentFuture,
     listeningProgressStore: _HomeListeningProgressStore(),
@@ -1815,6 +1942,23 @@ class _SilentVoicePromptService implements VoicePromptService {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _ImmediateVocabularyMediaService extends LessonMediaService {
+  @override
+  Future<void> prepareSelectedLessonOutput() async {}
+
+  @override
+  Future<void> playToCompletion(
+    Uri uri, {
+    Duration timeout = const Duration(seconds: 15),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
+  }) async {}
+
+  @override
+  Future<void> stopPlayback() async {}
 }
 
 class _ChallengeVoiceModule

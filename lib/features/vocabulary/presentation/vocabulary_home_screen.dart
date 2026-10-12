@@ -59,6 +59,7 @@ class VocabularyHomeNavigationController {
   Object? _owner;
   Future<bool> Function()? _handleBack;
   Future<bool> Function()? _leaveForOtherContent;
+  Future<bool> Function()? _closePracticeForOtherContent;
   Future<void> Function(VoiceVocabularyTarget target)? _openVoiceTarget;
   Future<void> Function()? _openVoiceRoot;
 
@@ -66,6 +67,9 @@ class VocabularyHomeNavigationController {
 
   Future<bool> leaveForOtherContent() async =>
       await _leaveForOtherContent?.call() ?? true;
+
+  Future<bool> closePracticeForOtherContent() async =>
+      await _closePracticeForOtherContent?.call() ?? false;
 
   Future<void> openVoiceTarget(VoiceVocabularyTarget target) async {
     await _openVoiceTarget?.call(target);
@@ -79,6 +83,7 @@ class VocabularyHomeNavigationController {
     Object owner, {
     required Future<bool> Function() handleBack,
     required Future<bool> Function() leaveForOtherContent,
+    required Future<bool> Function() closePracticeForOtherContent,
     required Future<void> Function(VoiceVocabularyTarget target)
     openVoiceTarget,
     required Future<void> Function() openVoiceRoot,
@@ -86,6 +91,7 @@ class VocabularyHomeNavigationController {
     _owner = owner;
     _handleBack = handleBack;
     _leaveForOtherContent = leaveForOtherContent;
+    _closePracticeForOtherContent = closePracticeForOtherContent;
     _openVoiceTarget = openVoiceTarget;
     _openVoiceRoot = openVoiceRoot;
   }
@@ -95,6 +101,7 @@ class VocabularyHomeNavigationController {
     _owner = null;
     _handleBack = null;
     _leaveForOtherContent = null;
+    _closePracticeForOtherContent = null;
     _openVoiceTarget = null;
     _openVoiceRoot = null;
   }
@@ -175,6 +182,8 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   bool _translating = false;
   bool _pausedForMainAssistant = false;
   bool _openingPractice = false;
+  final GlobalKey<VocabularyPracticeScreenState> _practiceScreenKey =
+      GlobalKey<VocabularyPracticeScreenState>();
   bool _startingToday = false;
   bool _todayOffered = false;
   bool _playingCollection = false;
@@ -362,6 +371,12 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         announceMenu: false,
         notifyNavigationExit: false,
       ),
+      closePracticeForOtherContent: () async {
+        final practice = _practiceScreenKey.currentState;
+        if (practice == null) return false;
+        await practice.leaveForOtherContent();
+        return true;
+      },
       openVoiceTarget: _openVoiceTarget,
       openVoiceRoot: _openVocabularyRoot,
     );
@@ -1693,6 +1708,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         final result = await pushForActiveLearning<VocabularyPracticeResult>(
           context,
           (_) => VocabularyPracticeScreen(
+            key: _practiceScreenKey,
             language: language,
             childAge: widget.childAge,
             session: session,

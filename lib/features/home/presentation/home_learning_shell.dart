@@ -1,5 +1,6 @@
 import 'dart:async';
 import '../../../core/audio/audio_diagnostics.dart';
+import '../../../core/audio/voice_prompt_service.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,7 @@ import '../../listening/application/listening_voice_navigation_target.dart';
 import '../../listening/data/active_listening_session_store.dart';
 import '../../listening/data/listening_progress_store.dart';
 import '../../listening/domain/listening_content.dart';
+import '../../listening/application/lesson_media_service.dart';
 import '../../listening/presentation/listening_route_names.dart';
 import '../../listening/presentation/topic_listening_screen.dart';
 import '../../onboarding/application/onboarding_progress_store.dart';
@@ -52,6 +54,8 @@ class HomeLearningShell extends StatefulWidget {
     this.onVocabularyVoiceChoiceRequested,
     this.vocabularySuggestionProvider,
     this.vocabularyAudioService,
+    this.vocabularyMediaService,
+    this.vocabularyVoicePromptService,
     this.onModalVisibilityChanged,
     this.privacyConsentGranted = false,
     this.voiceAccessEnabled = true,
@@ -85,6 +89,8 @@ class HomeLearningShell extends StatefulWidget {
   onVocabularyVoiceChoiceRequested;
   final VocabularySuggestionProvider? vocabularySuggestionProvider;
   final VocabularyContentAudioService? vocabularyAudioService;
+  final LessonMediaService? vocabularyMediaService;
+  final VoicePromptService? vocabularyVoicePromptService;
   final ValueChanged<bool>? onModalVisibilityChanged;
   final bool privacyConsentGranted;
   final bool voiceAccessEnabled;
@@ -467,6 +473,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                       childAge: widget.controller.childAge,
                       audioDependencies: widget.controller,
                       vocabularyAudioService: widget.vocabularyAudioService,
+                      mediaService: widget.vocabularyMediaService,
+                      voicePromptService: widget.vocabularyVoicePromptService,
                       autoStartToday: true,
                       onRequestVoiceChoice:
                           widget.onVocabularyVoiceChoiceRequested,
@@ -1115,8 +1123,13 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         );
         return false;
       }
+      final closedPractice = await _vocabularyNavigationController
+          .closePracticeForOtherContent();
+      if (!mounted) return false;
       _vocabularyActivationController.deactivate();
-      ActiveLearningModuleScope.notifyNavigationExit(context);
+      if (!closedPractice) {
+        ActiveLearningModuleScope.notifyNavigationExit(context);
+      }
       unawaited(widget.voiceNavigationController?.pause());
     }
     await _requestHomePage(0);
