@@ -976,6 +976,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
               }
               final route = installedTopicRoute;
               if (route != null && route.isActive) {
+                // The lesson may already be open above the Topic route.
+                Navigator.of(
+                  context,
+                ).popUntil((candidate) => identical(candidate, route));
                 Navigator.of(context).removeRoute(route);
               }
               if (_pageNavigationGeneration == pageGeneration + 1) {

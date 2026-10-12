@@ -41,6 +41,7 @@ void main() {
     LessonMediaService? mediaService,
     VoicePromptService? voicePromptService,
     ListeningVoiceNavigationTarget? initialVoiceTarget,
+    Future<void>? initialVoiceActivationGate,
   }) {
     return MaterialApp(
       theme: buildAppTheme(),
@@ -72,6 +73,7 @@ void main() {
           voicePromptService:
               voicePromptService ?? _ImmediateVoicePromptService(),
           initialVoiceTarget: initialVoiceTarget,
+          initialVoiceActivationGate: initialVoiceActivationGate,
         ),
       ),
     );
@@ -417,6 +419,48 @@ void main() {
     variant: const TargetPlatformVariant(<TargetPlatform>{
       TargetPlatform.android,
     }),
+  );
+
+  testWidgets(
+    'a voice target shows its lesson while MAIN\'s reply still plays',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final mainReply = Completer<void>();
+      var pauses = 0;
+      await tester.pumpWidget(
+        buildSubject(
+          childAge: 3,
+          progressStore: _LessonIntroProgressStore()..coreStarted = true,
+          mediaService: _SelectedOutputMediaService(),
+          voicePromptService: _SelectedOutputVoicePromptService(),
+          onVoiceNavigationPause: () async => pauses += 1,
+          initialVoiceTarget: const ListeningVoiceNavigationTarget(
+            recognizedText: 'Chủ đề',
+            openLesson: true,
+            topicNumber: 1,
+            lessonNumber: 1,
+          ),
+          initialVoiceActivationGate: mainReply.future,
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(
+        find.byType(LessonIntroScreen, skipOffstage: false),
+        findsOneWidget,
+      );
+      // Pausing voice navigation would cut MAIN's reply.
+      expect(pauses, 0);
+
+      mainReply.complete();
+      await tester.pump();
+
+      expect(pauses, 1);
+    },
   );
 
   testWidgets('a voice target keeps the catalog hidden until it returns', (
@@ -798,6 +842,59 @@ void main() {
 
     expect(prompts.selectedOutputPrompts, isNotEmpty);
   });
+
+  testWidgets(
+    'the initial lesson pauses voice navigation and speaks after MAIN\'s reply',
+    (tester) async {
+      final content = await AssetListeningContentRepository().load();
+      final topicContent = content.topic(
+        startAge: 3,
+        endAge: 5,
+        topicNumber: 1,
+      );
+      final progressStore = _LessonIntroProgressStore()..coreStarted = true;
+      await progressStore.saveLesson(topicContent.lessons.first.id, 1);
+      final prompts = _SelectedOutputVoicePromptService();
+      final mainReply = Completer<void>();
+      final promptsAtPause = <int>[];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: TopicLessonListScreen(
+            language: DisplayLanguage.vietnamese,
+            startAge: 3,
+            endAge: 5,
+            topic: listeningCatalogs.first.topics.first,
+            content: topicContent,
+            progressStore: progressStore,
+            mediaService: _SelectedOutputMediaService(),
+            voicePromptService: prompts,
+            onVoiceNavigationPause: () async {
+              promptsAtPause.add(prompts.selectedOutputPrompts.length);
+            },
+            initialLessonNumber: topicContent.lessons.first.number,
+            initialLessonMainReply: mainReply.future,
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(
+        find.byType(LessonIntroScreen, skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(promptsAtPause, isEmpty);
+      expect(prompts.selectedOutputPrompts, isEmpty);
+
+      mainReply.complete();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(promptsAtPause, [0]);
+      expect(prompts.selectedOutputPrompts, isNotEmpty);
+    },
+  );
 
   testWidgets(
     'completed Course asks MAIN to choose one of ten topics for relearn',

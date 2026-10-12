@@ -39,6 +39,7 @@ class TopicLessonListScreen extends StatefulWidget {
     this.voicePromptService,
     this.initialLessonNumber,
     this.initialLessonLeadPrompt,
+    this.initialLessonMainReply,
     this.coverUntilInitialLessonReturns = false,
     this.relearnInitialLesson = false,
     this.relearnTopicSequence = false,
@@ -67,6 +68,11 @@ class TopicLessonListScreen extends StatefulWidget {
   /// A prompt still playing when the initial lesson opens; its intro waits
   /// for it instead of the navigation.
   final Future<void>? initialLessonLeadPrompt;
+
+  /// MAIN's reply still playing when the initial lesson opens. The lesson
+  /// shows under it; voice navigation is paused and the lesson speaks only
+  /// once it completes, because pausing earlier would cut the reply.
+  final Future<void>? initialLessonMainReply;
 
   /// Keeps the list out of sight while [initialLessonNumber] opens on top of
   /// it, so a voice command lands on the lesson without the list showing
@@ -556,6 +562,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
         lesson,
         reviewFromBeginning: widget.relearnInitialLesson,
         leadPrompt: widget.initialLessonLeadPrompt,
+        mainReply: widget.initialLessonMainReply,
       );
     } finally {
       _revealLessonList();
@@ -571,6 +578,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
     ListeningLessonContent lesson, {
     required bool reviewFromBeginning,
     Future<void>? leadPrompt,
+    Future<void>? mainReply,
   }) async {
     final pendingRelearn = await widget.progressStore.hasLessonPendingRelearn(
       lesson.id,
@@ -588,6 +596,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
         progress.completedV4LessonActivities,
       );
       if (!unlocked) {
+        await mainReply;
         final previous = widget.content.lessons[lessonIndex - 1];
         final message = 'Bạn cần học xong Bài ${previous.number} trước nhé.';
         if (mounted) {
@@ -624,7 +633,16 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
     if (!mounted) {
       return;
     }
-    await widget.onVoiceNavigationPause?.call();
+    var lessonClosed = false;
+    if (mainReply == null) {
+      await widget.onVoiceNavigationPause?.call();
+    } else {
+      final earlierPrompt = leadPrompt;
+      leadPrompt = mainReply.then((_) async {
+        if (!lessonClosed) await widget.onVoiceNavigationPause?.call();
+        await earlierPrompt;
+      });
+    }
     try {
       if (!mounted) {
         return;
@@ -651,6 +669,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
         ),
       );
     } finally {
+      lessonClosed = true;
       if (mounted) {
         widget.onVoiceNavigationResume?.call();
       }

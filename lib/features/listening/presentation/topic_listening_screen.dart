@@ -82,7 +82,9 @@ class TopicListeningScreen extends StatefulWidget {
   final VoidCallback? onVoiceNavigationResume;
   final ListeningVoiceNavigationTarget? initialVoiceTarget;
 
-  /// Keeps the catalog visible while an earlier MAIN response owns the audio.
+  /// Completes when an earlier MAIN response no longer owns the audio. A
+  /// target that names its lesson opens at once and only its audio waits;
+  /// anything that would speak here waits for this first.
   final Future<void>? initialVoiceActivationGate;
   final ValueChanged<int>? onTopicSelected;
   final TopicLessonSelectionPrompt? onLessonSelectionRequested;
@@ -541,11 +543,15 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
         _completedV4LessonActivities = progress.completedV4LessonActivities;
         _startedLessonIds = progress.startedLessonIds;
       });
-      await widget.initialVoiceActivationGate;
-      if (!mounted) return;
-      if (widget.initialVoiceActivationGate != null &&
-          ModalRoute.of(context)?.isCurrent != true) {
-        return;
+      final mainReply = widget.initialVoiceActivationGate;
+      final opensUnderMainReply =
+          mainReply != null && widget.initialVoiceTarget?.openLesson == true;
+      if (!opensUnderMainReply) {
+        await mainReply;
+        if (!mounted) return;
+        if (mainReply != null && ModalRoute.of(context)?.isCurrent != true) {
+          return;
+        }
       }
       final courseId = '${_catalog.startAge}-${_catalog.endAge}';
       final courseCompleted = await widget.progressStore.isCourseCompleted(
@@ -560,7 +566,11 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
         );
         unawaited(_startCourseRelearnTopicSelection(group));
       } else if (widget.initialVoiceTarget != null) {
-        unawaited(_openInitialVoiceTarget());
+        unawaited(
+          _openInitialVoiceTarget(
+            mainReply: opensUnderMainReply ? mainReply : null,
+          ),
+        );
       } else {
         unawaited(_resumeTopicSelectionIfNeeded(catalog));
       }
@@ -837,7 +847,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     }
   }
 
-  Future<void> _openInitialVoiceTarget() async {
+  Future<void> _openInitialVoiceTarget({Future<void>? mainReply}) async {
     final target = widget.initialVoiceTarget;
     if (_initialVoiceTargetHandled || target == null || !mounted) {
       return;
@@ -862,6 +872,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
         forceRelearnTopic: target.relearnTopic,
         forceRelearnLesson: target.relearnLesson,
         coverLessonList: true,
+        mainReply: mainReply,
       );
     } finally {
       _revealCatalog();
@@ -953,6 +964,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     bool forceRelearnTopic = false,
     bool forceRelearnLesson = false,
     bool coverLessonList = false,
+    Future<void>? mainReply,
   }) async {
     _activeVoiceTopicGroup = null;
     _activeVoiceTopicRevision = null;
@@ -1049,6 +1061,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           voicePromptService: _voicePromptService,
           initialLessonNumber: lessonNumber,
           initialLessonLeadPrompt: resumePrompt,
+          initialLessonMainReply: mainReply,
           coverUntilInitialLessonReturns: coverLessonList,
           relearnInitialLesson: forceRelearnLesson || relearnTopicSequence,
           relearnTopicSequence: relearnTopicSequence,
