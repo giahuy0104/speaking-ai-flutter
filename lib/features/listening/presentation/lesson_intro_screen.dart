@@ -594,7 +594,18 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
                             const SizedBox(height: 8),
                             ScaleTransition(
                               scale: _animationController,
-                              child: const _LessonIntroMascot(),
+                              child: SizedBox(
+                                width: 220,
+                                height: 238,
+                                child: Transform.scale(
+                                  scale: 1.42,
+                                  child: Image.asset(
+                                    MascotAssets.wave,
+                                    fit: BoxFit.contain,
+                                    filterQuality: FilterQuality.high,
+                                  ),
+                                ),
+                              ),
                             ),
                             Transform.translate(
                               offset: const Offset(0, -18),
@@ -905,50 +916,4 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
     onTopicCompleted: widget.onTopicCompleted,
     onCommunicationRequested: widget.onCommunicationRequested,
   );
-}
-
-class _LessonIntroMascot extends StatelessWidget {
-  const _LessonIntroMascot();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 220,
-      height: 238,
-      child: Transform.scale(
-        scale: 1.42,
-        child: Image.asset(
-          MascotAssets.wave,
-          fit: BoxFit.contain,
-          filterQuality: FilterQuality.high,
-        ),
-      ),
-    );
-  }
-}
-
-/// The intro's scenery and mascot, in the place where [LessonIntroScreen]
-/// first draws them. A screen that is about to open the intro shows this, so
-/// the intro then appears in place.
-class LessonIntroPlaceholder extends StatelessWidget {
-  const LessonIntroPlaceholder({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return LearningScenery(
-      child: SafeArea(
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: Padding(
-            // The intro's top padding, its button row and the gap below it.
-            padding: const EdgeInsets.only(top: 10 + 48 + 8),
-            child: Transform.scale(
-              scale: 0.92,
-              child: const _LessonIntroMascot(),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }

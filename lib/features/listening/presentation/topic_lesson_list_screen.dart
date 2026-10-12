@@ -480,7 +480,10 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
               if (_coveredForInitialLesson)
                 const Positioned.fill(
                   key: Key('topic-lesson-list-cover'),
-                  child: LessonIntroPlaceholder(),
+                  child: LearningScenery(
+                    overlayOpacity: 0.36,
+                    child: SizedBox.expand(),
+                  ),
                 ),
             ],
           ),
@@ -646,14 +649,6 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
           onTopicCompleted: widget.onTopicCompleted,
           onCommunicationRequested: widget.onCommunicationRequested,
         ),
-        // The cover already shows the intro's mascot; the intro takes its
-        // place without sliding in over it.
-        foregroundTransitionDuration: _coveredForInitialLesson
-            ? Duration.zero
-            : null,
-        foregroundTransitionsBuilder: _coveredForInitialLesson
-            ? (_, _, _, child) => child
-            : null,
       );
     } finally {
       if (mounted) {
