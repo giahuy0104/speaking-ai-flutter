@@ -31,26 +31,34 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
     willResignActiveToken = NotificationCenter.default.addObserver(
       forName: UIApplication.willResignActiveNotification,
       object: nil,
-      queue: .main
+      queue: nil
     ) { [weak self] _ in
-      guard let self else { return }
-      self.audioSessionCoordinator.requestBackgroundCaptureArm(
-        caller: "BackgroundLearningBridge.willResignActive"
-      )
-      self.reconcileBackgroundTransitionLease()
+      // The record-capable engine must be armed before the app leaves the
+      // foreground, so the main thread waits for the queue here.
+      IOSNativeWork.refreshApplicationState()
+      IOSNativeWork.sync {
+        guard let self else { return }
+        self.audioSessionCoordinator.requestBackgroundCaptureArm(
+          caller: "BackgroundLearningBridge.willResignActive"
+        )
+        self.reconcileBackgroundTransitionLease()
+      }
     }
     didEnterBackgroundToken = NotificationCenter.default.addObserver(
       forName: UIApplication.didEnterBackgroundNotification,
       object: nil,
-      queue: .main
+      queue: nil
     ) { [weak self] _ in
-      self?.audioSessionCoordinator.applicationDidEnterBackground()
-      self?.reconcileBackgroundTransitionLease()
+      IOSNativeWork.refreshApplicationState()
+      IOSNativeWork.sync {
+        self?.audioSessionCoordinator.applicationDidEnterBackground()
+        self?.reconcileBackgroundTransitionLease()
+      }
     }
     willEnterForegroundToken = NotificationCenter.default.addObserver(
       forName: UIApplication.willEnterForegroundNotification,
       object: nil,
-      queue: .main
+      queue: IOSNativeWork.operationQueue
     ) { [weak self] _ in
       self?.audioSessionCoordinator.applicationWillEnterForeground()
       self?.audioSessionCoordinator.setBackgroundTransitionLeaseActive(false)
@@ -58,7 +66,7 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
     didBecomeActiveToken = NotificationCenter.default.addObserver(
       forName: UIApplication.didBecomeActiveNotification,
       object: nil,
-      queue: .main
+      queue: IOSNativeWork.operationQueue
     ) { [weak self] _ in
       guard let self else { return }
       if !IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
@@ -71,7 +79,7 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
       }
     }
 
-    methodChannel.setMethodCallHandler { [weak self] call, result in
+    methodChannel.setMethodCallHandler(IOSNativeWork.handler { [weak self] call, result in
       guard let self else {
         result(false)
         return
@@ -94,7 +102,7 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
           )
         } else if !IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
           backgroundLearningEnabled: self.audioSessionCoordinator.isBackgroundLearningEnabled,
-          applicationIsActive: UIApplication.shared.applicationState == .active
+          applicationIsActive: IOSNativeWork.applicationIsActive
         ) {
           self.audioSessionCoordinator.requestBackgroundCaptureDisarm(
             caller: "BackgroundLearningBridge.setActiveLearningEnded"
@@ -120,12 +128,10 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
       default:
         result(FlutterMethodNotImplemented)
       }
-    }
+    })
     eventChannel.setStreamHandler(self)
     audioSessionCoordinator.onBackgroundLearningEvent = { [weak self] payload in
-      DispatchQueue.main.async {
-        self?.eventSink?(payload)
-      }
+      self?.eventSink?(payload)
     }
   }
 
@@ -133,12 +139,17 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
     withArguments arguments: Any?,
     eventSink events: @escaping FlutterEventSink
   ) -> FlutterError? {
-    eventSink = events
+    let events = IOSNativeWork.mainSink(events)
+    IOSNativeWork.queue.async { [weak self] in
+      self?.eventSink = events
+    }
     return nil
   }
 
   func onCancel(withArguments arguments: Any?) -> FlutterError? {
-    eventSink = nil
+    IOSNativeWork.queue.async { [weak self] in
+      self?.eventSink = nil
+    }
     return nil
   }
 
@@ -147,8 +158,12 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
     audioSessionCoordinator.setBackgroundTransitionLeaseActive(false)
     audioSessionCoordinator.setBackgroundLearningEnabled(false)
     audioSessionCoordinator.onBackgroundLearningEvent = nil
-    methodChannel.setMethodCallHandler(nil)
-    eventChannel.setStreamHandler(nil)
+    let methodChannel = methodChannel
+    let eventChannel = eventChannel
+    IOSNativeWork.onMain {
+      methodChannel.setMethodCallHandler(nil)
+      eventChannel.setStreamHandler(nil)
+    }
     eventSink = nil
     if let willResignActiveToken {
       NotificationCenter.default.removeObserver(willResignActiveToken)
@@ -170,7 +185,7 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
 
   private func reconcileBackgroundTransitionLease() {
     let shouldRetain = activeLearningRequested
-      && UIApplication.shared.applicationState != .active
+      && !IOSNativeWork.applicationIsActive
     audioSessionCoordinator.setBackgroundTransitionLeaseActive(shouldRetain)
   }
 }

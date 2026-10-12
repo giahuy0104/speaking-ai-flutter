@@ -370,15 +370,15 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     methodChannel = FlutterMethodChannel(name: "ailingo_speech", binaryMessenger: messenger)
     eventChannel = FlutterEventChannel(name: "ailingo_speech/events", binaryMessenger: messenger)
     super.init()
-    methodChannel.setMethodCallHandler { [weak self] call, result in
+    methodChannel.setMethodCallHandler(IOSNativeWork.handler { [weak self] call, result in
       self?.handle(call, result: result)
-    }
+    })
     eventChannel.setStreamHandler(self)
     audioSessionCoordinator.backgroundCaptureHandoffDelegate = self
     routeChangeToken = NotificationCenter.default.addObserver(
       forName: AVAudioSession.routeChangeNotification,
       object: audioSessionCoordinator.session,
-      queue: .main
+      queue: IOSNativeWork.operationQueue
     ) { [weak self] _ in
       self?.stopCaptureIfSelectedHfpRouteWasLost()
     }
@@ -402,7 +402,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     }
     switch call.method {
     case "speech.isAvailable":
-      Task { @MainActor [weak self] in
+      Task { @IOSNativeWorkActor [weak self] in
         guard let self else { return }
         result(
           await self.selectedEngineWithoutInstallingAssets(
@@ -472,7 +472,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
         )
         return
       }
-      Task { @MainActor [weak self] in
+      Task { @IOSNativeWorkActor [weak self] in
         guard let self else { return }
         result(await self.prepareBestEngine(locale: locale) != nil)
       }
@@ -526,7 +526,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
           )
           return
         }
-        Task { @MainActor [weak self] in
+        Task { @IOSNativeWorkActor [weak self] in
           guard let self else { return }
           do {
             guard let engine = await self.prepareBestEngine(locale: locale) else {
@@ -588,7 +588,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       activeEngine == .speechAnalyzer,
       let session = analyzerSession as? IOSSpeechAnalyzerSession
     {
-      Task { @MainActor [weak self] in
+      Task { @IOSNativeWorkActor [weak self] in
         guard let self else { return }
         do {
           let transcript = try await session.stop()
@@ -620,7 +620,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
 
     recognitionRequest?.endAudio()
     recognitionTask?.finish()
-    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(650)) { [weak self] in
+    IOSNativeWork.queue.asyncAfter(deadline: .now() + .milliseconds(650)) { [weak self] in
       guard let self, self.active, self.generation == stopGeneration else { return }
       if self.latestText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
         self.finishWithError(code: "NO_SPEECH", error: IOSSpeechBridgeError.noSpeech)
@@ -635,6 +635,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     result(true)
   }
 
+  @IOSNativeWorkActor
   private func beginRecognition(
     engine: IOSNativeSpeechEngineKind,
     commandMode: Bool,
@@ -712,7 +713,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
         throw IOSSpeechBridgeError.startCancelled
       }
       session.onUpdate = { [weak self] transcript in
-        DispatchQueue.main.async {
+        IOSNativeWork.queue.async {
           guard let self, self.active, self.generation == currentGeneration else { return }
           self.handleTranscriptUpdate(
             text: transcript.text,
@@ -722,7 +723,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
         }
       }
       session.onFailure = { [weak self] error in
-        DispatchQueue.main.async {
+        IOSNativeWork.queue.async {
           guard let self,
             self.active,
             self.generation == currentGeneration,
@@ -776,7 +777,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     )
     recognitionRequest = request
     recognitionTask = recognizer.recognitionTask(with: request) { [weak self] recognitionResult, error in
-      DispatchQueue.main.async {
+      IOSNativeWork.queue.async {
         guard let self, self.active, self.generation == generation, !self.cancelled else { return }
         if let recognitionResult {
           let best = recognitionResult.bestTranscription
@@ -850,7 +851,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
           generation: activeGeneration
         )
       } catch {
-        DispatchQueue.main.async {
+        IOSNativeWork.queue.async {
           guard self.active, self.generation == activeGeneration else { return }
           self.audioSessionCoordinator.trace(
             stage: "SpeechAnalyzer.append_failed",
@@ -915,8 +916,8 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     caller: String,
     completion: @escaping () -> Void
   ) {
-    guard Thread.isMainThread else {
-      DispatchQueue.main.async { [weak self] in
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
         guard let self else {
           completion()
           return
@@ -1077,9 +1078,9 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       )
       tearDownAudioEngineGraphForRetry()
       if IOSAudioEngineStartupPolicy.shouldRetry(afterAttempt: attempt),
-        UIApplication.shared.applicationState == .active
+        IOSNativeWork.applicationIsActive
       {
-        DispatchQueue.main.asyncAfter(
+        IOSNativeWork.queue.asyncAfter(
           deadline: .now() + .nanoseconds(
             Int(IOSAudioEngineStartupPolicy.retryDelayNanoseconds)
           )
@@ -1120,8 +1121,8 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
   }
 
   func disarmBackgroundAudioHandoff(caller: String) {
-    guard Thread.isMainThread else {
-      DispatchQueue.main.async { [weak self] in
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
         self?.disarmBackgroundAudioHandoff(caller: caller)
       }
       return
@@ -1173,6 +1174,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     return inputMatches && outputMatches
   }
 
+  @IOSNativeWorkActor
   private func startAudioEngineForCurrentRoute(
     audioSource: IOSNativeSpeechAudioSource,
     startRequestGeneration: Int
@@ -1436,7 +1438,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     let sampleRate = Int(buffer.format.sampleRate.rounded())
     let db = IOSAudioBufferLevel.dbfs(buffer)
     let dbText = db.map { String(format: "%.1f", $0) } ?? "unknown"
-    DispatchQueue.main.async { [weak self] in
+    IOSNativeWork.queue.async { [weak self] in
       guard let self, self.active, self.generation == generation else { return }
       if analyzerInputCount > 0, self.firstAnalyzerInputGeneration != generation {
         self.firstAnalyzerInputGeneration = generation
@@ -1460,6 +1462,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     }
   }
 
+  @IOSNativeWorkActor
   private func waitForFirstAnalyzerInput(
     generation: Int,
     attempts: Int = 40
@@ -1478,6 +1481,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     throw IOSSpeechBridgeError.audioBufferTimeout
   }
 
+  @IOSNativeWorkActor
   private func configureAudioSession(
     audioSource: IOSNativeSpeechAudioSource
   ) async throws {
@@ -1499,6 +1503,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     emitStage("route_confirmed")
   }
 
+  @IOSNativeWorkActor
   private func waitForRequestedAudioRoute(
     _ audioSource: IOSNativeSpeechAudioSource,
     attempts: Int = 20
@@ -1636,7 +1641,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     )
   }
 
-  @MainActor
+  @IOSNativeWorkActor
   private func selectedEngineWithoutInstallingAssets(
     locale: Locale
   ) async -> IOSNativeSpeechEngineKind? {
@@ -1655,7 +1660,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     )
   }
 
-  @MainActor
+  @IOSNativeWorkActor
   private func prepareBestEngine(locale: Locale) async -> IOSNativeSpeechEngineKind? {
     let localeIdentifier = Self.normalizedLocaleIdentifier(locale)
     if preparedLocaleIdentifier == localeIdentifier, let preparedEngine {
@@ -1667,7 +1672,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       return await enginePreparationTask.value
     }
     enginePreparationTask?.cancel()
-    let preparationTask = Task<IOSNativeSpeechEngineKind?, Never> { @MainActor [weak self] in
+    let preparationTask = Task<IOSNativeSpeechEngineKind?, Never> { @IOSNativeWorkActor [weak self] in
       guard let self else { return nil }
       return await self.loadBestEngine(locale: locale)
     }
@@ -1686,7 +1691,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     return engine
   }
 
-  @MainActor
+  @IOSNativeWorkActor
   private func loadBestEngine(locale: Locale) async -> IOSNativeSpeechEngineKind? {
     if #available(iOS 26.0, *) {
       let analyzerSupported = await IOSSpeechAnalyzerSession.supports(locale: locale)
@@ -1736,7 +1741,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       return
     }
     SFSpeechRecognizer.requestAuthorization { status in
-      DispatchQueue.main.async { completion(status) }
+      IOSNativeWork.queue.async { completion(status) }
     }
   }
 
@@ -1748,7 +1753,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       completion(false)
     case .undetermined:
       audioSession.requestRecordPermission { granted in
-        DispatchQueue.main.async { completion(granted) }
+        IOSNativeWork.queue.async { completion(granted) }
       }
     @unknown default:
       completion(false)
@@ -1796,12 +1801,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     payload["type"] = type
     payload = turnStamp.stamp(payload)
     payload.merge(values) { _, new in new }
-    let sink = eventSink
-    if Thread.isMainThread {
-      sink?(payload)
-    } else {
-      DispatchQueue.main.async { sink?(payload) }
-    }
+    eventSink?(payload)
   }
 
   private func emitStage(
@@ -1857,17 +1857,24 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     withArguments arguments: Any?,
     eventSink events: @escaping FlutterEventSink
   ) -> FlutterError? {
-    eventSink = events
-    audioSessionCoordinator.attachTraceSink { [weak self] payload in
-      guard let self, !self.disposed else { return }
-      events(payload)
+    let events = IOSNativeWork.mainSink(events)
+    IOSNativeWork.queue.async { [weak self] in
+      guard let self else { return }
+      self.eventSink = events
+      self.audioSessionCoordinator.attachTraceSink { [weak self] payload in
+        guard let self, !self.disposed else { return }
+        events(payload)
+      }
     }
     return nil
   }
 
   func onCancel(withArguments arguments: Any?) -> FlutterError? {
-    eventSink = nil
-    audioSessionCoordinator.detachTraceSink()
+    IOSNativeWork.queue.async { [weak self] in
+      guard let self else { return }
+      self.eventSink = nil
+      self.audioSessionCoordinator.detachTraceSink()
+    }
     return nil
   }
 
@@ -1888,8 +1895,12 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     )
     audioSessionCoordinator.backgroundCaptureHandoffDelegate = nil
     eventSink = nil
-    methodChannel.setMethodCallHandler(nil)
-    eventChannel.setStreamHandler(nil)
+    let methodChannel = methodChannel
+    let eventChannel = eventChannel
+    IOSNativeWork.onMain {
+      methodChannel.setMethodCallHandler(nil)
+      eventChannel.setStreamHandler(nil)
+    }
   }
 }
 

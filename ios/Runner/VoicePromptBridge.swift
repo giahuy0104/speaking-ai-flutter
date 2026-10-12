@@ -298,20 +298,20 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     channel = FlutterMethodChannel(name: "ailingo_voice_prompt", binaryMessenger: messenger)
     super.init()
     synthesizer.delegate = self
-    channel.setMethodCallHandler { [weak self] call, result in
+    channel.setMethodCallHandler(IOSNativeWork.handler { [weak self] call, result in
       self?.handle(call, result: result)
-    }
+    })
     routeChangeToken = NotificationCenter.default.addObserver(
       forName: AVAudioSession.routeChangeNotification,
       object: audioSessionCoordinator.session,
-      queue: .main
+      queue: IOSNativeWork.operationQueue
     ) { [weak self] _ in
       self?.stopPlaybackIfSelectedHfpRouteWasLost()
     }
     interruptionToken = NotificationCenter.default.addObserver(
       forName: AVAudioSession.interruptionNotification,
       object: audioSessionCoordinator.session,
-      queue: .main
+      queue: IOSNativeWork.operationQueue
     ) { [weak self] notification in
       let rawType = (notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? NSNumber)?.uintValue
       guard rawType == AVAudioSession.InterruptionType.began.rawValue else { return }
@@ -441,7 +441,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
           frameLength: Int(buffer.frameLength),
           sampleRate: format.sampleRate
         ) else {
-          DispatchQueue.main.async { result(path) }
+          IOSNativeWork.queue.async { result(path) }
           return
         }
         let outputURL = sourceURL.deletingPathExtension()
@@ -463,9 +463,9 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
         )
         try output.write(from: buffer)
         try? FileManager.default.removeItem(at: sourceURL)
-        DispatchQueue.main.async { result(outputURL.path) }
+        IOSNativeWork.queue.async { result(outputURL.path) }
       } catch {
-        DispatchQueue.main.async {
+        IOSNativeWork.queue.async {
           result(FlutterError(
             code: "LESSON_RECORDING_NORMALIZATION_FAILED",
             message: "Unable to normalize lesson recording.",
@@ -692,14 +692,14 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       self.failSynthesizedPrompt(audioToken: audioToken, code: "PROMPT_SYNTHESIS_TIMEOUT")
     }
     synthesisTimeout = timeout
-    DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(30), execute: timeout)
+    IOSNativeWork.queue.asyncAfter(deadline: .now() + .seconds(30), execute: timeout)
     audioSessionCoordinator.trace(
       stage: "prompt_synthesis_started", caller: "VoicePromptBridge.synthesizePrompt",
       values: ["requestedGainDb": gainDb]
     )
     synthesizer.write(utterance) { [weak self] buffer in
       operation.accept(buffer) { outcome in
-        DispatchQueue.main.async {
+        IOSNativeWork.queue.async {
           guard let self, self.activeUtteranceAudioToken == audioToken,
             self.synthesisOperation === operation else { operation.cancel(); return }
           switch outcome {
@@ -725,7 +725,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       let measured = try? IOSPromptPlaybackAudio.prepare(source: operation.source, output: operation.output)
       guard !operation.isCancelled else { operation.removeFiles(); return }
       let url = measured == nil ? operation.source : operation.output
-      DispatchQueue.main.async {
+      IOSNativeWork.queue.async {
         guard let self, self.activeUtteranceAudioToken == audioToken,
           self.synthesisOperation === operation else { operation.cancel(); return }
         let expectsHfp = self.activeUtteranceExpectsHfp
@@ -770,7 +770,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       completion(false)
       return
     }
-    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
+    IOSNativeWork.queue.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
       self?.waitForSelectedPromptRoute(
         expectsHfp: expectsHfp,
         attemptsRemaining: attemptsRemaining - 1,
@@ -931,7 +931,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       } catch {
         prepared = .failure(error)
       }
-      DispatchQueue.main.async {
+      IOSNativeWork.queue.async {
         guard let self, self.authoredPromptAudioToken == token else {
           try? FileManager.default.removeItem(at: source)
           try? FileManager.default.removeItem(at: output)
@@ -973,7 +973,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     promptPlayerQueue.async { [weak self] in
       let player = try? AVAudioPlayer(contentsOf: url)
       player?.prepareToPlay()
-      DispatchQueue.main.async {
+      IOSNativeWork.queue.async {
         guard let self, self.authoredPromptAudioToken == token else { return }
         guard let player else {
           self.finishAuthoredPrompt(success: false)
@@ -1096,6 +1096,12 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
   }
 
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
+        self?.speechSynthesizer(synthesizer, didFinish: utterance)
+      }
+      return
+    }
     if activeUtterance === utterance, synthesisOperation != nil { return }
     guard activeUtterance === utterance else {
       audioSessionCoordinator.trace(
@@ -1115,6 +1121,12 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
   }
 
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
+        self?.speechSynthesizer(synthesizer, didStart: utterance)
+      }
+      return
+    }
     guard activeUtterance === utterance else { return }
     guard synthesisOperation == nil else { return }
     audioSessionCoordinator.trace(
@@ -1127,6 +1139,12 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
   }
 
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
+        self?.speechSynthesizer(synthesizer, didCancel: utterance)
+      }
+      return
+    }
     guard activeUtterance === utterance else {
       audioSessionCoordinator.trace(
         stage: "prompt_stale_cancel_ignored",
@@ -1226,7 +1244,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
         completeReadyCue(token: token, errorCode: "READY_CUE_ROUTE_UNAVAILABLE")
         return
       }
-      DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
+      IOSNativeWork.queue.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
         self?.waitForReadyCueRoute(
           token: token,
           expectsHfp: expectsHfp,
@@ -1258,13 +1276,19 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
 
     // AVAudioPlayer normally completes after 120 ms. Leave room for the same
     // acoustic tail as Android before opening the lesson microphone gate.
-    DispatchQueue.main.asyncAfter(
+    IOSNativeWork.queue.asyncAfter(
       deadline: .now() + .milliseconds(900),
       execute: fallback
     )
   }
 
   func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
+        self?.audioPlayerDidFinishPlaying(player, successfully: flag)
+      }
+      return
+    }
     if player === authoredPromptPlayer {
       finishAuthoredPrompt(success: flag)
       return
@@ -1275,12 +1299,18 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       return
     }
     guard let token = readyCueToken else { return }
-    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(180)) { [weak self] in
+    IOSNativeWork.queue.asyncAfter(deadline: .now() + .milliseconds(180)) { [weak self] in
       self?.completeReadyCue(token: token)
     }
   }
 
   func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
+        self?.audioPlayerDecodeErrorDidOccur(player, error: error)
+      }
+      return
+    }
     if player === authoredPromptPlayer {
       finishAuthoredPrompt(success: false)
     } else if player === readyCuePlayer {
@@ -1380,7 +1410,8 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     )
     disposed = true
     synthesizer.delegate = nil
-    channel.setMethodCallHandler(nil)
+    let channel = channel
+    IOSNativeWork.onMain { channel.setMethodCallHandler(nil) }
   }
 }
 

@@ -105,7 +105,10 @@ class RunnerTests: XCTestCase {
     let turnId = coordinator.beginMainTurn(
       source: "RunnerTests", audioInputTarget: .builtInMic, forceNewTurn: true
     )
-    coordinator.requestBackgroundCaptureArm(caller: "RunnerTests")
+    // The coordinator defers an arm requested from outside its work queue.
+    IOSNativeWork.sync {
+      coordinator.requestBackgroundCaptureArm(caller: "RunnerTests")
+    }
     XCTAssertEqual(handoff.targets.compactMap { $0 }.last, .builtInMic)
     coordinator.endMainTurn(
       reason: "obsolete_reply", caller: "RunnerTests", expectedTurnId: "obsolete"
@@ -116,6 +119,18 @@ class RunnerTests: XCTestCase {
     )
     XCTAssertNil(coordinator.mainAudioInputTarget)
     coordinator.dispose()
+  }
+
+  func testIOSNativeWorkActorKeepsAsyncBridgeCodeOnTheNativeWorkQueue() {
+    let finished = expectation(description: "actor job finished")
+    Task { @IOSNativeWorkActor in
+      XCTAssertTrue(IOSNativeWork.isCurrent)
+      try? await Task.sleep(nanoseconds: 1_000_000)
+      XCTAssertTrue(IOSNativeWork.isCurrent)
+      XCTAssertFalse(Thread.isMainThread)
+      finished.fulfill()
+    }
+    wait(for: [finished], timeout: 2)
   }
 
   func testIOSVirtualMainActivationsGetFreshIdsBeforeAnOldBeginReplyCompletes() {
