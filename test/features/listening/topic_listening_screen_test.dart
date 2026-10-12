@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ai_speaking_flutter_app/app/mascot_assets.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
@@ -438,12 +439,21 @@ void main() {
         ),
       ),
     );
+    final mascot = find.byWidgetPredicate(
+      (widget) =>
+          widget is Image &&
+          widget.image is AssetImage &&
+          (widget.image as AssetImage).assetName == MascotAssets.wave,
+    );
+    final coverMascotCenter = tester.getCenter(mascot);
     await tester.pump();
     expect(find.byKey(const Key('topic-listening-screen')), findsNothing);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.byType(LessonIntroScreen, skipOffstage: false), findsOneWidget);
+    // The intro draws its mascot where the cover showed it.
+    expect(tester.getCenter(mascot), coverMascotCenter);
     expect(
       find.byKey(const Key('topic-listening-screen'), skipOffstage: false),
       findsNothing,

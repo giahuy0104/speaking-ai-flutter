@@ -21,6 +21,7 @@ import '../domain/listening_audio_keys.dart';
 import '../domain/listening_curriculum_flow.dart';
 import '../domain/v4_completion_flow.dart';
 import '../../voice_navigation/domain/main_assistant_audio_keys.dart';
+import 'lesson_intro_screen.dart';
 import 'lesson_recording_history_sheet.dart';
 import 'listening_route_names.dart';
 import 'topic_lesson_list_screen.dart';
@@ -262,11 +263,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     if (_catalogHiddenForVoiceTarget) {
       return const Scaffold(
         backgroundColor: Colors.transparent,
-        body: LearningScenery(
-          imageAlignment: Alignment.topCenter,
-          overlayOpacity: 0.36,
-          child: SizedBox.expand(),
-        ),
+        body: LessonIntroPlaceholder(),
       );
     }
     return DisplayLanguageScope(
@@ -1056,6 +1053,11 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           onCommunicationRequested: widget.onCommunicationRequested,
         ),
         settings: const RouteSettings(name: ListeningRouteNames.topicLessons),
+        // The covered list replaces the covered catalog in place.
+        foregroundTransitionDuration: coverLessonList ? Duration.zero : null,
+        foregroundTransitionsBuilder: coverLessonList
+            ? (_, _, _, child) => child
+            : null,
       );
       await route;
       _revealCatalog();
