@@ -803,6 +803,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           await widget.onMainSpeakingModeStarted?.call();
         }
       case VoiceNavigationDestination.vocabulary:
+        // A Chủ đề route opened from the vocabulary tab sits above a
+        // vocabulary page that never stopped being active, so showing that
+        // page again starts nothing and HOMI would stay silent.
+        final vocabularyWasActive = _vocabularyActivationController.isActive;
         await _showVocabularyAndWait();
         if (!kIsWeb &&
             defaultTargetPlatform == TargetPlatform.iOS &&
@@ -814,7 +818,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           await _vocabularyNavigationController.openVoiceTarget(
             vocabularyTarget,
           );
-        } else if (activeKind == ActiveLearningModuleKind.listeningLesson) {
+        } else if (activeKind == ActiveLearningModuleKind.listeningLesson ||
+            vocabularyWasActive) {
           await _vocabularyNavigationController.openVoiceRoot();
         }
       case VoiceNavigationDestination.topics:

@@ -26,6 +26,7 @@ import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabula
 import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_session_store.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_store.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_flow_v3.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_practice_screen.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_voice_assistant_flow.dart';
@@ -1651,6 +1652,62 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );
+
+  testWidgets(
+    'a voice return to vocabulary asks its menu again when Chủ đề was opened '
+    'from the vocabulary tab',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final prompts = _RecordingVoicePromptService();
+      final voiceNavigationController = VoiceNavigationController(
+        speechInput: _FakeStreamingSpeechInput(),
+        ownsSpeechInput: true,
+      );
+      final controller = _controller();
+
+      await tester.pumpWidget(
+        _app(
+          controller,
+          voiceNavigationController: voiceNavigationController,
+          vocabularyMediaService: _ImmediateVocabularyMediaService(),
+          vocabularyVoicePromptService: prompts,
+          listeningContentFuture: AssetListeningContentRepository(
+            bundle: rootBundle,
+          ).load(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      final spokenOnFirstEntry = prompts.spoken.length;
+      expect(spokenOnFirstEntry, greaterThan(0));
+
+      // The Chủ đề route covers the vocabulary page without deactivating it.
+      await tester.tap(find.byKey(const Key('home-topics-tab')));
+      await tester.pumpAndSettle();
+      expect(find.byType(TopicListeningScreen), findsOneWidget);
+
+      expect(await voiceNavigationController.activateFromMainButton(), isTrue);
+      expect(
+        await voiceNavigationController.dispatchRecognizedText('Bộ từ vựng'),
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TopicListeningScreen), findsNothing);
+      expect(prompts.spoken.length, greaterThan(spokenOnFirstEntry));
+      expect(prompts.spoken.last, VocabularyFlowV3.menu);
+
+      controller.dispose();
+      voiceNavigationController.dispose();
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
 }
 
 void _rebuildCountTests() {
@@ -1928,6 +1985,15 @@ ConversationController _controller({
         : AsrMode.androidStreaming,
     beforeRecordingStart: beforeRecordingStart,
   );
+}
+
+class _RecordingVoicePromptService extends _SilentVoicePromptService {
+  final List<String> spoken = <String>[];
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    spoken.add(text);
+  }
 }
 
 class _SilentVoicePromptService implements VoicePromptService {
