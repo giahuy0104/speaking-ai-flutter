@@ -284,6 +284,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
   private var authoredPromptAudioToken: UUID?
   private var authoredPromptExpectsHfp = false
   private var authoredPromptFiles: [URL] = []
+  private let promptPlayerQueue = DispatchQueue(label: "ailingo.voice-prompt.player", qos: .userInitiated)
   private var routeChangeToken: NSObjectProtocol?
   private var interruptionToken: NSObjectProtocol?
   private var promptOperationLeases = IOSPromptOperationLeaseState()
@@ -959,21 +960,39 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
         self.finishAuthoredPrompt(success: false, errorCode: "PROMPT_AUDIO_ROUTE_FAILED")
         return
       }
-      self.startAuthoredPromptPlayback(url, expectsHfp: expectsHfp,
+      self.prepareAuthoredPromptPlayer(url, token: token, expectsHfp: expectsHfp,
                                        gainDb: gainDb, requestedGainDb: requestedGainDb)
     }
   }
 
+  private func prepareAuthoredPromptPlayer(
+    _ url: URL, token: UUID, expectsHfp: Bool, gainDb: Double, requestedGainDb: Double
+  ) {
+    // Opening the file and priming its audio queue blocks the caller, and a
+    // prompt usually starts while a page transition is still animating.
+    promptPlayerQueue.async { [weak self] in
+      let player = try? AVAudioPlayer(contentsOf: url)
+      player?.prepareToPlay()
+      DispatchQueue.main.async {
+        guard let self, self.authoredPromptAudioToken == token else { return }
+        guard let player else {
+          self.finishAuthoredPrompt(success: false)
+          return
+        }
+        self.startAuthoredPromptPlayback(player, expectsHfp: expectsHfp,
+                                         gainDb: gainDb, requestedGainDb: requestedGainDb)
+      }
+    }
+  }
+
   private func startAuthoredPromptPlayback(
-    _ url: URL, expectsHfp: Bool, gainDb: Double, requestedGainDb: Double
+    _ player: AVAudioPlayer, expectsHfp: Bool, gainDb: Double, requestedGainDb: Double
   ) {
     do {
-      let player = try AVAudioPlayer(contentsOf: url)
       authoredPromptPlayer = player
       player.delegate = self
       player.volume = 1.0
       player.numberOfLoops = 0
-      player.prepareToPlay()
       authoredPromptExpectsHfp = expectsHfp
       // Speed was applied once during offline generation; playback stays at 1x.
       guard player.play() else { throw ReadyCueError.playbackFailed }
