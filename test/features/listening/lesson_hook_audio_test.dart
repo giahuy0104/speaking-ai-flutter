@@ -89,6 +89,36 @@ void main() {
     );
   }
 
+  test('excluded listening-common recordings retain TTS fallback', () async {
+    final repository = AudioPackRepository(
+      bundledManifestAssets: const ['assets/data/listening_common_audio.json'],
+      cache: MemoryAudioPackCache(),
+    );
+    addTearDown(repository.dispose);
+    final resolver = AudioPromptResolver(repository: repository);
+    const excluded = {
+      'listening.completion.lesson.2_to_1.vi':
+          'Bạn muốn học Bài 1 hay học lại Bài 2?',
+      'listening.milestone.course.vi': 'Bạn đã hoàn thành khóa học rồi!',
+      'listening.milestone.level.1.vi': 'Bạn đã hoàn thành Level 1 rồi!',
+      'listening.milestone.level.2.vi': 'Bạn đã hoàn thành Level 2 rồi!',
+      'listening.milestone.level.3.vi': 'Bạn đã hoàn thành Level 3 rồi!',
+      'listening.navigation.choose_level.vi':
+          'Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?',
+    };
+    for (final prompt in excluded.entries) {
+      final request = AudioPromptRequest(
+        key: AudioPromptKey(prompt.key),
+        fallbackText: prompt.value,
+        locale: 'vi-VN',
+      );
+      final resolved = await resolver.resolve(request);
+      expect(resolved.source, AudioPromptSource.tts, reason: prompt.key);
+      expect(resolved.bytes, isNull, reason: prompt.key);
+      expect(await resolver.budget(request), isNull, reason: prompt.key);
+    }
+  });
+
   test(
     'restored hook receipts identify the original committed recordings',
     () async {

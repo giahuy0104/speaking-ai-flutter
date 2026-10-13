@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "importedAt": "2026-10-13T14:55:52.313Z",
+  "source": "audio2h/audio",
+  "inputAudioCount": 2861,
+  "updatedAudioCount": 795,
+  "unchangedIncomingAudioCount": 2066,
+  "finalAudioCount": 2877,
+  "finalAudioBytes": 116120683,
+  "updatedPromptEntries": 900,
+  "removedPromptEntries": 6,
+  "updatedAudioByGroup": {
+    "MAIN": 2,
+    "assistant-core": 24,
+    "challenge-11-12": 120,
+    "challenge-13-15": 120,
+    "challenge-3-5": 103,
+    "challenge-6-7": 112,
+    "challenge-8-10": 110,
+    "listening-11-12": 26,
+    "listening-13-15": 11,
+    "listening-3-5": 31,
+    "listening-6-7": 25,
+    "listening-8-10": 12,
+    "listening-common": 89,
+    "vocabulary-common": 10
+  },
+  "retainedAssets": [
+    "assets/audio/LESSON_HOOKS/ban-doan-xem-con-gi.mp3",
+    "assets/audio/LESSON_HOOKS/co-mot-tin-nhan-la.mp3",
+    "assets/audio/LESSON_HOOKS/cua-lop-dang-dong.mp3",
+    "assets/audio/LESSON_HOOKS/den-gio-vao-lop-roi.mp3",
+    "assets/audio/LESSON_HOOKS/den-luc-goi-mon-roi.mp3",
+    "assets/audio/LESSON_HOOKS/hom-nay-troi-the-nao.mp3",
+    "assets/audio/LESSON_HOOKS/homi-dang-o-dau-nhi.mp3",
+    "assets/audio/LESSON_HOOKS/may-gio-roi-nhi.mp3",
+    "assets/audio/LESSON_HOOKS/mot-ngay-moi-bat-dau-roi.mp3",
+    "assets/audio/LESSON_HOOKS/mua-roi-mac-gi-nhi.mp3",
+    "assets/audio/LESSON_HOOKS/nghe-that-ki-nhe.mp3",
+    "assets/audio/LESSON_HOOKS/no-co-the-lam-gi-nhi.mp3",
+    "assets/audio/LESSON_HOOKS/sap-den-gio-tau-chay.mp3",
+    "assets/audio/assistant-core/assistant.topic.choose_10.vi.mp3",
+    "assets/audio/assistant-core/assistant.topic.choose_course_relearn.vi.mp3",
+    "assets/audio/assistant-core/assistant.topic.invalid_10.vi.mp3"
+  ],
+  "removedAssets": [
+    "assets/audio/listening-common/listening.completion.lesson.2_to_1.vi.mp3",
+    "assets/audio/listening-common/listening.milestone.course.vi.mp3",
+    "assets/audio/listening-common/listening.milestone.level.1.vi.mp3",
+    "assets/audio/listening-common/listening.milestone.level.2.vi.mp3",
+    "assets/audio/listening-common/listening.milestone.level.3.vi.mp3",
+    "assets/audio/listening-common/listening.navigation.choose_level.vi.mp3"
+  ],
+  "changedManifests": [
+    "assets/data/assistant_core_audio.json",
+    "assets/data/listening_common_audio.json",
+    "assets/data/listening_3_5_audio.json",
+    "assets/data/listening_6_7_audio.json",
+    "assets/data/listening_8_10_audio.json",
+    "assets/data/listening_11_12_audio.json",
+    "assets/data/listening_13_15_audio.json",
+    "assets/data/challenge_3_5_audio.json",
+    "assets/data/challenge_6_7_audio.json",
+    "assets/data/challenge_8_10_audio.json",
+    "assets/data/challenge_11_12_audio.json",
+    "assets/data/challenge_13_15_audio.json",
+    "assets/data/vocabulary_common_audio.json",
+    "assets/data/vocabulary_built_in_audio.json",
+    "assets/data/homi_gap66_audio.json"
+  ],
+  "gap66Imports": [
+    {
+      "id": "GAP66-001",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-001.vi.v1.mp3",
+      "text": "Bạn chọn một trong các lựa chọn trên màn hình nhé.",
+      "previousSha256": "07211ef1abc302eb71681538b33c4d71746422fe78aad12cde666bc7067552bd",
+      "sha256": "d7587151153633a9e5fd42c0e366f61f62ab3b09633b5c5fc25cfdda117ae6fe",
+      "sizeBytes": 55518,
+      "durationSeconds": 2.429375
+    },
+    {
+      "id": "GAP66-003",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-003.vi.v1.mp3",
+      "text": "Bạn muốn nghe lại, nghe câu trước hay dừng lại?",
+      "previousSha256": "9ea29fc5191cb509d76958e4bfd99cceb6fc8676dbbc14025163cb8be68b87a2",
+      "sha256": "abad0cafa7d4420e2c60c79384834295e8450c56f24633712ef1a763b4ba10eb",
+      "sizeBytes": 53010,
+      "durationSeconds": 2.272625
+    }
+  ],
+  "verification": {
+    "replacementRecordingsDecoded": 795,
+    "generationMetadataForImportedRecordingsVerified": false,
+    "targetedTestsPassed": 72,
+    "flutterAssetBundleBuildPassed": true,
+    "sourceAndBundleAudioHashesVerified": 2877,
+    "onDevicePlaybackVerified": false
+  }
+}

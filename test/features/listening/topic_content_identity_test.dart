@@ -14,28 +14,28 @@ void main() {
     'assets/data/songs_audio.json':
         '2bf933e1ea8fa87387d82d1e0954460354fd7b664fe12093d0e37ef33d2618f3',
     'assets/data/listening_3_5_audio.json':
-        '3703dd440a9f02a471ebb235120d9672c27444ad2c370daa70db8a2db9628695',
+        'aa6120a1014099da0323ed29f1894b752af824199f74b00fdcae69bee2a0d09c',
     'assets/data/listening_6_7_audio.json':
-        '8d063dc8321701bb1f5247bd1c2dd31fe07917e4d9f523562aa01623c44161ad',
+        'f5f67c87a4e1eb54aa40fc54d85eb439afcec59f6286899af8c5f403a34f925e',
     'assets/data/listening_8_10_audio.json':
-        '6bf062f7901e0e75e4ac072e6473addd29e7bb35fe2327e5bb1b8ceffc3dbfc7',
+        '048c77395a754e10675cc5cbeb5da57637f6a39c6a04ac4eba9544d635e9997d',
     'assets/data/listening_11_12_audio.json':
-        '4cb015610459d07e0971fe2b3511b73262a1699eac286b4f4a921adff5f7cae3',
+        'e7757ac0bdb4fd1bbf33752747b891cc0f338f6c819c89de9c0ac8e0cb07f9c0',
     'assets/data/listening_13_15_audio.json':
-        'ed658538d429f2061cffdb00d3c5090189c7074897fdf0608fb1f5d7b3fa65bb',
+        '2edbbd32c237c2c19ecbd0e91efd66a8d063cba0fa7b430a82a0146f709312cf',
     'assets/data/challenge_3_5_audio.json':
-        'cb01b47172bc4e59e8e279f2228c7c3f110738da1152fead2304dd90abe59978',
+        'f8725f04c478a99cb37426ca4489639267cb1eac9a7effeb7402109b4c6986ba',
     'assets/data/challenge_6_7_audio.json':
-        '63932fd571dcf446a39ad630e0d4e2199078510b75d11ef9f6782dc852089211',
+        '49a30884ac3a5d1b18f3ab766bce83ab198bb73bde9b9d57a35de4fb0874204c',
     'assets/data/challenge_8_10_audio.json':
-        'cd535450189d79f98abc1f6024da8b71af1559aeadd7d0d17aeb97406d19acd5',
+        '7608e11b48b5bb04143e09204330f962b9141b590e9057822a5c648fc0c29e94',
     'assets/data/challenge_11_12_audio.json':
-        'e0f7fdff105dc6a047321e0960f5cca52e430031c98f42367a5ae9bd575f335c',
+        'd8a1ff766fb62fc3240c2055e528e958ebb43b3ad975a86d1096fec5c4f2764c',
     'assets/data/challenge_13_15_audio.json':
-        'cc727bd8e9d517bc17ab336b1afebb878a4fa20b5863aaba1f69de5e396336cd',
+        '7ce950dc31caf4ff06721d6a5656fe5df761603a6d9fe05375504306fab5456a',
   };
   test(
-    'curriculum, patch and lesson/audio identities match the pre-Level-removal content',
+    'curriculum, patch and audio match the reviewed content and recordings',
     () async {
       for (final entry in baseline.entries) {
         // Git may check text out with CRLF on Windows.

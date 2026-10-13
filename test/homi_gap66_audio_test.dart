@@ -14,6 +14,18 @@ void main() {
       jsonDecode(File(homiGap66ManifestAsset).readAsStringSync()) as Map;
   final entries = (manifest['prompts'] as List).cast<Map<String, dynamic>>();
   final groups = entries.map((e) => e['group'] as String).toSet();
+  final importedAudio =
+      jsonDecode(
+            File(
+              'deliverables/audio-import-2026-10-13.json',
+            ).readAsStringSync(),
+          )
+          as Map<String, dynamic>;
+  final importedGap66 = {
+    for (final receipt
+        in (importedAudio['gap66Imports'] as List).cast<Map<String, dynamic>>())
+      receipt['id'] as String: receipt,
+  };
 
   test(
     '66 exact reviewed texts, unique across every enabled pack, correct receipts',
@@ -62,7 +74,19 @@ void main() {
           ).readAsStringSync(),
         );
         expect(sha256.convert(bytes).toString(), e['sha256']);
-        expect(receipt['finalSha256'], e['sha256']);
+        final imported = importedGap66[e['id']];
+        if (imported == null) {
+          expect(receipt['finalSha256'], e['sha256']);
+        } else {
+          // Preserve the original provider receipt as historical evidence.
+          // Replacement recordings have a separate local import receipt.
+          expect(imported['previousSha256'], receipt['finalSha256']);
+          expect(imported['sha256'], e['sha256']);
+          expect(imported['asset'], e['asset']);
+          expect(imported['text'], e['text']);
+          expect(imported['sizeBytes'], bytes.length);
+          expect(imported['durationSeconds'], e['durationSeconds']);
+        }
         expect(receipt['request']['text'], e['text']);
         expect(receipt['request']['model_id'], 'eleven_v3');
         expect(receipt['request']['voice_settings']['speed'], 1.0);
