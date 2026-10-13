@@ -1708,6 +1708,99 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );
+
+  testWidgets(
+    'the menu asked by a voice return to vocabulary opens its microphone '
+    'without waiting for the drain of the MAIN turn that is still running it',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final prompts = _RecordingVoicePromptService();
+      final speech = _FakeStreamingSpeechInput()..finalText = 'Bộ từ vựng';
+      final voiceNavigationController = VoiceNavigationController(
+        speechInput: speech,
+        ownsSpeechInput: true,
+      );
+      final controller = _controller();
+      var choiceRequests = 0;
+      var choiceActivated = false;
+
+      await tester.pumpWidget(
+        _app(
+          controller,
+          voiceNavigationController: voiceNavigationController,
+          vocabularyMediaService: _ImmediateVocabularyMediaService(),
+          vocabularyVoicePromptService: prompts,
+          listeningContentFuture: AssetListeningContentRepository(
+            bundle: rootBundle,
+          ).load(),
+          onVocabularyVoiceChoiceRequested:
+              ({noSpeechRetryPrompt, noSpeechExitPrompt}) async {
+                choiceRequests += 1;
+                choiceActivated = await voiceNavigationController
+                    .activateFromMainButton(
+                      promptAlreadySpoken: true,
+                      noSpeechRetryPrompt: noSpeechRetryPrompt,
+                      noSpeechExitPrompt: noSpeechExitPrompt,
+                    );
+              },
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('home-topics-tab')));
+      await tester.pumpAndSettle();
+      expect(find.byType(TopicListeningScreen), findsOneWidget);
+
+      expect(await voiceNavigationController.activateFromMainButton(), isTrue);
+      for (
+        var elapsed = 0;
+        elapsed < 2000 && speech.startCount == 0;
+        elapsed += 100
+      ) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(speech.startCount, greaterThan(0));
+      await tester.pump();
+
+      // The recognizer finishes with the command, so the navigation runs
+      // inside the controller's finish operation, as it does on a device.
+      final spokenBeforeCommand = prompts.spoken.length;
+      final choicesBeforeCommand = choiceRequests;
+      choiceActivated = false;
+      speech.emitCompleted();
+      // The menu's choice microphone pauses the controller, which drains the
+      // finish operation for up to two seconds. It must not be made to wait
+      // for the navigation that asked for this very menu.
+      var elapsed = 0;
+      while (elapsed < 1500 && !choiceActivated) {
+        await tester.pump(const Duration(milliseconds: 100));
+        elapsed += 100;
+      }
+      expect(prompts.spoken.length, spokenBeforeCommand + 1);
+      expect(prompts.spoken.last, VocabularyFlowV3.menu);
+      expect(choiceRequests, choicesBeforeCommand + 1);
+      expect(
+        choiceActivated,
+        isTrue,
+        reason: 'the menu microphone had not opened after $elapsed ms',
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(TopicListeningScreen), findsNothing);
+
+      controller.dispose();
+      voiceNavigationController.dispose();
+      await tester.pumpWidget(const SizedBox.shrink());
+      debugDefaultTargetPlatformOverride = null;
+    },
+  );
 }
 
 void _rebuildCountTests() {
@@ -1752,6 +1845,11 @@ Widget _app(
   MainSpeakingSessionController? speakingSessionController,
   VoidCallback? onActiveLearningExitCommitted,
   Future<void> Function()? onMainSpeakingModeStarted,
+  Future<void> Function({
+    String? noSpeechRetryPrompt,
+    String? noSpeechExitPrompt,
+  })?
+  onVocabularyVoiceChoiceRequested,
   ValueChanged<bool>? onModalVisibilityChanged,
   ValueChanged<int>? onChildAgeChanged,
   Future<bool> Function(BuildContext)? parentAccessGate,
@@ -1777,6 +1875,7 @@ Widget _app(
         : () async {
             await voiceNavigationController.activateFromMainButton();
           },
+    onVocabularyVoiceChoiceRequested: onVocabularyVoiceChoiceRequested,
     onModalVisibilityChanged: onModalVisibilityChanged,
     onChildAgeChanged: onChildAgeChanged,
     parentAccessGate: useDefaultParentAccessGate
@@ -2065,6 +2164,7 @@ class _FakeStreamingSpeechInput implements StreamingSpeechInput {
       StreamController<String>.broadcast();
   int startCount = 0;
   int cancelCount = 0;
+  String finalText = 'Con muốn học từ vựng';
 
   @override
   String get label => 'ASR Android trực tiếp';
@@ -2087,9 +2187,9 @@ class _FakeStreamingSpeechInput implements StreamingSpeechInput {
   }
 
   @override
-  Future<StreamingSpeechCapture> stop() async => const StreamingSpeechCapture(
-    sourceText: 'Con muốn học từ vựng',
-    duration: Duration(seconds: 1),
+  Future<StreamingSpeechCapture> stop() async => StreamingSpeechCapture(
+    sourceText: finalText,
+    duration: const Duration(seconds: 1),
     inputLabel: 'ASR Android trực tiếp',
     confidence: 0.9,
     firstResultMs: 100,
@@ -2103,6 +2203,10 @@ class _FakeStreamingSpeechInput implements StreamingSpeechInput {
 
   void emitPartial(String text) {
     _partialTextController.add(text);
+  }
+
+  void emitCompleted() {
+    _completedController.add(null);
   }
 
   @override

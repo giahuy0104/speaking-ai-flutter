@@ -820,7 +820,11 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           );
         } else if (activeKind == ActiveLearningModuleKind.listeningLesson ||
             vocabularyWasActive) {
-          await _vocabularyNavigationController.openVoiceRoot();
+          // The root asks its menu and then opens a choice microphone, which
+          // pauses the voice controller. That pause drains the recognizer
+          // finish this handler runs inside, so awaiting the menu here would
+          // hold the microphone for the whole two-second drain.
+          unawaited(_vocabularyNavigationController.openVoiceRoot());
         }
       case VoiceNavigationDestination.topics:
         final pausedCheckpoint =
