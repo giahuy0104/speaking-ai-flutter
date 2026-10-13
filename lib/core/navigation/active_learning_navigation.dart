@@ -68,22 +68,23 @@ Future<T?> pushForActiveLearning<T extends Object?>(
   BuildContext context,
   WidgetBuilder builder, {
   RouteSettings? settings,
+  void Function(Route<T> route)? onRouteCreated,
   Duration? foregroundTransitionDuration,
   Duration? foregroundReverseTransitionDuration,
   RouteTransitionsBuilder? foregroundTransitionsBuilder,
 }) {
   final binding = WidgetsBinding.instance;
   final mobileBackground = isActiveLearningAppBackground();
-  final navigation = Navigator.of(context).push<T>(
-    _activeLearningRoute<T>(
-      builder,
-      mobileBackground: mobileBackground,
-      settings: settings,
-      foregroundTransitionDuration: foregroundTransitionDuration,
-      foregroundReverseTransitionDuration: foregroundReverseTransitionDuration,
-      foregroundTransitionsBuilder: foregroundTransitionsBuilder,
-    ),
+  final route = _activeLearningRoute<T>(
+    builder,
+    mobileBackground: mobileBackground,
+    settings: settings,
+    foregroundTransitionDuration: foregroundTransitionDuration,
+    foregroundReverseTransitionDuration: foregroundReverseTransitionDuration,
+    foregroundTransitionsBuilder: foregroundTransitionsBuilder,
   );
+  onRouteCreated?.call(route);
+  final navigation = Navigator.of(context).push<T>(route);
   if (mobileBackground) {
     binding.scheduleWarmUpFrame();
   }

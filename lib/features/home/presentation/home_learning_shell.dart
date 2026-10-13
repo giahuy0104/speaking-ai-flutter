@@ -1145,7 +1145,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     return mounted;
   }
 
-  Future<void> _requestHomePage(int page) async {
+  Future<void> _requestHomePage(int page, {bool animate = true}) async {
     _requestedPage = page;
     final generation = ++_pageNavigationGeneration;
     if (_page != page && mounted) {
@@ -1153,6 +1153,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     }
     await _moveToRequestedPage(
       animate:
+          animate &&
           WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,
       generation: generation,
     );
@@ -1250,6 +1251,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       final routeDuration = MediaQuery.disableAnimationsOf(context)
           ? Duration.zero
           : const Duration(milliseconds: 260);
+      Route<void>? topicRoute;
       final routeClosed = pushForActiveLearning<void>(
         context,
         (_) => TopicListeningScreen(
@@ -1315,6 +1317,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           progressStore: widget.listeningProgressStore,
         ),
         settings: const RouteSettings(name: ListeningRouteNames.topicCatalog),
+        onRouteCreated: (route) => topicRoute = route,
         foregroundTransitionDuration: routeDuration,
         foregroundReverseTransitionDuration: routeDuration,
         foregroundTransitionsBuilder:
@@ -1335,6 +1338,14 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       );
       if (routePushed != null && !routePushed.isCompleted) {
         routePushed.complete(true);
+      }
+      if (!kIsWeb && _page == 1) {
+        // The catalog leaves the vocabulary page active underneath, which
+        // then keeps MAIN: a fresh press re-asks its menu under the catalog
+        // and "Bộ từ vựng" never navigates back. Park the shell on the
+        // Conversation page once the catalog covers it; an earlier jump
+        // flashes Conversation through the push transition.
+        unawaited(_parkShellUnderTopics(topicRoute, routeDuration));
       }
       await routeClosed;
     } catch (error) {
@@ -1366,6 +1377,35 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         _resumeVoiceNavigation();
       }
     }
+  }
+
+  Future<void> _parkShellUnderTopics(
+    Route<void>? route,
+    Duration transition,
+  ) async {
+    final animation = route is TransitionRoute<void> ? route.animation : null;
+    if (animation != null && transition > Duration.zero) {
+      // The push transition only runs from the catalog's first frame; until
+      // then the controller already reads as completed. Wait for that run.
+      final covered = Completer<void>();
+      var running = animation.status == AnimationStatus.forward;
+      void onStatus(AnimationStatus status) {
+        if (status == AnimationStatus.forward) {
+          running = true;
+        } else if (status == AnimationStatus.dismissed ||
+            (running && status == AnimationStatus.completed)) {
+          animation.removeStatusListener(onStatus);
+          covered.complete();
+        }
+      }
+
+      animation.addStatusListener(onStatus);
+      await covered.future;
+    }
+    if (!mounted || _page != 1 || route?.isActive != true) return;
+    // The opaque catalog mutes the shell's tickers, so an animated page
+    // change would never finish; jump instead.
+    await _requestHomePage(0, animate: false);
   }
 
   void _showSettings() {

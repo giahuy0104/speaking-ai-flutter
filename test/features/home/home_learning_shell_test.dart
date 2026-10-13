@@ -1710,6 +1710,75 @@ void main() {
   );
 
   testWidgets(
+    'a tapped Topics tab over the vocabulary page releases its MAIN ownership',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final registry = ActiveLearningModuleRegistry();
+      final speech = _FakeStreamingSpeechInput();
+      final voiceNavigationController = VoiceNavigationController(
+        speechInput: speech,
+        ownsSpeechInput: true,
+      );
+      final controller = _controller();
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _app(
+            controller,
+            voiceNavigationController: voiceNavigationController,
+            listeningContentFuture: AssetListeningContentRepository(
+              bundle: rootBundle,
+            ).load(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      expect(registry.activeKind, ActiveLearningModuleKind.vocabulary);
+
+      // The user taps while the app is in the foreground, where the shell
+      // animates page changes; under the opaque catalog its ticker is muted.
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('home-topics-tab')));
+      await tester.pumpAndSettle();
+      expect(find.byType(TopicListeningScreen), findsOneWidget);
+      // A fresh MAIN press on the catalog must open the assistant, not re-ask
+      // the vocabulary menu under the catalog.
+      expect(registry.activeKind, isNull);
+
+      expect(
+        await voiceNavigationController.activateFromMainButton(
+          activeLearning: false,
+        ),
+        isTrue,
+      );
+      unawaited(voiceNavigationController.dispatchRecognizedText('Bộ từ vựng'));
+      for (var frame = 0; frame < 20; frame++) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
+
+      expect(find.byType(TopicListeningScreen), findsNothing);
+      expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
+      expect(registry.activeKind, ActiveLearningModuleKind.vocabulary);
+
+      debugDefaultTargetPlatformOverride = null;
+      controller.dispose();
+      voiceNavigationController.dispose();
+      registry.dispose();
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets(
     'the menu asked by a voice return to vocabulary opens its microphone '
     'without waiting for the drain of the MAIN turn that is still running it',
     (tester) async {
