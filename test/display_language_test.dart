@@ -1,12 +1,15 @@
-import 'dart:typed_data';
-
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
+import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/data/demo_conversation_repository.dart';
+import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
+import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_screen.dart';
+import 'package:ai_speaking_flutter_app/features/conversation/presentation/widgets/result_panel.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -42,6 +45,92 @@ void main() {
       expect(find.text('英语句子'), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'Android can select Chinese output while Vietnamese stays input',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        playbackService: const _FakePlaybackService(),
+        repository: const _LanguageRepository(),
+        childAge: 6,
+      );
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ConversationScreen(
+            controller: controller,
+            onOpenHistory: () {},
+            onOpenSettings: () {},
+          ),
+        ),
+      );
+      await tester.tap(
+        find.byKey(const Key('translation-output-language-button')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Tiếng Trung').last);
+      await tester.pumpAndSettle();
+
+      expect(controller.outputLanguage, TranslationOutputLanguage.chinese);
+      expect(find.text('Câu tiếng Việt'), findsOneWidget);
+      expect(find.text('Câu tiếng Trung'), findsOneWidget);
+      expect(find.text('Dịch ra: Tiếng Trung'), findsOneWidget);
+      debugDefaultTargetPlatformOverride = null;
+    },
+  );
+
+  testWidgets('Chinese result offers device speech replay', (tester) async {
+    var replayed = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ResultPanel(
+            result: const ConversationResult(
+              conversationId: '',
+              sessionId: '',
+              context: PracticeContext.home,
+              vietnameseText: 'Con muốn uống nước.',
+              englishText: '我想喝水。',
+              audioUri: null,
+              processingMode: 'ai',
+              textSource: 'cloudflare',
+              audioSource: 'device_tts',
+              asrMode: 'android_streaming',
+              outputLanguage: TranslationOutputLanguage.chinese,
+              latency: ConversationLatency(
+                asrMs: 0,
+                llmMs: 100,
+                ttsMs: 0,
+                timeToFirstAudioMs: 100,
+              ),
+            ),
+            onPlay: () => replayed = true,
+          ),
+        ),
+      ),
+    );
+    expect(find.text('Câu tiếng Trung'), findsOneWidget);
+    expect(find.text('我想喝水。'), findsOneWidget);
+    await tester.tap(find.byTooltip('Phát tiếng Trung'));
+    expect(replayed, isTrue);
+  });
+}
+
+class _LanguageRepository extends DemoConversationRepository
+    implements TargetLanguageConversationRepository {
+  const _LanguageRepository();
+
+  @override
+  Future<ConversationResult> processStreamingTextForLanguage({
+    required StreamingSpeechCapture capture,
+    required PracticeContext context,
+    required int childAge,
+    required int vadSilenceMs,
+    required TranslationOutputLanguage outputLanguage,
+  }) => throw UnimplementedError();
 }
 
 class _FakeAudioInput implements ChunkedAudioInput {

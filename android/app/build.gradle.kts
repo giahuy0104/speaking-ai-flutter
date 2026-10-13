@@ -31,6 +31,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["appLabel"] = "Trợ lý giao tiếp"
     }
 
     lint {
@@ -52,6 +53,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".zhstaging"
+            manifestPlaceholders["appLabel"] = "HOMI Trung Test"
+        }
         release {
             // Keep local/CI validation buildable until the production keystore
             // is supplied. Store releases must always provide key.properties.

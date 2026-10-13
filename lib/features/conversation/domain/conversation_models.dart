@@ -41,6 +41,16 @@ enum ConversationPhase { idle, recording, processing, ready, error }
 
 enum ConversationProcessingStage { recognizing, translating, preparingAudio }
 
+enum TranslationOutputLanguage {
+  english('en', 'en-US'),
+  chinese('zh', 'zh-CN');
+
+  const TranslationOutputLanguage(this.code, this.speechLocale);
+
+  final String code;
+  final String speechLocale;
+}
+
 class ConversationLearningOutcome {
   const ConversationLearningOutcome({
     required this.status,
@@ -161,6 +171,7 @@ class ConversationResult {
     required this.audioSource,
     required this.asrMode,
     required this.latency,
+    this.outputLanguage = TranslationOutputLanguage.english,
     this.learning,
     this.audioSha256,
     this.audioDurationSeconds,
@@ -180,7 +191,13 @@ class ConversationResult {
         orElse: () => PracticeContext.home,
       ),
       vietnameseText: json['vietnameseText'] as String? ?? '',
-      englishText: json['englishText'] as String? ?? '',
+      englishText:
+          json['translatedText'] as String? ??
+          json['englishText'] as String? ??
+          '',
+      outputLanguage: json['targetLanguage'] == 'zh'
+          ? TranslationOutputLanguage.chinese
+          : TranslationOutputLanguage.english,
       audioUri: rawAudioUrl == null
           ? null
           : backendBaseUri.resolve(rawAudioUrl),
@@ -205,6 +222,8 @@ class ConversationResult {
   final PracticeContext context;
   final String vietnameseText;
   final String englishText;
+  final TranslationOutputLanguage outputLanguage;
+  String get translatedText => englishText;
   final Uri? audioUri;
   final String? audioSha256;
   final double? audioDurationSeconds;

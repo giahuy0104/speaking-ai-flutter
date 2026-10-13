@@ -224,6 +224,60 @@ void main() {
     },
   );
 
+  test('requests Chinese with one online translation call', () async {
+    var requestCount = 0;
+    final repository = NextConversationRepository(
+      config: config,
+      clientIdProvider: clientIdProvider,
+      client: MockClient((request) async {
+        requestCount += 1;
+        final body = jsonDecode(request.body) as Map<String, dynamic>;
+        expect(body['sourceText'], 'Con muốn uống nước.');
+        expect(body['targetLanguage'], 'zh');
+        return http.Response(
+          jsonEncode(<String, dynamic>{
+            'conversationId': '',
+            'sessionId': '',
+            'context': 'home',
+            'vietnameseText': 'Con muốn uống nước.',
+            'englishText': '',
+            'targetLanguage': 'zh',
+            'translatedText': '我想喝水。',
+            'audioUrl': null,
+            'processingMode': 'ai',
+            'textSource': 'cloudflare',
+            'audioSource': 'device_tts',
+            'asrMode': 'android_streaming',
+            'latency': <String, dynamic>{},
+          }),
+          200,
+          headers: const <String, String>{'content-type': 'application/json'},
+        );
+      }),
+    );
+
+    final result = await repository.processStreamingTextForLanguage(
+      capture: const StreamingSpeechCapture(
+        sourceText: 'Con muốn uống nước.',
+        duration: Duration(seconds: 2),
+        inputLabel: 'Mic điện thoại',
+        confidence: 0.9,
+        firstResultMs: 200,
+        finalAfterStopMs: 50,
+      ),
+      context: PracticeContext.home,
+      childAge: 6,
+      vadSilenceMs: 700,
+      outputLanguage: TranslationOutputLanguage.chinese,
+    );
+
+    expect(requestCount, 1);
+    expect(result.outputLanguage, TranslationOutputLanguage.chinese);
+    expect(result.translatedText, '我想喝水。');
+    expect(result.audioSource, 'device_tts');
+    await repository.dispose();
+  });
+
   for (final retryCase in <({int status, String code})>[
     (status: 425, code: 'TOO_EARLY'),
     (status: 429, code: 'RATE_LIMITED'),

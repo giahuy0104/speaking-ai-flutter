@@ -388,6 +388,7 @@ class ConversationController extends ChangeNotifier
   PracticeContext context = PracticeContext.home;
   @override
   AsrMode asrMode;
+  TranslationOutputLanguage outputLanguage = TranslationOutputLanguage.english;
   @override
   int vadSilenceMs = 700;
   double amplitude = 0;
@@ -411,6 +412,25 @@ class ConversationController extends ChangeNotifier
 
   @override
   int get childAge => _childAge;
+
+  bool setTranslationOutputLanguage(TranslationOutputLanguage language) {
+    if (_disposed || isBusy || _stopInProgress) return false;
+    if (language == outputLanguage) return true;
+    if (language == TranslationOutputLanguage.chinese &&
+        (_isWebRuntime ||
+            defaultTargetPlatform != TargetPlatform.android ||
+            _repository is! TargetLanguageConversationRepository)) {
+      errorMessage = 'Thiết bị này chưa hỗ trợ dịch liên tục sang tiếng Trung.';
+      notifyListeners();
+      return false;
+    }
+    outputLanguage = language;
+    _clearPresentationResultState();
+    errorMessage = null;
+    transientMessage = null;
+    notifyListeners();
+    return true;
+  }
 
   void setChildAge(int age) {
     if (_childAge == age) {
@@ -2435,7 +2455,8 @@ class ConversationController extends ChangeNotifier
           context.apiValue,
           decision.hypothesis.intentId,
         )];
-    if (definition != null) {
+    if (definition != null &&
+        outputLanguage == TranslationOutputLanguage.english) {
       _preview = ConversationPreview(
         sourceText: decision.hypothesis.transcript.trim(),
         englishText: definition.englishText,
@@ -2787,6 +2808,7 @@ class ConversationController extends ChangeNotifier
       unawaited(stopRecording(manual: false));
       return;
     }
+    if (outputLanguage != TranslationOutputLanguage.english) return;
     _partialPreviewTimer?.cancel();
     final generation = _previewGeneration;
     final previewContext = context;
@@ -3254,7 +3276,8 @@ class ConversationController extends ChangeNotifier
       Uri? earlyRulePlaybackUri;
       String? earlyRuleEnglishText;
       _useTranslatedSpeechPlaybackRate();
-      if ((!useAndroidOfflineAudio || androidNetworkTransport == true) &&
+      if (outputLanguage == TranslationOutputLanguage.english &&
+          (!useAndroidOfflineAudio || androidNetworkTransport == true) &&
           streamingCapture != null) {
         final matchedLocalRule = _applyLocalExactPreview(
           streamingCapture.sourceText,
@@ -3276,7 +3299,9 @@ class ConversationController extends ChangeNotifier
 
       final hasNetworkTransport =
           androidNetworkTransport ?? await _hasNetworkTransport();
-      final offlineFirstResult = hasNetworkTransport
+      final offlineFirstResult =
+          outputLanguage != TranslationOutputLanguage.english ||
+              hasNetworkTransport
           ? null
           : await _tryOfflineConversationResult(
               capture: streamingCapture,
@@ -3285,7 +3310,26 @@ class ConversationController extends ChangeNotifier
               useDeviceTtsForExact: useAndroidOfflineAudio,
             );
       final Future<ConversationResult> resultFuture;
-      if (offlineFirstResult != null) {
+      if (outputLanguage == TranslationOutputLanguage.chinese) {
+        final languageRepository = _repository;
+        if (!hasNetworkTransport ||
+            streamingCapture == null ||
+            languageRepository is! TargetLanguageConversationRepository) {
+          throw const StreamingSpeechInputException(
+            'Cần kết nối mạng và nhận dạng tiếng Việt để dịch sang tiếng Trung.',
+            code: 'CHINESE_TRANSLATION_UNAVAILABLE',
+          );
+        }
+        resultFuture =
+            (languageRepository as TargetLanguageConversationRepository)
+                .processStreamingTextForLanguage(
+                  capture: streamingCapture,
+                  context: context,
+                  childAge: _childAge,
+                  vadSilenceMs: vadSilenceMs,
+                  outputLanguage: TranslationOutputLanguage.chinese,
+                );
+      } else if (offlineFirstResult != null) {
         // Do not create an HTTP request after the OS has already reported that
         // Wi-Fi/mobile data disappeared. This makes an in-progress online
         // session switch to the installed model on the very next utterance.
@@ -3316,7 +3360,8 @@ class ConversationController extends ChangeNotifier
         );
       }
       final processing = await Future.wait<Object?>([
-        earlyRulePlayback == null
+        earlyRulePlayback == null &&
+                outputLanguage == TranslationOutputLanguage.english
             ? _preparePlaybackWithTimeout()
             : Future<void>.value(),
         resultFuture,
@@ -3415,6 +3460,7 @@ class ConversationController extends ChangeNotifier
             await _speakOfflineTranslation(
               nextResult.englishText,
               turnGeneration: turnGeneration,
+              locale: nextResult.outputLanguage.speechLocale,
             );
             reusedEarlyRulePlayback = true;
           } else if (error is PlaybackException) {
@@ -3436,6 +3482,7 @@ class ConversationController extends ChangeNotifier
         await _speakOfflineTranslation(
           nextResult.englishText,
           turnGeneration: turnGeneration,
+          locale: nextResult.outputLanguage.speechLocale,
         );
       }
       await stoppedAdaptiveWebUpload?.finishPreviewForwarding();
@@ -3820,6 +3867,7 @@ class ConversationController extends ChangeNotifier
       await _speakOfflineTranslation(
         currentResult.englishText,
         turnGeneration: playbackTurnGeneration,
+        locale: currentResult.outputLanguage.speechLocale,
       );
       return;
     }
@@ -3918,6 +3966,7 @@ class ConversationController extends ChangeNotifier
         await _speakOfflineTranslation(
           currentResult.englishText,
           turnGeneration: playbackTurnGeneration,
+          locale: currentResult.outputLanguage.speechLocale,
         );
         return;
       }
@@ -3938,12 +3987,12 @@ class ConversationController extends ChangeNotifier
   Future<void> _speakOfflineTranslation(
     String englishText, {
     required int turnGeneration,
+    String locale = 'en-US',
   }) async {
     final text = englishText.trim();
     final promptService = _voicePromptService;
     if (text.isEmpty || promptService == null) {
-      transientMessage =
-          'Đã dịch offline nhưng thiết bị chưa có giọng đọc tiếng Anh.';
+      transientMessage = 'Thiết bị chưa có giọng đọc cho bản dịch.';
       notifyListeners();
       return;
     }
@@ -3954,20 +4003,20 @@ class ConversationController extends ChangeNotifier
         await (promptService as StyledMediaOutputVoicePromptService)
             .speakAndWaitStyled(
               text,
-              locale: 'en-US',
+              locale: locale,
               speechRate: translatedSpeechPlaybackRate,
               pitch: 1.05,
             );
       } else if (promptService is SelectedMediaOutputVoicePromptService) {
         await (promptService as SelectedMediaOutputVoicePromptService)
-            .speakAndWaitOnSelectedMediaOutput(text, locale: 'en-US');
+            .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
       } else {
-        await promptService.speakAndWait(text, locale: 'en-US');
+        await promptService.speakAndWait(text, locale: locale);
       }
     } catch (error) {
       if (turnGeneration != _conversationTurnGeneration) return;
       transientMessage =
-          'Đã dịch offline nhưng chưa phát được giọng tiếng Anh: '
+          'Đã dịch nhưng chưa phát được giọng đọc: '
           '${_friendlyError(error)}';
       notifyListeners();
     }

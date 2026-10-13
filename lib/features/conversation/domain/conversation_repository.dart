@@ -66,6 +66,18 @@ abstract interface class ConversationRepository {
   Future<void> dispose();
 }
 
+/// A transcript-first request that asks the backend for a non-English output
+/// in the same conversation round trip.
+abstract interface class TargetLanguageConversationRepository {
+  Future<ConversationResult> processStreamingTextForLanguage({
+    required StreamingSpeechCapture capture,
+    required PracticeContext context,
+    required int childAge,
+    required int vadSilenceMs,
+    required TranslationOutputLanguage outputLanguage,
+  });
+}
+
 /// Optional capability for conversation paths that produce a transcript first
 /// and therefore cannot attach the original recording to `/api/conversation`.
 ///

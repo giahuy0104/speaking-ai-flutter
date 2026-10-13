@@ -22,6 +22,7 @@ import '../domain/conversation_repository.dart';
 class NextConversationRepository
     implements
         ConversationRepository,
+        TargetLanguageConversationRepository,
         UserAudioArchiveRepository,
         UserAudioHistoryPlaybackRepository,
         ChunkedConversationRepository,
@@ -329,6 +330,35 @@ class NextConversationRepository
     required PracticeContext context,
     required int childAge,
     required int vadSilenceMs,
+  }) => _processStreamingText(
+    capture: capture,
+    context: context,
+    childAge: childAge,
+    vadSilenceMs: vadSilenceMs,
+    outputLanguage: TranslationOutputLanguage.english,
+  );
+
+  @override
+  Future<ConversationResult> processStreamingTextForLanguage({
+    required StreamingSpeechCapture capture,
+    required PracticeContext context,
+    required int childAge,
+    required int vadSilenceMs,
+    required TranslationOutputLanguage outputLanguage,
+  }) => _processStreamingText(
+    capture: capture,
+    context: context,
+    childAge: childAge,
+    vadSilenceMs: vadSilenceMs,
+    outputLanguage: outputLanguage,
+  );
+
+  Future<ConversationResult> _processStreamingText({
+    required StreamingSpeechCapture capture,
+    required PracticeContext context,
+    required int childAge,
+    required int vadSilenceMs,
+    required TranslationOutputLanguage outputLanguage,
   }) async {
     final clientId = await _clientId;
     final requestedMode = AsrMode.values.firstWhere(
@@ -349,6 +379,8 @@ class NextConversationRepository
       'context': context.apiValue,
       'childAge': childAge,
       'sourceText': capture.sourceText,
+      if (outputLanguage != TranslationOutputLanguage.english)
+        'targetLanguage': outputLanguage.code,
       'asrMode': capture.asrMode,
       'benchmark': <String, dynamic>{
         ...benchmark.toJson(),
@@ -391,8 +423,17 @@ class NextConversationRepository
               body: body,
             )
             .timeout(const Duration(seconds: 20));
+        final payload = _decodeResponse(response);
+        if (outputLanguage == TranslationOutputLanguage.chinese &&
+            (payload['targetLanguage'] != 'zh' ||
+                (payload['translatedText'] as String?)?.trim().isEmpty !=
+                    false)) {
+          throw const ConversationApiException(
+            'Máy chủ chưa hỗ trợ dịch tiếng Trung. Vui lòng thử lại sau.',
+          );
+        }
         return ConversationResult.fromJson(
-          _decodeResponse(response),
+          payload,
           backendBaseUri: _config.backendBaseUri,
         );
       } catch (error) {

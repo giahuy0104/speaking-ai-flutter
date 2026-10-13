@@ -249,6 +249,10 @@ class VoicePromptBridge(
             languageResult == TextToSpeech.LANG_MISSING_DATA ||
                 languageResult == TextToSpeech.LANG_NOT_SUPPORTED
         ) {
+            if (requestedLocale.language == "zh") {
+                completion?.error("TTS_LANGUAGE_UNAVAILABLE", "Chinese voice is unavailable on this device.", null)
+                return
+            }
             engine.setLanguage(Locale("vi", "VN"))
         }
         utteranceSequence += 1

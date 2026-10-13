@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/scenic_app_header.dart';
 import '../../../l10n/display_language.dart';
+import '../domain/conversation_models.dart';
 import 'conversation_controller.dart';
 import 'widgets/result_panel.dart';
 import 'widgets/speak_action_bar.dart';
@@ -54,6 +56,61 @@ class ConversationScreen extends StatelessWidget {
                       historyButtonKey: historyButtonKey,
                       settingsButtonKey: settingsButtonKey,
                     ),
+                    if (!kIsWeb &&
+                        defaultTargetPlatform == TargetPlatform.android)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 24, top: 4),
+                          child: Builder(
+                            builder: (localizedContext) =>
+                                PopupMenuButton<TranslationOutputLanguage>(
+                                  key: const Key(
+                                    'translation-output-language-button',
+                                  ),
+                                  enabled: !controller.isBusy,
+                                  tooltip: localizedContext.tr(
+                                    'Chọn ngôn ngữ dịch ra',
+                                    '选择翻译目标语言',
+                                  ),
+                                  onSelected:
+                                      controller.setTranslationOutputLanguage,
+                                  itemBuilder: (context) => [
+                                    for (final language
+                                        in TranslationOutputLanguage.values)
+                                      PopupMenuItem<TranslationOutputLanguage>(
+                                        value: language,
+                                        child: Text(
+                                          language ==
+                                                  TranslationOutputLanguage
+                                                      .english
+                                              ? context.tr('Tiếng Anh', '英语')
+                                              : context.tr('Tiếng Trung', '中文'),
+                                        ),
+                                      ),
+                                  ],
+                                  child: Chip(
+                                    avatar: const Icon(
+                                      Icons.translate_rounded,
+                                      size: 18,
+                                    ),
+                                    label: Text(
+                                      controller.outputLanguage ==
+                                              TranslationOutputLanguage.english
+                                          ? localizedContext.tr(
+                                              'Dịch ra: Tiếng Anh',
+                                              '译成：英语',
+                                            )
+                                          : localizedContext.tr(
+                                              'Dịch ra: Tiếng Trung',
+                                              '译成：中文',
+                                            ),
+                                    ),
+                                  ),
+                                ),
+                          ),
+                        ),
+                      ),
                     Expanded(
                       child: Center(
                         child: ConstrainedBox(
@@ -82,6 +139,7 @@ class ConversationScreen extends StatelessWidget {
                                 ResultPanel(
                                   key: resultPanelKey,
                                   result: controller.result,
+                                  outputLanguage: controller.outputLanguage,
                                   onPlay: () =>
                                       unawaited(controller.playResult()),
                                 ),

@@ -5,14 +5,22 @@ import '../../../../l10n/display_language.dart';
 import '../../domain/conversation_models.dart';
 
 class ResultPanel extends StatelessWidget {
-  const ResultPanel({required this.result, required this.onPlay, super.key});
+  const ResultPanel({
+    required this.result,
+    required this.onPlay,
+    this.outputLanguage = TranslationOutputLanguage.english,
+    super.key,
+  });
 
   final ConversationResult? result;
   final VoidCallback onPlay;
+  final TranslationOutputLanguage outputLanguage;
 
   @override
   Widget build(BuildContext context) {
     final currentResult = result;
+    final selectedLanguage = currentResult?.outputLanguage ?? outputLanguage;
+    final isChinese = selectedLanguage == TranslationOutputLanguage.chinese;
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -41,20 +49,27 @@ class ResultPanel extends StatelessWidget {
           const _TranslationConnector(),
           _TranslationSection(
             icon: Icons.translate_rounded,
-            label: context.tr('Câu tiếng Anh', '英语句子'),
+            label: isChinese
+                ? context.tr('Câu tiếng Trung', '中文句子')
+                : context.tr('Câu tiếng Anh', '英语句子'),
             text: currentResult?.englishText,
-            placeholder: context.tr(
-              'Câu tiếng Anh sẽ hiện ở đây',
-              '英语句子会显示在这里',
-            ),
-            trailing: currentResult?.audioUri == null
+            placeholder: isChinese
+                ? context.tr('Câu tiếng Trung sẽ hiện ở đây', '中文句子会显示在这里')
+                : context.tr('Câu tiếng Anh sẽ hiện ở đây', '英语句子会显示在这里'),
+            trailing:
+                currentResult?.audioUri == null &&
+                    currentResult?.audioSource != 'device_tts'
                 ? null
                 : Semantics(
                     button: true,
-                    label: context.tr('Phát lại câu tiếng Anh', '重新播放英语句子'),
+                    label: isChinese
+                        ? context.tr('Phát lại câu tiếng Trung', '重新播放中文句子')
+                        : context.tr('Phát lại câu tiếng Anh', '重新播放英语句子'),
                     child: IconButton(
                       onPressed: onPlay,
-                      tooltip: context.tr('Phát tiếng Anh', '播放英语'),
+                      tooltip: isChinese
+                          ? context.tr('Phát tiếng Trung', '播放中文')
+                          : context.tr('Phát tiếng Anh', '播放英语'),
                       icon: const Icon(Icons.play_arrow_rounded),
                       style: IconButton.styleFrom(
                         minimumSize: const Size.square(42),
