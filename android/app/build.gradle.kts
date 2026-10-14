@@ -58,6 +58,8 @@ android {
             manifestPlaceholders["appLabel"] = "HOMI Dịch Test"
         }
         release {
+            applicationIdSuffix = ".multilangstaging"
+            manifestPlaceholders["appLabel"] = "HOMI Đa ngữ Test"
             // Keep local/CI validation buildable until the production keystore
             // is supplied. Store releases must always provide key.properties.
             signingConfig = signingConfigs.getByName(
