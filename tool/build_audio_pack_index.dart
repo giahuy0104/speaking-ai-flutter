@@ -182,6 +182,9 @@ Future<Map<String, String>> _sourceTextByKey() async {
         );
         result['listening.lesson.$lessonId.intro.vi'] =
             '$beforeTitle\u0000$title\u0000$afterTitle';
+        result['listening.lesson.$lessonId.intro_lead.vi'] = _normalize(
+          '$beforeTitle $title',
+        );
         for (final sentence in (lessonMap['sentences'] as List<dynamic>)) {
           final item = sentence as Map<String, dynamic>;
           final id = item['id'] as String;

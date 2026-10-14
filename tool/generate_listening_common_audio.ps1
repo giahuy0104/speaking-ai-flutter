@@ -77,12 +77,13 @@ function Add-ManifestEntry(
   [string]$key,
   [string]$assetPath,
   [string]$absolutePath,
-  [string]$composition
+  [string]$composition,
+  [string]$text = ''
 ) {
   $durationText = & ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 $absolutePath
   $duration = [math]::Round([double]::Parse($durationText.Trim(), [Globalization.CultureInfo]::InvariantCulture), 3)
   $checksum = (Get-FileHash -LiteralPath $absolutePath -Algorithm SHA256).Hash.ToLowerInvariant()
-  [void]$entries.Add([ordered]@{
+  $entry = [ordered]@{
     key = $key
     enabled = $true
     locale = 'vi-VN'
@@ -95,7 +96,12 @@ function Add-ManifestEntry(
     vietnameseSpeed = $speedByLanguage.vi
     englishVoiceId = $voiceByLanguage.en
     englishSpeed = $speedByLanguage.en
-  })
+  }
+  if (![string]::IsNullOrWhiteSpace($text)) {
+    $entry.text = ($text -replace '\s+', ' ').Trim()
+    $entry.textHash = Get-TextHash $entry.text
+  }
+  [void]$entries.Add($entry)
 }
 
 $commonPrompts = @(
@@ -138,7 +144,8 @@ foreach ($group in $catalog.groups) {
       $englishTitle = ([string]$lesson.titleEn).Trim()
       $entryText = ([string]$lesson.entry.text).Trim()
       $hookKey = "listening.lesson.$($lesson.id).hook.vi"
-      if ($authoredHooksByKey.ContainsKey($hookKey)) {
+      $hasAuthoredHook = $authoredHooksByKey.ContainsKey($hookKey)
+      if ($hasAuthoredHook) {
         $hookPrompt = $authoredHooksByKey[$hookKey]
         if ($lesson.entry.kind -cne 'hook' -or $hookPrompt.text -cne $entryText) {
           throw "The committed lesson hook no longer matches its lesson entry: $hookKey"
@@ -158,6 +165,18 @@ foreach ($group in $catalog.groups) {
         Get-OrCreateSpeech 'en' $englishTitle
         Get-OrCreateSpeech 'vi' $afterTitle
       )
+      if ($hasAuthoredHook) {
+        # The scene hook must play separately. Its lead needs its own recording
+        # so the title does not fall back to the device's Vietnamese/English TTS.
+        $leadKey = "listening.lesson.$($lesson.id).intro_lead.vi"
+        $leadFileName = "$leadKey.mp3"
+        $leadPath = Join-Path $outputDirectory $leadFileName
+        & ffmpeg -v error -y -i $segments[0] -i $segments[1] -filter_complex '[0:a][1:a]concat=n=2:v=0:a=1[out]' -map '[out]' -ar 44100 -b:a 128k $leadPath
+        if ($LASTEXITCODE -ne 0) {
+          throw "ffmpeg could not compose intro lead audio for $($lesson.id)."
+        }
+        Add-ManifestEntry $manifestEntries $leadKey "assets/audio/listening-common/$leadFileName" $leadPath 'vi-en' "$beforeTitle $englishTitle"
+      }
       $listPath = Join-Path $cacheDirectory ((Get-TextHash $key) + '.concat.txt')
       $listLines = $segments | ForEach-Object { "file '$($_ -replace "'", "''")'" }
       Set-Content -LiteralPath $listPath -Value $listLines -Encoding utf8

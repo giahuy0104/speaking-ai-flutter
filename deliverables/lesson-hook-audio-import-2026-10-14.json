@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "importedAt": "2026-10-13T17:14:27Z",
+  "source": "user-provided",
+  "previousCommit": "deb55732ad886c42aa83d0477f24edbfe15c96a1",
+  "files": [
+    {
+      "key": "listening.lesson.c67-l1-t03-b02.hook.vi",
+      "asset": "assets/audio/LESSON_HOOKS/no-co-the-lam-gi-nhi.mp3",
+      "sourceFile": "no-co-the-lam-gi-nhi.mp3",
+      "text": "Nó có thể làm gì nhỉ?",
+      "previousSha256": "170a5a2f7d2f5c2a3edba7ce908a6c676d95c1110247ad2a0823f68b7176e620",
+      "sha256": "aefadc98c7f00ad8fe834c14506cb9b442f2fb74e522df38598de45aa268cd07",
+      "sizeBytes": 89152,
+      "durationSeconds": 3.436553,
+      "codec": "mp3",
+      "sampleRate": 44100,
+      "channels": 2
+    },
+    {
+      "key": "listening.lesson.c67-l3-t09-b02.hook.vi",
+      "asset": "assets/audio/LESSON_HOOKS/homi-dang-o-dau-nhi.mp3",
+      "sourceFile": "homi-dang-o-dau-nhi.mp3",
+      "text": "HOMI đang ở đâu nhỉ?",
+      "previousSha256": "2ed40e12815fb0785806cf3640213a10cd1a55b48541a20da6fd6d338de28bdf",
+      "sha256": "f87e2e856087f9585e0f7709b585b4fa27b4650eaf358411cebebcbf5b5ff723",
+      "sizeBytes": 88167,
+      "durationSeconds": 3.343673,
+      "codec": "mp3",
+      "sampleRate": 44100,
+      "channels": 2
+    },
+    {
+      "key": "listening.lesson.c810-l1-t02-b02.hook.vi",
+      "asset": "assets/audio/LESSON_HOOKS/cua-lop-dang-dong.mp3",
+      "sourceFile": "cua-lop-dang-dong.mp3",
+      "text": "Cửa lớp đang đóng.",
+      "previousSha256": "72416d9000e8b903dc84a3e12fa51ea8993daf6e62df845bd445c562dd5bc980",
+      "sha256": "f3a3e6ab5ce62a066cb57ee513671bac2a585d3f6e905f00155985588c4cfa2c",
+      "sizeBytes": 85882,
+      "durationSeconds": 3.204354,
+      "codec": "mp3",
+      "sampleRate": 44100,
+      "channels": 2
+    }
+  ],
+  "verification": {
+    "recordingsDecoded": 3,
+    "targetedTestsPassed": 10,
+    "flutterAssetBundleBuildPassed": true,
+    "sourceAndBundleAudioHashesVerified": 3,
+    "onDevicePlaybackVerified": false
+  }
+}

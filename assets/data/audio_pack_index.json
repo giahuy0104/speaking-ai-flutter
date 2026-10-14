@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-13T14:55:52.313Z",
+  "generatedAt": "2026-10-14T02:33:20.125Z",
   "minimumAppVersion": "1.0.8",
   "packs": [
     {
@@ -15,12 +15,12 @@
     },
     {
       "pack": "listening-common",
-      "version": "v2",
+      "version": "v4",
       "minimumAppVersion": "1.0.8",
       "manifest": "assets/data/listening_common_audio.json",
-      "manifestSha256": "c6c297df8ae54a814f673e337468339b3d338537a15b0dc295aa6821183279eb",
-      "audioCount": 436,
-      "sizeBytes": 26408279,
+      "manifestSha256": "e487c01f5da34250e82543e4ca7b89eee0512e30926d9ef5b572003361a14fa5",
+      "audioCount": 449,
+      "sizeBytes": 27056212,
       "preloadGroup": "shared"
     },
     {

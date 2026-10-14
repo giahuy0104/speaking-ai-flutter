@@ -3499,7 +3499,7 @@ void main() {
   );
 
   testWidgets(
-    'V4 pet entry plays its registry hook exactly once after the complete lead',
+    'all 13 V4 scene hooks play authored title lead, hook and start cue without TTS',
     (tester) async {
       await _usePhoneSurface(tester);
       final catalog = ListeningContentCatalog.fromJson(
@@ -3508,10 +3508,6 @@ void main() {
             )
             as Map<String, dynamic>,
       );
-      final topicContent = catalog.groups.first.topics.firstWhere(
-        (topic) => topic.number == 5,
-      );
-      final lesson = topicContent.lessons.first;
       final events = <String>[];
       final manifest =
           jsonDecode(
@@ -3520,53 +3516,83 @@ void main() {
                 ).readAsStringSync(),
               )
               as Map<String, dynamic>;
+      final coreManifest =
+          jsonDecode(
+                File(
+                  'assets/data/assistant_core_audio.json',
+                ).readAsStringSync(),
+              )
+              as Map<String, dynamic>;
+      final hookKeys = (manifest['prompts'] as List)
+          .cast<Map<String, dynamic>>()
+          .where(
+            (entry) => (entry['asset'] as String).startsWith(
+              'assets/audio/LESSON_HOOKS/',
+            ),
+          )
+          .map((entry) => entry['key'] as String)
+          .toSet();
+      expect(hookKeys, hasLength(13));
       final prompts = VoicePromptAudioRegistryAdapter(
-        delegate: _RegistryAudioVoicePromptService(events, manifest),
-        manifestAssets: const ['assets/data/listening_common_audio.json'],
+        delegate: _RegistryAudioVoicePromptService(events, {
+          'prompts': [
+            ...manifest['prompts'] as List,
+            ...coreManifest['prompts'] as List,
+          ],
+        }),
+        manifestAssets: const [
+          'assets/data/assistant_core_audio.json',
+          'assets/data/listening_common_audio.json',
+        ],
         bundle: _RegistryFileBundle(),
         cache: MemoryAudioPackCache(),
       );
       addTearDown(prompts.dispose);
       await prompts.repository.ensureLoaded();
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: buildAppTheme(),
-          home: LessonIntroScreen(
-            language: DisplayLanguage.vietnamese,
-            startAge: 3,
-            endAge: 5,
-            topic: listeningCatalogs.first.topics[4],
-            topicContent: topicContent,
-            lesson: lesson,
-            progressStore: _MemoryProgressStore(),
-            mediaService: _IntroEventMediaService(events),
-            voicePromptService: prompts,
-            guideAudioLibrary: _silentGuideAudioLibrary(),
-            autoAdvance: false,
-          ),
-        ),
-      );
-      await _pumpGuidedSpeechTurn(tester);
-      final hookEvent = 'asset|${ListeningAudioKeys.lessonHook(lesson.id)}';
-      expect(
-        events,
-        containsAllInOrder([
-          'voice|Chủ đề 5. Bài đầu tiên là',
-          'voice|${lesson.titleEn}',
-          hookEvent,
-          'voice|Bắt đầu nhé.',
-        ]),
-      );
-      expect(events.where((event) => event == hookEvent), hasLength(1));
-      expect(
-        events.where((event) => event == 'voice|${lesson.titleEn}'),
-        hasLength(1),
-      );
-      expect(events, isNot(contains('voice|${lesson.entry!.text}')));
-      expect(
-        events,
-        isNot(contains('asset|${ListeningAudioKeys.lessonIntro(lesson.id)}')),
-      );
+      var verified = 0;
+      for (final group in catalog.groups) {
+        final ageCatalog = listeningCatalogs.firstWhere(
+          (item) =>
+              item.startAge == group.startAge && item.endAge == group.endAge,
+        );
+        for (final topic in group.topics) {
+          for (final lesson in topic.lessons) {
+            if (!hookKeys.contains(ListeningAudioKeys.lessonHook(lesson.id))) {
+              continue;
+            }
+            events.clear();
+            await tester.pumpWidget(
+              MaterialApp(
+                theme: buildAppTheme(),
+                home: LessonIntroScreen(
+                  key: ValueKey(lesson.id),
+                  language: DisplayLanguage.vietnamese,
+                  startAge: group.startAge,
+                  endAge: group.endAge,
+                  topic: ageCatalog.topics[topic.number - 1],
+                  topicContent: topic,
+                  lesson: lesson,
+                  progressStore: _MemoryProgressStore(),
+                  mediaService: _IntroEventMediaService(events),
+                  voicePromptService: prompts,
+                  guideAudioLibrary: _silentGuideAudioLibrary(),
+                  autoAdvance: false,
+                ),
+              ),
+            );
+            await _pumpGuidedSpeechTurn(tester);
+            expect(events, <String>[
+              'asset|${ListeningAudioKeys.lessonIntroLead(lesson.id)}',
+              'asset|${ListeningAudioKeys.lessonHook(lesson.id)}',
+              'asset|assistant.main.start_now.vi',
+            ], reason: lesson.id);
+            verified++;
+            await tester.pumpWidget(const SizedBox.shrink());
+            await tester.pump();
+          }
+        }
+      }
+      expect(verified, 13);
     },
     variant: TargetPlatformVariant({
       TargetPlatform.android,

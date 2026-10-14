@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:ai_speaking_flutter_app/core/audio/catalog/audio_pack_cache.dart';
 import 'package:ai_speaking_flutter_app/core/audio/catalog/audio_pack_repository.dart';
@@ -7,6 +8,7 @@ import 'package:ai_speaking_flutter_app/core/audio/catalog/audio_prompt_request.
 import 'package:ai_speaking_flutter_app/core/audio/catalog/audio_prompt_resolver.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -32,7 +34,7 @@ void main() {
 
   for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
     test(
-      '$platform resolves all 13 original scene hooks through the registry',
+      '$platform resolves all 13 registered scene hooks through the registry',
       () async {
         debugDefaultTargetPlatformOverride = platform;
         addTearDown(() => debugDefaultTargetPlatformOverride = null);
@@ -120,7 +122,7 @@ void main() {
   });
 
   test(
-    'restored hook receipts identify the original committed recordings',
+    'hook provenance identifies retained and replacement recordings',
     () async {
       final manifest =
           jsonDecode(
@@ -137,10 +139,45 @@ void main() {
             ),
           );
       expect(hooks, hasLength(13));
+      const receiptPath =
+          'deliverables/lesson-hook-audio-import-2026-10-14.json';
+      final receipt =
+          jsonDecode(await File(receiptPath).readAsString())
+              as Map<String, dynamic>;
+      final replacements = {
+        for (final entry
+            in (receipt['files'] as List).cast<Map<String, dynamic>>())
+          entry['asset'] as String: entry,
+      };
+      expect(replacements, hasLength(3));
       expect(
-        hooks.map((prompt) => prompt['sourceCommit']),
-        everyElement('4091f3fada0aec1c2bd8c23e88f7e3c22df9d924'),
+        hooks.where((prompt) => prompt['source'] == 'user-provided'),
+        hasLength(3),
       );
+      for (final hook in hooks) {
+        final imported = replacements[hook['asset']];
+        if (imported == null) {
+          expect(
+            hook['sourceCommit'],
+            '4091f3fada0aec1c2bd8c23e88f7e3c22df9d924',
+          );
+          continue;
+        }
+        final audio = await rootBundle.load(hook['asset'] as String);
+        final bytes = audio.buffer.asUint8List(
+          audio.offsetInBytes,
+          audio.lengthInBytes,
+        );
+        expect(hook['source'], 'user-provided');
+        expect(hook['sourceCommit'], isNull);
+        expect(hook['importReceipt'], receiptPath);
+        expect(imported['key'], hook['key']);
+        expect(imported['text'], hook['text']);
+        expect(imported['sha256'], hook['sha256']);
+        expect(sha256.convert(bytes).toString(), imported['sha256']);
+        expect(imported['sizeBytes'], bytes.length);
+        expect(imported['durationSeconds'], hook['durationSeconds']);
+      }
     },
   );
 }

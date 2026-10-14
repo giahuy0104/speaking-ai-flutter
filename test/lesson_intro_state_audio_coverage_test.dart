@@ -25,6 +25,7 @@ void main() {
     var lessonCount = 0;
     var songCount = 0;
     var maximumStars = 0;
+    var hookLeadCount = 0;
     final topicNumbers = <int>{};
 
     for (final group in (catalog['groups'] as List<dynamic>)) {
@@ -47,6 +48,31 @@ void main() {
                 : item['titleVi'] as String,
           );
           lessonCount += 1;
+          if (entries.containsKey('listening.lesson.$id.hook.vi')) {
+            final lead = item['number'] == 1
+                ? 'Chủ đề $topicNumber. Bài đầu tiên là'
+                : 'Bài này là';
+            final key = 'listening.lesson.$id.intro_lead.vi';
+            final entry = entries[key];
+            expect(entry, isNotNull, reason: key);
+            final expectedText = '$lead $title';
+            expect(entry!['text'], expectedText, reason: key);
+            expect(entry['textHash'], _textHash(expectedText), reason: key);
+            expect(entry['locale'], 'vi-VN', reason: key);
+            expect(entry['composition'], 'vi-en', reason: key);
+            final bytes = File(entry['asset'] as String).readAsBytesSync();
+            expect(bytes.length, entry['sizeBytes'], reason: key);
+            expect(
+              sha256.convert(bytes).toString(),
+              entry['sha256'],
+              reason: key,
+            );
+            expect(
+              (entry['durationSeconds'] as num).toDouble(),
+              greaterThan(0),
+            );
+            hookLeadCount++;
+          }
           final sentenceCount = (item['sentences'] as List<dynamic>).length;
           if (sentenceCount > maximumStars) maximumStars = sentenceCount;
           _expectVerified(
@@ -87,6 +113,7 @@ void main() {
     }
 
     expect(lessonCount, 109);
+    expect(hookLeadCount, 13);
     expect(songCount, 5);
     expect(maximumStars, 6);
     expect(topicNumbers, <int>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
