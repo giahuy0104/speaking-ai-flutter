@@ -1692,12 +1692,12 @@ class _HomeListeningProgressStore extends ListeningProgressStore {
   @override
   Future<void> saveTopicSelectionCheckpoint(
     String courseId, {
-    required int levelNumber,
-    required bool announceLevel,
+    int? levelNumber,
+    bool? announceLevel,
   }) async {
     _selectionCheckpoint = ListeningTopicSelectionCheckpoint(
-      levelNumber: levelNumber,
-      announceLevel: announceLevel,
+      levelNumber: 0,
+      announceLevel: false,
     );
   }
 

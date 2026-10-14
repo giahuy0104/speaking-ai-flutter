@@ -1,0 +1,133 @@
+00:00 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart
+00:00 +0: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS retains numbered Topic choice until route installation succeeds
+00:00 +1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Android keeps its navigation handler when iOS result handler exists
+00:00 +2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS exposes a terminal Topic microphone failure revision
+00:00 +3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS Topic silence signals only after the second command window
+00:00 +4: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS Topic unrecognized fallback signals only when exhausted
+00:00 +5: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS surfaces an unhandled learning command after native handoff
+00:00 +6: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS MAIN labels an unhandled command as unfinished
+00:01 +7: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: cancelled lesson MAIN cannot resume learning after delayed native cleanup
+00:01 +8: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: native MAIN arm reply after cancellation closes its exact turn (dispose=false)
+00:01 +9: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: native MAIN arm reply after cancellation closes its exact turn (dispose=true)
+00:01 +10: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: late previous MAIN finalization cannot deactivate a newer Topic choice on TargetPlatform.android
+00:01 +11: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: late previous MAIN finalization cannot deactivate a newer Topic choice on TargetPlatform.iOS
+00:01 +12: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: MAIN item controls remain blocked until native turn cleanup finishes
+00:01 +13: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Home MAIN keeps numbered topic prefixes and final correction on TargetPlatform.android
+00:01 +14: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Home MAIN keeps numbered topic prefixes and final correction on TargetPlatform.iOS
+00:01 +15: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: topic endpoint validates a complete choice and keeps final correction
+00:01 +16: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: a complete topic number ends MAIN after a short silence
+00:02 +17: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: the bare Topics command ends MAIN after a short silence
+00:02 +18: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: level silence ends MAIN when a late partial completes the number
+00:03 +19: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Android MAIN ends a command after the phrase silence
+00:03 +20: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: a voice that resumes holds the Android phrase silence open
+00:04 +21: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS MAIN keeps waiting for its own endpoint after a phrase
+00:04 +22: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Android continuous wake emits one cue at command microphone readiness
+00:04 +23: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete start timeout cannot cancel the current mic
+00:04 +24: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: old prompt completion cannot clear a newer MAIN activation
+00:04 +25: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete microphone start (false) cannot stop the newer MAIN
+00:04 +26: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete microphone start (true) cannot stop the newer MAIN
+00:04 +27: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: failed MAIN prompt closes its turn without opening microphone
+00:04 +28: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: failed command acknowledgment does not execute lesson action
+00:04 +29: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: failed iOS-style navigation acknowledgment still opens vocabulary
+00:04 +30: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: failed iOS-style translation acknowledgment still opens the microphone flow
+00:04 +31: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: failed iOS-style start acknowledgment still opens the selected lesson
+00:04 +32: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: timed-out prompt never becomes a successful question
+00:04 +33: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: authored prompt longer than eight seconds finishes before command window opens
+00:04 +34: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: forced pause stops assistant audio when HOMI leaves foreground
+00:04 +35: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: MAIN-only configuration never starts or acknowledges voice wake
+00:04 +36: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: two silent active-module windows dispatch STOP rather than resume
+00:05 +37: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: silent vocabulary retry plays the authored clip, not TTS
+00:05 +38: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: two silent song windows pause the song at its checkpoint
+00:05 +39: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: silent topic selection resumes the same age group when MAIN is pressed again
+00:05 +40: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: navigation transcript is handled without entering conversation
+00:05 +41: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main button speaks the menu then starts the speaking flow
+00:06 +42: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: transfer from ActiveLearningModuleKind.listeningLesson waits for transition and intro before mic
+00:06 +43: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: transfer from ActiveLearningModuleKind.vocabulary waits for transition and intro before mic
+00:06 +44: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: cancelled/failed translation intro (false) has safe terminal handoff
+00:06 +45: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: cancelled/failed translation intro (true) has safe terminal handoff
+00:06 +46: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: MAIN handles an unambiguous fallback phrase from a stable partial
+00:06 +47: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS MAIN prompts use the selected H20 media output
+00:06 +48: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS MAIN can pin a disconnected virtual turn to the phone mic
+00:06 +49: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Android MAIN prompts use the selected H20 HFP output
+00:06 +50: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main opens the microphone when the native ready cue never completes
+00:06 +51: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main command window starts only after the microphone is ready
+00:07 +52: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: MAIN final-only completion during native start is finalized once
+00:07 +53: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: cancelled early completion cannot finalize a newer MAIN turn
+00:07 +54: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: actionable topic endpoint during native start is finalized
+00:07 +55: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Android MAIN final during ready cue is finalized once
+00:07 +56: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main prompt reopens the mic immediately after final recognition
+00:07 +57: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: HFP speech activity extends MAIN command window before transcript
+00:07 +58: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main exposes its first microphone start failure without retrying
+00:07 +59: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main pauses its command deadline while a premature completion recovers
+00:07 +60: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Android MAIN recovers a transient recognizer timeout without showing a mic error
+00:07 +61: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: repeated Android timeouts use the normal spoken no-speech retry
+00:08 +62: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS no-speech completion reopens MAIN and uses the spoken silence retry
+00:08 +63: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main stops automatic retries and exposes the microphone error
+00:08 +64: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main activation never exposes a transient inactive session
+00:08 +65: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main delegates missing profile age to the topic screen
+00:08 +66: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: saved age lets MAIN open Level selection without the legacy total
+00:08 +67: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: completed topic prompt continues through topic and lesson
+00:08 +68: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: completed Course topic choice is handled by the MAIN microphone
+00:08 +69: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: speaking command opens the other-learning voice menu
+00:08 +70: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: two silent translation-switch windows pause without redirecting
+00:08 +71: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: translation STOP keeps both menus and mic closed until explicit MAIN
+00:08 +72: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main opens today practice when parent vocabulary is pending
+00:08 +73: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: active lesson Main next answer advances through the module bridge
+00:08 +74: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Android Core resume speaks HOMI before handing audio to the lesson
+00:08 +75: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS lesson MAIN does not stay blocked by a late native turn arm
+00:08 +76: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: active lesson Main previous answer moves back through the module bridge
+00:08 +77: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: active lesson Main dispatches the remaining D07 and D08 commands
+00:08 +78: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: active lesson exit choice keeps listening then opens vocabulary
+00:08 +79: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: MAIN finalizes buffered iOS transcript when its command window ends
+00:08 +80: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Main asks once after silence then exits on the second timeout
+00:08 +81: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: every branch uses the shared second-silence pause prompt
+00:08 +82: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: pauses navigation recognizer before conversation can reuse it
+00:08 +83: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: handles an explicit command from a stable partial result
+00:08 +84: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: hears the wake phrase from a secondary Android transcript
+00:09 +85: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: uses final Android alternatives when the primary text misses
+00:09 +86: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: wake-word MAIN exits after its two silent command windows
+00:09 +87: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: does not reopen the microphone until the wake reply finishes
+00:09 +88: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: pause waits for a pending navigation start to release the mic
+00:09 +89: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: screen MAIN interrupts continuous translation during recording and playback
+00:10 +90: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart
+00:12 +90: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:38 +91: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:38 +92: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: journey text halos never use blurred shadows
+00:38 +93: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: topic navigation exposes the shared MAIN action
+00:38 +94: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: topic prompts prepare and use the selected H20 output
+00:39 +95: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: entering topics offers all ten topics in every age group
+00:39 +96: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: legacy level checkpoints offer all topics without resetting progress
+00:40 +97: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed topic assistant offers a working Topic 2 choice (throws=false) (variant: TargetPlatform.android)
+00:40 +98: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed topic assistant offers a working Topic 2 choice (throws=false) (variant: TargetPlatform.iOS)
+00:41 +99: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed topic assistant offers a working Topic 2 choice (throws=true) (variant: TargetPlatform.android)
+HOMI topic selection activation failed: Bad state: microphone unavailable
+00:41 +100: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed topic assistant offers a working Topic 2 choice (throws=true) (variant: TargetPlatform.iOS)
+HOMI topic selection activation failed: Bad state: microphone unavailable
+00:42 +101: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: iOS offers Topic 2 after activated recognition fails later (variant: TargetPlatform.iOS)
+00:42 +102: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: Android ignores iOS recognition failure signal (variant: TargetPlatform.android)
+00:42 +103: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: shows bilingual topic and lesson titles
+00:43 +104: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: V4 journey cards match the source catalog and keep their images
+00:43 +105: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: parent can change the global V4 age group from the topic screen
+00:43 +106: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: opens the V4 listen-first lesson journey from a selected topic
+00:43 +107: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: reports completed V4 topics again after replaying one
+00:44 +108: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: an in-progress topic resumes with its authored audio key
+00:44 +109: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: an in-progress topic opens its lesson while the resume line plays
+00:44 +110: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: the initial lesson intro waits for a lead prompt
+00:44 +111: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: completed Course asks MAIN to choose a topic for relearn
+00:45 +112: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed completed Course assistant can replay only topic 1 (throws=false) (variant: TargetPlatform.android)
+00:45 +113: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed completed Course assistant can replay only topic 1 (throws=false) (variant: TargetPlatform.iOS)
+00:45 +114: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed completed Course assistant can replay only topic 1 (throws=true) (variant: TargetPlatform.android)
+HOMI course replay activation failed: Bad state: microphone unavailable
+00:46 +115: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed completed Course assistant can replay only topic 1 (throws=true) (variant: TargetPlatform.iOS)
+HOMI course replay activation failed: Bad state: microphone unavailable
+00:46 +116: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: does not report a V4 topic complete until its authored activities finish
+00:46 +117: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: renders a V4 song milestone as a normal lesson, not a legacy clip
+00:47 +118: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: topic song action appears only with content and opens the existing V4 lesson
+00:47 +119: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: legacy content.songs opens through the same topic song list
+00:47 +120: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: song action opens a later topic without any level lock
+00:47 +121: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: song directory keeps V4 lesson identity and deduplicates legacy audio
+00:47 +122: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: bundled lesson content matches the V4 source-of-truth catalog
+00:47 +123: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: a compact phone can reach the V4 lesson intro without layout errors
+00:47 +124: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: renders the learning journey responsively on web width
+00:48 +125: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: keeps core controls available at large text scale
+00:48 +126: All tests passed!

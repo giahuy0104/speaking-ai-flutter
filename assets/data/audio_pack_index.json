@@ -5,22 +5,22 @@
   "packs": [
     {
       "pack": "assistant-core",
-      "version": "v2",
+      "version": "v3",
       "minimumAppVersion": "1.0.8",
       "manifest": "assets/data/assistant_core_audio.json",
-      "manifestSha256": "430463189c5177bc36f11f50dc5825001289a2a28e6e8f3c6f98c52e98e2891b",
-      "audioCount": 78,
-      "sizeBytes": 2370856,
+      "manifestSha256": "657c0c31ee964985864806dfcd7cf07571c11728559419f00da128172c95ea09",
+      "audioCount": 81,
+      "sizeBytes": 2574642,
       "preloadGroup": "shared"
     },
     {
       "pack": "listening-common",
-      "version": "v1",
+      "version": "v2",
       "minimumAppVersion": "1.0.8",
       "manifest": "assets/data/listening_common_audio.json",
-      "manifestSha256": "b71c9629e087f869109dbe10b62f7fdbb0a7d59295b703064a33aed9f240f7de",
-      "audioCount": 442,
-      "sizeBytes": 26404776,
+      "manifestSha256": "8151b44d939a66eec39a9d9efcfcfe4848cd55b108b2793c113f9d58a5cfb967",
+      "audioCount": 455,
+      "sizeBytes": 26915669,
       "preloadGroup": "shared"
     },
     {

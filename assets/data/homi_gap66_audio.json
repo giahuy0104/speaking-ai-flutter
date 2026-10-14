@@ -93,7 +93,7 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "version": 1,
-      "enabled": true,
+      "enabled": false,
       "group": "gap66-level-selection",
       "asset": "assets/audio/MAIN/GAP66/GAP66-005.vi.v1.mp3",
       "sources": [
@@ -112,7 +112,7 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "version": 1,
-      "enabled": true,
+      "enabled": false,
       "group": "gap66-level-selection",
       "asset": "assets/audio/MAIN/GAP66/GAP66-006.vi.v1.mp3",
       "sources": [
@@ -131,7 +131,7 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "version": 1,
-      "enabled": true,
+      "enabled": false,
       "group": "gap66-level-selection",
       "asset": "assets/audio/MAIN/GAP66/GAP66-007.vi.v1.mp3",
       "sources": [
@@ -411,7 +411,7 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "version": 1,
-      "enabled": true,
+      "enabled": false,
       "group": "gap66-completion-recovery",
       "asset": "assets/audio/MAIN/GAP66/GAP66-022.vi.v1.mp3",
       "sources": [
@@ -465,7 +465,7 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "version": 1,
-      "enabled": true,
+      "enabled": false,
       "group": "gap66-completion-recovery",
       "asset": "assets/audio/MAIN/GAP66/GAP66-025.vi.v1.mp3",
       "sources": [
@@ -483,7 +483,7 @@
       "locale": "vi-VN",
       "voiceLanguage": "vi",
       "version": 1,
-      "enabled": true,
+      "enabled": false,
       "group": "gap66-completion-recovery",
       "asset": "assets/audio/MAIN/GAP66/GAP66-026.vi.v1.mp3",
       "sources": [

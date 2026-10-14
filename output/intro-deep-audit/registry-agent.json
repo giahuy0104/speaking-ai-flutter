@@ -1,0 +1,268 @@
+{
+  "intro": 109,
+  "resume": 109,
+  "relearn": 109,
+  "song_resume": 5,
+  "hooks": 13,
+  "local_integrity_errors": [],
+  "definition_mismatches": [],
+  "runtime_intro_hash_note": "Intro source uses 3 null-separated VI/EN/VI segments, deliberately different from UI full string. Entries omit sourceText, so keyed runtime hash guard does not run. All generator composition hashes pass.",
+  "intro_composition_hash_mismatches": [],
+  "curriculum_hook_kind_count": 18,
+  "split_hook_segments": [
+    {
+      "id": "c35-l1-t02-b03",
+      "age": 3,
+      "lead": "Bài này là Count With Me",
+      "fullLeadMatches": [],
+      "parts": [
+        {
+          "text": "Bài này là",
+          "locale": "vi-VN",
+          "matches": []
+        },
+        {
+          "text": "Count With Me",
+          "locale": "en-US",
+          "matches": []
+        }
+      ],
+      "authored_hook_available": true
+    },
+    {
+      "id": "c35-l2-t05-b01",
+      "age": 3,
+      "lead": "Chủ đề 5. Bài đầu tiên là Animal Names",
+      "fullLeadMatches": [],
+      "parts": [
+        {
+          "text": "Chủ đề 5. Bài đầu tiên là",
+          "locale": "vi-VN",
+          "matches": []
+        },
+        {
+          "text": "Animal Names",
+          "locale": "en-US",
+          "matches": []
+        }
+      ],
+      "authored_hook_available": true
+    },
+    {
+      "id": "c35-l3-t09-b02",
+      "age": 3,
+      "lead": "Bài này là What to Wear?",
+      "fullLeadMatches": [],
+      "parts": [
+        {
+          "text": "Bài này là",
+          "locale": "vi-VN",
+          "matches": []
+        },
+        {
+          "text": "What to Wear?",
+          "locale": "en-US",
+          "matches": []
+        }
+      ],
+      "authored_hook_available": true
+    },
+    {
+      "id": "c35-l3-t10-b02",
+      "age": 3,
+      "lead": "Bài này là Happy Day",
+      "fullLeadMatches": [],
+      "parts": [
+        {
+          "text": "Bài này là",
+          "locale": "vi-VN",
+          "matches": []
+        },
+        {
+          "text": "Happy Day",
+          "locale": "en-US",
+          "matches": []
+        }
+      ],
+      "authored_hook_available": true
+    },
+    {
+      "id": "c67-l1-t03-b02",
+      "age": 6,
+      "lead": "Bài này là Animal Abilities",
+      "fullLeadMatches": [],
+      "parts": [
+        {
+          "text": "Bài này là",
+          "locale": "vi-VN",
+          "matches": []
+        },
+        {
+          "text": "Animal Abilities",
+          "locale": "en-US",
+          "matches": []
+        }
+      ],
+      "authored_hook_available": true
+    },
+    {
+      "id": "c67-l3-t07-b02",
+      "age": 6,
+      "lead": "Bài này là In Class",
+      "fullLeadMatches": [],
+      "parts": [
+        {
+          "text": "Bài này là",
+          "locale": "vi-VN",
+          "matches": []
+        },
+        {
+          "text": "In Class",
+          "locale": "en-US",
+          "matches": []
+        }
+      ],
+      "authored_hook_available": true
+    },
+    {
+      "id": "c67-l3-t09-b02",
+      "age": 6,
+      "lead": "Bài này là Where Are We?",
+      "fullLeadMatches": [],
+      "parts": [
+        {
+          "text": "Bài này là",
+          "locale": "vi-VN",
+          "matches": []
+        },
+        {
+          "text": "Where Are We?",
+          "locale": "en-US",
+          "matches": []
+        }
+      ],
+      "authored_hook_available": true
+    },
+    {
+      "id": "c810-l1-t01-b01",
+      "age": 8,
+      "lead": "Chủ đề 1. Bài đầu tiên là Time & Tasks",
+      "fullLeadMatches": [],
+      "parts": [
+        {
+          "text": "Chủ đề 1. Bài đầu tiên là",
+          "locale": "vi-VN",
+          "matches": []
+        },
+        {
+          "text": "Time & Tasks",
+          "locale": "en-US",
+          "matches": []
+        }
+      ],
+      "authored_hook_available": true
+    },
+    {
+      "id": "c810-l1-t02-b02",
+      "age": 8,
+      "lead": "Bài này là Classroom Talk",
+      "fullLeadMatches": [],
+      "parts": [
+        {
+          "text": "Bài này là",
+          "locale": "vi-VN",
+          "matches": []
+        },
+        {
+          "text": "Classroom Talk",
+          "locale": "en-US",
+          "matches": []
+        }
+      ],
+      "authored_hook_available": true
+    },
+    {
+      "id": "c810-l2-t05-b01",
+      "age": 8,
+      "lead": "Chủ đề 5. Bài đầu tiên là Weather Choices",
+      "fullLeadMatches": [],
+      "parts": [
+        {
+          "text": "Chủ đề 5. Bài đầu tiên là",
+          "locale": "vi-VN",
+          "matches": []
+        },
+        {
+          "text": "Weather Choices",
+          "locale": "en-US",
+          "matches": []
+        }
+      ],
+      "authored_hook_available": true
+    },
+    {
+      "id": "c1112-l2-t06-b02",
+      "age": 11,
+      "lead": "Bài này là Stay Safe",
+      "fullLeadMatches": [],
+      "parts": [
+        {
+          "text": "Bài này là",
+          "locale": "vi-VN",
+          "matches": []
+        },
+        {
+          "text": "Stay Safe",
+          "locale": "en-US",
+          "matches": []
+        }
+      ],
+      "authored_hook_available": true
+    },
+    {
+      "id": "c1315-l3-t07-b02",
+      "age": 13,
+      "lead": "Bài này là Ask for Info",
+      "fullLeadMatches": [],
+      "parts": [
+        {
+          "text": "Bài này là",
+          "locale": "vi-VN",
+          "matches": []
+        },
+        {
+          "text": "Ask for Info",
+          "locale": "en-US",
+          "matches": []
+        }
+      ],
+      "authored_hook_available": true
+    },
+    {
+      "id": "c1315-l3-t08-b02",
+      "age": 13,
+      "lead": "Bài này là My Order",
+      "fullLeadMatches": [],
+      "parts": [
+        {
+          "text": "Bài này là",
+          "locale": "vi-VN",
+          "matches": []
+        },
+        {
+          "text": "My Order",
+          "locale": "en-US",
+          "matches": []
+        }
+      ],
+      "authored_hook_available": true
+    }
+  ],
+  "hook_kind_without_separate_clip": [
+    "c810-l3-t08-b02",
+    "c810-l3-t10-b01",
+    "c1112-l1-t02-b01",
+    "c1315-l1-t02-b01",
+    "c1315-l2-t06-b02"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "authoredContentUnchanged": true,
+  "normalizedContentSha256": "18d06fee96896bb3f6fa053ab4b7d55a034143eee5c1bafb57d13cca6be1d909",
+  "disabledLegacyPromptKeys": {
+    "assistant_core_audio.json": [
+      "assistant.topic.invalid_3.vi",
+      "assistant.topic.invalid_4.vi",
+      "assistant.level.choose_relearn.vi",
+      "assistant.level.choose_course_relearn.vi"
+    ],
+    "listening_common_audio.json": [
+      "listening.navigation.choose_level.vi",
+      "listening.completion.level.start.2.vi",
+      "listening.completion.level.start.3.vi",
+      "listening.milestone.level.1.vi",
+      "listening.milestone.level.2.vi",
+      "listening.milestone.level.3.vi",
+      "listening.navigation.locked_level.1.vi",
+      "listening.navigation.locked_level.2.vi",
+      "listening.navigation.locked_level.3.vi"
+    ],
+    "homi_gap66_audio.json": [
+      "assistant.topic.level_selection.1.vi",
+      "assistant.topic.level_selection.2.vi",
+      "assistant.topic.level_selection.3.vi",
+      "GAP66-022",
+      "GAP66-025",
+      "GAP66-026"
+    ]
+  },
+  "regressionPassed": 972,
+  "finalNavigationResumePassed": 49,
+  "audioAuditPassedInTemporaryCheckoutWithCanonicalLineEndings": 2,
+  "preexistingGoldenFailuresReproducedOnHEAD": 7
+}

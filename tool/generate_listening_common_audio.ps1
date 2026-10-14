@@ -100,7 +100,6 @@ function Add-ManifestEntry(
 
 $commonPrompts = @(
   @{ key = 'listening.navigation.choose_topic.vi'; text = 'Bạn muốn học Chủ đề số mấy?' },
-  @{ key = 'listening.navigation.choose_level.vi'; text = 'Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?' },
   @{ key = 'listening.navigation.choose_lesson.vi'; text = 'Bạn muốn học Bài số mấy?' },
   @{ key = 'listening.navigation.replay_topic.vi'; text = 'Bạn muốn học chủ đề khác hay học lại?' },
   @{ key = 'listening.navigation.replay_lesson.vi'; text = 'Bạn muốn học lại Bài này hay học Bài tiếp theo?' },
@@ -138,7 +137,8 @@ foreach ($group in $catalog.groups) {
       $englishTitle = ([string]$lesson.titleEn).Trim()
       $entryText = ([string]$lesson.entry.text).Trim()
       $hookKey = "listening.lesson.$($lesson.id).hook.vi"
-      if ($authoredHooksByKey.ContainsKey($hookKey)) {
+      $hasAuthoredHook = $authoredHooksByKey.ContainsKey($hookKey)
+      if ($hasAuthoredHook) {
         $hookPrompt = $authoredHooksByKey[$hookKey]
         if ($lesson.entry.kind -cne 'hook' -or $hookPrompt.text -cne $entryText) {
           throw "The committed lesson hook no longer matches its lesson entry: $hookKey"
@@ -158,6 +158,20 @@ foreach ($group in $catalog.groups) {
         Get-OrCreateSpeech 'en' $englishTitle
         Get-OrCreateSpeech 'vi' $afterTitle
       )
+      if ($hasAuthoredHook) {
+        # Use the same original voices for the lead before the scene hook.
+        $leadKey = "listening.lesson.$($lesson.id).intro_lead.vi"
+        $leadPath = Join-Path $outputDirectory "$leadKey.mp3"
+        $leadListPath = Join-Path $cacheDirectory ((Get-TextHash $leadKey) + '.concat.txt')
+        $leadLines = $segments[0..1] | ForEach-Object { "file '$($_ -replace "'", "''")'" }
+        Set-Content -LiteralPath $leadListPath -Value $leadLines -Encoding utf8
+        & ffmpeg -v error -y -f concat -safe 0 -i $leadListPath -ar 44100 -b:a 128k $leadPath
+        if ($LASTEXITCODE -ne 0) { throw "ffmpeg could not compose intro lead for $($lesson.id)." }
+        Add-ManifestEntry $manifestEntries $leadKey "assets/audio/listening-common/$leadKey.mp3" $leadPath 'vi-en'
+        $leadText = (($beforeTitle + ' ' + $englishTitle) -replace '\s+', ' ').Trim()
+        $manifestEntries[$manifestEntries.Count - 1]['text'] = $leadText
+        $manifestEntries[$manifestEntries.Count - 1]['textHash'] = Get-TextHash $leadText
+      }
       $listPath = Join-Path $cacheDirectory ((Get-TextHash $key) + '.concat.txt')
       $listLines = $segments | ForEach-Object { "file '$($_ -replace "'", "''")'" }
       Set-Content -LiteralPath $listPath -Value $listLines -Encoding utf8
@@ -178,6 +192,7 @@ if ($authoredHooksByKey.Count -gt 0) {
 $manifest = [ordered]@{
   schemaVersion = 1
   pack = 'listening-common'
+  version = 'v2'
   enabled = $true
   prompts = $manifestEntries
 }

@@ -1,0 +1,262 @@
+00:00 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/topic_navigation_audio_test.dart
+00:00 +0: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/topic_navigation_audio_test.dart: imported recordings and updated pack index preserve integrity
+00:00 +1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/topic_navigation_audio_test.dart: MAIN and lesson outputs play the supplied bytes, including unkeyed retry
+00:02 +2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: 66 exact reviewed texts, unique across every enabled pack, correct receipts
+00:02 +3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: 66 exact reviewed texts, unique across every enabled pack, correct receipts
+00:02 +4: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: 66 exact reviewed texts, unique across every enabled pack, correct receipts
+00:03 +5: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: real factory honors pack/global/per-group build switches on all routes
+00:04 +6: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: real factory honors pack/global/per-group build switches on all routes
+00:04 +7: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: real factory honors pack/global/per-group build switches on all routes
+00:04 +8: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: real factory honors pack/global/per-group build switches on all routes
+00:04 +9: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: real factory honors pack/global/per-group build switches on all routes
+00:05 +10: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: real factory honors pack/global/per-group build switches on all routes
+00:05 +11: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: real factory honors pack/global/per-group build switches on all routes
+00:05 +12: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: real factory honors pack/global/per-group build switches on all routes
+00:05 +13: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: real factory honors pack/global/per-group build switches on all routes
+00:05 +14: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: authored MAIN audio plays at its measured level
+00:05 +15: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_main_assistant_audio_prompt_service_test.dart: authored assistant audio requires key and matching text
+00:05 +16: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: Topic GAP recordings support stable contextual audio keys
+00:05 +17: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: obsolete ten-topic wording does not select a different recording
+00:06 +18: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: isolated rollback for gap66-active-screen leaves other new groups playing MP3
+00:06 +19: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: isolated rollback for gap66-level-selection leaves other new groups playing MP3
+00:06 +20: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: isolated rollback for gap66-topic-replay leaves other new groups playing MP3
+00:06 +21: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: isolated rollback for gap66-navigation-recovery leaves other new groups playing MP3
+00:07 +22: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: isolated rollback for gap66-vocabulary-recovery leaves other new groups playing MP3
+00:07 +23: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: isolated rollback for gap66-completion-recovery leaves other new groups playing MP3
+00:07 +24: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: isolated rollback for gap66-topic-replay-recovery leaves other new groups playing MP3
+00:07 +25: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: missing-pack uses original TTS; unknown dynamic text remains TTS
+00:07 +26: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: missing-file uses original TTS; unknown dynamic text remains TTS
+00:07 +27: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: corrupt-file uses original TTS; unknown dynamic text remains TTS
+00:07 +28: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/homi_gap66_audio_test.dart: playback uses original TTS; unknown dynamic text remains TTS
+00:08 +29: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: resolves a checksum-verified bundled asset
+00:08 +30: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: keyed authored audio rejects changed runtime text
+00:08 +31: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: unkeyed fixed text prefers the unique matching authored asset
+00:08 +32: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: unknown unkeyed text still falls back to TTS
+00:08 +33: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: device cache has priority over the bundled asset
+00:08 +34: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: deduplicates simultaneous remote downloads and then caches
+00:08 +35: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: bad remote checksum falls back to TTS
+00:08 +36: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: missing manifest and missing key both fall back to TTS
+00:08 +37: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: authored decode/autoplay failure uses TTS fallback
+00:08 +38: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: HFP route loss is fail-closed and never falls back to TTS
+00:08 +39: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: stop invalidates an in-flight resolution before playback
+00:08 +40: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: concurrent authored prompts are played serially to completion
+00:08 +41: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: authored failure stops native playback before starting TTS
+00:08 +42: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: authored budget includes startup and decoder tail allowance
+00:08 +43: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: registry accepts canonical locale aliases without TTS fallback
+00:08 +44: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: pack update is atomic and can roll back to the last stable pack
+00:08 +45: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: root bundle repositories share parsed packs but not installs
+00:08 +46: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: rejects HTTP and non-allowlisted CDN URLs
+00:08 +47: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: rejects mutable URLs and packs requiring a newer app
+00:08 +48: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: pack object LRU preserves protected active checksums
+00:08 +49: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: legacy VoicePromptService adapter preserves keyed authored playback
+00:08 +50: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: registry playback applies the clip's measured level
+00:08 +51: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_audio_registry_test.dart: production factory loads generated packs into the registry
+00:09 +52: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/fixed_audio_prompt_coverage_test.dart: catalog preserves exact runtime punctuation for fixed VI prompts
+00:09 +53: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/fixed_audio_prompt_coverage_test.dart: reviewed fixed prompt catalog is fully authored and verified
+00:10 +54: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: late Topic loading keeps the newer MAIN topic choice (failure=false)
+00:10 +55: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: late Topic loading keeps the newer MAIN topic choice (failure=true)
+00:10 +56: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: topic command prefixes wait for the final number in every MAIN menu
+00:11 +57: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: module switches keep the direct topic number without another menu
+00:11 +58: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: MAIN keeps a direct numbered topic from Home in its navigation target
+00:11 +59: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: topic selection accepts Vietnamese and English spoken topic numbers
+00:11 +60: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: all ten topic numbers navigate in each age group
+00:11 +61: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: a complete topic number or bare Topics may end MAIN on silence
+00:11 +62: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: the bare Topics command may end MAIN on silence
+00:11 +63: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: Topic dynamic prompts resolve to authored audio keys
+00:11 +63 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: Topic dynamic prompts resolve to authored audio keys [E]
+  Expected: null
+    Actual: 'assistant.topic.invalid_10.vi'
+  
+  package:matcher                                                           expect
+  package:flutter_test/src/widget_tester.dart 473:18                        expect
+  test\features\voice_navigation\main_voice_assistant_flow_test.dart 276:5  main.<fn>
+  
+00:11 +63 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: global module commands remain available during content selection
+00:12 +64 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: fast path accepts unambiguous fallback phrases but defers broad input
+00:12 +65 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: Home accepts an approved feature phrase with lead-in or particle
+00:12 +66 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: Home accepts a near-miss of an approved feature phrase
+00:12 +67 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: chooses continuous translation after the Main menu
+00:12 +68 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: accepts short child-friendly continuous speaking choices
+00:12 +69 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: opens continuous translation directly from the Main choice
+00:12 +70 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: explicit translation resume keeps its short prompt without extra intro
+00:12 +71 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: MAIN keys every vocabulary fixed prompt to its authored clip
+00:12 +72 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: after translation stop offers topic, vocabulary, or stop
+00:12 +73 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: offers all three top-level choices from Main
+00:12 +74 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: learned parent words hand off to the shared vocabulary flow
+00:12 +75 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: accepts every D04 topic-learning synonym from Main
+00:12 +76 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: accepts every D05 vocabulary-learning synonym from Main
+00:12 +77 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: vocabulary content selection belongs to the destination screen
+00:12 +78 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: moves to the next sentence in an active lesson
+00:12 +79 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: generic Vocabulary command returns to its root instead of resuming
+00:12 +80 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: active lesson prompt offers pause and leaving the lesson
+00:12 +81 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: accepts a natural phrase containing next
+00:12 +82 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: moves to the previous sentence in an active lesson
+00:12 +83 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: maps every D07 and D08 command to the active lesson module
+00:12 +84 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: Học bài khác opens Topic selection, not the next lesson
+00:12 +85 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: completion choice keeps global destinations ahead of local choices
+00:12 +86 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: completion choice repeats its question on Continue and keeps local actions
+00:12 +87 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: all V4 completion stages retain global MAIN routes
+00:13 +88 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: asks the final three-module question before leaving an active lesson
+00:13 +89 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: can choose translation after leaving an active lesson
+00:13 +90 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: transfer from ActiveLearningModuleKind.listeningLesson/ActiveLearningVoiceNode.core includes translation intro once
+00:13 +91 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: transfer from ActiveLearningModuleKind.listeningLesson/ActiveLearningVoiceNode.review includes translation intro once
+00:13 +92 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: transfer from ActiveLearningModuleKind.listeningLesson/ActiveLearningVoiceNode.parent includes translation intro once
+00:13 +93 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: transfer from ActiveLearningModuleKind.listeningLesson/ActiveLearningVoiceNode.star includes translation intro once
+00:13 +94 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: transfer from ActiveLearningModuleKind.vocabulary/ActiveLearningVoiceNode.core includes translation intro once
+00:13 +95 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: transfer from ActiveLearningModuleKind.vocabulary/ActiveLearningVoiceNode.review includes translation intro once
+00:13 +96 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: transfer from ActiveLearningModuleKind.vocabulary/ActiveLearningVoiceNode.parent includes translation intro once
+00:13 +97 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: transfer from ActiveLearningModuleKind.vocabulary/ActiveLearningVoiceNode.star includes translation intro once
+00:13 +98 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: missing profile age is handed to Topics without asking for spoken age
+00:13 +99 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS retains numbered Topic choice until route installation succeeds
+00:13 +100 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS retains numbered Topic choice until route installation succeeds
+00:13 +101 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS retains numbered Topic choice until route installation succeeds
+00:13 +102 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS retains numbered Topic choice until route installation succeeds
+00:13 +103 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS retains numbered Topic choice until route installation succeeds
+00:13 +104 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS retains numbered Topic choice until route installation succeeds
+00:13 +105 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS retains numbered Topic choice until route installation succeeds
+00:13 +106 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS retains numbered Topic choice until route installation succeeds
+00:13 +107 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS retains numbered Topic choice until route installation succeeds
+00:13 +108 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS retains numbered Topic choice until route installation succeeds
+00:13 +109 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS retains numbered Topic choice until route installation succeeds
+00:13 +110 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS retains numbered Topic choice until route installation succeeds
+00:13 +111 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS retains numbered Topic choice until route installation succeeds
+00:13 +112 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS retains numbered Topic choice until route installation succeeds
+00:13 +113 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS retains numbered Topic choice until route installation succeeds
+00:13 +114 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: pauses for a repeated invalid lesson
+00:13 +115 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: Android keeps its navigation handler when iOS result handler exists
+00:13 +116 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: opens an unfinished topic without asking to replay it
+00:13 +117 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS exposes a terminal Topic microphone failure revision
+00:13 +118 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS exposes a terminal Topic microphone failure revision
+00:13 +119 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: a completed topic offers replay or delegates other topics to the owner
+00:13 +120 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS Topic silence signals only after the second command window
+00:13 +121 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS Topic silence signals only after the second command window
+00:13 +122 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS Topic unrecognized fallback signals only when exhausted
+00:13 +123 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS surfaces an unhandled learning command after native handoff
+00:13 +124 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: iOS MAIN labels an unhandled command as unfinished
+00:15 +125 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: cancelled lesson MAIN cannot resume learning after delayed native cleanup
+00:16 +126 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/voice_navigation_controller_test.dart: native MAIN arm reply after cancellation closes its exact turn (dispose=false)
+00:16 +127 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:16 +128 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:16 +129 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:16 +130 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:16 +131 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:16 +132 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:16 +133 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:16 +134 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:16 +135 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:16 +136 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:17 +137 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:17 +138 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:19 +139 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:19 +140 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:19 +141 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:19 +142 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:19 +143 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:19 +144 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:19 +145 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:19 +146 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:19 +147 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:19 +148 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:19 +149 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:19 +150 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:20 +151 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:20 +152 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:20 +153 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:20 +154 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:20 +155 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:20 +156 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:20 +157 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:20 +158 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:20 +159 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:21 +160 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:21 +161 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:21 +162 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:21 +163 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:21 +164 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:21 +165 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:21 +166 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:21 +167 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:21 +168 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:21 +169 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:22 +170 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:22 +171 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:22 +172 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:22 +173 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:22 +174 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:22 +175 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +176 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +177 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +178 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +179 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +180 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +181 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +182 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +183 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +184 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +185 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +186 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +187 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +188 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +189 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +190 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +191 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +192 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +193 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +194 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +195 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +196 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +197 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +198 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +199 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +200 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +201 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:23 +202 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:24 +203 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:24 +204 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:24 +205 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:24 +206 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:24 +207 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:24 +208 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: all fifty topics open by touch without completing earlier topics
+00:53 +209 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:54 +210 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: journey text halos never use blurred shadows
+00:55 +211 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: topic navigation exposes the shared MAIN action
+00:55 +212 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: topic prompts prepare and use the selected H20 output
+00:56 +213 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: entering topics offers all ten topics in every age group
+00:57 +214 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: legacy level checkpoints offer all topics without resetting progress
+00:58 +215 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed topic assistant offers a working Topic 2 choice (throws=false) (variant: TargetPlatform.android)
+00:59 +216 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed topic assistant offers a working Topic 2 choice (throws=false) (variant: TargetPlatform.iOS)
+01:00 +217 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed topic assistant offers a working Topic 2 choice (throws=true) (variant: TargetPlatform.android)
+HOMI topic selection activation failed: Bad state: microphone unavailable
+01:01 +218 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed topic assistant offers a working Topic 2 choice (throws=true) (variant: TargetPlatform.iOS)
+HOMI topic selection activation failed: Bad state: microphone unavailable
+01:02 +219 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: iOS offers Topic 2 after activated recognition fails later (variant: TargetPlatform.iOS)
+01:03 +220 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: Android ignores iOS recognition failure signal (variant: TargetPlatform.android)
+01:04 +221 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: shows bilingual topic and lesson titles
+01:04 +222 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: V4 journey cards match the source catalog and keep their images
+01:04 +223 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: parent can change the global V4 age group from the topic screen
+01:06 +224 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: opens the V4 listen-first lesson journey from a selected topic
+01:07 +225 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: reports completed V4 topics again after replaying one
+01:08 +226 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: an in-progress topic resumes with its authored audio key
+01:08 +227 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: an in-progress topic opens its lesson while the resume line plays
+01:09 +228 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: the initial lesson intro waits for a lead prompt
+01:09 +229 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: completed Course asks MAIN to choose a topic for relearn
+01:10 +230 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed completed Course assistant can replay only topic 1 (throws=false) (variant: TargetPlatform.android)
+01:10 +231 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed completed Course assistant can replay only topic 1 (throws=false) (variant: TargetPlatform.iOS)
+01:11 +232 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed completed Course assistant can replay only topic 1 (throws=true) (variant: TargetPlatform.android)
+HOMI course replay activation failed: Bad state: microphone unavailable
+01:12 +233 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed completed Course assistant can replay only topic 1 (throws=true) (variant: TargetPlatform.iOS)
+HOMI course replay activation failed: Bad state: microphone unavailable
+01:12 +234 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: does not report a V4 topic complete until its authored activities finish
+01:13 +235 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: renders a V4 song milestone as a normal lesson, not a legacy clip
+01:14 +236 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: topic song action appears only with content and opens the existing V4 lesson
+01:15 +237 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: legacy content.songs opens through the same topic song list
+01:15 +238 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: song action opens a later topic without any level lock
+01:15 +239 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: song directory keeps V4 lesson identity and deduplicates legacy audio
+01:15 +240 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: bundled lesson content matches the V4 source-of-truth catalog
+01:15 +241 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: a compact phone can reach the V4 lesson intro without layout errors
+01:16 +242 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: renders the learning journey responsively on web width
+01:16 +243 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: keeps core controls available at large text scale
+01:17 +244 -1: Some tests failed.
+
+Failing tests:
+  D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/voice_navigation/main_voice_assistant_flow_test.dart: Topic dynamic prompts resolve to authored audio keys

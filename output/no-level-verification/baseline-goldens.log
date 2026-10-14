@@ -1,0 +1,292 @@
+00:00 +0: loading C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/listening/lesson_flow_golden_test.dart
+00:00 +0: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/listening/lesson_flow_golden_test.dart: (setUpAll)
+00:00 +0: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/listening/lesson_flow_golden_test.dart: topic lesson journey matches the approved direction
+00:02 +1: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: home communication matches image one
+00:02 +2: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: home communication matches image one
+00:03 +3: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: home communication matches image one
+00:04 +4: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: home communication matches image one
+00:04 +5: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: home communication matches image one
+00:04 +6: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: home communication matches image one
+00:05 +7: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/listening/lesson_flow_golden_test.dart: sentence practice matches the approved direction
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/lesson-practice-390x844.png": Pixel test failed, 0.52%, 1703px diff detected.
+Failure feedback can be found at
+/C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/listening/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/listening/lesson_flow_golden_test.dart:318:5)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:05 +7 -1: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: vocabulary page matches image two
+00:05 +7 -1: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/listening/lesson_flow_golden_test.dart: sentence practice matches the approved direction [E]
+  Test failed. See exception logs above.
+  The test description was: sentence practice matches the approved direction
+  
+00:06 +7 -1: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: vocabulary page matches image two
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/home-vocabulary-390x844.png": Pixel test failed, 65.14%, 214407px diff detected.
+Failure feedback can be found at
+/C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart:44:5)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:06 +7 -2: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/listening/lesson_flow_golden_test.dart: friendly reminder popup matches the approved direction
+00:06 +7 -2: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: vocabulary page matches image two [E]
+  Test failed. See exception logs above.
+  The test description was: vocabulary page matches image two
+  
+00:06 +7 -2: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/listening/lesson_flow_golden_test.dart: friendly reminder popup matches the approved direction
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/lesson-reminder-popup-390x844.png": Pixel test failed, 0.52%, 1703px diff detected.
+Failure feedback can be found at
+/C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/listening/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/listening/lesson_flow_golden_test.dart:356:5)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:06 +7 -3: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: topic rail opens the catalog directly
+00:06 +7 -3: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/listening/lesson_flow_golden_test.dart: friendly reminder popup matches the approved direction [E]
+  Test failed. See exception logs above.
+  The test description was: friendly reminder popup matches the approved direction
+  
+00:07 +7 -3: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/listening/lesson_flow_golden_test.dart: recording praise fireworks match the approved direction
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/lesson-praise-fireworks-390x844.png": Pixel test failed, 0.52%, 1703px diff
+detected.
+Failure feedback can be found at
+/C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/listening/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/listening/lesson_flow_golden_test.dart:396:5)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:07 +7 -4: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: topic rail opens the catalog directly
+00:07 +7 -4: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/listening/lesson_flow_golden_test.dart: recording praise fireworks match the approved direction [E]
+  Test failed. See exception logs above.
+  The test description was: recording praise fireworks match the approved direction
+  
+00:07 +8 -4: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: topic rail opens the catalog directly
+00:07 +9 -4: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: topic rail opens the catalog directly
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/home-topic-expanded-390x844.png": Pixel test failed, 5.36%, 17639px diff detected.
+Failure feedback can be found at
+/C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart:58:5)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:08 +9 -5: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/listening/lesson_flow_golden_test.dart: V4 completion opens an authored voice challenge
+00:08 +9 -5: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: topic rail opens the catalog directly [E]
+  Test failed. See exception logs above.
+  The test description was: topic rail opens the catalog directly
+  
+00:09 +10 -5: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:09 +11 -5: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/home-add-vocabulary-390x844.png": Pixel test failed, 50.30%, 1490082px diff
+detected.
+Failure feedback can be found at
+/C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart:73:5)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:12 +11 -6: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three [E]
+  Test failed. See exception logs above.
+  The test description was: add vocabulary dialog matches image three
+  
+00:12 +11 -6: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: dark communication matches the approved rail treatment
+00:12 +12 -6: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/dark-home-vocabulary-390x844.png": Pixel test failed, 73.30%, 241276px diff
+detected.
+Failure feedback can be found at
+/C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart:104:5)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/dark-home-topics-390x844.png": Pixel test failed, 6.53%, 21501px diff detected.
+Failure feedback can be found at
+/C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart:113:5)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following message was thrown:
+Multiple exceptions (2) were detected during the running of the current test, and at least one was
+unexpected.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:13 +12 -7: C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition [E]
+  Test failed. See exception logs above.
+  The test description was: dark home keeps the approved option two composition
+  
+00:14 +12 -7: Some tests failed.
+
+Failing tests:
+  C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+  C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+  C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: topic rail opens the catalog directly
+  C:/Users/DELL/AppData/Local/Temp/homi-no-level-baseline-20261014/test/features/home/home_learning_shell_golden_test.dart: vocabulary page matches image two
+  ... and 3 more

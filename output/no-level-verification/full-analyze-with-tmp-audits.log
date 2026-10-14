@@ -1,0 +1,17 @@
+Analyzing speaking-ai-flutter...                                
+
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - lib\features\listening\presentation\topic_listening_screen.dart:676:11 - curly_braces_in_flow_control_structures
+   info - The file name 'intro-tts-audit-2026-10-14_test.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style - tmp\intro-tts-audit-2026-10-14_test.dart:1:1 - file_names
+  error - Don't invoke 'print' in production code. Try using a logging framework - tmp\intro-tts-audit-2026-10-14_test.dart:136:36 - avoid_print
+  error - Don't invoke 'print' in production code. Try using a logging framework - tmp\intro-tts-audit-2026-10-14_test.dart:209:5 - avoid_print
+   info - The file name 'silence-audio-audit-2026-10-14_test.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style - tmp\silence-audio-audit-2026-10-14_test.dart:1:1 - file_names
+  error - Don't invoke 'print' in production code. Try using a logging framework - tmp\silence-audio-audit-2026-10-14_test.dart:229:5 - avoid_print
+  error - Don't invoke 'print' in production code. Try using a logging framework - tmp\silence-audio-audit-2026-10-14_test.dart:231:76 - avoid_print
+  error - Don't invoke 'print' in production code. Try using a logging framework - tmp\silence-audio-audit-2026-10-14_test.dart:233:5 - avoid_print
+   info - The file name 'topic-intro-routing-audit-2026-10-14_test.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style - tmp\topic-intro-routing-audit-2026-10-14_test.dart:1:1 - file_names
+  error - The named parameter 'announceLevel' is required, but there's no corresponding argument. Try adding the required argument - tmp\topic-intro-routing-audit-2026-10-14_test.dart:36:107 - missing_required_argument
+  error - The named parameter 'levelNumber' is required, but there's no corresponding argument. Try adding the required argument - tmp\topic-intro-routing-audit-2026-10-14_test.dart:36:107 - missing_required_argument
+  error - '_AuditProgress.saveTopicSelectionCheckpoint' ('Future<void> Function(String, {int? levelNumber})') isn't a valid override of 'ListeningProgressStore.saveTopicSelectionCheckpoint' ('Future<void> Function(String, {bool? announceLevel, int? levelNumber})') - tmp\topic-intro-routing-audit-2026-10-14_test.dart:38:16 - invalid_override
+  error - Don't invoke 'print' in production code. Try using a logging framework - tmp\topic-intro-routing-audit-2026-10-14_test.dart:203:5 - avoid_print
+
+13 issues found. (ran in 130.8s)

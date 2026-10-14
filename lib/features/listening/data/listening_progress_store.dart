@@ -21,6 +21,7 @@ enum ListeningPendingChoiceStage {
   lessonEnd,
   topicEnd,
   topicEndOneRemaining,
+  // Keep index 3 readable. The UI recomputes this legacy choice across the age group.
   nextLevel,
 }
 
@@ -31,6 +32,8 @@ enum ListeningSessionResult {
   skippedPending,
 }
 
+/// Legacy fields are accepted for compatibility; runtime checkpoints are
+/// age-group scoped and always read with neutral level/announcement values.
 class ListeningTopicSelectionCheckpoint {
   const ListeningTopicSelectionCheckpoint({
     required this.levelNumber,
@@ -77,6 +80,7 @@ class ListeningProgressStore {
   static const String _courseCompletedSuffix = '::course-completed';
   static const String _courseCompletionEventSuffix =
       '::course-completion-event-created';
+  static const String _topicSelectionSuffix = '::topic-selection';
   static const String _topicSelectionLevelSuffix = '::topic-selection-level';
   static const String _topicSelectionAnnounceSuffix =
       '::topic-selection-announce';
@@ -118,6 +122,7 @@ class ListeningProgressStore {
           key.endsWith(_lessonRelearnPendingSuffix) ||
           key.endsWith(_courseCompletedSuffix) ||
           key.endsWith(_courseCompletionEventSuffix) ||
+          key.endsWith(_topicSelectionSuffix) ||
           key.endsWith(_topicSelectionLevelSuffix) ||
           key.endsWith(_topicSelectionAnnounceSuffix),
     );
@@ -623,12 +628,13 @@ class ListeningProgressStore {
 
   Future<void> saveTopicSelectionCheckpoint(
     String courseId, {
-    required int levelNumber,
-    required bool announceLevel,
+    int? levelNumber,
+    bool? announceLevel,
   }) async {
     final progress = await _readRaw();
-    progress['$courseId$_topicSelectionLevelSuffix'] = levelNumber;
-    progress['$courseId$_topicSelectionAnnounceSuffix'] = announceLevel ? 1 : 0;
+    progress['$courseId$_topicSelectionSuffix'] = 1;
+    progress.remove('$courseId$_topicSelectionLevelSuffix');
+    progress.remove('$courseId$_topicSelectionAnnounceSuffix');
     await _writeRaw(progress);
   }
 
@@ -637,16 +643,20 @@ class ListeningProgressStore {
   ) async {
     final progress = await _readRaw();
     final level = progress['$courseId$_topicSelectionLevelSuffix'];
-    if (level == null || level <= 0) return null;
+    if (progress['$courseId$_topicSelectionSuffix'] != 1 &&
+        (level == null || level <= 0)) {
+      return null;
+    }
     return ListeningTopicSelectionCheckpoint(
-      levelNumber: level,
-      announceLevel: progress['$courseId$_topicSelectionAnnounceSuffix'] == 1,
+      levelNumber: 0,
+      announceLevel: false,
     );
   }
 
   Future<void> clearTopicSelectionCheckpoint(String courseId) async {
     final progress = await _readRaw();
     progress
+      ..remove('$courseId$_topicSelectionSuffix')
       ..remove('$courseId$_topicSelectionLevelSuffix')
       ..remove('$courseId$_topicSelectionAnnounceSuffix');
     await _writeRaw(progress);

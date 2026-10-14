@@ -5,6 +5,60 @@ import 'package:ai_speaking_flutter_app/features/listening/data/listening_progre
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test(
+    'legacy checkpoint migration is idempotent and preserves all other data',
+    () async {
+      final fixture = await _ProgressFixture.create();
+      addTearDown(fixture.dispose);
+      const preserved = <String, int>{
+        '__listening-topic-patch-v42': 42,
+        'c35-l1-t01-b01': 4,
+        'c35-l1-t01-b01::current-sentence': 2,
+        'c35-l1-t01-b01::resume-stage': 7,
+        'c35-l1-t01-b01::pending-choice-stage-v5': 3,
+        'c35-l1-t01-b01::earned-star::mission:old': 1,
+        'c35-l1-t01-b01::session-result-v5::0': 1,
+        '3-5::course-completed': 1,
+        '3-5::course-completion-event-created': 1,
+      };
+      await fixture.file.writeAsString(
+        jsonEncode({
+          ...preserved,
+          '3-5::topic-selection-level': 3,
+          '3-5::topic-selection-announce': 1,
+        }),
+      );
+      final before = jsonDecode(await fixture.file.readAsString()) as Map;
+      for (var attempt = 0; attempt < 2; attempt++) {
+        final checkpoint = await fixture.store.readTopicSelectionCheckpoint(
+          '3-5',
+        );
+        expect(checkpoint, isNotNull);
+        expect(checkpoint!.levelNumber, 0);
+        expect(checkpoint.announceLevel, isFalse);
+        expect(
+          await fixture.store.readResumeStage('c35-l1-t01-b01'),
+          ListeningResumeStage.waitingForChoice,
+        );
+        expect(
+          await fixture.store.readPendingCompletionChoice('c35-l1-t01-b01'),
+          ListeningPendingChoiceStage.nextLevel,
+        );
+        await fixture.store.saveTopicSelectionCheckpoint('3-5');
+        final after = jsonDecode(await fixture.file.readAsString()) as Map;
+        for (final entry in before.entries) {
+          if (!entry.key.toString().contains('::topic-selection-')) {
+            expect(after[entry.key], entry.value, reason: entry.key.toString());
+          }
+        }
+        expect(after.containsKey('3-5::topic-selection-level'), isFalse);
+        expect(after['3-5::topic-selection'], 1);
+      }
+      expect(ListeningPendingChoiceStage.nextLevel.index, 3);
+      expect(ListeningResumeStage.waitingForChoice.index, 7);
+    },
+  );
+
   test('resume sentence can move backward without losing completion', () async {
     final fixture = await _ProgressFixture.create();
     addTearDown(fixture.dispose);
@@ -312,8 +366,8 @@ void main() {
       final checkpoint = await fixture.store.readTopicSelectionCheckpoint(
         '3-5',
       );
-      expect(checkpoint?.levelNumber, 2);
-      expect(checkpoint?.announceLevel, isTrue);
+      expect(checkpoint?.levelNumber, 0);
+      expect(checkpoint?.announceLevel, isFalse);
       expect(await fixture.store.readAll(), isEmpty);
 
       await fixture.store.clearTopicSelectionCheckpoint('3-5');

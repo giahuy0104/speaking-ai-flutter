@@ -1,0 +1,38 @@
+00:00 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/output/intro-deep-audit/intro_runtime_probe_test.dart
+00:00 +0: observe actual fresh intro widget and factory for every lesson (variant: TargetPlatform.android)
+00:09 +1: observe actual fresh intro widget and factory for every lesson (variant: TargetPlatform.iOS)
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: true
+  Actual: <false>
+iOS c35-l1-t01-b01: intro did not finish
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/output/intro-deep-audit/intro_runtime_probe_test.dart:84:11)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/output/intro-deep-audit/intro_runtime_probe_test.dart line 84
+The test description was:
+  observe actual fresh intro widget and factory for every lesson (variant: TargetPlatform.iOS)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:11 +1 -1: observe actual fresh intro widget and factory for every lesson (variant: TargetPlatform.iOS) [E]
+  Test failed. See exception logs above.
+  The test description was: observe actual fresh intro widget and factory for every lesson (variant: TargetPlatform.iOS)
+  
+00:11 +1 -1: observe all resume/relearn and remaining-star prompt paths through real factory
+00:31 +1 -2: observe all resume/relearn and remaining-star prompt paths through real factory [E]
+  TimeoutException after 0:00:20.000000: Future not completed
+  dart:async  _startMicrotaskLoop
+  
+00:31 +1 -2: Some tests failed.
+
+Failing tests:
+  D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/output/intro-deep-audit/intro_runtime_probe_test.dart: observe actual fresh intro widget and factory for every lesson (variant: TargetPlatform.iOS)
+  D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/output/intro-deep-audit/intro_runtime_probe_test.dart: observe all resume/relearn and remaining-star prompt paths through real factory

@@ -1,0 +1,71 @@
+d772d68883e1d2e7aa66b2c25420b9b664711cf6
+android/app/src/main/kotlin/com/innotrik/aispeaking/Aiv0BleControlBridge.kt
+lib/app/ai_speaking_app.dart
+lib/app/device_connection_feedback_overlay.dart
+lib/core/device/aiv0_ble_control.dart
+lib/features/home/presentation/home_learning_shell.dart
+lib/features/listening/presentation/lesson_practice_screen.dart
+lib/features/vocabulary/presentation/vocabulary_home_screen.dart
+lib/features/voice_navigation/application/main_voice_assistant_flow.dart
+lib/features/voice_navigation/application/voice_navigation_controller.dart
+test/core_audio_audio_registry_test.dart
+test/core_audio_browser_hfp_test.dart
+test/core_device_aiv0_android_connect_test.dart
+test/features/home/home_learning_shell_test.dart
+test/features/onboarding/startup_setup_screen_test.dart
+test/features/voice_navigation/main_voice_assistant_flow_test.dart
+test/features/voice_navigation/master_navigation_contract_test.dart
+test/features/voice_navigation/voice_navigation_controller_test.dart
+
+Auto-merging android/app/src/main/kotlin/com/innotrik/aispeaking/Aiv0BleControlBridge.kt
+CONFLICT (content): Merge conflict in android/app/src/main/kotlin/com/innotrik/aispeaking/Aiv0BleControlBridge.kt
+Auto-merging android/app/src/main/kotlin/com/innotrik/aispeaking/VoicePromptBridge.kt
+Auto-merging codemagic.yaml
+Auto-merging ios/Runner/Aiv0BleControlBridge.swift
+Auto-merging ios/Runner/HfpAudioBridge.swift
+Auto-merging ios/Runner/IOSAudioSessionCoordinator.swift
+Auto-merging ios/Runner/IOSSpeechRecognizerBridge.swift
+Auto-merging ios/RunnerTests/RunnerTests.swift
+Auto-merging lib/app/ai_speaking_app.dart
+CONFLICT (content): Merge conflict in lib/app/ai_speaking_app.dart
+Auto-merging lib/app/device_connection_feedback_overlay.dart
+CONFLICT (content): Merge conflict in lib/app/device_connection_feedback_overlay.dart
+Auto-merging lib/core/audio/audio_playback_service.dart
+Auto-merging lib/core/audio/streaming_speech_input.dart
+Auto-merging lib/core/device/aiv0_ble_control.dart
+CONFLICT (content): Merge conflict in lib/core/device/aiv0_ble_control.dart
+Auto-merging lib/features/home/presentation/home_learning_shell.dart
+CONFLICT (content): Merge conflict in lib/features/home/presentation/home_learning_shell.dart
+Auto-merging lib/features/listening/presentation/lesson_practice_screen.dart
+CONFLICT (content): Merge conflict in lib/features/listening/presentation/lesson_practice_screen.dart
+Auto-merging lib/features/listening/presentation/topic_listening_screen.dart
+Auto-merging lib/features/vocabulary/presentation/vocabulary_home_screen.dart
+CONFLICT (content): Merge conflict in lib/features/vocabulary/presentation/vocabulary_home_screen.dart
+Auto-merging lib/features/vocabulary/presentation/vocabulary_practice_screen.dart
+Auto-merging lib/features/voice_navigation/application/main_voice_assistant_flow.dart
+CONFLICT (content): Merge conflict in lib/features/voice_navigation/application/main_voice_assistant_flow.dart
+Auto-merging lib/features/voice_navigation/application/voice_navigation_controller.dart
+CONFLICT (content): Merge conflict in lib/features/voice_navigation/application/voice_navigation_controller.dart
+Auto-merging lib/features/voice_navigation/application/voice_navigation_intent_resolver.dart
+Auto-merging test/app/device_connection_feedback_overlay_test.dart
+Auto-merging test/core_audio_audio_registry_test.dart
+CONFLICT (content): Merge conflict in test/core_audio_audio_registry_test.dart
+Auto-merging test/core_audio_browser_hfp_test.dart
+CONFLICT (content): Merge conflict in test/core_audio_browser_hfp_test.dart
+Auto-merging test/core_audio_main_assistant_audio_prompt_service_test.dart
+Auto-merging test/core_device_aiv0_android_connect_test.dart
+CONFLICT (add/add): Merge conflict in test/core_device_aiv0_android_connect_test.dart
+Auto-merging test/features/home/home_learning_shell_test.dart
+CONFLICT (content): Merge conflict in test/features/home/home_learning_shell_test.dart
+Auto-merging test/features/listening/lesson_guided_flow_test.dart
+Auto-merging test/features/listening/topic_listening_screen_test.dart
+Auto-merging test/features/onboarding/startup_setup_screen_test.dart
+CONFLICT (content): Merge conflict in test/features/onboarding/startup_setup_screen_test.dart
+Auto-merging test/features/vocabulary/vocabulary_home_screen_test.dart
+Auto-merging test/features/voice_navigation/main_voice_assistant_flow_test.dart
+CONFLICT (content): Merge conflict in test/features/voice_navigation/main_voice_assistant_flow_test.dart
+Auto-merging test/features/voice_navigation/master_navigation_contract_test.dart
+CONFLICT (content): Merge conflict in test/features/voice_navigation/master_navigation_contract_test.dart
+Auto-merging test/features/voice_navigation/voice_navigation_controller_test.dart
+CONFLICT (content): Merge conflict in test/features/voice_navigation/voice_navigation_controller_test.dart
+Auto-merging test/homi_gap66_audio_test.dart

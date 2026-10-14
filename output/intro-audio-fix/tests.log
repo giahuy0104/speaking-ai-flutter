@@ -1,0 +1,216 @@
+00:00 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart
+00:00 +0: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:01 +1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:01 +2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:01 +3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:01 +3 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:01 +3 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_loudness_manifest_test.dart: the shipped manifest measures the bundled catalogue [E]
+  Expected: contains 'assets/audio/A-3-5/GUIDE_RECORD/A035_GUIDE_RECORD_01.mp3'
+    Actual: Set:[
+              'assets/audio\\A-3-5\\GUIDE_RECORD\\A035_GUIDE_RECORD_01.mp3',
+              'assets/audio\\A-6-7\\SONGS\\A067_T05_SONG01_FULL_EN.mp3',
+              'assets/audio\\A-6-7\\SONGS\\A067_T07_SONG01_FULL_EN.mp3',
+              'assets/audio\\A-6-7\\SONGS\\A067_T08_SONG01_FULL_EN.mp3',
+              'assets/audio\\A-8-10\\SONGS\\A0810_T03_SONG01_FULL_EN.mp3',
+              'assets/audio\\A-8-10\\SONGS\\A0810_T04_SONG01_FULL_EN.mp3',
+              'assets/audio\\assistant-core\\assistant.conversation.connection_failed.vi.mp3',
+              'assets/audio\\assistant-core\\assistant.conversation.not_heard.vi.mp3',
+              'assets/audio\\assistant-core\\assistant.conversation.recovery_error.vi.mp3',
+              'assets/audio\\assistant-core\\assistant.conversation.repeat.vi.mp3',
+              'assets/audio\\assistant-core\\assistant.conversation.stopped.vi.mp3',
+              'assets/audio\\assistant-core\\assistant.feedback.v4.correct.vi.mp3',
+              'assets/audio\\assistant-core\\assistant.feedback.v4.invite_speak.vi.mp3',
+              'assets/audio\\assistant-core\\assistant.feedback.v4.retry.vi.mp3',
+              'assets/audio\\assistant-core\\assistant.feedback.v4.try_again.vi.mp3',
+              'assets/audio\\assistant-core\\assistant.guide.core_speak_01.vi.mp3',
+              'assets/audio\\assistant-core\\assistant.guide.core_speak_04.vi.mp3',
+              'assets/audio\\assistant-core\\assistant.guide.core_speak_05.vi.mp3',
+              'assets/audio\\assistant-core\\assistant.guide.your_turn.vi.mp3',
+              'assets/audio\\assistant-core\\assistant.learning.challenge_controls.vi.mp3',
+              'assets/audio\\assistant-core\\assistant.learning.continue_subject.vi.mp3',
+              'assets/audio\\assistant-core\\assistant.learning.continue_vocabulary.vi.mp3',
+              'assets/audio\\assistant-core\\assistant.learning.first_item_replay.vi.mp3',
+              'assets/audio\\assistant-core\\assistant.learning.last_item_complete.vi.mp3',
+              ...
+            ]
+     Which: does not contain 'assets/audio/A-3-5/GUIDE_RECORD/A035_GUIDE_RECORD_01.mp3'
+  assets/audio/A-3-5/GUIDE_RECORD/A035_GUIDE_RECORD_01.mp3 is not a bundled clip
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\core_audio_loudness_manifest_test.dart 62:9    main.<fn>.<fn>
+  
+00:01 +4 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:02 +5 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:02 +6 -1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:03 +6 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:03 +6 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/audio_pack_index_audit_test.dart: pack index owns every static audio key and verified file [E]
+  Expected: '3703dd440a9f02a471ebb235120d9672c27444ad2c370daa70db8a2db9628695'
+    Actual: '2633fb4c3cd52b0096a107f2e71d61d573e31391b1872b70899e2c05e5618f21'
+     Which: is different.
+            Expected: 3703dd440a ...
+              Actual: 2633fb4c3c ...
+                      ^
+             Differ at offset 0
+  listening-3-5
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\audio_pack_index_audit_test.dart 24:7          main.<fn>
+  
+00:03 +7 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:04 +8 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:04 +9 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:05 +10 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:05 +11 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:05 +12 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:05 +13 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:06 +14 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:06 +15 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:07 +16 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:07 +17 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:08 +18 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:08 +19 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:09 +20 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:09 +21 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:09 +22 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:10 +23 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:10 +24 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:11 +25 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:11 +26 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:11 +27 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:12 +28 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:12 +29 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:12 +30 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:13 +31 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:13 +32 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:13 +33 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:13 +34 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:14 +35 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:14 +36 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:14 +37 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:15 +38 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:15 +39 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:15 +40 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:16 +41 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:16 +42 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:16 +42 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 falls back to local TTS when authored EN-VI audio fails
+HOMI English authored audio unavailable; using local TTS: Bad state: Authored audio unavailable.
+HOMI Vietnamese authored audio unavailable; using local TTS: Bad state: Authored audio unavailable.
+00:16 +43 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:17 +44 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:17 +45 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:18 +46 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:18 +47 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:19 +48 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:19 +49 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:19 +50 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:20 +51 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:20 +52 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:21 +53 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:21 +54 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:21 +54 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 keeps a scored take when its replay fails
+HOMI lesson attempt playback failed: Bad state: Recording playback failed
+00:21 +55 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:22 +55 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V2 keeps scoring a valid attempt if replay fails
+HOMI lesson attempt playback failed: Bad state: Recording playback failed
+00:22 +56 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:22 +57 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+00:23 +58 -2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+The value of a foundation debug variable was changed by the test.
+
+When the exception was thrown, this was the stack:
+#0      debugAssertAllFoundationVarsUnset.<anonymous closure> (package:flutter/src/foundation/debug.dart:45:7)
+#1      debugAssertAllFoundationVarsUnset (package:flutter/src/foundation/debug.dart:48:4)
+#2      TestWidgetsFlutterBinding._verifyInvariants (package:flutter_test/src/binding.dart:1995:7)
+#3      AutomatedTestWidgetsFlutterBinding._verifyInvariants (package:flutter_test/src/binding.dart:2524:11)
+#4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1973:7)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:23 +58 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS [E]
+  Test failed. See exception logs above.
+  The test description was: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS
+  
+Warning: At least one test in this suite creates an HttpClient. When running a test suite that uses
+TestWidgetsFlutterBinding, all HTTP requests will return status code 400, and no network request
+will actually be made. Any test expecting a real network connection and status code will fail.
+To test code that needs an HttpClient, provide your own HttpClient implementation to the code under
+test, so that your test can consistently provide a testable response to the code under test.
+00:23 +58 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: iOS Core stale start failure preserves the resumed capture endpoint and final listener (variant: TargetPlatform.iOS)
+00:23 +59 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: iOS Core remembers partial speech after native start and stops after silence (variant: TargetPlatform.iOS)
+00:24 +60 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: iOS Core remembers partial speech before native start and stops after silence (variant: TargetPlatform.iOS)
+00:24 +61 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: iOS replays a saved lesson recording before awarding a Star
+00:24 +62 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: MAIN during correct feedback retains Star without late audio
+00:24 +63 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: MAIN during result save completes the earned Star silently
+00:25 +64 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: next item during result save keeps the old Star recording
+00:25 +65 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 progress writes do not overlap the Star award
+00:25 +66 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: next item retains the earned Star without old reward audio
+00:25 +67 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: keeps an injected lesson evaluator caller-owned
+00:25 +68 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: MAIN invalidates an evaluation that finishes after pause
+00:26 +69 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: MAIN detaches a pending lesson microphone start before takeover
+00:26 +70 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V2 retries with feedback and English only, then sends a second miss to Review
+00:26 +71 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 first miss waits for English only before reopening mic
+00:26 +72 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V2 asks neutrally and retries when ASR could not hear the sentence
+00:26 +73 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V2 still reopens recording when unclear feedback playback fails
+HOMI unclear feedback playback failed: Bad state: Unclear feedback playback failed.
+00:27 +74 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 pauses directly after the second unclear recording turn
+00:27 +75 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V2 promotes a retry sentence from Review to Stars when correct
+00:27 +76 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V2 hears restart choice and starts sentence one again
+00:27 +77 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V2 hears next lesson choice and opens lesson two
+00:28 +78 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V2 asks the child to repeat an unclear completion choice
+00:28 +79 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V2 announces topic completion after its last lesson
+00:28 +80 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: prompts twice, then offers skip without automatically skipping
+00:29 +81 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: successful recording shows non-blocking fireworks and four actions
+00:29 +82 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: sample and Vietnamese audio finish before the record guide plays
+00:29 +83 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: completion opens the learned review without playing the ending guide
+00:29 +84 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: learned review opens the next lesson in the same topic
+00:30 +85 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: learned review restarts the current lesson from sentence one
+00:30 +86 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: last learned lesson returns to the selected listening topic
+00:31 +87 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: listening action pops the topic detail to the age catalog
+00:31 +88 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: dialogue and song lessons expose age-appropriate practice cues
+00:31 +89 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: review uses overview copy and neutral English sentence cards
+00:31 +90 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: learned review announces the next H20 action
+00:31 +91 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: MAIN stops the learned review announcement
+00:31 +92 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: review only auto-plays after the toggle is activated
+00:32 +93 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: review auto-play uses English TTS when sentence audio is absent
+00:32 +94 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: review sentence button uses English TTS when audio is absent
+00:32 +95 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: review keeps successful authored playback without TTS
+00:32 +96 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: review route loss does not fall back from H20 to TTS
+00:32 +97 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: MAIN cancels the current TTS review request
+00:32 +98 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: learned review highlights recorded and unrecorded sentences
+00:33 +99 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 entry speaks its complete guide before practice
+00:33 +100 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 resume speaks its complete guide before practice
+00:33 +101 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V2 lesson intro uses introAudioUrl before opening practice
+00:33 +102 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 fresh entry plays scene hook between title and start cue (variant: TargetPlatform.android)
+00:33 +103 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 fresh entry plays scene hook between title and start cue (variant: TargetPlatform.iOS)
+00:33 +104 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 lesson openings route every state to authored audio keys
+00:33 +105 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 unavailable scene hook falls back without repeating title (variant: TargetPlatform.android)
+Lesson hook playback failed for guided-flow: Bad state: Combined hook unavailable.
+00:33 +106 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 unavailable scene hook falls back without repeating title (variant: TargetPlatform.iOS)
+Lesson hook playback failed for guided-flow: Bad state: Combined hook unavailable.
+00:33 +107 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 pet entry plays its registry hook exactly once after the complete lead (variant: TargetPlatform.android)
+00:33 +108 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 pet entry plays its registry hook exactly once after the complete lead (variant: TargetPlatform.iOS)
+00:34 +109 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V4 resume does not replay the combined hook
+00:34 +110 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: V2 lesson intro keeps selected output when its clip is missing
+00:34 +111 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: MAIN pauses review audio and its completion countdown
+00:34 +112 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: MAIN stops intro audio and prevents automatic navigation
+00:34 +113 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: MAIN resume and replay restart Intro without advancing
+00:34 +114 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: lesson intro does not auto advance when playback fails
+Lesson intro playback failed for guided-flow (https://example.test/broken-intro.mp3): Bad state: Playback failed.
+#0      _FailingIntroMediaService.playToCompletion (file:///D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart:4922:5)
+#1      _LessonIntroScreenState._beginIntro (package:ai_speaking_flutter_app/features/listening/presentation/lesson_intro_screen.dart:179:35)
+<asynchronous suspension>
+00:34 +115 -3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_guided_flow_test.dart: coach popup stays inside a compact phone viewport
+00:34 +116 -3: Some tests failed.
+
+Failing tests:
+  D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/audio_pack_index_audit_test.dart: pack index owns every static audio key and verified file
+  D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/core_audio_loudness_manifest_test.dart: the shipped manifest measures the bundled catalogue
+  D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/lesson_intro_audio_test.dart: all 109 fresh intros use MP3 without TTS or duplicate hooks on Android and iOS

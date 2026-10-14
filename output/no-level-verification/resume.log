@@ -1,0 +1,51 @@
+00:00 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart
+00:00 +0: legacy nextLevel resume with 3 topics uses age-group completion
+00:02 +1: legacy nextLevel resume with 6 topics uses age-group completion
+00:02 +2: legacy nextLevel resume with 9 topics uses age-group completion
+00:02 +3: legacy nextLevel resume with 10 topics uses age-group completion
+00:03 +4: legacy topicEndOneRemaining resume with 3 topics uses age-group completion
+00:03 +5: legacy topicEnd resume with 9 topics uses age-group completion
+00:03 +6: finishing Topic 1 continues the remaining Topic at its unfinished lesson (variant: TargetPlatform.android)
+00:04 +7: finishing Topic 1 continues the remaining Topic at its unfinished lesson (variant: TargetPlatform.iOS)
+00:05 +8: iOS completion validates spoken Chủ đề 2 when Topics 2 and 3 remain (variant: TargetPlatform.iOS)
+00:06 +9: iOS completion validates spoken Chủ đề số 2 when Topics 2 and 3 remain (variant: TargetPlatform.iOS)
+00:07 +10: iOS completion validates spoken Chủ đề 3 when Topics 2 and 3 remain (variant: TargetPlatform.iOS)
+00:07 +11: iOS completion validates spoken Chủ đề 1 when Topics 2 and 3 remain (variant: TargetPlatform.iOS)
+00:07 +12: iOS completion validates spoken Chủ đề 4 when Topics 2 and 3 remain (variant: TargetPlatform.iOS)
+00:08 +13: late nextItem progress save cannot change a resumed sentence (variant: TargetPlatform.android)
+00:08 +14: late nextItem progress save cannot change a resumed sentence (variant: TargetPlatform.iOS)
+00:08 +15: late previousItem progress save cannot change a resumed sentence (variant: TargetPlatform.android)
+00:09 +16: late previousItem progress save cannot change a resumed sentence (variant: TargetPlatform.iOS)
+00:09 +17: MAIN replay during initial cursor loading waits for the restored sentence (variant: TargetPlatform.android)
+00:09 +18: MAIN replay during initial cursor loading waits for the restored sentence (variant: TargetPlatform.iOS)
+00:10 +19: iOS pending completion start cannot cancel newer MAIN (lateFailure=false) (variant: TargetPlatform.iOS)
+00:10 +20: iOS pending completion start cannot cancel newer MAIN (lateFailure=true) (variant: TargetPlatform.iOS)
+00:10 +21: iOS completion final received during native start stops choice once (variant: TargetPlatform.iOS)
+00:11 +22: iOS completion keeps an early partial and ends after silence without more native events (variant: TargetPlatform.iOS)
+00:11 +23: iOS old completion result cannot navigate after MAIN resumes a new choice (variant: TargetPlatform.iOS)
+00:12 +24: iOS completion permission failure leaves touch choices without recorder fallback (variant: TargetPlatform.iOS)
+00:12 +25: iOS foreground completion "(Học lại, 1, true)" uses Apple Speech without a second recorder (variant: TargetPlatform.iOS)
+00:12 +26: iOS foreground completion "(Bài 2, 2, false)" uses Apple Speech without a second recorder (variant: TargetPlatform.iOS)
+00:12 +27: paused silent lesson exits via screen Back with stalled audio
+00:13 +28: paused silent lesson exits via system Back with stalled audio
+00:13 +29: leaving during completion ting releases the already-open mic
+00:13 +30: Android end-of-lesson "(Học lại, 1, true)" opens the selected learning flow
+00:13 +31: Android end-of-lesson "(Bài 2, 2, false)" opens the selected learning flow
+00:14 +32: Android completion arms command ASR before ting, not Core mic
+00:14 +33: next and previous both restart the selected sentence from its sample
+00:14 +34: communication tab reports the lesson exit before navigation
+00:14 +35: previous sentence is persisted and restored after re-entry
+00:14 +36: MAIN previous command replays the previous sentence flow
+00:15 +37: review from beginning resets the resume sentence
+00:15 +38: V4 resume ignores an archived attempt and restarts EN-VI-mic
+00:15 +39: V4 marks the lesson complete only after its authored challenge finishes
+00:15 +40: Challenge intro is owned once by the pushed challenge route
+00:16 +41: MAIN during Challenge handoff waits for resume before audio
+00:16 +42: stale Challenge entry after MAIN resume opens once
+00:16 +43: stale Challenge entry after MAIN replayCurrent opens once
+00:16 +44: V4 resumes the exact completion choice after interruption
+00:16 +45: post-Challenge lesson choice uses the authored current-to-next key
+00:17 +46: V4 resumes an interrupted song from its beginning
+00:17 +47: completion remains usable on a compact phone
+00:17 +48: MAIN commands pause, resume, and leave the lesson for home
+00:17 +49: All tests passed!

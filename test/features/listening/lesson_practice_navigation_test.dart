@@ -22,6 +22,87 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  for (final scenario in [
+    (count: 3, stage: ListeningPendingChoiceStage.nextLevel),
+    (count: 6, stage: ListeningPendingChoiceStage.nextLevel),
+    (count: 9, stage: ListeningPendingChoiceStage.nextLevel),
+    (count: 10, stage: ListeningPendingChoiceStage.nextLevel),
+    (count: 3, stage: ListeningPendingChoiceStage.topicEndOneRemaining),
+    (count: 9, stage: ListeningPendingChoiceStage.topicEnd),
+  ]) {
+    final completedCount = scenario.count;
+    testWidgets(
+      'legacy ${scenario.stage.name} resume with $completedCount topics uses age-group completion',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        await _usePhoneSurface(tester);
+        final topics = List.generate(
+          10,
+          (index) => ListeningTopicContent(
+            id: 'topic-${index + 1}',
+            number: index + 1,
+            titleVi: 'Chủ đề ${index + 1}',
+            titleEn: 'Topic ${index + 1}',
+            lessons: [_v4Lesson(number: index + 1)],
+          ),
+        );
+        final group = ListeningContentAgeGroup(
+          startAge: 3,
+          endAge: 5,
+          topics: topics,
+        );
+        final store = _TopicTransitionProgressStore()
+          ..coreStarted = true
+          ..pendingCompletionChoice = scenario.stage;
+        for (final topic in topics.take(completedCount)) {
+          final lesson = topic.lessons.single;
+          store.progress[lesson.id] = lesson.sentences.length;
+          store.completedV4LessonActivities.add(lesson.id);
+        }
+        final before = Map<String, int>.of(store.progress);
+        final voice = _KeyedRecordingVoicePromptService();
+        await tester.pumpWidget(
+          _subject(
+            topics[completedCount - 1].lessons.single,
+            store,
+            Key('legacy-$completedCount'),
+            topicContent: topics[completedCount - 1],
+            contentGroup: group,
+            voicePromptService: voice,
+            initialResumeStage: ListeningResumeStage.waitingForChoice,
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(voice.spoken.join(' ').toLowerCase(), isNot(contains('level')));
+        expect(store.progress, before);
+        expect(store.courseCompleted, completedCount == 10);
+        if (completedCount == 10) {
+          expect(store.pendingCompletionChoice, isNull);
+          expect(voice.audioKeys, contains(ListeningAudioKeys.milestoneCourse));
+        } else {
+          expect(
+            store.pendingCompletionChoice,
+            completedCount == 9
+                ? ListeningPendingChoiceStage.topicEndOneRemaining
+                : ListeningPendingChoiceStage.topicEnd,
+          );
+          expect(
+            find.byKey(const ValueKey('v4-choice-nextTopic')),
+            findsOneWidget,
+          );
+          expect(
+            find.byKey(const ValueKey('v4-choice-relearnTopic')),
+            findsOneWidget,
+          );
+          expect(find.byKey(const ValueKey('v4-choice-stop')), findsOneWidget);
+        }
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpAndSettle();
+      },
+    );
+  }
+
   testWidgets(
     'finishing Topic 1 continues the remaining Topic at its unfinished lesson',
     (tester) async {
@@ -91,7 +172,6 @@ void main() {
           const Key('topic-one-completion'),
           topicContent: firstTopic,
           contentGroup: group,
-          levelContent: level,
           voicePromptService: voice,
           mediaService: media,
           initialResumeStage: ListeningResumeStage.waitingForChoice,
@@ -193,7 +273,6 @@ void main() {
             Key('ios-explicit-$transcript'),
             topicContent: topics.first,
             contentGroup: group,
-            levelContent: level,
             controller: _LearningAudioDependencies(speech),
             voicePromptService: _SilentVoicePromptService(),
             mediaService: media,
@@ -1521,7 +1600,6 @@ Widget _subject(
   LearningAudioDependencies? controller,
   ListeningTopicContent? topicContent,
   ListeningContentAgeGroup? contentGroup,
-  ListeningLevelContent? levelContent,
   LessonCompletionChoiceRecognizer? completionChoiceRecognizer,
   ListeningResumeStage initialResumeStage = ListeningResumeStage.core,
   VoidCallback? onCommunicationRequested,
@@ -1549,7 +1627,6 @@ Widget _subject(
       controller: controller,
       topicContent: topicContent,
       contentGroup: contentGroup,
-      levelContent: levelContent,
       completionChoiceRecognizer: completionChoiceRecognizer,
       initialResumeStage: initialResumeStage,
       onCommunicationRequested: onCommunicationRequested,
@@ -1845,6 +1922,22 @@ class _MemoryProgressStore extends ListeningProgressStore {
 }
 
 class _TopicTransitionProgressStore extends _MemoryProgressStore {
+  bool courseCompleted = false;
+  bool courseCompletionAnnounced = false;
+  @override
+  Future<void> markCourseCompleted(String courseId) async {
+    courseCompleted = true;
+  }
+
+  @override
+  Future<bool> hasCourseCompletionEventCreated(String courseId) async =>
+      courseCompletionAnnounced;
+  @override
+  Future<bool> markCourseCompletionEventCreated(String courseId) async {
+    courseCompletionAnnounced = true;
+    return true;
+  }
+
   final Map<String, int> progress = {};
   final Map<String, int> cursors = {};
   final Map<String, ListeningResumeStage> stages = {};

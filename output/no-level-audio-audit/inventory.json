@@ -1,0 +1,128 @@
+{
+  "manifests": 3,
+  "activeEntries": 567,
+  "assetErrors": [],
+  "levelEntries": [
+    {
+      "key": "assistant.topic.invalid_3.vi",
+      "enabled": false,
+      "text": "Level này có 3 Chủ đề. Bạn chọn lại nhé."
+    },
+    {
+      "key": "assistant.topic.invalid_4.vi",
+      "enabled": false,
+      "text": "Level này có 4 Chủ đề. Bạn chọn lại nhé."
+    },
+    {
+      "key": "assistant.level.choose_relearn.vi",
+      "enabled": false,
+      "text": "Bạn chọn Level 1, 2, 3 nhé."
+    },
+    {
+      "key": "assistant.level.choose_course_relearn.vi",
+      "enabled": false,
+      "text": "Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?"
+    },
+    {
+      "key": "listening.navigation.choose_level.vi",
+      "enabled": false,
+      "text": "Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?"
+    },
+    {
+      "key": "listening.completion.level.start.2.vi",
+      "enabled": false,
+      "text": "Bạn muốn bắt đầu Level 2 hay dừng lại?"
+    },
+    {
+      "key": "listening.completion.level.start.3.vi",
+      "enabled": false,
+      "text": "Bạn muốn bắt đầu Level 3 hay dừng lại?"
+    },
+    {
+      "key": "listening.milestone.level.1.vi",
+      "enabled": false,
+      "text": "Bạn đã hoàn thành Level 1 rồi!"
+    },
+    {
+      "key": "listening.milestone.level.2.vi",
+      "enabled": false,
+      "text": "Bạn đã hoàn thành Level 2 rồi!"
+    },
+    {
+      "key": "listening.milestone.level.3.vi",
+      "enabled": false,
+      "text": "Bạn đã hoàn thành Level 3 rồi!"
+    },
+    {
+      "key": "listening.navigation.locked_level.1.vi",
+      "enabled": false,
+      "text": "Bạn cần hoàn thành Level 1 trước nhé."
+    },
+    {
+      "key": "listening.navigation.locked_level.2.vi",
+      "enabled": false,
+      "text": "Bạn cần hoàn thành Level 2 trước nhé."
+    },
+    {
+      "key": "listening.navigation.locked_level.3.vi",
+      "enabled": false,
+      "text": "Bạn cần hoàn thành Level 3 trước nhé."
+    },
+    {
+      "key": "assistant.topic.level_selection.1.vi",
+      "enabled": false,
+      "text": "Bắt đầu Level 1. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?"
+    },
+    {
+      "key": "assistant.topic.level_selection.2.vi",
+      "enabled": false,
+      "text": "Bắt đầu Level 2. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?"
+    },
+    {
+      "key": "assistant.topic.level_selection.3.vi",
+      "enabled": false,
+      "text": "Bắt đầu Level 3. Có 4 Chủ đề. Bạn chọn Chủ đề số mấy?"
+    },
+    {
+      "key": "GAP66-022",
+      "enabled": false,
+      "text": "Mình chưa hiểu. Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?"
+    },
+    {
+      "key": "GAP66-025",
+      "enabled": false,
+      "text": "Mình chưa hiểu. Bạn muốn bắt đầu Level 2 hay dừng lại?"
+    },
+    {
+      "key": "GAP66-026",
+      "enabled": false,
+      "text": "Mình chưa hiểu. Bạn muốn bắt đầu Level 3 hay dừng lại?"
+    }
+  ],
+  "activeLevelEntries": 0,
+  "domainSummary": {
+    "scenarios": 263,
+    "transitions": 31658,
+    "maxDialogueProbeDepth": 4,
+    "reachedStages": {
+      "current": [
+        "activeLearning",
+        "chooseAfterTranslationStop",
+        "chooseCourseRelearnTopic",
+        "chooseFeature",
+        "chooseModuleSwitch",
+        "chooseOtherLearning",
+        "chooseTopicAfterCompletion",
+        "confirmReplayTopic",
+        "idle"
+      ],
+      "compatibility": [
+        "chooseLesson",
+        "confirmReplayLesson",
+        "confirmReplayTopic",
+        "idle"
+      ]
+    }
+  },
+  "currentLevelUtterances": []
+}

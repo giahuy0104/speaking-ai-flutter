@@ -53,7 +53,7 @@ void main() {
       final bundled = Directory('assets/audio')
           .listSync(recursive: true)
           .whereType<File>()
-          .map((file) => file.path)
+          .map((file) => file.path.replaceAll(r'\', '/'))
           .where((path) => path.endsWith('.mp3'))
           .toSet();
 

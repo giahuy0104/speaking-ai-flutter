@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -23,12 +25,24 @@ void main() {
         .toList(growable: false);
   });
 
+  test(
+    'entire authored V4.2 payload is unchanged by removing runtime levels',
+    () async {
+      final source = (await rootBundle.loadString(
+        'assets/data/listening_lessons.json',
+      )).replaceAll('\r\n', '\n');
+      expect(
+        sha256.convert(utf8.encode(source)).toString(),
+        '18d06fee96896bb3f6fa053ab4b7d55a034143eee5c1bafb57d13cca6be1d909',
+      );
+    },
+  );
+
   group('V4 listening curriculum', () {
     test(
       'loads the approved V4 curriculum footprint through the app model',
       () {
         expect(groups, hasLength(5));
-        expect(levels, hasLength(15));
         expect(topics, hasLength(50));
         expect(lessons, hasLength(109));
         expect(catalog.contentVersion, '4.2');
@@ -45,19 +59,13 @@ void main() {
               .toList(growable: false),
           orderedEquals(const <String>['3-5', '6-7', '8-10', '11-12', '13-15']),
         );
-        expect(groups.every((group) => group.levels.length == 3), isTrue);
         expect(groups.every((group) => group.topics.length == 10), isTrue);
-        expect(
-          groups.every(
-            (group) =>
-                group.levels
-                    .map((level) => level.topicNumbers.length)
-                    .toList(growable: false)
-                    .join(',') ==
-                '3,3,4',
-          ),
-          isTrue,
-        );
+        for (final group in groups) {
+          expect(
+            group.topics.map((topic) => topic.number),
+            orderedEquals(List.generate(10, (index) => index + 1)),
+          );
+        }
         expect(lessons.every((lesson) => lesson.entry != null), isTrue);
         expect(lessons.every((lesson) => lesson.usesV4Flow), isTrue);
         expect(

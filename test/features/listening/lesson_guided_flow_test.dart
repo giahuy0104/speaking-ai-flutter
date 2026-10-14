@@ -1211,9 +1211,7 @@ void main() {
     expect(mediaService.lastRecordingPlaybackGainFixed, isTrue);
   });
 
-  testWidgets('V4 keeps a scored take when its replay fails', (
-    tester,
-  ) async {
+  testWidgets('V4 keeps a scored take when its replay fails', (tester) async {
     await _usePhoneSurface(tester);
     final mediaService = _FailingAttemptPlaybackMediaService();
     final progressStore = _MemoryProgressStore();
@@ -2185,12 +2183,6 @@ void main() {
       intro: 'Mở đầu bài hai.',
       introAudioUri: nextIntroUri,
     );
-    const levelContent = ListeningLevelContent(
-      id: 'v4-level-1',
-      number: 1,
-      titleVi: 'Level 1',
-      topicNumbers: <int>[1, 2, 3],
-    );
     final mediaService = _ControlledNextIntroMediaService(nextIntroUri);
     await tester.pumpWidget(
       _subject(
@@ -2200,7 +2192,6 @@ void main() {
           firstLesson,
           nextLesson,
         ]),
-        levelContent: levelContent,
         guideAudioLibrary: _silentGuideAudioLibrary(),
         voicePromptService: _FakeVoicePromptService(),
         completionChoiceRecognizer: _FakeCompletionChoiceRecognizer(
@@ -2227,12 +2218,6 @@ void main() {
           .lesson
           .id,
       nextLesson.id,
-    );
-    expect(
-      tester
-          .widget<LessonIntroScreen>(find.byType(LessonIntroScreen))
-          .levelContent,
-      same(levelContent),
     );
 
     await tester.pumpWidget(const SizedBox.shrink());
@@ -3635,20 +3620,22 @@ void main() {
       );
       await _pumpGuidedSpeechTurn(tester);
       final hookEvent = 'asset|${ListeningAudioKeys.lessonHook(lesson.id)}';
+      final leadEvent = 'asset|${ListeningAudioKeys.lessonIntroLead(lesson.id)}';
       expect(
         events,
         containsAllInOrder([
-          'voice|Chủ đề 5. Bài đầu tiên là',
-          'voice|${lesson.titleEn}',
+          leadEvent,
           hookEvent,
           'voice|Bắt đầu nhé.',
         ]),
       );
       expect(events.where((event) => event == hookEvent), hasLength(1));
       expect(
-        events.where((event) => event == 'voice|${lesson.titleEn}'),
+        events.where((event) => event == leadEvent),
         hasLength(1),
       );
+      expect(events, isNot(contains('voice|Chủ đề 5. Bài đầu tiên là')));
+      expect(events, isNot(contains('voice|${lesson.titleEn}')));
       expect(events, isNot(contains('voice|${lesson.entry!.text}')));
       expect(
         events,
@@ -3958,7 +3945,6 @@ Widget _subject(
   bool useOwnedEvaluator = false,
   LessonGuideAudioLibrary? guideAudioLibrary,
   ListeningTopicContent? topicContent,
-  ListeningLevelContent? levelContent,
   ListeningProgressStore? progressStore,
   LessonAttemptEvaluator? attemptEvaluator,
   VoicePromptService? voicePromptService,
@@ -3984,7 +3970,6 @@ Widget _subject(
       lesson: lesson,
       controller: controller,
       topicContent: topicContent,
-      levelContent: levelContent,
       progressStore: progressStore ?? _MemoryProgressStore(),
       mediaService: mediaService,
       vocabularyStore: vocabularyStore ?? _MemoryVocabularyStore(),

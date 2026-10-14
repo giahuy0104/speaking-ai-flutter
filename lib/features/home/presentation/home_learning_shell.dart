@@ -811,17 +811,14 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         }
       case VoiceNavigationDestination.topics:
         final pausedCheckpoint =
-            intent.topicNumber == null &&
-                intent.levelNumber == null &&
-                !intent.openLesson
+            intent.topicNumber == null && !intent.openLesson
             ? _pausedListeningCheckpoint
             : null;
         if (pausedCheckpoint != null) {
           _pausedListeningCheckpoint = null;
         }
-        final opensCurrentLevelSelection =
+        final opensTopicSelection =
             intent.topicNumber == null &&
-            intent.levelNumber == null &&
             !intent.openLesson &&
             pausedCheckpoint == null;
         final fallbackTopicIndex = _activeVoiceTopicIndex;
@@ -830,11 +827,9 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           openLesson: intent.openLesson || pausedCheckpoint != null,
           topicNumber: intent.topicNumber ?? pausedCheckpoint?.topicNumber,
           lessonNumber: intent.lessonNumber ?? pausedCheckpoint?.lessonNumber,
-          levelNumber: intent.levelNumber,
           childAge: intent.childAge ?? pausedCheckpoint?.childAge,
           relearnTopic: intent.relearnTopic,
           relearnLesson: intent.relearnLesson,
-          relearnLevel: intent.relearnLevel,
           fallbackTopicIndex: fallbackTopicIndex,
         );
         if (_openingTopics) {
@@ -844,7 +839,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           final routePushed = Completer<bool>();
           unawaited(
             _openTopicListening(
-              initialVoiceTarget: opensCurrentLevelSelection ? null : target,
+              initialVoiceTarget: opensTopicSelection ? null : target,
               routePushed: routePushed,
             ),
           );
@@ -1262,30 +1257,26 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                       completedLessonNumbers: completedLessonNumbers,
                     );
               },
-          onLevelTopicSelectionRequested:
+          onTopicSelectionRequested:
               ({
                 required childAge,
-                required levelNumber,
                 required topicNumbers,
                 required completedTopicNumbers,
-                required announceLevel,
               }) async {
                 return await widget.voiceNavigationController
-                        ?.activateLevelTopicSelection(
+                        ?.activateTopicSelection(
                           childAge: childAge,
-                          levelNumber: levelNumber,
                           topicNumbers: topicNumbers,
                           completedTopicNumbers: completedTopicNumbers,
-                          announceLevel: announceLevel,
                         ) ??
                     false;
               },
-          onCourseRelearnLevelSelectionRequested:
-              ({required childAge, required levelNumbers}) async {
+          onCourseRelearnTopicSelectionRequested:
+              ({required childAge, required topicNumbers}) async {
                 return await widget.voiceNavigationController
-                        ?.activateCourseRelearnLevelSelection(
+                        ?.activateCourseRelearnTopicSelection(
                           childAge: childAge,
-                          levelNumbers: levelNumbers,
+                          topicNumbers: topicNumbers,
                         ) ??
                     false;
               },

@@ -1,0 +1,262 @@
+[
+  {
+    "key": "listening.lesson.c35-l1-t02-b03.intro_lead.vi",
+    "enabled": true,
+    "locale": "vi-VN",
+    "text": "Bài này là Count With Me",
+    "asset": "assets/audio/listening-common/listening.lesson.c35-l1-t02-b03.intro_lead.vi.mp3",
+    "durationSeconds": 2.56,
+    "sha256": "7d5522a3631ee244e2691d139f59dd8823f11c42e6ce5d4da5be6763a0877c15",
+    "sizeBytes": 41839,
+    "textHash": "141c3e808c6cd08d2ed546d753f0a49406b0559f154e2fecf9928ef25ca3ea52",
+    "composition": "vi-en",
+    "source": "original-intro-segments",
+    "sourceIntroSha256": "244e6f86da0ca1ac71d7b464c1bf1997efbc5d7156f7106f012e1fc67979f009",
+    "gainDb": -6.5,
+    "originalAudioVerified": true,
+    "segmentSha256": [
+      "21f60d80baf193f93a2ee24bbfdac25c5301195d3f06874bcec02bed45c842f5",
+      "9d223e35cfc0ae6f6755e07a3a1216b5b4f51bf092bd334f38a8c8ac72b7d89d"
+    ]
+  },
+  {
+    "key": "listening.lesson.c35-l2-t05-b01.intro_lead.vi",
+    "enabled": true,
+    "locale": "vi-VN",
+    "text": "Chủ đề 5. Bài đầu tiên là Animal Names",
+    "asset": "assets/audio/listening-common/listening.lesson.c35-l2-t05-b01.intro_lead.vi.mp3",
+    "durationSeconds": 3.76,
+    "sha256": "78f1d61805e46493e30d9023545118eee85ec42bfe8521c137f8056d489bc9bb",
+    "sizeBytes": 61066,
+    "textHash": "0a96289c7bf7c287cdbb80775a5cb857a41aba8c1da5143feb4bc7a82eac5836",
+    "composition": "vi-en",
+    "source": "original-intro-segments",
+    "sourceIntroSha256": "6a181ef9f4190f3cd539953e7fb1481269548906ca3987a59f090a43938c66ab",
+    "gainDb": -10.09,
+    "originalAudioVerified": true,
+    "segmentSha256": [
+      "27ef1a704051d6970b99ea53036d66acbb807d3214f43b2cb5dbf605c79745a7",
+      "bf905f8f090fb717ab19f226520d1433138995a3b5764ee175abf8dc46d3b63b"
+    ]
+  },
+  {
+    "key": "listening.lesson.c35-l3-t09-b02.intro_lead.vi",
+    "enabled": true,
+    "locale": "vi-VN",
+    "text": "Bài này là What to Wear?",
+    "asset": "assets/audio/listening-common/listening.lesson.c35-l3-t09-b02.intro_lead.vi.mp3",
+    "durationSeconds": 1.92,
+    "sha256": "4e2217e67ffc202c8ff14eccd653abedec5538e639390e3b1dc506817deb9a48",
+    "sizeBytes": 31808,
+    "textHash": "61aa79ebfe2e9fc30fd5685f03e29fec713b3afafba65429178120077f3a5774",
+    "composition": "vi-en",
+    "source": "original-intro-segments",
+    "sourceIntroSha256": "a8a59df41656efd15e563671d722d0345ead8ac96a78cfcd2b2e3f59a933eca8",
+    "gainDb": -6.78,
+    "originalAudioVerified": true,
+    "segmentSha256": [
+      "21f60d80baf193f93a2ee24bbfdac25c5301195d3f06874bcec02bed45c842f5",
+      "f76e739822e900ca94fa7b6c80e23bfdcd0338c163d93544e7c21d62341754b7"
+    ]
+  },
+  {
+    "key": "listening.lesson.c35-l3-t10-b02.intro_lead.vi",
+    "enabled": true,
+    "locale": "vi-VN",
+    "text": "Bài này là Happy Day",
+    "asset": "assets/audio/listening-common/listening.lesson.c35-l3-t10-b02.intro_lead.vi.mp3",
+    "durationSeconds": 1.76,
+    "sha256": "ba5c15cfb4957eabaf519437c389b9fd1b6126b36d90138777c49bbe3655dcc1",
+    "sizeBytes": 29301,
+    "textHash": "11fb7e8ab416db1f18a664c6a47b2a51cba945058a338567455c5ce0ad4b8903",
+    "composition": "vi-en",
+    "source": "original-intro-segments",
+    "sourceIntroSha256": "c5f3ce503fa7de2f67ce0d2d25de01aed0eb207f65534e50f956a06c34ab8834",
+    "gainDb": -7.2,
+    "originalAudioVerified": true,
+    "segmentSha256": [
+      "21f60d80baf193f93a2ee24bbfdac25c5301195d3f06874bcec02bed45c842f5",
+      "b645e66e8c5f7b5fbcfb0bd801b156b3d4639547669bfb48a2a0acc2326559ab"
+    ]
+  },
+  {
+    "key": "listening.lesson.c67-l1-t03-b02.intro_lead.vi",
+    "enabled": true,
+    "locale": "vi-VN",
+    "text": "Bài này là Animal Abilities",
+    "asset": "assets/audio/listening-common/listening.lesson.c67-l1-t03-b02.intro_lead.vi.mp3",
+    "durationSeconds": 2.08,
+    "sha256": "5867e6b0b61a8d7d55fe6cf5b874401231cd3e9876df82bcc4ce7b4412c234f8",
+    "sizeBytes": 34316,
+    "textHash": "ce433dad58d058851e8a434d937c77059e1c16cf5ad48ebf3843bb41473716ea",
+    "composition": "vi-en",
+    "source": "original-intro-segments",
+    "sourceIntroSha256": "f87e53968e1b8606005af8b73325f061fb971f0334d1af0ed87d373bf13fe9b7",
+    "gainDb": -6.85,
+    "originalAudioVerified": true,
+    "segmentSha256": [
+      "21f60d80baf193f93a2ee24bbfdac25c5301195d3f06874bcec02bed45c842f5",
+      "62d27a7b92e291ba8bd9814b09aba77a1af85a852f7c1b8aa8546f45900eea23"
+    ]
+  },
+  {
+    "key": "listening.lesson.c67-l3-t07-b02.intro_lead.vi",
+    "enabled": true,
+    "locale": "vi-VN",
+    "text": "Bài này là In Class",
+    "asset": "assets/audio/listening-common/listening.lesson.c67-l3-t07-b02.intro_lead.vi.mp3",
+    "durationSeconds": 1.68,
+    "sha256": "3e8e3ec60be0745cd09bd67d3064404758cd5f2f924be4d5c1c8b775a1a7942e",
+    "sizeBytes": 28047,
+    "textHash": "2e48b01dea89cf7df573ea6e5f958b25b48d9f73cdca5b531398cca68283918c",
+    "composition": "vi-en",
+    "source": "original-intro-segments",
+    "sourceIntroSha256": "3681a76e6e2a74d273afc2d0da39cc976a757c1f2e35d4a25f919cc0c8c155fa",
+    "gainDb": -6.69,
+    "originalAudioVerified": true,
+    "segmentSha256": [
+      "21f60d80baf193f93a2ee24bbfdac25c5301195d3f06874bcec02bed45c842f5",
+      "e081b2565a9a3bb1e6de0ff65a5763b9fbf67e2fb9d5a7808227b9dab2e43b46"
+    ]
+  },
+  {
+    "key": "listening.lesson.c67-l3-t09-b02.intro_lead.vi",
+    "enabled": true,
+    "locale": "vi-VN",
+    "text": "Bài này là Where Are We?",
+    "asset": "assets/audio/listening-common/listening.lesson.c67-l3-t09-b02.intro_lead.vi.mp3",
+    "durationSeconds": 2.0,
+    "sha256": "2b2e3174b1bde97062e4acccb114bb291138d2b22cf08c8356e164d0391cf674",
+    "sizeBytes": 33062,
+    "textHash": "81cab7f4048c8e546953f65700e0f9c04d56ea1f76726b24544b9c9f684ab819",
+    "composition": "vi-en",
+    "source": "original-intro-segments",
+    "sourceIntroSha256": "fa7f9c7e27399b57ee4e00bdd6e1961d2e79a6a3595c4eaf6beb35e6316e3ea0",
+    "gainDb": -7.12,
+    "originalAudioVerified": true,
+    "segmentSha256": [
+      "21f60d80baf193f93a2ee24bbfdac25c5301195d3f06874bcec02bed45c842f5",
+      "4fe258ed2ff22a7abc8cd572c2fb953689d3ac57f64220fd388aed1ecd5cf298"
+    ]
+  },
+  {
+    "key": "listening.lesson.c810-l1-t01-b01.intro_lead.vi",
+    "enabled": true,
+    "locale": "vi-VN",
+    "text": "Chủ đề 1. Bài đầu tiên là Time & Tasks",
+    "asset": "assets/audio/listening-common/listening.lesson.c810-l1-t01-b01.intro_lead.vi.mp3",
+    "durationSeconds": 3.92,
+    "sha256": "f6c209c5c048825ef91cded21f0614fba5a88790734ff1ec63c3884228d4a0ca",
+    "sizeBytes": 63991,
+    "textHash": "e73f951802db584e765e1fd71f39510272bb6108594f5d07b10b32cf06032e88",
+    "composition": "vi-en",
+    "source": "original-intro-segments",
+    "sourceIntroSha256": "1965d5ee653d47e6be7d4c45932819d968865b96ad488ee6e00833ea60ccb11b",
+    "gainDb": -9.06,
+    "originalAudioVerified": true,
+    "segmentSha256": [
+      "a1aef9c2b88a992ca7bba7a3ca73cbe840328ce6e07061035471fcf834461a89",
+      "d31c0846977d2b996afe09772d15e8d6fad81c61ea42d403fc422274aa8b51e7"
+    ]
+  },
+  {
+    "key": "listening.lesson.c810-l1-t02-b02.intro_lead.vi",
+    "enabled": true,
+    "locale": "vi-VN",
+    "text": "Bài này là Classroom Talk",
+    "asset": "assets/audio/listening-common/listening.lesson.c810-l1-t02-b02.intro_lead.vi.mp3",
+    "durationSeconds": 1.92,
+    "sha256": "5da9879439b1a45791e168beeae46acbea89c9e83b61d65337526378fe41e33f",
+    "sizeBytes": 31808,
+    "textHash": "3b0e6b310fc0ada7076872c4b31d16784161e14b7c7a0f5675dc259df6497cf8",
+    "composition": "vi-en",
+    "source": "original-intro-segments",
+    "sourceIntroSha256": "e3b6015b3313aebc06f11c746614a7dff885c62edc30dbf7fb851e33c99682ec",
+    "gainDb": -7.09,
+    "originalAudioVerified": true,
+    "segmentSha256": [
+      "21f60d80baf193f93a2ee24bbfdac25c5301195d3f06874bcec02bed45c842f5",
+      "bddac542aaaf3c3add2ef4d2738b3cb89b7315338a73f79e189cb0f321878d47"
+    ]
+  },
+  {
+    "key": "listening.lesson.c810-l2-t05-b01.intro_lead.vi",
+    "enabled": true,
+    "locale": "vi-VN",
+    "text": "Chủ đề 5. Bài đầu tiên là Weather Choices",
+    "asset": "assets/audio/listening-common/listening.lesson.c810-l2-t05-b01.intro_lead.vi.mp3",
+    "durationSeconds": 3.44,
+    "sha256": "b24462adc7a610dfce7801ec740d6a4cc06a2f550d89dbda118747881d1d61ce",
+    "sizeBytes": 56050,
+    "textHash": "40375b30defb71ec025898bcc26a543bac09a388db2e2c17350db8993784b0d1",
+    "composition": "vi-en",
+    "source": "original-intro-segments",
+    "sourceIntroSha256": "76147d1ba0ca2f513c2d77a6f40fc96c8143cb1b2a30b840b990bd3aa9fc4a08",
+    "gainDb": -9.59,
+    "originalAudioVerified": true,
+    "segmentSha256": [
+      "27ef1a704051d6970b99ea53036d66acbb807d3214f43b2cb5dbf605c79745a7",
+      "8c3401cb1d9272c12925a1a2cb7895019a69bea2cd63a4a5eb67cc5e19864e3f"
+    ]
+  },
+  {
+    "key": "listening.lesson.c1112-l2-t06-b02.intro_lead.vi",
+    "enabled": true,
+    "locale": "vi-VN",
+    "text": "Bài này là Stay Safe",
+    "asset": "assets/audio/listening-common/listening.lesson.c1112-l2-t06-b02.intro_lead.vi.mp3",
+    "durationSeconds": 1.68,
+    "sha256": "8f3c34e304e647c5538d3cd39052654843a580de767683018515ac2470314178",
+    "sizeBytes": 28047,
+    "textHash": "de86b0df9afde47c536130ddac42194912be30e1c7136fa49d7304dcbd7743e2",
+    "composition": "vi-en",
+    "source": "original-intro-segments",
+    "sourceIntroSha256": "1b17b3bf3bf54149ef9730bbd9f04ebfa6a180dc5700043c02f6aaecf372a5bb",
+    "gainDb": -6.43,
+    "originalAudioVerified": true,
+    "segmentSha256": [
+      "21f60d80baf193f93a2ee24bbfdac25c5301195d3f06874bcec02bed45c842f5",
+      "f1d714a5d70e9f4ecd0891acb49966446fb433dc80456492ccf3e245aa511797"
+    ]
+  },
+  {
+    "key": "listening.lesson.c1315-l3-t07-b02.intro_lead.vi",
+    "enabled": true,
+    "locale": "vi-VN",
+    "text": "Bài này là Ask for Info",
+    "asset": "assets/audio/listening-common/listening.lesson.c1315-l3-t07-b02.intro_lead.vi.mp3",
+    "durationSeconds": 1.68,
+    "sha256": "69cbd4ec9eaba318d1dd856a8afbed90a413b5a02980b68d6d968538f83aa444",
+    "sizeBytes": 28047,
+    "textHash": "56e6ea4b12ae20e58498b85f1cc5498b8981af675ff19ad4c2e5df20e852a4c0",
+    "composition": "vi-en",
+    "source": "original-intro-segments",
+    "sourceIntroSha256": "3f210512ed21bad48e6e61368dcd398dff9301f5ed96bc961fd3cd6d98d9c3e6",
+    "gainDb": -6.85,
+    "originalAudioVerified": true,
+    "segmentSha256": [
+      "21f60d80baf193f93a2ee24bbfdac25c5301195d3f06874bcec02bed45c842f5",
+      "e117a461669f16396fa32593f272cb925f1b3d8157e60078cffbcfec8a4bcd85"
+    ]
+  },
+  {
+    "key": "listening.lesson.c1315-l3-t08-b02.intro_lead.vi",
+    "enabled": true,
+    "locale": "vi-VN",
+    "text": "Bài này là My Order",
+    "asset": "assets/audio/listening-common/listening.lesson.c1315-l3-t08-b02.intro_lead.vi.mp3",
+    "durationSeconds": 2.64,
+    "sha256": "7c36a5c73162097fd437a439fa9d8a2e0fc67717d66089ed96a9a4ae38cd03d9",
+    "sizeBytes": 43511,
+    "textHash": "fb66c9cc61a88e72270be94a07e3bda81d01b070927347d186e3a2429246c719",
+    "composition": "vi-en",
+    "source": "original-intro-segments",
+    "sourceIntroSha256": "5f97b5ce5a0cb3bc5b79a4cd8cb524c69821bbdf5db64e9ec7cd51f0de27eecb",
+    "gainDb": -7.04,
+    "originalAudioVerified": true,
+    "segmentSha256": [
+      "21f60d80baf193f93a2ee24bbfdac25c5301195d3f06874bcec02bed45c842f5",
+      "2c60eead82c5e22910f7af07b0c55fc553558a7039da3040d9e653d36bc0e14a"
+    ]
+  }
+]

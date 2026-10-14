@@ -1,0 +1,2403 @@
+[
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 1,
+    "topicTitle": "Bảng chữ cái",
+    "lessonId": "c35-l1-t01-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "A to E Letters",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c35-l1-t01-b01.intro.vi.mp3"
+        ],
+        "sha256": "9182526ea5fcb0e23ceb9b8636b21a6f6fd1c80fab5ab1d470d9cc742dd77cda"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 1,
+    "topicTitle": "Bảng chữ cái",
+    "lessonId": "c35-l1-t01-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "F to J Letters",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c35-l1-t01-b02.intro.vi.mp3"
+        ],
+        "sha256": "be5b35e7fb506e4a8cb36ba5dba43deb0af417c2c6dcfe74db1778d84f74b402"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 2,
+    "topicTitle": "Số đếm",
+    "lessonId": "c35-l1-t02-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "One to Five",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c35-l1-t02-b01.intro.vi.mp3"
+        ],
+        "sha256": "64fa3a1cf471dbf712d3a521761e5045efaff27d643d38565d0257b29999b429"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 2,
+    "topicTitle": "Số đếm",
+    "lessonId": "c35-l1-t02-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Six to Ten",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c35-l1-t02-b02.intro.vi.mp3"
+        ],
+        "sha256": "c4ddf40c74edaba10f95c837b1c7884c313feb6f27f744cdb8756924e553b697"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 2,
+    "topicTitle": "Số đếm",
+    "lessonId": "c35-l1-t02-b03",
+    "lessonNumber": 3,
+    "lessonTitle": "Count With Me",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "tts",
+        "text": "Bài này là",
+        "locale": "vi-VN"
+      },
+      {
+        "kind": "tts",
+        "text": "Count With Me",
+        "locale": "en-US"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/LESSON_HOOKS/nghe-that-ki-nhe.mp3"
+        ],
+        "sha256": "a0126cb9ef396ac66515c6b8d0bcd882495976a5b3b5cc6b1b4e2df4e8ba20fb"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/assistant-core/assistant.main.start_now.vi.mp3"
+        ],
+        "sha256": "fc315907156e9186a74118ba5a7486449e1802ae8c11c47f985d31b197e5cb2c"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 3,
+    "topicTitle": "Màu sắc",
+    "lessonId": "c35-l1-t03-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Color Words",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c35-l1-t03-b01.intro.vi.mp3"
+        ],
+        "sha256": "13fe49bbfb4ac3387d5b369a2000f51c75be0d0fcbe710cf4830bfadb386d365"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 3,
+    "topicTitle": "Màu sắc",
+    "lessonId": "c35-l1-t03-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "What Color?",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c35-l1-t03-b02.intro.vi.mp3"
+        ],
+        "sha256": "28e94ba8a3461187243468f99a7e6d119e8d5304998b3b079551bde7a4e57eed"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 4,
+    "topicTitle": "Hình dạng",
+    "lessonId": "c35-l2-t04-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Shape Words",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c35-l2-t04-b01.intro.vi.mp3"
+        ],
+        "sha256": "baba10befb08af8a3134e0ad7bb977e9679a88d7ae363b2bf535458cadf4630b"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 4,
+    "topicTitle": "Hình dạng",
+    "lessonId": "c35-l2-t04-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "What Shape?",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c35-l2-t04-b02.intro.vi.mp3"
+        ],
+        "sha256": "424d26a36afcaa87782ff25d19e55648f00004d1414a7adad169408c5445a6c8"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 5,
+    "topicTitle": "Động vật",
+    "lessonId": "c35-l2-t05-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Animal Names",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "tts",
+        "text": "Chủ đề 5. Bài đầu tiên là",
+        "locale": "vi-VN"
+      },
+      {
+        "kind": "tts",
+        "text": "Animal Names",
+        "locale": "en-US"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/LESSON_HOOKS/ban-doan-xem-con-gi.mp3"
+        ],
+        "sha256": "89db94e79caa23ab299595b70fe269b178e4611a634f3ff9d1603c5d5acb84e3"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/assistant-core/assistant.main.start_now.vi.mp3"
+        ],
+        "sha256": "fc315907156e9186a74118ba5a7486449e1802ae8c11c47f985d31b197e5cb2c"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 5,
+    "topicTitle": "Động vật",
+    "lessonId": "c35-l2-t05-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Which Animal?",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c35-l2-t05-b02.intro.vi.mp3"
+        ],
+        "sha256": "cc09ca4e2e4a1b8ec4fdc93b316fc42816dae201d97c94a9338af43f3ed98365"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 6,
+    "topicTitle": "Cơ thể của mình",
+    "lessonId": "c35-l2-t06-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Body Words",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c35-l2-t06-b01.intro.vi.mp3"
+        ],
+        "sha256": "a49a89adb7f492ceaa1ca23a9788bd399a97195f67cc9ae9fd21480e9b2d17ab"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 6,
+    "topicTitle": "Cơ thể của mình",
+    "lessonId": "c35-l2-t06-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Move With Me",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c35-l2-t06-b02.intro.vi.mp3"
+        ],
+        "sha256": "b290928e2f9b579573b69dcafc58e512633f32645ac5daf661e6abf76adbc18e"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 7,
+    "topicTitle": "Đồ ăn",
+    "lessonId": "c35-l3-t07-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Food Words",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c35-l3-t07-b01.intro.vi.mp3"
+        ],
+        "sha256": "e899c04ee45881e4339f5c27e2e8946db3dbcc15ab9f21d17e17378a9429fad2"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 7,
+    "topicTitle": "Đồ ăn",
+    "lessonId": "c35-l3-t07-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Food, Please",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c35-l3-t07-b02.intro.vi.mp3"
+        ],
+        "sha256": "3ad06d41e956d6a7ad4543cf52fd36e47c51c93e0089e7f2d8464181bf9ec4c4"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 8,
+    "topicTitle": "Gia đình của mình",
+    "lessonId": "c35-l3-t08-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Family Words",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c35-l3-t08-b01.intro.vi.mp3"
+        ],
+        "sha256": "0bb447dae94b6e9d3cba20bd9acab0ae15926de8e028825f34683062a24b2714"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 8,
+    "topicTitle": "Gia đình của mình",
+    "lessonId": "c35-l3-t08-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Meet My Family",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c35-l3-t08-b02.intro.vi.mp3"
+        ],
+        "sha256": "a627d592ee833e536b02a41503b18f10e1df024a3076b86844f330b8c3d36ab4"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 9,
+    "topicTitle": "Thời tiết",
+    "lessonId": "c35-l3-t09-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Weather Words",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c35-l3-t09-b01.intro.vi.mp3"
+        ],
+        "sha256": "67eed4359f912f09fc6ca1a8d8fa4e3ddae9dcdbc9d2e1b9e5b3478d9a0c32a8"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 9,
+    "topicTitle": "Thời tiết",
+    "lessonId": "c35-l3-t09-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "What to Wear?",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "tts",
+        "text": "Bài này là",
+        "locale": "vi-VN"
+      },
+      {
+        "kind": "tts",
+        "text": "What to Wear?",
+        "locale": "en-US"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/LESSON_HOOKS/mua-roi-mac-gi-nhi.mp3"
+        ],
+        "sha256": "e9b5301b5df34d7d3fec0b0ec215aa47ac22e517749a44aec0f0921065a92248"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/assistant-core/assistant.main.start_now.vi.mp3"
+        ],
+        "sha256": "fc315907156e9186a74118ba5a7486449e1802ae8c11c47f985d31b197e5cb2c"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 10,
+    "topicTitle": "Một ngày của mình",
+    "lessonId": "c35-l3-t10-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Day Actions",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c35-l3-t10-b01.intro.vi.mp3"
+        ],
+        "sha256": "d5141d76c2984851fc23ebc3fc6924c0b4ae4f56077298911801932064d9f1e7"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "3-5",
+    "topicNumber": 10,
+    "topicTitle": "Một ngày của mình",
+    "lessonId": "c35-l3-t10-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Happy Day",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "tts",
+        "text": "Bài này là",
+        "locale": "vi-VN"
+      },
+      {
+        "kind": "tts",
+        "text": "Happy Day",
+        "locale": "en-US"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/LESSON_HOOKS/mot-ngay-moi-bat-dau-roi.mp3"
+        ],
+        "sha256": "047cfa10cbf153891ad9104ed21cd197377360e19bd56f057fadf3d083d20965"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/assistant-core/assistant.main.start_now.vi.mp3"
+        ],
+        "sha256": "fc315907156e9186a74118ba5a7486449e1802ae8c11c47f985d31b197e5cb2c"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 1,
+    "topicTitle": "Từ vựng theo chữ cái",
+    "lessonId": "c67-l1-t01-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "K to O Letters",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l1-t01-b01.intro.vi.mp3"
+        ],
+        "sha256": "95e08751500d375687e785ca1b6e1252e27d138c62018d49499eb9c5dcd9f7d6"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 1,
+    "topicTitle": "Từ vựng theo chữ cái",
+    "lessonId": "c67-l1-t01-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "P to T Letters",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l1-t01-b02.intro.vi.mp3"
+        ],
+        "sha256": "762567715f05d9e99f576c6457b848759be2d17d2725b5b6bfb3ad0e77793faf"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 1,
+    "topicTitle": "Từ vựng theo chữ cái",
+    "lessonId": "c67-l1-t01-b03",
+    "lessonNumber": 3,
+    "lessonTitle": "U to Z Letters",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l1-t01-b03.intro.vi.mp3"
+        ],
+        "sha256": "10a81db3b9ca0d8065b484c460b6a0e5fb044204adeb0256ee362e4e9bddbd6b"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 2,
+    "topicTitle": "Những con số quanh mình",
+    "lessonId": "c67-l1-t02-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Numbers 11-15",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l1-t02-b01.intro.vi.mp3"
+        ],
+        "sha256": "b22791b6ae6b42f2a75feb98246660430b94b9885213ae791ecbbdfec46b70aa"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 2,
+    "topicTitle": "Những con số quanh mình",
+    "lessonId": "c67-l1-t02-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Numbers 16-20",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l1-t02-b02.intro.vi.mp3"
+        ],
+        "sha256": "1bd13dfd3e7bc6ee2041ef3667b1afca6c77d3c51b7fdbc5e4addb544d7aca88"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 2,
+    "topicTitle": "Những con số quanh mình",
+    "lessonId": "c67-l1-t02-b03",
+    "lessonNumber": 3,
+    "lessonTitle": "Numbers in Life",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l1-t02-b03.intro.vi.mp3"
+        ],
+        "sha256": "e133b726100d44a8aea206ec9d0bca49fd9873abd8eadb0580854f0ce264ca07"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 3,
+    "topicTitle": "Động vật thú vị",
+    "lessonId": "c67-l1-t03-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Animal Words",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l1-t03-b01.intro.vi.mp3"
+        ],
+        "sha256": "9abeff9f82839fe8362cc1d9a06c869c2c11f79e4d8d3ab91144451575db7c25"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 3,
+    "topicTitle": "Động vật thú vị",
+    "lessonId": "c67-l1-t03-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Animal Abilities",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "tts",
+        "text": "Bài này là",
+        "locale": "vi-VN"
+      },
+      {
+        "kind": "tts",
+        "text": "Animal Abilities",
+        "locale": "en-US"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/LESSON_HOOKS/no-co-the-lam-gi-nhi.mp3"
+        ],
+        "sha256": "170a5a2f7d2f5c2a3edba7ce908a6c676d95c1110247ad2a0823f68b7176e620"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/assistant-core/assistant.main.start_now.vi.mp3"
+        ],
+        "sha256": "fc315907156e9186a74118ba5a7486449e1802ae8c11c47f985d31b197e5cb2c"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 4,
+    "topicTitle": "Món ăn mình thích",
+    "lessonId": "c67-l2-t04-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Tasty Foods",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l2-t04-b01.intro.vi.mp3"
+        ],
+        "sha256": "a8f3d6c5feb507138b420ca003e1b39030d4a3cb23ce12759edf3fbd2eeff559"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 4,
+    "topicTitle": "Món ăn mình thích",
+    "lessonId": "c67-l2-t04-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Do You Like?",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l2-t04-b02.intro.vi.mp3"
+        ],
+        "sha256": "56fb383f61789efc8492093aee8f401f1a8b1e8c35e2cd7611d8abdb659b9df7"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 5,
+    "topicTitle": "Đồ dùng của mình",
+    "lessonId": "c67-l2-t05-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Colors on Things",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l2-t05-b01.intro.vi.mp3"
+        ],
+        "sha256": "ca42e973a36e727dabb6deade29e4708b6ef63d513bbccf55b20ec3fce88db4e"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 5,
+    "topicTitle": "Đồ dùng của mình",
+    "lessonId": "c67-l2-t05-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Shapes Around Me",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l2-t05-b02.intro.vi.mp3"
+        ],
+        "sha256": "cb2375be269551a2f065d24a9787303407fead66331698f88717ef054e1380c9"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 6,
+    "topicTitle": "Cơ thể khỏe mạnh",
+    "lessonId": "c67-l2-t06-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Body Moves",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l2-t06-b01.intro.vi.mp3"
+        ],
+        "sha256": "21d6d1687bf2b6e30e91215be77c0c99c48cd7dfc743b0bc4d4e207c1781f36f"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 6,
+    "topicTitle": "Cơ thể khỏe mạnh",
+    "lessonId": "c67-l2-t06-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Stay Clean",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l2-t06-b02.intro.vi.mp3"
+        ],
+        "sha256": "53b683fde0cc0562aacb1e2d766523abade17917bc410331a1b39f326a0538a0"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 7,
+    "topicTitle": "Ở trường",
+    "lessonId": "c67-l3-t07-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "School Words",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l3-t07-b01.intro.vi.mp3"
+        ],
+        "sha256": "c178d7818a51b6b317ad50944908d9bf5b9e8bf5f5bd98f09dd989a85490ff6a"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 7,
+    "topicTitle": "Ở trường",
+    "lessonId": "c67-l3-t07-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "In Class",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "tts",
+        "text": "Bài này là",
+        "locale": "vi-VN"
+      },
+      {
+        "kind": "tts",
+        "text": "In Class",
+        "locale": "en-US"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/LESSON_HOOKS/den-gio-vao-lop-roi.mp3"
+        ],
+        "sha256": "ab8c1d112083a12b1189b9e7c4846e61fb146968467505ac1c7cbbbd8b1b8c23"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/assistant-core/assistant.main.start_now.vi.mp3"
+        ],
+        "sha256": "fc315907156e9186a74118ba5a7486449e1802ae8c11c47f985d31b197e5cb2c"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 8,
+    "topicTitle": "Bạn bè của mình",
+    "lessonId": "c67-l3-t08-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Play Together",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l3-t08-b01.intro.vi.mp3"
+        ],
+        "sha256": "bb63ed6b1910018cc55c42754e6d83ee98c8f9e4f2af6de244611862bdc03a0c"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 8,
+    "topicTitle": "Bạn bè của mình",
+    "lessonId": "c67-l3-t08-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "My Turn",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l3-t08-b02.intro.vi.mp3"
+        ],
+        "sha256": "a155c03fddbf2e676bb8fc3ba46200d149b2f5d9fd015f7c4b5c6bc9c0b7c12d"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 9,
+    "topicTitle": "Những nơi gần đây",
+    "lessonId": "c67-l3-t09-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Place Words",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l3-t09-b01.intro.vi.mp3"
+        ],
+        "sha256": "80df341a1fdeb75ea4b7c10c7a45fb40253f838b9a503b1fad86174b093ec99c"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 9,
+    "topicTitle": "Những nơi gần đây",
+    "lessonId": "c67-l3-t09-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Where Are We?",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "tts",
+        "text": "Bài này là",
+        "locale": "vi-VN"
+      },
+      {
+        "kind": "tts",
+        "text": "Where Are We?",
+        "locale": "en-US"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/LESSON_HOOKS/homi-dang-o-dau-nhi.mp3"
+        ],
+        "sha256": "2ed40e12815fb0785806cf3640213a10cd1a55b48541a20da6fd6d338de28bdf"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/assistant-core/assistant.main.start_now.vi.mp3"
+        ],
+        "sha256": "fc315907156e9186a74118ba5a7486449e1802ae8c11c47f985d31b197e5cb2c"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 10,
+    "topicTitle": "Cuối tuần của mình",
+    "lessonId": "c67-l3-t10-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Weekend Words",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l3-t10-b01.intro.vi.mp3"
+        ],
+        "sha256": "74920abdec91582fc5ddba21a9524aefcd0f1dd822b36f894827bba02ccc8560"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "6-7",
+    "topicNumber": 10,
+    "topicTitle": "Cuối tuần của mình",
+    "lessonId": "c67-l3-t10-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Weekend Fun",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c67-l3-t10-b02.intro.vi.mp3"
+        ],
+        "sha256": "7bfc3c4e8265943d9e83851db17d09b35ec9ef6e76f92f00c6295ebf706d2620"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 1,
+    "topicTitle": "Lịch sinh hoạt của mình",
+    "lessonId": "c810-l1-t01-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Time & Tasks",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "tts",
+        "text": "Chủ đề 1. Bài đầu tiên là",
+        "locale": "vi-VN"
+      },
+      {
+        "kind": "tts",
+        "text": "Time & Tasks",
+        "locale": "en-US"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/LESSON_HOOKS/may-gio-roi-nhi.mp3"
+        ],
+        "sha256": "522ab54c995efc796e161fe0e89795225cdca2ad1aab1e849d37cc609bbb0c70"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/assistant-core/assistant.main.start_now.vi.mp3"
+        ],
+        "sha256": "fc315907156e9186a74118ba5a7486449e1802ae8c11c47f985d31b197e5cb2c"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 1,
+    "topicTitle": "Lịch sinh hoạt của mình",
+    "lessonId": "c810-l1-t01-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "My Routine",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l1-t01-b02.intro.vi.mp3"
+        ],
+        "sha256": "c0e4cf0119a792406f08919bfa353bd11b3fbf4d386f7ee9ec2133d5df6b4b99"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 2,
+    "topicTitle": "Cuộc sống ở trường",
+    "lessonId": "c810-l1-t02-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "School Subjects",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l1-t02-b01.intro.vi.mp3"
+        ],
+        "sha256": "4bd746abd17229aa82a12a2c7ca748fe94980ad89676a61f941449607fbd9e14"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 2,
+    "topicTitle": "Cuộc sống ở trường",
+    "lessonId": "c810-l1-t02-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Classroom Talk",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "tts",
+        "text": "Bài này là",
+        "locale": "vi-VN"
+      },
+      {
+        "kind": "tts",
+        "text": "Classroom Talk",
+        "locale": "en-US"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/LESSON_HOOKS/cua-lop-dang-dong.mp3"
+        ],
+        "sha256": "72416d9000e8b903dc84a3e12fa51ea8993daf6e62df845bd445c562dd5bc980"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/assistant-core/assistant.main.start_now.vi.mp3"
+        ],
+        "sha256": "fc315907156e9186a74118ba5a7486449e1802ae8c11c47f985d31b197e5cb2c"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 3,
+    "topicTitle": "Sở thích của mình",
+    "lessonId": "c810-l1-t03-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Hobby Time",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l1-t03-b01.intro.vi.mp3"
+        ],
+        "sha256": "8734f0d71a8f2c0879d1ae913b2b350c62ac4e2b8eb9a5cfa528051a0d2eaeec"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 3,
+    "topicTitle": "Sở thích của mình",
+    "lessonId": "c810-l1-t03-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Hobby Skills",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l1-t03-b02.intro.vi.mp3"
+        ],
+        "sha256": "784ae584e0affbc26fc3d1753df73ac5628ee51b1637e251bd3d412d1013d22e"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 4,
+    "topicTitle": "Đi quanh thành phố",
+    "lessonId": "c810-l2-t04-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Town Places",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l2-t04-b01.intro.vi.mp3"
+        ],
+        "sha256": "6be9833a941817404209d2a6bfad458b25e8228fb169225660f1282858279c7d"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 4,
+    "topicTitle": "Đi quanh thành phố",
+    "lessonId": "c810-l2-t04-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Simple Directions",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l2-t04-b02.intro.vi.mp3"
+        ],
+        "sha256": "c9c2044368aa08fd1ecb1340ddd351bd3e7b6b7486fab8cb4e234e917deae55b"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 4,
+    "topicTitle": "Đi quanh thành phố",
+    "lessonId": "c810-l2-t04-b03",
+    "lessonNumber": 3,
+    "lessonTitle": "Ask the Way",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l2-t04-b03.intro.vi.mp3"
+        ],
+        "sha256": "e65fb05723c3caa6ea7ebbde24e48ff8cfa04c6962fc793ac416814746bbb2a4"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 5,
+    "topicTitle": "Kế hoạch theo thời tiết",
+    "lessonId": "c810-l2-t05-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Weather Choices",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "tts",
+        "text": "Chủ đề 5. Bài đầu tiên là",
+        "locale": "vi-VN"
+      },
+      {
+        "kind": "tts",
+        "text": "Weather Choices",
+        "locale": "en-US"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/LESSON_HOOKS/hom-nay-troi-the-nao.mp3"
+        ],
+        "sha256": "6d20e74d1a9c4a37d1f023655edb8e74bf776fb2deee3ee3fea064822d62832c"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/assistant-core/assistant.main.start_now.vi.mp3"
+        ],
+        "sha256": "fc315907156e9186a74118ba5a7486449e1802ae8c11c47f985d31b197e5cb2c"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 5,
+    "topicTitle": "Kế hoạch theo thời tiết",
+    "lessonId": "c810-l2-t05-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Make a Plan",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l2-t05-b02.intro.vi.mp3"
+        ],
+        "sha256": "5f7833419ef41f5e594c7645776c4afbd7e341df636037b94d1d09bf48feb3f6"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 6,
+    "topicTitle": "Công nghệ",
+    "lessonId": "c810-l2-t06-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "My Devices",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l2-t06-b01.intro.vi.mp3"
+        ],
+        "sha256": "a1e5b3ac53739a1bdcc6e27f048f43710c7a6392b4621cf77e0d5e3ebd6dc385"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 6,
+    "topicTitle": "Công nghệ",
+    "lessonId": "c810-l2-t06-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Device Uses",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l2-t06-b02.intro.vi.mp3"
+        ],
+        "sha256": "7653f2c0509a14ced4bf1a89b13c66535fe887c80a769e6a3b8876db1fea7f0e"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 7,
+    "topicTitle": "Lựa chọn khi mua sắm",
+    "lessonId": "c810-l3-t07-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Shop Words",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l3-t07-b01.intro.vi.mp3"
+        ],
+        "sha256": "39c5f01ccf12e0f9602c8f74596721ea24550c147ce07daa617ab79c32e25e47"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 7,
+    "topicTitle": "Lựa chọn khi mua sắm",
+    "lessonId": "c810-l3-t07-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "How Much?",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l3-t07-b02.intro.vi.mp3"
+        ],
+        "sha256": "fc04264c0e989892a662c1eea8a757364d00164f9e160ff38bb7f5b3b7323eed"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 7,
+    "topicTitle": "Lựa chọn khi mua sắm",
+    "lessonId": "c810-l3-t07-b03",
+    "lessonNumber": 3,
+    "lessonTitle": "Choose One",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l3-t07-b03.intro.vi.mp3"
+        ],
+        "sha256": "5d01b35fcda830410def88a8b0666c5b3f1b69bf728e558994da9ad7f15bc6f9"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 8,
+    "topicTitle": "Bạn bè và cảm xúc",
+    "lessonId": "c810-l3-t08-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "My Feelings",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l3-t08-b01.intro.vi.mp3"
+        ],
+        "sha256": "fb6232fdf2e6fed304248e6a0b7a38e25c973cb1335bc2ac45dea7cfbb538bcb"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 8,
+    "topicTitle": "Bạn bè và cảm xúc",
+    "lessonId": "c810-l3-t08-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Help a Friend",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l3-t08-b02.intro.vi.mp3"
+        ],
+        "sha256": "26aec6ea8bff1e3a3105330e5780874a5c8d4ad1ce20251885fb919eb79964bb"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 9,
+    "topicTitle": "Chuyện gì đã xảy ra?",
+    "lessonId": "c810-l3-t09-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Yesterday Actions",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l3-t09-b01.intro.vi.mp3"
+        ],
+        "sha256": "8a279e400377565ca5fa121c216ebad6efe7987def67da6ddb85d0dfd2214193"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 9,
+    "topicTitle": "Chuyện gì đã xảy ra?",
+    "lessonId": "c810-l3-t09-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Tell What Happened",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l3-t09-b02.intro.vi.mp3"
+        ],
+        "sha256": "c0f7fb8df8c88394dacfdb06a89db11f81894c38ff25c06e42e5f1dc20572fc5"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 10,
+    "topicTitle": "Ngày đi chơi",
+    "lessonId": "c810-l3-t10-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Plan the Day",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l3-t10-b01.intro.vi.mp3"
+        ],
+        "sha256": "5e79c8142b4225a930cf2c70683c3ff2aaf6daa01a2d8faa6f5604cb0b749740"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "8-10",
+    "topicNumber": 10,
+    "topicTitle": "Ngày đi chơi",
+    "lessonId": "c810-l3-t10-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Getting There",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c810-l3-t10-b02.intro.vi.mp3"
+        ],
+        "sha256": "b7c7fd19a36a051e9289d3326165a9839bb33a7bd4bb2653fd113556792be757"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 1,
+    "topicTitle": "Tuần của mình",
+    "lessonId": "c1112-l1-t01-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Weekly Activities",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l1-t01-b01.intro.vi.mp3"
+        ],
+        "sha256": "7f93e74391cab040931807e7c615780f35b6957397934139a27fc8c4ff283c1b"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 1,
+    "topicTitle": "Tuần của mình",
+    "lessonId": "c1112-l1-t01-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "My Week",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l1-t01-b02.intro.vi.mp3"
+        ],
+        "sha256": "9a5056b13fa888fce32e75678ddd27008a262808318efb1c7601f0068e0ca979"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 2,
+    "topicTitle": "Học hiệu quả hơn",
+    "lessonId": "c1112-l1-t02-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Study Actions",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l1-t02-b01.intro.vi.mp3"
+        ],
+        "sha256": "e73b756188381f76d6a0d810da412b1a70ff6ed9a9312abf7660fa7ced8c9860"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 2,
+    "topicTitle": "Học hiệu quả hơn",
+    "lessonId": "c1112-l1-t02-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Study Routine",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l1-t02-b02.intro.vi.mp3"
+        ],
+        "sha256": "4c28ccf429f54c62fd67cbbc0f878d986acd1557297f2973fdf42918ef067d99"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 3,
+    "topicTitle": "Điểm mạnh của mình",
+    "lessonId": "c1112-l1-t03-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "My Skills",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l1-t03-b01.intro.vi.mp3"
+        ],
+        "sha256": "7832ce28cefb8590c0a6ac85e0422bae100dbb9ea9e9751a91c875276636b30e"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 3,
+    "topicTitle": "Điểm mạnh của mình",
+    "lessonId": "c1112-l1-t03-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Good At",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l1-t03-b02.intro.vi.mp3"
+        ],
+        "sha256": "41c3f0321b85da0f98435fcfa722c96d03137385ab990ad8dbeac334ccb87293"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 4,
+    "topicTitle": "Cách di chuyển",
+    "lessonId": "c1112-l2-t04-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Transport Words",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l2-t04-b01.intro.vi.mp3"
+        ],
+        "sha256": "697d498f6b3d36b63b0903358a277b327dfab804649c9319956cf8f945318312"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 4,
+    "topicTitle": "Cách di chuyển",
+    "lessonId": "c1112-l2-t04-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "How Do You Go?",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l2-t04-b02.intro.vi.mp3"
+        ],
+        "sha256": "d5dd02b388cbc53ce9b9491b68b9d3e080469b91a5e7abbedd588811b0283ff7"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 4,
+    "topicTitle": "Cách di chuyển",
+    "lessonId": "c1112-l2-t04-b03",
+    "lessonNumber": 3,
+    "lessonTitle": "Best Way",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l2-t04-b03.intro.vi.mp3"
+        ],
+        "sha256": "fff63cd778d21fd84e7d964712b3acd63423bfdb9d8181511d280362c0789189"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 5,
+    "topicTitle": "Thói quen lành mạnh",
+    "lessonId": "c1112-l2-t05-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Healthy Actions",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l2-t05-b01.intro.vi.mp3"
+        ],
+        "sha256": "7374ee22ac8cbccba87b21d5945a4bdf161c7e388257e1708016f8d9f8a91fed"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 5,
+    "topicTitle": "Thói quen lành mạnh",
+    "lessonId": "c1112-l2-t05-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Good Habits",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l2-t05-b02.intro.vi.mp3"
+        ],
+        "sha256": "11a50f0bca6daee2c57ca7eb0a162d71754c72adbc0799c1f6abb96dc6e1eb42"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 6,
+    "topicTitle": "An toàn trên mạng",
+    "lessonId": "c1112-l2-t06-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Online Words",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l2-t06-b01.intro.vi.mp3"
+        ],
+        "sha256": "7a267e94a3146d104ed255bc7b61af40f9b62d5be825df0a23a118c786cb8aea"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 6,
+    "topicTitle": "An toàn trên mạng",
+    "lessonId": "c1112-l2-t06-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Stay Safe",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "tts",
+        "text": "Bài này là",
+        "locale": "vi-VN"
+      },
+      {
+        "kind": "tts",
+        "text": "Stay Safe",
+        "locale": "en-US"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/LESSON_HOOKS/co-mot-tin-nhan-la.mp3"
+        ],
+        "sha256": "0e2a720a51a68e0ad90d58c28caeb5a22cc5e2620b84fc8e33a5a89070d2e27d"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/assistant-core/assistant.main.start_now.vi.mp3"
+        ],
+        "sha256": "fc315907156e9186a74118ba5a7486449e1802ae8c11c47f985d31b197e5cb2c"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 7,
+    "topicTitle": "Lập kế hoạch",
+    "lessonId": "c1112-l3-t07-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Plan Words",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l3-t07-b01.intro.vi.mp3"
+        ],
+        "sha256": "c7d92908f95bf22a45177f805c2f179bd2388222bc2cc65ba7923dd2d7c67ba6"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 7,
+    "topicTitle": "Lập kế hoạch",
+    "lessonId": "c1112-l3-t07-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Make a Plan",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l3-t07-b02.intro.vi.mp3"
+        ],
+        "sha256": "8cc696e939c87e5a2cf29bea7d9981e3f9bb14b57879b83cc8146f923d6596fc"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 7,
+    "topicTitle": "Lập kế hoạch",
+    "lessonId": "c1112-l3-t07-b03",
+    "lessonNumber": 3,
+    "lessonTitle": "Polite Replies",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l3-t07-b03.intro.vi.mp3"
+        ],
+        "sha256": "edc366ddcf78a3b4b398b4b7d3cd1386337e786ae7e80da4693ca658c76f449f"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 8,
+    "topicTitle": "Ở cửa hàng",
+    "lessonId": "c1112-l3-t08-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Shop Words",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l3-t08-b01.intro.vi.mp3"
+        ],
+        "sha256": "1bd8f867d24345e080ba51295fa19bff003f8f0d1342704cbeff951a8b5b6388"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 8,
+    "topicTitle": "Ở cửa hàng",
+    "lessonId": "c1112-l3-t08-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Ask the Price",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l3-t08-b02.intro.vi.mp3"
+        ],
+        "sha256": "08d36e8b3707e0e53d9fceec4575481a78e704e209887aa1e863b49040859c5b"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 8,
+    "topicTitle": "Ở cửa hàng",
+    "lessonId": "c1112-l3-t08-b03",
+    "lessonNumber": 3,
+    "lessonTitle": "Choose One",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l3-t08-b03.intro.vi.mp3"
+        ],
+        "sha256": "027e5bf349cc384e136b9a95eea5dddef0f417e05064fe0be21e4db9df4055a2"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 9,
+    "topicTitle": "Những vấn đề nhỏ",
+    "lessonId": "c1112-l3-t09-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Problem Phrases",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l3-t09-b01.intro.vi.mp3"
+        ],
+        "sha256": "c5108c2bafcaba75796eda360c9359b90142e4eb0fa5622506aada4671b2920e"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 9,
+    "topicTitle": "Những vấn đề nhỏ",
+    "lessonId": "c1112-l3-t09-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Ask for Help",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l3-t09-b02.intro.vi.mp3"
+        ],
+        "sha256": "5737c1b953e2dfd83ab762ec0bd88ab2301d8d354ee6436daf67e43855dbfc45"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 9,
+    "topicTitle": "Những vấn đề nhỏ",
+    "lessonId": "c1112-l3-t09-b03",
+    "lessonNumber": 3,
+    "lessonTitle": "Simple Solutions",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l3-t09-b03.intro.vi.mp3"
+        ],
+        "sha256": "c1799149d73ba08f061053005b64b7c2fdca9cf578e626764a73a48ca4a489ce"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 10,
+    "topicTitle": "Hành động xanh",
+    "lessonId": "c1112-l3-t10-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Save Resources",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l3-t10-b01.intro.vi.mp3"
+        ],
+        "sha256": "d41fa7ada23b9613becfd596a7d1f11ef535c5439767f4d568280c530ec8cf45"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "11-12",
+    "topicNumber": 10,
+    "topicTitle": "Hành động xanh",
+    "lessonId": "c1112-l3-t10-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Go Green",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1112-l3-t10-b02.intro.vi.mp3"
+        ],
+        "sha256": "7680245e1210b832d6656ee12e8f62f4ab4fa96936a889daa5ce4c47a40288c5"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 1,
+    "topicTitle": "Sắp xếp thời gian",
+    "lessonId": "c1315-l1-t01-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Time Blocks",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1315-l1-t01-b01.intro.vi.mp3"
+        ],
+        "sha256": "004d0fa63cd2dac4d90f7d05e1bd650804f9757a25177ffa30dcd82e405f35dd"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 1,
+    "topicTitle": "Sắp xếp thời gian",
+    "lessonId": "c1315-l1-t01-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Plan My Time",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1315-l1-t01-b02.intro.vi.mp3"
+        ],
+        "sha256": "307552344ee452be4caa21e245d9686b4ced2c732cf108e089df320ce25d6db5"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 2,
+    "topicTitle": "Mục tiêu học tập",
+    "lessonId": "c1315-l1-t02-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "My Goal",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1315-l1-t02-b01.intro.vi.mp3"
+        ],
+        "sha256": "89b781f7f8e253c03ffed919b3997350a40e51d53e4d42b5b78ef05f6a9ffc52"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 2,
+    "topicTitle": "Mục tiêu học tập",
+    "lessonId": "c1315-l1-t02-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Small Steps",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1315-l1-t02-b02.intro.vi.mp3"
+        ],
+        "sha256": "2c0ca0a24caca267ca52b66eb1d083b6bf5e2682c132a02d086ca7603291e681"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 3,
+    "topicTitle": "Nêu ý kiến",
+    "lessonId": "c1315-l1-t03-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "My Opinion",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1315-l1-t03-b01.intro.vi.mp3"
+        ],
+        "sha256": "e21028b4f317a3f8108461e8fcb306ac7367d7f09be179c93ecab60428322528"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 3,
+    "topicTitle": "Nêu ý kiến",
+    "lessonId": "c1315-l1-t03-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Give a Reason",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1315-l1-t03-b02.intro.vi.mp3"
+        ],
+        "sha256": "8cd765d7616a4b3c995b6376a388d0e30ef8da0f9f2e57ed116364af4bd50364"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 4,
+    "topicTitle": "Chi tiêu thông minh",
+    "lessonId": "c1315-l2-t04-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Price & Budget",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1315-l2-t04-b01.intro.vi.mp3"
+        ],
+        "sha256": "87512794dc8cda5db92934a8e2c3cb404697db7d5998b65d1f30f4b55c333e87"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 4,
+    "topicTitle": "Chi tiêu thông minh",
+    "lessonId": "c1315-l2-t04-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Buy or Save?",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1315-l2-t04-b02.intro.vi.mp3"
+        ],
+        "sha256": "e08879037849dae91c837e9b710c32274762a8e3ad4b3f44f3b387228b07b0e7"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 5,
+    "topicTitle": "Khi cảm thấy căng thẳng",
+    "lessonId": "c1315-l2-t05-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Stress Signs",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1315-l2-t05-b01.intro.vi.mp3"
+        ],
+        "sha256": "1e4eb4087ed654f85aa63a1804ffb99a9a26b39aad42e05e0262d8534bcb1ed6"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 5,
+    "topicTitle": "Khi cảm thấy căng thẳng",
+    "lessonId": "c1315-l2-t05-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Feel Better",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1315-l2-t05-b02.intro.vi.mp3"
+        ],
+        "sha256": "8fa4859c4d20655f9f1c4441c72937371f90622a2c34cbf2f0b92d16e398ee72"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 6,
+    "topicTitle": "Quyền riêng tư trên mạng",
+    "lessonId": "c1315-l2-t06-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Private Info",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1315-l2-t06-b01.intro.vi.mp3"
+        ],
+        "sha256": "83872e184887b45c45e8ffe345fb6808270be8e6f5d40cf7f636040e359d5cc1"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 6,
+    "topicTitle": "Quyền riêng tư trên mạng",
+    "lessonId": "c1315-l2-t06-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Stay Private",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1315-l2-t06-b02.intro.vi.mp3"
+        ],
+        "sha256": "0daa08915bbeeefb814fbbc44df0217345431d364d54124b16d551e447176259"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 7,
+    "topicTitle": "Ở nhà ga",
+    "lessonId": "c1315-l3-t07-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Station Words",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1315-l3-t07-b01.intro.vi.mp3"
+        ],
+        "sha256": "a0cb342e3ac196885f2f082b538edee3eb70f4349e06efd2f99b6453fc14e9ca"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 7,
+    "topicTitle": "Ở nhà ga",
+    "lessonId": "c1315-l3-t07-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Ask for Info",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "tts",
+        "text": "Bài này là",
+        "locale": "vi-VN"
+      },
+      {
+        "kind": "tts",
+        "text": "Ask for Info",
+        "locale": "en-US"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/LESSON_HOOKS/sap-den-gio-tau-chay.mp3"
+        ],
+        "sha256": "fde38d5659c01edd9971385c84094e7a05800336ad0d71cd498ded1c0566eae0"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/assistant-core/assistant.main.start_now.vi.mp3"
+        ],
+        "sha256": "fc315907156e9186a74118ba5a7486449e1802ae8c11c47f985d31b197e5cb2c"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 8,
+    "topicTitle": "Ở nhà hàng",
+    "lessonId": "c1315-l3-t08-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Menu Words",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1315-l3-t08-b01.intro.vi.mp3"
+        ],
+        "sha256": "116a543a03ddfe2ff8d9bd63abdf5857977c3ef3b0d2ff1f5ce41cf57728835a"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 8,
+    "topicTitle": "Ở nhà hàng",
+    "lessonId": "c1315-l3-t08-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "My Order",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "tts",
+        "text": "Bài này là",
+        "locale": "vi-VN"
+      },
+      {
+        "kind": "tts",
+        "text": "My Order",
+        "locale": "en-US"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/LESSON_HOOKS/den-luc-goi-mon-roi.mp3"
+        ],
+        "sha256": "1f78f8867d8f94ee2c91e4d34d3f8fa37d184229296b4956493cd4d18f3bf8f7"
+      },
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/assistant-core/assistant.main.start_now.vi.mp3"
+        ],
+        "sha256": "fc315907156e9186a74118ba5a7486449e1802ae8c11c47f985d31b197e5cb2c"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 9,
+    "topicTitle": "Chọn giữa hai phương án",
+    "lessonId": "c1315-l3-t09-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "Compare Two",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1315-l3-t09-b01.intro.vi.mp3"
+        ],
+        "sha256": "1b1fb788016d705422b77a812dd1355b834eb2fa0c960806a355c6472af299f2"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 9,
+    "topicTitle": "Chọn giữa hai phương án",
+    "lessonId": "c1315-l3-t09-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "My Choice",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1315-l3-t09-b02.intro.vi.mp3"
+        ],
+        "sha256": "8ae27551f820b8dbc0dc527e17be742d2f8dd3a6b9b5322d37472fe68801df44"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 10,
+    "topicTitle": "Kế hoạch tương lai",
+    "lessonId": "c1315-l3-t10-b01",
+    "lessonNumber": 1,
+    "lessonTitle": "My Plan",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1315-l3-t10-b01.intro.vi.mp3"
+        ],
+        "sha256": "e56d2a240f07304ee96a09a48413189ca13233611abb01f5b650fb3c146c6504"
+      }
+    ]
+  },
+  {
+    "platform": "android",
+    "ageGroup": "13-15",
+    "topicNumber": 10,
+    "topicTitle": "Kế hoạch tương lai",
+    "lessonId": "c1315-l3-t10-b02",
+    "lessonNumber": 2,
+    "lessonTitle": "Next Step",
+    "hookUri": null,
+    "finished": true,
+    "events": [
+      {
+        "kind": "mp3",
+        "assets": [
+          "assets/audio/listening-common/listening.lesson.c1315-l3-t10-b02.intro.vi.mp3"
+        ],
+        "sha256": "f72da1f9e1bf0b8be34cec817b6d3cc0ca7b304f48f49f723ee46c60bce031d3"
+      }
+    ]
+  }
+]

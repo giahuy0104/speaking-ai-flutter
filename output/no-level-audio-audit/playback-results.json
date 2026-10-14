@@ -1,0 +1,352 @@
+[
+  {
+    "context": "new ten-topic navigation",
+    "text": "Có 10 Chủ đề. Bạn chọn Chủ đề số mấy?",
+    "requestedKey": "assistant.topic.choose_10.vi",
+    "method": "speakAndWait",
+    "playedKeys": []
+  },
+  {
+    "context": "new ten-topic navigation",
+    "text": "Nhóm tuổi này có 10 Chủ đề. Bạn chọn lại nhé.",
+    "requestedKey": null,
+    "method": "speakAndWait",
+    "playedKeys": []
+  },
+  {
+    "context": "new ten-topic navigation",
+    "text": "Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Chủ đề số mấy? Bạn chọn từ số 1 đến số 10.",
+    "requestedKey": null,
+    "method": "speakAndWait",
+    "playedKeys": []
+  },
+  {
+    "context": "new ten-topic navigation",
+    "text": "Bạn chọn Chủ đề 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 nhé.",
+    "requestedKey": null,
+    "method": "speakAndWait",
+    "playedKeys": []
+  },
+  {
+    "context": "topic 1 replay/milestone/completion",
+    "text": "Chủ đề 1 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 1?",
+    "requestedKey": "assistant.topic.replay.1.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "assistant.topic.replay.1.vi"
+    ]
+  },
+  {
+    "context": "topic 1 replay/milestone/completion",
+    "text": "Bạn đã hoàn thành Chủ đề 1 rồi!",
+    "requestedKey": "listening.milestone.topic.1.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.milestone.topic.1.vi"
+    ]
+  },
+  {
+    "context": "topic 1 replay/milestone/completion",
+    "text": "Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 1?",
+    "requestedKey": "listening.completion.topic.replay.1.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.completion.topic.replay.1.vi"
+    ]
+  },
+  {
+    "context": "topic 2 replay/milestone/completion",
+    "text": "Chủ đề 2 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 2?",
+    "requestedKey": "assistant.topic.replay.2.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "assistant.topic.replay.2.vi"
+    ]
+  },
+  {
+    "context": "topic 2 replay/milestone/completion",
+    "text": "Bạn đã hoàn thành Chủ đề 2 rồi!",
+    "requestedKey": "listening.milestone.topic.2.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.milestone.topic.2.vi"
+    ]
+  },
+  {
+    "context": "topic 2 replay/milestone/completion",
+    "text": "Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 2?",
+    "requestedKey": "listening.completion.topic.replay.2.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.completion.topic.replay.2.vi"
+    ]
+  },
+  {
+    "context": "topic 3 replay/milestone/completion",
+    "text": "Chủ đề 3 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 3?",
+    "requestedKey": "assistant.topic.replay.3.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "assistant.topic.replay.3.vi"
+    ]
+  },
+  {
+    "context": "topic 3 replay/milestone/completion",
+    "text": "Bạn đã hoàn thành Chủ đề 3 rồi!",
+    "requestedKey": "listening.milestone.topic.3.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.milestone.topic.3.vi"
+    ]
+  },
+  {
+    "context": "topic 3 replay/milestone/completion",
+    "text": "Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 3?",
+    "requestedKey": "listening.completion.topic.replay.3.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.completion.topic.replay.3.vi"
+    ]
+  },
+  {
+    "context": "topic 4 replay/milestone/completion",
+    "text": "Chủ đề 4 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 4?",
+    "requestedKey": "assistant.topic.replay.4.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "assistant.topic.replay.4.vi"
+    ]
+  },
+  {
+    "context": "topic 4 replay/milestone/completion",
+    "text": "Bạn đã hoàn thành Chủ đề 4 rồi!",
+    "requestedKey": "listening.milestone.topic.4.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.milestone.topic.4.vi"
+    ]
+  },
+  {
+    "context": "topic 4 replay/milestone/completion",
+    "text": "Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 4?",
+    "requestedKey": "listening.completion.topic.replay.4.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.completion.topic.replay.4.vi"
+    ]
+  },
+  {
+    "context": "topic 5 replay/milestone/completion",
+    "text": "Chủ đề 5 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 5?",
+    "requestedKey": "assistant.topic.replay.5.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "assistant.topic.replay.5.vi"
+    ]
+  },
+  {
+    "context": "topic 5 replay/milestone/completion",
+    "text": "Bạn đã hoàn thành Chủ đề 5 rồi!",
+    "requestedKey": "listening.milestone.topic.5.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.milestone.topic.5.vi"
+    ]
+  },
+  {
+    "context": "topic 5 replay/milestone/completion",
+    "text": "Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 5?",
+    "requestedKey": "listening.completion.topic.replay.5.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.completion.topic.replay.5.vi"
+    ]
+  },
+  {
+    "context": "topic 6 replay/milestone/completion",
+    "text": "Chủ đề 6 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 6?",
+    "requestedKey": "assistant.topic.replay.6.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "assistant.topic.replay.6.vi"
+    ]
+  },
+  {
+    "context": "topic 6 replay/milestone/completion",
+    "text": "Bạn đã hoàn thành Chủ đề 6 rồi!",
+    "requestedKey": "listening.milestone.topic.6.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.milestone.topic.6.vi"
+    ]
+  },
+  {
+    "context": "topic 6 replay/milestone/completion",
+    "text": "Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 6?",
+    "requestedKey": "listening.completion.topic.replay.6.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.completion.topic.replay.6.vi"
+    ]
+  },
+  {
+    "context": "topic 7 replay/milestone/completion",
+    "text": "Chủ đề 7 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 7?",
+    "requestedKey": "assistant.topic.replay.7.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "assistant.topic.replay.7.vi"
+    ]
+  },
+  {
+    "context": "topic 7 replay/milestone/completion",
+    "text": "Bạn đã hoàn thành Chủ đề 7 rồi!",
+    "requestedKey": "listening.milestone.topic.7.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.milestone.topic.7.vi"
+    ]
+  },
+  {
+    "context": "topic 7 replay/milestone/completion",
+    "text": "Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 7?",
+    "requestedKey": "listening.completion.topic.replay.7.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.completion.topic.replay.7.vi"
+    ]
+  },
+  {
+    "context": "topic 8 replay/milestone/completion",
+    "text": "Chủ đề 8 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 8?",
+    "requestedKey": "assistant.topic.replay.8.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "assistant.topic.replay.8.vi"
+    ]
+  },
+  {
+    "context": "topic 8 replay/milestone/completion",
+    "text": "Bạn đã hoàn thành Chủ đề 8 rồi!",
+    "requestedKey": "listening.milestone.topic.8.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.milestone.topic.8.vi"
+    ]
+  },
+  {
+    "context": "topic 8 replay/milestone/completion",
+    "text": "Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 8?",
+    "requestedKey": "listening.completion.topic.replay.8.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.completion.topic.replay.8.vi"
+    ]
+  },
+  {
+    "context": "topic 9 replay/milestone/completion",
+    "text": "Chủ đề 9 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 9?",
+    "requestedKey": "assistant.topic.replay.9.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "assistant.topic.replay.9.vi"
+    ]
+  },
+  {
+    "context": "topic 9 replay/milestone/completion",
+    "text": "Bạn đã hoàn thành Chủ đề 9 rồi!",
+    "requestedKey": "listening.milestone.topic.9.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.milestone.topic.9.vi"
+    ]
+  },
+  {
+    "context": "topic 9 replay/milestone/completion",
+    "text": "Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 9?",
+    "requestedKey": "listening.completion.topic.replay.9.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.completion.topic.replay.9.vi"
+    ]
+  },
+  {
+    "context": "topic 10 replay/milestone/completion",
+    "text": "Chủ đề 10 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 10?",
+    "requestedKey": "assistant.topic.replay.10.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "assistant.topic.replay.10.vi"
+    ]
+  },
+  {
+    "context": "topic 10 replay/milestone/completion",
+    "text": "Bạn đã hoàn thành Chủ đề 10 rồi!",
+    "requestedKey": "listening.milestone.topic.10.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.milestone.topic.10.vi"
+    ]
+  },
+  {
+    "context": "topic 10 replay/milestone/completion",
+    "text": "Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 10?",
+    "requestedKey": "listening.completion.topic.replay.10.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.completion.topic.replay.10.vi"
+    ]
+  },
+  {
+    "context": "completion",
+    "text": "Bạn đã hoàn thành khóa học rồi!",
+    "requestedKey": "listening.milestone.course.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.milestone.course.vi"
+    ]
+  },
+  {
+    "context": "completion",
+    "text": "Bạn còn một Chủ đề chưa học. Bạn muốn học tiếp hay học lại?",
+    "requestedKey": "listening.completion.topic.one_remaining.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.completion.topic.one_remaining.vi"
+    ]
+  },
+  {
+    "context": "completion",
+    "text": "Bạn muốn học Bài 2 hay học lại Bài 1?",
+    "requestedKey": "listening.completion.lesson.1_to_2.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.completion.lesson.1_to_2.vi"
+    ]
+  },
+  {
+    "context": "completion",
+    "text": "Bạn muốn học Bài 3 hay học lại Bài 2?",
+    "requestedKey": "listening.completion.lesson.2_to_3.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "listening.completion.lesson.2_to_3.vi"
+    ]
+  },
+  {
+    "context": "other-learning echo",
+    "text": "Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?",
+    "requestedKey": "assistant.main.after_translation_stop.vi",
+    "method": "speakAndWait",
+    "playedKeys": []
+  },
+  {
+    "context": "after-translation-stop echo",
+    "text": "Bạn muốn tiếp tục dịch, học Chủ đề hay Bộ từ vựng?",
+    "requestedKey": "assistant.main.choose_translation.vi",
+    "method": "playAuthoredAudioAndWait",
+    "playedKeys": [
+      "assistant.main.choose_translation.vi"
+    ]
+  }
+]

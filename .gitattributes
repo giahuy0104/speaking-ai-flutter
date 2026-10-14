@@ -1,0 +1,3 @@
+# Audio pack checksums must stay identical on Windows and Unix checkouts.
+/assets/data/*_audio.json text eol=lf
+/assets/data/audio_pack_index.json text eol=lf

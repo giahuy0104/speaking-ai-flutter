@@ -1,0 +1,178 @@
+{
+  "revision": "deb55732ad886c42aa83d0477f24edbfe15c96a1",
+  "parent": "30baa8d84e59760075d57f3cb1ea44f360d75aba",
+  "head": "a494c9e535dea79e82dd500d3c737388b84c8018",
+  "divergenceHeadTarget": "50\t63",
+  "changedFiles": 821,
+  "changedAudio": 795,
+  "deletedAudio": [
+    "assets/audio/listening-common/listening.completion.lesson.2_to_1.vi.mp3",
+    "assets/audio/listening-common/listening.milestone.course.vi.mp3",
+    "assets/audio/listening-common/listening.milestone.level.1.vi.mp3",
+    "assets/audio/listening-common/listening.milestone.level.2.vi.mp3",
+    "assets/audio/listening-common/listening.milestone.level.3.vi.mp3",
+    "assets/audio/listening-common/listening.navigation.choose_level.vi.mp3"
+  ],
+  "nonAudioChanged": [
+    "assets/data/assistant_core_audio.json",
+    "assets/data/audio_pack_index.json",
+    "assets/data/challenge_11_12_audio.json",
+    "assets/data/challenge_13_15_audio.json",
+    "assets/data/challenge_3_5_audio.json",
+    "assets/data/challenge_6_7_audio.json",
+    "assets/data/challenge_8_10_audio.json",
+    "assets/data/homi_gap66_audio.json",
+    "assets/data/listening_11_12_audio.json",
+    "assets/data/listening_13_15_audio.json",
+    "assets/data/listening_3_5_audio.json",
+    "assets/data/listening_6_7_audio.json",
+    "assets/data/listening_8_10_audio.json",
+    "assets/data/listening_common_audio.json",
+    "assets/data/vocabulary_built_in_audio.json",
+    "assets/data/vocabulary_common_audio.json",
+    "deliverables/audio-import-2026-10-13.json",
+    "test/features/listening/lesson_hook_audio_test.dart",
+    "test/features/listening/topic_content_identity_test.dart",
+    "test/homi_gap66_audio_test.dart"
+  ],
+  "dirtyOverlap": [
+    "assets/data/assistant_core_audio.json",
+    "assets/data/audio_pack_index.json",
+    "assets/data/homi_gap66_audio.json",
+    "assets/data/listening_common_audio.json",
+    "test/homi_gap66_audio_test.dart"
+  ],
+  "simulations": [
+    {
+      "method": "single_commit",
+      "exitCode": 1,
+      "conflicts": [
+        "assets/data/assistant_core_audio.json",
+        "assets/data/audio_pack_index.json",
+        "assets/data/listening_common_audio.json",
+        "test/features/listening/topic_content_identity_test.dart"
+      ]
+    },
+    {
+      "method": "whole_history",
+      "exitCode": 1,
+      "conflicts": [
+        "android/app/src/main/kotlin/com/innotrik/aispeaking/Aiv0BleControlBridge.kt",
+        "lib/app/ai_speaking_app.dart",
+        "lib/app/device_connection_feedback_overlay.dart",
+        "lib/core/device/aiv0_ble_control.dart",
+        "lib/features/home/presentation/home_learning_shell.dart",
+        "lib/features/listening/presentation/lesson_practice_screen.dart",
+        "lib/features/vocabulary/presentation/vocabulary_home_screen.dart",
+        "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+        "lib/features/voice_navigation/application/voice_navigation_controller.dart",
+        "test/core_audio_audio_registry_test.dart",
+        "test/core_audio_browser_hfp_test.dart",
+        "test/core_device_aiv0_android_connect_test.dart",
+        "test/features/home/home_learning_shell_test.dart",
+        "test/features/onboarding/startup_setup_screen_test.dart",
+        "test/features/voice_navigation/main_voice_assistant_flow_test.dart",
+        "test/features/voice_navigation/master_navigation_contract_test.dart",
+        "test/features/voice_navigation/voice_navigation_controller_test.dart"
+      ]
+    }
+  ],
+  "workingTreeConflicts": [
+    {
+      "path": "assets/data/audio_pack_index.json",
+      "conflictHunks": 2
+    }
+  ],
+  "targetIntegrity": {
+    "manifests": 17,
+    "promptEntries": 4011,
+    "uniqueAssetsChecked": 2877,
+    "missing": [],
+    "indexErrors": [],
+    "assetErrors": []
+  },
+  "deletedKeysInWorkingTree": [
+    {
+      "key": "listening.navigation.choose_level.vi",
+      "enabled": false,
+      "asset": "assets/audio/listening-common/listening.navigation.choose_level.vi.mp3"
+    },
+    {
+      "key": "listening.milestone.level.1.vi",
+      "enabled": false,
+      "asset": "assets/audio/listening-common/listening.milestone.level.1.vi.mp3"
+    },
+    {
+      "key": "listening.milestone.level.2.vi",
+      "enabled": false,
+      "asset": "assets/audio/listening-common/listening.milestone.level.2.vi.mp3"
+    },
+    {
+      "key": "listening.milestone.level.3.vi",
+      "enabled": false,
+      "asset": "assets/audio/listening-common/listening.milestone.level.3.vi.mp3"
+    },
+    {
+      "key": "listening.milestone.course.vi",
+      "enabled": true,
+      "asset": "assets/audio/listening-common/listening.milestone.course.vi.mp3"
+    },
+    {
+      "key": "listening.completion.lesson.2_to_1.vi",
+      "enabled": true,
+      "asset": "assets/audio/listening-common/listening.completion.lesson.2_to_1.vi.mp3"
+    }
+  ],
+  "enabledLevelKeysInTarget": [
+    {
+      "key": "assistant.topic.level_selection.1.vi",
+      "text": "Bắt đầu Level 1. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?"
+    },
+    {
+      "key": "assistant.topic.level_selection.2.vi",
+      "text": "Bắt đầu Level 2. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?"
+    },
+    {
+      "key": "assistant.topic.level_selection.3.vi",
+      "text": "Bắt đầu Level 3. Có 4 Chủ đề. Bạn chọn Chủ đề số mấy?"
+    },
+    {
+      "key": "GAP66-022",
+      "text": "Mình chưa hiểu. Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?"
+    },
+    {
+      "key": "GAP66-025",
+      "text": "Mình chưa hiểu. Bạn muốn bắt đầu Level 2 hay dừng lại?"
+    },
+    {
+      "key": "GAP66-026",
+      "text": "Mình chưa hiểu. Bạn muốn bắt đầu Level 3 hay dừng lại?"
+    }
+  ],
+  "targetTopicPrompts": [
+    {
+      "key": "assistant.topic.choose_10.vi",
+      "text": "Có 10 Chủ đề. Bạn muốn chọn Chủ đề số mấy?",
+      "asset": "assets/audio/assistant-core/assistant.topic.choose_10.vi.mp3",
+      "sha256": "9366d589707cbc5377920a6a829e5cfbb0f06114fd52011a5c1ef3f5dba0cb85",
+      "enabled": true
+    },
+    {
+      "key": "assistant.topic.choose_course_relearn.vi",
+      "text": "Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Chủ đề số mấy?",
+      "asset": "assets/audio/assistant-core/assistant.topic.choose_course_relearn.vi.mp3",
+      "sha256": "c9e71b1b1fa61b3e5e4fa53afb84e83ec8886cc3e6d603f0b7aa95f4c0adafda",
+      "enabled": true
+    },
+    {
+      "key": "assistant.topic.invalid_10.vi",
+      "text": "Bạn chọn Chủ đề từ số 1 đến số 10 nhé.",
+      "asset": "assets/audio/assistant-core/assistant.topic.invalid_10.vi.mp3",
+      "sha256": "349f8c3748e2838ae4b5730f471688eaaf08bdb7245ca6d1ff13dec9cd720d6d",
+      "enabled": true
+    }
+  ],
+  "changedAudioWithExistingLoudnessGain": 795,
+  "loudnessManifestUpdatedInCommit": false,
+  "curriculumSameAsWorkingTree": true
+}

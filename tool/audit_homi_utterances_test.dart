@@ -200,28 +200,23 @@ void main() {
         );
       }
       for (final group in catalog.groups) {
-        for (final level in group.levels) {
-          for (final completed in [<int>[], level.topicNumbers]) {
-            for (final announce in [false, true]) {
-              await explore(
-                () => flow(group.startAge),
-                (f) => f.beginLevelTopicSelection(
-                  childAge: group.startAge,
-                  levelNumber: level.number,
-                  topicNumbers: level.topicNumbers,
-                  completedTopicNumbers: completed,
-                  announceLevel: announce,
-                ),
-                'age=${group.startAge} level=${level.number} completed=$completed announce=$announce',
-              );
-            }
-          }
+        final topicNumbers = group.topics.map((topic) => topic.number).toList();
+        for (final completed in [<int>[], topicNumbers]) {
+          await explore(
+            () => flow(group.startAge),
+            (f) => f.beginTopicSelection(
+              childAge: group.startAge,
+              topicNumbers: topicNumbers,
+              completedTopicNumbers: completed,
+            ),
+            'age=${group.startAge} completed=$completed',
+          );
         }
         await explore(
           () => flow(group.startAge),
-          (f) => f.beginCourseRelearnLevelSelection(
+          (f) => f.beginCourseRelearnTopicSelection(
             childAge: group.startAge,
-            levelNumbers: group.levels.map((x) => x.number).toList(),
+            topicNumbers: topicNumbers,
           ),
           'course relearn age=${group.startAge}',
         );
@@ -313,21 +308,8 @@ void main() {
             'lib/features/listening/domain/v4_completion_flow.dart',
           );
         }
-        for (final level in group.levels.skip(1)) {
-          add(
-            v4CompletionPrompt(
-              V4CompletionStage.nextLevel,
-              nextLevel: level.number,
-            ),
-            'completion',
-            'lib/features/listening/domain/v4_completion_flow.dart',
-          );
-        }
       }
-      for (final stage in [
-        V4CompletionStage.topicEndOneRemaining,
-        V4CompletionStage.courseRelearnLevel,
-      ]) {
+      for (final stage in [V4CompletionStage.topicEndOneRemaining]) {
         add(
           v4CompletionPrompt(stage),
           'completion',
@@ -431,12 +413,10 @@ void main() {
           },
           vocabularyLoader: () async => [],
         );
-        instance.beginLevelTopicSelection(
+        instance.beginTopicSelection(
           childAge: 3,
-          levelNumber: 1,
           topicNumbers: [1, 2, 3],
           completedTopicNumbers: [],
-          announceLevel: false,
         );
         turn(
           await instance.handle('chủ đề 1'),

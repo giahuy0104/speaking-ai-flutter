@@ -40,7 +40,7 @@ void main() {
           ...(jsonDecode(File(path).readAsStringSync())['prompts'] as List),
       ];
       for (final e in entries) {
-        expect(e['enabled'], true);
+        expect(e['enabled'], !(e['text'] as String).contains('Level'));
         expect(
           e.containsKey('url'),
           false,
@@ -54,7 +54,11 @@ void main() {
               (p['locale'] == e['locale'] ||
                   (p['lookupLocales'] as List? ?? []).contains(e['locale'])),
         );
-        expect(matches, hasLength(1), reason: e['text'] as String);
+        expect(
+          matches,
+          hasLength(e['enabled'] == true ? 1 : 0),
+          reason: e['text'] as String,
+        );
         final bytes = await File(e['asset'] as String).readAsBytes();
         final receipt = jsonDecode(
           File(
@@ -126,6 +130,7 @@ void main() {
             await service.speakAndWait(text);
           }
           final enabled =
+              e['enabled'] == true &&
               global &&
               homiGap66AudioEnabled &&
               homiGap66AudioGroups[e['group']]!;
@@ -172,9 +177,32 @@ void main() {
         entry['text'] as String,
         locale: entry['locale'] as String,
       );
-      expect(delegate.events, ['mp3'], reason: key);
+      expect(delegate.events, [
+        entry['enabled'] == true ? 'mp3' : 'tts:${entry['text']}',
+      ], reason: key);
     }
   });
+
+  test(
+    'obsolete ten-topic wording does not select a different recording',
+    () async {
+      final delegate = _Delegate();
+      final service = MainAssistantAudioPromptService(
+        delegate: delegate,
+        enabled: true,
+        additionalManifestAssets: const [homiGap66ManifestAsset],
+      );
+      addTearDown(service.dispose);
+      for (final text in [
+        'Nhóm tuổi này có 10 Chủ đề. Bạn chọn lại nhé.',
+        'Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Chủ đề số mấy? Bạn chọn từ số 1 đến số 10.',
+      ]) {
+        delegate.events.clear();
+        await service.speakAndWait(text);
+        expect(delegate.events, ['tts:$text']);
+      }
+    },
+  );
 
   for (final group in groups) {
     test(
@@ -192,7 +220,9 @@ void main() {
           delegate.events.clear();
           await service.speakAndWait(e['text'] as String);
           expect(delegate.events, [
-            e['group'] == group ? 'tts:${e['text']}' : 'mp3',
+            e['enabled'] != true || e['group'] == group
+                ? 'tts:${e['text']}'
+                : 'mp3',
           ]);
         }
       },
