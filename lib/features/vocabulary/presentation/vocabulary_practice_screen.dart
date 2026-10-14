@@ -83,10 +83,10 @@ class VocabularyPracticeScreen extends StatefulWidget {
 
   @override
   State<VocabularyPracticeScreen> createState() =>
-      _VocabularyPracticeScreenState();
+      VocabularyPracticeScreenState();
 }
 
-class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
+class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     implements
         ActiveLearningModuleController,
         ActiveLearningVoiceContext,
@@ -150,6 +150,8 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
 
   @override
   bool get isPausedForMain => _paused;
+
+  bool get isReviewPractice => _session.mode == VocabularyPracticeMode.review;
 
   @override
   Future<bool> preserveForNavigation() async {
@@ -1616,6 +1618,16 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     if (_exiting) return;
     _commitNavigationExit();
     if (mounted) Navigator.of(context).pop();
+  }
+
+  Future<bool> leaveForOtherContent() async {
+    if (!mounted || _exiting) return false;
+    final route = ModalRoute.of(context);
+    if (route == null || !route.isCurrent) return false;
+    _commitNavigationExit();
+    Navigator.of(context).pop();
+    await route.completed;
+    return true;
   }
 
   void _commitNavigationExit({

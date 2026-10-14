@@ -1,5 +1,6 @@
 import 'dart:async';
 import '../../../core/audio/audio_diagnostics.dart';
+import '../../../core/audio/voice_prompt_service.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ import '../../../core/platform/platform_access_policy.dart';
 import '../../conversation/presentation/conversation_controller.dart';
 import '../../conversation/presentation/conversation_screen.dart';
 import '../../listening/application/listening_voice_navigation_target.dart';
+import '../../listening/application/lesson_media_service.dart';
 import '../../listening/data/active_listening_session_store.dart';
 import '../../listening/data/listening_progress_store.dart';
 import '../../listening/domain/listening_content.dart';
@@ -52,6 +54,8 @@ class HomeLearningShell extends StatefulWidget {
     this.onVocabularyVoiceChoiceRequested,
     this.vocabularySuggestionProvider,
     this.vocabularyAudioService,
+    this.vocabularyMediaService,
+    this.vocabularyVoicePromptService,
     this.onModalVisibilityChanged,
     this.privacyConsentGranted = false,
     this.voiceAccessEnabled = true,
@@ -85,6 +89,8 @@ class HomeLearningShell extends StatefulWidget {
   onVocabularyVoiceChoiceRequested;
   final VocabularySuggestionProvider? vocabularySuggestionProvider;
   final VocabularyContentAudioService? vocabularyAudioService;
+  final LessonMediaService? vocabularyMediaService;
+  final VoicePromptService? vocabularyVoicePromptService;
   final ValueChanged<bool>? onModalVisibilityChanged;
   final bool privacyConsentGranted;
   final bool voiceAccessEnabled;
@@ -470,6 +476,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                       childAge: widget.controller.childAge,
                       audioDependencies: widget.controller,
                       vocabularyAudioService: widget.vocabularyAudioService,
+                      mediaService: widget.vocabularyMediaService,
+                      voicePromptService: widget.vocabularyVoicePromptService,
                       autoStartToday: true,
                       onRequestVoiceChoice:
                           widget.onVocabularyVoiceChoiceRequested,
@@ -786,6 +794,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         activeModule?.controller is ActiveLearningNavigationCheckpoint &&
         (intent.destination == VoiceNavigationDestination.conversation ||
             intent.destination == VoiceNavigationDestination.topics);
+    final iosReviewTranslationTransfer =
+        iosVocabularyPracticeTransfer &&
+        intent.destination == VoiceNavigationDestination.conversation &&
+        _vocabularyNavigationController.hasReviewPractice;
     if (iosVocabularyPracticeTransfer) {
       final checkpoint =
           activeModule!.controller! as ActiveLearningNavigationCheckpoint;
@@ -859,13 +871,31 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
     switch (intent.destination) {
       case VoiceNavigationDestination.conversation:
-        if (!await _showConversationAndWait()) return false;
+        if (!await _showConversationAndWait(
+          deferNavigationExitToPracticeClose: iosReviewTranslationTransfer,
+        )) {
+          return false;
+        }
         if (!mounted) return false;
-        if (iosVocabularyPracticeTransfer) {
+        if (iosReviewTranslationTransfer) {
+          final pageGeneration = _pageNavigationGeneration;
+          if (!await _vocabularyNavigationController
+              .closeReviewPracticeForTranslation()) {
+            if (mounted &&
+                _pageNavigationGeneration == pageGeneration &&
+                _requestedPage == 0 &&
+                _page == 0) {
+              _vocabularyActivationController.activate(autoStart: false);
+              await _requestHomePage(1, animate: false);
+            }
+            return false;
+          }
+        } else if (iosVocabularyPracticeTransfer) {
           // The old practice route stays visible when audio cleanup fails.
           // Once the conversation page is ready, close that paused route.
           Navigator.of(context).popUntil((route) => route.isFirst);
         }
+        if (!mounted) return false;
         if (deferVocabularyExitCommit) {
           widget.onActiveLearningExitCommitted?.call();
         }
@@ -1255,6 +1285,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
   Future<bool> _showConversationAndWait({
     bool requireStoppedAudio = true,
+    bool deferNavigationExitToPracticeClose = false,
   }) async {
     if (_page == 1) {
       // A slow native stop can outlive the vocabulary cleanup's two-second
@@ -1271,7 +1302,9 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         return false;
       }
       _vocabularyActivationController.deactivate();
-      ActiveLearningModuleScope.notifyNavigationExit(context);
+      if (!deferNavigationExitToPracticeClose) {
+        ActiveLearningModuleScope.notifyNavigationExit(context);
+      }
       unawaited(widget.voiceNavigationController?.pause());
     }
     return _requestHomePage(0);

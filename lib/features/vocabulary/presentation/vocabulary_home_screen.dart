@@ -68,6 +68,8 @@ class VocabularyHomeNavigationController {
   Object? _owner;
   Future<bool> Function()? _handleBack;
   Future<bool> Function()? _leaveForOtherContent;
+  bool Function()? _hasReviewPractice;
+  Future<bool> Function()? _closeReviewPracticeForTranslation;
   Future<void> Function(VoiceVocabularyTarget target)? _openVoiceTarget;
   Future<void> Function()? _openRoot;
 
@@ -77,6 +79,11 @@ class VocabularyHomeNavigationController {
 
   Future<bool> leaveForOtherContent() async =>
       await _leaveForOtherContent?.call() ?? true;
+
+  bool get hasReviewPractice => _hasReviewPractice?.call() ?? false;
+
+  Future<bool> closeReviewPracticeForTranslation() async =>
+      await _closeReviewPracticeForTranslation?.call() ?? false;
 
   Future<void> openVoiceTarget(VoiceVocabularyTarget target) async {
     final open = _openVoiceTarget;
@@ -95,6 +102,8 @@ class VocabularyHomeNavigationController {
     Object owner, {
     required Future<bool> Function() handleBack,
     required Future<bool> Function() leaveForOtherContent,
+    required bool Function() hasReviewPractice,
+    required Future<bool> Function() closeReviewPracticeForTranslation,
     required Future<void> Function(VoiceVocabularyTarget target)
     openVoiceTarget,
     required Future<void> Function() openRoot,
@@ -102,6 +111,8 @@ class VocabularyHomeNavigationController {
     _owner = owner;
     _handleBack = handleBack;
     _leaveForOtherContent = leaveForOtherContent;
+    _hasReviewPractice = hasReviewPractice;
+    _closeReviewPracticeForTranslation = closeReviewPracticeForTranslation;
     _openVoiceTarget = openVoiceTarget;
     _openRoot = openRoot;
   }
@@ -111,6 +122,8 @@ class VocabularyHomeNavigationController {
     _owner = null;
     _handleBack = null;
     _leaveForOtherContent = null;
+    _hasReviewPractice = null;
+    _closeReviewPracticeForTranslation = null;
     _openVoiceTarget = null;
     _openRoot = null;
   }
@@ -191,6 +204,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   bool _translating = false;
   bool _pausedForMainAssistant = false;
   bool _openingPractice = false;
+  GlobalKey<VocabularyPracticeScreenState>? _practiceScreenKey;
   bool _startingToday = false;
   int _todayStartGeneration = 0;
   bool _todayOffered = false;
@@ -374,6 +388,13 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         announceMenu: false,
         notifyNavigationExit: false,
       ),
+      hasReviewPractice: () =>
+          _practiceScreenKey?.currentState?.isReviewPractice ?? false,
+      closeReviewPracticeForTranslation: () async {
+        final practice = _practiceScreenKey?.currentState;
+        if (practice == null || !practice.isReviewPractice) return false;
+        return practice.leaveForOtherContent();
+      },
       openVoiceTarget: _openVoiceTarget,
       openRoot: () => _runAudioCommand(_openVocabularyRoot),
     );
@@ -1758,9 +1779,12 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       while (true) {
         if (!mounted) return;
         final language = DisplayLanguageScope.of(context);
+        final practiceScreenKey = GlobalKey<VocabularyPracticeScreenState>();
+        _practiceScreenKey = practiceScreenKey;
         final routeResult = pushForActiveLearning<VocabularyPracticeResult>(
           context,
           (_) => VocabularyPracticeScreen(
+            key: practiceScreenKey,
             language: language,
             childAge: widget.childAge,
             session: session,
@@ -1779,6 +1803,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         onRoutePushed?.call();
         onRoutePushed = null;
         final result = await routeResult;
+        if (identical(_practiceScreenKey, practiceScreenKey)) {
+          _practiceScreenKey = null;
+        }
         if (!mounted) return;
         await _load();
         if (result == null) {
@@ -1839,6 +1866,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         announceResume = false;
       }
     } finally {
+      _practiceScreenKey = null;
       _openingPractice = false;
     }
   }

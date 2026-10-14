@@ -15,6 +15,7 @@ import 'package:ai_speaking_flutter_app/features/conversation/presentation/conve
 import 'package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart';
 import 'package:ai_speaking_flutter_app/features/listening/data/active_listening_session_store.dart';
 import 'package:ai_speaking_flutter_app/features/listening/data/listening_progress_store.dart';
+import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/listening_route_names.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_lesson_list_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_listening_screen.dart';
@@ -1769,6 +1770,124 @@ void main() {
   );
 
   testWidgets(
+    'iOS closes Review before translation starts and keeps its checkpoint',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      const entryId = 'review-translation-handoff';
+      await const VocabularyStore().write(<VocabularyEntry>[
+        VocabularyEntry(
+          id: entryId,
+          word: 'After school.',
+          meaning: 'Sau giờ học.',
+          addedAt: DateTime(2026, 10, 12),
+          collection: VocabularyCollection.review,
+          status: VocabularyLearningStatus.needsPractice,
+          source: VocabularySource.topicCore,
+        ),
+      ]);
+
+      final registry = ActiveLearningModuleRegistry();
+      final speechInput = _FakeStreamingSpeechInput();
+      final prompt = _GatedTranslationPromptService()..release();
+      final voiceNavigationController = VoiceNavigationController(
+        speechInput: speechInput,
+        ownsSpeechInput: true,
+        voicePromptService: prompt,
+      );
+      final controller = _controller();
+      var navigationExits = 0;
+      var translationStarted = false;
+      var practiceVisibleWhenStarted = true;
+      double? pageWhenTranslationStarted;
+      late PageController pageController;
+
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          onNavigationExit: () {
+            navigationExits += 1;
+            unawaited(voiceNavigationController.pause());
+          },
+          child: _app(
+            controller,
+            voiceNavigationController: voiceNavigationController,
+            vocabularyAudioService: _DelayedVocabularyAudioService(),
+            vocabularyMediaService: _ImmediateVocabularyMediaService(),
+            vocabularyVoicePromptService: prompt,
+            onMainSpeakingModeStarted: () async {
+              practiceVisibleWhenStarted = find
+                  .byType(VocabularyPracticeScreen, skipOffstage: false)
+                  .evaluate()
+                  .isNotEmpty;
+              pageWhenTranslationStarted = pageController.page;
+              translationStarted = true;
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      pageController = tester
+          .widget<PageView>(find.byKey(const Key('home-learning-page-view')))
+          .controller!;
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-review-card')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-review-action')));
+      await _pumpFrames(tester);
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      expect(registry.controller, isA<VocabularyPracticeScreenState>());
+      expect(
+        (registry.controller as VocabularyPracticeScreenState).isReviewPractice,
+        isTrue,
+      );
+      expect(
+        (await const VocabularySessionStore().readActive())?.entryIds,
+        contains(entryId),
+      );
+      final exitsBeforeTransfer = navigationExits;
+
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect(
+        await voiceNavigationController.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: registry.activeKind,
+          activeVoiceContext: registry.controller as ActiveLearningVoiceContext,
+        ),
+        isTrue,
+      );
+      final navigation = voiceNavigationController.dispatchRecognizedText(
+        'Dịch sang tiếng Anh',
+      );
+      for (var attempt = 0; attempt < 30 && !translationStarted; attempt++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(await navigation, isTrue);
+      expect(translationStarted, isTrue);
+      expect(practiceVisibleWhenStarted, isFalse);
+      expect(pageWhenTranslationStarted, closeTo(0, 0.001));
+      expect(navigationExits, exitsBeforeTransfer + 1);
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+      expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
+      expect(
+        (await const VocabularySessionStore().readActive())?.entryIds,
+        contains(entryId),
+      );
+
+      controller.dispose();
+      voiceNavigationController.dispose();
+      registry.dispose();
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
     'iOS keeps Review visible when translation audio cleanup times out',
     (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -2248,6 +2367,8 @@ Widget _app(
   int childAge = 6,
   VoiceNavigationController? voiceNavigationController,
   VocabularyContentAudioService? vocabularyAudioService,
+  LessonMediaService? vocabularyMediaService,
+  VoicePromptService? vocabularyVoicePromptService,
   Future<ListeningContentCatalog>? listeningContentFuture,
   MainSpeakingSessionController? speakingSessionController,
   VoidCallback? onActiveLearningExitCommitted,
@@ -2265,6 +2386,8 @@ Widget _app(
     controller: controller,
     voiceNavigationController: voiceNavigationController,
     vocabularyAudioService: vocabularyAudioService,
+    vocabularyMediaService: vocabularyMediaService,
+    vocabularyVoicePromptService: vocabularyVoicePromptService,
     speakingSessionController: speakingSessionController,
     listeningContentFuture: listeningContentFuture,
     listeningProgressStore: _HomeListeningProgressStore(),
@@ -2382,6 +2505,40 @@ class _DelayedVocabularyAudioService implements VocabularyContentAudioService {
 
   @override
   void dispose() => release();
+}
+
+class _ImmediateVocabularyMediaService extends LessonMediaService {
+  @override
+  Stream<double> get recordingAmplitudeDbfs => const Stream<double>.empty();
+
+  @override
+  Future<void> prepareSelectedLessonOutput() async {}
+
+  @override
+  Future<void> playToCompletion(
+    Uri uri, {
+    Duration timeout = const Duration(seconds: 15),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
+  }) async {}
+
+  @override
+  Future<void> stopPlayback() async {}
+
+  @override
+  Future<void> startRecording({
+    required String lessonId,
+    required int sentenceNumber,
+    String? lessonTitle,
+    String? sentenceId,
+    String? english,
+    String? vietnamese,
+    bool saveToHistory = true,
+  }) async {}
+
+  @override
+  Future<void> cancelRecording() async {}
 }
 
 class _HomeListeningProgressStore extends ListeningProgressStore {
