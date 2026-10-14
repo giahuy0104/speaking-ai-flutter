@@ -111,6 +111,8 @@ class LessonMediaService {
 
   AudioRecorder get _activeRecorder => _recorder ??= AudioRecorder();
 
+  String? get activeRecordingPath => _activePath;
+
   /// Local volume samples for endpoint detection while a lesson is recording.
   /// Observing this stream does not start another recorder or change the
   /// selected phone/HFP input.

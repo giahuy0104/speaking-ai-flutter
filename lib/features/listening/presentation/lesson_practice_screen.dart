@@ -236,7 +236,13 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     _guideAudioLibrary = widget.guideAudioLibrary ?? LessonGuideAudioLibrary();
     _ownsAttemptEvaluator = widget.attemptEvaluator == null;
     _attemptEvaluator =
-        widget.attemptEvaluator ?? createDefaultLessonAttemptEvaluator();
+        widget.attemptEvaluator ??
+        createDefaultLessonAttemptEvaluator(preferAndroidOnDevice: true);
+    final evaluator = _attemptEvaluator;
+    if (_ownsAttemptEvaluator &&
+        evaluator is AndroidOnDeviceFirstLessonAttemptEvaluator) {
+      unawaited(evaluator.prepare());
+    }
     _ownsVoicePromptService = widget.voicePromptService == null;
     _voicePromptService =
         widget.voicePromptService ??
@@ -270,6 +276,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     _recordingAutoStopTimer?.cancel();
     _recordingAutoStopTimer = null;
     _recordingEndpointDetector.cancel();
+    final evaluator = _attemptEvaluator;
+    if (evaluator is AndroidOnDeviceFirstLessonAttemptEvaluator) {
+      unawaited(evaluator.cancelLiveRecognition());
+    }
     _cancelIosRecordingListeners();
     if (_completionChoiceRecording) {
       _lessonSession.invalidateCompletionChoice();
@@ -361,6 +371,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     if (_usesIosNativeLessonRecognition && !_completionChoiceRecording) {
       await _iosLessonSpeechInput!.cancel().catchError((Object _) {});
       return;
+    }
+    final evaluator = _attemptEvaluator;
+    if (evaluator is AndroidOnDeviceFirstLessonAttemptEvaluator) {
+      unawaited(evaluator.cancelLiveRecognition());
     }
     await widget.mediaService.cancelRecording().catchError((Object _) {});
   }
@@ -1413,6 +1427,12 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           await widget.mediaService.cancelRecording();
         }
         return;
+      }
+      final evaluator = _attemptEvaluator;
+      if (iosSpeechInput == null &&
+          _usesGuideV2 &&
+          evaluator is AndroidOnDeviceFirstLessonAttemptEvaluator) {
+        evaluator.beginLiveRecognition(widget.mediaService.activeRecordingPath);
       }
       if (iosSpeechInput != null) {
         // Apple Speech now owns the live HFP capture route. Retaining the

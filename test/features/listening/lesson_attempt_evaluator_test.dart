@@ -98,6 +98,44 @@ void main() {
   });
 
   test(
+    'Android live recognition keeps its turn through start and stop',
+    () async {
+      const channel = MethodChannel('test.homi-live-speech');
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            calls.add(call);
+            return switch (call.method) {
+              'stream.start' => true,
+              'stream.stop' => <String, Object?>{
+                'text': 'I am ready',
+                'alternatives': <String>['I am ready!'],
+              },
+              _ => true,
+            };
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null),
+      );
+      const recognizer = MethodChannelLessonRecordedSpeechRecognizer(
+        channel: channel,
+      );
+
+      expect(await recognizer.startStream('attempt.wav', 42), isTrue);
+      final result = await recognizer.stopStream(42);
+      expect(result.transcript, 'I am ready');
+      expect(result.alternatives, <String>['I am ready!']);
+      expect(calls.map((call) => call.method), <String>[
+        'stream.start',
+        'stream.stop',
+      ]);
+      expect(calls.first.arguments, containsPair('turnId', 42));
+      expect(calls.last.arguments, containsPair('turnId', 42));
+    },
+  );
+
+  test(
     'returns good only when backend confirms the target English words',
     () async {
       final evaluator = BackendLessonAttemptEvaluator(
@@ -585,6 +623,134 @@ void main() {
     });
   });
 
+  group('Android on-device-first lesson scoring', () {
+    test(
+      'uses recognition collected while the WAV is being recorded',
+      () async {
+        final backend = _FakeAttemptEvaluator.outcome(
+          LessonAttemptOutcome.retry,
+        );
+        final recognizer = _FakeLessonRecordedSpeechRecognizer(
+          const LessonRecordedSpeechRecognition(transcript: 'wrong answer'),
+          liveResult: const LessonRecordedSpeechRecognition(
+            transcript: 'I am ready',
+          ),
+        );
+        final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+          backendEvaluator: backend,
+          recognizer: recognizer,
+        );
+
+        evaluator.beginLiveRecognition('attempt.wav');
+        expect(
+          await _evaluateBackendFirst(evaluator),
+          LessonAttemptOutcome.good,
+        );
+        expect(recognizer.liveStarts, 1);
+        expect(recognizer.liveStops, 1);
+        expect(recognizer.calls, 0);
+        expect(backend.calls, 0);
+      },
+    );
+
+    test('uses the completed WAV if live recognition fails', () async {
+      final backend = _FakeAttemptEvaluator.outcome(LessonAttemptOutcome.retry);
+      final recognizer = _FakeLessonRecordedSpeechRecognizer(
+        const LessonRecordedSpeechRecognition(transcript: 'I am ready'),
+        liveFailure: true,
+      );
+      final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+        backendEvaluator: backend,
+        recognizer: recognizer,
+      );
+
+      evaluator.beginLiveRecognition('attempt.wav');
+      expect(await _evaluateBackendFirst(evaluator), LessonAttemptOutcome.good);
+      expect(recognizer.liveStops, 1);
+      expect(recognizer.calls, 1);
+      expect(backend.calls, 0);
+    });
+
+    test('grades a recorded answer locally without an API request', () async {
+      final backend = _FakeAttemptEvaluator.outcome(LessonAttemptOutcome.retry);
+      final recognizer = _FakeLessonRecordedSpeechRecognizer(
+        const LessonRecordedSpeechRecognition(
+          transcript: 'wrong answer',
+          alternatives: <String>['I am ready'],
+        ),
+      );
+      final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+        backendEvaluator: backend,
+        recognizer: recognizer,
+      );
+
+      expect(await _evaluateBackendFirst(evaluator), LessonAttemptOutcome.good);
+      expect(backend.calls, 0);
+      expect(recognizer.lastLocale, 'en-US');
+      expect(recognizer.lastRequireOnDevice, isTrue);
+    });
+
+    test('keeps the native retry and silence outcomes', () async {
+      for (final (transcript, outcome) in <(String, LessonAttemptOutcome)>[
+        ('different answer', LessonAttemptOutcome.retry),
+        ('', LessonAttemptOutcome.noResponse),
+      ]) {
+        final backend = _FakeAttemptEvaluator.outcome(
+          LessonAttemptOutcome.good,
+        );
+        final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+          backendEvaluator: backend,
+          recognizer: _FakeLessonRecordedSpeechRecognizer(
+            LessonRecordedSpeechRecognition(transcript: transcript),
+          ),
+        );
+        expect(await _evaluateBackendFirst(evaluator), outcome);
+        expect(backend.calls, 0);
+      }
+    });
+
+    test('uses the existing API when the model is missing or slow', () async {
+      for (final code in <String>[
+        'ON_DEVICE_SPEECH_UNAVAILABLE',
+        'SPEECH_TIMEOUT',
+      ]) {
+        final backend = _FakeAttemptEvaluator.outcome(
+          LessonAttemptOutcome.good,
+        );
+        final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+          backendEvaluator: backend,
+          recognizer: _FakeLessonRecordedSpeechRecognizer.error(code),
+        );
+        expect(
+          await _evaluateBackendFirst(evaluator),
+          LessonAttemptOutcome.good,
+        );
+        expect(backend.calls, 1);
+      }
+    });
+
+    test(
+      'does not wait for the API when offline recognition succeeds',
+      () async {
+        final backend = _FakeAttemptEvaluator.outcome(
+          LessonAttemptOutcome.retry,
+        );
+        final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+          backendEvaluator: backend,
+          recognizer: _FakeLessonRecordedSpeechRecognizer(
+            const LessonRecordedSpeechRecognition(transcript: 'I am ready'),
+          ),
+          networkTransportAvailable: () async => false,
+        );
+        expect(
+          await _evaluateBackendFirst(evaluator),
+          LessonAttemptOutcome.good,
+        );
+        expect(backend.calls, 0);
+      },
+    );
+  });
+
   group('Android backend-first offline fallback', () {
     test(
       'keeps the normal backend result without calling on-device ASR',
@@ -792,12 +958,18 @@ void main() {
     );
   });
 
-  test('default Android evaluator is backend-first with offline fallback', () {
+  test('only opted-in Android lessons start with on-device recognition', () {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
-    final evaluator = createDefaultLessonAttemptEvaluator();
-    expect(evaluator, isA<BackendFirstLessonAttemptEvaluator>());
-    (evaluator as DisposableLessonAttemptEvaluator).dispose();
+    final defaultEvaluator = createDefaultLessonAttemptEvaluator();
+    expect(defaultEvaluator, isA<BackendFirstLessonAttemptEvaluator>());
+    (defaultEvaluator as DisposableLessonAttemptEvaluator).dispose();
+
+    final lessonEvaluator = createDefaultLessonAttemptEvaluator(
+      preferAndroidOnDevice: true,
+    );
+    expect(lessonEvaluator, isA<AndroidOnDeviceFirstLessonAttemptEvaluator>());
+    (lessonEvaluator as DisposableLessonAttemptEvaluator).dispose();
   });
 }
 
@@ -909,18 +1081,52 @@ _FakeAttemptEvaluator _offlineBackend() => _FakeAttemptEvaluator.error(
 );
 
 class _FakeLessonRecordedSpeechRecognizer
-    implements LessonRecordedSpeechRecognizer {
-  _FakeLessonRecordedSpeechRecognizer(this.result) : errorCode = null;
+    implements
+        LessonRecordedSpeechRecognizer,
+        LessonStreamingRecordedSpeechRecognizer {
+  _FakeLessonRecordedSpeechRecognizer(
+    this.result, {
+    this.liveResult,
+    this.liveFailure = false,
+  }) : errorCode = null;
 
-  _FakeLessonRecordedSpeechRecognizer.error(this.errorCode) : result = null;
+  _FakeLessonRecordedSpeechRecognizer.error(this.errorCode)
+    : result = null,
+      liveResult = null,
+      liveFailure = false;
 
   final LessonRecordedSpeechRecognition? result;
   final String? errorCode;
+  final LessonRecordedSpeechRecognition? liveResult;
+  final bool liveFailure;
   int calls = 0;
+  int liveStarts = 0;
+  int liveStops = 0;
   String? lastPath;
   String? lastLocale;
   bool? lastPreferOnDevice;
   bool? lastRequireOnDevice;
+
+  @override
+  Future<bool> startStream(String path, int turnId) async {
+    liveStarts += 1;
+    return true;
+  }
+
+  @override
+  Future<LessonRecordedSpeechRecognition> stopStream(int turnId) async {
+    liveStops += 1;
+    if (liveFailure) {
+      throw const LessonRecordedSpeechRecognitionException(
+        'STREAM_FAILED',
+        'Live recognition failed.',
+      );
+    }
+    return liveResult ?? result!;
+  }
+
+  @override
+  Future<void> cancelStream(int turnId) async {}
 
   @override
   Future<LessonRecordedSpeechRecognition> recognizeFile({

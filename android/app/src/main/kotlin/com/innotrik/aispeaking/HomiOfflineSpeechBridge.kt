@@ -12,6 +12,8 @@ import java.io.IOException
 import java.io.RandomAccessFile
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -27,12 +29,25 @@ class HomiOfflineSpeechBridge(
 ) : MethodChannel.MethodCallHandler {
     private val channel = MethodChannel(messenger, channelName)
     private val appContext = host.applicationContext
-    private val executor = Executors.newSingleThreadExecutor()
+    private val executor = Executors.newSingleThreadScheduledExecutor()
     private val disposed = AtomicBoolean(false)
     private val recognitionGeneration = AtomicInteger(0)
     private val modelLock = Any()
     private var loadedModelId: String? = null
     private var loadedModel: Model? = null
+    private var liveSession: LiveLessonSession? = null
+
+    private class LiveLessonSession(
+        val turnId: Int,
+        val input: RandomAccessFile,
+        val recognizer: Recognizer,
+        var offset: Long = 44L,
+        var pcmBytes: Long = 0L,
+        var lastAudioAtNanos: Long = System.nanoTime(),
+        var poller: ScheduledFuture<*>? = null,
+        var failure: Throwable? = null,
+        val segments: MutableList<Pair<String, List<String>>> = mutableListOf(),
+    )
 
     init {
         channel.setMethodCallHandler(this)
@@ -48,6 +63,7 @@ class HomiOfflineSpeechBridge(
                     result.success(HomiOfflineSpeechModel.status(appContext, spec))
                 }
             }
+            "model.prepare" -> prepareModel(call, result)
             "model.requestDownload" -> {
                 val spec = requestedModel(call)
                 if (spec == null) {
@@ -74,6 +90,15 @@ class HomiOfflineSpeechBridge(
                     result.success(true)
                 }
             }
+            "stream.start" -> startLiveRecognition(call, result)
+            "stream.stop" -> stopLiveRecognition(call, result)
+            "stream.cancel" -> {
+                val turnId = call.argument<Int>("turnId")
+                executor.execute {
+                    if (liveSession?.turnId == turnId) closeLiveSession()
+                }
+                result.success(true)
+            }
             "recognizeFile" -> recognizeFile(call, result)
             "cancel" -> {
                 recognitionGeneration.incrementAndGet()
@@ -85,6 +110,167 @@ class HomiOfflineSpeechBridge(
 
     fun onBackgroundSessionStopped() {
         recognitionGeneration.incrementAndGet()
+        if (!disposed.get()) executor.execute { closeLiveSession() }
+    }
+
+    private fun startLiveRecognition(call: MethodCall, result: MethodChannel.Result) {
+        val spec = requestedModel(call)
+        if (spec == null) {
+            unsupportedLocale(result)
+            return
+        }
+        val path = call.argument<String>("path")
+        val turnId = call.argument<Int>("turnId")
+        val audioFile = path?.let(::File)
+        if (disposed.get() ||
+            !HomiOfflineSpeechModel.isInstalled(appContext, spec) ||
+            audioFile == null || !audioFile.isFile || turnId == null
+        ) {
+            result.success(false)
+            return
+        }
+        executor.execute {
+            closeLiveSession()
+            var openedInput: RandomAccessFile? = null
+            var openedRecognizer: Recognizer? = null
+            try {
+                val input = RandomAccessFile(audioFile, "r")
+                openedInput = input
+                val recognizer = Recognizer(model(spec), targetSampleRate.toFloat())
+                openedRecognizer = recognizer
+                recognizer.setMaxAlternatives(maxAlternatives)
+                val session = LiveLessonSession(turnId, input, recognizer)
+                liveSession = session
+                openedInput = null
+                openedRecognizer = null
+                session.poller = executor.scheduleWithFixedDelay(
+                    {
+                        try {
+                            feedLiveSession(session)
+                            if (System.nanoTime() - session.lastAudioAtNanos >
+                                TimeUnit.SECONDS.toNanos(30L)) {
+                                closeLiveSession()
+                            }
+                        } catch (error: Throwable) {
+                            session.failure = error
+                            session.poller?.cancel(false)
+                        }
+                    },
+                    0L,
+                    60L,
+                    TimeUnit.MILLISECONDS,
+                )
+            } catch (error: Throwable) {
+                Log.w(logTag, "Could not start live lesson recognition", error)
+                runCatching { openedInput?.close() }
+                runCatching { openedRecognizer?.close() }
+                closeLiveSession()
+            }
+        }
+        result.success(true)
+    }
+
+    private fun stopLiveRecognition(call: MethodCall, result: MethodChannel.Result) {
+        val turnId = call.argument<Int>("turnId")
+        executor.execute {
+            val session = liveSession
+            if (session == null || session.turnId != turnId) {
+                host.mainExecutor.execute {
+                    if (!disposed.get()) {
+                        result.error("STREAM_UNAVAILABLE", "Nhận dạng trực tiếp chưa sẵn sàng.", null)
+                    }
+                }
+                return@execute
+            }
+            try {
+                session.poller?.cancel(false)
+                session.failure?.let { throw it }
+                feedLiveSession(session)
+                if (session.pcmBytes < minimumPcmBytes) {
+                    throw InvalidWavException("Bản ghi trực tiếp chưa có đủ âm thanh.")
+                }
+                val parsed = combineResults(
+                    session.segments + parseResult(session.recognizer.finalResult),
+                )
+                host.mainExecutor.execute {
+                    if (!disposed.get()) {
+                        result.success(
+                            mapOf(
+                                "text" to parsed.first,
+                                "alternatives" to parsed.second,
+                                "engine" to engineName,
+                            ),
+                        )
+                    }
+                }
+            } catch (error: Throwable) {
+                Log.w(logTag, "Live lesson recognition failed", error)
+                host.mainExecutor.execute {
+                    if (!disposed.get()) {
+                        result.error("STREAM_FAILED", error.message, null)
+                    }
+                }
+            } finally {
+                closeLiveSession()
+            }
+        }
+    }
+
+    private fun feedLiveSession(session: LiveLessonSession) {
+        val input = session.input
+        val buffer = ByteArray(audioBufferBytes)
+        var remaining = (input.length() - session.offset).coerceAtLeast(0L)
+        remaining -= remaining % 2L
+        while (remaining > 0) {
+            val count = input.readAtMost(session.offset, buffer, minOf(buffer.size.toLong(), remaining).toInt())
+            val alignedCount = count - (count % 2)
+            if (alignedCount <= 0) break
+            if (session.recognizer.acceptWaveForm(buffer, alignedCount)) {
+                session.segments += parseResult(session.recognizer.result)
+            }
+            session.offset += alignedCount
+            session.pcmBytes += alignedCount
+            session.lastAudioAtNanos = System.nanoTime()
+            remaining -= alignedCount
+        }
+    }
+
+    private fun RandomAccessFile.readAtMost(offset: Long, buffer: ByteArray, length: Int): Int {
+        seek(offset)
+        return read(buffer, 0, length)
+    }
+
+    private fun closeLiveSession() {
+        val session = liveSession ?: return
+        liveSession = null
+        session.poller?.cancel(false)
+        runCatching { session.input.close() }
+        runCatching { session.recognizer.close() }
+    }
+
+    private fun prepareModel(call: MethodCall, result: MethodChannel.Result) {
+        val spec = requestedModel(call)
+        if (spec == null) {
+            unsupportedLocale(result)
+            return
+        }
+        if (disposed.get() || !HomiOfflineSpeechModel.isInstalled(appContext, spec)) {
+            result.success(false)
+            return
+        }
+        executor.execute {
+            try {
+                model(spec)
+                host.mainExecutor.execute {
+                    if (!disposed.get()) result.success(true)
+                }
+            } catch (error: Throwable) {
+                Log.w(logTag, "Offline lesson model warmup failed", error)
+                host.mainExecutor.execute {
+                    if (!disposed.get()) result.success(false)
+                }
+            }
+        }
     }
 
     private fun recognizeFile(call: MethodCall, result: MethodChannel.Result) {
@@ -114,6 +300,7 @@ class HomiOfflineSpeechBridge(
 
         val generation = recognitionGeneration.incrementAndGet()
         executor.execute {
+            closeLiveSession()
             try {
                 val recognition = transcribe(audioFile, generation, spec)
                 host.mainExecutor.execute {
@@ -175,6 +362,7 @@ class HomiOfflineSpeechBridge(
         Recognizer(model, targetSampleRate.toFloat()).use { recognizer ->
             Log.i(logTag, "Offline recognizer ready")
             recognizer.setMaxAlternatives(maxAlternatives)
+            val segments = mutableListOf<Pair<String, List<String>>>()
             RandomAccessFile(audioFile, "r").use { input ->
                 input.seek(wav.dataOffset)
                 var remaining = wav.dataLength
@@ -185,11 +373,13 @@ class HomiOfflineSpeechBridge(
                     }
                     val count = input.read(buffer, 0, minOf(buffer.size.toLong(), remaining).toInt())
                     if (count <= 0) break
-                    recognizer.acceptWaveForm(buffer, count)
+                    if (recognizer.acceptWaveForm(buffer, count)) {
+                        segments += parseResult(recognizer.result)
+                    }
                     remaining -= count
                 }
             }
-            val parsed = parseResult(recognizer.finalResult)
+            val parsed = combineResults(segments + parseResult(recognizer.finalResult))
             val candidateCount = (if (parsed.first.isEmpty()) 0 else 1) + parsed.second.size
             Log.i(logTag, "Offline lesson recognition completed candidates=$candidateCount")
             return mapOf(
@@ -243,11 +433,28 @@ class HomiOfflineSpeechBridge(
         return primary to candidates.drop(1)
     }
 
+    private fun combineResults(
+        segments: List<Pair<String, List<String>>>,
+    ): Pair<String, List<String>> {
+        val nonEmpty = segments.filter { it.first.isNotEmpty() || it.second.isNotEmpty() }
+        val candidates = (0 until maxAlternatives)
+            .map { candidateIndex ->
+                nonEmpty.joinToString(" ") { segment ->
+                    if (candidateIndex == 0) segment.first
+                    else segment.second.getOrNull(candidateIndex - 1) ?: segment.first
+                }.trim()
+            }
+            .filter(String::isNotEmpty)
+            .distinct()
+        return candidates.firstOrNull().orEmpty() to candidates.drop(1)
+    }
+
     fun dispose() {
         if (!disposed.compareAndSet(false, true)) return
         recognitionGeneration.incrementAndGet()
         channel.setMethodCallHandler(null)
         executor.execute {
+            closeLiveSession()
             synchronized(modelLock) {
                 loadedModel?.close()
                 loadedModel = null

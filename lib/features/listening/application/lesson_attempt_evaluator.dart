@@ -48,8 +48,21 @@ abstract interface class LessonRecordedSpeechRecognizer {
   });
 }
 
+abstract interface class LessonRecordedSpeechRecognizerPreparer {
+  Future<void> prepare();
+}
+
+abstract interface class LessonStreamingRecordedSpeechRecognizer {
+  Future<bool> startStream(String path, int turnId);
+  Future<LessonRecordedSpeechRecognition> stopStream(int turnId);
+  Future<void> cancelStream(int turnId);
+}
+
 class MethodChannelLessonRecordedSpeechRecognizer
-    implements LessonRecordedSpeechRecognizer {
+    implements
+        LessonRecordedSpeechRecognizer,
+        LessonRecordedSpeechRecognizerPreparer,
+        LessonStreamingRecordedSpeechRecognizer {
   const MethodChannelLessonRecordedSpeechRecognizer({
     MethodChannel channel = const MethodChannel('homi_offline_speech'),
     Duration timeout = const Duration(seconds: 20),
@@ -58,6 +71,68 @@ class MethodChannelLessonRecordedSpeechRecognizer
 
   final MethodChannel _channel;
   final Duration _timeout;
+
+  @override
+  Future<void> prepare() async {
+    try {
+      await _channel.invokeMethod<bool>('model.prepare', <String, Object?>{
+        'locale': 'en-US',
+      });
+    } on Exception {
+      // A missing model keeps the API route available for this lesson.
+    }
+  }
+
+  @override
+  Future<bool> startStream(String path, int turnId) async {
+    try {
+      return await _channel.invokeMethod<bool>(
+            'stream.start',
+            <String, Object?>{
+              'path': path,
+              'locale': 'en-US',
+              'turnId': turnId,
+            },
+          ) ==
+          true;
+    } on Exception {
+      return false;
+    }
+  }
+
+  @override
+  Future<LessonRecordedSpeechRecognition> stopStream(int turnId) async {
+    try {
+      final payload = await _channel
+          .invokeMethod<Object?>('stream.stop', <String, Object?>{
+            'turnId': turnId,
+          })
+          .timeout(_timeout);
+      return _parseRecognition(payload);
+    } on TimeoutException {
+      await cancelStream(turnId);
+      throw const LessonRecordedSpeechRecognitionException(
+        'STREAM_TIMEOUT',
+        'Nhận dạng trực tiếp mất quá nhiều thời gian.',
+      );
+    } on PlatformException catch (error) {
+      throw LessonRecordedSpeechRecognitionException(
+        error.code,
+        error.message ?? 'Không thể hoàn tất nhận dạng trực tiếp.',
+      );
+    }
+  }
+
+  @override
+  Future<void> cancelStream(int turnId) async {
+    try {
+      await _channel.invokeMethod<void>('stream.cancel', <String, Object?>{
+        'turnId': turnId,
+      });
+    } on Exception {
+      // A replaced or closed native turn needs no further cleanup in Dart.
+    }
+  }
 
   @override
   Future<LessonRecordedSpeechRecognition> recognizeFile({
@@ -76,24 +151,7 @@ class MethodChannelLessonRecordedSpeechRecognizer
             'requireOnDevice': requireOnDevice,
           })
           .timeout(_timeout);
-      if (payload is! Map<Object?, Object?>) {
-        throw const LessonRecordedSpeechRecognitionException(
-          'RECORDED_AUDIO_RESULT_INVALID',
-          'Kết quả nhận diện Android không hợp lệ.',
-        );
-      }
-      final transcript = payload['text'];
-      final alternatives = payload['alternatives'];
-      return LessonRecordedSpeechRecognition(
-        transcript: transcript is String ? transcript.trim() : '',
-        alternatives: alternatives is List<Object?>
-            ? alternatives
-                  .whereType<String>()
-                  .map((value) => value.trim())
-                  .where((value) => value.isNotEmpty)
-                  .toList(growable: false)
-            : const <String>[],
-      );
+      return _parseRecognition(payload);
     } on TimeoutException {
       try {
         await _channel
@@ -117,6 +175,27 @@ class MethodChannelLessonRecordedSpeechRecognizer
         error.message ?? 'Không thể nhận diện bản ghi âm.',
       );
     }
+  }
+
+  LessonRecordedSpeechRecognition _parseRecognition(Object? payload) {
+    if (payload is! Map<Object?, Object?>) {
+      throw const LessonRecordedSpeechRecognitionException(
+        'RECORDED_AUDIO_RESULT_INVALID',
+        'Kết quả nhận diện Android không hợp lệ.',
+      );
+    }
+    final transcript = payload['text'];
+    final alternatives = payload['alternatives'];
+    return LessonRecordedSpeechRecognition(
+      transcript: transcript is String ? transcript.trim() : '',
+      alternatives: alternatives is List<Object?>
+          ? alternatives
+                .whereType<String>()
+                .map((value) => value.trim())
+                .where((value) => value.isNotEmpty)
+                .toList(growable: false)
+          : const <String>[],
+    );
   }
 }
 
@@ -246,9 +325,187 @@ class BackendFirstLessonAttemptEvaluator
   }
 }
 
-LessonAttemptEvaluator createDefaultLessonAttemptEvaluator() {
+/// Scores Android lesson audio on the device when the English model is ready.
+/// A missing or stalled model leaves the existing backend path available.
+class AndroidOnDeviceFirstLessonAttemptEvaluator
+    implements LessonAttemptEvaluator, DisposableLessonAttemptEvaluator {
+  static int _nextLiveTurnId = 0;
+
+  AndroidOnDeviceFirstLessonAttemptEvaluator({
+    required LessonAttemptEvaluator backendEvaluator,
+    LessonRecordedSpeechRecognizer recognizer =
+        const MethodChannelLessonRecordedSpeechRecognizer(
+          timeout: Duration(seconds: 3),
+        ),
+    Future<bool> Function()? networkTransportAvailable,
+  }) : _backendEvaluator = backendEvaluator,
+       _recognizer = recognizer,
+       _networkTransportAvailable = networkTransportAvailable;
+
+  final LessonAttemptEvaluator _backendEvaluator;
+  final LessonRecordedSpeechRecognizer _recognizer;
+  final Future<bool> Function()? _networkTransportAvailable;
+  Future<bool>? _liveStart;
+  int _liveTurnId = 0;
+
+  Future<void> prepare() async {
+    final recognizer = _recognizer;
+    if (recognizer is LessonRecordedSpeechRecognizerPreparer) {
+      await (recognizer as LessonRecordedSpeechRecognizerPreparer).prepare();
+    }
+  }
+
+  void beginLiveRecognition(String? recordingPath) {
+    final recognizer = _recognizer;
+    if (recordingPath == null ||
+        recordingPath.isEmpty ||
+        recognizer is! LessonStreamingRecordedSpeechRecognizer) {
+      return;
+    }
+    final turnId = ++_nextLiveTurnId;
+    _liveTurnId = turnId;
+    _liveStart = (recognizer as LessonStreamingRecordedSpeechRecognizer)
+        .startStream(recordingPath, turnId);
+  }
+
+  Future<void> cancelLiveRecognition() async {
+    final started = _liveStart;
+    _liveStart = null;
+    final turnId = _liveTurnId;
+    final recognizer = _recognizer;
+    if (started == null ||
+        recognizer is! LessonStreamingRecordedSpeechRecognizer) {
+      return;
+    }
+    try {
+      if (await started) {
+        await (recognizer as LessonStreamingRecordedSpeechRecognizer)
+            .cancelStream(turnId);
+      }
+    } on Exception {
+      // The next lesson turn starts with a fresh native recognition session.
+    }
+  }
+
+  @override
+  Future<LessonAttemptOutcome> evaluate({
+    required String lessonCode,
+    required String sentenceId,
+    required String expectedEnglish,
+    required String recordingPath,
+    required Duration recordingDuration,
+    required int attemptNumber,
+    required int childAge,
+    Iterable<String> acceptedVariants = const <String>[],
+    bool requireAllExpectedTokens = false,
+  }) async {
+    final localTimer = Stopwatch()..start();
+    try {
+      LessonRecordedSpeechRecognition? recognition;
+      var usedLiveRecognition = false;
+      final liveStart = _liveStart;
+      _liveStart = null;
+      final turnId = _liveTurnId;
+      final recognizer = _recognizer;
+      if (liveStart != null &&
+          recognizer is LessonStreamingRecordedSpeechRecognizer &&
+          await liveStart) {
+        try {
+          recognition =
+              await (recognizer as LessonStreamingRecordedSpeechRecognizer)
+                  .stopStream(turnId);
+          usedLiveRecognition = true;
+        } on LessonRecordedSpeechRecognitionException {
+          // A service can reject live file tailing; score the completed WAV.
+        }
+      }
+      recognition ??= await _recognizer.recognizeFile(
+        path: recordingPath,
+        locale: 'en-US',
+        preferOnDevice: true,
+        requireOnDevice: true,
+      );
+      final outcome = evaluateNativeLessonTranscripts(
+        expectedEnglish: expectedEnglish,
+        transcripts: <String>[
+          recognition.transcript,
+          ...recognition.alternatives,
+        ],
+        acceptedVariants: acceptedVariants,
+        requireAllExpectedTokens: requireAllExpectedTokens,
+      );
+      debugPrint(
+        jsonEncode(<String, Object?>{
+          'event': 'lesson_scoring_android_local',
+          'durationMs': localTimer.elapsedMilliseconds,
+          'mode': usedLiveRecognition ? 'live' : 'file',
+          'outcome': outcome.name,
+        }),
+      );
+      return outcome;
+    } on Exception catch (error) {
+      // The model may not be installed, or this recording may not be usable by
+      // the local recognizer. Keep the existing online scorer for these cases.
+      debugPrint(
+        jsonEncode(<String, Object?>{
+          'event': 'lesson_scoring_android_local_fallback',
+          'durationMs': localTimer.elapsedMilliseconds,
+          'reason': error is LessonRecordedSpeechRecognitionException
+              ? error.code
+              : error.runtimeType.toString(),
+        }),
+      );
+    }
+
+    final checker = _networkTransportAvailable;
+    if (checker != null) {
+      bool? hasNetworkTransport;
+      try {
+        hasNetworkTransport = await checker();
+      } catch (_) {
+        // An unavailable network signal is not proof that the API is offline.
+      }
+      if (hasNetworkTransport == false) {
+        throw const LessonAttemptEvaluationException(
+          'Thiết bị đang ngoại tuyến và chưa thể chấm câu trên máy.',
+          backendUnavailable: true,
+        );
+      }
+    }
+    return _backendEvaluator.evaluate(
+      lessonCode: lessonCode,
+      sentenceId: sentenceId,
+      expectedEnglish: expectedEnglish,
+      recordingPath: recordingPath,
+      recordingDuration: recordingDuration,
+      attemptNumber: attemptNumber,
+      childAge: childAge,
+      acceptedVariants: acceptedVariants,
+      requireAllExpectedTokens: requireAllExpectedTokens,
+    );
+  }
+
+  @override
+  void dispose() {
+    unawaited(cancelLiveRecognition());
+    final backendEvaluator = _backendEvaluator;
+    if (backendEvaluator is DisposableLessonAttemptEvaluator) {
+      (backendEvaluator as DisposableLessonAttemptEvaluator).dispose();
+    }
+  }
+}
+
+LessonAttemptEvaluator createDefaultLessonAttemptEvaluator({
+  bool preferAndroidOnDevice = false,
+}) {
   final backendEvaluator = BackendLessonAttemptEvaluator();
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    if (preferAndroidOnDevice) {
+      return AndroidOnDeviceFirstLessonAttemptEvaluator(
+        backendEvaluator: backendEvaluator,
+        networkTransportAvailable: NetworkAvailability.hasTransport,
+      );
+    }
     return BackendFirstLessonAttemptEvaluator(
       backendEvaluator: backendEvaluator,
       networkTransportAvailable: NetworkAvailability.hasTransport,

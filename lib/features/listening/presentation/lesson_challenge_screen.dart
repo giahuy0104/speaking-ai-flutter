@@ -155,7 +155,13 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     super.initState();
     _ownsAttemptEvaluator = widget.attemptEvaluator == null;
     _attemptEvaluator =
-        widget.attemptEvaluator ?? createDefaultLessonAttemptEvaluator();
+        widget.attemptEvaluator ??
+        createDefaultLessonAttemptEvaluator(preferAndroidOnDevice: true);
+    final evaluator = _attemptEvaluator;
+    if (_ownsAttemptEvaluator &&
+        evaluator is AndroidOnDeviceFirstLessonAttemptEvaluator) {
+      unawaited(evaluator.prepare());
+    }
     _voicePromptService = widget.voicePromptService;
     _pausedForMainAssistant = widget.startPaused;
     if (widget.startPaused) _message = 'Phần thử thách đang tạm dừng.';
@@ -180,6 +186,10 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     // put the Challenge UI back into a recording state with no microphone.
     _request += 1;
     _recordingEndpointDetector.cancel();
+    final evaluator = _attemptEvaluator;
+    if (evaluator is AndroidOnDeviceFirstLessonAttemptEvaluator) {
+      unawaited(evaluator.cancelLiveRecognition());
+    }
     _cancelIosRecordingCompletion();
     setState(() {
       _recording = false;
@@ -233,6 +243,10 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       unawaited(widget.mediaService.stopPlayback());
     }
     if (wasRecording) {
+      final evaluator = _attemptEvaluator;
+      if (evaluator is AndroidOnDeviceFirstLessonAttemptEvaluator) {
+        unawaited(evaluator.cancelLiveRecognition());
+      }
       if (_recordingUsesIosSpeech && widget.iosSpeechInput != null) {
         unawaited(widget.iosSpeechInput!.cancel());
       } else {
@@ -260,6 +274,10 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     _request += 1;
     _mainPauseGeneration += 1;
     _recordingEndpointDetector.cancel();
+    final evaluator = _attemptEvaluator;
+    if (evaluator is AndroidOnDeviceFirstLessonAttemptEvaluator) {
+      unawaited(evaluator.cancelLiveRecognition());
+    }
     _cancelIosRecordingCompletion();
     _promptCompletionTimer?.cancel();
     _promptCompletionTimer = null;
@@ -696,6 +714,11 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
           await widget.mediaService.cancelRecording().catchError((Object _) {});
         }
         return;
+      }
+      final evaluator = _attemptEvaluator;
+      if (!usesIosSpeech &&
+          evaluator is AndroidOnDeviceFirstLessonAttemptEvaluator) {
+        evaluator.beginLiveRecognition(widget.mediaService.activeRecordingPath);
       }
       if (!cueBeforeStart && prompt is SpeechReadyCuePlayer) {
         await (prompt as SpeechReadyCuePlayer).playSpeechReadyCue();
