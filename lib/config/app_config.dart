@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 class AppConfig {
   static const String productionBackendBaseUrl =
       'https://speaking-ai-nextjs-backend-production.up.railway.app';
+  static const String stagingBackendBaseUrl =
+      'https://speaking-ai-nextjs-backend-zh-test-staging.up.railway.app';
 
   const AppConfig({
     required this.backendBaseUri,
@@ -33,11 +35,11 @@ class AppConfig {
       'BACKEND_BASE_URL',
       defaultValue: '',
     );
-    // A build without dart-defines must remain usable on a real device/PWA.
-    // Local development can still opt in explicitly with BACKEND_BASE_URL.
+    // This experimental branch defaults to the isolated Railway staging service.
+    // A build can still opt in explicitly with BACKEND_BASE_URL.
     final rawBackendUrl = configuredBackendUrl.trim().isNotEmpty
         ? configuredBackendUrl.trim()
-        : productionBackendBaseUrl;
+        : stagingBackendBaseUrl;
     const configuredWorkerAsrPilotUrl = String.fromEnvironment(
       'WORKER_ASR_PILOT_URL',
       defaultValue: '',

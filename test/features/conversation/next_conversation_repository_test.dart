@@ -278,6 +278,71 @@ void main() {
     await repository.dispose();
   });
 
+  for (final entry in <(TranslationOutputLanguage, String)>[
+    (TranslationOutputLanguage.japanese, '水が飲みたい。'),
+    (TranslationOutputLanguage.korean, '물을 마시고 싶어요.'),
+    (TranslationOutputLanguage.french, 'Je veux boire de l’eau.'),
+  ]) {
+    test(
+      'requests ${entry.$1.code} with one online translation call',
+      () async {
+        var requestCount = 0;
+        final repository = NextConversationRepository(
+          config: config,
+          clientIdProvider: clientIdProvider,
+          client: MockClient((request) async {
+            requestCount += 1;
+            final body = jsonDecode(request.body) as Map<String, dynamic>;
+            expect(body['sourceText'], 'Con muốn uống nước.');
+            expect(body['targetLanguage'], entry.$1.code);
+            return http.Response(
+              jsonEncode(<String, dynamic>{
+                'conversationId': '',
+                'sessionId': '',
+                'context': 'home',
+                'vietnameseText': 'Con muốn uống nước.',
+                'englishText': '',
+                'targetLanguage': entry.$1.code,
+                'translatedText': entry.$2,
+                'audioUrl': null,
+                'processingMode': 'ai',
+                'textSource': 'cloudflare',
+                'audioSource': 'device_tts',
+                'asrMode': 'android_streaming',
+                'latency': <String, dynamic>{},
+              }),
+              200,
+              headers: const <String, String>{
+                'content-type': 'application/json',
+              },
+            );
+          }),
+        );
+
+        final result = await repository.processStreamingTextForLanguage(
+          capture: const StreamingSpeechCapture(
+            sourceText: 'Con muốn uống nước.',
+            duration: Duration(seconds: 2),
+            inputLabel: 'Mic điện thoại',
+            confidence: 0.9,
+            firstResultMs: 200,
+            finalAfterStopMs: 50,
+          ),
+          context: PracticeContext.home,
+          childAge: 6,
+          vadSilenceMs: 700,
+          outputLanguage: entry.$1,
+        );
+
+        expect(requestCount, 1);
+        expect(result.outputLanguage, entry.$1);
+        expect(result.translatedText, entry.$2);
+        expect(result.audioSource, 'device_tts');
+        await repository.dispose();
+      },
+    );
+  }
+
   for (final retryCase in <({int status, String code})>[
     (status: 425, code: 'TOO_EARLY'),
     (status: 429, code: 'RATE_LIMITED'),

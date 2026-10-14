@@ -82,6 +82,57 @@ void main() {
     },
   );
 
+  for (final language in <TranslationOutputLanguage>[
+    TranslationOutputLanguage.japanese,
+    TranslationOutputLanguage.korean,
+    TranslationOutputLanguage.french,
+  ]) {
+    testWidgets(
+      'Android can select ${language.vietnameseName} while Vietnamese stays input',
+      (tester) async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        final controller = ConversationController(
+          audioInput: _FakeAudioInput(),
+          playbackService: const _FakePlaybackService(),
+          repository: const _LanguageRepository(),
+          childAge: 6,
+        );
+        addTearDown(controller.dispose);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: ConversationScreen(
+              controller: controller,
+              onOpenHistory: () {},
+              onOpenSettings: () {},
+            ),
+          ),
+        );
+        await tester.tap(
+          find.byKey(const Key('translation-output-language-button')),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(language.vietnameseName).last);
+        await tester.pumpAndSettle();
+
+        expect(controller.outputLanguage, language);
+        expect(find.text('Câu tiếng Việt'), findsOneWidget);
+        expect(
+          find.text(
+            'Câu ${language.vietnameseName.replaceFirst('Tiếng', 'tiếng')}',
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.text('Dịch ra: ${language.vietnameseName}'),
+          findsOneWidget,
+        );
+        debugDefaultTargetPlatformOverride = null;
+      },
+    );
+  }
+
   testWidgets('Chinese result offers device speech replay', (tester) async {
     var replayed = false;
     await tester.pumpWidget(

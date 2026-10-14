@@ -55,7 +55,7 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix = ".zhstaging"
-            manifestPlaceholders["appLabel"] = "HOMI Trung Test"
+            manifestPlaceholders["appLabel"] = "HOMI Dịch Test"
         }
         release {
             // Keep local/CI validation buildable until the production keystore

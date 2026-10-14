@@ -81,11 +81,10 @@ class ConversationScreen extends StatelessWidget {
                                       PopupMenuItem<TranslationOutputLanguage>(
                                         value: language,
                                         child: Text(
-                                          language ==
-                                                  TranslationOutputLanguage
-                                                      .english
-                                              ? context.tr('Tiếng Anh', '英语')
-                                              : context.tr('Tiếng Trung', '中文'),
+                                          context.tr(
+                                            language.vietnameseName,
+                                            language.chineseName,
+                                          ),
                                         ),
                                       ),
                                   ],
@@ -95,16 +94,10 @@ class ConversationScreen extends StatelessWidget {
                                       size: 18,
                                     ),
                                     label: Text(
-                                      controller.outputLanguage ==
-                                              TranslationOutputLanguage.english
-                                          ? localizedContext.tr(
-                                              'Dịch ra: Tiếng Anh',
-                                              '译成：英语',
-                                            )
-                                          : localizedContext.tr(
-                                              'Dịch ra: Tiếng Trung',
-                                              '译成：中文',
-                                            ),
+                                      localizedContext.tr(
+                                        'Dịch ra: ${controller.outputLanguage.vietnameseName}',
+                                        '译成：${controller.outputLanguage.chineseName}',
+                                      ),
                                     ),
                                   ),
                                 ),

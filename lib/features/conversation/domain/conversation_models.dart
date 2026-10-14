@@ -42,13 +42,28 @@ enum ConversationPhase { idle, recording, processing, ready, error }
 enum ConversationProcessingStage { recognizing, translating, preparingAudio }
 
 enum TranslationOutputLanguage {
-  english('en', 'en-US'),
-  chinese('zh', 'zh-CN');
+  english('en', 'en-US', 'Tiếng Anh', '英语'),
+  chinese('zh', 'zh-CN', 'Tiếng Trung', '中文'),
+  japanese('ja', 'ja-JP', 'Tiếng Nhật', '日语'),
+  korean('ko', 'ko-KR', 'Tiếng Hàn', '韩语'),
+  french('fr', 'fr-FR', 'Tiếng Pháp', '法语');
 
-  const TranslationOutputLanguage(this.code, this.speechLocale);
+  const TranslationOutputLanguage(
+    this.code,
+    this.speechLocale,
+    this.vietnameseName,
+    this.chineseName,
+  );
 
   final String code;
   final String speechLocale;
+  final String vietnameseName;
+  final String chineseName;
+
+  static TranslationOutputLanguage fromCode(Object? code) => values.firstWhere(
+    (language) => language.code == code,
+    orElse: () => english,
+  );
 }
 
 class ConversationLearningOutcome {
@@ -195,9 +210,9 @@ class ConversationResult {
           json['translatedText'] as String? ??
           json['englishText'] as String? ??
           '',
-      outputLanguage: json['targetLanguage'] == 'zh'
-          ? TranslationOutputLanguage.chinese
-          : TranslationOutputLanguage.english,
+      outputLanguage: TranslationOutputLanguage.fromCode(
+        json['targetLanguage'],
+      ),
       audioUri: rawAudioUrl == null
           ? null
           : backendBaseUri.resolve(rawAudioUrl),

@@ -416,11 +416,12 @@ class ConversationController extends ChangeNotifier
   bool setTranslationOutputLanguage(TranslationOutputLanguage language) {
     if (_disposed || isBusy || _stopInProgress) return false;
     if (language == outputLanguage) return true;
-    if (language == TranslationOutputLanguage.chinese &&
+    if (language != TranslationOutputLanguage.english &&
         (_isWebRuntime ||
             defaultTargetPlatform != TargetPlatform.android ||
             _repository is! TargetLanguageConversationRepository)) {
-      errorMessage = 'Thiết bị này chưa hỗ trợ dịch liên tục sang tiếng Trung.';
+      errorMessage =
+          'Thiết bị này chưa hỗ trợ dịch liên tục sang ${language.vietnameseName.replaceFirst('Tiếng', 'tiếng')}.';
       notifyListeners();
       return false;
     }
@@ -3310,14 +3311,14 @@ class ConversationController extends ChangeNotifier
               useDeviceTtsForExact: useAndroidOfflineAudio,
             );
       final Future<ConversationResult> resultFuture;
-      if (outputLanguage == TranslationOutputLanguage.chinese) {
+      if (outputLanguage != TranslationOutputLanguage.english) {
         final languageRepository = _repository;
         if (!hasNetworkTransport ||
             streamingCapture == null ||
             languageRepository is! TargetLanguageConversationRepository) {
-          throw const StreamingSpeechInputException(
-            'Cần kết nối mạng và nhận dạng tiếng Việt để dịch sang tiếng Trung.',
-            code: 'CHINESE_TRANSLATION_UNAVAILABLE',
+          throw StreamingSpeechInputException(
+            'Cần kết nối mạng và nhận dạng tiếng Việt để dịch sang ${outputLanguage.vietnameseName.replaceFirst('Tiếng', 'tiếng')}.',
+            code: 'TARGET_TRANSLATION_UNAVAILABLE',
           );
         }
         resultFuture =
@@ -3327,7 +3328,7 @@ class ConversationController extends ChangeNotifier
                   context: context,
                   childAge: _childAge,
                   vadSilenceMs: vadSilenceMs,
-                  outputLanguage: TranslationOutputLanguage.chinese,
+                  outputLanguage: outputLanguage,
                 );
       } else if (offlineFirstResult != null) {
         // Do not create an HTTP request after the OS has already reported that

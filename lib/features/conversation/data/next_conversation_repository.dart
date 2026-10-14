@@ -424,12 +424,12 @@ class NextConversationRepository
             )
             .timeout(const Duration(seconds: 20));
         final payload = _decodeResponse(response);
-        if (outputLanguage == TranslationOutputLanguage.chinese &&
-            (payload['targetLanguage'] != 'zh' ||
+        if (outputLanguage != TranslationOutputLanguage.english &&
+            (payload['targetLanguage'] != outputLanguage.code ||
                 (payload['translatedText'] as String?)?.trim().isEmpty !=
                     false)) {
-          throw const ConversationApiException(
-            'Máy chủ chưa hỗ trợ dịch tiếng Trung. Vui lòng thử lại sau.',
+          throw ConversationApiException(
+            'Máy chủ chưa hỗ trợ dịch ${outputLanguage.vietnameseName.replaceFirst('Tiếng', 'tiếng')}. Vui lòng thử lại sau.',
           );
         }
         return ConversationResult.fromJson(
