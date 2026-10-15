@@ -11,7 +11,6 @@ import '../domain/conversation_models.dart';
 import 'conversation_controller.dart';
 import 'widgets/result_panel.dart';
 import 'widgets/speak_action_bar.dart';
-import 'widgets/translation_voice_picker.dart';
 import 'widgets/voice_hero.dart';
 
 class ConversationScreen extends StatelessWidget {
@@ -63,64 +62,45 @@ class ConversationScreen extends StatelessWidget {
                         alignment: Alignment.centerRight,
                         child: Padding(
                           padding: const EdgeInsets.only(right: 24, top: 4),
-                          child: Wrap(
-                            alignment: WrapAlignment.end,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            spacing: 4,
-                            children: <Widget>[
-                              Builder(
-                                builder: (localizedContext) =>
-                                    PopupMenuButton<TranslationOutputLanguage>(
-                                      key: const Key(
-                                        'translation-output-language-button',
-                                      ),
-                                      enabled: !controller.isBusy,
-                                      tooltip: localizedContext.tr(
-                                        'Chọn ngôn ngữ dịch ra',
-                                        '选择翻译目标语言',
-                                      ),
-                                      onSelected: controller
-                                          .setTranslationOutputLanguage,
-                                      itemBuilder: (context) => [
-                                        for (final language
-                                            in TranslationOutputLanguage.values)
-                                          PopupMenuItem<
-                                            TranslationOutputLanguage
-                                          >(
-                                            value: language,
-                                            child: Text(
-                                              context.tr(
-                                                language.vietnameseName,
-                                                language.chineseName,
-                                              ),
-                                            ),
-                                          ),
-                                      ],
-                                      child: Chip(
-                                        avatar: const Icon(
-                                          Icons.translate_rounded,
-                                          size: 18,
-                                        ),
-                                        label: Text(
-                                          localizedContext.tr(
-                                            'Dịch ra: ${controller.outputLanguage.vietnameseName}',
-                                            '译成：${controller.outputLanguage.chineseName}',
+                          child: Builder(
+                            builder: (localizedContext) =>
+                                PopupMenuButton<TranslationOutputLanguage>(
+                                  key: const Key(
+                                    'translation-output-language-button',
+                                  ),
+                                  enabled: !controller.isBusy,
+                                  tooltip: localizedContext.tr(
+                                    'Chọn ngôn ngữ dịch ra',
+                                    '选择翻译目标语言',
+                                  ),
+                                  onSelected:
+                                      controller.setTranslationOutputLanguage,
+                                  itemBuilder: (context) => [
+                                    for (final language
+                                        in TranslationOutputLanguage.values)
+                                      PopupMenuItem<TranslationOutputLanguage>(
+                                        value: language,
+                                        child: Text(
+                                          context.tr(
+                                            language.vietnameseName,
+                                            language.chineseName,
                                           ),
                                         ),
+                                      ),
+                                  ],
+                                  child: Chip(
+                                    avatar: const Icon(
+                                      Icons.translate_rounded,
+                                      size: 18,
+                                    ),
+                                    label: Text(
+                                      localizedContext.tr(
+                                        'Dịch ra: ${controller.outputLanguage.vietnameseName}',
+                                        '译成：${controller.outputLanguage.chineseName}',
                                       ),
                                     ),
-                              ),
-                              if (controller.outputLanguage ==
-                                      TranslationOutputLanguage.japanese ||
-                                  controller.outputLanguage ==
-                                      TranslationOutputLanguage.korean ||
-                                  controller.outputLanguage ==
-                                      TranslationOutputLanguage.french)
-                                TranslationVoicePicker(
-                                  language: controller.outputLanguage,
-                                  controller: controller,
+                                  ),
                                 ),
-                            ],
                           ),
                         ),
                       ),
