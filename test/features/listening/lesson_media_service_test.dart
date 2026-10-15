@@ -513,6 +513,44 @@ void main() {
     await mediaService.dispose();
   });
 
+  test('waits briefly for a lost HM-D001 route to come back', () async {
+    final statuses = StreamController<BluetoothAudioStatus>.broadcast();
+    addTearDown(statuses.close);
+    final hfp = _FakeHfpAudioControl(
+      <String>[],
+      status: const BluetoothAudioStatus(
+        phase: BluetoothAudioConnectionPhase.error,
+        deviceId: 'h20-uid',
+        deviceName: 'H20',
+        sampleRate: 16000,
+      ),
+      changes: statuses.stream,
+    );
+    final mediaService = LessonMediaService(
+      playbackService: _ControlledPlaybackService(),
+      hfpAudioControl: hfp,
+    );
+    addTearDown(mediaService.dispose);
+
+    final returned = mediaService.waitForSelectedHfpRoute();
+    statuses.add(
+      const BluetoothAudioStatus(
+        phase: BluetoothAudioConnectionPhase.ready,
+        deviceId: 'h20-uid',
+        deviceName: 'H20',
+        sampleRate: 16000,
+        routeActive: true,
+      ),
+    );
+    expect(await returned, isTrue);
+    expect(
+      await mediaService.waitForSelectedHfpRoute(
+        timeout: const Duration(milliseconds: 20),
+      ),
+      isFalse,
+    );
+  });
+
   test('take replay route retry is bounded and stops with the clip', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);

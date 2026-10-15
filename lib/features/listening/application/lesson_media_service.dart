@@ -448,6 +448,26 @@ class LessonMediaService {
     _activeHfpRouteToken = null;
   }
 
+  /// After an HM-D001 route blip has stopped a clip, waits briefly for the
+  /// selected HFP route to come back so the caller can replay it there.
+  Future<bool> waitForSelectedHfpRoute({
+    Duration timeout = const Duration(milliseconds: 1500),
+  }) async {
+    final control = _hfpAudioControl;
+    if (control == null) return false;
+    if (control.status.routeActive) return true;
+    try {
+      await control.statusChanges
+          .firstWhere((status) => status.routeActive)
+          .timeout(timeout);
+      return true;
+    } on TimeoutException {
+      return false;
+    } on StateError {
+      return false;
+    }
+  }
+
   Future<void> _stopPlayback({required bool releaseAudioRoute}) async {
     final completion = _activePlaybackCompletion;
     if (completion != null && !completion.isCompleted) {

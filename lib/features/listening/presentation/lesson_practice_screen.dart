@@ -1276,13 +1276,36 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     final timeout = requestedTimeout < const Duration(seconds: 10)
         ? const Duration(seconds: 10)
         : requestedTimeout;
+    final sentenceIndex = _sentenceIndex;
+    final sentenceId = _sentence.id;
+    final pauseTicket = _lessonSession.mainPauseTicket;
+    Future<void> replay() => widget.mediaService.playToCompletion(
+      uri,
+      timeout: timeout,
+      playbackGainDb: lessonRecordingPlaybackGainDb,
+      fixedPlaybackGain: true,
+    );
     try {
-      await widget.mediaService.playToCompletion(
-        uri,
-        timeout: timeout,
-        playbackGainDb: lessonRecordingPlaybackGainDb,
-        fixedPlaybackGain: true,
-      );
+      await replay();
+      return true;
+    } on HfpAudioException catch (error) {
+      // An HM-D001 route blip stops the replay rather than letting it go on
+      // through the phone speaker. Replay once if the route comes back.
+      debugPrint('HOMI lesson attempt playback lost the HFP route: $error');
+      if (!await widget.mediaService.waitForSelectedHfpRoute() ||
+          !mounted ||
+          _pausedForMainAssistant ||
+          !_lessonSession.isCurrentMainPause(pauseTicket) ||
+          sentenceIndex != _sentenceIndex ||
+          sentenceId != _sentence.id) {
+        return false;
+      }
+    } catch (error) {
+      debugPrint('HOMI lesson attempt playback failed: $error');
+      return false;
+    }
+    try {
+      await replay();
       return true;
     } catch (error) {
       debugPrint('HOMI lesson attempt playback failed: $error');
