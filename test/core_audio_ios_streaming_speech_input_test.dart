@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
+import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_route_coordinator.dart';
 import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -811,6 +812,56 @@ void main() {
     expect(route.startRouteCount, 2);
     expect(route.status.phase, BluetoothAudioConnectionPhase.recording);
   });
+
+  test(
+    'iOS lesson take re-arms a ready H20 route still held by the lesson prompt',
+    () async {
+      const methodChannel = MethodChannel('test_ios_hfp_route_rearm_shared');
+      final events = StreamController<dynamic>.broadcast();
+      final route = _FakeHfpAudioControl();
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(methodChannel, (call) async {
+        switch (call.method) {
+          case 'speech.isAvailable':
+            return true;
+          case 'speech.start':
+            scheduleMicrotask(() {
+              events.add(<String, dynamic>{'type': 'speech.ready'});
+            });
+            return true;
+          case 'speech.cancel':
+            return true;
+        }
+        return null;
+      });
+      addTearDown(() async {
+        messenger.setMockMethodCallHandler(methodChannel, null);
+        await events.close();
+        await route.dispose();
+      });
+      // iOS wiring from ai_speaking_app.dart: no handoff grace, no revalidate.
+      final coordinator = HfpAudioRouteCoordinator(route);
+      final lessonPrompt = coordinator.createScope('listening-1');
+      final input = IOSStreamingSpeechInput(
+        methodChannel: methodChannel,
+        eventStream: events.stream,
+        audioRouteControl: coordinator.createScope('native-speech'),
+      );
+      addTearDown(input.dispose);
+
+      // The lesson prompt keeps its lease until the take has started; a route
+      // blip in between leaves the still-active HM-D001 route "ready".
+      await lessonPrompt.startAudioRoute();
+      route.markActiveRouteReady();
+      await input.startLessonEnglishRecognitionWithRecording(
+        '/recordings/lesson-attempt.wav',
+      );
+
+      expect(route.startRouteCount, 2);
+      expect(route.status.phase, BluetoothAudioConnectionPhase.recording);
+    },
+  );
 
   test(
     'iOS MAIN cancellation invalidates a pending lesson HFP activation',
