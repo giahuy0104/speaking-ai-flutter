@@ -64,7 +64,12 @@ import 'device_connection_feedback_overlay.dart';
 import 'h20_battery_alert_policy.dart';
 import 'mascot_assets.dart';
 
-enum _H20AutoConnectReason { background, parentSetup, periodicRetry }
+enum _H20AutoConnectReason {
+  background,
+  parentSetup,
+  periodicRetry,
+  audioRouteConnected,
+}
 
 enum _ParentH20GuidanceAction { cancel, primary }
 
@@ -741,7 +746,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       _aiv0AutoConnectAttemptActive = true;
       // A quiet periodic retry must not put a connecting overlay over the
       // child's screen every minute while the device is switched off.
-      if (reason != _H20AutoConnectReason.periodicRetry) {
+      if (reason != _H20AutoConnectReason.periodicRetry &&
+          reason != _H20AutoConnectReason.audioRouteConnected) {
         _showDeviceConnectionFeedback(DeviceConnectionFeedbackStage.connecting);
       }
     }
@@ -771,7 +777,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         await _autoSelectConnectedAndroidHfp();
       }
     } else if (_usesIosHfpLifecycle &&
-        reason == _H20AutoConnectReason.background &&
+        (reason == _H20AutoConnectReason.background ||
+            reason == _H20AutoConnectReason.audioRouteConnected) &&
         (!bleAlreadyConnected || _iosHfpAutoSelectionPending)) {
       _iosHfpAutoSelectionPending = true;
       unawaited(_autoSelectAvailableIosHfp());
@@ -815,7 +822,12 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       return;
     }
     _hmD001AudioConnected = true;
-    unawaited(_autoConnectH20Ble(skipRecentAttempt: true));
+    unawaited(
+      _autoConnectH20Ble(
+        reason: _H20AutoConnectReason.audioRouteConnected,
+        skipRecentAttempt: true,
+      ),
+    );
   }
 
   Future<bool> _configureH20ForParentSetup() async {
