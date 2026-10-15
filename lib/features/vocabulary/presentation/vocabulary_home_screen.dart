@@ -41,10 +41,15 @@ const _avatarAsset = 'assets/images/mascot/penguin-avatar.png';
 /// still follows [VocabularyHomeScreen.isActive] when frames resume.
 class VocabularyActivationController extends ChangeNotifier {
   bool _active = false;
+  bool _autoStartToday = true;
 
   bool get isActive => _active;
+  bool get autoStartToday => _autoStartToday;
 
-  void activate() => _setActive(true);
+  void activate({bool autoStartToday = true}) {
+    _autoStartToday = autoStartToday;
+    _setActive(true);
+  }
 
   void deactivate() => _setActive(false);
 
@@ -185,6 +190,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   final GlobalKey<VocabularyPracticeScreenState> _practiceScreenKey =
       GlobalKey<VocabularyPracticeScreenState>();
   bool _startingToday = false;
+  int _automaticEntryGeneration = 0;
   bool _todayOffered = false;
   bool _playingCollection = false;
   String? _activeEntryId;
@@ -1426,14 +1432,23 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   }
 
   void _openJourney(_VocabularyJourney journey) {
+    _automaticEntryGeneration++;
+    _todayOffered = true;
+    _cancelPendingFixedPrompt();
     setState(() {
       _selectedJourney = journey;
+      _lastVoiceChoicePrompt = switch (journey) {
+        _VocabularyJourney.family => VocabularyFlowV3.parentOtherMenu,
+        _VocabularyJourney.stars => VocabularyFlowV3.starOtherMenu,
+        _VocabularyJourney.review => VocabularyFlowV3.reviewOtherMenu,
+      };
       _activeEntryId = null;
       _searchController.clear();
     });
   }
 
   void _closeJourney() {
+    _automaticEntryGeneration++;
     _searchFocusNode.unfocus();
     setState(() {
       _selectedJourney = null;
@@ -1622,6 +1637,8 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   Future<void> _maybeStartToday() async {
     if (!mounted ||
+        _selectedJourney != null ||
+        !(widget.activationController?.autoStartToday ?? true) ||
         !_isEffectivelyActive ||
         _openingPractice ||
         _startingToday ||
@@ -1629,11 +1646,24 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       return;
     }
     _startingToday = true;
+    final generation = _automaticEntryGeneration;
+    bool isCurrent() =>
+        mounted &&
+        _isEffectivelyActive &&
+        !_pausedForMainAssistant &&
+        _selectedJourney == null &&
+        generation == _automaticEntryGeneration &&
+        (widget.activationController?.autoStartToday ?? true);
     try {
       final firstEntryToday = await widget.sessionStore
           .markAndCheckFirstEntryToday(DateTime.now());
+      if (!isCurrent()) return;
       final activeBeforeEntry = await widget.sessionStore.readActive();
+      if (!isCurrent()) return;
       final session = await widget.sessionStore.prepareToday(widget.store);
+      // A direct destination owns its audio, including when a queued load or
+      // an earlier automatic entry completes after that destination is chosen.
+      if (!isCurrent()) return;
       _todayOffered = true;
       if (session == null) {
         if (mounted && _isEffectivelyActive) {
@@ -2285,10 +2315,13 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   Future<bool> _resumeBlockingPracticeIfNeeded() async {
     final active = await widget.sessionStore.readActive();
-    if (active == null) return false;
-    if (active.mode == VocabularyPracticeMode.today) {
-      await _speakOnSelectedOutput(VocabularyFlowV3.finishActiveGroupFirst);
+    // Only Today's required group blocks other collections. An unfinished
+    // Review is resumable when Review is selected, not a navigation override
+    // for Parent Added or Stars. Leave its checkpoint intact.
+    if (active == null || active.mode != VocabularyPracticeMode.today) {
+      return false;
     }
+    await _speakOnSelectedOutput(VocabularyFlowV3.finishActiveGroupFirst);
     await _runPracticeSession(
       active,
       announceInitialIntro: false,
@@ -2397,6 +2430,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   }
 
   Future<void> _speakAndRequestChoice(String prompt) async {
+    // A delayed root callback must not replace a selected collection's prompt
+    // or re-arm MAIN with the root menu after navigation has committed.
+    if (prompt == VocabularyFlowV3.menu && _selectedJourney != null) return;
     final generation = _playbackGeneration;
     _lastVoiceChoicePrompt = prompt;
     await _speakOnSelectedOutput(prompt);

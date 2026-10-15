@@ -30,9 +30,8 @@ void main() {
     Future<ListeningContentCatalog>? contentFuture,
     ListeningProgressStore? progressStore,
     TopicLessonSelectionPrompt? onLessonSelectionRequested,
-    LevelTopicSelectionPrompt? onLevelTopicSelectionRequested,
+    TopicSelectionPrompt? onTopicSelectionRequested,
     ValueListenable<int>? iosTopicRecognitionFailureRevision,
-    CourseRelearnLevelSelectionPrompt? onCourseRelearnLevelSelectionRequested,
     ValueChanged<int>? onChildAgeChanged,
     Future<bool> Function()? onRequestParentAccess,
     Future<void> Function()? onMainPressed,
@@ -57,11 +56,9 @@ void main() {
           contentFuture: contentFuture,
           progressStore: progressStore ?? _MemoryProgressStore(),
           onLessonSelectionRequested: onLessonSelectionRequested,
-          onLevelTopicSelectionRequested: onLevelTopicSelectionRequested,
+          onTopicSelectionRequested: onTopicSelectionRequested,
           iosTopicRecognitionFailureRevision:
               iosTopicRecognitionFailureRevision,
-          onCourseRelearnLevelSelectionRequested:
-              onCourseRelearnLevelSelectionRequested,
           onChildAgeChanged: onChildAgeChanged,
           onRequestParentAccess: onRequestParentAccess,
           onMainPressed: onMainPressed,
@@ -150,35 +147,30 @@ void main() {
     expect(prompt.defaultOutputPrompts, isEmpty);
   });
 
-  testWidgets('entering topics restores the current Level intro', (
+  testWidgets('entering topics offers all ten topics for every age group', (
     tester,
   ) async {
     for (final childAge in <int>[3, 6, 8, 11, 13]) {
       final progressStore = _MemoryProgressStore()
         ..checkpoint = const ListeningTopicSelectionCheckpoint(
-          levelNumber: 1,
-          announceLevel: false,
+          levelNumber: 3,
+          announceLevel: true,
         );
-      final prompts =
-          <({int levelNumber, List<int> topicNumbers, bool announceLevel})>[];
+      final prompts = <List<int>>[];
 
       await tester.pumpWidget(
         buildSubject(
           childAge: childAge,
           progressStore: progressStore,
-          onLevelTopicSelectionRequested:
+          onTopicSelectionRequested:
               ({
                 required childAge,
-                required levelNumber,
                 required topicNumbers,
                 required completedTopicNumbers,
-                required announceLevel,
+                required courseCompleted,
               }) async {
-                prompts.add((
-                  levelNumber: levelNumber,
-                  topicNumbers: topicNumbers,
-                  announceLevel: announceLevel,
-                ));
+                prompts.add(topicNumbers);
+                expect(courseCompleted, isFalse);
                 return true;
               },
         ),
@@ -186,66 +178,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(prompts, hasLength(1), reason: 'age $childAge');
-      expect(prompts.single.levelNumber, 1, reason: 'age $childAge');
-      expect(prompts.single.topicNumbers, isNotEmpty, reason: 'age $childAge');
-      expect(prompts.single.announceLevel, isTrue, reason: 'age $childAge');
-      expect(
-        progressStore.checkpoint?.announceLevel,
-        isTrue,
-        reason: 'age $childAge',
-      );
-      await tester.pumpWidget(const SizedBox.shrink());
-      await tester.pump();
-    }
-  });
-
-  testWidgets('stale topic checkpoints restore an available unfinished Level', (
-    tester,
-  ) async {
-    final catalog = await AssetListeningContentRepository().load();
-    final group = catalog.groups.firstWhere((group) => group.startAge == 3);
-    for (final scenario in [
-      (savedLevel: 1, completeFirstLevel: true, expectedLevel: 2),
-      (savedLevel: 99, completeFirstLevel: false, expectedLevel: 1),
-      (savedLevel: 3, completeFirstLevel: false, expectedLevel: 1),
-    ]) {
-      final store = _MemoryProgressStore()
-        ..checkpoint = ListeningTopicSelectionCheckpoint(
-          levelNumber: scenario.savedLevel,
-          announceLevel: false,
-        );
-      if (scenario.completeFirstLevel) {
-        for (final topic in group.topics.where(
-          (topic) => group.levels.first.topicNumbers.contains(topic.number),
-        )) {
-          for (final lesson in topic.lessons) {
-            await store.saveLesson(lesson.id, lesson.sentences.length);
-            await store.markV4LessonActivityCompleted(lesson.id);
-          }
-        }
-      }
-      final requestedLevels = <int>[];
-      await tester.pumpWidget(
-        buildSubject(
-          childAge: 3,
-          contentFuture: Future.value(catalog),
-          progressStore: store,
-          onLevelTopicSelectionRequested:
-              ({
-                required childAge,
-                required levelNumber,
-                required topicNumbers,
-                required completedTopicNumbers,
-                required announceLevel,
-              }) async {
-                requestedLevels.add(levelNumber);
-                return true;
-              },
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(requestedLevels, [scenario.expectedLevel]);
-      expect(store.checkpoint?.levelNumber, scenario.expectedLevel);
+      expect(prompts.single, List<int>.generate(10, (index) => index + 1));
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump();
     }
@@ -264,13 +197,12 @@ void main() {
             childAge: 3,
             voicePromptService: voice,
             mediaService: media,
-            onLevelTopicSelectionRequested:
+            onTopicSelectionRequested:
                 ({
                   required childAge,
-                  required levelNumber,
                   required topicNumbers,
                   required completedTopicNumbers,
-                  required announceLevel,
+                  required courseCompleted,
                 }) async {
                   if (throwsActivation) {
                     throw StateError('microphone unavailable');
@@ -280,13 +212,13 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
+        expect(find.byKey(const ValueKey('topic-choice-2')), findsOneWidget);
         expect(
-          find.byKey(const ValueKey('level-topic-choice-2')),
-          findsOneWidget,
+          voice.spoken.single,
+          'Có 10 Chủ đề. Bạn muốn chọn Chủ đề số mấy?',
         );
-        expect(voice.spoken.single, contains('Bạn chọn Chủ đề số mấy?'));
 
-        await tester.tap(find.byKey(const ValueKey('level-topic-choice-2')));
+        await tester.tap(find.byKey(const ValueKey('topic-choice-2')));
         for (var index = 0; index < 5; index++) {
           await tester.pump();
         }
@@ -324,13 +256,12 @@ void main() {
           childAge: 3,
           progressStore: store,
           iosTopicRecognitionFailureRevision: failureRevision,
-          onLevelTopicSelectionRequested:
+          onTopicSelectionRequested:
               ({
                 required childAge,
-                required levelNumber,
                 required topicNumbers,
                 required completedTopicNumbers,
-                required announceLevel,
+                required courseCompleted,
               }) async {
                 activations += 1;
                 return true;
@@ -339,19 +270,13 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(activations, 1);
-      expect(find.byKey(const ValueKey('level-topic-choice-2')), findsNothing);
+      expect(find.byKey(const ValueKey('topic-choice-2')), findsNothing);
 
       failureRevision.value += 1;
       await tester.pumpAndSettle();
-      expect(
-        find.byKey(const ValueKey('level-topic-choice-2')),
-        findsOneWidget,
-      );
-      expect(
-        find.byKey(const ValueKey('level-topic-choice-3')),
-        findsOneWidget,
-      );
-      await tester.tap(find.byKey(const ValueKey('level-topic-choice-2')));
+      expect(find.byKey(const ValueKey('topic-choice-2')), findsOneWidget);
+      expect(find.byKey(const ValueKey('topic-choice-3')), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('topic-choice-2')));
       for (var index = 0; index < 5; index++) {
         await tester.pump();
       }
@@ -383,20 +308,19 @@ void main() {
           childAge: 3,
           progressStore: store,
           iosTopicRecognitionFailureRevision: failureRevision,
-          onLevelTopicSelectionRequested:
+          onTopicSelectionRequested:
               ({
                 required childAge,
-                required levelNumber,
                 required topicNumbers,
                 required completedTopicNumbers,
-                required announceLevel,
+                required courseCompleted,
               }) async => true,
         ),
       );
       await tester.pumpAndSettle();
       failureRevision.value += 1;
       await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('level-topic-choice-2')), findsNothing);
+      expect(find.byKey(const ValueKey('topic-choice-2')), findsNothing);
     },
     variant: const TargetPlatformVariant(<TargetPlatform>{
       TargetPlatform.android,
@@ -733,23 +657,30 @@ void main() {
     expect(prompts.selectedOutputPrompts, isNotEmpty);
   });
 
-  testWidgets('completed Course asks MAIN to choose a Level for relearn', (
+  testWidgets('completed Course asks MAIN to choose one of ten topics', (
     tester,
   ) async {
     final content = await AssetListeningContentRepository().load();
     final progressStore = _MemoryProgressStore()..courseCompleted = true;
     int? requestedAge;
-    List<int>? requestedLevels;
+    List<int>? requestedTopics;
+    bool? reportedCourseCompleted;
 
     await tester.pumpWidget(
       buildSubject(
         childAge: 6,
         contentFuture: Future<ListeningContentCatalog>.value(content),
         progressStore: progressStore,
-        onCourseRelearnLevelSelectionRequested:
-            ({required childAge, required levelNumbers}) async {
+        onTopicSelectionRequested:
+            ({
+              required childAge,
+              required topicNumbers,
+              required completedTopicNumbers,
+              required courseCompleted,
+            }) async {
               requestedAge = childAge;
-              requestedLevels = levelNumbers;
+              requestedTopics = topicNumbers;
+              reportedCourseCompleted = courseCompleted;
               return true;
             },
       ),
@@ -757,12 +688,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(requestedAge, 6);
-    expect(requestedLevels, <int>[1, 2, 3]);
+    expect(requestedTopics, List<int>.generate(10, (index) => index + 1));
+    expect(reportedCourseCompleted, isTrue);
   });
 
   for (final throwsActivation in [false, true]) {
     testWidgets(
-      'failed completed Course assistant can replay Level 1 (throws=$throwsActivation)',
+      'failed completed Course assistant can replay Topic 1 (throws=$throwsActivation)',
       (tester) async {
         await tester.binding.setSurfaceSize(const Size(390, 844));
         addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -775,42 +707,35 @@ void main() {
             await store.markV4LessonActivityCompleted(lesson.id);
           }
         }
-        final requestedLevels = <int>[];
         await tester.pumpWidget(
           buildSubject(
             childAge: 3,
             progressStore: store,
             contentFuture: Future.value(catalog),
-            onCourseRelearnLevelSelectionRequested:
-                ({required childAge, required levelNumbers}) async {
+            onTopicSelectionRequested:
+                ({
+                  required childAge,
+                  required topicNumbers,
+                  required completedTopicNumbers,
+                  required courseCompleted,
+                }) async {
                   if (throwsActivation) {
                     throw StateError('microphone unavailable');
                   }
                   return false;
                 },
-            onLevelTopicSelectionRequested:
-                ({
-                  required childAge,
-                  required levelNumber,
-                  required topicNumbers,
-                  required completedTopicNumbers,
-                  required announceLevel,
-                }) async {
-                  requestedLevels.add(levelNumber);
-                  return true;
-                },
           ),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('course-relearn-level-1')));
+        await tester.tap(find.byKey(const ValueKey('topic-choice-1')));
         await tester.pumpAndSettle();
 
-        expect(requestedLevels, [1]);
-        expect(store.checkpoint?.levelNumber, 1);
-        final replayTopic = group.topics.firstWhere(
-          (topic) => group.levels.first.topicNumbers.contains(topic.number),
-        );
+        final replayTopic = group.topics.first;
         expect(await store.readLesson(replayTopic.lessons.first.id), 0);
+        expect(
+          await store.readLesson(group.topics[1].lessons.first.id),
+          group.topics[1].lessons.first.sentences.length,
+        );
         expect(
           await store.hasCompletedV4LessonActivity(
             replayTopic.lessons.first.id,
@@ -1054,10 +979,12 @@ void main() {
     expect(await progressStore.readAll(), isEmpty);
   });
 
-  testWidgets('song action cannot bypass a locked Level', (tester) async {
+  testWidgets('song action opens for any topic in the age group', (
+    tester,
+  ) async {
     final content = await AssetListeningContentRepository().load();
-    final lockedTopic = content.topic(startAge: 3, endAge: 5, topicNumber: 9);
-    expect(lockedTopic.availableSongsForAge(3), isNotEmpty);
+    final topic = content.topic(startAge: 3, endAge: 5, topicNumber: 9);
+    expect(topic.availableSongsForAge(3), isNotEmpty);
 
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -1089,8 +1016,7 @@ void main() {
     await tester.tap(songAction);
     await tester.pumpAndSettle();
 
-    expect(find.byType(TopicLessonListScreen), findsNothing);
-    expect(find.text('Bạn cần hoàn thành Level 1 trước nhé.'), findsOneWidget);
+    expect(find.byType(TopicLessonListScreen), findsOneWidget);
   });
 
   test(
@@ -1145,13 +1071,17 @@ void main() {
       final targets = lessons
           .expand((lesson) => lesson.sentences)
           .toList(growable: false);
-      final levels = content.groups
-          .expand((group) => group.levels)
-          .toList(growable: false);
 
       expect(content.groups, hasLength(5));
       expect(topics, hasLength(50));
-      expect(levels, hasLength(15));
+      expect(
+        content.groups.every(
+          (group) =>
+              group.topics.map((topic) => topic.number).join(',') ==
+              '1,2,3,4,5,6,7,8,9,10',
+        ),
+        isTrue,
+      );
       expect(lessons, hasLength(109));
       expect(targets, hasLength(565));
       expect(
@@ -1165,7 +1095,6 @@ void main() {
 
       final alphabet = content.topic(startAge: 3, endAge: 5, topicNumber: 1);
       expect(alphabet.titleVi, 'Bảng chữ cái');
-      expect(alphabet.levelNumber, 1);
       expect(alphabet.lessons, hasLength(2));
       expect(alphabet.sentenceCount, 10);
       expect(alphabet.lessons.first.id, 'c35-l1-t01-b01');
@@ -1183,7 +1112,6 @@ void main() {
 
       final advanced = content.topic(startAge: 13, endAge: 15, topicNumber: 3);
       expect(advanced.titleVi, 'Nêu ý kiến');
-      expect(advanced.levelNumber, 1);
       expect(advanced.lessons.first.usesGuidedPractice, isTrue);
     },
   );
@@ -1361,14 +1289,18 @@ class _MemoryProgressStore extends ListeningProgressStore {
   @override
   Future<void> saveTopicSelectionCheckpoint(
     String courseId, {
-    required int levelNumber,
-    required bool announceLevel,
+    int? levelNumber,
+    bool? announceLevel,
   }) async {
     checkpoint = ListeningTopicSelectionCheckpoint(
-      levelNumber: levelNumber,
-      announceLevel: announceLevel,
+      levelNumber: levelNumber ?? 1,
+      announceLevel: announceLevel ?? false,
     );
   }
+
+  @override
+  Future<bool> hasTopicSelectionCheckpoint(String courseId) async =>
+      checkpoint != null;
 
   @override
   Future<ListeningTopicSelectionCheckpoint?> readTopicSelectionCheckpoint(

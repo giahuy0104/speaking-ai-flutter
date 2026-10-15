@@ -222,6 +222,11 @@ void main() {
     expect(flow.currentPromptAudioKey, MainAssistantAudioKeys.songControls);
     final skipped = await flow.handle('Bỏ qua bài hát');
     expect(skipped.promptText, MasterNavigationContract.songSkipped);
+    expect(skipped.promptAudioKey, MainAssistantAudioKeys.songSkipped);
+    expect(
+      flow.audioKeyForPrompt(MasterNavigationContract.songSkipped),
+      MainAssistantAudioKeys.songSkipped,
+    );
     expect(skipped.activeLearningCommand, ActiveLearningCommand.nextItem);
 
     final replayed = await flow.handle('Nghe lại');
@@ -501,12 +506,11 @@ void main() {
         'Chủ đề 1 hoặc 2',
       ]) {
         final flow = MainVoiceAssistantFlow();
-        flow.beginLevelTopicSelection(
+        flow.beginTopicSelection(
           childAge: 6,
-          levelNumber: 1,
           topicNumbers: [1, 2, 3],
           completedTopicNumbers: [],
-          announceLevel: false,
+          courseCompleted: false,
         );
         expect(flow.canHandle(text), isFalse, reason: text);
         final turn = await flow.handle(text);
@@ -521,12 +525,11 @@ void main() {
     'paused choice retains its question and allowed topics for reactivation',
     () async {
       final flow = MainVoiceAssistantFlow();
-      final prompt = flow.beginLevelTopicSelection(
+      final prompt = flow.beginTopicSelection(
         childAge: 6,
-        levelNumber: 2,
         topicNumbers: [4, 5, 6],
         completedTopicNumbers: [4],
-        announceLevel: false,
+        courseCompleted: false,
       );
       expect(flow.silenceRetryPrompt, prompt);
       expect(flow.silenceExitPrompt, 'Mình tạm dừng nhé.');
@@ -534,7 +537,10 @@ void main() {
       expect(flow.begin(), prompt);
       final invalid = await flow.handle('Chủ đề 1');
       expect(invalid.navigationBeforePrompt, isNull);
-      expect(invalid.promptText, 'Level này có 3 Chủ đề. Bạn chọn lại nhé.');
+      expect(
+        invalid.promptText,
+        'Nhóm tuổi này có 3 Chủ đề. Bạn chọn lại nhé.',
+      );
     },
   );
 
@@ -775,8 +781,8 @@ void main() {
     );
   });
 
-  test('lesson and level change phrases reopen Topic selection', () async {
-    for (final phrase in ['Bài khác', 'Level khác', 'Chủ đề khác']) {
+  test('lesson and topic change phrases reopen Topic selection', () async {
+    for (final phrase in ['Bài khác', 'Chủ đề khác']) {
       final flow = MainVoiceAssistantFlow(childAge: 6)
         ..beginActiveLearning(
           kind: ActiveLearningModuleKind.listeningLesson,
@@ -902,11 +908,7 @@ void main() {
         V4CompletionAction.relearnCurrentLesson,
       );
       expect(
-        resolver.resolve(
-          'Level 3',
-          stage: V4CompletionStage.nextLevel,
-          nextLevel: 2,
-        ),
+        resolver.resolve('Level 3', stage: V4CompletionStage.topicEnd),
         isNull,
       );
     },

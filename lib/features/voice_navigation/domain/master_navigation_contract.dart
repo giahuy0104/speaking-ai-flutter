@@ -92,7 +92,6 @@ abstract final class MasterNavigationContract {
     'RESUME_ACTIVITY': ['ACTIVE_RESUME'],
     'NEXT_LESSON': ['LESSON_END'],
     'RELEARN_LESSON': ['LESSON_END'],
-    'NEXT_LEVEL': ['LEVEL_END'],
   };
 
   static const Map<String, List<String>> phrases = {
@@ -118,13 +117,6 @@ abstract final class MasterNavigationContract {
       'Quay về đầu Bài',
       'Quay về bắt đầu',
       'Quay về từ đầu',
-    ],
-    'NEXT_LEVEL': [
-      'Mở khóa',
-      'Học Level tiếp theo',
-      'Mình muốn sang Level mới',
-      'Mở Level tiếp theo',
-      'Tiếp tục Level mới',
     ],
     'STOP_GLOBAL': [
       'Dừng lại',
@@ -436,9 +428,6 @@ abstract final class MasterNavigationContract {
       'Đổi bài',
       'Học bài khác',
       'Chọn bài khác',
-      'Level khác',
-      'Đổi Level',
-      'Học Level khác',
       'Bài số 2',
       'Học Bài 2',
     ],

@@ -29,8 +29,8 @@ class LessonRecordingEndpointDetector {
              // Quiet H20 recordings can peak below the shared VAD's -46 dBFS
              // floor. Keep ambient-relative margins without forcing those
              // utterances to wait for the entire six-second recording cap.
-             minimumStartThresholdDbfs: _usesSensitiveMobileCapture ? -60 : -46,
-             minimumStopThresholdDbfs: _usesSensitiveMobileCapture ? -64 : -50,
+             minimumStartThresholdDbfs: _usesSensitiveMobileCapture ? -72 : -46,
+             minimumStopThresholdDbfs: _usesSensitiveMobileCapture ? -76 : -50,
            ),
        _now = now ?? DateTime.now;
 
@@ -47,8 +47,14 @@ class LessonRecordingEndpointDetector {
 
   StreamSubscription<double>? _amplitudeSubscription;
   Timer? _silenceTimer;
+  bool _silenceFromLevels = false;
   Timer? _maximumTimer;
   DateTime? _signalStartedAt;
+  DateTime? _lastLevelAt;
+  DateTime? _shortSpeechStartedAt;
+  double _shortSpeechMinimum = 0;
+  double _shortSpeechMaximum = -160;
+  int _shortSpeechSamples = 0;
   void Function(LessonRecordingEndpointReason reason)? _onEndpoint;
   bool _speechDetected = false;
   bool _levelHeardSpeech = false;
@@ -87,6 +93,10 @@ class LessonRecordingEndpointDetector {
     final generation = ++_generation;
     _voiceActivityDetector.reset();
     _signalStartedAt = null;
+    _silenceFromLevels = false;
+    _lastLevelAt = null;
+    _shortSpeechStartedAt = null;
+    _shortSpeechSamples = 0;
     _onEndpoint = onEndpoint;
     _speechDetected = false;
     _levelHeardSpeech = false;
@@ -138,10 +148,19 @@ class LessonRecordingEndpointDetector {
     _voiceActivityDetector.confirmSpeech();
     _speechDetected = true;
     _sustainedVoiceStartedAt = null;
-    if (_levelHeardSpeech) return;
+    // A quiet timer already based on actual levels wins over late ASR text.
+    // If levels have stopped arriving while voice was active, however, let
+    // fresh recognition evidence provide the fallback endpoint.
+    if (_levelHeardSpeech &&
+        ((_silenceTimer != null && _silenceFromLevels) ||
+            (_lastLevelAt != null &&
+                _now().difference(_lastLevelAt!) <
+                    const Duration(milliseconds: 360)))) {
+      return;
+    }
     _silenceTimer?.cancel();
     _silenceTimer = null;
-    _scheduleSilenceEndpoint(_generation);
+    _scheduleSilenceEndpoint(_generation, fromLevels: false);
   }
 
   void _handleAmplitude(double dbfs, int generation) {
@@ -151,6 +170,7 @@ class LessonRecordingEndpointDetector {
     // minimum, and room noise then reads as speech for the whole turn.
     if (_signalStartedAt == null && dbfs <= _noSignalDbfs) return;
     final startedAt = _signalStartedAt ??= _now();
+    _lastLevelAt = _now();
     _levelSamples += 1;
     _lastDbfs = dbfs;
     if (dbfs > _peakDbfs) _peakDbfs = dbfs;
@@ -159,6 +179,9 @@ class LessonRecordingEndpointDetector {
       elapsed: _now().difference(startedAt),
     );
     if (activity.speechStarted) _speechDetected = true;
+    if (!_speechDetected && !activity.isCalibrating) {
+      _recoverShortSpeech(dbfs, activity);
+    }
     if (_recoverQuietCapture && !_speechDetected) {
       _recoverSpeechDuringCalibration(dbfs);
     }
@@ -203,7 +226,7 @@ class LessonRecordingEndpointDetector {
         _earlyVoiceFinished = true;
         return;
       }
-      if (dbfs < -60) return;
+      if (dbfs < -72) return;
       _earlyVoiceStartedAt = now;
       _earlyVoiceLastHeardAt = now;
       _earlyVoiceMinimum = dbfs;
@@ -245,7 +268,39 @@ class LessonRecordingEndpointDetector {
     _earlyVoiceSamples += 1;
   }
 
-  void _scheduleSilenceEndpoint(int generation) {
+  // At a 90 ms sampling interval a short word can occupy only two samples,
+  // never reaching VAD's 120 ms confirmation. Confirm it on its falling edge,
+  // requiring variation and a clear return to quiet so one click cannot qualify.
+  void _recoverShortSpeech(double dbfs, VoiceActivityUpdate activity) {
+    if (dbfs >= activity.startThresholdDbfs) {
+      if (_shortSpeechStartedAt == null) {
+        _shortSpeechStartedAt = _now();
+        _shortSpeechMinimum = dbfs;
+        _shortSpeechMaximum = dbfs;
+        _shortSpeechSamples = 0;
+      }
+      _shortSpeechSamples++;
+      if (dbfs < _shortSpeechMinimum) _shortSpeechMinimum = dbfs;
+      if (dbfs > _shortSpeechMaximum) _shortSpeechMaximum = dbfs;
+      return;
+    }
+    final startedAt = _shortSpeechStartedAt;
+    if (startedAt != null &&
+        _shortSpeechSamples >= 2 &&
+        _now().difference(startedAt) >= const Duration(milliseconds: 90) &&
+        _shortSpeechMaximum - _shortSpeechMinimum >= 2 &&
+        dbfs < activity.stopThresholdDbfs &&
+        _shortSpeechMinimum - dbfs >= 7) {
+      _voiceActivityDetector.confirmSpeech();
+      _speechDetected = true;
+      _levelHeardSpeech = true;
+    }
+    _shortSpeechStartedAt = null;
+    _shortSpeechSamples = 0;
+  }
+
+  void _scheduleSilenceEndpoint(int generation, {bool fromLevels = true}) {
+    _silenceFromLevels = fromLevels;
     _silenceTimer = Timer(
       silenceDuration,
       () => _finish(generation, LessonRecordingEndpointReason.silence),

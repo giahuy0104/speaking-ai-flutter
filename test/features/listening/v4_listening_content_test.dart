@@ -7,7 +7,7 @@ void main() {
 
   late ListeningContentCatalog catalog;
   late List<ListeningContentAgeGroup> groups;
-  late List<ListeningLevelContent> levels;
+  late List<ListeningLevelContent> legacyLevels;
   late List<ListeningTopicContent> topics;
   late List<ListeningLessonContent> lessons;
   late List<ListeningSentenceContent> targets;
@@ -15,7 +15,9 @@ void main() {
   setUpAll(() async {
     catalog = await AssetListeningContentRepository().load();
     groups = catalog.groups;
-    levels = groups.expand((group) => group.levels).toList(growable: false);
+    legacyLevels = groups
+        .expand((group) => group.levels)
+        .toList(growable: false);
     topics = groups.expand((group) => group.topics).toList(growable: false);
     lessons = topics.expand((topic) => topic.lessons).toList(growable: false);
     targets = lessons
@@ -28,7 +30,6 @@ void main() {
       'loads the approved V4 curriculum footprint through the app model',
       () {
         expect(groups, hasLength(5));
-        expect(levels, hasLength(15));
         expect(topics, hasLength(50));
         expect(lessons, hasLength(109));
         expect(catalog.contentVersion, '4.2');
@@ -37,7 +38,7 @@ void main() {
           lessons.expand((lesson) => lesson.challengeBank),
           hasLength(565),
         );
-        expect(levels.expand((level) => level.missionBank), isEmpty);
+        expect(legacyLevels.expand((level) => level.missionBank), isEmpty);
 
         expect(
           groups
@@ -45,16 +46,15 @@ void main() {
               .toList(growable: false),
           orderedEquals(const <String>['3-5', '6-7', '8-10', '11-12', '13-15']),
         );
-        expect(groups.every((group) => group.levels.length == 3), isTrue);
         expect(groups.every((group) => group.topics.length == 10), isTrue);
         expect(
           groups.every(
             (group) =>
-                group.levels
-                    .map((level) => level.topicNumbers.length)
+                group.topics
+                    .map((topic) => topic.number)
                     .toList(growable: false)
                     .join(',') ==
-                '3,3,4',
+                '1,2,3,4,5,6,7,8,9,10',
           ),
           isTrue,
         );
@@ -134,7 +134,7 @@ void main() {
         }
       }
 
-      expect(levels.expand((level) => level.missionBank), isEmpty);
+      expect(legacyLevels.expand((level) => level.missionBank), isEmpty);
     });
 
     test('removes role-play and preserves the five song placements', () async {

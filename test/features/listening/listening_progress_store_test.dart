@@ -303,21 +303,32 @@ void main() {
       final fixture = await _ProgressFixture.create();
       addTearDown(fixture.dispose);
 
-      await fixture.store.saveTopicSelectionCheckpoint(
-        '3-5',
-        levelNumber: 2,
-        announceLevel: true,
-      );
+      await fixture.store.saveTopicSelectionCheckpoint('3-5');
 
-      final checkpoint = await fixture.store.readTopicSelectionCheckpoint(
-        '3-5',
-      );
-      expect(checkpoint?.levelNumber, 2);
-      expect(checkpoint?.announceLevel, isTrue);
+      expect(await fixture.store.hasTopicSelectionCheckpoint('3-5'), isTrue);
       expect(await fixture.store.readAll(), isEmpty);
 
       await fixture.store.clearTopicSelectionCheckpoint('3-5');
-      expect(await fixture.store.readTopicSelectionCheckpoint('3-5'), isNull);
+      expect(await fixture.store.hasTopicSelectionCheckpoint('3-5'), isFalse);
+    },
+  );
+
+  test(
+    'legacy Level checkpoint safely resumes the ten-topic selector',
+    () async {
+      final fixture = await _ProgressFixture.create();
+      addTearDown(fixture.dispose);
+      await fixture.file.writeAsString(
+        jsonEncode(<String, int>{
+          '3-5::topic-selection-level': 2,
+          '3-5::topic-selection-announce': 1,
+        }),
+      );
+
+      expect(await fixture.store.hasTopicSelectionCheckpoint('3-5'), isTrue);
+      expect(await fixture.store.readAll(), isEmpty);
+      await fixture.store.clearTopicSelectionCheckpoint('3-5');
+      expect(await fixture.store.hasTopicSelectionCheckpoint('3-5'), isFalse);
     },
   );
 

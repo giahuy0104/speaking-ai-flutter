@@ -309,32 +309,18 @@ class VoiceNavigationController extends ChangeNotifier {
     _translationStoppedAwaitingMain = false;
   }
 
-  Future<bool> activateLevelTopicSelection({
+  Future<bool> activateTopicSelection({
     required int childAge,
-    required int levelNumber,
     required List<int> topicNumbers,
     required List<int> completedTopicNumbers,
-    required bool announceLevel,
+    required bool courseCompleted,
   }) async {
     return _activateMainAssistantFlow(
-      () => _mainAssistantFlow.beginLevelTopicSelection(
+      () => _mainAssistantFlow.beginTopicSelection(
         childAge: childAge,
-        levelNumber: levelNumber,
         topicNumbers: topicNumbers,
         completedTopicNumbers: completedTopicNumbers,
-        announceLevel: announceLevel,
-      ),
-    );
-  }
-
-  Future<bool> activateCourseRelearnLevelSelection({
-    required int childAge,
-    required List<int> levelNumbers,
-  }) async {
-    return _activateMainAssistantFlow(
-      () => _mainAssistantFlow.beginCourseRelearnLevelSelection(
-        childAge: childAge,
-        levelNumbers: levelNumbers,
+        courseCompleted: courseCompleted,
       ),
     );
   }

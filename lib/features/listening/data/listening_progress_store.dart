@@ -21,6 +21,9 @@ enum ListeningPendingChoiceStage {
   lessonEnd,
   topicEnd,
   topicEndOneRemaining,
+
+  /// Persisted as index 3 by older builds. New code never writes this value;
+  /// resume maps it to the current whole-age-group topic completion flow.
   nextLevel,
 }
 
@@ -31,6 +34,9 @@ enum ListeningSessionResult {
   skippedPending,
 }
 
+/// Read-only compatibility shape for persisted selectors written before v6.
+/// Runtime navigation ignores these Level fields and opens all ten topics.
+@Deprecated('Use hasTopicSelectionCheckpoint')
 class ListeningTopicSelectionCheckpoint {
   const ListeningTopicSelectionCheckpoint({
     required this.levelNumber,
@@ -80,6 +86,8 @@ class ListeningProgressStore {
   static const String _topicSelectionLevelSuffix = '::topic-selection-level';
   static const String _topicSelectionAnnounceSuffix =
       '::topic-selection-announce';
+  static const String _topicSelectionPendingSuffix =
+      '::topic-selection-pending-v6';
 
   final String? progressFilePath;
   ListeningProgressPersistence get _persistence =>
@@ -119,7 +127,8 @@ class ListeningProgressStore {
           key.endsWith(_courseCompletedSuffix) ||
           key.endsWith(_courseCompletionEventSuffix) ||
           key.endsWith(_topicSelectionLevelSuffix) ||
-          key.endsWith(_topicSelectionAnnounceSuffix),
+          key.endsWith(_topicSelectionAnnounceSuffix) ||
+          key.endsWith(_topicSelectionPendingSuffix),
     );
     return progress;
   }
@@ -623,15 +632,23 @@ class ListeningProgressStore {
 
   Future<void> saveTopicSelectionCheckpoint(
     String courseId, {
-    required int levelNumber,
-    required bool announceLevel,
+    int? levelNumber,
+    bool? announceLevel,
   }) async {
     final progress = await _readRaw();
-    progress['$courseId$_topicSelectionLevelSuffix'] = levelNumber;
-    progress['$courseId$_topicSelectionAnnounceSuffix'] = announceLevel ? 1 : 0;
+    progress['$courseId$_topicSelectionPendingSuffix'] = 1;
+    if (levelNumber != null) {
+      progress['$courseId$_topicSelectionLevelSuffix'] = levelNumber;
+    }
+    if (announceLevel != null) {
+      progress['$courseId$_topicSelectionAnnounceSuffix'] = announceLevel
+          ? 1
+          : 0;
+    }
     await _writeRaw(progress);
   }
 
+  @Deprecated('Use hasTopicSelectionCheckpoint')
   Future<ListeningTopicSelectionCheckpoint?> readTopicSelectionCheckpoint(
     String courseId,
   ) async {
@@ -644,9 +661,18 @@ class ListeningProgressStore {
     );
   }
 
+  Future<bool> hasTopicSelectionCheckpoint(String courseId) async {
+    final progress = await _readRaw();
+    if (progress['$courseId$_topicSelectionPendingSuffix'] == 1) return true;
+    // Old checkpoints selected a Level. The Level itself is intentionally
+    // ignored, while the pending topic-selection intent is preserved.
+    return (progress['$courseId$_topicSelectionLevelSuffix'] ?? 0) > 0;
+  }
+
   Future<void> clearTopicSelectionCheckpoint(String courseId) async {
     final progress = await _readRaw();
     progress
+      ..remove('$courseId$_topicSelectionPendingSuffix')
       ..remove('$courseId$_topicSelectionLevelSuffix')
       ..remove('$courseId$_topicSelectionAnnounceSuffix');
     await _writeRaw(progress);

@@ -41,6 +41,95 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   _rebuildCountTests();
+  for (final entry in <String, String>{
+    'Ba mẹ đã thêm': VocabularyFlowV3.parentEmpty,
+    'Ngôi sao': VocabularyFlowV3.starEmpty,
+    'Luyện lại': VocabularyFlowV3.reviewEmpty,
+  }.entries) {
+    testWidgets('Challenge opens ${entry.key} without vocabulary menu audio', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      if (entry.key != 'Luyện lại') {
+        await const VocabularyStore().write(<VocabularyEntry>[
+          VocabularyEntry(
+            id: 'unfinished-review',
+            word: 'Math.',
+            meaning: 'Môn Toán.',
+            addedAt: DateTime(2026, 10, 12),
+            collection: VocabularyCollection.review,
+            status: VocabularyLearningStatus.needsPractice,
+            source: VocabularySource.topicCore,
+          ),
+        ]);
+        await const VocabularySessionStore().prepareReview(
+          const VocabularyStore(),
+        );
+      }
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final prompts = _RecordingVoicePromptService();
+      final voice = VoiceNavigationController(
+        speechInput: _FakeStreamingSpeechInput(),
+        ownsSpeechInput: true,
+        voicePromptService: _SilentVoicePromptService(),
+      );
+      addTearDown(voice.dispose);
+      final controller = _controller();
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _app(
+            controller,
+            voiceNavigationController: voice,
+            vocabularyMediaService: _ImmediateVocabularyMediaService(),
+            vocabularyVoicePromptService: prompts,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final challenge = _ChallengeVoiceModule();
+      registry.register(challenge);
+      await voice.activateFromMainButton(
+        activeLearning: true,
+        activeLearningKind: ActiveLearningModuleKind.listeningLesson,
+        activeVoiceContext: challenge,
+      );
+      bool? transferred;
+      final transfer = voice
+          .dispatchRecognizedText(entry.key)
+          .then((value) => transferred = value);
+      for (var index = 0; index < 60 && transferred == null; index++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(transferred, isTrue);
+      await transfer;
+      await tester.pumpAndSettle();
+      expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
+      final title = tester.widget<Text>(
+        find.byKey(const Key('vocabulary-journey-title')),
+      );
+      expect(title.data, entry.key == 'Ngôi sao' ? 'Ngôi sao của bạn' : entry.key);
+      expect(
+        find.byKey(const ValueKey<String>('vocabulary-journey-landing')),
+        findsNothing,
+      );
+      expect(prompts.spoken, contains(entry.value));
+      expect(prompts.spoken, isNot(contains(VocabularyFlowV3.menu)));
+      expect(prompts.spoken, isNot(contains(VocabularyFlowV3.todayIntro)));
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+      if (entry.key != 'Luyện lại') {
+        final saved = await const VocabularySessionStore().readActive();
+        expect(saved?.mode, VocabularyPracticeMode.review);
+        expect(saved?.entryIds, contains('unfinished-review'));
+      }
+      await tester.pumpWidget(const SizedBox.shrink());
+      debugDefaultTargetPlatformOverride = null;
+    });
+  }
   testWidgets(
     'Android Challenge voice switch clears retained Vocabulary Review',
     (tester) async {
@@ -1088,8 +1177,8 @@ void main() {
         ),
         isTrue,
       );
-      // The topic screen now resolves the current Level from real progress, then
-      // re-opens MAIN with only that Level's topic numbers (1, 2, 3 here).
+      // The topic screen resolves real progress, then re-opens MAIN with every
+      // topic number available in this fixture (1, 2, 3 here).
       for (var index = 0; index < 20; index += 1) {
         await tester.pump(const Duration(milliseconds: 100));
       }
@@ -2044,14 +2133,18 @@ class _HomeListeningProgressStore extends ListeningProgressStore {
   @override
   Future<void> saveTopicSelectionCheckpoint(
     String courseId, {
-    required int levelNumber,
-    required bool announceLevel,
+    int? levelNumber,
+    bool? announceLevel,
   }) async {
     _selectionCheckpoint = ListeningTopicSelectionCheckpoint(
-      levelNumber: levelNumber,
-      announceLevel: announceLevel,
+      levelNumber: levelNumber ?? 1,
+      announceLevel: announceLevel ?? false,
     );
   }
+
+  @override
+  Future<bool> hasTopicSelectionCheckpoint(String courseId) async =>
+      _selectionCheckpoint != null;
 
   @override
   Future<void> clearTopicSelectionCheckpoint(String courseId) async {

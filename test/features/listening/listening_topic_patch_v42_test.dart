@@ -141,7 +141,6 @@ void main() {
       hasLength(98),
     );
     expect(catalog.groups, hasLength(5));
-    expect(catalog.groups.expand((group) => group.levels), hasLength(15));
     final topics = catalog.groups.expand((group) => group.topics).toList();
     final lessons = topics.expand((topic) => topic.lessons).toList();
     final targets = lessons.expand((lesson) => lesson.sentences).toList();
@@ -152,6 +151,10 @@ void main() {
     expect(lessons.expand((lesson) => lesson.challengeBank), hasLength(565));
     expect(lessons.where((lesson) => !lesson.usesV4Flow), isEmpty);
     for (final group in catalog.groups) {
+      expect(
+        group.topics.map((topic) => topic.number),
+        orderedEquals(List<int>.generate(10, (index) => index + 1)),
+      );
       final cards = listeningCatalogs.singleWhere(
         (item) => item.startAge == group.startAge,
       );
@@ -333,13 +336,10 @@ void main() {
     );
   });
 
-  test('6–7 course unlocks independently of 3–5 Alphabet completion', () {
+  test('all 6–7 topics open independently of 3–5 progress', () {
     final group = catalog.groups.singleWhere((item) => item.startAge == 6);
-    expect(
-      ListeningCurriculumFlow.levelUnlocked(group, group.levels.first, {}, {}),
-      isTrue,
-    );
-    for (final topic in group.topics.take(2)) {
+    expect(group.topics, hasLength(10));
+    for (final topic in group.topics) {
       expect(ListeningCurriculumFlow.lessonUnlocked(topic, 0, {}, {}), isTrue);
       expect(ListeningCurriculumFlow.lessonUnlocked(topic, 1, {}, {}), isFalse);
     }

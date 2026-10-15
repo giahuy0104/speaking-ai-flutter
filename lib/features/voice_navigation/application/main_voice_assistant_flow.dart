@@ -26,7 +26,6 @@ enum MainVoiceAssistantStage {
   askAge,
   chooseTopic,
   chooseTopicAfterCompletion,
-  chooseCourseRelearnLevel,
   confirmReplayTopic,
   chooseLesson,
   confirmReplayLesson,
@@ -93,8 +92,16 @@ class MainVoiceAssistantFlow {
       MasterNavigationContract.afterTranslationStop;
   static const String activeLearningPrompt =
       MasterNavigationContract.coreControlPrompt;
-  static const String courseRelearnLevelPrompt =
-      'Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?';
+  static const String courseRelearnTopicPrompt =
+      'Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Chủ đề số mấy?';
+
+  static String topicSelectionPrompt(int topicCount) => topicCount == 10
+      ? 'Có 10 Chủ đề. Bạn muốn chọn Chủ đề số mấy?'
+      : 'Có $topicCount Chủ đề. Bạn chọn Chủ đề số mấy?';
+
+  static String invalidTopicSelectionPrompt(int topicCount) => topicCount == 10
+      ? 'Bạn chọn Chủ đề từ số 1 đến số 10 nhé.'
+      : 'Nhóm tuổi này có $topicCount Chủ đề. Bạn chọn lại nhé.';
   static const String alternativeAfterLearningPrompt =
       MasterNavigationContract.translationSwitch;
   static const String stopPrompt = MasterNavigationContract.pause;
@@ -118,7 +125,7 @@ class MainVoiceAssistantFlow {
   ListeningTopicContent? _selectedTopicContent;
   Set<int> _completedTopicNumbers = const <int>{};
   Set<int> _allowedTopicNumbers = const <int>{};
-  Set<int> _allowedLevelNumbers = const <int>{};
+  bool _courseCompletedTopicSelection = false;
   int? _pendingReplayTopicNumber;
   Set<int> _completedLessonNumbers = const <int>{};
   int? _pendingReplayLessonNumber;
@@ -148,9 +155,9 @@ class MainVoiceAssistantFlow {
       MainAssistantAudioKeys.chooseTopic(_selectedCatalog!.topics.length),
     MainVoiceAssistantStage.chooseTopicAfterCompletion
         when _allowedTopicNumbers.isNotEmpty =>
-      MainAssistantAudioKeys.chooseTopic(_allowedTopicNumbers.length),
-    MainVoiceAssistantStage.chooseCourseRelearnLevel =>
-      MainAssistantAudioKeys.courseRelearnLevel,
+      _courseCompletedTopicSelection
+          ? MainAssistantAudioKeys.courseRelearnTopic
+          : MainAssistantAudioKeys.chooseTopic(_allowedTopicNumbers.length),
     MainVoiceAssistantStage.confirmReplayTopic
         when _pendingReplayTopicNumber != null =>
       MainAssistantAudioKeys.replayTopic(_pendingReplayTopicNumber!),
@@ -174,11 +181,8 @@ class MainVoiceAssistantFlow {
   /// Maps the finite dynamic prompts in the Topic flow to authored recordings.
   String? audioKeyForPrompt(String text) {
     final value = text.replaceAll(RegExp(r'\s+'), ' ').trim();
-    if (value == courseRelearnLevelPrompt) {
-      return MainAssistantAudioKeys.courseRelearnLevel;
-    }
-    if (value == 'Bạn chọn Level 1, 2, 3 nhé.') {
-      return MainAssistantAudioKeys.chooseRelearnLevel;
+    if (value == MasterNavigationContract.songSkipped) {
+      return MainAssistantAudioKeys.songSkipped;
     }
     if (value == 'Chủ đề này chưa có bài học. Bạn chọn Chủ đề khác nhé.') {
       return MainAssistantAudioKeys.topicWithoutLessons;
@@ -191,6 +195,9 @@ class MainVoiceAssistantFlow {
     }
     if (value == 'HOMI chưa tải được bài học. Bạn thử lại sau nhé.') {
       return MainAssistantAudioKeys.catalogLoadError;
+    }
+    if (value == courseRelearnTopicPrompt) {
+      return MainAssistantAudioKeys.courseRelearnTopic;
     }
     if (value == 'Cùng học tiếp nhé') {
       return MainAssistantAudioKeys.resumeLearning;
@@ -217,16 +224,8 @@ class MainVoiceAssistantFlow {
       return MainAssistantAudioKeys.firstItemReplay;
     }
 
-    final levelSelection = RegExp(
-      r'^Bắt đầu Level (\d+)\. Có (\d+) Chủ đề\. Bạn chọn Chủ đề số mấy\?$',
-    ).firstMatch(value);
-    if (levelSelection != null) {
-      return MainAssistantAudioKeys.levelTopicSelection(
-        int.parse(levelSelection.group(1)!),
-      );
-    }
     final chooseTopic = RegExp(
-      r'^Có (\d+) Chủ đề\. Bạn chọn Chủ đề số mấy\?$',
+      r'^Có (\d+) Chủ đề\. Bạn (?:muốn )?chọn Chủ đề số mấy\?$',
     ).firstMatch(value);
     if (chooseTopic != null) {
       return MainAssistantAudioKeys.chooseTopic(
@@ -234,11 +233,19 @@ class MainVoiceAssistantFlow {
       );
     }
     final invalidTopic = RegExp(
-      r'^Level này có (\d+) Chủ đề\. Bạn chọn lại nhé\.$',
+      r'^Nhóm tuổi này có (\d+) Chủ đề\. Bạn chọn lại nhé\.$',
     ).firstMatch(value);
     if (invalidTopic != null) {
       return MainAssistantAudioKeys.invalidTopic(
         int.parse(invalidTopic.group(1)!),
+      );
+    }
+    final invalidTopicRange = RegExp(
+      r'^Bạn chọn Chủ đề từ số 1 đến số (\d+) nhé\.$',
+    ).firstMatch(value);
+    if (invalidTopicRange != null) {
+      return MainAssistantAudioKeys.invalidTopic(
+        int.parse(invalidTopicRange.group(1)!),
       );
     }
     final replayTopic = RegExp(
@@ -302,12 +309,11 @@ class MainVoiceAssistantFlow {
     return _activeVoicePrompt ?? activeLearningPrompt;
   }
 
-  String beginLevelTopicSelection({
+  String beginTopicSelection({
     required int childAge,
-    required int levelNumber,
     required List<int> topicNumbers,
     required List<int> completedTopicNumbers,
-    required bool announceLevel,
+    required bool courseCompleted,
   }) {
     reset();
     final catalog = _catalogForAge(childAge);
@@ -319,26 +325,9 @@ class MainVoiceAssistantFlow {
     _selectedCatalog = catalog;
     _allowedTopicNumbers = topicNumbers.toSet();
     _completedTopicNumbers = completedTopicNumbers.toSet();
+    _courseCompletedTopicSelection = courseCompleted;
     _stage = MainVoiceAssistantStage.chooseTopicAfterCompletion;
-    final levelLead = announceLevel ? 'Bắt đầu Level $levelNumber. ' : '';
-    return '${levelLead}Có ${topicNumbers.length} Chủ đề. Bạn chọn Chủ đề số mấy?';
-  }
-
-  String beginCourseRelearnLevelSelection({
-    required int childAge,
-    required List<int> levelNumbers,
-  }) {
-    reset();
-    final catalog = _catalogForAge(childAge);
-    if (catalog == null || levelNumbers.isEmpty) {
-      _stage = MainVoiceAssistantStage.chooseFeature;
-      return openingPrompt;
-    }
-    _selectedAge = childAge;
-    _selectedCatalog = catalog;
-    _allowedLevelNumbers = levelNumbers.toSet();
-    _stage = MainVoiceAssistantStage.chooseCourseRelearnLevel;
-    return courseRelearnLevelPrompt;
+    return _topicSelectionPrompt;
   }
 
   String beginLessonSelectionForTopic({
@@ -378,7 +367,7 @@ class MainVoiceAssistantFlow {
     _selectedTopicContent = null;
     _completedTopicNumbers = const <int>{};
     _allowedTopicNumbers = const <int>{};
-    _allowedLevelNumbers = const <int>{};
+    _courseCompletedTopicSelection = false;
     _pendingReplayTopicNumber = null;
     _completedLessonNumbers = const <int>{};
     _pendingReplayLessonNumber = null;
@@ -401,7 +390,7 @@ class MainVoiceAssistantFlow {
     final selectedTopicContent = _selectedTopicContent;
     final completedTopicNumbers = _completedTopicNumbers;
     final allowedTopicNumbers = _allowedTopicNumbers;
-    final allowedLevelNumbers = _allowedLevelNumbers;
+    final courseCompletedTopicSelection = _courseCompletedTopicSelection;
     final pendingReplayTopicNumber = _pendingReplayTopicNumber;
     final completedLessonNumbers = _completedLessonNumbers;
     final pendingReplayLessonNumber = _pendingReplayLessonNumber;
@@ -421,7 +410,7 @@ class MainVoiceAssistantFlow {
       _selectedTopicContent = selectedTopicContent;
       _completedTopicNumbers = completedTopicNumbers;
       _allowedTopicNumbers = allowedTopicNumbers;
-      _allowedLevelNumbers = allowedLevelNumbers;
+      _courseCompletedTopicSelection = courseCompletedTopicSelection;
       _pendingReplayTopicNumber = pendingReplayTopicNumber;
       _completedLessonNumbers = completedLessonNumbers;
       _pendingReplayLessonNumber = pendingReplayLessonNumber;
@@ -457,7 +446,7 @@ class MainVoiceAssistantFlow {
         (_stage != MainVoiceAssistantStage.idle && _isHelpChoice(normalized));
   }
 
-  /// Whether [recognizedText] is already a complete topic, lesson or Level
+  /// Whether [recognizedText] is already a complete topic or lesson
   /// number, or the Topics module on its own, so the turn may end after a
   /// short silence instead of waiting for the recognizer's own endpoint. The
   /// final transcript is still what gets handled.
@@ -480,7 +469,6 @@ class MainVoiceAssistantFlow {
     final numberStage = switch (_stage) {
       MainVoiceAssistantStage.chooseTopic ||
       MainVoiceAssistantStage.chooseTopicAfterCompletion ||
-      MainVoiceAssistantStage.chooseCourseRelearnLevel ||
       MainVoiceAssistantStage.chooseLesson => true,
       _ => false,
     };
@@ -511,7 +499,7 @@ class MainVoiceAssistantFlow {
     }
     if (VoiceNavigationIntentResolver.directTopicNumber(normalized) != null) {
       // A numbered destination must retain its final number through MAIN's
-      // normal final-result path, just like a choice within the current Level.
+      // normal final-result path, just like a choice within the topic catalog.
       return false;
     }
     final selectionDestination = _selectionModuleDestination(normalized);
@@ -563,7 +551,6 @@ class MainVoiceAssistantFlow {
       MainVoiceAssistantStage.askAge ||
       MainVoiceAssistantStage.chooseTopic ||
       MainVoiceAssistantStage.chooseTopicAfterCompletion ||
-      MainVoiceAssistantStage.chooseCourseRelearnLevel ||
       MainVoiceAssistantStage.chooseLesson ||
       MainVoiceAssistantStage.idle => false,
     };
@@ -617,11 +604,8 @@ class MainVoiceAssistantFlow {
           _hasSelectableLessonNumber(normalized),
     MainVoiceAssistantStage.askAge ||
     MainVoiceAssistantStage.chooseTopic ||
-    MainVoiceAssistantStage.chooseTopicAfterCompletion ||
-    MainVoiceAssistantStage.chooseCourseRelearnLevel => switch (_stage) {
+    MainVoiceAssistantStage.chooseTopicAfterCompletion => switch (_stage) {
       MainVoiceAssistantStage.askAge =>
-        _extractSpokenNumber(normalized) != null,
-      MainVoiceAssistantStage.chooseCourseRelearnLevel =>
         _extractSpokenNumber(normalized) != null,
       MainVoiceAssistantStage.chooseTopicAfterCompletion
           when _allowedTopicNumbers.isNotEmpty =>
@@ -709,8 +693,6 @@ class MainVoiceAssistantFlow {
       ),
       MainVoiceAssistantStage.chooseTopicAfterCompletion =>
         await _handleTopicAfterCompletion(recognizedText, normalized),
-      MainVoiceAssistantStage.chooseCourseRelearnLevel =>
-        _handleCourseRelearnLevel(recognizedText, normalized),
       MainVoiceAssistantStage.confirmReplayTopic =>
         await _handleReplayTopicConfirmation(recognizedText, normalized),
       MainVoiceAssistantStage.chooseLesson => _handleLesson(
@@ -747,10 +729,7 @@ class MainVoiceAssistantFlow {
         ),
       );
     }
-    return _openLevelTopicCatalog(
-      recognizedText: recognizedText,
-      childAge: age,
-    );
+    return _openTopicCatalog(recognizedText: recognizedText, childAge: age);
   }
 
   /// Exact global commands remain available while choosing content. Local
@@ -761,7 +740,6 @@ class MainVoiceAssistantFlow {
       MainVoiceAssistantStage.askAge,
       MainVoiceAssistantStage.chooseTopic,
       MainVoiceAssistantStage.chooseTopicAfterCompletion,
-      MainVoiceAssistantStage.chooseCourseRelearnLevel,
       MainVoiceAssistantStage.confirmReplayTopic,
       MainVoiceAssistantStage.chooseLesson,
       MainVoiceAssistantStage.confirmReplayLesson,
@@ -788,7 +766,7 @@ class MainVoiceAssistantFlow {
     return null;
   }
 
-  MainVoiceAssistantTurn _openLevelTopicCatalog({
+  MainVoiceAssistantTurn _openTopicCatalog({
     required String recognizedText,
     required int childAge,
   }) {
@@ -801,9 +779,8 @@ class MainVoiceAssistantFlow {
         recognizedText,
       ),
     );
-    // TopicListeningScreen owns Level/progress resolution. Keeping that state
-    // out of MAIN prevents the legacy all-course count (10) from overriding
-    // the FINAL Level-scoped prompt (3/3/4 with the current content).
+    // TopicListeningScreen owns progress resolution and presents all ten
+    // topics for the selected age group.
     reset();
     return MainVoiceAssistantTurn(
       promptText: '',
@@ -1404,6 +1381,10 @@ class MainVoiceAssistantFlow {
               _activeVoiceNode == ActiveLearningVoiceNode.song &&
               !isVocabulary
           ? MainAssistantAudioKeys.songReplay
+          : command == ActiveLearningCommand.nextItem &&
+                _activeVoiceNode == ActiveLearningVoiceNode.song &&
+                !isVocabulary
+          ? MainAssistantAudioKeys.songSkipped
           : null,
       continueListening: false,
       activeLearningCommand: command,
@@ -1430,10 +1411,7 @@ class MainVoiceAssistantFlow {
       );
     }
 
-    return _openLevelTopicCatalog(
-      recognizedText: recognizedText,
-      childAge: age,
-    );
+    return _openTopicCatalog(recognizedText: recognizedText, childAge: age);
   }
 
   Future<MainVoiceAssistantTurn> _handleTopic(
@@ -1444,8 +1422,7 @@ class MainVoiceAssistantFlow {
     final age = _selectedAge;
     if (_looksLikePromptEcho(normalized)) {
       return MainVoiceAssistantTurn(
-        promptText:
-            'Có ${catalog?.topics.length ?? 0} Chủ đề. Bạn chọn Chủ đề số mấy?',
+        promptText: topicSelectionPrompt(catalog?.topics.length ?? 0),
         continueListening: true,
       );
     }
@@ -1457,8 +1434,7 @@ class MainVoiceAssistantFlow {
         topicNumber < 1 ||
         topicNumber > catalog.topics.length) {
       return MainVoiceAssistantTurn(
-        promptText:
-            'Có ${catalog.topics.length} Chủ đề. Bạn chọn từ số 1 đến số ${catalog.topics.length}.',
+        promptText: invalidTopicSelectionPrompt(catalog.topics.length),
         continueListening: true,
       );
     }
@@ -1549,8 +1525,7 @@ class MainVoiceAssistantFlow {
             topicNumber < 1 ||
             topicNumber > catalog.topics.length)) {
       return MainVoiceAssistantTurn(
-        promptText:
-            'Level này có ${_allowedTopicNumbers.length} Chủ đề. Bạn chọn lại nhé.',
+        promptText: invalidTopicSelectionPrompt(_allowedTopicNumbers.length),
         continueListening: true,
       );
     }
@@ -1558,17 +1533,22 @@ class MainVoiceAssistantFlow {
         topicNumber < 1 ||
         topicNumber > catalog.topics.length) {
       return MainVoiceAssistantTurn(
-        promptText:
-            'Có ${catalog.topics.length} Chủ đề. Bạn chọn từ số 1 đến số ${catalog.topics.length}.',
+        promptText: invalidTopicSelectionPrompt(catalog.topics.length),
         continueListening: true,
       );
     }
     if (_allowedTopicNumbers.isNotEmpty &&
         !_allowedTopicNumbers.contains(topicNumber)) {
       return MainVoiceAssistantTurn(
-        promptText:
-            'Level này có ${_allowedTopicNumbers.length} Chủ đề. Bạn chọn lại nhé.',
+        promptText: invalidTopicSelectionPrompt(_allowedTopicNumbers.length),
         continueListening: true,
+      );
+    }
+    if (_courseCompletedTopicSelection) {
+      return _openTopic(
+        recognizedText: recognizedText,
+        topicNumber: topicNumber,
+        relearnTopic: true,
       );
     }
     if (_completedTopicNumbers.contains(topicNumber)) {
@@ -1580,43 +1560,6 @@ class MainVoiceAssistantFlow {
       );
     }
     return _openTopic(recognizedText: recognizedText, topicNumber: topicNumber);
-  }
-
-  MainVoiceAssistantTurn _handleCourseRelearnLevel(
-    String recognizedText,
-    String normalized,
-  ) {
-    if (_looksLikePromptEcho(normalized)) {
-      return const MainVoiceAssistantTurn(
-        promptText: courseRelearnLevelPrompt,
-        continueListening: true,
-      );
-    }
-    final levelNumber = _extractSpokenNumber(normalized);
-    final childAge = _selectedAge;
-    if (levelNumber == null ||
-        childAge == null ||
-        !_allowedLevelNumbers.contains(levelNumber)) {
-      final available = _allowedLevelNumbers.toList()..sort();
-      return MainVoiceAssistantTurn(
-        promptText: 'Bạn chọn Level ${available.join(', ')} nhé.',
-        continueListening: true,
-      );
-    }
-    final intent = VoiceNavigationIntent(
-      destination: VoiceNavigationDestination.topics,
-      recognizedText: recognizedText.trim(),
-      matchedPhrase: 'hoc lai level $levelNumber',
-      childAge: childAge,
-      levelNumber: levelNumber,
-      relearnLevel: true,
-    );
-    reset();
-    return MainVoiceAssistantTurn(
-      promptText: '',
-      continueListening: false,
-      navigationBeforePrompt: intent,
-    );
   }
 
   Future<MainVoiceAssistantTurn> _handleReplayTopicConfirmation(
@@ -1666,8 +1609,9 @@ class MainVoiceAssistantFlow {
     );
   }
 
-  String get _topicSelectionPrompt =>
-      'Có ${_allowedTopicNumbers.length} Chủ đề. Bạn chọn Chủ đề số mấy?';
+  String get _topicSelectionPrompt => _courseCompletedTopicSelection
+      ? courseRelearnTopicPrompt
+      : topicSelectionPrompt(_allowedTopicNumbers.length);
 
   String get _replayTopicPrompt =>
       'Chủ đề $_pendingReplayTopicNumber bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề $_pendingReplayTopicNumber?';
@@ -2193,8 +2137,6 @@ class MainVoiceAssistantFlow {
       MainVoiceAssistantStage.chooseTopic ||
       MainVoiceAssistantStage.chooseTopicAfterCompletion =>
         _topicSelectionPrompt,
-      MainVoiceAssistantStage.chooseCourseRelearnLevel =>
-        courseRelearnLevelPrompt,
       MainVoiceAssistantStage.confirmReplayTopic => _replayTopicPrompt,
       MainVoiceAssistantStage.chooseLesson => _lessonSelectionPrompt,
       MainVoiceAssistantStage.confirmReplayLesson =>
@@ -2327,19 +2269,17 @@ class MainVoiceAssistantFlow {
                   'co ${_selectedCatalog!.topics.length} chu de',
                 )),
       MainVoiceAssistantStage.chooseTopicAfterCompletion =>
-        _containsPhrase(normalized, 'con muon hoc chu de so may') ||
+        normalized ==
+                HomiFallbackCatalog.normalizeVietnamese(
+                  courseRelearnTopicPrompt,
+                ) ||
+            _containsPhrase(normalized, 'con muon hoc chu de so may') ||
             _containsPhrase(normalized, 'chu de so may') ||
             (_selectedCatalog != null &&
                 _containsPhrase(
                   normalized,
                   'co ${_selectedCatalog!.topics.length} chu de',
                 )),
-      MainVoiceAssistantStage.chooseCourseRelearnLevel =>
-        normalized ==
-                HomiFallbackCatalog.normalizeVietnamese(
-                  courseRelearnLevelPrompt,
-                ) ||
-            _containsPhrase(normalized, 'hoc lai level so may'),
       MainVoiceAssistantStage.confirmReplayTopic =>
         _containsPhrase(normalized, 'con da hoc roi') ||
             _containsPhrase(normalized, 'co muon hoc lai khong'),
@@ -2361,7 +2301,6 @@ class MainVoiceAssistantFlow {
 
   int? _extractSpokenNumber(String normalized) {
     final scope = switch (_stage) {
-      MainVoiceAssistantStage.chooseCourseRelearnLevel => 'level',
       MainVoiceAssistantStage.chooseLesson ||
       MainVoiceAssistantStage.confirmReplayLesson => '(?:bai|lesson)',
       _ => '(?:chu de|topic)',

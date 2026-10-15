@@ -37,12 +37,11 @@ void main() {
         return acceptedTopics.length > 1;
       });
       expect(
-        await controller.activateLevelTopicSelection(
+        await controller.activateTopicSelection(
           childAge: 6,
-          levelNumber: 1,
           topicNumbers: [1, 2, 3],
           completedTopicNumbers: [],
-          announceLevel: false,
+          courseCompleted: false,
         ),
         isTrue,
       );
@@ -83,12 +82,11 @@ void main() {
         return false;
       });
       expect(
-        await controller.activateLevelTopicSelection(
+        await controller.activateTopicSelection(
           childAge: 6,
-          levelNumber: 1,
           topicNumbers: [1, 2, 3],
           completedTopicNumbers: [],
-          announceLevel: false,
+          courseCompleted: false,
         ),
         isTrue,
       );
@@ -113,12 +111,11 @@ void main() {
       ),
     );
     expect(
-      await controller.activateLevelTopicSelection(
+      await controller.activateTopicSelection(
         childAge: 6,
-        levelNumber: 1,
         topicNumbers: [1, 2, 3],
         completedTopicNumbers: [],
-        announceLevel: false,
+        courseCompleted: false,
       ),
       isTrue,
     );
@@ -155,12 +152,11 @@ void main() {
         restartDelay: const Duration(milliseconds: 1),
       );
       expect(
-        await controller.activateLevelTopicSelection(
+        await controller.activateTopicSelection(
           childAge: 6,
-          levelNumber: 1,
           topicNumbers: [1, 2, 3],
           completedTopicNumbers: [],
-          announceLevel: false,
+          courseCompleted: false,
         ),
         isTrue,
       );
@@ -186,12 +182,11 @@ void main() {
       ),
     );
     expect(
-      await controller.activateLevelTopicSelection(
+      await controller.activateTopicSelection(
         childAge: 6,
-        levelNumber: 1,
         topicNumbers: [1, 2, 3],
         completedTopicNumbers: [],
-        announceLevel: false,
+        courseCompleted: false,
       ),
       isTrue,
     );
@@ -311,12 +306,11 @@ void main() {
       // STOP cancels the accepted command while native HFP cleanup is pending.
       await controller.pause();
       expect(
-        await controller.activateLevelTopicSelection(
+        await controller.activateTopicSelection(
           childAge: 6,
-          levelNumber: 1,
           topicNumbers: [1, 2],
           completedTopicNumbers: [],
-          announceLevel: false,
+          courseCompleted: false,
         ),
         isTrue,
       );
@@ -406,14 +400,12 @@ void main() {
         );
         final intents = <VoiceNavigationIntent>[];
         controller.setIntentHandler(intents.add);
-        Future<bool> activateTopicChoice() =>
-            controller.activateLevelTopicSelection(
-              childAge: 6,
-              levelNumber: 1,
-              topicNumbers: [1, 2],
-              completedTopicNumbers: [],
-              announceLevel: false,
-            );
+        Future<bool> activateTopicChoice() => controller.activateTopicSelection(
+          childAge: 6,
+          topicNumbers: [1, 2],
+          completedTopicNumbers: [],
+          courseCompleted: false,
+        );
         expect(await activateTopicChoice(), isTrue);
         speech.emitCompleted();
         await _waitUntil(() => speech.pendingStops.length == 1);
@@ -546,12 +538,11 @@ void main() {
       );
       final intents = <VoiceNavigationIntent>[];
       controller.setIntentHandler(intents.add);
-      await controller.activateLevelTopicSelection(
+      await controller.activateTopicSelection(
         childAge: 6,
-        levelNumber: 1,
         topicNumbers: [1, 2, 3],
         completedTopicNumbers: [],
-        announceLevel: false,
+        courseCompleted: false,
       );
 
       // "Chủ đề" is a stable ASR prefix of "Chủ đề số 2". It must not be
@@ -599,12 +590,11 @@ void main() {
     );
     final intents = <VoiceNavigationIntent>[];
     controller.setIntentHandler(intents.add);
-    await controller.activateLevelTopicSelection(
+    await controller.activateTopicSelection(
       childAge: 6,
-      levelNumber: 1,
       topicNumbers: [1, 2, 3],
       completedTopicNumbers: [],
-      announceLevel: false,
+      courseCompleted: false,
     );
 
     // A pause before the number must not end the turn.
@@ -661,12 +651,11 @@ void main() {
       );
       final intents = <VoiceNavigationIntent>[];
       controller.setIntentHandler(intents.add);
-      await controller.activateLevelTopicSelection(
+      await controller.activateTopicSelection(
         childAge: 6,
-        levelNumber: 1,
         topicNumbers: [1, 2, 3],
         completedTopicNumbers: [],
-        announceLevel: false,
+        courseCompleted: false,
       );
 
       // Room level for calibration, then speech, then silence.
@@ -1251,7 +1240,7 @@ void main() {
   });
 
   test(
-    'silent topic selection resumes the same Level when MAIN is pressed again',
+    'silent topic selection resumes the same topics when MAIN is pressed again',
     () async {
       final speech = _FakeNavigationSpeechInput();
       final prompt = _FakeVoicePromptService();
@@ -1260,12 +1249,11 @@ void main() {
         voicePromptService: prompt,
         commandWindowDuration: const Duration(milliseconds: 25),
       );
-      await controller.activateLevelTopicSelection(
+      await controller.activateTopicSelection(
         childAge: 6,
-        levelNumber: 2,
         topicNumbers: [4, 5, 6],
         completedTopicNumbers: [4],
-        announceLevel: false,
+        courseCompleted: false,
       );
       await Future<void>.delayed(const Duration(milliseconds: 120));
       expect(prompt.spokenTexts.last, 'Mình tạm dừng nhé.');
@@ -1695,12 +1683,11 @@ void main() {
       voicePromptService: _FakeVoicePromptService(),
     );
 
-    final activation = controller.activateLevelTopicSelection(
+    final activation = controller.activateTopicSelection(
       childAge: 6,
-      levelNumber: 1,
       topicNumbers: const [1, 2, 3],
       completedTopicNumbers: const [],
-      announceLevel: false,
+      courseCompleted: false,
     );
     await _waitUntil(() => speech.events.contains('start'));
     speech.emitCommandEndpoint('Chủ đề 2');
@@ -2042,7 +2029,7 @@ void main() {
   });
 
   test(
-    'saved age lets MAIN open Level selection without the legacy total',
+    'saved age lets MAIN open topic selection without asking age again',
     () async {
       final speechInput = _FakeNavigationSpeechInput();
       final voicePrompt = _FakeVoicePromptService();
@@ -2096,12 +2083,11 @@ void main() {
     controller.setIntentHandler(receivedIntents.add);
 
     expect(
-      await controller.activateLevelTopicSelection(
+      await controller.activateTopicSelection(
         childAge: 6,
-        levelNumber: 1,
         topicNumbers: const <int>[1, 2, 3],
         completedTopicNumbers: const <int>[3, 5],
-        announceLevel: false,
+        courseCompleted: false,
       ),
       isTrue,
     );
@@ -2129,7 +2115,7 @@ void main() {
   });
 
   test(
-    'completed Course Level choice is handled by the MAIN microphone',
+    'completed Course topic choice is handled by the MAIN microphone',
     () async {
       final speechInput = _FakeNavigationSpeechInput();
       final voicePrompt = _FakeVoicePromptService();
@@ -2145,23 +2131,25 @@ void main() {
       controller.setIntentHandler(receivedIntents.add);
 
       expect(
-        await controller.activateCourseRelearnLevelSelection(
+        await controller.activateTopicSelection(
           childAge: 6,
-          levelNumbers: const <int>[1, 2, 3],
+          topicNumbers: List<int>.generate(10, (index) => index + 1),
+          completedTopicNumbers: List<int>.generate(10, (index) => index + 1),
+          courseCompleted: true,
         ),
         isTrue,
       );
       expect(
         voicePrompt.spokenTexts.last,
-        MainVoiceAssistantFlow.courseRelearnLevelPrompt,
+        MainVoiceAssistantFlow.courseRelearnTopicPrompt,
       );
 
       expect(
-        await controller.dispatchRecognizedText('Học lại Level 3'),
+        await controller.dispatchRecognizedText('Học lại Chủ đề 3'),
         isTrue,
       );
-      expect(receivedIntents.single.levelNumber, 3);
-      expect(receivedIntents.single.relearnLevel, isTrue);
+      expect(receivedIntents.single.topicNumber, 3);
+      expect(receivedIntents.single.relearnTopic, isTrue);
 
       controller.dispose();
       await speechInput.dispose();

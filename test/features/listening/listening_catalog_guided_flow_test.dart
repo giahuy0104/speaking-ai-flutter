@@ -100,10 +100,12 @@ void main() {
 
       for (final group in catalog.groups) {
         expect(
-          group.levels,
-          hasLength(3),
+          group.topics.map((topic) => topic.number),
+          orderedEquals(List<int>.generate(10, (index) => index + 1)),
           reason: '${group.startAge}-${group.endAge}',
         );
+        // Legacy mission banks remain readable but are not part of the runtime
+        // learning flow.
         for (final level in group.levels) {
           expect(level.missionBank, isEmpty, reason: level.id);
         }

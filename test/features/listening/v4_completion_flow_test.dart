@@ -25,22 +25,6 @@ void main() {
       }
       expect(
         resolver.resolve(
-          'Bắt đầu Level ba',
-          stage: V4CompletionStage.nextLevel,
-          nextLevel: 2,
-        ),
-        isNull,
-      );
-      expect(
-        resolver.resolve(
-          'Bắt đầu Level hai',
-          stage: V4CompletionStage.nextLevel,
-          nextLevel: 2,
-        ),
-        V4CompletionAction.startNextLevel,
-      );
-      expect(
-        resolver.resolve(
           'Mình không muốn học lại',
           stage: V4CompletionStage.topicEnd,
         ),
@@ -68,14 +52,6 @@ void main() {
     expect(
       v4CompletionPrompt(V4CompletionStage.topicEndOneRemaining),
       'Bạn còn một Chủ đề chưa học. Bạn muốn học tiếp hay học lại?',
-    );
-    expect(
-      v4CompletionPrompt(V4CompletionStage.nextLevel, nextLevel: 2),
-      'Bạn muốn bắt đầu Level 2 hay dừng lại?',
-    );
-    expect(
-      v4CompletionPrompt(V4CompletionStage.courseRelearnLevel),
-      'Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?',
     );
     expect(
       v4CompletionPrompt(
@@ -110,14 +86,7 @@ void main() {
       V4CompletionAction.relearnTopic,
     );
     expect(
-      resolver.resolve(
-        'Cho con học lại level hai',
-        stage: V4CompletionStage.courseRelearnLevel,
-      ),
-      V4CompletionAction.relearnLevel2,
-    );
-    expect(
-      resolver.resolve('Dừng lại', stage: V4CompletionStage.nextLevel),
+      resolver.resolve('Dừng lại', stage: V4CompletionStage.topicEnd),
       V4CompletionAction.stop,
     );
   });

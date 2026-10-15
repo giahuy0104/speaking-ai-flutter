@@ -6,6 +6,57 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  for (final levels in <List<double>>[
+    [-65, -65, -65, -35, -31, -65],
+    [-85, -85, -85, -70, -67, -69, -85],
+  ]) {
+    testWidgets('short or very quiet answer ends on silence: $levels', (
+      tester,
+    ) async {
+      final amplitudes = StreamController<double>.broadcast(sync: true);
+      addTearDown(amplitudes.close);
+      var now = DateTime(2026);
+      final reasons = <LessonRecordingEndpointReason>[];
+      final detector = LessonRecordingEndpointDetector(now: () => now);
+      detector.start(amplitudeDbfs: amplitudes.stream, onEndpoint: reasons.add);
+      for (final level in levels) {
+        amplitudes.add(level);
+        now = now.add(const Duration(milliseconds: 90));
+      }
+      expect(detector.speechDetected, isTrue);
+      await tester.pump(const Duration(milliseconds: 700));
+      expect(reasons, [LessonRecordingEndpointReason.silence]);
+    });
+  }
+
+  testWidgets('ASR can end a take when previously active level data stalls', (
+    tester,
+  ) async {
+    final amplitudes = StreamController<double>.broadcast(sync: true);
+    addTearDown(amplitudes.close);
+    var now = DateTime(2026);
+    final reasons = <LessonRecordingEndpointReason>[];
+    final detector = LessonRecordingEndpointDetector(
+      voiceActivityDetector: _immediateVoiceDetector(),
+      now: () => now,
+    );
+    detector.start(amplitudeDbfs: amplitudes.stream, onEndpoint: reasons.add);
+    amplitudes
+      ..add(-60)
+      ..add(-60)
+      ..add(-60);
+    now = now.add(const Duration(milliseconds: 100));
+    amplitudes.add(-20);
+    now = now.add(const Duration(milliseconds: 500));
+    detector.confirmSpeech();
+      await tester.pump(const Duration(milliseconds: 600));
+      now = now.add(const Duration(milliseconds: 600));
+      detector.confirmSpeech();
+      await tester.pump(const Duration(milliseconds: 699));
+      expect(reasons, isEmpty);
+      await tester.pump(const Duration(milliseconds: 1));
+    expect(reasons, [LessonRecordingEndpointReason.silence]);
+  });
   testWidgets(
     'ASR confirmation endpoints without RMS and renews on new words',
     (tester) async {

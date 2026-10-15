@@ -70,7 +70,7 @@ void main() {
 
     final catalogPrompts = (catalog['prompts'] as List<dynamic>)
         .cast<Map<String, dynamic>>();
-    expect(catalogPrompts, hasLength(115));
+    expect(catalogPrompts, hasLength(118));
     for (final source in catalogPrompts) {
       final pack = source['pack'] as String;
       final key = source['key'] as String;

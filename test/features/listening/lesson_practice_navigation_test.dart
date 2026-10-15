@@ -132,7 +132,7 @@ void main() {
     ('Chủ đề 4', null),
   ]) {
     testWidgets(
-      'iOS completion validates spoken ${choice.$1} when Topics 2 and 3 remain',
+      'iOS completion validates spoken ${choice.$1} across legacy Level boundaries',
       (tester) async {
         final transcript = choice.$1;
         SharedPreferences.setMockInitialValues({});
@@ -154,7 +154,7 @@ void main() {
             number: 2,
             titleVi: 'Chủ đề 2',
             titleEn: 'Topic 2',
-            levelNumber: 1,
+            levelNumber: 2,
             lessons: [second],
           ),
           ListeningTopicContent(
@@ -162,7 +162,7 @@ void main() {
             number: 3,
             titleVi: 'Chủ đề 3',
             titleEn: 'Topic 3',
-            levelNumber: 1,
+            levelNumber: 3,
             lessons: [third],
           ),
         ];
@@ -170,13 +170,27 @@ void main() {
           id: 'level-one',
           number: 1,
           titleVi: 'Level 1',
-          topicNumbers: [1, 2, 3],
+          topicNumbers: [1],
         );
         final group = ListeningContentAgeGroup(
           startAge: 3,
           endAge: 5,
           topics: topics,
-          levels: [level],
+          levels: [
+            level,
+            ListeningLevelContent(
+              id: 'level-two',
+              number: 2,
+              titleVi: 'Level 2',
+              topicNumbers: [2],
+            ),
+            ListeningLevelContent(
+              id: 'level-three',
+              number: 3,
+              titleVi: 'Level 3',
+              topicNumbers: [3],
+            ),
+          ],
         );
         final store = _TopicTransitionProgressStore()
           ..progress[first.id] = 1
@@ -1312,6 +1326,89 @@ void main() {
     expect(store.pendingCompletionChoice, isNull);
     expect(store.resumeStage, ListeningResumeStage.completed);
   });
+
+  testWidgets(
+    'legacy next-Level pending choice resumes as whole-group topic completion',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final firstLesson = _v4Lesson();
+      final secondLesson = _v4Lesson(number: 2);
+      final firstTopic = ListeningTopicContent(
+        id: 'legacy-level-topic-1',
+        number: 1,
+        titleVi: 'Chủ đề 1',
+        titleEn: 'Topic 1',
+        levelNumber: 1,
+        lessons: <ListeningLessonContent>[firstLesson],
+      );
+      final secondTopic = ListeningTopicContent(
+        id: 'legacy-level-topic-2',
+        number: 2,
+        titleVi: 'Chủ đề 2',
+        titleEn: 'Topic 2',
+        levelNumber: 2,
+        lessons: <ListeningLessonContent>[secondLesson],
+      );
+      const firstLevel = ListeningLevelContent(
+        id: 'legacy-level-1',
+        number: 1,
+        titleVi: 'Level 1',
+        topicNumbers: <int>[1],
+      );
+      final group = ListeningContentAgeGroup(
+        startAge: 3,
+        endAge: 5,
+        topics: <ListeningTopicContent>[firstTopic, secondTopic],
+        levels: const <ListeningLevelContent>[
+          firstLevel,
+          ListeningLevelContent(
+            id: 'legacy-level-2',
+            number: 2,
+            titleVi: 'Level 2',
+            topicNumbers: <int>[2],
+          ),
+        ],
+      );
+      final store = _TopicTransitionProgressStore()
+        ..progress[firstLesson.id] = firstLesson.sentences.length
+        ..coreStarted = true
+        ..pendingCompletionChoice = ListeningPendingChoiceStage.nextLevel
+        ..stages[firstLesson.id] = ListeningResumeStage.waitingForChoice;
+      store.completedV4LessonActivities.add(firstLesson.id);
+      final voice = _RecordingVoicePromptService();
+
+      await tester.pumpWidget(
+        _subject(
+          firstLesson,
+          store,
+          const Key('legacy-next-level-choice'),
+          topicContent: firstTopic,
+          contentGroup: group,
+          levelContent: firstLevel,
+          voicePromptService: voice,
+          initialResumeStage: ListeningResumeStage.waitingForChoice,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        store.pendingCompletionChoice,
+        ListeningPendingChoiceStage.topicEndOneRemaining,
+      );
+      expect(
+        voice.spoken,
+        contains('Bạn còn một Chủ đề chưa học. Bạn muốn học tiếp hay học lại?'),
+      );
+      expect(voice.spoken.where((prompt) => prompt.contains('Level')), isEmpty);
+      expect(
+        find.byKey(const ValueKey<String>('v4-choice-nextTopic')),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const ValueKey<String>('v4-choice-stop')));
+      await tester.pumpAndSettle();
+    },
+  );
 
   testWidgets(
     'post-Challenge lesson choice uses the authored current-to-next key',

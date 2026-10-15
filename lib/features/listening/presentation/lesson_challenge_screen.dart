@@ -475,7 +475,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         _recordingUsesIosSpeech = false;
       });
     }
-    await _playCurrentPrompt(announceIntro: true);
+    await _playCurrentPrompt(announceIntro: false);
   }
 
   Future<void> _speakPromptAndWait(

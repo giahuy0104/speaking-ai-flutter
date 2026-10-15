@@ -258,7 +258,12 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
           .replaceFirst(RegExp(r'\.\s*$'), '');
       final startCue = text.substring(hookIndex + hookText.length).trim();
       if (lead.isNotEmpty) {
-        await _speakIntroPrompt(prompt, lead, request: request);
+        await _speakIntroPrompt(
+          prompt,
+          lead,
+          request: request,
+          audioKey: ListeningAudioKeys.lessonIntroLead(widget.lesson.id),
+        );
       }
       if (!_isCurrentIntroRequest(request)) return;
       try {
@@ -282,7 +287,14 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
       }
       if (!_isCurrentIntroRequest(request)) return;
       if (startCue.isNotEmpty) {
-        await _speakIntroPrompt(prompt, startCue, request: request);
+        await _speakIntroPrompt(
+          prompt,
+          startCue,
+          request: request,
+          audioKey: startCue == 'Bắt đầu nhé.'
+              ? 'assistant.main.start_now.vi'
+              : null,
+        );
       }
       return;
     }

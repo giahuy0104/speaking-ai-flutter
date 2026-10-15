@@ -807,7 +807,9 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         // vocabulary page that never stopped being active, so showing that
         // page again starts nothing and HOMI would stay silent.
         final vocabularyWasActive = _vocabularyActivationController.isActive;
-        await _showVocabularyAndWait();
+        await _showVocabularyAndWait(
+          autoStartToday: intent.vocabularyTarget == null,
+        );
         if (!kIsWeb &&
             defaultTargetPlatform == TargetPlatform.iOS &&
             (!mounted || _page != 1)) {
@@ -828,17 +830,14 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         }
       case VoiceNavigationDestination.topics:
         final pausedCheckpoint =
-            intent.topicNumber == null &&
-                intent.levelNumber == null &&
-                !intent.openLesson
+            intent.topicNumber == null && !intent.openLesson
             ? _pausedListeningCheckpoint
             : null;
         if (pausedCheckpoint != null) {
           _pausedListeningCheckpoint = null;
         }
-        final opensCurrentLevelSelection =
+        final opensTopicSelection =
             intent.topicNumber == null &&
-            intent.levelNumber == null &&
             !intent.openLesson &&
             pausedCheckpoint == null;
         final fallbackTopicIndex = _activeVoiceTopicIndex;
@@ -847,11 +846,9 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           openLesson: intent.openLesson || pausedCheckpoint != null,
           topicNumber: intent.topicNumber ?? pausedCheckpoint?.topicNumber,
           lessonNumber: intent.lessonNumber ?? pausedCheckpoint?.lessonNumber,
-          levelNumber: intent.levelNumber,
           childAge: intent.childAge ?? pausedCheckpoint?.childAge,
           relearnTopic: intent.relearnTopic,
           relearnLesson: intent.relearnLesson,
-          relearnLevel: intent.relearnLevel,
           fallbackTopicIndex: fallbackTopicIndex,
         );
         if (_openingTopics) {
@@ -861,7 +858,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           final routePushed = Completer<bool>();
           unawaited(
             _openTopicListening(
-              initialVoiceTarget: opensCurrentLevelSelection ? null : target,
+              initialVoiceTarget: opensTopicSelection ? null : target,
               routePushed: routePushed,
             ),
           );
@@ -1096,7 +1093,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     unawaited(_showVocabularyAndWait());
   }
 
-  Future<void> _showVocabularyAndWait() async {
+  Future<void> _showVocabularyAndWait({bool autoStartToday = true}) async {
     AudioDiagnostics.event('screen.vocabulary.activate');
     if (AudioDiagnostics.enabled) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1105,7 +1102,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         }
       });
     }
-    _vocabularyActivationController.activate();
+    _vocabularyActivationController.activate(autoStartToday: autoStartToday);
     await _requestHomePage(1);
   }
 
@@ -1286,30 +1283,19 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                       completedLessonNumbers: completedLessonNumbers,
                     );
               },
-          onLevelTopicSelectionRequested:
+          onTopicSelectionRequested:
               ({
                 required childAge,
-                required levelNumber,
                 required topicNumbers,
                 required completedTopicNumbers,
-                required announceLevel,
+                required courseCompleted,
               }) async {
                 return await widget.voiceNavigationController
-                        ?.activateLevelTopicSelection(
+                        ?.activateTopicSelection(
                           childAge: childAge,
-                          levelNumber: levelNumber,
                           topicNumbers: topicNumbers,
                           completedTopicNumbers: completedTopicNumbers,
-                          announceLevel: announceLevel,
-                        ) ??
-                    false;
-              },
-          onCourseRelearnLevelSelectionRequested:
-              ({required childAge, required levelNumbers}) async {
-                return await widget.voiceNavigationController
-                        ?.activateCourseRelearnLevelSelection(
-                          childAge: childAge,
-                          levelNumbers: levelNumbers,
+                          courseCompleted: courseCompleted,
                         ) ??
                     false;
               },

@@ -28,6 +28,78 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  for (final command in <ActiveLearningCommand>[
+    ActiveLearningCommand.vocabularyParentAdded,
+    ActiveLearningCommand.vocabularyStars,
+    ActiveLearningCommand.vocabularyPracticeAgain,
+  ]) {
+    for (final hasReview in <bool>[false, true]) {
+      testWidgets(
+        'selected $command keeps audio when root load finishes (review=$hasReview)',
+        (tester) async {
+          SharedPreferences.setMockInitialValues(<String, Object>{});
+          final sessions = _DelayedEntrySessionStore();
+          final registry = ActiveLearningModuleRegistry();
+          addTearDown(registry.dispose);
+          final prompts = _RecordingVoicePromptService();
+          final store = _MemoryVocabularyStore([
+            if (hasReview)
+              VocabularyEntry(
+                id: 'review-math',
+                word: 'Math.',
+                meaning: 'Môn Toán.',
+                addedAt: DateTime(2026, 10, 12),
+                collection: VocabularyCollection.review,
+                status: VocabularyLearningStatus.needsPractice,
+                source: VocabularySource.topicCore,
+              ),
+          ]);
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: buildAppTheme(),
+              home: ActiveLearningModuleScope(
+                registry: registry,
+                child: VocabularyHomeScreen(
+                  isReady: true,
+                  autoStartToday: true,
+                  store: store,
+                  sessionStore: sessions,
+                  voicePromptService: prompts,
+                  mediaService: _ImmediateLessonMediaService(),
+                  fixedPromptAudioService:
+                      const _UnavailableFixedPromptAudioService(),
+                  onReturnToConversation: () {},
+                  onHistory: () {},
+                  onSettings: () {},
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+          await registry.execute(command);
+          await tester.pump();
+          sessions.entry.complete(true);
+          for (var i = 0; i < 15; i++) {
+            await tester.pump(const Duration(milliseconds: 100));
+          }
+          final expected = switch (command) {
+            ActiveLearningCommand.vocabularyParentAdded =>
+              VocabularyFlowV3.parentEmpty,
+            ActiveLearningCommand.vocabularyStars => VocabularyFlowV3.starEmpty,
+            _ =>
+              hasReview
+                  ? VocabularyFlowV3.reviewIntro
+                  : VocabularyFlowV3.reviewEmpty,
+          };
+          expect(prompts.spokenTexts, contains(expected));
+          expect(prompts.spokenTexts, isNot(contains(VocabularyFlowV3.menu)));
+          await tester.pumpWidget(const SizedBox.shrink());
+          await tester.pump(const Duration(seconds: 3));
+          await tester.pumpAndSettle();
+        },
+      );
+    }
+  }
   setUp(() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
@@ -2077,6 +2149,13 @@ void main() {
       expect(find.text('Ngôi sao của bạn'), findsOneWidget);
     },
   );
+}
+
+class _DelayedEntrySessionStore extends VocabularySessionStore {
+  final entry = Completer<bool>();
+
+  @override
+  Future<bool> markAndCheckFirstEntryToday(DateTime now) => entry.future;
 }
 
 class _MemoryVocabularyStore extends VocabularyStore {
