@@ -3455,6 +3455,76 @@ void main() {
   });
 
   testWidgets(
+    'all 13 hook intros play lead hook start without unkeyed TTS',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final catalog = (await tester.runAsync(
+        () => AssetListeningContentRepository(bundle: rootBundle).load(),
+      ))!;
+      final manifest =
+          jsonDecode(
+                File(
+                  'assets/data/listening_common_audio.json',
+                ).readAsStringSync(),
+              )
+              as Map<String, dynamic>;
+      final hookIds = (manifest['prompts'] as List)
+          .where((p) => (p['key'] as String).endsWith('.hook.vi'))
+          .map(
+            (p) => (p['key'] as String)
+                .replaceFirst('listening.lesson.', '')
+                .replaceFirst('.hook.vi', ''),
+          )
+          .toSet();
+      var checked = 0;
+      for (final group in catalog.groups) {
+        for (final topic in group.topics) {
+          for (final lesson in topic.lessons.where(
+            (l) => hookIds.contains(l.id),
+          )) {
+            final prompts = _AuthoredIntroVoicePromptService();
+            await tester.pumpWidget(
+              MaterialApp(
+                theme: buildAppTheme(),
+                home: LessonIntroScreen(
+                  language: DisplayLanguage.vietnamese,
+                  startAge: group.startAge,
+                  endAge: group.endAge,
+                  topic: listeningCatalogs.first.topics.first,
+                  topicContent: topic,
+                  lesson: lesson,
+                  progressStore: _MemoryProgressStore(),
+                  mediaService: _GuidedMediaService(),
+                  voicePromptService: prompts,
+                  guideAudioLibrary: _silentGuideAudioLibrary(),
+                  autoAdvance: false,
+                ),
+              ),
+            );
+            for (var i = 0; i < 8; i++) {
+              await tester.pump();
+            }
+            expect(prompts.playedKeys, [
+              ListeningAudioKeys.lessonIntroLead(lesson.id),
+              ListeningAudioKeys.lessonHook(lesson.id),
+              MainAssistantAudioKeys.startNow,
+            ], reason: lesson.id);
+            expect(prompts.spoken, isEmpty, reason: lesson.id);
+            checked++;
+            await tester.pumpWidget(const SizedBox.shrink());
+            await tester.pump();
+          }
+        }
+      }
+      expect(checked, 13);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
     'V4 unavailable scene hook falls back without repeating title',
     (tester) async {
       await _usePhoneSurface(tester);
@@ -3551,15 +3621,17 @@ void main() {
       expect(
         events,
         containsAllInOrder([
-          'voice|Chủ đề 5. Bài đầu tiên là',
-          'voice|${lesson.titleEn}',
+          'asset|${ListeningAudioKeys.lessonIntroLead(lesson.id)}',
           hookEvent,
           'voice|Bắt đầu nhé.',
         ]),
       );
       expect(events.where((event) => event == hookEvent), hasLength(1));
       expect(
-        events.where((event) => event == 'voice|${lesson.titleEn}'),
+        events.where(
+          (event) =>
+              event == 'asset|${ListeningAudioKeys.lessonIntroLead(lesson.id)}',
+        ),
         hasLength(1),
       );
       expect(events, isNot(contains('voice|${lesson.entry!.text}')));

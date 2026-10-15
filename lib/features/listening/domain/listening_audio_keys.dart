@@ -120,6 +120,9 @@ abstract final class ListeningAudioKeys {
   static String lessonHook(String lessonId) =>
       'listening.lesson.${lessonId.trim()}.hook.vi';
 
+  static String lessonIntroLead(String lessonId) =>
+      'listening.lesson.${lessonId.trim()}.intro_lead.vi';
+
   static String lessonResume(String lessonId) =>
       'listening.lesson.${lessonId.trim()}.resume.vi';
 

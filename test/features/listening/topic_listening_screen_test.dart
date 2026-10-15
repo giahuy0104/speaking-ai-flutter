@@ -318,7 +318,7 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(find.byKey(const ValueKey('topic-choice-2')), findsOneWidget);
-        expect(voice.spoken.single, contains('Bạn chọn Chủ đề số mấy?'));
+        expect(voice.spoken.single, contains('Bạn muốn chọn Chủ đề số mấy?'));
 
         await tester.tap(find.byKey(const ValueKey('topic-choice-2')));
         for (var index = 0; index < 5; index++) {

@@ -47,6 +47,7 @@ void main() {
         final repository = AudioPackRepository(
           bundledManifestAssets: const [
             'assets/data/listening_common_audio.json',
+            'assets/data/assistant_core_audio.json',
           ],
           cache: MemoryAudioPackCache(),
         );
@@ -73,6 +74,33 @@ void main() {
           );
           expect(resolved.bytes, isNotEmpty);
           expect(await resolver.budget(request), isNotNull);
+          final topic = catalog.groups
+              .expand((group) => group.topics)
+              .firstWhere(
+                (topic) => topic.lessons.any((l) => l.id == lesson.id),
+              );
+          final prefix = lesson.number == 1
+              ? 'Chủ đề ${topic.number}. Bài đầu tiên là'
+              : 'Bài này là';
+          for (final part in <(String, String)>[
+            (
+              ListeningAudioKeys.lessonIntroLead(lesson.id),
+              '$prefix ${lesson.titleEn}',
+            ),
+            ('assistant.main.start_now.vi', 'Bắt đầu nhé.'),
+          ]) {
+            final partRequest = AudioPromptRequest(
+              key: AudioPromptKey(part.$1),
+              fallbackText: part.$2,
+              locale: 'vi-VN',
+            );
+            expect(
+              (await resolver.resolve(partRequest)).source,
+              AudioPromptSource.bundledAsset,
+              reason: part.$1,
+            );
+            expect(await resolver.budget(partRequest), isNotNull);
+          }
         }
 
         final changedText = AudioPromptRequest(

@@ -765,7 +765,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
       await _speakOnSelectedLessonOutput(
         relearn
             ? v4CompletionPrompt(V4CompletionStage.courseRelearnTopic)
-            : 'Có ${topicNumbers.length} Chủ đề. Bạn chọn Chủ đề số mấy?',
+            : 'Có ${topicNumbers.length} Chủ đề. Bạn muốn chọn Chủ đề số mấy?',
         audioKey: relearn
             ? MainAssistantAudioKeys.courseRelearnTopic
             : MainAssistantAudioKeys.chooseTopic(topicNumbers.length),
