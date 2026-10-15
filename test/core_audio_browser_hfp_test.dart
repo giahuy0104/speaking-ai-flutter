@@ -1,9 +1,59 @@
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/browser_hfp_audio_control.dart';
 import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test(
+    'HM-D001 audio connection is detected without accepting other headsets',
+    () {
+      const androidHfp = BluetoothAudioStatus(
+        phase: BluetoothAudioConnectionPhase.ready,
+        deviceName: 'HM-D001',
+      );
+      const iosA2dp = BluetoothAudioStatus(
+        phase: BluetoothAudioConnectionPhase.idle,
+        outputPortType: 'bluetoothA2DP',
+        outputDeviceName: 'HM-D001',
+      );
+      const staleIosSelection = BluetoothAudioStatus(
+        phase: BluetoothAudioConnectionPhase.ready,
+        deviceName: 'HM-D001',
+        outputPortType: 'builtInSpeaker',
+        outputDeviceName: 'iPhone',
+      );
+      expect(
+        hasConnectedHmD001AudioRoute(
+          androidHfp,
+          platform: TargetPlatform.android,
+        ),
+        isTrue,
+      );
+      expect(
+        hasConnectedHmD001AudioRoute(iosA2dp, platform: TargetPlatform.iOS),
+        isTrue,
+      );
+      expect(
+        hasConnectedHmD001AudioRoute(
+          staleIosSelection,
+          platform: TargetPlatform.iOS,
+        ),
+        isFalse,
+      );
+      expect(
+        hasConnectedHmD001AudioRoute(
+          const BluetoothAudioStatus(
+            phase: BluetoothAudioConnectionPhase.ready,
+            deviceName: 'AirPods Pro',
+          ),
+          platform: TargetPlatform.android,
+        ),
+        isFalse,
+      );
+    },
+  );
+
   test('recognizes common browser Bluetooth microphone labels', () {
     expect(isLikelyBrowserHfpLabel('AirPods Microphone'), isTrue);
     expect(isLikelyBrowserHfpLabel('INNOTRIK'), isTrue);

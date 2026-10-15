@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../config/app_config.dart';
 import '../core/auth/installation_auth_session.dart';
+import '../core/audio/audio_input.dart';
 import '../core/audio/audio_playback_service.dart';
 import '../core/audio/audio_turn_coordinator.dart';
 import '../core/audio/browser_hfp_audio_control.dart';
@@ -164,6 +165,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   bool _offlineSpeechModelPreparationFinished = false;
   bool _disconnectingDepletedH20 = false;
   StreamSubscription<Aiv0BleStatus>? _aiv0BleFeedbackSubscription;
+  StreamSubscription<BluetoothAudioStatus>? _hfpBleAutoConnectSubscription;
+  bool _hmD001AudioConnected = false;
   StreamSubscription<AudioTurnDiagnostic>? _audioTurnDiagnosticSubscription;
   Timer? _deviceConnectionFeedbackTimer;
   DeviceConnectionFeedbackStage? _deviceConnectionFeedbackStage;
@@ -659,6 +662,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
 
   Future<void> _autoConnectH20Ble({
     _H20AutoConnectReason reason = _H20AutoConnectReason.background,
+    bool skipRecentAttempt = false,
   }) async {
     final control = _aiv0BleControl;
     final controller = _controller;
@@ -676,7 +680,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       return;
     }
     final lastAttempt = _lastAiv0AutoConnectAttempt;
-    if (lastAttempt != null &&
+    if (!skipRecentAttempt &&
+        lastAttempt != null &&
         now.difference(lastAttempt) < const Duration(seconds: 10)) {
       return;
     }
@@ -788,6 +793,29 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         'BLE is ready while HFP remains unavailable; phone microphone stays active.',
       );
     }
+  }
+
+  void _handleHmD001AudioStatus(BluetoothAudioStatus status) {
+    final connected = hasConnectedHmD001AudioRoute(
+      status,
+      platform: defaultTargetPlatform,
+    );
+    if (!connected) {
+      _hmD001AudioConnected = false;
+      return;
+    }
+    if (_hmD001AudioConnected) return;
+    if (defaultTargetPlatform != TargetPlatform.iOS ||
+        !mounted ||
+        !_startupReady ||
+        !_bluetoothPermissionGranted ||
+        WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed ||
+        _aiv0AutoConnectAttemptActive ||
+        _controller?.canUseAiv0Ble == true) {
+      return;
+    }
+    _hmD001AudioConnected = true;
+    unawaited(_autoConnectH20Ble(skipRecentAttempt: true));
   }
 
   Future<bool> _configureH20ForParentSetup() async {
@@ -2008,6 +2036,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       _handleAiv0BleFeedbackStatus,
     );
     _nativeHfpAudioControl = nativeHfpAudioControl;
+    _hfpBleAutoConnectSubscription = nativeHfpAudioControl?.statusChanges
+        .listen(_handleHmD001AudioStatus);
     _mainAssistantHfpAudioControl = mainAssistantHfpAudioControl;
     _audioTurnCoordinator = audioTurnCoordinator;
     _audioTurnDiagnosticSubscription = audioTurnCoordinator.diagnostics.listen(
@@ -3023,6 +3053,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     _deviceConnectionFeedbackTimer?.cancel();
     _iosBleReconnectNoticeTimer?.cancel();
     unawaited(_aiv0BleFeedbackSubscription?.cancel());
+    unawaited(_hfpBleAutoConnectSubscription?.cancel());
     unawaited(_audioTurnDiagnosticSubscription?.cancel());
     unawaited(_offlineTranslator.close());
     unawaited(_offlineVocabularyTranslator.close());
