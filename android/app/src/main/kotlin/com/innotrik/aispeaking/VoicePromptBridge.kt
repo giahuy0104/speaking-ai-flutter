@@ -12,6 +12,7 @@ import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.speech.tts.Voice
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -41,6 +42,9 @@ class VoicePromptBridge(
     private val audioManager =
         appContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private val methodChannel = MethodChannel(messenger, "ailingo_voice_prompt")
+    private val translationVoicePreferences =
+        appContext.getSharedPreferences("translation_voices", Context.MODE_PRIVATE)
+    private val translationVoiceCache = mutableMapOf<String, List<Voice>>()
     private val mainHandler = Handler(Looper.getMainLooper())
     private var textToSpeech: TextToSpeech? = null
     private var initialized = false
@@ -143,6 +147,50 @@ class VoicePromptBridge(
         result: MethodChannel.Result,
     ) {
         when (call.method) {
+            "listTranslationVoices" -> {
+                val locale = Locale.forLanguageTag(call.argument<String>("locale").orEmpty())
+                val engine = textToSpeech
+                if (locale.language !in setOf("ja", "ko", "fr")) {
+                    result.error("INVALID_TTS_LOCALE", "Unsupported translation voice locale.", null)
+                } else if (!initialized || engine == null) {
+                    result.error("TTS_UNAVAILABLE", "Text to speech is unavailable.", null)
+                } else {
+                    val voices = translationVoices(engine, locale, refresh = true)
+                    val selectedName = translationVoicePreferences.getString("voice_${locale.language}", null)
+                    result.success(
+                        mapOf(
+                            "selectedVoice" to selectedName?.takeIf { name -> voices.any { it.name == name } },
+                            "voices" to voices.map { voice ->
+                                mapOf(
+                                    "name" to voice.name,
+                                    "locale" to voice.locale.toLanguageTag(),
+                                    "quality" to voice.quality,
+                                    "latency" to voice.latency,
+                                    "network" to voice.isNetworkConnectionRequired,
+                                )
+                            },
+                        ),
+                    )
+                }
+            }
+            "selectTranslationVoice" -> {
+                val locale = Locale.forLanguageTag(call.argument<String>("locale").orEmpty())
+                val name = call.argument<String>("name")?.trim().orEmpty()
+                val engine = textToSpeech
+                if (locale.language !in setOf("ja", "ko", "fr")) {
+                    result.error("INVALID_TTS_LOCALE", "Unsupported translation voice locale.", null)
+                } else if (!initialized || engine == null) {
+                    result.error("TTS_UNAVAILABLE", "Text to speech is unavailable.", null)
+                } else if (name.isNotEmpty() && translationVoices(engine, locale).none { it.name == name }) {
+                    result.error("TTS_VOICE_UNAVAILABLE", "Selected voice is unavailable.", null)
+                } else {
+                    translationVoicePreferences.edit().apply {
+                        if (name.isEmpty()) remove("voice_${locale.language}")
+                        else putString("voice_${locale.language}", name)
+                    }.apply()
+                    result.success(null)
+                }
+            }
             "analyzePlaybackLevel" -> analyzePlaybackLevel(call, result)
             "playAuthoredAudioAndWait" -> playAuthoredAudio(call, result)
             "speak" -> {
@@ -255,6 +303,12 @@ class VoicePromptBridge(
             }
             engine.setLanguage(Locale("vi", "VN"))
         }
+        if (requestedLocale.language in setOf("ja", "ko", "fr")) {
+            val voices = translationVoices(engine, requestedLocale)
+            val selectedName = translationVoicePreferences.getString("voice_${requestedLocale.language}", null)
+            val selectedVoice = voices.firstOrNull { it.name == selectedName } ?: voices.firstOrNull()
+            if (selectedVoice != null) engine.setVoice(selectedVoice)
+        }
         utteranceSequence += 1
         val utteranceId = "voice-prompt-$utteranceSequence"
         AudioDiagnostics.output("tts.synthesis.request", audioManager, mapOf("id" to utteranceId, "gainDb" to gainDb, "characters" to text.length))
@@ -284,6 +338,29 @@ class VoicePromptBridge(
             if (fallbackStatus == TextToSpeech.ERROR) {
                 completeAwaited(utteranceId, "TTS playback failed.")
             }
+        }
+    }
+
+    private fun translationVoices(
+        engine: TextToSpeech,
+        locale: Locale,
+        refresh: Boolean = false,
+    ): List<Voice> {
+        val key = locale.toLanguageTag()
+        if (refresh) translationVoiceCache.remove(key)
+        return translationVoiceCache.getOrPut(key) {
+            (engine.voices ?: emptySet())
+            .filter { voice ->
+                voice.locale.language == locale.language &&
+                    voice.features?.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED) != true
+            }
+            .sortedWith(
+                compareByDescending<Voice> { it.locale.country == locale.country }
+                    .thenByDescending { it.quality }
+                    .thenBy { it.isNetworkConnectionRequired }
+                    .thenBy { it.latency }
+                    .thenBy { it.name },
+            )
         }
     }
 

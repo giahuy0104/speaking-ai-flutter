@@ -433,6 +433,23 @@ class ConversationController extends ChangeNotifier
     return true;
   }
 
+  Future<void> previewTranslationVoice() async {
+    if (_disposed || isBusy || _stopInProgress) return;
+    final language = outputLanguage;
+    final sample = switch (language) {
+      TranslationOutputLanguage.japanese => 'こんにちは。今日はいい天気ですね。',
+      TranslationOutputLanguage.korean => '안녕하세요. 오늘 날씨가 좋네요.',
+      TranslationOutputLanguage.french => "Bonjour. Il fait beau aujourd'hui.",
+      _ => null,
+    };
+    if (sample == null) return;
+    await _speakOfflineTranslation(
+      sample,
+      locale: language.speechLocale,
+      turnGeneration: _conversationTurnGeneration,
+    );
+  }
+
   void setChildAge(int age) {
     if (_childAge == age) {
       return;
@@ -4005,8 +4022,10 @@ class ConversationController extends ChangeNotifier
             .speakAndWaitStyled(
               text,
               locale: locale,
-              speechRate: translatedSpeechPlaybackRate,
-              pitch: 1.05,
+              speechRate: _usesSelectableTranslationVoice(locale)
+                  ? 0.95
+                  : translatedSpeechPlaybackRate,
+              pitch: _usesSelectableTranslationVoice(locale) ? 1.0 : 1.05,
             );
       } else if (promptService is SelectedMediaOutputVoicePromptService) {
         await (promptService as SelectedMediaOutputVoicePromptService)
@@ -4022,6 +4041,9 @@ class ConversationController extends ChangeNotifier
       notifyListeners();
     }
   }
+
+  bool _usesSelectableTranslationVoice(String locale) =>
+      locale == 'ja-JP' || locale == 'ko-KR' || locale == 'fr-FR';
 
   void _useTranslatedSpeechPlaybackRate() {
     final playback = _playbackService;
