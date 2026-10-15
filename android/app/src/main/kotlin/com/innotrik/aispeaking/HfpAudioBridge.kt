@@ -182,6 +182,27 @@ class HfpAudioBridge(
                         }
                     }
                     BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED -> {
+                        val state = intent.getIntExtra(
+                            BluetoothProfile.EXTRA_STATE,
+                            BluetoothProfile.STATE_DISCONNECTED,
+                        )
+                        if (selectedDevice == null && state == BluetoothProfile.STATE_CONNECTED) {
+                            val connected = bluetoothDeviceExtra(intent)
+                            if (connected != null &&
+                                normalizedDeviceName(safeName(connected)) == "hmd001") {
+                                // A system pairing can finish while HOMI is open. Surface the
+                                // connected profile immediately so Flutter can attach BLE.
+                                selectedDevice = connected
+                                phase = "ready"
+                                statusMessage = "HFP HM-D001 đã kết nối; đang chuẩn bị nút MAIN."
+                                emitStatus()
+                                routeHandler.postDelayed(
+                                    { if (!disposed) refreshSelectedDeviceStatus() },
+                                    350L,
+                                )
+                                return
+                            }
+                        }
                         if (!isSelectedDeviceEvent(intent)) {
                             Log.d(TAG, "Ignoring HFP connection event from a non-selected device")
                             return

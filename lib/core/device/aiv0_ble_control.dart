@@ -809,6 +809,20 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
       }
     }
 
+    // A dual-mode HM-D001 may use the same address for Classic HFP and LE.
+    // Verify its GATT service directly before falling back to a BLE scan.
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      for (final id in connectedHfpDeviceIds.toSet()) {
+        if (id.isEmpty || id == savedDeviceId) continue;
+        try {
+          await _connectCandidate(id, requestBond: requestBond);
+          return true;
+        } catch (error) {
+          debugPrint('Connected HM-D001 address has no BLE control: $error');
+        }
+      }
+    }
+
     List<Aiv0BleDevice> devices = const [];
     try {
       devices = await scan(timeout: scanTimeout);

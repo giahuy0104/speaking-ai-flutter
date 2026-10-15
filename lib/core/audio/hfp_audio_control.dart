@@ -77,6 +77,25 @@ HfpAudioDevice? selectLikelyH20HfpDevice(
   return candidates.first;
 }
 
+/// Reports when the system audio route has made HM-D001 available to HOMI.
+/// iOS can expose an A2DP output before its HFP microphone is selected.
+bool hasConnectedHmD001AudioRoute(
+  BluetoothAudioStatus status, {
+  required TargetPlatform platform,
+}) {
+  bool matches(String? name) => _normalizeH20DeviceName(name ?? '') == 'hmd001';
+
+  if (platform == TargetPlatform.android) {
+    return status.isConnected && matches(status.deviceName);
+  }
+  if (platform != TargetPlatform.iOS) return false;
+  final outputIsBluetooth =
+      status.outputPortType == 'bluetoothA2DP' ||
+      status.outputPortType == 'bluetoothHFP';
+  return (outputIsBluetooth && matches(status.outputDeviceName)) ||
+      (status.routeActive && matches(status.inputDeviceName));
+}
+
 String _normalizeH20DeviceName(String value) => value
     .trim()
     .toLowerCase()

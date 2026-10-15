@@ -119,4 +119,99 @@ void main() {
       await control.dispose();
     },
   );
+
+  test('first Android HFP connection verifies BLE without scanning', () async {
+    var scans = 0;
+    final connectedIds = <String>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          switch (call.method) {
+            case 'initialize':
+              return <Object?, Object?>{'phase': 'idle'};
+            case 'requestPermissions':
+              return true;
+            case 'scan':
+              scans += 1;
+              return <Map<String, Object?>>[];
+            case 'connect':
+              final id = (call.arguments as Map<Object?, Object?>)['deviceId']
+                  .toString();
+              connectedIds.add(id);
+              return <Object?, Object?>{
+                'phase': 'connected',
+                'deviceId': id,
+                'deviceName': 'HM-D001',
+                'mainNotificationState': 'notifying',
+              };
+            default:
+              return null;
+          }
+        });
+    final control = MethodChannelAiv0BleControl(
+      enabled: true,
+      draftProtocolConfirmed: false,
+    );
+
+    expect(
+      await control.autoConnectKnownOrNearby(
+        connectedHfpDeviceIds: const <String>['BB:BB'],
+      ),
+      isTrue,
+    );
+    expect(connectedIds, <String>['BB:BB']);
+    expect(scans, 0);
+    await control.dispose();
+  });
+
+  test('Android scans if the Classic address has no BLE service', () async {
+    var scans = 0;
+    final connectedIds = <String>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          switch (call.method) {
+            case 'initialize':
+              return <Object?, Object?>{'phase': 'idle'};
+            case 'requestPermissions':
+              return true;
+            case 'scan':
+              scans += 1;
+              return <Map<String, Object?>>[
+                <String, Object?>{
+                  'id': 'CC:CC',
+                  'name': 'HM-D001',
+                  'rssi': -35,
+                },
+              ];
+            case 'connect':
+              final id = (call.arguments as Map<Object?, Object?>)['deviceId']
+                  .toString();
+              connectedIds.add(id);
+              if (id == 'BB:BB') {
+                throw PlatformException(code: 'GATT_NOT_FOUND');
+              }
+              return <Object?, Object?>{
+                'phase': 'connected',
+                'deviceId': id,
+                'deviceName': 'HM-D001',
+                'mainNotificationState': 'notifying',
+              };
+            default:
+              return null;
+          }
+        });
+    final control = MethodChannelAiv0BleControl(
+      enabled: true,
+      draftProtocolConfirmed: false,
+    );
+
+    expect(
+      await control.autoConnectKnownOrNearby(
+        connectedHfpDeviceIds: const <String>['BB:BB'],
+      ),
+      isTrue,
+    );
+    expect(connectedIds, <String>['BB:BB', 'CC:CC']);
+    expect(scans, 1);
+    await control.dispose();
+  });
 }
