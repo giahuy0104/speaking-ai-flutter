@@ -16,7 +16,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
-    testWidgets('${platform.name} settings opens button diagnostics', (
+    testWidgets('${platform.name} parent settings hides button diagnostics', (
       tester,
     ) async {
       debugDefaultTargetPlatformOverride = platform;
@@ -49,15 +49,10 @@ void main() {
       await tester.tap(section);
       await tester.pumpAndSettle();
       final button = find.byKey(const Key('open-h20-control-diagnostics'));
-      await tester.scrollUntilVisible(button, 350, scrollable: scroll);
-      await tester.tap(button);
-      await tester.pumpAndSettle();
-      expect(find.byType(H20ControlDiagnosticsScreen), findsOneWidget);
-      expect(fixture.controls.diagnosticsActive, isTrue);
-      expect(fixture.controls.executeTests, isFalse);
-      await tester.pageBack();
-      await tester.pumpAndSettle();
+      expect(button, findsNothing);
+      expect(find.byType(H20ControlDiagnosticsScreen), findsNothing);
       expect(fixture.controls.diagnosticsActive, isFalse);
+      expect(fixture.controls.executeTests, isFalse);
       expect(fixture.mainCalls, 0);
       debugDefaultTargetPlatformOverride = null;
     });

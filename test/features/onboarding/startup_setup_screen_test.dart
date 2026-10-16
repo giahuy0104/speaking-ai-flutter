@@ -14,7 +14,6 @@ void main() {
       var privacyConsentGranted = false;
       var permissionsGranted = false;
       var limitedModeSelected = false;
-      var offlineEnglishModelAllowed = false;
       var bleConnected = false;
       var hfpConfigured = false;
       int? selectedAge;
@@ -42,11 +41,6 @@ void main() {
               termsUri: Uri.parse('https://example.com/terms'),
               supportUri: Uri.parse('https://example.com/support'),
               androidOfflineEnglishModelOptionAvailable: true,
-              androidOfflineEnglishModelDownloadAllowed:
-                  offlineEnglishModelAllowed,
-              onAndroidOfflineEnglishModelDownloadChanged: (enabled) async {
-                setState(() => offlineEnglishModelAllowed = enabled);
-              },
               onGrantPrivacyConsent: () async {
                 setState(() => privacyConsentGranted = true);
               },
@@ -81,83 +75,66 @@ void main() {
       await tester.pump();
       await tester.ensureVisible(consentButton);
       expect(tester.widget<FilledButton>(consentButton).onPressed, isNull);
-      expect(
-        find.textContaining(
-          'Tôi đồng ý để HOMI xử lý dữ liệu giọng nói theo Điều khoản',
-        ),
-        findsOneWidget,
-      );
+      expect(find.byKey(const Key('startup-accept-legal')), findsNothing);
 
       await _completeLegalReview(tester);
-      final legalCheckbox = find.byKey(const Key('startup-accept-legal'));
-      expect(
-        tester.widget<CheckboxListTile>(legalCheckbox).onChanged,
-        isNotNull,
-      );
-      await tester.tap(legalCheckbox);
-      await tester.pump();
       await tester.ensureVisible(consentButton);
       expect(tester.widget<FilledButton>(consentButton).onPressed, isNotNull);
       await tester.tap(consentButton);
       await tester.pumpAndSettle();
 
-      expect(find.text('Chọn hồ sơ học của trẻ'), findsOneWidget);
+      expect(find.text('Bé đang ở độ tuổi nào?'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('startup-age-8-10')));
       await tester.pump();
       await tester.ensureVisible(find.byKey(const Key('startup-next')));
       await tester.tap(find.byKey(const Key('startup-next')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Cấp quyền và kết nối thiết bị'), findsOneWidget);
+      expect(find.text('Cho HOMI quyền cần thiết'), findsOneWidget);
       expect(find.text('Bước 3/3 • Dành cho phụ huynh'), findsOneWidget);
-      expect(find.text('Kết nối thiết bị'), findsNWidgets(2));
+      expect(find.text('Kết nối thiết bị'), findsNothing);
       expect(find.textContaining('H20'), findsNothing);
       expect(find.textContaining('HFP'), findsNothing);
       await tester.ensureVisible(
         find.byKey(const Key('startup-request-permissions')),
       );
-      expect(find.text('Tiếp tục'), findsOneWidget);
-      expect(find.text('Cấp quyền cần thiết'), findsNothing);
+      expect(find.text('Cấp quyền và tiếp tục'), findsOneWidget);
       await tester.tap(find.byKey(const Key('startup-request-permissions')));
       await tester.pumpAndSettle();
 
-      final offlineModelSwitch = find.byKey(
-        const Key('startup-android-offline-english-model'),
+      expect(find.text('Kết nối thiết bị'), findsNWidgets(2));
+      expect(find.text('Cho HOMI quyền cần thiết'), findsNothing);
+      expect(
+        find.byKey(const Key('startup-request-permissions')),
+        findsNothing,
       );
-      await tester.ensureVisible(offlineModelSwitch);
-      expect(offlineModelSwitch, findsOneWidget);
-      await tester.tap(offlineModelSwitch);
-      await tester.pumpAndSettle();
-      expect(offlineEnglishModelAllowed, isTrue);
+      expect(
+        find.byKey(const Key('startup-android-offline-english-model')),
+        findsNothing,
+      );
 
       final completeButton = find.byKey(const Key('startup-confirm-age'));
-      await tester.ensureVisible(completeButton);
-      expect(tester.widget<FilledButton>(completeButton).onPressed, isNull);
+      expect(completeButton, findsNothing);
       expect(find.byKey(const Key('startup-use-phone-mic')), findsNothing);
       expect(
         find.byKey(const Key('startup-choose-h20-microphone')),
         findsNothing,
       );
       expect(
-        find.textContaining('Cần kết nối cả nút MAIN và micro HOMI'),
+        find.textContaining('Kết nối thiết bị thành công'),
         findsOneWidget,
       );
 
       await tester.ensureVisible(find.byKey(const Key('startup-setup-h20')));
       await tester.tap(find.byKey(const Key('startup-setup-h20')));
-      await tester.pump();
+      await tester.pumpAndSettle();
       expect(
-        find.byKey(const Key('device-connection-feedback-connected')),
+        find.byKey(const Key('startup-connection-success-dialog')),
         findsOneWidget,
       );
-      await tester.pump(const Duration(milliseconds: 901));
-      expect(
-        find.byKey(const Key('device-connection-feedback-overlay')),
-        findsNothing,
-      );
-      await tester.ensureVisible(completeButton);
-      expect(tester.widget<FilledButton>(completeButton).onPressed, isNotNull);
-      await tester.tap(completeButton);
+      expect(completed, isFalse);
+      await tester.tap(find.byKey(const Key('startup-start-after-connection')));
+      await tester.pump();
 
       expect(selectedAge, 8);
       expect(completed, isTrue);
@@ -278,7 +255,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.textContaining('Bạn có thể bắt đầu bằng mic iPhone'),
+      find.textContaining('Bạn có thể bắt đầu bằng micro iPhone'),
       findsOneWidget,
     );
     final microphonePicker = find.byKey(
@@ -347,16 +324,15 @@ void main() {
     final connectButton = find.byKey(const Key('startup-setup-h20'));
     await tester.ensureVisible(connectButton);
     await tester.tap(connectButton);
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(
-      find.text(
-        'Nút MAIN đã kết nối. HOMI sẽ tự tìm micro HM-D001 sau thiết lập.',
-      ),
+      find.byKey(const Key('startup-connection-success-dialog')),
       findsOneWidget,
     );
-    await tester.pump(const Duration(milliseconds: 901));
+    await tester.tap(find.text('Để sau'));
+    await tester.pumpAndSettle();
     expect(
-      find.text('Nút MAIN đã kết nối • micro HOMI chưa sẵn sàng'),
+      find.text('Nút MAIN đã kết nối • micro HOMI đang được chuẩn bị'),
       findsOneWidget,
     );
     expect(tester.widget<OutlinedButton>(connectButton).onPressed, isNull);
@@ -419,8 +395,7 @@ void main() {
       await tester.pumpAndSettle();
     }
     final completeButton = find.byKey(const Key('startup-confirm-age'));
-    await tester.ensureVisible(completeButton);
-    expect(tester.widget<FilledButton>(completeButton).onPressed, isNull);
+    expect(completeButton, findsNothing);
 
     final connectButton = find.byKey(const Key('startup-setup-h20'));
     await tester.ensureVisible(connectButton);
@@ -431,20 +406,20 @@ void main() {
       find.byKey(const Key('device-connection-feedback-connecting')),
       findsOneWidget,
     );
-    expect(tester.widget<FilledButton>(completeButton).onPressed, isNull);
+    expect(completeButton, findsNothing);
 
     rebuildSetup!(() => bleConnected = true);
     connection.complete(true);
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(
-      find.text(
-        'Nút MAIN đã kết nối. HOMI sẽ tự tìm micro HM-D001 sau thiết lập.',
-      ),
+      find.byKey(const Key('startup-connection-success-dialog')),
       findsOneWidget,
     );
-    await tester.pump(const Duration(milliseconds: 901));
+    expect(completed, isFalse);
+    await tester.tap(find.text('Để sau'));
+    await tester.pumpAndSettle();
     expect(
-      find.text('Nút MAIN đã kết nối • micro HOMI chưa sẵn sàng'),
+      find.text('Nút MAIN đã kết nối • micro HOMI đang được chuẩn bị'),
       findsOneWidget,
     );
     expect(tester.widget<OutlinedButton>(connectButton).onPressed, isNull);
@@ -456,6 +431,73 @@ void main() {
     expect(tester.widget<FilledButton>(completeButton).onPressed, isNotNull);
     await tester.tap(completeButton);
     expect(completed, isTrue);
+  });
+
+  testWidgets('connection failure offers a friendly retry', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    var attempts = 0;
+    var connected = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: StatefulBuilder(
+          builder: (context, setState) => StartupSetupScreen(
+            profileLoading: false,
+            permissionRequestInProgress: false,
+            privacyConfigurationComplete: true,
+            privacyConsentGranted: true,
+            limitedModeSelected: false,
+            microphoneGranted: true,
+            bluetoothRequired: true,
+            bluetoothGranted: true,
+            h20BleConnected: connected,
+            h20HfpConfigured: connected,
+            selectedAge: 8,
+            aiSubprocessors: 'Railway và Cloudflare',
+            dataRetentionSummary: 'Theo chính sách công khai.',
+            onGrantPrivacyConsent: () async {},
+            onContinueWithoutVoice: () async {},
+            onRetryPermissions: () {},
+            onSetupH20: () async {
+              attempts += 1;
+              if (attempts == 1) throw StateError('Temporary connection issue');
+              setState(() => connected = true);
+              return true;
+            },
+            onAgeSelected: (_) {},
+            onCompleteSetup: () async {},
+          ),
+        ),
+      ),
+    );
+
+    for (var step = 0; step < 2; step += 1) {
+      final nextButton = find.byKey(const Key('startup-next'));
+      await tester.ensureVisible(nextButton);
+      await tester.tap(nextButton);
+      await tester.pumpAndSettle();
+    }
+    final connectButton = find.byKey(const Key('startup-setup-h20'));
+    await tester.ensureVisible(connectButton);
+    await tester.tap(connectButton);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('startup-connection-failure-sheet')),
+      findsOneWidget,
+    );
+    expect(find.text('HOMI chưa thấy thiết bị'), findsOneWidget);
+    expect(find.text('Đã hiểu'), findsNothing);
+    await tester.tap(find.byKey(const Key('startup-retry-connection')));
+    await tester.pumpAndSettle();
+
+    expect(attempts, 2);
+    expect(
+      find.byKey(const Key('startup-connection-success-dialog')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('closing legal review early does not unlock voice consent', (
@@ -505,14 +547,7 @@ void main() {
     await tester.tap(find.byKey(const Key('startup-close-legal')));
     await tester.pumpAndSettle();
 
-    expect(
-      tester
-          .widget<CheckboxListTile>(
-            find.byKey(const Key('startup-accept-legal')),
-          )
-          .onChanged,
-      isNull,
-    );
+    expect(find.byKey(const Key('startup-accept-legal')), findsNothing);
     expect(
       tester
           .widget<FilledButton>(

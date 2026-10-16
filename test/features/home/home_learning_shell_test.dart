@@ -20,6 +20,8 @@ import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_le
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_listening_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
+import 'package:ai_speaking_flutter_app/features/onboarding/application/onboarding_progress_store.dart';
+import 'package:ai_speaking_flutter_app/features/onboarding/presentation/user_onboarding_tour.dart';
 import 'package:ai_speaking_flutter_app/features/settings/application/parent_media_settings.dart';
 import 'package:ai_speaking_flutter_app/features/settings/presentation/history_sheet.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_audio_service.dart';
@@ -40,6 +42,26 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  testWidgets('Android does not launch the six-step guide after setup', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final controller = _controller();
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      _app(
+        controller,
+        onboardingStore: const SharedPreferencesOnboardingProgressStore(),
+      ),
+    );
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byType(UserOnboardingTour), findsNothing);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
   _rebuildCountTests();
   for (final entry in <String, String>{
     'Ba mẹ đã thêm': VocabularyFlowV3.parentEmpty,
@@ -112,7 +134,10 @@ void main() {
       final title = tester.widget<Text>(
         find.byKey(const Key('vocabulary-journey-title')),
       );
-      expect(title.data, entry.key == 'Ngôi sao' ? 'Ngôi sao của bạn' : entry.key);
+      expect(
+        title.data,
+        entry.key == 'Ngôi sao' ? 'Ngôi sao của bạn' : entry.key,
+      );
       expect(
         find.byKey(const ValueKey<String>('vocabulary-journey-landing')),
         findsNothing,
@@ -564,21 +589,7 @@ void main() {
     await tester.tap(find.byTooltip('Cài đặt'));
     await tester.pumpAndSettle();
     expect(find.text('Thiết lập phụ huynh'), findsOneWidget);
-    final settingsScroll = find
-        .descendant(
-          of: find.byKey(const Key('settings-scroll-view')),
-          matching: find.byType(Scrollable),
-        )
-        .first;
-    await tester.scrollUntilVisible(
-      find.byKey(const Key('settings-recognition-section')),
-      360,
-      scrollable: settingsScroll,
-    );
-    await tester.tap(find.byKey(const Key('settings-recognition-section')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('ios-native-recognition')), findsOneWidget);
-    expect(find.byKey(const Key('android-standard-recognition')), findsNothing);
+    expect(find.byKey(const Key('settings-recognition-section')), findsNothing);
     Navigator.of(tester.element(find.text('Thiết lập phụ huynh'))).pop();
     await tester.pumpAndSettle();
 
@@ -2016,6 +2027,7 @@ Widget _app(
   NavigatorObserver? routeObserver,
   ParentMediaSettingsStore parentMediaSettingsStore =
       const _FakeParentMediaSettingsStore(true),
+  OnboardingProgressStore? onboardingStore,
 }) {
   final home = HomeLearningShell(
     controller: controller,
@@ -2041,6 +2053,7 @@ Widget _app(
         : parentAccessGate ?? (_) async => true,
     backgroundLearningSession: backgroundLearningSession,
     parentMediaSettingsStore: parentMediaSettingsStore,
+    onboardingStore: onboardingStore,
     config: AppConfig(
       backendBaseUri: Uri.parse('https://example.com'),
       useDemoBackend: true,

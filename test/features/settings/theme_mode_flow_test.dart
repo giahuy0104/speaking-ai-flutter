@@ -4,7 +4,6 @@ import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme_mode.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
-import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/data/demo_conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
@@ -150,7 +149,9 @@ void main() {
     expect(chip.selected, isTrue);
   });
 
-  testWidgets('parent can toggle stopping media outside HOMI', (tester) async {
+  testWidgets('settings hides the deferred background media control', (
+    tester,
+  ) async {
     final controller = ConversationController(
       audioInput: _FakeAudioInput(),
       playbackService: const _FakePlaybackService(),
@@ -158,63 +159,22 @@ void main() {
       childAge: 6,
     );
     addTearDown(controller.dispose);
-    var enabled = true;
-
     await tester.pumpWidget(
-      StatefulBuilder(
-        builder: (context, setState) => MaterialApp(
-          theme: buildAppTheme(),
-          home: Scaffold(
-            body: SettingsSheet(
-              controller: controller,
-              stopMediaWhenBackgrounded: enabled,
-              onStopMediaWhenBackgroundedChanged: (value) {
-                setState(() => enabled = value);
-              },
-            ),
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: Scaffold(
+          body: SettingsSheet(
+            controller: controller,
+            stopMediaWhenBackgrounded: true,
+            onStopMediaWhenBackgroundedChanged: (_) {},
           ),
         ),
       ),
     );
-
-    final toggle = find.byKey(
-      const Key('settings-stop-media-background-switch'),
+    expect(
+      find.byKey(const Key('settings-stop-media-background-switch')),
+      findsNothing,
     );
-    await tester.scrollUntilVisible(toggle, 300);
-    await tester.tap(toggle);
-    await tester.pump();
-
-    expect(enabled, isFalse);
-    expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
-  });
-
-  testWidgets('Android defaults background media stopping to off', (
-    tester,
-  ) async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.android;
-    addTearDown(() => debugDefaultTargetPlatformOverride = null);
-    final controller = ConversationController(
-      audioInput: _FakeAudioInput(),
-      playbackService: const _FakePlaybackService(),
-      repository: const DemoConversationRepository(),
-      childAge: 6,
-    );
-    addTearDown(controller.dispose);
-
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: buildAppTheme(),
-        home: Scaffold(body: SettingsSheet(controller: controller)),
-      ),
-    );
-
-    final toggle = find.byKey(
-      const Key('settings-stop-media-background-switch'),
-    );
-    await tester.scrollUntilVisible(toggle, 300);
-
-    expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
-    debugDefaultTargetPlatformOverride = null;
   });
 
   testWidgets('turn settings use the shared HOMI visual system', (
@@ -332,15 +292,9 @@ void main() {
     debugDefaultTargetPlatformOverride = null;
   });
 
-  testWidgets('audio and data settings keep the shared visual rhythm', (
+  testWidgets('device information hides redundant technical settings', (
     tester,
   ) async {
-    await _usePhoneSurface(tester);
-    SharedPreferences.setMockInitialValues(<String, Object>{
-      'homi.offline-language-packs-consent.v2': 'allowed',
-    });
-    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-    addTearDown(() => debugDefaultTargetPlatformOverride = null);
     final controller = ConversationController(
       audioInput: _FakeAudioInput(),
       playbackService: const _FakePlaybackService(),
@@ -348,211 +302,95 @@ void main() {
       childAge: 6,
     );
     addTearDown(controller.dispose);
-
-    await tester.pumpWidget(
-      MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: buildAppTheme(),
-        builder: _disableAnimations,
-        home: Scaffold(body: SettingsSheet(controller: controller)),
-      ),
-    );
-    await tester.pump(const Duration(seconds: 5));
-    await tester.pumpAndSettle();
-    final recognitionSection = find.byKey(
-      const Key('settings-recognition-section'),
-    );
-    await tester.scrollUntilVisible(
-      recognitionSection,
-      320,
-      scrollable: _settingsScrollable(),
-    );
-    await tester.tap(recognitionSection);
-    await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.byKey(const Key('settings-offline-language-packs')),
-      420,
-      scrollable: _settingsScrollable(),
-    );
-    await tester.drag(
-      find.byKey(const Key('settings-scroll-view')),
-      const Offset(0, -470),
-    );
-    await tester.pumpAndSettle();
-
-    await expectLater(
-      find.byType(MaterialApp),
-      matchesGoldenFile('goldens/settings-audio-data-390x844.png'),
-    );
-    debugDefaultTargetPlatformOverride = null;
-  });
-
-  testWidgets(
-    'Android settings separates standard recognition from audio source',
-    (tester) async {
-      final controller = ConversationController(
-        audioInput: _FakeAudioInput(),
-        streamingSpeechInput: _FakeStreamingSpeechInput(),
-        playbackService: const _FakePlaybackService(),
-        repository: const DemoConversationRepository(),
-        childAge: 6,
-      );
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: buildAppTheme(),
-          home: Scaffold(
-            body: SettingsSheet(
-              controller: controller,
-              themeMode: ThemeMode.system,
-            ),
-          ),
-        ),
-      );
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('settings-audio-h20-section')),
-        400,
-      );
-      await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
-      await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('settings-recognition-section')),
-        400,
-      );
-      await tester.tap(find.byKey(const Key('settings-recognition-section')));
-      await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('android-standard-recognition')),
-        500,
-      );
-
-      expect(find.text('Nhận dạng giọng nói'), findsOneWidget);
-      expect(find.text('Chế độ tiêu chuẩn'), findsOneWidget);
-      expect(find.text('Mic điện thoại'), findsOneWidget);
-      expect(find.text('Cloudflare Batch Chunks'), findsNothing);
-      expect(find.text('HFP streaming'), findsNothing);
-    },
-  );
-
-  testWidgets('iOS settings keeps the GATT disconnect cause visible', (
-    tester,
-  ) async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-    addTearDown(() => debugDefaultTargetPlatformOverride = null);
-    final ble = _DiagnosticAiv0BleControl();
-    final controller = ConversationController(
-      audioInput: _FakeAudioInput(),
-      aiv0BleControl: ble,
-      playbackService: const _FakePlaybackService(),
-      repository: const DemoConversationRepository(),
-      childAge: 6,
-    );
-    addTearDown(controller.dispose);
-
     await tester.pumpWidget(
       MaterialApp(
         theme: buildAppTheme(),
-        builder: _disableAnimations,
         home: Scaffold(body: SettingsSheet(controller: controller)),
       ),
-    );
-
-    await tester.scrollUntilVisible(
-      find.byKey(const Key('settings-audio-h20-section')),
-      360,
-      scrollable: _settingsScrollable(),
     );
     await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
     await tester.pumpAndSettle();
 
-    final technicalDetails = find
-        .byKey(const Key('aiv0-technical-details'))
-        .first;
-    final settingsScroll = find
-        .descendant(
-          of: find.byKey(const Key('settings-scroll-view')),
-          matching: find.byType(Scrollable),
-        )
-        .first;
-    await tester.scrollUntilVisible(
-      technicalDetails,
-      360,
-      scrollable: settingsScroll,
+    expect(find.text('Thông tin thiết bị HOMI'), findsOneWidget);
+    expect(find.text('Pin thiết bị'), findsOneWidget);
+    expect(find.text('Kết nối HM-D001 (BLE)'), findsOneWidget);
+    expect(find.text('Chọn mic'), findsOneWidget);
+    expect(find.byKey(const Key('settings-recognition-section')), findsNothing);
+    expect(
+      find.byKey(const Key('settings-stop-media-background-switch')),
+      findsNothing,
     );
-    await tester.tap(technicalDetails);
-    await tester.pumpAndSettle();
-    final packetDetails = find.byKey(const Key('aiv0-packet-details')).first;
-    await tester.scrollUntilVisible(
-      packetDetails,
-      320,
-      scrollable: settingsScroll,
-    );
-    await tester.tap(packetDetails);
-    await tester.pumpAndSettle();
+    expect(find.text('Mic điện thoại'), findsNothing);
+    expect(find.text('Kết nối HOMI'), findsNothing);
+    expect(find.text('Micro thực tế'), findsNothing);
+    expect(find.text('Loa thực tế'), findsNothing);
+    expect(find.text('Đường SCO'), findsNothing);
+    expect(find.text('Kiểm tra phần cứng HOMI offline'), findsNothing);
+  });
 
-    expect(find.byKey(const Key('aiv0-native-diagnostics')), findsOneWidget);
-    expect(find.byKey(const Key('aiv0-ble-hfp-timeline')), findsOneWidget);
-    expect(find.textContaining('BLE_DISCONNECTED'), findsOneWidget);
-    expect(find.textContaining('disconnected'), findsWidgets);
-    expect(find.textContaining('CBErrorDomain:7'), findsOneWidget);
-    expect(find.textContaining('reconnect'), findsWidgets);
-    expect(find.text('MAIN → trợ lý'), findsOneWidget);
-    expect(find.textContaining('0 gói'), findsOneWidget);
+  testWidgets('device settings keep diagnostics out of the parent view', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      aiv0BleControl: _DiagnosticAiv0BleControl(),
+      playbackService: const _FakePlaybackService(),
+      repository: const DemoConversationRepository(),
+      childAge: 6,
+    );
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: Scaffold(body: SettingsSheet(controller: controller)),
+      ),
+    );
+    await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('Kết nối HM-D001 (BLE)'), findsOneWidget);
+    expect(find.byKey(const Key('aiv0-technical-details')), findsNothing);
+    expect(find.byKey(const Key('aiv0-native-diagnostics')), findsNothing);
+    expect(find.byKey(const Key('aiv0-packet-details')), findsNothing);
+    expect(find.textContaining('CBErrorDomain:7'), findsNothing);
     debugDefaultTargetPlatformOverride = null;
   });
 
-  testWidgets(
-    'Android privacy deletion skips authentication but keeps confirmation',
-    (tester) async {
-      await _usePhoneSurface(tester);
-      debugDefaultTargetPlatformOverride = TargetPlatform.android;
-      addTearDown(() => debugDefaultTargetPlatformOverride = null);
-      final controller = ConversationController(
-        audioInput: _FakeAudioInput(),
-        playbackService: const _FakePlaybackService(),
-        repository: const DemoConversationRepository(),
-        childAge: 6,
-      );
-      addTearDown(controller.dispose);
-      var revokeCalls = 0;
-
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: buildAppTheme(),
-          home: Scaffold(
-            body: SettingsSheet(
-              controller: controller,
-              privacyConsentGranted: true,
-              onRevokePrivacyConsent: () async => revokeCalls += 1,
-            ),
+  testWidgets('settings hides removed privacy and guide shortcuts', (
+    tester,
+  ) async {
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      playbackService: const _FakePlaybackService(),
+      repository: const DemoConversationRepository(),
+      childAge: 6,
+    );
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: Scaffold(
+          body: SettingsSheet(
+            controller: controller,
+            privacyConsentGranted: true,
+            onRevokePrivacyConsent: () async {},
+            onStartTutorial: () {},
           ),
         ),
-      );
-      await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('settings-revoke-privacy-consent')),
-        420,
-        scrollable: _settingsScrollable(),
-      );
-      await tester.tap(
-        find.byKey(const Key('settings-revoke-privacy-consent')),
-      );
-      await tester.pumpAndSettle();
-
-      expect(
-        find.text('Rút chấp thuận và yêu cầu xóa dữ liệu?'),
-        findsOneWidget,
-      );
-      expect(find.text('Không thể xác thực'), findsNothing);
-      expect(find.byKey(const Key('parental-auth-error-dialog')), findsNothing);
-
-      await tester.tap(find.text('Tiếp tục xóa'));
-      await tester.pumpAndSettle();
-      expect(revokeCalls, 1);
-      debugDefaultTargetPlatformOverride = null;
-    },
-  );
+      ),
+    );
+    expect(
+      find.byKey(const Key('settings-revoke-privacy-consent')),
+      findsNothing,
+    );
+    expect(find.byKey(const Key('settings-start-user-tutorial')), findsNothing);
+    expect(find.text('Xem lịch sử gần đây'), findsNothing);
+    expect(find.byKey(const Key('settings-privacy-policy')), findsOneWidget);
+    expect(find.byKey(const Key('settings-terms')), findsOneWidget);
+    expect(find.byKey(const Key('settings-support')), findsOneWidget);
+  });
 }
 
 Finder _settingsScrollable() => find
@@ -643,42 +481,6 @@ class _DiagnosticAiv0BleControl implements Aiv0BleControl {
     required Aiv0AppResult result,
     int sequence = 0,
   }) async {}
-}
-
-class _FakeStreamingSpeechInput implements StreamingSpeechInput {
-  @override
-  String get label => 'Chế độ tiêu chuẩn';
-
-  @override
-  Stream<double> get amplitudeDbfs => const Stream<double>.empty();
-
-  @override
-  Stream<void> get completed => const Stream<void>.empty();
-
-  @override
-  Stream<String> get partialText => const Stream<String>.empty();
-
-  @override
-  Future<bool> checkAvailability() async => true;
-
-  @override
-  Future<void> start() async {}
-
-  @override
-  Future<StreamingSpeechCapture> stop() async => const StreamingSpeechCapture(
-    sourceText: 'Con muốn uống nước',
-    duration: Duration(seconds: 1),
-    inputLabel: 'Mic điện thoại',
-    confidence: 0.9,
-    firstResultMs: 100,
-    finalAfterStopMs: 20,
-  );
-
-  @override
-  Future<void> cancel() async {}
-
-  @override
-  Future<void> dispose() async {}
 }
 
 class _FakeAudioInput implements ChunkedAudioInput {

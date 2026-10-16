@@ -10,17 +10,10 @@ import '../../../config/app_config.dart';
 import '../../../core/audio/audio_input.dart';
 import '../../../core/audio/hfp_audio_control.dart';
 import '../../../core/device/aiv0_ble_control.dart';
-import '../../../core/device/aivo_control_dispatcher.dart';
 import '../../../core/privacy/parental_gate.dart';
 import '../../../l10n/display_language.dart';
 import '../../conversation/application/conversation_settings_port.dart';
-import '../../conversation/application/offline_language_service.dart';
-import '../../conversation/domain/conversation_models.dart';
-import '../../listening/application/android_offline_speech_model_service.dart';
 import '../../listening/domain/listening_catalog.dart';
-import '../application/parent_media_settings.dart';
-import 'history_sheet.dart';
-import 'h20_control_diagnostics_screen.dart';
 
 class SettingsSheet extends StatelessWidget {
   const SettingsSheet({
@@ -59,582 +52,288 @@ class SettingsSheet extends StatelessWidget {
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
-        final isAndroid =
-            !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
-        final isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
-        final deviceControls = AivoControlScope.maybeOf(context);
-        final nativeDiagnostic = controller.nativeSpeechDiagnostic;
         final h20State = controller.h20ConnectionState();
-        final nativeDiagnosticTimeline = controller
-            .nativeSpeechDiagnosticLog
-            .reversed
-            .take(40)
-            .toList(growable: false)
-            .reversed
-            .map(
-              (item) => <String>[
-                if (item.elapsedMs != null) '+${item.elapsedMs}ms',
-                item.stage,
-                if (item.caller != null) '@${item.caller}',
-                if (item.code != null) 'code=${item.code}',
-                if (item.isError && item.message != null) item.message!,
-              ].join(' '),
-            )
-            .join('\n');
-        final nativeDiagnosticDetail = nativeDiagnostic == null
-            ? null
-            : <String>[
-                if (nativeDiagnosticTimeline.isNotEmpty)
-                  nativeDiagnosticTimeline,
-                if (nativeDiagnostic.turnId != null)
-                  'turn=${nativeDiagnostic.turnId}',
-                if (nativeDiagnostic.audioSource != null)
-                  'source=${nativeDiagnostic.audioSource}',
-                if (nativeDiagnostic.audioRoute != null)
-                  'route=${nativeDiagnostic.audioRoute}',
-                if (nativeDiagnostic.code != null)
-                  'code=${nativeDiagnostic.code}',
-                if (nativeDiagnostic.message != null) nativeDiagnostic.message!,
-              ].join(' • ');
         return DisplayLanguageScope(
           language: controller.displayLanguage,
           child: Builder(
             builder: (context) => SafeArea(
-              child: SingleChildScrollView(
-                key: const Key('settings-scroll-view'),
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: Text(
-                            context.tr('Thiết lập phụ huynh', '家长设置'),
-                            style: Theme.of(context).textTheme.titleLarge,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: Theme.of(context).brightness == Brightness.dark
+                        ? const <Color>[
+                            AppColors.darkCanvas,
+                            AppColors.darkSurface,
+                          ]
+                        : const <Color>[AppColors.mintWash, AppColors.mintSoft],
+                  ),
+                ),
+                child: SingleChildScrollView(
+                  key: const Key('settings-scroll-view'),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: Text(
+                              context.tr('Thiết lập phụ huynh', '家长设置'),
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
                           ),
-                        ),
-                        IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.close_rounded),
-                          tooltip: context.tr('Đóng', '关闭'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    _AppearanceSelector(
-                      value: themeMode,
-                      onChanged: onThemeModeChanged,
-                    ),
-                    const SizedBox(height: 16),
-                    _SectionLabel(
-                      label: context.tr('Ngôn ngữ hiển thị', '显示语言'),
-                    ),
-                    const SizedBox(height: 10),
-                    if (MediaQuery.textScalerOf(context).scale(1) >= 1.5)
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: DisplayLanguage.values
-                            .map(
-                              (language) => ChoiceChip(
-                                label: Text(language.nativeLabel),
-                                selected:
-                                    controller.displayLanguage == language,
-                                onSelected: (_) =>
-                                    controller.setDisplayLanguage(language),
-                              ),
-                            )
-                            .toList(growable: false),
-                      )
-                    else
-                      SizedBox(
-                        width: double.infinity,
-                        child: SegmentedButton<DisplayLanguage>(
-                          showSelectedIcon: false,
-                          segments: DisplayLanguage.values
+                          _SettingsRaisedIcon(
+                            icon: Icons.close_rounded,
+                            onPressed: () => Navigator.of(context).pop(),
+                            tooltip: context.tr('Đóng', '关闭'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      _AppearanceSelector(
+                        value: themeMode,
+                        onChanged: onThemeModeChanged,
+                      ),
+                      const SizedBox(height: 16),
+                      _SectionLabel(
+                        label: context.tr('Ngôn ngữ hiển thị', '显示语言'),
+                        icon: Icons.language_rounded,
+                      ),
+                      const SizedBox(height: 10),
+                      if (MediaQuery.textScalerOf(context).scale(1) >= 1.5)
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: DisplayLanguage.values
                               .map(
-                                (language) => ButtonSegment<DisplayLanguage>(
-                                  value: language,
+                                (language) => ChoiceChip(
                                   label: Text(language.nativeLabel),
+                                  selected:
+                                      controller.displayLanguage == language,
+                                  onSelected: (_) =>
+                                      controller.setDisplayLanguage(language),
                                 ),
                               )
                               .toList(growable: false),
-                          selected: <DisplayLanguage>{
-                            controller.displayLanguage,
-                          },
-                          onSelectionChanged: (selection) =>
-                              controller.setDisplayLanguage(selection.first),
+                        )
+                      else
+                        SizedBox(
+                          width: double.infinity,
+                          child: SegmentedButton<DisplayLanguage>(
+                            showSelectedIcon: false,
+                            segments: DisplayLanguage.values
+                                .map(
+                                  (language) => ButtonSegment<DisplayLanguage>(
+                                    value: language,
+                                    label: Text(language.nativeLabel),
+                                  ),
+                                )
+                                .toList(growable: false),
+                            selected: <DisplayLanguage>{
+                              controller.displayLanguage,
+                            },
+                            onSelectionChanged: (selection) =>
+                                controller.setDisplayLanguage(selection.first),
+                          ),
                         ),
+                      const SizedBox(height: 16),
+                      _SectionLabel(
+                        label: context.tr('Nhóm tuổi của trẻ', '孩子年龄组'),
+                        icon: Icons.child_care_rounded,
                       ),
-                    const SizedBox(height: 16),
-                    _SectionLabel(
-                      label: context.tr('Nhóm tuổi của trẻ', '孩子年龄组'),
-                    ),
-                    const SizedBox(height: 10),
-                    _ChildAgeGroupSelector(
-                      childAge: controller.childAge,
-                      enabled: !controller.isBusy && onChildAgeChanged != null,
-                      onChanged: onChildAgeChanged,
-                    ),
-                    const SizedBox(height: 12),
-                    if (!kIsWeb) ...<Widget>[
-                      _BackgroundMediaSwitchCard(
-                        value:
-                            stopMediaWhenBackgrounded ??
-                            defaultStopMediaWhenBackgrounded(),
-                        onChanged: onStopMediaWhenBackgroundedChanged,
+                      const SizedBox(height: 10),
+                      _ChildAgeGroupSelector(
+                        childAge: controller.childAge,
+                        enabled:
+                            !controller.isBusy && onChildAgeChanged != null,
+                        onChanged: onChildAgeChanged,
                       ),
                       const SizedBox(height: 12),
-                    ],
-                    _CompactSettingsSection(
-                      key: const Key('settings-audio-h20-section'),
-                      icon: Icons.headset_mic_rounded,
-                      title: context.tr('Âm thanh & HOMI', '音频与 HOMI'),
-                      summary: h20State.isH20Ready
-                          ? context.tr(
-                              '${context.trKnown(controller.inputLabel)} • HOMI sẵn sàng',
-                              '${context.trKnown(controller.inputLabel)} • HOMI 已就绪',
-                            )
-                          : context.tr(
-                              '${context.trKnown(controller.inputLabel)} • HOMI chưa sẵn sàng',
-                              '${context.trKnown(controller.inputLabel)} • HOMI 未就绪',
+                      _CompactSettingsSection(
+                        key: const Key('settings-audio-h20-section'),
+                        icon: Icons.headset_mic_rounded,
+                        title: context.tr('Âm thanh & HOMI', '音频与 HOMI'),
+                        summary: h20State.isH20Ready
+                            ? context.tr('Thiết bị đã sẵn sàng', '设备已就绪')
+                            : context.tr(
+                                'Thông tin và kết nối thiết bị',
+                                '设备信息与连接',
+                              ),
+                        children: <Widget>[
+                          HomiSurface(
+                            key: const Key('settings-h20-group'),
+                            padding: const EdgeInsets.all(12),
+                            color: Theme.of(context).colorScheme.surface,
+                            borderColor: Theme.of(
+                              context,
+                            ).colorScheme.outlineVariant,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: <Widget>[
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    4,
+                                    2,
+                                    4,
+                                    10,
+                                  ),
+                                  child: Text(
+                                    context.tr(
+                                      'Thông tin thiết bị HOMI',
+                                      'HOMI 设备信息',
+                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.w800),
+                                  ),
+                                ),
+                                _SettingsDeviceTile(
+                                  icon: Icons.battery_full_rounded,
+                                  title: context.tr('Pin thiết bị', '设备电量'),
+                                  trailing: Text(
+                                    controller.aiv0BleStatus.isConnected &&
+                                            controller
+                                                    .aiv0BleStatus
+                                                    .batteryPercent !=
+                                                null
+                                        ? '${controller.aiv0BleStatus.batteryPercent}%'
+                                        : context.tr('Chưa đọc pin', '尚未读取电量'),
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleMedium,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                _Aiv0BleControlCard(
+                                  status: controller.aiv0BleStatus,
+                                  disabled: controller.isBusy,
+                                  onScan: () => _scanAndConnectAiv0(context),
+                                  onDisconnect: controller.disconnectAiv0Device,
+                                ),
+                                const SizedBox(height: 8),
+                                _HfpStatusCard(
+                                  status: controller.hfpAudioStatus,
+                                  selected: controller.usesHfpInput,
+                                  disabled: controller.isBusy,
+                                  onFind: () => _findAndConnectHfp(context),
+                                  onDisconnect: controller.disconnectHfpDevice,
+                                ),
+                              ],
                             ),
-                      children: <Widget>[
-                        _StatusTile(
-                          icon: Icons.mic_rounded,
-                          title: context.trKnown(controller.inputLabel),
-                          detail: isAndroid
-                              ? context.tr(
-                                  controller.usesHfpInput
-                                      ? 'HM-D001 qua HFP/SCO • Chế độ tiêu chuẩn'
-                                      : 'Mic điện thoại • Chế độ tiêu chuẩn',
-                                  controller.usesHfpInput
-                                      ? 'HM-D001 通过 HFP/SCO • 标准模式'
-                                      : '手机麦克风 • 标准模式',
-                                )
-                              : isIOS
-                              ? context.tr(
-                                  controller.usesHfpInput
-                                      ? 'Mic HM-D001 qua HFP • Apple Speech ưu tiên'
-                                      : 'Mic iPhone/iPad • Apple Speech ưu tiên',
-                                  controller.usesHfpInput
-                                      ? 'HM-D001 HFP 麦克风 • 优先使用 Apple Speech'
-                                      : 'iPhone/iPad 麦克风 • 优先使用 Apple Speech',
-                                )
-                              : switch (controller.asrMode) {
-                                  AsrMode.androidStreaming => context.tr(
-                                    'Nhận chữ trực tiếp • fast path',
-                                    '直接识别文字 • 快速路径',
-                                  ),
-                                  AsrMode.hfpStreaming => context.tr(
-                                    controller.supportsBrowserHfp
-                                        ? 'Mic Bluetooth HFP • trình duyệt quản lý'
-                                        : 'Mic Bluetooth HFP/SCO • Android ASR',
-                                    controller.supportsBrowserHfp
-                                        ? '蓝牙 HFP 麦克风 • 浏览器管理'
-                                        : '蓝牙 HFP/SCO 麦克风 • Android 识别',
-                                  ),
-                                  AsrMode.openAiRealtime => context.tr(
-                                    'PCM16 16 kHz • ASR trực tiếp • Batch dự phòng',
-                                    'PCM16 16 kHz • 实时识别 • 分块备用',
-                                  ),
-                                  AsrMode.bleOfflineIntent => context.tr(
-                                    'BLE • offline fast path • Cloudflare Batch dự phòng',
-                                    'BLE • 离线快速路径 • Cloudflare 分块备用',
-                                  ),
-                                  AsrMode.workerAsrPilot => context.tr(
-                                    'PCM16 16 kHz • Worker ASR Pilot • Batch dự phòng',
-                                    'PCM16 16 kHz • Worker 识别试验 • 分块备用',
-                                  ),
-                                  AsrMode.batchChunks => context.tr(
-                                    kIsWeb
-                                        ? 'PCM16 • truyền trong lúc nói • Cloudflare chính'
-                                        : 'PCM16 • Cloudflare ASR chính',
-                                    kIsWeb
-                                        ? 'PCM16 • 说话时传输 • Cloudflare 主服务'
-                                        : 'PCM16 • Cloudflare 语音识别主服务',
-                                  ),
-                                  AsrMode.deviceStreaming => context.tr(
-                                    'Opus BLE • cần thiết bị thật',
-                                    'Opus BLE • 需要真实设备',
-                                  ),
-                                },
-                          trailing: context.tr('Đang dùng', '使用中'),
-                          stateColor: AppColors.success,
-                        ),
-                        const SizedBox(height: 10),
-                        HomiSurface(
-                          key: const Key('settings-h20-group'),
-                          padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 26),
+                      _SectionLabel(
+                        label: context.tr('Dữ liệu và quyền riêng tư', '数据与隐私'),
+                        icon: Icons.shield_outlined,
+                      ),
+                      const SizedBox(height: 10),
+                      _SettingsRaisedPanel(
+                        child: HomiSurface(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          color: Colors.transparent,
                           child: Column(
                             children: <Widget>[
-                              HomiSectionHeading(
-                                icon: Icons.headset_mic_rounded,
-                                title: context.tr('Kết nối HOMI', '连接 HOMI'),
-                                trailing: HomiStatusPill(
-                                  label: h20State.isH20Ready
-                                      ? context.tr('Sẵn sàng', '已就绪')
-                                      : context.tr('Chưa sẵn sàng', '未就绪'),
-                                  color: h20State.isH20Ready
-                                      ? AppColors.success
-                                      : AppColors.coral,
-                                  icon: h20State.isH20Ready
-                                      ? Icons.check_rounded
-                                      : Icons.error_outline_rounded,
+                              _SettingsActionTile(
+                                key: const Key('settings-privacy-policy'),
+                                icon: Icons.privacy_tip_outlined,
+                                title: context.tr(
+                                  'Chính sách quyền riêng tư',
+                                  '隐私政策',
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
+                                detail: context.tr(
+                                  'Xem dữ liệu được thu thập, nhà cung cấp AI, thời hạn lưu và cách yêu cầu xóa.',
+                                  '查看所收集的数据、AI 服务商、保存期限和删除方式。',
+                                ),
+                                onTap: () => _openParentLink(
+                                  context,
+                                  config?.privacyPolicyUri,
                                   context.tr(
-                                    h20State.isH20Ready
-                                        ? 'Âm thanh và nút MAIN đã kết nối.'
-                                        : 'Hoàn tất cả âm thanh HFP và BLE để dùng nút MAIN.',
-                                    h20State.isH20Ready
-                                        ? '音频与 MAIN 按钮均已连接。'
-                                        : '请完成 HFP 音频与 BLE 连接以使用 MAIN 按钮。',
+                                    'Chính sách quyền riêng tư',
+                                    '隐私政策',
                                   ),
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                      ),
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              _Aiv0BleControlCard(
-                                embedded: true,
-                                status: controller.aiv0BleStatus,
-                                events: controller.aiv0ButtonEventLog,
-                                mainDispatchStatus:
-                                    controller.aiv0MainDispatchStatus,
-                                mainDispatchAt: controller.aiv0MainDispatchAt,
-                                disabled: controller.isBusy,
-                                onScan: () => _scanAndConnectAiv0(context),
-                                onDisconnect: controller.disconnectAiv0Device,
-                              ),
-                              if ((isAndroid || isIOS) &&
-                                  deviceControls != null)
-                                OutlinedButton.icon(
-                                  key: const Key(
-                                    'open-h20-control-diagnostics',
-                                  ),
-                                  icon: const Icon(
-                                    Icons.settings_remote_outlined,
-                                  ),
-                                  label: const Text('Điều khiển thiết bị HOMI'),
-                                  onPressed: () =>
-                                      Navigator.of(context).push<void>(
-                                        MaterialPageRoute<void>(
-                                          builder: (_) =>
-                                              H20ControlDiagnosticsScreen(
-                                                controller: controller,
-                                                controls: deviceControls,
-                                              ),
-                                        ),
-                                      ),
-                                ),
                               const _SettingsDivider(),
-                              _HfpStatusCard(
-                                embedded: true,
-                                status: controller.hfpAudioStatus,
-                                browserManaged: controller.supportsBrowserHfp,
-                                selected: controller.usesHfpInput,
-                                disabled: controller.isBusy,
-                                onFind: () => _findAndConnectHfp(context),
-                                onDisconnect: controller.disconnectHfpDevice,
+                              _SettingsActionTile(
+                                key: const Key('settings-terms'),
+                                icon: Icons.description_outlined,
+                                title: context.tr('Điều khoản sử dụng', '使用条款'),
+                                detail: context.tr(
+                                  'Điều khoản dành cho phụ huynh và người giám hộ.',
+                                  '面向家长和监护人的使用条款。',
+                                ),
+                                onTap: () => _openParentLink(
+                                  context,
+                                  config?.termsUri,
+                                  context.tr('Điều khoản sử dụng', '使用条款'),
+                                ),
                               ),
-                              if (isAndroid) ...<Widget>[
+                              const _SettingsDivider(),
+                              _SettingsActionTile(
+                                key: const Key('settings-support'),
+                                icon: Icons.support_agent_rounded,
+                                title: context.tr('Hỗ trợ', '支持'),
+                                detail: context.tr(
+                                  'Liên hệ HOMI về quyền riêng tư, dữ liệu hoặc lỗi ứng dụng.',
+                                  '就隐私、数据或应用问题联系 HOMI。',
+                                ),
+                                onTap: () => _openParentLink(
+                                  context,
+                                  config?.supportUri,
+                                  context.tr('Hỗ trợ', '支持'),
+                                ),
+                              ),
+                              if (privacyConsentGranted &&
+                                  !voiceAccessEnabled &&
+                                  onRequestVoiceAccess != null) ...<Widget>[
                                 const _SettingsDivider(),
-                                _H20OfflineHardwareTestCard(
-                                  embedded: true,
-                                  enabled:
-                                      controller.h20HardwareTestModeEnabled,
-                                  phase: controller.h20HardwareTestPhase,
-                                  message: controller.h20HardwareTestMessage,
-                                  result: controller.h20HardwareTestResult,
-                                  bleConnected: controller.canUseAiv0Ble,
-                                  mainProtocolConfirmed: controller
-                                      .aiv0BleStatus
-                                      .protocolConfirmed,
-                                  hfpStatus: controller.hfpAudioStatus,
-                                  conversationBusy:
-                                      controller.phase ==
-                                          ConversationPhase.recording ||
-                                      controller.phase ==
-                                          ConversationPhase.processing,
-                                  onEnabledChanged: (enabled) =>
-                                      _setH20HardwareTestMode(context, enabled),
-                                  onRecord: () =>
-                                      _toggleH20OfflineRecording(context),
-                                  onSpeakerTest: () =>
-                                      _playH20SpeakerTest(context),
-                                  onPlaybackConfirmed:
-                                      controller.confirmH20PlaybackAudible,
+                                _SettingsActionTile(
+                                  key: const Key('settings-enable-voice'),
+                                  icon: Icons.mic_rounded,
+                                  title: context.tr('Cho phép micro', '允许麦克风'),
+                                  detail: context.tr(
+                                    'Mở hộp thoại quyền hệ thống. Audio chỉ được gửi sau khi có cả chấp thuận phụ huynh và quyền micro.',
+                                    '打开系统权限对话框。只有家长同意并授予麦克风权限后才会发送音频。',
+                                  ),
+                                  onTap: onRequestVoiceAccess!,
+                                ),
+                              ],
+                              if (!privacyConsentGranted &&
+                                  onManagePrivacyConsent != null) ...<Widget>[
+                                const _SettingsDivider(),
+                                _SettingsActionTile(
+                                  key: const Key(
+                                    'settings-manage-privacy-consent',
+                                  ),
+                                  icon: Icons.verified_user_outlined,
+                                  title: context.tr(
+                                    'Thiết lập tính năng giọng nói',
+                                    '设置语音功能',
+                                  ),
+                                  detail: context.tr(
+                                    'Quay lại màn hình dành cho phụ huynh để đọc thông tin và chọn đồng ý.',
+                                    '返回家长设置页面，阅读说明并选择是否同意。',
+                                  ),
+                                  onTap: () {
+                                    Navigator.of(context).pop();
+                                    onManagePrivacyConsent!();
+                                  },
                                 ),
                               ],
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    _CompactSettingsSection(
-                      key: const Key('settings-recognition-section'),
-                      icon: Icons.record_voice_over_rounded,
-                      title: kIsWeb
-                          ? context.tr('Chế độ nhận diện', '识别模式')
-                          : context.tr('Nhận dạng giọng nói', '语音识别'),
-                      summary: context.tr(
-                        'Chế độ tiêu chuẩn • Tự dừng ${controller.vadSilenceMs} ms',
-                        '标准模式 • 静音 ${controller.vadSilenceMs} 毫秒后停止',
                       ),
-                      children: <Widget>[
-                        if (isAndroid)
-                          _StatusTile(
-                            key: const Key('android-standard-recognition'),
-                            icon: Icons.record_voice_over_rounded,
-                            title: context.tr('Chế độ tiêu chuẩn', '标准模式'),
-                            detail: context.tr(
-                              'Nhận dạng trực tiếp bằng dịch vụ Android. Cloudflare chỉ dịch văn bản và tạo giọng đọc khi cần, không nhận dạng audio.',
-                              '使用 Android 服务直接识别。Cloudflare 仅在需要时翻译文本和生成语音，不识别音频。',
-                            ),
-                            trailing: context.tr('Mặc định', '默认'),
-                            stateColor: AppColors.success,
-                          )
-                        else if (isIOS)
-                          _StatusTile(
-                            key: const Key('ios-native-recognition'),
-                            icon: Icons.record_voice_over_rounded,
-                            title: context.tr(
-                              'Apple Native Speech',
-                              'Apple 原生语音识别',
-                            ),
-                            detail: context.tr(
-                              'iOS dùng một luồng Apple Native Speech cho MAIN; không đổi mic hoặc chuyển sang Batch trong cùng lượt.${nativeDiagnosticDetail == null ? '' : '\n\n$nativeDiagnosticDetail'}',
-                              'iOS 的 MAIN 仅使用一条 Apple 原生语音识别流程；同一轮不会切换麦克风或转入 Batch。${nativeDiagnosticDetail == null ? '' : '\n\n$nativeDiagnosticDetail'}',
-                            ),
-                            trailing:
-                                nativeDiagnostic?.stage ??
-                                context.tr('Ưu tiên', '优先'),
-                            stateColor: nativeDiagnostic?.isError == true
-                                ? AppColors.coral
-                                : AppColors.success,
-                          )
-                        else
-                          _StatusTile(
-                            key: const Key('web-online-recognition'),
-                            icon: Icons.cloud_done_rounded,
-                            title: context.tr(
-                              'Nhận giọng nói trực tuyến',
-                              '在线语音识别',
-                            ),
-                            detail: context.tr(
-                              controller.usesHfpInput
-                                  ? 'Đang nhận âm thanh từ mic Bluetooth đã chọn; Cloudflare xử lý nhận dạng, dịch và phát âm.'
-                                  : 'Đang nhận âm thanh từ mic mặc định; Cloudflare xử lý nhận dạng, dịch và phát âm.',
-                              controller.usesHfpInput
-                                  ? '使用已选择的蓝牙麦克风；由 Cloudflare 完成识别、翻译和语音合成。'
-                                  : '使用默认麦克风；由 Cloudflare 完成识别、翻译和语音合成。',
-                            ),
-                            trailing: context.tr('Mặc định', '默认'),
-                            stateColor: AppColors.success,
-                          ),
-                        if (isAndroid || isIOS) ...<Widget>[
-                          const SizedBox(height: 10),
-                          const _OfflineLanguagePacksCard(),
-                        ],
-                        const SizedBox(height: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: <Widget>[
-                            _SectionLabel(
-                              label: context.tr(
-                                'Tự động dừng khi im lặng',
-                                '静音时自动停止',
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: Text(
-                                '${controller.vadSilenceMs} ms',
-                                style: const TextStyle(
-                                  color: AppColors.indigo,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Slider(
-                          value: controller.vadSilenceMs.toDouble(),
-                          min: 400,
-                          max: 1600,
-                          divisions: 12,
-                          label: '${controller.vadSilenceMs} ms',
-                          onChanged: controller.isBusy
-                              ? null
-                              : (value) =>
-                                    controller.setVadSilence(value.round()),
-                        ),
-                        Text(
-                          context.tr(
-                            '700 ms là mặc định; có thể tăng nếu trẻ thường ngắt câu.',
-                            '默认 700 毫秒；如果孩子说话经常停顿，可以调高。',
-                          ),
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    OutlinedButton.icon(
-                      onPressed: () => _showHistory(context),
-                      icon: const Icon(Icons.history_rounded),
-                      label: Text(context.tr('Xem lịch sử gần đây', '查看最近记录')),
-                    ),
-                    const SizedBox(height: 26),
-                    _SectionLabel(
-                      label: context.tr('Dữ liệu và quyền riêng tư', '数据与隐私'),
-                    ),
-                    const SizedBox(height: 10),
-                    HomiSurface(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 2,
-                      ),
-                      child: Column(
-                        children: <Widget>[
-                          _SettingsActionTile(
-                            key: const Key('settings-privacy-policy'),
-                            icon: Icons.privacy_tip_outlined,
-                            title: context.tr(
-                              'Chính sách quyền riêng tư',
-                              '隐私政策',
-                            ),
-                            detail: context.tr(
-                              'Xem dữ liệu được thu thập, nhà cung cấp AI, thời hạn lưu và cách yêu cầu xóa.',
-                              '查看所收集的数据、AI 服务商、保存期限和删除方式。',
-                            ),
-                            onTap: () => _openParentLink(
-                              context,
-                              config?.privacyPolicyUri,
-                              context.tr('Chính sách quyền riêng tư', '隐私政策'),
-                            ),
-                          ),
-                          const _SettingsDivider(),
-                          _SettingsActionTile(
-                            key: const Key('settings-terms'),
-                            icon: Icons.description_outlined,
-                            title: context.tr('Điều khoản sử dụng', '使用条款'),
-                            detail: context.tr(
-                              'Điều khoản dành cho phụ huynh và người giám hộ.',
-                              '面向家长和监护人的使用条款。',
-                            ),
-                            onTap: () => _openParentLink(
-                              context,
-                              config?.termsUri,
-                              context.tr('Điều khoản sử dụng', '使用条款'),
-                            ),
-                          ),
-                          const _SettingsDivider(),
-                          _SettingsActionTile(
-                            key: const Key('settings-support'),
-                            icon: Icons.support_agent_rounded,
-                            title: context.tr('Hỗ trợ', '支持'),
-                            detail: context.tr(
-                              'Liên hệ HOMI về quyền riêng tư, dữ liệu hoặc lỗi ứng dụng.',
-                              '就隐私、数据或应用问题联系 HOMI。',
-                            ),
-                            onTap: () => _openParentLink(
-                              context,
-                              config?.supportUri,
-                              context.tr('Hỗ trợ', '支持'),
-                            ),
-                          ),
-                          if (privacyConsentGranted &&
-                              !voiceAccessEnabled &&
-                              onRequestVoiceAccess != null) ...<Widget>[
-                            const _SettingsDivider(),
-                            _SettingsActionTile(
-                              key: const Key('settings-enable-voice'),
-                              icon: Icons.mic_rounded,
-                              title: context.tr('Cho phép micro', '允许麦克风'),
-                              detail: context.tr(
-                                'Mở hộp thoại quyền hệ thống. Audio chỉ được gửi sau khi có cả chấp thuận phụ huynh và quyền micro.',
-                                '打开系统权限对话框。只有家长同意并授予麦克风权限后才会发送音频。',
-                              ),
-                              onTap: onRequestVoiceAccess!,
-                            ),
-                          ],
-                          if (!privacyConsentGranted &&
-                              onManagePrivacyConsent != null) ...<Widget>[
-                            const _SettingsDivider(),
-                            _SettingsActionTile(
-                              key: const Key('settings-manage-privacy-consent'),
-                              icon: Icons.verified_user_outlined,
-                              title: context.tr(
-                                'Thiết lập tính năng giọng nói',
-                                '设置语音功能',
-                              ),
-                              detail: context.tr(
-                                'Quay lại màn hình dành cho phụ huynh để đọc thông tin và chọn đồng ý.',
-                                '返回家长设置页面，阅读说明并选择是否同意。',
-                              ),
-                              onTap: () {
-                                Navigator.of(context).pop();
-                                onManagePrivacyConsent!();
-                              },
-                            ),
-                          ],
-                          if (privacyConsentGranted &&
-                              onRevokePrivacyConsent != null) ...<Widget>[
-                            const _SettingsDivider(),
-                            _SettingsActionTile(
-                              key: const Key('settings-revoke-privacy-consent'),
-                              icon: Icons.delete_forever_outlined,
-                              title: context.tr(
-                                'Rút chấp thuận và xóa dữ liệu',
-                                '撤回同意并删除数据',
-                              ),
-                              detail: context.tr(
-                                'Yêu cầu backend xóa lịch sử trước, sau đó xóa nhóm tuổi cục bộ và đặt lại mã cài đặt iOS/Web.',
-                                '先请求后端删除历史记录，再删除本地年龄组并重置 iOS/Web 安装标识。',
-                              ),
-                              onTap: () => _revokeConsent(context),
-                            ),
-                          ],
-                          if (onStartTutorial != null) ...<Widget>[
-                            const _SettingsDivider(),
-                            _SettingsActionTile(
-                              key: const Key('settings-start-user-tutorial'),
-                              icon: Icons.school_rounded,
-                              title: context.tr('Hướng dẫn sử dụng', '使用指南'),
-                              detail: context.tr(
-                                'Xem lại cách giao tiếp, học từ vựng và luyện nghe theo chủ đề',
-                                '重新查看对话、词汇和主题听力的使用方法',
-                              ),
-                              onTap: () {
-                                final startTutorial = onStartTutorial!;
-                                Navigator.of(context).pop();
-                                Future<void>.delayed(
-                                  const Duration(milliseconds: 260),
-                                  startTutorial,
-                                );
-                              },
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -663,100 +362,6 @@ class SettingsSheet extends StatelessWidget {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Không thể mở $label.')));
-    }
-  }
-
-  Future<void> _revokeConsent(BuildContext context) async {
-    final revoke = onRevokePrivacyConsent;
-    if (revoke == null ||
-        !await showParentalGate(context) ||
-        !context.mounted) {
-      return;
-    }
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Rút chấp thuận và yêu cầu xóa dữ liệu?'),
-        content: const Text(
-          'HOMI sẽ gửi yêu cầu xóa history tới backend trước khi xóa chấp thuận, nhóm tuổi lưu cục bộ và mã cài đặt iOS/Web. Nếu máy chủ không xác nhận, thao tác sẽ dừng và hiển thị lỗi.',
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Hủy'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Tiếp tục xóa'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) {
-      return;
-    }
-    try {
-      await revoke();
-      if (context.mounted) {
-        Navigator.of(context).pop();
-      }
-    } catch (error) {
-      if (!context.mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Chưa thể xác nhận xóa dữ liệu trên máy chủ. Chấp thuận vẫn được giữ: $error',
-          ),
-        ),
-      );
-    }
-  }
-
-  void _showHistory(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
-      builder: (_) => HistorySheet(controller: controller),
-    );
-  }
-
-  Future<void> _setH20HardwareTestMode(
-    BuildContext context,
-    bool enabled,
-  ) async {
-    try {
-      await controller.setH20HardwareTestMode(enabled);
-    } catch (error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.toString())));
-    }
-  }
-
-  Future<void> _toggleH20OfflineRecording(BuildContext context) async {
-    try {
-      await controller.toggleH20OfflineRecordingTest();
-    } catch (error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.toString())));
-    }
-  }
-
-  Future<void> _playH20SpeakerTest(BuildContext context) async {
-    try {
-      await controller.playH20BundledSpeakerTest();
-    } catch (error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.toString())));
     }
   }
 
@@ -1156,465 +761,160 @@ class SettingsSheet extends StatelessWidget {
   }
 }
 
-class _OfflineLanguagePacksCard extends StatefulWidget {
-  const _OfflineLanguagePacksCard();
+class _SettingsRaisedPanel extends StatelessWidget {
+  const _SettingsRaisedPanel({required this.child});
+
+  final Widget child;
 
   @override
-  State<_OfflineLanguagePacksCard> createState() =>
-      _OfflineLanguagePacksCardState();
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(HomiUi.surfaceRadius),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? const <Color>[
+                  AppColors.darkSurfaceRaised,
+                  AppColors.darkSurface,
+                ]
+              : const <Color>[AppColors.surface, AppColors.mintWash],
+        ),
+        border: Border.all(
+          color: isDark ? AppColors.darkOutline : AppColors.mintBorder,
+        ),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: AppColors.primaryNavy.withValues(
+              alpha: isDark ? 0.24 : 0.09,
+            ),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
 }
 
-class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
-  static const AndroidOfflineSpeechModelConsentStore _consentStore =
-      SharedPreferencesAndroidOfflineSpeechModelConsentStore();
-  static const AndroidOfflineSpeechModelService _service =
-      MethodChannelAndroidOfflineSpeechModelService();
+class _SettingsRaisedIcon extends StatelessWidget {
+  const _SettingsRaisedIcon({
+    required this.icon,
+    this.onPressed,
+    this.tooltip,
+    this.foregroundColor,
+  });
 
-  late final AndroidOfflineSpeechModelCoordinator _coordinator =
-      AndroidOfflineSpeechModelCoordinator(
-        service: _service,
-        consentStore: _consentStore,
-      );
-  late final OfflineVietnameseEnglishTranslator _translator =
-      MlKitOfflineVietnameseEnglishTranslator();
-  final AppleOfflineSpeechAssetService _appleSpeech =
-      const AppleOfflineSpeechAssetService();
-
-  AndroidOfflineSpeechModelConsent _consent =
-      AndroidOfflineSpeechModelConsent.undecided;
-  AndroidOfflineSpeechModelStatus? _status;
-  AndroidOfflineSpeechModelPreparationResult? _preparation;
-  bool _busy = true;
-  bool _preparingIosModels = false;
-  int _request = 0;
-  Timer? _refreshTimer;
-
-  bool get _isAndroid =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final String? tooltip;
+  final Color? foregroundColor;
 
   @override
-  void initState() {
-    super.initState();
-    unawaited(_refresh());
-  }
-
-  Future<void> _refresh() async {
-    final request = ++_request;
-    try {
-      final consent = await _consentStore.read();
-      final AndroidOfflineSpeechModelStatus speechStatus;
-      if (_isAndroid) {
-        final translationReady = await _translator.modelsReady();
-        final statuses = await Future.wait<AndroidOfflineSpeechModelStatus>([
-          _service.status(locale: 'en-US'),
-          _service.status(locale: 'vi-VN'),
-        ]);
-        speechStatus = _combineAndroidStatuses(
-          statuses,
-          translationReady: translationReady,
-          automaticDownloadAllowed:
-              consent == AndroidOfflineSpeechModelConsent.allowed,
-        );
-      } else {
-        final translationReady = await _translator.modelsReady();
-        speechStatus = AndroidOfflineSpeechModelStatus(
-          state: translationReady
-              ? AndroidOfflineSpeechModelState.installed
-              : _preparingIosModels
-              ? AndroidOfflineSpeechModelState.pending
-              : AndroidOfflineSpeechModelState.missing,
-          appManaged: true,
-          modelId: 'apple-speech+mlkit-vi-en',
-        );
-      }
-      if (!mounted || request != _request) {
-        return;
-      }
-      setState(() {
-        _consent = consent;
-        _status = speechStatus;
-        _busy = false;
-      });
-      _updateRefreshTimer();
-    } catch (_) {
-      if (mounted && request == _request) {
-        setState(() => _busy = false);
-      }
-    }
-  }
-
-  AndroidOfflineSpeechModelStatus _combineAndroidStatuses(
-    List<AndroidOfflineSpeechModelStatus> statuses, {
-    required bool translationReady,
-    required bool automaticDownloadAllowed,
-  }) {
-    final states = statuses.map((status) => status.state).toSet();
-    final allSpeechInstalled = states.every(
-      (state) => state == AndroidOfflineSpeechModelState.installed,
-    );
-    final state = allSpeechInstalled && translationReady
-        ? AndroidOfflineSpeechModelState.installed
-        : states.contains(AndroidOfflineSpeechModelState.pending) ||
-              (automaticDownloadAllowed && !translationReady)
-        ? AndroidOfflineSpeechModelState.pending
-        : states.contains(AndroidOfflineSpeechModelState.unavailable)
-        ? AndroidOfflineSpeechModelState.unavailable
-        : AndroidOfflineSpeechModelState.missing;
-    final totalBytes = statuses.fold<int>(
-      0,
-      (sum, status) => sum + (status.downloadBytes ?? 0),
-    );
-    final weightedProgress = totalBytes <= 0
-        ? statuses.isEmpty
-              ? 0
-              : statuses.fold<int>(0, (sum, status) => sum + status.progress) ~/
-                    statuses.length
-        : statuses.fold<int>(
-                0,
-                (sum, status) =>
-                    sum + status.progress * (status.downloadBytes ?? 0),
-              ) ~/
-              totalBytes;
-    final progress = allSpeechInstalled && !translationReady
-        ? 95
-        : weightedProgress;
-    return AndroidOfflineSpeechModelStatus(
-      state: state,
-      appManaged: true,
-      progress: progress,
-      modelId: 'vosk-en-us+vi-vn',
-      downloadBytes: totalBytes,
-    );
-  }
-
-  Future<void> _setAutomaticDownload(bool enabled) async {
-    if (_busy) {
-      return;
-    }
-    final request = ++_request;
-    setState(() {
-      _busy = true;
-      _consent = enabled
-          ? AndroidOfflineSpeechModelConsent.allowed
-          : AndroidOfflineSpeechModelConsent.declined;
-      _preparation = null;
-    });
-    try {
-      await _consentStore.write(_consent);
-      AndroidOfflineSpeechModelPreparationResult? preparation;
-      if (enabled) {
-        preparation =
-            AndroidOfflineSpeechModelPreparationResult.downloadRequested;
-        if (mounted && request == _request) {
-          setState(() {
-            _preparation = preparation;
-            _status = const AndroidOfflineSpeechModelStatus(
-              state: AndroidOfflineSpeechModelState.pending,
-              appManaged: true,
-            );
-            _busy = false;
-          });
-          _updateRefreshTimer();
-          _showResultMessage(preparation);
-        }
-        unawaited(_prepareAllModels());
-        return;
-      } else {
-        if (_isAndroid) {
-          await _service.cancelDownload();
-        }
-      }
-      final AndroidOfflineSpeechModelStatus status;
-      if (_isAndroid) {
-        status = await _service.status();
-      } else {
-        status = AndroidOfflineSpeechModelStatus(
-          state: AndroidOfflineSpeechModelState.missing,
-          appManaged: true,
-          modelId: 'apple-speech',
-        );
-      }
-      if (!mounted || request != _request) {
-        return;
-      }
-      setState(() {
-        _preparation = preparation;
-        _status = status;
-        _busy = false;
-      });
-      _updateRefreshTimer();
-      _showResultMessage(preparation);
-    } catch (_) {
-      if (!mounted || request != _request) {
-        return;
-      }
-      setState(() => _busy = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            context.tr(
-              'Chưa lưu được lựa chọn. Vui lòng thử lại.',
-              '暂时无法保存选择，请重试。',
-            ),
-          ),
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final size = onPressed == null ? 40.0 : 48.0;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? const <Color>[
+                  AppColors.darkSurfaceStrong,
+                  AppColors.darkSurface,
+                ]
+              : const <Color>[Colors.white, AppColors.mintSoft],
         ),
-      );
-    }
-  }
-
-  Future<void> _prepareAllModels() async {
-    _preparingIosModels = !_isAndroid;
-    try {
-      if (await _consentStore.read() !=
-          AndroidOfflineSpeechModelConsent.allowed) {
-        return;
-      }
-      if (_isAndroid) {
-        await Future.wait<AndroidOfflineSpeechModelPreparationResult>([
-          _coordinator.prepare(locale: 'en-US'),
-          _coordinator.prepare(locale: 'vi-VN'),
-        ]);
-      } else {
-        for (final locale in const <String>['vi-VN', 'en-US']) {
-          await _appleSpeech.prepareLocale(locale);
-        }
-      }
-      if (mounted &&
-          await _consentStore.read() ==
-              AndroidOfflineSpeechModelConsent.allowed) {
-        await _translator.downloadModels(wifiOnly: true);
-      }
-    } finally {
-      _preparingIosModels = false;
-      if (mounted) {
-        await _refresh();
-      }
-    }
-  }
-
-  void _updateRefreshTimer() {
-    if (_status?.state == AndroidOfflineSpeechModelState.pending) {
-      _refreshTimer ??= Timer.periodic(
-        const Duration(seconds: 2),
-        (_) => unawaited(_refresh()),
-      );
-    } else {
-      _refreshTimer?.cancel();
-      _refreshTimer = null;
-    }
-  }
-
-  @override
-  void dispose() {
-    _refreshTimer?.cancel();
-    unawaited(_translator.close());
-    super.dispose();
-  }
-
-  void _showResultMessage(AndroidOfflineSpeechModelPreparationResult? result) {
-    if (!_isAndroid &&
-        result ==
-            AndroidOfflineSpeechModelPreparationResult.downloadRequested) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(
-              context.tr(
-                'HOMI sẽ chuẩn bị giọng nói và tải gói dịch offline qua Wi-Fi.',
-                'HOMI 将准备离线语音，并通过 Wi-Fi 下载离线翻译模型。',
-              ),
-            ),
-          ),
-        );
-      return;
-    }
-    final message = switch (result) {
-      AndroidOfflineSpeechModelPreparationResult.downloadRequested =>
-        context.tr(
-          'HOMI sẽ tải các gói giọng nói và dịch trong nền qua Wi-Fi.',
-          'HOMI 将通过 Wi-Fi 在后台下载语音和翻译模型。',
+        border: Border.all(
+          color: isDark ? AppColors.darkOutline : AppColors.mintBorder,
         ),
-      AndroidOfflineSpeechModelPreparationResult.waitingForWifi => context.tr(
-        'Đã bật tự tải. HOMI sẽ thực hiện khi có Wi-Fi.',
-        '已开启自动下载。连接 Wi-Fi 后 HOMI 会自动执行。',
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: AppColors.primaryNavy.withValues(
+              alpha: isDark ? 0.18 : 0.10,
+            ),
+            blurRadius: 9,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      AndroidOfflineSpeechModelPreparationResult.ready => context.tr(
-        'Các gói offline đã sẵn sàng.',
-        '离线模型已准备好。',
-      ),
-      AndroidOfflineSpeechModelPreparationResult.unavailable => context.tr(
-        'Thiết bị này chưa hỗ trợ tải model trực tiếp.',
-        '此设备暂不支持直接下载模型。',
-      ),
-      _ => null,
-    };
-    if (message != null) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(message)));
-    }
-  }
-
-  String _detail(BuildContext context) {
-    if (_busy) {
-      return context.tr('Đang kiểm tra các gói offline…', '正在检查离线模型…');
-    }
-    if (!_isAndroid) {
-      if (_status?.state == AndroidOfflineSpeechModelState.installed) {
-        return context.tr(
-          'Dịch Việt–Anh và Anh–Việt đã sẵn sàng trên thiết bị. Giọng nói offline phụ thuộc model Apple Speech của thiết bị.',
-          '设备上的越英双向翻译已准备好。离线语音取决于设备的 Apple Speech 模型。',
-        );
-      }
-      if (_preparingIosModels) {
-        return context.tr(
-          'HOMI đang chuẩn bị giọng nói và tải gói dịch offline qua Wi-Fi. Bạn có thể tiếp tục dùng ứng dụng.',
-          'HOMI 正在准备语音并通过 Wi-Fi 下载离线翻译模型；您可以继续使用应用。',
-        );
-      }
-      return _consent == AndroidOfflineSpeechModelConsent.allowed
-          ? context.tr(
-              'Đã cho phép chuẩn bị giọng nói và tải gói dịch Việt–Anh/Anh–Việt qua Wi-Fi. Các gói dịch chưa sẵn sàng; cần iPhone thật để tải và dùng offline.',
-              '已允许准备语音并通过 Wi-Fi 下载越英双向翻译模型。翻译模型尚未准备好；下载和离线使用需要实体 iPhone。',
+      child: onPressed == null
+          ? Icon(
+              icon,
+              size: 22,
+              color: foregroundColor ?? Theme.of(context).colorScheme.primary,
             )
-          : context.tr(
-              'Bật để HOMI chuẩn bị Apple Speech và tải gói dịch Việt–Anh/Anh–Việt qua Wi-Fi cho iPhone.',
-              '开启后 HOMI 会准备 Apple Speech，并通过 Wi-Fi 为 iPhone 下载越英双向翻译模型。',
-            );
-    }
-    switch (_status?.state) {
-      case AndroidOfflineSpeechModelState.installed:
-        return context.tr(
-          'Các gói giọng nói và dịch Việt–Anh đã sẵn sàng. Khi mất mạng, bài học, thử thách và dịch liên tục có thể xử lý trên thiết bị.',
-          '语音与越英翻译模型已准备好；离线时课程、挑战和连续翻译可在设备上处理。',
-        );
-      case AndroidOfflineSpeechModelState.pending:
-        final progress = _status?.progress ?? 0;
-        final totalMegabytes = ((_status?.downloadBytes ?? 0) / 1024 / 1024)
-            .round();
-        final sizeText = totalMegabytes > 0
-            ? ' (riêng giọng nói khoảng $totalMegabytes MB; gói dịch tải thêm)'
-            : '';
-        return context.tr(
-          progress > 0
-              ? 'HOMI đang tải các gói offline$sizeText trong nền: $progress%. Thường mất 2–10 phút tùy Wi-Fi; bạn có thể tiếp tục dùng ứng dụng.'
-              : 'Đã xếp lịch tải các gói offline$sizeText. HOMI sẽ tự bắt đầu khi có Wi-Fi; thường mất 2–10 phút.',
-          progress > 0
-              ? 'HOMI 正在后台下载离线模型：$progress%。通常需要 2–10 分钟；您可以继续使用应用。'
-              : '离线模型已排入队列；连接 Wi-Fi 后会自动开始，通常需要 2–10 分钟。',
-        );
-      case AndroidOfflineSpeechModelState.unavailable:
-        return context.tr(
-          'CPU của thiết bị này chưa tương thích với model offline; khi có mạng ứng dụng vẫn chấm qua máy chủ.',
-          '此 Android 设备不支持由 HOMI 下载模型；联网时仍会通过服务器评分。',
-        );
-      case AndroidOfflineSpeechModelState.downloadable:
-      case AndroidOfflineSpeechModelState.missing:
-      case AndroidOfflineSpeechModelState.unknown:
-      case null:
-        if (_preparation ==
-            AndroidOfflineSpeechModelPreparationResult.waitingForWifi) {
-          return context.tr(
-            'Đã cho phép. HOMI sẽ tự tải en-US khi có Wi-Fi, không dùng dữ liệu di động.',
-            '已允许。连接 Wi-Fi 后 HOMI 将自动下载 en-US，不使用移动数据。',
-          );
-        }
-        return _consent == AndroidOfflineSpeechModelConsent.allowed
-            ? context.tr(
-                'Đã cho phép tự tải các gói tiếng Anh, tiếng Việt và dịch Việt–Anh qua Wi-Fi. Không mở màn hình tải riêng.',
-                '已允许通过 Wi-Fi 自动下载约 40 MB 的 en-US 模型，不会打开 Google 下载页面。',
-              )
-            : context.tr(
-                'Phụ huynh bật mục này một lần; HOMI tự tải các gói cần thiết khi có Wi-Fi và không dùng dữ liệu di động.',
-                '家长只需开启一次；HOMI 会在连接 Wi-Fi 时自动下载 en-US，不使用移动数据。',
-              );
-    }
+          : IconButton(
+              onPressed: onPressed,
+              tooltip: tooltip,
+              icon: Icon(icon, color: Theme.of(context).colorScheme.primary),
+            ),
+    );
   }
+}
+
+class _SettingsDeviceTile extends StatelessWidget {
+  const _SettingsDeviceTile({
+    required this.icon,
+    required this.title,
+    required this.trailing,
+    this.subtitle,
+    this.foregroundColor,
+  });
+
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final Widget trailing;
+  final Color? foregroundColor;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final unsupported =
-        _status?.state == AndroidOfflineSpeechModelState.unavailable;
-    return HomiSurface(
-      key: const Key('settings-offline-language-packs'),
-      padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+    final isDark = theme.brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 6, 6, 6),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurfaceRaised : AppColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark ? AppColors.darkOutline : AppColors.mintBorder,
+        ),
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          const HomiIconBadge(icon: Icons.download_for_offline_rounded),
-          const SizedBox(width: 12),
+          _SettingsRaisedIcon(icon: icon, foregroundColor: foregroundColor),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  context.tr('Tự tải giọng nói và dịch offline', '自动下载离线语音和翻译'),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
+                  title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  _detail(context),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    height: 1.35,
+                if (subtitle != null)
+                  Text(
+                    subtitle!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
-          Switch.adaptive(
-            key: const Key('settings-offline-language-packs-switch'),
-            value: _consent == AndroidOfflineSpeechModelConsent.allowed,
-            onChanged: _busy || unsupported ? null : _setAutomaticDownload,
-          ),
+          const SizedBox(width: 4),
+          trailing,
         ],
-      ),
-    );
-  }
-}
-
-class _BackgroundMediaSwitchCard extends StatelessWidget {
-  const _BackgroundMediaSwitchCard({
-    required this.value,
-    required this.onChanged,
-  });
-
-  final bool value;
-  final ValueChanged<bool>? onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return HomiSurface(
-      padding: EdgeInsets.zero,
-      child: SwitchListTile.adaptive(
-        key: const Key('settings-stop-media-background-switch'),
-        value: value,
-        onChanged: onChanged,
-        secondary: const HomiIconBadge(
-          icon: Icons.pause_circle_outline_rounded,
-        ),
-        contentPadding: const EdgeInsets.fromLTRB(12, 6, 10, 6),
-        title: Text(
-          context.tr('Dừng âm thanh khi rời HOMI', '离开 HOMI 时停止音频'),
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        subtitle: Text(
-          context.tr(
-            'Mở ứng dụng khác hoặc khóa màn hình: dừng bài học, trợ lý và loa HOMI nhưng vẫn giữ tiến độ.',
-            '打开其他应用或锁屏时：停止课程、助手和 HOMI 扬声器，同时保留进度。',
-          ),
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-            height: 1.3,
-          ),
-        ),
       ),
     );
   }
@@ -1637,30 +937,33 @@ class _CompactSettingsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return HomiSurface(
-      padding: EdgeInsets.zero,
-      child: Theme(
-        data: theme.copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.fromLTRB(12, 4, 10, 4),
-          childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-          leading: HomiIconBadge(icon: icon),
-          title: Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
+    return _SettingsRaisedPanel(
+      child: HomiSurface(
+        padding: EdgeInsets.zero,
+        color: Colors.transparent,
+        child: Theme(
+          data: theme.copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            tilePadding: const EdgeInsets.fromLTRB(12, 4, 10, 4),
+            childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            leading: _SettingsRaisedIcon(icon: icon),
+            title: Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
             ),
-          ),
-          subtitle: Text(
-            summary,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+            subtitle: Text(
+              summary,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
+            maintainState: true,
+            children: children,
           ),
-          maintainState: true,
-          children: children,
         ),
       ),
     );
@@ -1755,65 +1058,33 @@ class _ChildAgeGroupSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return HomiSurface(
+    return Padding(
       key: const Key('settings-child-age-group'),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 2,
         children: <Widget>[
-          Row(
-            children: <Widget>[
-              const HomiIconBadge(icon: Icons.child_care_rounded),
-              const SizedBox(width: 11),
-              Expanded(
-                child: Text(
-                  context.tr(
-                    'Chọn một lần, dùng cho mọi bài học',
-                    '选择一次，适用于所有课程',
-                  ),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+          for (final catalog in listeningCatalogs)
+            ChoiceChip(
+              key: ValueKey('settings-age-${catalog.id}'),
+              showCheckmark: true,
+              elevation: 0,
+              side: BorderSide(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
+              label: Text(
+                context.tr(
+                  '${catalog.startAge}–${catalog.endAge} tuổi',
+                  '${catalog.startAge}–${catalog.endAge} 岁',
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: <Widget>[
-              for (final catalog in listeningCatalogs)
-                ChoiceChip(
-                  key: ValueKey('settings-age-${catalog.id}'),
-                  showCheckmark: true,
-                  label: Text(
-                    context.tr(
-                      '${catalog.startAge}–${catalog.endAge} tuổi',
-                      '${catalog.startAge}–${catalog.endAge} 岁',
-                    ),
-                  ),
-                  selected:
-                      childAge >= catalog.startAge &&
-                      childAge <= catalog.endAge,
-                  onSelected: enabled
-                      ? (_) => onChanged?.call(catalog.startAge)
-                      : null,
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            context.tr(
-              'Áp dụng cho trợ lý MAIN và tất cả bài học. Có thể đổi lại tại đây.',
-              '适用于 MAIN 助手和所有课程，可随时在此更改。',
+              selected:
+                  childAge >= catalog.startAge && childAge <= catalog.endAge,
+              onSelected: enabled
+                  ? (_) => onChanged?.call(catalog.startAge)
+                  : null,
             ),
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontSize: 13,
-            ),
-          ),
         ],
       ),
     );
@@ -1873,9 +1144,9 @@ class _AppearanceSelectorState extends State<_AppearanceSelector> {
         .firstWhere((option) => option.mode == _value)
         .label;
 
-    return HomiSurface(
+    return Padding(
       key: const Key('appearance-settings-card'),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -1885,7 +1156,7 @@ class _AppearanceSelectorState extends State<_AppearanceSelector> {
               children: <Widget>[
                 Row(
                   children: <Widget>[
-                    Icon(Icons.palette_outlined, color: colorScheme.primary),
+                    const _SettingsRaisedIcon(icon: Icons.palette_outlined),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -1908,7 +1179,7 @@ class _AppearanceSelectorState extends State<_AppearanceSelector> {
           else
             Row(
               children: <Widget>[
-                Icon(Icons.palette_outlined, color: colorScheme.primary),
+                const _SettingsRaisedIcon(icon: Icons.palette_outlined),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -1937,6 +1208,8 @@ class _AppearanceSelectorState extends State<_AppearanceSelector> {
                     label: Text(option.label),
                     selected: _value == option.mode,
                     showCheckmark: false,
+                    elevation: 0,
+                    side: BorderSide(color: colorScheme.outlineVariant),
                     onSelected: widget.onChanged == null
                         ? null
                         : (_) => _select(option.mode),
@@ -1951,922 +1224,93 @@ class _AppearanceSelectorState extends State<_AppearanceSelector> {
 }
 
 class _SectionLabel extends StatelessWidget {
-  const _SectionLabel({required this.label});
+  const _SectionLabel({required this.label, required this.icon});
 
   final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return HomiSectionHeading(title: label);
-  }
-}
-
-class _StatusTile extends StatelessWidget {
-  const _StatusTile({
-    required this.icon,
-    required this.title,
-    required this.detail,
-    required this.trailing,
-    required this.stateColor,
-    super.key,
-  });
-
   final IconData icon;
-  final String title;
-  final String detail;
-  final String trailing;
-  final Color stateColor;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return HomiSurface(
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              HomiIconBadge(icon: icon),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(title, style: Theme.of(context).textTheme.titleMedium),
-                    Text(
-                      detail,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+    return Row(
+      children: <Widget>[
+        _SettingsRaisedIcon(icon: icon),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerRight,
-            child: HomiStatusPill(label: trailing, color: stateColor),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
 class _Aiv0BleControlCard extends StatelessWidget {
   const _Aiv0BleControlCard({
-    this.embedded = false,
     required this.status,
-    required this.events,
-    required this.mainDispatchStatus,
-    required this.mainDispatchAt,
     required this.disabled,
     required this.onScan,
     required this.onDisconnect,
   });
 
-  final bool embedded;
   final Aiv0BleStatus status;
-  final List<Aiv0ButtonEvent> events;
-  final String mainDispatchStatus;
-  final DateTime? mainDispatchAt;
   final bool disabled;
   final VoidCallback onScan;
   final Future<void> Function() onDisconnect;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final connected = status.isConnected;
     final busy =
         status.phase == Aiv0BlePhase.scanning ||
         status.phase == Aiv0BlePhase.connecting ||
         status.phase == Aiv0BlePhase.reconnecting;
-    final stateColor = connected
-        ? AppColors.success
-        : status.phase == Aiv0BlePhase.error
-        ? AppColors.coral
-        : AppColors.muted;
-    final name = status.deviceName?.trim();
-    final hasNativeDiagnostics =
-        status.peripheralState != null ||
-        status.mainNotificationState != null ||
-        status.lastDisconnectCode != null ||
-        status.lastNotificationRecovery != null ||
-        status.diagnosticTimeline.isNotEmpty;
-    return Container(
-      width: double.infinity,
-      padding: embedded
-          ? const EdgeInsets.symmetric(vertical: 10)
-          : const EdgeInsets.all(14),
-      decoration: embedded
-          ? null
-          : BoxDecoration(
-              color: connected
-                  ? Color.alphaBlend(
-                      AppColors.success.withValues(alpha: 0.12),
-                      colorScheme.surfaceContainer,
-                    )
-                  : colorScheme.surfaceContainer,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: stateColor.withValues(alpha: 0.25)),
-            ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              HomiIconBadge(
-                icon: connected
-                    ? Icons.bluetooth_connected_rounded
-                    : Icons.settings_remote_rounded,
-                foregroundColor: stateColor,
-                backgroundColor: stateColor.withValues(alpha: 0.11),
-                size: 40,
-                iconSize: 22,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      name == null || name.isEmpty
-                          ? context.tr('BLE Control AIV0 V1', 'AIV0 V1 BLE 控制')
-                          : name,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      _detail(context),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            context.tr(
-              'BLE: MAIN, pin, firmware và trạng thái • Âm thanh: HFP hai chiều',
-              'BLE：MAIN、电量、固件和状态 • 音频：双向 HFP',
-            ),
-            style: const TextStyle(
-              color: AppColors.indigo,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          if (hasNativeDiagnostics) ...<Widget>[
-            const SizedBox(height: 9),
-            Theme(
-              data: Theme.of(
-                context,
-              ).copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
-                key: const Key('aiv0-technical-details'),
-                tilePadding: EdgeInsets.zero,
-                childrenPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.monitor_heart_outlined, size: 21),
-                title: Text(
-                  context.tr('Chi tiết kỹ thuật', '技术详情'),
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-                children: <Widget>[
-                  Container(
-                    key: const Key('aiv0-native-diagnostics'),
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface.withValues(alpha: 0.62),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: colorScheme.outlineVariant.withValues(
-                          alpha: 0.7,
-                        ),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        _Aiv0DiagnosticLine(
-                          label: context.tr('GATT thực tế', '实际 GATT'),
-                          value:
-                              '${status.peripheralState ?? 'unknown'} • MAIN Notify '
-                              '${status.mainNotificationState ?? 'unknown'}',
-                        ),
-                        if (status.lastDisconnectCode != null ||
-                            status.lastDisconnectMessage != null)
-                          _Aiv0DiagnosticLine(
-                            label: context.tr('Mất BLE gần nhất', '最近 BLE 断开'),
-                            value: <String>[
-                              if (status.lastDisconnectAt != null)
-                                _formatEventTime(status.lastDisconnectAt!),
-                              if (status.lastDisconnectCode != null)
-                                status.lastDisconnectCode!,
-                              if (status.lastDisconnectMessage != null)
-                                status.lastDisconnectMessage!,
-                            ].join(' • '),
-                          ),
-                        if (status.lastNotificationRecovery != null)
-                          _Aiv0DiagnosticLine(
-                            label: context.tr('Khôi phục MAIN', '恢复 MAIN'),
-                            value: status.lastNotificationRecovery!,
-                          ),
-                        _Aiv0DiagnosticLine(
-                          label: context.tr('Retry đang hoãn', '延迟重试'),
-                          value: '${status.deferredRecoveryRepeatCount}',
-                        ),
-                        if (status.diagnosticTimeline.isNotEmpty) ...<Widget>[
-                          const SizedBox(height: 10),
-                          Text(
-                            context.tr(
-                              'Timeline BLE / HFP (tối đa 80 sự kiện gần nhất)',
-                              'BLE / HFP 时间线（最近最多 80 个事件）',
-                            ),
-                            style: Theme.of(context).textTheme.labelMedium
-                                ?.copyWith(fontWeight: FontWeight.w800),
-                          ),
-                          const SizedBox(height: 5),
-                          Container(
-                            key: const Key('aiv0-ble-hfp-timeline'),
-                            constraints: const BoxConstraints(maxHeight: 360),
-                            padding: const EdgeInsets.all(9),
-                            decoration: BoxDecoration(
-                              color: colorScheme.surfaceContainerLowest
-                                  .withValues(alpha: 0.76),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: SingleChildScrollView(
-                              child: SelectableText(
-                                status.diagnosticTimeline
-                                    .skip(
-                                      status.diagnosticTimeline.length > 80
-                                          ? status.diagnosticTimeline.length -
-                                                80
-                                          : 0,
-                                    )
-                                    .map(_formatTimelineEvent)
-                                    .join('\n'),
-                                style: TextStyle(
-                                  fontFamily: 'monospace',
-                                  fontSize: 10.5,
-                                  height: 1.45,
-                                  color: colorScheme.onSurface,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          if (connected) ...<Widget>[
-            const SizedBox(height: 9),
-            _Aiv0DiagnosticLine(
-              label: context.tr('Pin & firmware', '电量与固件'),
-              value:
-                  '${status.batteryPercent == null ? context.tr('Chưa đọc pin', '尚未读取电量') : 'Pin ${status.batteryPercent}%'}'
-                  ' • FW ${status.firmwareRevision ?? context.tr('chưa rõ', '未知')}',
-            ),
-          ],
-          if (status.deviceId != null ||
-              events.isNotEmpty ||
-              status.packetCount > 0) ...<Widget>[
-            const SizedBox(height: 9),
-            Theme(
-              data: Theme.of(
-                context,
-              ).copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
-                key: const Key('aiv0-packet-details'),
-                tilePadding: EdgeInsets.zero,
-                childrenPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.data_object_rounded, size: 21),
-                title: Text(
-                  context.tr('Dữ liệu MAIN', 'MAIN 数据'),
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-                children: <Widget>[
-                  _Aiv0DiagnosticLine(
-                    label: context.tr('Giao thức packet', '数据包协议'),
-                    value: status.protocolConfirmed
-                        ? context.tr('Đã xác nhận', '已确认')
-                        : context.tr(
-                            'MAIN Raw Hex đã điều khiển APP • chưa gửi APP State',
-                            'MAIN Raw Hex 已控制 APP • 尚未发送 APP State',
-                          ),
-                  ),
-                  _Aiv0DiagnosticLine(
-                    label: context.tr('MAIN → trợ lý', 'MAIN → 助手'),
-                    value: mainDispatchAt == null
-                        ? mainDispatchStatus
-                        : '${_formatEventTime(mainDispatchAt!)} • '
-                              '$mainDispatchStatus',
-                  ),
-                  if (events.isNotEmpty) ...<Widget>[
-                    const SizedBox(height: 8),
-                    Text(
-                      context.tr(
-                        'Log MAIN / Raw Hex gần nhất',
-                        '最近的 MAIN / Raw Hex 日志',
-                      ),
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    ...events
-                        .take(5)
-                        .map(
-                          (event) => Padding(
-                            padding: const EdgeInsets.only(bottom: 3),
-                            child: SelectableText(
-                              '${_formatEventTime(event.receivedAt)}  '
-                              '${event.transportSource == 'hfpRemote' ? '[HFP] ' : '[BLE] '}'
-                              '${event.isDuplicate ? '[TRÙNG] ' : ''}${event.rawHex}',
-                              style: TextStyle(
-                                fontFamily: 'monospace',
-                                fontSize: 11.5,
-                                color: event.isDuplicate
-                                    ? AppColors.coral
-                                    : AppColors.indigo,
-                              ),
-                            ),
-                          ),
-                        ),
-                  ],
-                  const SizedBox(height: 6),
-                  Text(
-                    context.tr(
-                      '${status.packetCount} gói • ${status.invalidPacketCount} lỗi • ${status.duplicatePacketCount} trùng • ${status.remoteMainCount} MAIN HFP${status.remoteMainCommandsEnabled ? ' • HFP remote sẵn sàng' : ''} • ${status.reconnectCount} reconnect',
-                      '${status.packetCount} 包 • ${status.invalidPacketCount} 错误 • ${status.duplicatePacketCount} 重复 • ${status.remoteMainCount} 次 HFP MAIN${status.remoteMainCommandsEnabled ? ' • HFP remote 已就绪' : ''} • ${status.reconnectCount} 次重连',
-                    ),
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-              ),
-            ),
-          ],
-          const SizedBox(height: 8),
-          if (busy)
-            const Align(
-              alignment: Alignment.centerRight,
-              child: HomiWaveform(active: true, width: 58, height: 24),
+    return _SettingsDeviceTile(
+      icon: connected
+          ? Icons.bluetooth_connected_rounded
+          : Icons.bluetooth_rounded,
+      foregroundColor: connected ? AppColors.success : null,
+      title: context.tr('Kết nối HM-D001 (BLE)', '连接 HM-D001 (BLE)'),
+      subtitle: busy
+          ? context.tr('Đang kết nối…', '正在连接…')
+          : connected
+          ? context.tr('Đã kết nối', '已连接')
+          : context.tr('Chưa kết nối', '尚未连接'),
+      trailing: busy
+          ? const SizedBox(
+              width: 48,
+              child: HomiWaveform(active: true, width: 42, height: 22),
             )
-          else
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: disabled || status.phase == Aiv0BlePhase.disabled
-                    ? null
-                    : connected
-                    ? () => onDisconnect()
-                    : onScan,
-                icon: Icon(
-                  connected ? Icons.link_off_rounded : Icons.search_rounded,
-                ),
-                label: Text(
-                  connected
-                      ? context.tr('Ngắt BLE', '断开 BLE')
-                      : context.tr('Quét & kết nối', '扫描并连接'),
-                ),
+          : IconButton(
+              tooltip: connected
+                  ? context.tr('Ngắt kết nối BLE', '断开 BLE 连接')
+                  : context.tr('Quét và kết nối', '扫描并连接'),
+              onPressed: disabled || status.phase == Aiv0BlePhase.disabled
+                  ? null
+                  : connected
+                  ? () => onDisconnect()
+                  : onScan,
+              icon: Icon(
+                connected ? Icons.link_off_rounded : Icons.search_rounded,
               ),
             ),
-        ],
-      ),
-    );
-  }
-
-  String _detail(BuildContext context) {
-    return switch (status.phase) {
-      Aiv0BlePhase.disabled => context.tr(
-        'BLE Control AIV0 chỉ hoạt động trên Android/iOS native.',
-        'AIV0 BLE 控制仅适用于 Android/iOS 原生应用。',
-      ),
-      Aiv0BlePhase.idle => context.tr(
-        'Chưa kết nối service 9E3B0001.',
-        '尚未连接 9E3B0001 服务。',
-      ),
-      Aiv0BlePhase.scanning => context.tr(
-        'Đang tìm HM-D001 ở gần…',
-        '正在搜索附近的 HM-D001…',
-      ),
-      Aiv0BlePhase.connecting => context.tr(
-        'Đang xác nhận 9E3B0001/0002/0003…',
-        '正在验证 9E3B0001/0002/0003…',
-      ),
-      Aiv0BlePhase.connected =>
-        status.message ?? context.tr('BLE Control đã kết nối.', 'BLE 控制已连接。'),
-      Aiv0BlePhase.reconnecting =>
-        status.message ?? context.tr('Đang tự kết nối lại…', '正在自动重连…'),
-      Aiv0BlePhase.error =>
-        status.message ?? context.tr('Kết nối BLE gặp lỗi.', 'BLE 连接发生错误。'),
-    };
-  }
-
-  String _formatEventTime(DateTime value) {
-    String twoDigits(int number) => number.toString().padLeft(2, '0');
-    return '${twoDigits(value.hour)}:${twoDigits(value.minute)}:'
-        '${twoDigits(value.second)}.'
-        '${value.millisecond.toString().padLeft(3, '0')}';
-  }
-
-  String _formatTimelineEvent(Aiv0BleDiagnosticEvent event) {
-    final metadata = event.metadata.entries
-        .where((entry) => entry.key != 'type')
-        .map((entry) => '${entry.key}=${entry.value}')
-        .join(' • ');
-    return <String>[
-      '${_formatEventTime(event.occurredAt)}  ${event.stage}'
-          '${event.caller == null ? '' : '  @${event.caller}'}',
-      if (event.code != null) '  code=${event.code}',
-      if (event.message != null) '  ${event.message}',
-      if (metadata.isNotEmpty) '  $metadata',
-      if (event.audioRoute != null) '  route=${event.audioRoute}',
-    ].join('\n');
-  }
-}
-
-class _Aiv0DiagnosticLine extends StatelessWidget {
-  const _Aiv0DiagnosticLine({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          SizedBox(
-            width: 108,
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Legacy diagnostic is hidden in AIV0 V1 and retained for an explicit
-// ENABLE_LEGACY_BLE_AUDIO compatibility build only.
-// ignore: unused_element
-class _InnotrikStatusCard extends StatelessWidget {
-  const _InnotrikStatusCard({
-    required this.status,
-    required this.disabled,
-    required this.diagnosticRunning,
-    required this.onScan,
-    required this.onTest,
-    required this.onDisconnect,
-  });
-
-  final BluetoothAudioStatus status;
-  final bool disabled;
-  final bool diagnosticRunning;
-  final VoidCallback onScan;
-  final VoidCallback onTest;
-  final Future<void> Function() onDisconnect;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final connected = status.isConnected;
-    final busy = status.isBusy;
-    final stateColor = connected
-        ? AppColors.success
-        : status.phase == BluetoothAudioConnectionPhase.error
-        ? AppColors.coral
-        : AppColors.muted;
-    final deviceName = status.deviceName?.trim();
-    final detail = _detail(context);
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
-      decoration: BoxDecoration(
-        color: connected
-            ? Color.alphaBlend(
-                AppColors.success.withValues(alpha: 0.12),
-                colorScheme.surfaceContainer,
-              )
-            : colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: stateColor.withValues(alpha: 0.22)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Icon(
-                  connected
-                      ? Icons.bluetooth_connected_rounded
-                      : Icons.bluetooth_searching_rounded,
-                  color: stateColor,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      deviceName == null || deviceName.isEmpty
-                          ? context.tr('Mic INNOTRIK', 'INNOTRIK 麦克风')
-                          : deviceName,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      detail,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    if (status.packetCount > 0) ...<Widget>[
-                      const SizedBox(height: 5),
-                      Text(
-                        context.tr(
-                          '${status.packetCount} gói • ${status.decodedPcmBytes ~/ 1024} KB PCM • ${status.invalidPacketCount} lỗi',
-                          '${status.packetCount} 个数据包 • ${status.decodedPcmBytes ~/ 1024} KB PCM • ${status.invalidPacketCount} 个错误',
-                        ),
-                        style: const TextStyle(
-                          color: AppColors.indigo,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          if (busy || diagnosticRunning)
-            const Align(
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: EdgeInsets.all(10),
-                child: SizedBox.square(
-                  dimension: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2.4),
-                ),
-              ),
-            )
-          else
-            Align(
-              alignment: Alignment.centerRight,
-              child: Wrap(
-                spacing: 4,
-                runSpacing: 4,
-                alignment: WrapAlignment.end,
-                children: <Widget>[
-                  if (connected)
-                    TextButton.icon(
-                      onPressed: disabled ? null : onTest,
-                      icon: const Icon(Icons.graphic_eq_rounded),
-                      label: Text(context.tr('Test mic 4 giây', '测试麦克风 4 秒')),
-                    ),
-                  TextButton(
-                    onPressed:
-                        disabled ||
-                            status.phase ==
-                                BluetoothAudioConnectionPhase.unsupported ||
-                            status.phase ==
-                                BluetoothAudioConnectionPhase.disabled
-                        ? null
-                        : connected
-                        ? () => onDisconnect()
-                        : onScan,
-                    child: Text(
-                      connected
-                          ? context.tr('Ngắt', '断开')
-                          : context.tr('Quét & nối', '扫描连接'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  String _detail(BuildContext context) {
-    return switch (status.phase) {
-      BluetoothAudioConnectionPhase.disabled => context.tr(
-        'BLE INNOTRIK đang tắt trong cấu hình bản build.',
-        '此构建中已关闭 INNOTRIK BLE。',
-      ),
-      BluetoothAudioConnectionPhase.unsupported => context.tr(
-        'Điện thoại hoặc bản ứng dụng này không hỗ trợ BLE.',
-        '此手机或应用版本不支持 BLE。',
-      ),
-      BluetoothAudioConnectionPhase.permissionRequired => context.tr(
-        'Cần quyền Thiết bị ở gần/Bluetooth.',
-        '需要“附近设备/蓝牙”权限。',
-      ),
-      BluetoothAudioConnectionPhase.scanning => context.tr(
-        'Đang tìm thiết bị ở gần…',
-        '正在搜索附近设备…',
-      ),
-      BluetoothAudioConnectionPhase.connecting => context.tr(
-        'Đang kết nối GATT…',
-        '正在连接 GATT…',
-      ),
-      BluetoothAudioConnectionPhase.discovering => context.tr(
-        'Đang kiểm tra FF12/FF13/FF14…',
-        '正在检查 FF12/FF13/FF14…',
-      ),
-      BluetoothAudioConnectionPhase.ready => context.tr(
-        'Đã kết nối • Opus decoder sẵn sàng • 24 kHz PCM',
-        '已连接 • Opus 解码器就绪 • 24 kHz PCM',
-      ),
-      BluetoothAudioConnectionPhase.recording => context.tr(
-        'Đang nhận audio thật từ INNOTRIK',
-        '正在接收 INNOTRIK 的真实音频',
-      ),
-      BluetoothAudioConnectionPhase.error =>
-        status.message ?? context.tr('Kết nối gặp lỗi.', '连接发生错误。'),
-      BluetoothAudioConnectionPhase.idle => context.tr(
-        'Bật thiết bị rồi quét để kết nối.',
-        '打开设备后扫描连接。',
-      ),
-    };
-  }
-}
-
-class _H20OfflineHardwareTestCard extends StatelessWidget {
-  const _H20OfflineHardwareTestCard({
-    this.embedded = false,
-    required this.enabled,
-    required this.phase,
-    required this.message,
-    required this.result,
-    required this.bleConnected,
-    required this.mainProtocolConfirmed,
-    required this.hfpStatus,
-    required this.conversationBusy,
-    required this.onEnabledChanged,
-    required this.onRecord,
-    required this.onSpeakerTest,
-    required this.onPlaybackConfirmed,
-  });
-
-  final bool embedded;
-  final bool enabled;
-  final H20HardwareTestPhase phase;
-  final String? message;
-  final H20HardwareTestResult? result;
-  final bool bleConnected;
-  final bool mainProtocolConfirmed;
-  final BluetoothAudioStatus hfpStatus;
-  final bool conversationBusy;
-  final ValueChanged<bool> onEnabledChanged;
-  final Future<void> Function() onRecord;
-  final Future<void> Function() onSpeakerTest;
-  final ValueChanged<bool> onPlaybackConfirmed;
-
-  bool get _running =>
-      phase == H20HardwareTestPhase.openingRoute ||
-      phase == H20HardwareTestPhase.recording ||
-      phase == H20HardwareTestPhase.playing;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final hfpConnected = hfpStatus.isConnected || hfpStatus.deviceId != null;
-    final routeActive = hfpStatus.routeActive;
-    final canStart = enabled && hfpConnected && !conversationBusy && !_running;
-    final canToggleRecording =
-        phase == H20HardwareTestPhase.recording || canStart;
-    return Container(
-      width: double.infinity,
-      padding: embedded
-          ? const EdgeInsets.symmetric(vertical: 10)
-          : const EdgeInsets.all(14),
-      decoration: embedded
-          ? null
-          : BoxDecoration(
-              color: colors.surfaceContainer,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color:
-                    (phase == H20HardwareTestPhase.error
-                            ? AppColors.coral
-                            : AppColors.indigo)
-                        .withValues(alpha: 0.24),
-              ),
-            ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              const HomiIconBadge(
-                icon: Icons.health_and_safety_outlined,
-                size: 40,
-                iconSize: 22,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      context.tr(
-                        'Kiểm tra phần cứng HOMI offline',
-                        'HOMI 离线硬件测试',
-                      ),
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      context.tr(
-                        'Chỉ ghi file trên điện thoại; không gọi backend và không tải âm thanh lên cloud.',
-                        '仅在手机本地录音；不调用后端，也不上传音频到云端。',
-                      ),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Switch.adaptive(value: enabled, onChanged: onEnabledChanged),
-            ],
-          ),
-          _Aiv0DiagnosticLine(
-            label: 'BLE',
-            value: bleConnected
-                ? context.tr('Đã kết nối', '已连接')
-                : context.tr('Chưa kết nối', '未连接'),
-          ),
-          _Aiv0DiagnosticLine(
-            label: 'HFP',
-            value: hfpConnected
-                ? context.tr('Đã kết nối', '已连接')
-                : context.tr('Chưa kết nối', '未连接'),
-          ),
-          _Aiv0DiagnosticLine(
-            label: 'SCO',
-            value: routeActive
-                ? context.tr('Đang hoạt động', '正在使用')
-                : context.tr('Chỉ mở trong lúc kiểm tra', '仅在测试时打开'),
-          ),
-          _Aiv0DiagnosticLine(
-            label: 'MAIN',
-            value: mainProtocolConfirmed
-                ? context.tr(
-                    'Đã xác nhận • điều khiển ghi/dừng',
-                    '已确认 • 控制开始/停止录音',
-                  )
-                : context.tr(
-                    'Raw Hex đã bật • điều khiển ghi/dừng',
-                    'Raw Hex 已启用 • 控制开始/停止录音',
-                  ),
-          ),
-          if (message != null && message!.trim().isNotEmpty) ...<Widget>[
-            const SizedBox(height: 8),
-            Text(
-              message!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: phase == H20HardwareTestPhase.error
-                    ? AppColors.coral
-                    : colors.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-          if (result != null) ...<Widget>[
-            const SizedBox(height: 6),
-            _Aiv0DiagnosticLine(
-              label: context.tr('Micro đã kiểm', '麦克风验证'),
-              value: result!.inputRouteVerified
-                  ? result!.inputDeviceName ?? 'HFP/SCO'
-                  : context.tr('Chưa xác nhận', '尚未确认'),
-            ),
-            _Aiv0DiagnosticLine(
-              label: context.tr('Loa đã kiểm', '扬声器验证'),
-              value: result!.outputRouteVerified
-                  ? result!.outputDeviceName ?? 'HFP/SCO'
-                  : context.tr('Chưa xác nhận', '尚未确认'),
-            ),
-            if (result!.recordedDuration != null)
-              _Aiv0DiagnosticLine(
-                label: context.tr('Thời lượng', '录音时长'),
-                value: '${result!.recordedDuration!.inMilliseconds / 1000.0} s',
-              ),
-            const SizedBox(height: 6),
-            Text(
-              context.tr(
-                'Bạn có nghe âm thanh từ loa HOMI không?',
-                '您是否从 HOMI 扬声器听到声音？',
-              ),
-              style: Theme.of(context).textTheme.labelMedium,
-            ),
-            Row(
-              children: <Widget>[
-                TextButton.icon(
-                  onPressed: () => onPlaybackConfirmed(true),
-                  icon: Icon(
-                    Icons.check_circle_outline_rounded,
-                    color: result!.playbackAudible == true
-                        ? AppColors.success
-                        : null,
-                  ),
-                  label: Text(context.tr('Có', '是')),
-                ),
-                TextButton.icon(
-                  onPressed: () => onPlaybackConfirmed(false),
-                  icon: Icon(
-                    Icons.error_outline_rounded,
-                    color: result!.playbackAudible == false
-                        ? AppColors.coral
-                        : null,
-                  ),
-                  label: Text(context.tr('Không', '否')),
-                ),
-              ],
-            ),
-          ],
-          const SizedBox(height: 8),
-          Wrap(
-            alignment: WrapAlignment.end,
-            spacing: 8,
-            runSpacing: 8,
-            children: <Widget>[
-              OutlinedButton.icon(
-                onPressed: canStart ? () => onSpeakerTest() : null,
-                icon: const Icon(Icons.volume_up_rounded),
-                label: Text(context.tr('Test loa offline', '离线测试扬声器')),
-              ),
-              FilledButton.icon(
-                onPressed: canToggleRecording ? () => onRecord() : null,
-                icon: Icon(
-                  phase == H20HardwareTestPhase.recording
-                      ? Icons.stop_circle_outlined
-                      : Icons.mic_rounded,
-                ),
-                label: Text(
-                  phase == H20HardwareTestPhase.recording
-                      ? context.tr('Dừng & phát lại', '停止并回放')
-                      : context.tr('Thu thử tối đa 5 giây', '录音测试（最多 5 秒）'),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }
 
 class _HfpStatusCard extends StatelessWidget {
   const _HfpStatusCard({
-    this.embedded = false,
     required this.status,
-    required this.browserManaged,
     required this.selected,
     required this.disabled,
     required this.onFind,
     required this.onDisconnect,
   });
 
-  final bool embedded;
   final BluetoothAudioStatus status;
-  final bool browserManaged;
   final bool selected;
   final bool disabled;
   final VoidCallback onFind;
@@ -2874,227 +1318,34 @@ class _HfpStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final connected = status.isConnected;
-    final busy = status.isBusy;
-    final stateColor = selected
-        ? AppColors.success
-        : status.phase == BluetoothAudioConnectionPhase.error
-        ? AppColors.coral
-        : connected
-        ? AppColors.indigo
-        : AppColors.muted;
-    final deviceName = status.deviceName?.trim();
-    return Container(
-      width: double.infinity,
-      padding: embedded
-          ? const EdgeInsets.symmetric(vertical: 10)
-          : const EdgeInsets.fromLTRB(14, 12, 12, 12),
-      decoration: embedded
-          ? null
-          : BoxDecoration(
-              color: connected
-                  ? Color.alphaBlend(
-                      AppColors.success.withValues(alpha: 0.12),
-                      colorScheme.surfaceContainer,
-                    )
-                  : colorScheme.surfaceContainer,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: stateColor.withValues(alpha: 0.22)),
-            ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              HomiIconBadge(
-                icon: Icons.headset_mic_rounded,
-                foregroundColor: stateColor,
-                backgroundColor: stateColor.withValues(alpha: 0.11),
-                size: 40,
-                iconSize: 22,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      deviceName == null || deviceName.isEmpty
-                          ? context.tr('Mic Bluetooth HFP', '蓝牙 HFP 麦克风')
-                          : deviceName,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      _detail(context, selected: selected),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          if (connected && !browserManaged) ...<Widget>[
-            const SizedBox(height: 9),
-            _Aiv0DiagnosticLine(
-              label: context.tr('Micro thực tế', '实际麦克风'),
-              value: status.routeActive
-                  ? status.inputDeviceName ??
-                        context.tr('HFP/SCO (không rõ tên)', 'HFP/SCO（名称未知）')
-                  : context.tr(
-                      'Chưa xác nhận • đường SCO chưa mở',
-                      '尚未确认 • SCO 通道未打开',
-                    ),
-            ),
-            _Aiv0DiagnosticLine(
-              label: context.tr('Loa thực tế', '实际扬声器'),
-              value: status.routeActive
-                  ? status.outputDeviceName ??
-                        context.tr('HFP/SCO (không rõ tên)', 'HFP/SCO（名称未知）')
-                  : context.tr(
-                      'Chưa xác nhận • đường SCO chưa mở',
-                      '尚未确认 • SCO 通道未打开',
-                    ),
-            ),
-            _Aiv0DiagnosticLine(
-              label: context.tr('Đường SCO', 'SCO 通道'),
-              value: status.routeActive
-                  ? context.tr('Đang hoạt động', '正在使用')
-                  : context.tr('Chưa mở', '未打开'),
-            ),
-          ],
-          const SizedBox(height: 6),
-          if (busy)
-            const Align(
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: EdgeInsets.all(8),
-                child: HomiWaveform(active: true, width: 58, height: 24),
-              ),
+    final name = status.deviceName?.trim();
+    return _SettingsDeviceTile(
+      icon: Icons.mic_rounded,
+      foregroundColor: selected ? AppColors.success : null,
+      title: name == null || name.isEmpty
+          ? context.tr('Mic HOMI', 'HOMI 麦克风')
+          : name,
+      trailing: status.isBusy
+          ? const SizedBox(
+              width: 48,
+              child: HomiWaveform(active: true, width: 42, height: 22),
             )
-          else
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed:
-                    disabled ||
-                        status.phase ==
-                            BluetoothAudioConnectionPhase.unsupported ||
-                        status.phase == BluetoothAudioConnectionPhase.disabled
-                    ? null
-                    : selected
-                    ? () => onDisconnect()
-                    : onFind,
-                icon: Icon(
-                  selected
-                      ? Icons.link_off_rounded
-                      : Icons.manage_search_rounded,
-                ),
-                label: Text(
-                  selected
-                      ? context.tr('Dùng mic điện thoại', '使用手机麦克风')
-                      : connected && !browserManaged
-                      ? context.tr('Dùng mic này', '使用此麦克风')
-                      : browserManaged
-                      ? context.tr('Chọn mic HFP', '选择 HFP 麦克风')
-                      : context.tr('Tìm HFP', '查找 HFP'),
-                ),
+          : TextButton(
+              onPressed:
+                  disabled ||
+                      status.phase ==
+                          BluetoothAudioConnectionPhase.unsupported ||
+                      status.phase == BluetoothAudioConnectionPhase.disabled
+                  ? null
+                  : selected
+                  ? () => onDisconnect()
+                  : onFind,
+              child: Text(
+                selected
+                    ? context.tr('Bỏ chọn', '取消选择')
+                    : context.tr('Chọn mic', '选择麦克风'),
               ),
             ),
-        ],
-      ),
     );
-  }
-
-  String _detail(BuildContext context, {required bool selected}) {
-    if (browserManaged) {
-      return switch (status.phase) {
-        BluetoothAudioConnectionPhase.disabled => context.tr(
-          'HFP Web đang tắt trong cấu hình bản build.',
-          '此构建中已关闭网页 HFP。',
-        ),
-        BluetoothAudioConnectionPhase.unsupported => context.tr(
-          'Trình duyệt này không hỗ trợ chọn mic Bluetooth.',
-          '此浏览器不支持选择蓝牙麦克风。',
-        ),
-        BluetoothAudioConnectionPhase.permissionRequired => context.tr(
-          'Cần cho phép quyền micro của trình duyệt.',
-          '需要允许浏览器使用麦克风。',
-        ),
-        BluetoothAudioConnectionPhase.scanning => context.tr(
-          'Đang kiểm tra các mic mà trình duyệt cung cấp…',
-          '正在检查浏览器提供的麦克风…',
-        ),
-        BluetoothAudioConnectionPhase.connecting => context.tr(
-          'Đang chọn mic Bluetooth…',
-          '正在选择蓝牙麦克风…',
-        ),
-        BluetoothAudioConnectionPhase.discovering => context.tr(
-          'Đang kiểm tra đường âm thanh của trình duyệt…',
-          '正在检查浏览器音频通道…',
-        ),
-        BluetoothAudioConnectionPhase.ready => context.tr(
-          'Đã chọn • sẵn sàng ghi âm qua Web',
-          '已选择 • 可通过网页录音',
-        ),
-        BluetoothAudioConnectionPhase.recording => context.tr(
-          'Đang ghi âm từ mic Bluetooth trên Web',
-          '正在通过网页蓝牙麦克风录音',
-        ),
-        BluetoothAudioConnectionPhase.error =>
-          status.message ??
-              context.tr('Không thể dùng mic Bluetooth.', '无法使用蓝牙麦克风。'),
-        BluetoothAudioConnectionPhase.idle => context.tr(
-          'Kết nối tai nghe trong hệ thống rồi chọn mic tại đây.',
-          '请先在系统中连接耳机，再在此选择麦克风。',
-        ),
-      };
-    }
-    return switch (status.phase) {
-      BluetoothAudioConnectionPhase.disabled => context.tr(
-        'HFP đang tắt trong cấu hình bản build.',
-        '此构建中已关闭 HFP。',
-      ),
-      BluetoothAudioConnectionPhase.unsupported => context.tr(
-        'Điện thoại hoặc bản ứng dụng này không hỗ trợ HFP.',
-        '此手机或应用版本不支持 HFP。',
-      ),
-      BluetoothAudioConnectionPhase.permissionRequired => context.tr(
-        'Cần quyền Thiết bị ở gần/Bluetooth.',
-        '需要“附近设备/蓝牙”权限。',
-      ),
-      BluetoothAudioConnectionPhase.scanning => context.tr(
-        'Đang tìm thiết bị HFP đã ghép đôi…',
-        '正在查找已配对的 HFP 设备…',
-      ),
-      BluetoothAudioConnectionPhase.connecting => context.tr(
-        'Đang kiểm tra kết nối HFP…',
-        '正在检查 HFP 连接…',
-      ),
-      BluetoothAudioConnectionPhase.discovering => context.tr(
-        'Đang kiểm tra đường âm thanh SCO…',
-        '正在检查 SCO 音频通道…',
-      ),
-      BluetoothAudioConnectionPhase.ready => context.tr(
-        selected
-            ? 'Nguồn đang chọn • HOMI qua HFP/SCO'
-            : 'Đã kết nối • bấm “Dùng mic này” để chọn',
-        selected ? '当前音源 • HOMI 通过 HFP/SCO' : '已连接 • 点击“使用此麦克风”',
-      ),
-      BluetoothAudioConnectionPhase.recording => context.tr(
-        'Đang nhận diện từ mic HFP/SCO',
-        '正在通过 HFP/SCO 麦克风识别',
-      ),
-      BluetoothAudioConnectionPhase.error =>
-        status.message ?? context.tr('Kết nối HFP gặp lỗi.', 'HFP 连接发生错误。'),
-      BluetoothAudioConnectionPhase.idle => context.tr(
-        'Kết nối HFP trong Cài đặt hệ thống, rồi chọn mic tại đây.',
-        '请先在系统设置中连接 HFP，再在此选择麦克风。',
-      ),
-    };
   }
 }
