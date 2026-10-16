@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
-import '../../../app/homi_bottom_navigation.dart';
 import '../../../config/app_config.dart';
 import '../../../l10n/display_language.dart';
 import '../../../core/navigation/active_learning_navigation.dart';
@@ -440,6 +439,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         },
         child: Scaffold(
           backgroundColor: Colors.transparent,
+          extendBody: true,
           body: Stack(
             children: <Widget>[
               PageView(
@@ -546,21 +546,6 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                   ),
                 ),
             ],
-          ),
-          bottomNavigationBar: HomiBottomNavigation(
-            selectedIndex: _page == 0 ? 0 : 3,
-            onConversation: _showConversation,
-            onTopics: _openTopicListening,
-            onMain: widget.onScreenMainPressed == null
-                ? null
-                : () => unawaited(widget.onScreenMainPressed!()),
-            onVocabulary: _showVocabulary,
-            onHistory: _showHistory,
-            conversationKey: const Key('home-conversation-tab'),
-            topicsKey: const Key('home-topics-tab'),
-            mainKey: const Key('home-main-button'),
-            vocabularyKey: const Key('home-vocabulary-tab'),
-            historyKey: const Key('home-history-tab'),
           ),
         ),
       ),

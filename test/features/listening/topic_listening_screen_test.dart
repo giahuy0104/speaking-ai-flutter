@@ -114,21 +114,14 @@ void main() {
     }
   });
 
-  testWidgets('topic navigation exposes the shared MAIN action', (
-    tester,
-  ) async {
-    var mainPresses = 0;
-    await tester.pumpWidget(
-      buildSubject(onMainPressed: () async => mainPresses += 1),
-    );
+  testWidgets('topic page has no shared bottom navigation', (tester) async {
+    await tester.pumpWidget(buildSubject());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('listening-main-button')));
-    await tester.pump();
-
-    expect(mainPresses, 1);
-    expect(find.byKey(const Key('listening-topics-tab')), findsOneWidget);
-    expect(find.byKey(const Key('listening-vocabulary-tab')), findsOneWidget);
+    expect(find.byKey(const Key('listening-main-button')), findsNothing);
+    expect(find.byKey(const Key('listening-topics-tab')), findsNothing);
+    expect(find.byKey(const Key('listening-vocabulary-tab')), findsNothing);
+    expect(find.byTooltip('Quay lại'), findsOneWidget);
   });
 
   testWidgets('topic prompts prepare and use the selected H20 output', (
@@ -353,6 +346,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.byKey(const Key('topic-lesson-list-screen')), findsOneWidget);
+    expect(find.byKey(const Key('listening-bottom-navigation')), findsNothing);
     expect(find.byKey(const Key('topic-header-english-title')), findsOneWidget);
     expect(find.text('ABC Words'), findsOneWidget);
     expect(find.text('Lesson 1 · K to O Letters'), findsOneWidget);
@@ -1164,10 +1158,7 @@ void main() {
     expect(find.byKey(const Key('topic-journey-path')), findsOneWidget);
     expect(find.byKey(const ValueKey('topic-6-7-0')), findsOneWidget);
     expect(find.text('Hành trình của bạn'), findsOneWidget);
-    expect(
-      find.byKey(const Key('listening-bottom-navigation')),
-      findsOneWidget,
-    );
+    expect(find.byKey(const Key('listening-bottom-navigation')), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -1181,10 +1172,7 @@ void main() {
 
     expect(find.byKey(const Key('topic-age-selector')), findsOneWidget);
     expect(find.byKey(const Key('continue-listening-card')), findsNothing);
-    expect(
-      find.byKey(const Key('listening-bottom-navigation')),
-      findsOneWidget,
-    );
+    expect(find.byKey(const Key('listening-bottom-navigation')), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

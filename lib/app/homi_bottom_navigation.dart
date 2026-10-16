@@ -43,15 +43,8 @@ class HomiBottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surface = isDark
-        ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.98)
-        : Colors.white.withValues(alpha: 0.98);
-
     return Material(
-      color: surface,
-      elevation: 8,
-      shadowColor: AppColors.primaryNavy.withValues(alpha: 0.12),
+      type: MaterialType.transparency,
       child: SafeArea(
         top: false,
         child: SizedBox(

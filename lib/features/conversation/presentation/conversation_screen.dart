@@ -44,7 +44,7 @@ class ConversationScreen extends StatelessWidget {
             body: LearningScenery(
               overlayOpacity: 0.025,
               child: SafeArea(
-                bottom: false,
+                bottom: true,
                 child: Column(
                   children: <Widget>[
                     ScenicAppHeader(
@@ -91,6 +91,10 @@ class ConversationScreen extends StatelessWidget {
                                   const SizedBox(height: 12),
                                   _InlineMessage(
                                     isError: controller.errorMessage != null,
+                                    isConnectionReady:
+                                        controller.transientMessage ==
+                                        ConversationController
+                                            .connectionReadyMessage,
                                     message:
                                         controller.errorMessage ??
                                         controller.transientMessage!,
@@ -124,11 +128,13 @@ class ConversationScreen extends StatelessWidget {
 class _InlineMessage extends StatelessWidget {
   const _InlineMessage({
     required this.isError,
+    required this.isConnectionReady,
     required this.message,
     required this.onDismiss,
   });
 
   final bool isError;
+  final bool isConnectionReady;
   final String message;
   final VoidCallback onDismiss;
 
@@ -138,8 +144,15 @@ class _InlineMessage extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final color = isError
         ? theme.colorScheme.error
-        : (isDark ? theme.colorScheme.onTertiaryContainer : AppColors.ink);
-    final localizedMessage = context.trKnown(message);
+        : (isDark
+              ? theme.colorScheme.onTertiaryContainer
+              : AppColors.primaryNavy);
+    final localizedMessage = isConnectionReady
+        ? context.tr(
+            ConversationController.connectionReadyMessage,
+            'HOMI 设备已连接，准备好一起学习啦！',
+          )
+        : context.trKnown(message);
     return Semantics(
       liveRegion: true,
       label: localizedMessage,
@@ -150,6 +163,8 @@ class _InlineMessage extends StatelessWidget {
               ? theme.colorScheme.errorContainer
               : (isDark
                     ? theme.colorScheme.tertiaryContainer
+                    : isConnectionReady
+                    ? AppColors.mintSoft
                     : AppColors.lavender),
           borderRadius: BorderRadius.circular(14),
         ),
@@ -158,6 +173,8 @@ class _InlineMessage extends StatelessWidget {
             Icon(
               isError
                   ? Icons.error_outline_rounded
+                  : isConnectionReady
+                  ? Icons.check_circle_rounded
                   : Icons.info_outline_rounded,
               color: color,
               size: 21,
@@ -169,11 +186,12 @@ class _InlineMessage extends StatelessWidget {
                 style: TextStyle(color: color, fontSize: 13),
               ),
             ),
-            IconButton(
-              onPressed: onDismiss,
-              icon: const Icon(Icons.close_rounded),
-              tooltip: context.tr('Ẩn thông báo', '隐藏通知'),
-            ),
+            if (!isConnectionReady)
+              IconButton(
+                onPressed: onDismiss,
+                icon: const Icon(Icons.close_rounded),
+                tooltip: context.tr('Ẩn thông báo', '隐藏通知'),
+              ),
           ],
         ),
       ),

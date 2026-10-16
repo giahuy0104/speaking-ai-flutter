@@ -600,7 +600,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       body: LearningScenery(
         overlayOpacity: 0.025,
         child: SafeArea(
-          bottom: false,
+          bottom: true,
           child: Column(
             children: <Widget>[
               _VocabularyHeader(
