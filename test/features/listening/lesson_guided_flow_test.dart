@@ -332,9 +332,9 @@ void main() {
     ActiveLearningCommand.previousItem,
     ActiveLearningCommand.nextItem,
   ]) {
-    for (final virtualButton in <bool>[false, true]) {
+    for (final interruptingCommand in <bool>[false, true]) {
       testWidgets(
-        'V4 $command ${virtualButton ? "button" : "MAIN"} waits for EN and VI to finish before capture',
+        'V4 $command ${interruptingCommand ? "interrupting" : "paused"} command waits for EN and VI to finish before capture',
         (tester) async {
           await _usePhoneSurface(tester);
           final registry = ActiveLearningModuleRegistry();
@@ -354,18 +354,13 @@ void main() {
             ),
           );
           await _pumpGuidedSpeechTurn(tester);
-          if (!virtualButton) await registry.pauseForMainAssistant();
+          if (!interruptingCommand) await registry.pauseForMainAssistant();
           final previousStarts = media.startedSentenceIds.length;
           prompts.spoken.clear();
           prompts.englishGate = Completer<void>();
           prompts.vietnameseGate = Completer<void>();
-          if (virtualButton) {
-            final key = command == ActiveLearningCommand.nextItem
-                ? 'virtual-lesson-next'
-                : command == ActiveLearningCommand.previousItem
-                ? 'virtual-lesson-previous'
-                : 'virtual-lesson-replay';
-            await tester.tap(find.byKey(Key(key)));
+          if (interruptingCommand) {
+            await registry.interruptAndExecute(command);
           } else {
             await registry.execute(command);
           }
@@ -413,7 +408,7 @@ void main() {
     ActiveLearningCommand.nextItem,
   ]) {
     testWidgets(
-      'STOP keeps the cursor and ${command.name} button resumes a full guided turn',
+      'STOP keeps the cursor and ${command.name} command resumes a full guided turn',
       (tester) async {
         await _usePhoneSurface(tester);
         final registry = ActiveLearningModuleRegistry();
@@ -447,17 +442,7 @@ void main() {
         prompts.spoken.clear();
         prompts.englishGate = Completer<void>();
         prompts.vietnameseGate = Completer<void>();
-        final key = command == ActiveLearningCommand.nextItem
-            ? 'virtual-lesson-next'
-            : command == ActiveLearningCommand.previousItem
-            ? 'virtual-lesson-previous'
-            : 'virtual-lesson-replay';
-        final button = find.descendant(
-          of: find.byKey(Key(key)),
-          matching: find.byType(IconButton),
-        );
-        expect(tester.widget<IconButton>(button).onPressed, isNotNull);
-        await tester.tap(button);
+        await registry.interruptAndExecute(command);
         await _pumpGuidedSpeechTurn(tester);
         final number = command == ActiveLearningCommand.nextItem
             ? 3
@@ -509,33 +494,15 @@ void main() {
       await _pumpGuidedSpeechTurn(tester);
       expect(await registry.pauseForMainAssistant(), isTrue);
       await tester.pump();
-      for (final key in <String>[
-        'virtual-lesson-previous',
-        'virtual-lesson-replay',
-        'virtual-lesson-next',
-      ]) {
-        final button = find.descendant(
-          of: find.byKey(Key(key)),
-          matching: find.byType(IconButton),
-        );
-        expect(tester.widget<IconButton>(button).onPressed, isNull);
-      }
+      expect(find.byKey(const Key('virtual-lesson-controls')), findsNothing);
       expect(
         tester
-            .widget<OutlinedButton>(
-              find.byKey(const Key('previous-lesson-sentence')),
-            )
+            .widget<OutlinedButton>(find.byKey(const Key('play-lesson-sample')))
             .onPressed,
         isNull,
       );
-      expect(
-        tester
-            .widget<FilledButton>(
-              find.byKey(const Key('continue-lesson-sentence')),
-            )
-            .onPressed,
-        isNull,
-      );
+      expect(find.byKey(const Key('previous-lesson-sentence')), findsNothing);
+      expect(find.byKey(const Key('continue-lesson-sentence')), findsNothing);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump();
     },
@@ -574,7 +541,7 @@ void main() {
   });
 
   testWidgets(
-    'virtual lesson buttons interrupt the current recording and change sentence',
+    'lesson commands interrupt the current recording without virtual buttons',
     (tester) async {
       await _usePhoneSurface(tester);
       final registry = ActiveLearningModuleRegistry();
@@ -594,13 +561,11 @@ void main() {
       );
       await _pumpGuidedSpeechTurn(tester);
 
-      expect(find.byKey(const Key('virtual-lesson-controls')), findsOneWidget);
+      expect(find.byKey(const Key('virtual-lesson-controls')), findsNothing);
       expect(mediaService.recording, isTrue);
       expect(find.text('Sentence 1'), findsOneWidget);
 
-      final nextButton = find.byKey(const Key('virtual-lesson-next'));
-      await tester.ensureVisible(nextButton);
-      await tester.tap(nextButton);
+      await registry.interruptAndExecute(ActiveLearningCommand.nextItem);
       await tester.pump();
       await tester.pump();
 
@@ -2551,15 +2516,13 @@ void main() {
       ),
     );
     await _finishInitialLoad(tester);
-    await tester.tap(find.byKey(const Key('continue-lesson-sentence')));
-    await tester.pump();
-    await tester.pump();
+    await _recordAndContinue(tester);
 
     expect(find.text('Đã học'), findsOneWidget);
     expect(find.text('Bài tiếp theo'), findsOneWidget);
     await tester.tap(find.byKey(const Key('post-lesson-primary-action')));
-    await tester.pump();
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.byType(LessonIntroScreen), findsOneWidget);
     expect(find.text('Mở đầu bài tiếp theo.'), findsOneWidget);
@@ -2593,9 +2556,7 @@ void main() {
     );
     await _finishInitialLoad(tester);
     for (var index = 0; index < 2; index++) {
-      await tester.tap(find.byKey(const Key('continue-lesson-sentence')));
-      await tester.pump();
-      await tester.pump();
+      await _recordAndContinue(tester);
     }
 
     expect(find.text('Đã học'), findsOneWidget);
@@ -2640,6 +2601,7 @@ void main() {
                       topicContent: topicContent,
                       progressStore: progressStore,
                       mediaService: mediaService,
+                      voicePromptService: _FakeVoicePromptService(),
                     ),
                   ),
                 );
@@ -2653,9 +2615,7 @@ void main() {
     await tester.tap(find.byKey(const Key('open-last-lesson')));
     await tester.pump();
     await tester.pump();
-    await tester.tap(find.byKey(const Key('continue-lesson-sentence')));
-    await tester.pump();
-    await tester.pump();
+    await _recordAndContinue(tester);
 
     expect(
       find.descendant(
@@ -2665,8 +2625,8 @@ void main() {
       findsOneWidget,
     );
     await tester.tap(find.byKey(const Key('post-lesson-primary-action')));
-    await tester.pump();
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.byKey(const Key('selected-listening-topic')), findsOneWidget);
     expect(find.byType(LessonPracticeScreen), findsNothing);
@@ -2708,6 +2668,7 @@ void main() {
                             topicContent: topicContent,
                             progressStore: progressStore,
                             mediaService: mediaService,
+                            voicePromptService: _FakeVoicePromptService(),
                           ),
                         ),
                       ),
@@ -2729,12 +2690,10 @@ void main() {
     await tester.tap(find.byKey(const Key('open-catalog-return-lesson')));
     await tester.pump();
     await tester.pump();
-    await tester.tap(find.byKey(const Key('continue-lesson-sentence')));
-    await tester.pump();
-    await tester.pump();
+    await _recordAndContinue(tester);
     await tester.tap(find.byKey(const Key('post-lesson-primary-action')));
-    await tester.pump();
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.byKey(const Key('selected-age-topic-catalog')), findsOneWidget);
     expect(find.byKey(const Key('topic-detail')), findsNothing);
@@ -3161,9 +3120,7 @@ void main() {
     await _finishInitialLoad(tester);
 
     for (var index = 0; index < 3; index++) {
-      await tester.tap(find.byKey(const Key('continue-lesson-sentence')));
-      await tester.pump();
-      await tester.pump();
+      await _recordAndContinue(tester);
     }
 
     expect(find.byType(LessonReviewScreen), findsOneWidget);
@@ -5226,6 +5183,30 @@ class _BlockingStarProgressStore extends _MemoryProgressStore {
 }
 
 Future<void> _finishInitialLoad(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump();
+}
+
+Future<void> _recordAndContinue(WidgetTester tester) async {
+  final continueButton = find.byKey(const Key('continue-lesson-sentence'));
+  final recordButton = find.byKey(const Key('record-lesson-sentence'));
+  await tester.ensureVisible(recordButton);
+  await tester.pump(const Duration(milliseconds: 500));
+  for (
+    var attempt = 0;
+    attempt < 4 &&
+        continueButton.evaluate().isEmpty &&
+        find.byType(LessonReviewScreen).evaluate().isEmpty;
+    attempt++
+  ) {
+    await tester.tap(recordButton);
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump();
+  }
+  if (find.byType(LessonReviewScreen).evaluate().isNotEmpty) return;
+  expect(continueButton, findsOneWidget);
+  await tester.ensureVisible(continueButton);
+  await tester.tap(continueButton);
   await tester.pump();
   await tester.pump();
 }

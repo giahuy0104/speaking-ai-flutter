@@ -182,7 +182,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   StreamSubscription<void>? _completionChoiceCompletedSubscription;
   StreamSubscription<String>? _completionChoicePartialSubscription;
   bool _pausedForMainAssistant = false;
-  bool _pausedByStop = false;
   bool _challengeEntryPending = false;
   int _challengeEntryRequest = 0;
   bool _exiting = false;
@@ -190,7 +189,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   int _invalidResponseCount = 0;
   final Map<LessonFeedbackKind, int> _feedbackVariationIndexes =
       <LessonFeedbackKind, int>{};
-  bool _virtualCommandPending = false;
   bool _v4CompletionChoiceVisible = false;
   V4CompletionStage? _activeV4CompletionStage;
   List<V4CompletionAction> _activeV4CompletionActions =
@@ -549,7 +547,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   @override
   Future<void> pauseForMainAssistant({bool waitForCleanup = true}) async {
     _pausedForMainAssistant = true;
-    _pausedByStop = false;
     _lessonSession.invalidateMainPause();
     _lessonSession.invalidateActiveTurn();
     _cancelPendingLessonDelays();
@@ -673,7 +670,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             _pausedForMainAssistant &&
             _lessonSession.isCurrentMainPause(stopTicket)) {
           setState(() {
-            _pausedByStop = true;
             _message = 'Đã dừng. Nhấn MAIN để tiếp tục.';
           });
         }
@@ -869,35 +865,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
   }
 
-  Future<void> _runVirtualLessonCommand(ActiveLearningCommand command) async {
-    if (_virtualCommandPending ||
-        !mounted ||
-        (_pausedForMainAssistant && !_pausedByStop)) {
-      return;
-    }
-    setState(() => _virtualCommandPending = true);
-    final registry = _activeModuleRegistry;
-    final result = registry == null
-        ? await _interruptAndHandleLocally(command)
-        : await registry.interruptAndExecute(command);
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _virtualCommandPending = false;
-      if (result.spokenReply case final reply? when reply.trim().isNotEmpty) {
-        _message = reply;
-      }
-    });
-  }
-
-  Future<ActiveLearningCommandResult> _interruptAndHandleLocally(
-    ActiveLearningCommand command,
-  ) async {
-    await pauseForMainAssistant();
-    return handleMainCommand(command);
-  }
-
   @override
   Widget build(BuildContext context) {
     final total = widget.lesson.sentences.length;
@@ -906,8 +873,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         _mediaBusy ||
         _evaluatingAttempt ||
         _pausedAfterNoResponse ||
-        _pausedForMainAssistant ||
-        _virtualCommandPending;
+        _pausedForMainAssistant;
     return DisplayLanguageScope(
       language: widget.language,
       child: PopScope<Object?>(
@@ -917,6 +883,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         child: Scaffold(
           key: const Key('lesson-practice-screen'),
           backgroundColor: Colors.transparent,
+          extendBody: true,
           body: LearningScenery(
             imageAlignment: Alignment.center,
             overlayOpacity: 0.14,
@@ -972,8 +939,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
                                           _mediaBusy ||
                                           _evaluatingAttempt ||
                                           _pausedAfterNoResponse ||
-                                          _pausedForMainAssistant ||
-                                          _virtualCommandPending,
+                                          _pausedForMainAssistant,
                                       onTap: _toggleRecording,
                                       onLongPressStart: _startRecording,
                                       onLongPressEnd: _stopRecording,
@@ -995,7 +961,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
                                               ),
                                             ),
                                     ),
-                                    if (_message != null) ...<Widget>[
+                                    if (_message != null &&
+                                        !_message!.contains(
+                                          'Hãy bật Bluetooth trên điện thoại',
+                                        )) ...<Widget>[
                                       const SizedBox(height: 12),
                                       Text(
                                         _message!,
@@ -1029,20 +998,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
                                         canGoPrevious: _sentenceIndex > 0,
                                         finalSentence:
                                             _sentenceIndex == total - 1,
-                                      )
-                                    else
-                                      _LessonNavigationActions(
-                                        current: _sentenceIndex,
-                                        total: total,
-                                        busy: interactionBusy,
-                                        allowPrevious:
-                                            widget.lesson.usesV4Flow ||
-                                            _sentenceIndex > 0,
-                                        allowNext:
-                                            !widget.lesson.usesV4Flow ||
-                                            _sentenceIndex < total - 1,
-                                        onPrevious: _previous,
-                                        onContinue: _continue,
                                       ),
                                     if (_showSkip &&
                                         _recordingPath == null) ...<Widget>[
@@ -1068,25 +1023,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
                         ),
                       ),
                     ],
-                  ),
-                ),
-                Positioned(
-                  top: MediaQuery.paddingOf(context).top + 70,
-                  right: 6,
-                  child: _VirtualLessonControls(
-                    pending:
-                        _virtualCommandPending ||
-                        (_pausedForMainAssistant && !_pausedByStop),
-                    canGoPrevious: _sentenceIndex > 0,
-                    onPrevious: () => _runVirtualLessonCommand(
-                      ActiveLearningCommand.previousItem,
-                    ),
-                    onReplay: () => _runVirtualLessonCommand(
-                      ActiveLearningCommand.replayCurrent,
-                    ),
-                    onNext: () => _runVirtualLessonCommand(
-                      ActiveLearningCommand.nextItem,
-                    ),
                   ),
                 ),
                 Positioned.fill(
@@ -4641,21 +4577,7 @@ class _LessonHeader extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isDark
-                  ? colorScheme.surfaceContainer
-                  : const Color(0xF8FFFDF9),
-              border: Border.all(
-                color: isDark ? colorScheme.outline : const Color(0xCCFFFFFF),
-                width: 1.3,
-              ),
-            ),
-            child: const Icon(Icons.star_rounded, color: Color(0xFFFFC75B)),
-          ),
+          const SizedBox(width: 52),
         ],
       ),
     );
@@ -4827,96 +4749,6 @@ class _SentenceCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _VirtualLessonControls extends StatelessWidget {
-  const _VirtualLessonControls({
-    required this.pending,
-    required this.canGoPrevious,
-    required this.onPrevious,
-    required this.onReplay,
-    required this.onNext,
-  });
-
-  final bool pending;
-  final bool canGoPrevious;
-  final VoidCallback onPrevious;
-  final VoidCallback onReplay;
-  final VoidCallback onNext;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Semantics(
-      container: true,
-      label: context.tr(
-        'Điều khiển AIV0 thử nghiệm trong bài luyện câu',
-        '句子练习中的 AIV0 测试控制',
-      ),
-      child: Container(
-        key: const Key('virtual-lesson-controls'),
-        padding: const EdgeInsets.all(5),
-        decoration: BoxDecoration(
-          color: colorScheme.surface.withValues(alpha: 0.92),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: colorScheme.outlineVariant),
-          boxShadow: const <BoxShadow>[
-            BoxShadow(
-              color: Color(0x24142451),
-              blurRadius: 12,
-              offset: Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            _VirtualLessonButton(
-              key: const Key('virtual-lesson-previous'),
-              icon: Icons.skip_previous_rounded,
-              label: context.tr('Câu trước', '上一句'),
-              onPressed: !pending && canGoPrevious ? onPrevious : null,
-            ),
-            _VirtualLessonButton(
-              key: const Key('virtual-lesson-replay'),
-              icon: Icons.replay_rounded,
-              label: context.tr('Nghe lại câu', '重听本句'),
-              onPressed: pending ? null : onReplay,
-            ),
-            _VirtualLessonButton(
-              key: const Key('virtual-lesson-next'),
-              icon: Icons.skip_next_rounded,
-              label: context.tr('Câu sau', '下一句'),
-              onPressed: pending ? null : onNext,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _VirtualLessonButton extends StatelessWidget {
-  const _VirtualLessonButton({
-    required super.key,
-    required this.icon,
-    required this.label,
-    required this.onPressed,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton.filledTonal(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 22),
-      tooltip: label,
-      visualDensity: VisualDensity.compact,
     );
   }
 }
@@ -5367,87 +5199,6 @@ class _CompactAction extends StatelessWidget {
           width: 1.2,
         ),
       ),
-    );
-  }
-}
-
-class _LessonNavigationActions extends StatelessWidget {
-  const _LessonNavigationActions({
-    required this.current,
-    required this.total,
-    required this.busy,
-    required this.allowPrevious,
-    required this.allowNext,
-    required this.onPrevious,
-    required this.onContinue,
-  });
-
-  final int current;
-  final int total;
-  final bool busy;
-  final bool allowPrevious;
-  final bool allowNext;
-  final VoidCallback onPrevious;
-  final VoidCallback onContinue;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-    return Row(
-      children: <Widget>[
-        Expanded(
-          child: OutlinedButton.icon(
-            key: const Key('previous-lesson-sentence'),
-            onPressed: busy || !allowPrevious ? null : onPrevious,
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size.fromHeight(62),
-              foregroundColor: isDark ? colorScheme.primary : AppColors.indigo,
-              backgroundColor: isDark
-                  ? colorScheme.surfaceContainer
-                  : Colors.white,
-              disabledBackgroundColor: isDark
-                  ? colorScheme.surfaceContainer.withValues(alpha: 0.72)
-                  : Colors.white.withValues(alpha: 0.72),
-              side: BorderSide(
-                color: isDark ? colorScheme.outline : AppColors.lavenderBorder,
-              ),
-              textStyle: const TextStyle(
-                fontFamily: 'Roboto',
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            icon: const Icon(Icons.arrow_back_rounded),
-            label: Text(context.tr('Câu trước', '上一句'), maxLines: 1),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: FilledButton.icon(
-            key: const Key('continue-lesson-sentence'),
-            onPressed: busy || !allowNext ? null : onContinue,
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(62),
-              textStyle: const TextStyle(
-                fontFamily: 'Roboto',
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            iconAlignment: IconAlignment.end,
-            icon: Icon(Icons.arrow_forward_rounded),
-            label: Text(
-              context.tr(
-                current == total - 1 ? 'Hoàn thành câu này' : 'Tiếp tục',
-                current == total - 1 ? '请完成本句' : '继续',
-              ),
-              maxLines: 1,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

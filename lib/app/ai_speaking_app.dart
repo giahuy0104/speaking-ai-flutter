@@ -3140,10 +3140,11 @@ class _MainOverlayNavigatorObserver extends NavigatorObserver {
   void _notify() {
     final topRoute = _pageRoutes.isEmpty ? null : _pageRoutes.last;
     final topName = topRoute?.settings.name;
-    final hasIntegratedMainNavigation =
+    final hideFloatingMainButton =
         topName == ListeningRouteNames.topicCatalog ||
-        topName == ListeningRouteNames.topicLessons;
-    onVisibilityChanged(_pageRoutes.length > 1 && !hasIntegratedMainNavigation);
+        topName == ListeningRouteNames.topicLessons ||
+        topName == ListeningRouteNames.lessonPractice;
+    onVisibilityChanged(_pageRoutes.length > 1 && !hideFloatingMainButton);
   }
 
   @override

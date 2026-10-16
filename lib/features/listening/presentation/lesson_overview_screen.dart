@@ -12,6 +12,7 @@ import '../domain/listening_catalog.dart';
 import '../domain/listening_content.dart';
 import '../../../core/navigation/active_learning_navigation.dart';
 import 'lesson_practice_screen.dart';
+import 'listening_route_names.dart';
 
 /// Compatibility route for old deep links. New navigation no longer opens this
 /// route; an old link is forwarded directly into the lesson.
@@ -85,6 +86,7 @@ class _LessonOverviewScreenState extends State<LessonOverviewScreen> {
         isRelearn: widget.isRelearn,
         onTopicCompleted: widget.onTopicCompleted,
       ),
+      settings: const RouteSettings(name: ListeningRouteNames.lessonPractice),
     );
   }
 

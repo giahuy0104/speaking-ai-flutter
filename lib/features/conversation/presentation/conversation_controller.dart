@@ -48,6 +48,8 @@ class ConversationController extends ChangeNotifier
         LearningAudioDependencies,
         MainAssistantAudioState {
   static const double translatedSpeechPlaybackRate = 0.80;
+  static const String connectionReadyMessage =
+      'Thiết bị HOMI đã kết nối. Sẵn sàng học cùng bé!';
 
   ConversationController({
     required AudioInput audioInput,
@@ -323,6 +325,7 @@ class ConversationController extends ChangeNotifier
   Timer? _offlineFallbackTimer;
   Timer? _processingStageTimer;
   Timer? _h20HardwareRecordingTimer;
+  Timer? _connectionNoticeTimer;
   DateTime? _recordingStartedAt;
   DateTime? _stoppedAt;
   DateTime? _responseReceivedAt;
@@ -1686,8 +1689,13 @@ class ConversationController extends ChangeNotifier
       asrMode = supportsAndroidStreaming
           ? AsrMode.androidStreaming
           : AsrMode.batchChunks;
-      transientMessage =
-          'Đã tự kết nối BLE Control và chọn mic HFP ${device.displayName}.';
+      _connectionNoticeTimer?.cancel();
+      transientMessage = connectionReadyMessage;
+      _connectionNoticeTimer = Timer(const Duration(seconds: 5), () {
+        if (_disposed || transientMessage != connectionReadyMessage) return;
+        transientMessage = null;
+        notifyListeners();
+      });
       notifyListeners();
       return true;
     } catch (error) {
@@ -4240,6 +4248,7 @@ class ConversationController extends ChangeNotifier
   }
 
   void clearMessage() {
+    _connectionNoticeTimer?.cancel();
     transientMessage = null;
     if (phase == ConversationPhase.error) {
       _processingStageTimer?.cancel();
@@ -4428,6 +4437,7 @@ class ConversationController extends ChangeNotifier
     _offlineFallbackTimer?.cancel();
     _processingStageTimer?.cancel();
     _h20HardwareRecordingTimer?.cancel();
+    _connectionNoticeTimer?.cancel();
     unawaited(_amplitudeSubscription?.cancel());
     unawaited(_batchChunkSubscription?.cancel());
     unawaited(_batchPreviewSubscription?.cancel());

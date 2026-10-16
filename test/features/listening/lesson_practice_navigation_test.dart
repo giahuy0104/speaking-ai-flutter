@@ -874,6 +874,7 @@ void main() {
           store,
           const Key('manual-navigation-audio'),
           mediaService: mediaService,
+          voicePromptService: _SilentVoicePromptService(),
           guideAudioLibrary: LessonGuideAudioLibrary(
             assetPaths: const <String>[
               'assets/audio/A-3-5/GUIDE_PRAISE/praise.mp3',
@@ -884,26 +885,13 @@ void main() {
       await tester.pumpAndSettle();
       expect(mediaService.playedUris, <Uri>[lesson.sentences.first.audioUri!]);
 
-      await tester.tap(find.byKey(const Key('continue-lesson-sentence')));
-      await tester.pumpAndSettle();
+      await _runLessonCommand(tester, ActiveLearningCommand.nextItem);
       expect(find.text('Sentence 2'), findsOneWidget);
-      expect(mediaService.playedUris, <Uri>[
-        lesson.sentences.first.audioUri!,
-        lesson.sentences[1].audioUri!,
-      ]);
+      expect(mediaService.playedUris.last, lesson.sentences[1].audioUri);
 
-      await tester.tap(find.byKey(const Key('previous-lesson-sentence')));
-      await tester.pumpAndSettle();
+      await _runLessonCommand(tester, ActiveLearningCommand.previousItem);
       expect(find.text('Sentence 1'), findsOneWidget);
-      expect(mediaService.playedUris, <Uri>[
-        lesson.sentences.first.audioUri!,
-        lesson.sentences[1].audioUri!,
-        Uri(
-          scheme: 'asset',
-          path: '/assets/audio/A-3-5/GUIDE_PRAISE/praise.mp3',
-        ),
-        lesson.sentences.first.audioUri!,
-      ]);
+      expect(mediaService.playedUris.last, lesson.sentences.first.audioUri);
     },
   );
 
@@ -937,41 +925,37 @@ void main() {
     final store = _MemoryProgressStore(currentSentence: 2);
     final lesson = _lessonWithSentences(3);
 
-    await tester.pumpWidget(_subject(lesson, store, const Key('session-1')));
+    await tester.pumpWidget(
+      _subject(
+        lesson,
+        store,
+        const Key('session-1'),
+        voicePromptService: _SilentVoicePromptService(),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Sentence 3'), findsOneWidget);
-    var previousButton = tester.widget<OutlinedButton>(
-      find.byKey(const Key('previous-lesson-sentence')),
-    );
-    expect(
-      previousButton.style?.backgroundColor?.resolve(const <WidgetState>{}),
-      Colors.white,
-    );
-
-    await tester.tap(find.byKey(const Key('previous-lesson-sentence')));
-    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('previous-lesson-sentence')), findsNothing);
+    await _runLessonCommand(tester, ActiveLearningCommand.previousItem);
     expect(find.text('Sentence 2'), findsOneWidget);
     expect(store.currentSentence, 1);
 
-    await tester.pumpWidget(_subject(lesson, store, const Key('session-2')));
+    await tester.pumpWidget(
+      _subject(
+        lesson,
+        store,
+        const Key('session-2'),
+        voicePromptService: _SilentVoicePromptService(),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Sentence 2'), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('previous-lesson-sentence')));
-    await tester.pumpAndSettle();
+    await _runLessonCommand(tester, ActiveLearningCommand.previousItem);
     expect(find.text('Sentence 1'), findsOneWidget);
     expect(store.currentSentence, 0);
 
-    previousButton = tester.widget<OutlinedButton>(
-      find.byKey(const Key('previous-lesson-sentence')),
-    );
-    expect(previousButton.onPressed, isNull);
-    expect(
-      previousButton.style?.backgroundColor?.resolve(const <WidgetState>{
-        WidgetState.disabled,
-      }),
-      Colors.white.withValues(alpha: 0.72),
-    );
+    expect(find.byKey(const Key('previous-lesson-sentence')), findsNothing);
   });
 
   testWidgets('MAIN previous command replays the previous sentence flow', (
@@ -1021,11 +1005,16 @@ void main() {
     final store = _MemoryProgressStore();
     final lesson = _lessonWithSentences(1);
 
-    await tester.pumpWidget(_subject(lesson, store, const Key('review')));
+    await tester.pumpWidget(
+      _subject(
+        lesson,
+        store,
+        const Key('review'),
+        voicePromptService: _SilentVoicePromptService(),
+      ),
+    );
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('continue-lesson-sentence')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await _recordAndContinue(tester);
 
     expect(find.byKey(const Key('lesson-review-screen')), findsOneWidget);
     final restartReview = find.byKey(const Key('restart-lesson-review'));
@@ -1501,14 +1490,16 @@ void main() {
     final store = _MemoryProgressStore();
     final lesson = _lessonWithSentences(1);
 
-    await tester.pumpWidget(_subject(lesson, store, const Key('compact')));
+    await tester.pumpWidget(
+      _subject(
+        lesson,
+        store,
+        const Key('compact'),
+        voicePromptService: _SilentVoicePromptService(),
+      ),
+    );
     await tester.pumpAndSettle();
-    final continueButton = find.byKey(const Key('continue-lesson-sentence'));
-    await tester.ensureVisible(continueButton);
-    await tester.pump(const Duration(milliseconds: 200));
-    await tester.tap(continueButton);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await _recordAndContinue(tester);
 
     expect(find.byKey(const Key('lesson-review-screen')), findsOneWidget);
     expect(find.text('Đã học'), findsOneWidget);
@@ -1606,6 +1597,40 @@ void main() {
     expect(find.byKey(const Key('lesson-practice-screen')), findsNothing);
     expect(registry.hasActiveModule, isFalse);
   });
+}
+
+Future<void> _runLessonCommand(
+  WidgetTester tester,
+  ActiveLearningCommand command,
+) async {
+  final owner =
+      tester.state(find.byType(LessonPracticeScreen))
+          as ActiveLearningModuleController;
+  expect((await owner.handleMainCommand(command)).wasHandled, isTrue);
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
+  await tester.pump();
+}
+
+Future<void> _recordAndContinue(WidgetTester tester) async {
+  final continueButton = find.byKey(const Key('continue-lesson-sentence'));
+  final recordButton = find.byKey(const Key('record-lesson-sentence'));
+  await tester.ensureVisible(recordButton);
+  await tester.pump(const Duration(milliseconds: 300));
+  for (
+    var attempt = 0;
+    attempt < 4 && continueButton.evaluate().isEmpty;
+    attempt++
+  ) {
+    await tester.tap(recordButton);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+  }
+  expect(continueButton, findsOneWidget);
+  await tester.ensureVisible(continueButton);
+  await tester.tap(continueButton);
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 300));
 }
 
 Widget _subject(

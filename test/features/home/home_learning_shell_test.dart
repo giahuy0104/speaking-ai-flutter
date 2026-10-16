@@ -328,9 +328,9 @@ void main() {
       );
       expect(topicTabRect.top, closeTo(vocabularyTabRect.top, 0.01));
       expect(vocabularyTabRect.top, closeTo(844 * 0.27, 0.01));
-      expect(find.byKey(const Key('home-conversation-tab')), findsOneWidget);
-      expect(find.byKey(const Key('home-main-button')), findsOneWidget);
-      expect(find.byKey(const Key('home-history-tab')), findsOneWidget);
+      expect(find.byKey(const Key('home-conversation-tab')), findsNothing);
+      expect(find.byKey(const Key('home-main-button')), findsNothing);
+      expect(find.byKey(const Key('home-history-tab')), findsNothing);
       expect(
         find.byKey(const Key('main-voice-assistant-button')),
         findsNothing,
@@ -346,8 +346,8 @@ void main() {
       await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
       await tester.pumpAndSettle();
       expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
-      expect(find.byKey(const Key('home-main-button')), findsOneWidget);
-      expect(find.byKey(const Key('home-vocabulary-tab')), findsOneWidget);
+      expect(find.byKey(const Key('home-main-button')), findsNothing);
+      expect(find.byKey(const Key('home-vocabulary-tab')), findsNothing);
       expect(
         find.byKey(const Key('vocabulary-home-back-button')),
         findsOneWidget,
@@ -545,7 +545,7 @@ void main() {
     expect(visibilityChanges, <bool>[true, false]);
   });
 
-  testWidgets('iOS exposes the on-screen MAIN action on home and vocabulary', (
+  testWidgets('iOS keeps physical MAIN active without the bottom navigation', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -596,7 +596,8 @@ void main() {
     await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
     await tester.pumpAndSettle();
     expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
-    await tester.tap(find.byKey(const Key('home-main-button')));
+    expect(find.byKey(const Key('home-main-button')), findsNothing);
+    expect(await voiceNavigationController.activateFromMainButton(), isTrue);
     await tester.pump(const Duration(milliseconds: 700));
     expect(speechInput.startCount, 1);
     await voiceNavigationController.pause();
@@ -607,12 +608,12 @@ void main() {
     expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
 
     expect(find.byKey(const Key('main-voice-assistant-button')), findsNothing);
-    await tester.tap(find.byKey(const Key('home-main-button')));
+    expect(await voiceNavigationController.activateFromMainButton(), isTrue);
     await tester.pump(const Duration(milliseconds: 700));
     expect(speechInput.startCount, 2);
     expect(voiceNavigationController.isMainButtonSessionActive, isTrue);
     expect(voiceNavigationController.isListening, isTrue);
-    expect(find.byKey(const Key('home-main-button')), findsOneWidget);
+    expect(find.byKey(const Key('home-main-button')), findsNothing);
 
     // BLE/HFP status and diagnostics are surfaced through ConversationController
     // notifications. On iOS they must not cancel the explicit MAIN recognizer;
@@ -624,7 +625,7 @@ void main() {
     expect(voiceNavigationController.isMainButtonSessionActive, isTrue);
     expect(voiceNavigationController.isListening, isTrue);
     expect(speechInput.cancelCount, cancelCountBeforeAgeChange);
-    expect(find.byKey(const Key('home-main-button')), findsOneWidget);
+    expect(find.byKey(const Key('home-main-button')), findsNothing);
 
     await voiceNavigationController.pause();
     await tester.pump();
@@ -1754,8 +1755,7 @@ void main() {
   );
 
   testWidgets(
-    'a voice return to vocabulary asks its menu again when Chủ đề was opened '
-    'from the vocabulary tab',
+    'a voice return to vocabulary asks its menu again after opening Chủ đề',
     (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       tester.view.physicalSize = const Size(390, 844);
@@ -1787,8 +1787,9 @@ void main() {
       final spokenOnFirstEntry = prompts.spoken.length;
       expect(spokenOnFirstEntry, greaterThan(0));
 
-      // The Chủ đề route covers the vocabulary page without deactivating it.
-      await tester.tap(find.byKey(const Key('home-topics-tab')));
+      await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('topic-listening-edge-tab')));
       await tester.pumpAndSettle();
       expect(find.byType(TopicListeningScreen), findsOneWidget);
 
@@ -1809,74 +1810,73 @@ void main() {
     },
   );
 
-  testWidgets(
-    'a tapped Topics tab over the vocabulary page releases its MAIN ownership',
-    (tester) async {
-      SharedPreferences.setMockInitialValues(<String, Object>{});
-      debugDefaultTargetPlatformOverride = TargetPlatform.android;
-      addTearDown(() => debugDefaultTargetPlatformOverride = null);
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets('opening Chủ đề from home releases vocabulary MAIN ownership', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
 
-      final registry = ActiveLearningModuleRegistry();
-      final speech = _FakeStreamingSpeechInput();
-      final voiceNavigationController = VoiceNavigationController(
-        speechInput: speech,
-        ownsSpeechInput: true,
-      );
-      final controller = _controller();
-      await tester.pumpWidget(
-        ActiveLearningModuleScope(
-          registry: registry,
-          child: _app(
-            controller,
-            voiceNavigationController: voiceNavigationController,
-            listeningContentFuture: AssetListeningContentRepository(
-              bundle: rootBundle,
-            ).load(),
-          ),
+    final registry = ActiveLearningModuleRegistry();
+    final speech = _FakeStreamingSpeechInput();
+    final voiceNavigationController = VoiceNavigationController(
+      speechInput: speech,
+      ownsSpeechInput: true,
+    );
+    final controller = _controller();
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: _app(
+          controller,
+          voiceNavigationController: voiceNavigationController,
+          listeningContentFuture: AssetListeningContentRepository(
+            bundle: rootBundle,
+          ).load(),
         ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
-      await tester.pumpAndSettle();
-      expect(registry.activeKind, ActiveLearningModuleKind.vocabulary);
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+    await tester.pumpAndSettle();
+    expect(registry.activeKind, ActiveLearningModuleKind.vocabulary);
 
-      // The user taps while the app is in the foreground, where the shell
-      // animates page changes; under the opaque catalog its ticker is muted.
-      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-      await tester.pump();
-      await tester.tap(find.byKey(const Key('home-topics-tab')));
-      await tester.pumpAndSettle();
-      expect(find.byType(TopicListeningScreen), findsOneWidget);
-      // A fresh MAIN press on the catalog must open the assistant, not re-ask
-      // the vocabulary menu under the catalog.
-      expect(registry.activeKind, isNull);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('topic-listening-edge-tab')));
+    await tester.pumpAndSettle();
+    expect(find.byType(TopicListeningScreen), findsOneWidget);
+    // A fresh MAIN press on the catalog must open the assistant, not re-ask
+    // the vocabulary menu under the catalog.
+    expect(registry.activeKind, isNull);
 
-      expect(
-        await voiceNavigationController.activateFromMainButton(
-          activeLearning: false,
-        ),
-        isTrue,
-      );
-      unawaited(voiceNavigationController.dispatchRecognizedText('Bộ từ vựng'));
-      for (var frame = 0; frame < 20; frame++) {
-        await tester.pump(const Duration(milliseconds: 200));
-      }
+    expect(
+      await voiceNavigationController.activateFromMainButton(
+        activeLearning: false,
+      ),
+      isTrue,
+    );
+    unawaited(voiceNavigationController.dispatchRecognizedText('Bộ từ vựng'));
+    for (var frame = 0; frame < 20; frame++) {
+      await tester.pump(const Duration(milliseconds: 200));
+    }
 
-      expect(find.byType(TopicListeningScreen), findsNothing);
-      expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
-      expect(registry.activeKind, ActiveLearningModuleKind.vocabulary);
+    expect(find.byType(TopicListeningScreen), findsNothing);
+    expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
+    expect(registry.activeKind, ActiveLearningModuleKind.vocabulary);
 
-      debugDefaultTargetPlatformOverride = null;
-      controller.dispose();
-      voiceNavigationController.dispose();
-      registry.dispose();
-      await tester.pumpWidget(const SizedBox.shrink());
-    },
-  );
+    debugDefaultTargetPlatformOverride = null;
+    controller.dispose();
+    voiceNavigationController.dispose();
+    registry.dispose();
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 
   testWidgets(
     'the menu asked by a voice return to vocabulary opens its microphone '
@@ -1924,7 +1924,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('home-topics-tab')));
+      await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('topic-listening-edge-tab')));
       await tester.pumpAndSettle();
       expect(find.byType(TopicListeningScreen), findsOneWidget);
 

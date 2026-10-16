@@ -22,6 +22,7 @@ import '../domain/listening_audio_keys.dart';
 import '../../../core/navigation/active_learning_navigation.dart';
 import '../../voice_navigation/domain/master_navigation_contract.dart';
 import 'lesson_practice_screen.dart';
+import 'listening_route_names.dart';
 import 'song_karaoke_screen.dart';
 
 class LessonIntroScreen extends StatefulWidget {
@@ -834,6 +835,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
         onTopicCompleted: widget.onTopicCompleted,
         onCommunicationRequested: widget.onCommunicationRequested,
       ),
+      settings: const RouteSettings(name: ListeningRouteNames.lessonPractice),
     );
   }
 
@@ -871,6 +873,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
         onTopicCompleted: widget.onTopicCompleted,
         onCommunicationRequested: widget.onCommunicationRequested,
       ),
+      settings: const RouteSettings(name: ListeningRouteNames.lessonPractice),
     );
   }
 
@@ -895,6 +898,7 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
             widget.language.choose(widget.topic.titleVi, widget.topic.titleZh),
         practiceBuilder: _buildPracticeScreen,
       ),
+      settings: const RouteSettings(name: ListeningRouteNames.lessonPractice),
     );
   }
 

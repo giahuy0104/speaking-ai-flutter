@@ -10,7 +10,6 @@ import '../../../app/mascot_assets.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
 import '../../../l10n/display_language.dart';
-import '../../../app/homi_bottom_navigation.dart';
 import '../../../core/navigation/active_learning_navigation.dart';
 import '../application/lesson_media_service.dart';
 import '../application/listening_voice_navigation_target.dart';
@@ -21,7 +20,6 @@ import '../domain/listening_audio_keys.dart';
 import '../domain/listening_curriculum_flow.dart';
 import '../../voice_navigation/application/main_voice_assistant_flow.dart';
 import '../../voice_navigation/domain/main_assistant_audio_keys.dart';
-import 'lesson_recording_history_sheet.dart';
 import 'listening_route_names.dart';
 import 'topic_lesson_list_screen.dart';
 
@@ -259,7 +257,6 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           imageAlignment: Alignment.topCenter,
           overlayOpacity: 0.36,
           child: SafeArea(
-            bottom: false,
             child: CustomScrollView(
               key: const Key('topic-listening-screen'),
               slivers: <Widget>[
@@ -347,24 +344,6 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
             ),
           ),
         ),
-        bottomNavigationBar: KeyedSubtree(
-          key: const Key('listening-bottom-navigation'),
-          child: HomiBottomNavigation(
-            selectedIndex: 1,
-            onConversation: () => Navigator.of(context).pop(),
-            onTopics: () {},
-            onMain: widget.onMainPressed == null
-                ? null
-                : () => unawaited(widget.onMainPressed!()),
-            onVocabulary: _openVocabulary,
-            onHistory: _showHistory,
-            conversationKey: const Key('listening-conversation-tab'),
-            topicsKey: const Key('listening-topics-tab'),
-            mainKey: const Key('listening-main-button'),
-            vocabularyKey: const Key('listening-vocabulary-tab'),
-            historyKey: const Key('listening-history-tab'),
-          ),
-        ),
       ),
     );
   }
@@ -429,13 +408,6 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     );
   }
 
-  void _showHistory() => unawaited(_openHistory());
-
-  void _openVocabulary() {
-    Navigator.of(context).pop();
-    widget.onVocabularyRequested?.call();
-  }
-
   Future<void> _changeLessonGroup() async {
     final requestParentAccess = widget.onRequestParentAccess;
     final onChildAgeChanged = widget.onChildAgeChanged;
@@ -478,27 +450,6 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
             ),
           ),
         ),
-      );
-    } finally {
-      if (mounted) {
-        widget.onVoiceNavigationResume?.call();
-      }
-    }
-  }
-
-  Future<void> _openHistory() async {
-    await widget.onVoiceNavigationPause?.call();
-    try {
-      if (!mounted) {
-        return;
-      }
-      await showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        showDragHandle: true,
-        builder: (_) =>
-            LessonRecordingHistorySheet(mediaService: _historyMediaService),
       );
     } finally {
       if (mounted) {
