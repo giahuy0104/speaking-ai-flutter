@@ -815,6 +815,234 @@ void main() {
     );
   }
 
+  for (final stage in [
+    ListeningPendingChoiceStage.lessonEnd,
+    ListeningPendingChoiceStage.topicEnd,
+    ListeningPendingChoiceStage.topicEndOneRemaining,
+  ]) {
+    for (final answers in [
+      ['không hợp lệ', 'không hợp lệ'],
+      ['không hợp lệ', ''],
+      ['', 'không hợp lệ'],
+      ['', ''],
+      ['', 'Dừng lại'],
+    ]) {
+      testWidgets('completion retries then stops: $stage $answers', (
+        tester,
+      ) async {
+        await _usePhoneSurface(tester);
+        final store = _MemoryProgressStore()
+          ..completedSentences = 1
+          ..challengeProcessed = true
+          ..pendingCompletionChoice = stage
+          ..resumeStage = ListeningResumeStage.waitingForChoice;
+        final speech = _CompletionCommandSpeechInput(answers.first);
+        addTearDown(speech.dispose);
+        final voice = _RecordingVoicePromptService();
+        await tester.pumpWidget(
+          _subject(
+            _v4Lesson(),
+            store,
+            const Key('retry-completion'),
+            mediaService: _SilentMediaService(),
+            voicePromptService: voice,
+            controller: _LearningAudioDependencies(speech),
+            initialResumeStage: ListeningResumeStage.waitingForChoice,
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(speech.commandStarts, 1);
+        final question = voice.spoken.last;
+        for (var attempt = 0; attempt < 2; attempt++) {
+          speech.transcript = answers[attempt];
+          if (answers[attempt].isNotEmpty) {
+            speech.partial.add(answers[attempt]);
+            await tester.pump();
+            await tester.pump(const Duration(milliseconds: 701));
+          } else {
+            await tester.pump(const Duration(seconds: 6));
+          }
+          await tester.pumpAndSettle();
+          if (attempt == 0) {
+            expect(speech.commandStarts, 2);
+            expect(voice.spoken.where((text) => text == question).length, 2);
+          }
+        }
+        expect(speech.stops, 2);
+        expect(speech.commandStarts, 2);
+        if (answers.last == 'Dừng lại') {
+          expect(store.pendingCompletionChoice, isNull);
+          expect(find.byKey(const ValueKey('v4-choice-stop')), findsNothing);
+        } else {
+          expect(
+            voice.spoken.where((text) => text == 'Mình tạm dừng nhé.').length,
+            1,
+          );
+          expect(
+            find.text('Đã dừng nghe. Bạn có thể chạm để chọn.'),
+            findsOneWidget,
+          );
+          await tester.pump(const Duration(seconds: 20));
+          expect(speech.commandStarts, 2);
+          await tester.tap(find.byKey(const ValueKey('v4-choice-stop')));
+          await tester.pumpAndSettle();
+          expect(store.pendingCompletionChoice, isNull);
+        }
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump();
+      });
+    }
+  }
+
+  for (final errorCode in [
+    'SPEECH_NO_MATCH',
+    'SPEECH_TIMEOUT',
+    'ANDROID_SPEECH_6',
+    'ANDROID_SPEECH_7',
+    null,
+    'NETWORK',
+  ]) {
+    testWidgets('completion handles native $errorCode', (tester) async {
+      await _usePhoneSurface(tester);
+      final store = _MemoryProgressStore()
+        ..pendingCompletionChoice = ListeningPendingChoiceStage.topicEnd
+        ..resumeStage = ListeningResumeStage.waitingForChoice;
+      final speech = _CompletionCommandSpeechInput('')
+        ..stopError = StreamingSpeechInputException(
+          errorCode == null
+              ? 'Không nghe rõ câu nói. Hãy nói lại gần micro hơn.'
+              : 'test error',
+          code: errorCode,
+        );
+      addTearDown(speech.dispose);
+      final voice = _RecordingVoicePromptService();
+      await tester.pumpWidget(
+        _subject(
+          _v4Lesson(),
+          store,
+          const Key('error-choice'),
+          mediaService: _SilentMediaService(),
+          voicePromptService: voice,
+          controller: _LearningAudioDependencies(speech),
+          initialResumeStage: ListeningResumeStage.waitingForChoice,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+      await tester.pumpAndSettle();
+      expect(speech.commandStarts, errorCode == 'NETWORK' ? 1 : 2);
+      await tester.pump(const Duration(seconds: 6));
+      await tester.pumpAndSettle();
+      expect(
+        voice.spoken.where((text) => text == 'Mình tạm dừng nhé.').length,
+        errorCode == 'NETWORK' ? 0 : 1,
+      );
+      await tester.pump(const Duration(seconds: 20));
+      expect(speech.commandStarts, errorCode == 'NETWORK' ? 1 : 2);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump();
+    });
+  }
+
+  testWidgets('touch during completion retry cancels reopening microphone', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final store = _MemoryProgressStore()
+      ..pendingCompletionChoice = ListeningPendingChoiceStage.topicEnd
+      ..resumeStage = ListeningResumeStage.waitingForChoice;
+    final speech = _CompletionCommandSpeechInput('');
+    addTearDown(speech.dispose);
+    final voice = _BlockedRetryVoice();
+    await tester.pumpWidget(
+      _subject(
+        _v4Lesson(),
+        store,
+        const Key('touch-retry'),
+        mediaService: _SilentMediaService(),
+        voicePromptService: voice,
+        controller: _LearningAudioDependencies(speech),
+        initialResumeStage: ListeningResumeStage.waitingForChoice,
+      ),
+    );
+    await tester.pumpAndSettle();
+    voice.block = true;
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pumpAndSettle();
+    expect(speech.commandStarts, 1);
+    expect(find.text('HOMI sẽ hỏi lại để bạn chọn lần nữa.'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('v4-choice-stop')));
+    await tester.pumpAndSettle();
+    voice.gate.complete();
+    await tester.pumpAndSettle();
+    expect(speech.commandStarts, 1);
+    expect(store.pendingCompletionChoice, isNull);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+  });
+
+  for (final stage in [
+    ListeningPendingChoiceStage.lessonEnd,
+    ListeningPendingChoiceStage.topicEnd,
+    ListeningPendingChoiceStage.topicEndOneRemaining,
+  ]) {
+    testWidgets('MAIN silence stop preserves completion choice $stage', (
+      tester,
+    ) async {
+      await _usePhoneSurface(tester);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final store = _MemoryProgressStore()
+        ..pendingCompletionChoice = stage
+        ..resumeStage = ListeningResumeStage.waitingForChoice;
+      final speech = _CompletionCommandSpeechInput('');
+      addTearDown(speech.dispose);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _subject(
+            _v4Lesson(),
+            store,
+            const Key('main-pause-choice'),
+            mediaService: _SilentMediaService(),
+            voicePromptService: _SilentVoicePromptService(),
+            controller: _LearningAudioDependencies(speech),
+            initialResumeStage: ListeningResumeStage.waitingForChoice,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      await tester.pumpAndSettle();
+      // MAIN sends stop after the second silent command window.
+      expect(
+        (await registry.execute(ActiveLearningCommand.stop)).wasHandled,
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('v4-choice-stop')), findsOneWidget);
+      expect(store.pendingCompletionChoice, stage);
+      final starts = speech.commandStarts;
+      await tester.pump(const Duration(seconds: 20));
+      expect(speech.commandStarts, starts);
+      expect(
+        find.text('Đã dừng nghe. Nhấn MAIN để tiếp tục hoặc chạm để chọn.'),
+        findsOneWidget,
+      );
+      expect(
+        (await registry.execute(ActiveLearningCommand.resume)).wasHandled,
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+      expect(speech.commandStarts, starts + 1);
+      await tester.tap(find.byKey(const ValueKey('v4-choice-stop')));
+      await tester.pumpAndSettle();
+      expect(store.pendingCompletionChoice, isNull);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump();
+    });
+  }
+
   testWidgets('Android completion arms command ASR before ting, not Core mic', (
     tester,
   ) async {
@@ -2195,9 +2423,10 @@ class _LearningAudioDependencies implements LearningAudioDependencies {
 class _CompletionCommandSpeechInput
     implements StreamingSpeechInput, CommandStreamingSpeechInput {
   _CompletionCommandSpeechInput([this.transcript = 'Dừng lại']);
-  final String transcript;
+  String transcript;
   final partial = StreamController<String>.broadcast();
   final done = StreamController<void>.broadcast();
+  StreamingSpeechInputException? stopError;
   int commandStarts = 0;
   int stops = 0;
   int cancels = 0;
@@ -2221,6 +2450,9 @@ class _CompletionCommandSpeechInput
   @override
   Future<StreamingSpeechCapture> stop() async {
     stops++;
+    if (stopError != null) {
+      throw stopError!;
+    }
     return StreamingSpeechCapture(
       sourceText: transcript,
       duration: Duration(seconds: 1),
@@ -2308,4 +2540,14 @@ class _ReadyCueVoicePromptService extends _SilentVoicePromptService
 Future<void> _usePhoneSurface(WidgetTester tester) async {
   await tester.binding.setSurfaceSize(const Size(390, 844));
   addTearDown(() => tester.binding.setSurfaceSize(null));
+}
+
+class _BlockedRetryVoice extends _RecordingVoicePromptService {
+  bool block = false;
+  final gate = Completer<void>();
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    await super.speakAndWait(text, locale: locale);
+    if (block) await gate.future;
+  }
 }

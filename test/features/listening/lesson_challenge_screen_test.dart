@@ -16,7 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('Challenge speaks intro and question again when replayed', (
+  testWidgets('Challenge replay repeats question without the introduction', (
     tester,
   ) async {
     await _usePhoneSurface(tester);
@@ -46,7 +46,7 @@ void main() {
     await tester.tap(find.byTooltip('Nghe lại'));
     await _pumpChallengeTransition(tester);
 
-    expect(prompts.spoken, <String>[...questionTurn, ...questionTurn]);
+    expect(prompts.spoken, <String>[...questionTurn, ...questionTurn.skip(1)]);
     expect(media.recordingCancels, 1);
     expect(media.recordingStarts, 2);
     expect(evaluator.evaluationCalls, 0);
@@ -70,7 +70,7 @@ void main() {
     await tester.tap(find.byTooltip('Nghe lại'));
     await _pumpChallengeTransition(tester);
 
-    expect(prompts.audioKeys, <String>[...firstTurn, ...firstTurn]);
+    expect(prompts.audioKeys, <String>[...firstTurn, ...firstTurn.skip(1)]);
     expect(find.text('Go straight.'), findsOneWidget);
     expect(find.text('It is five dollars.'), findsOneWidget);
   });
@@ -957,6 +957,67 @@ void main() {
     expect(mediaService.completedPlaybackFixedGains, everyElement(isTrue));
   });
 
+  testWidgets('MAIN replay resumes a silence-paused Challenge after audio', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final media = _FakeLessonMediaService();
+    final prompts = _GatedReplayHandoffPrompt();
+    final evaluator = _QueuedAttemptEvaluator(
+      List.filled(4, LessonAttemptOutcome.noResponse),
+    );
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: _subject(
+          startAge: 7,
+          mediaService: media,
+          voicePromptService: prompts,
+          attemptEvaluator: evaluator,
+        ),
+      ),
+    );
+    await _pumpChallengeTransition(tester);
+    for (var attempt = 0; attempt < 2; attempt++) {
+      await tester.pump(const Duration(seconds: 6));
+      await _pumpChallengeTransition(tester);
+    }
+    final retryButton = find.byKey(
+      const Key('challenge-resume-after-no-response'),
+    );
+    expect(retryButton, findsOneWidget);
+    expect(media.recordingStarts, 2);
+
+    await registry.pauseForMainAssistant();
+    prompts.gateHandoff = true;
+    expect(
+      (await registry.execute(ActiveLearningCommand.replayCurrent)).wasHandled,
+      isTrue,
+    );
+    await _pumpChallengeTransition(tester);
+    expect(retryButton, findsNothing);
+    expect(prompts.handoffStarted, isTrue);
+    expect(media.recordingStarts, 2);
+    prompts.handoff.complete();
+    await _pumpChallengeTransition(tester);
+    expect(media.recordingStarts, 3);
+
+    await tester.pump(const Duration(seconds: 6));
+    await _pumpChallengeTransition(tester);
+    expect(retryButton, findsNothing);
+    expect(media.recordingStarts, 4);
+    expect(evaluator.attemptNumbers, <int>[1, 1, 1]);
+    await tester.pump(const Duration(seconds: 6));
+    await _pumpChallengeTransition(tester);
+    expect(retryButton, findsOneWidget);
+    expect(media.recordingStarts, 4);
+    expect(evaluator.attemptNumbers, <int>[1, 1, 1, 1]);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
   testWidgets('pauses directly after the second unusable response', (
     tester,
   ) async {
@@ -1528,6 +1589,7 @@ class _QueuedAttemptEvaluator implements LessonAttemptEvaluator {
 
   final List<LessonAttemptOutcome> outcomes;
   int evaluationCalls = 0;
+  final List<int> attemptNumbers = <int>[];
 
   @override
   Future<LessonAttemptOutcome> evaluate({
@@ -1542,6 +1604,7 @@ class _QueuedAttemptEvaluator implements LessonAttemptEvaluator {
     bool requireAllExpectedTokens = false,
   }) async {
     final outcome = outcomes[evaluationCalls];
+    attemptNumbers.add(attemptNumber);
     evaluationCalls += 1;
     return outcome;
   }
@@ -1755,6 +1818,21 @@ class _RecordingVoicePromptService implements VoicePromptService {
 
   @override
   Future<void> stop() async {}
+}
+
+class _GatedReplayHandoffPrompt extends _RecordingVoicePromptService {
+  bool gateHandoff = false;
+  bool handoffStarted = false;
+  final handoff = Completer<void>();
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    await super.speakAndWait(text, locale: locale);
+    if (gateHandoff && text == 'Bạn trả lời nhé') {
+      handoffStarted = true;
+      await handoff.future;
+    }
+  }
 }
 
 class _GatedInitialChallengePrompt extends _RecordingVoicePromptService {

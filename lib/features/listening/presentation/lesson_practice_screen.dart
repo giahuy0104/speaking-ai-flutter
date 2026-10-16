@@ -192,6 +192,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       <LessonFeedbackKind, int>{};
   bool _virtualCommandPending = false;
   bool _v4CompletionChoiceVisible = false;
+  int _completionChoiceFailures = 0;
+  final _completionChoiceStatus = ValueNotifier<String>(
+    'HOMI đang mở micro để nghe lựa chọn. Bạn cũng có thể chạm nút bên dưới.',
+  );
   V4CompletionStage? _activeV4CompletionStage;
   List<V4CompletionAction> _activeV4CompletionActions =
       const <V4CompletionAction>[];
@@ -316,6 +320,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       _activeModuleRegistry?.unregister(registration);
     }
     _lessonSession.dispose();
+    _completionChoiceStatus.dispose();
     unawaited(_recordingErrorSubscription?.cancel());
     _cancelIdleReminder();
     _coachPopupTimer?.cancel();
@@ -654,6 +659,8 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     if (_v4CompletionChoiceVisible) {
       if (command == ActiveLearningCommand.resume) {
         _pausedForMainAssistant = false;
+        _completionChoiceFailures = 0;
+        _completionChoiceStatus.value = 'HOMI đang nghe lựa chọn của bạn…';
         await _listenForCompletionChoice();
         return const ActiveLearningCommandResult.handled();
       }
@@ -675,6 +682,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           setState(() {
             _pausedByStop = true;
             _message = 'Đã dừng. Nhấn MAIN để tiếp tục.';
+            if (_v4CompletionChoiceVisible) {
+              _completionChoiceStatus.value =
+                  'Đã dừng nghe. Nhấn MAIN để tiếp tục hoặc chạm để chọn.';
+            }
           });
         }
         return const ActiveLearningCommandResult.handled(
@@ -2221,9 +2232,9 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   V4CompletionAction? _completionActionForMainCommand(
     ActiveLearningCommand command,
   ) {
-    if (command == ActiveLearningCommand.stop) {
-      return V4CompletionAction.stop;
-    }
+    // MAIN stop (including its second-silence timeout) pauses the current
+    // choice. Only a direct sheet selection should resolve it and navigate.
+    if (command == ActiveLearningCommand.stop) return null;
     if (command == ActiveLearningCommand.restart) {
       return switch (_activeV4CompletionStage) {
         V4CompletionStage.topicEnd || V4CompletionStage.topicEndOneRemaining =>
@@ -2903,6 +2914,9 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     };
     await _speakLessonPrompt(prompt, audioKey: audioKey);
     if (!mounted) return null;
+    _completionChoiceFailures = 0;
+    _completionChoiceStatus.value =
+        'HOMI đang mở micro để nghe lựa chọn. Bạn cũng có thể chạm nút bên dưới.';
     _v4CompletionChoiceVisible = true;
     _mainCompletionPrompt = prompt;
     _activeV4CompletionStage = stage;
@@ -2925,9 +2939,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
                   style: Theme.of(sheetContext).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'HOMI đang mở micro để nghe lựa chọn. Bạn cũng có thể chạm nút bên dưới.',
-                  textAlign: TextAlign.center,
+                ValueListenableBuilder<String>(
+                  valueListenable: _completionChoiceStatus,
+                  builder: (_, status, _) =>
+                      Text(status, textAlign: TextAlign.center),
                 ),
                 const SizedBox(height: 20),
                 for (
@@ -2987,6 +3002,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   ) async {
     _iosSelectedCompletionTopicNumber = null;
     await _cancelCompletionChoiceCapture();
+    await _voicePromptService.stop();
     if (sheetContext.mounted) {
       Navigator.of(sheetContext).pop(action);
     }
@@ -3532,6 +3548,8 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         _recording = false;
       });
       if (_v4CompletionChoiceVisible && _activeV4CompletionStage != null) {
+        _completionChoiceStatus.value =
+            'Chưa mở được micro. Bạn chạm một nút để chọn nhé.';
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Chưa mở được micro. Bạn chạm một nút để chọn nhé.'),
@@ -3560,6 +3578,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       });
     }
     LessonRecording? recording;
+    var retryChoice = false;
     final androidInput = _completionChoiceAndroidSpeechInput;
     try {
       final useIosNativeSpeech = _completionChoiceUsesIosNativeSpeech;
@@ -3604,17 +3623,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             .firstOrNull;
         if (!mounted) return;
         if (action == null) {
-          setState(() {
-            _mediaBusy = false;
-            _message = 'HOMI chưa nghe rõ lựa chọn. Bạn chạm một nút nhé.';
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'HOMI chưa nghe rõ lựa chọn. Bạn có thể chạm một nút bên dưới.',
-              ),
-            ),
-          );
+          retryChoice = true;
           return;
         }
         Navigator.of(context).pop(action);
@@ -3648,6 +3657,17 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           _recording = false;
         });
         if (_v4CompletionChoiceVisible && _activeV4CompletionStage != null) {
+          debugPrint(
+            'HOMI completion recognition failed: '
+            'type=${error.runtimeType} '
+            'code=${error is StreamingSpeechInputException ? error.code : null}',
+          );
+          if (_isUnrecognizedCompletionChoice(error)) {
+            retryChoice = true;
+            return;
+          }
+          _completionChoiceStatus.value =
+              'Chưa nhận diện được giọng nói. Bạn chạm một nút để chọn nhé.';
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
@@ -3671,8 +3691,63 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         if (mounted) {
           setState(() => _mediaBusy = false);
         }
+        if (retryChoice) await _retryOrStopCompletionChoice(choiceGeneration);
       }
     }
+  }
+
+  bool _isUnrecognizedCompletionChoice(Object error) {
+    if (error is LessonCompletionRecognitionException) {
+      return error.message == 'Chưa nhận ra lựa chọn của bạn.';
+    }
+    if (error is! StreamingSpeechInputException) return false;
+    final code = error.code?.toUpperCase();
+    // Live Android events carry numeric SpeechRecognizer codes, unlike the
+    // semantic codes returned by file recognition and some other bridges.
+    if (const <String>{
+      'ANDROID_SPEECH_6', // ERROR_SPEECH_TIMEOUT
+      'ANDROID_SPEECH_7', // ERROR_NO_MATCH
+      'SPEECH_TIMEOUT',
+      'SPEECH_NO_MATCH',
+      'IOS_SPEECH_NO_SPEECH',
+    }.contains(code)) {
+      return true;
+    }
+    // Android stop() can finish without a native error or any transcript.
+    // Only classify the known empty-result errors; do not retry network,
+    // permission, cancellation or other technical errors as child answers.
+    final message = error.message.toLowerCase();
+    return code == null &&
+        (message.contains('không nghe rõ') ||
+            message.contains('chưa nghe thấy giọng nói'));
+  }
+
+  Future<void> _retryOrStopCompletionChoice(int ticket) async {
+    bool isCurrent() =>
+        mounted &&
+        !_exiting &&
+        !_pausedForMainAssistant &&
+        _v4CompletionChoiceVisible &&
+        _lessonSession.isCurrentCompletionChoice(ticket);
+    if (!isCurrent()) return;
+    _completionChoiceFailures += 1;
+    debugPrint(
+      'HOMI completion failed choice: attempt=$_completionChoiceFailures',
+    );
+    if (_completionChoiceFailures >= 2) {
+      _completionChoiceStatus.value = 'Đã dừng nghe. Bạn có thể chạm để chọn.';
+      await _speakLessonPrompt(
+        'Mình tạm dừng nhé.',
+        audioKey: MainAssistantAudioKeys.cancelled,
+        completionTicket: ticket,
+      );
+      return;
+    }
+    _completionChoiceStatus.value = 'HOMI sẽ hỏi lại để bạn chọn lần nữa.';
+    await _speakLessonPrompt(_mainCompletionPrompt!, completionTicket: ticket);
+    if (!isCurrent()) return;
+    _completionChoiceStatus.value = 'HOMI đang nghe lựa chọn của bạn…';
+    await _listenForCompletionChoice();
   }
 
   Future<void> _cancelCompletionChoiceCapture() async {
@@ -4131,6 +4206,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     String text, {
     String locale = 'vi-VN',
     String? audioKey,
+    int? completionTicket,
   }) async {
     final ticket = _lessonSession.mainPauseTicket;
     if (_exiting || !mounted || _pausedForMainAssistant) return;
@@ -4138,7 +4214,9 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     if (_exiting ||
         !mounted ||
         _pausedForMainAssistant ||
-        !_lessonSession.isCurrentMainPause(ticket)) {
+        !_lessonSession.isCurrentMainPause(ticket) ||
+        (completionTicket != null &&
+            !_lessonSession.isCurrentCompletionChoice(completionTicket))) {
       return;
     }
     final promptService = _voicePromptService;

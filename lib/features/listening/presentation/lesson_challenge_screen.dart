@@ -461,6 +461,17 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   }
 
   Future<void> _replayCurrent() async {
+    if (!mounted) return;
+    if (_pausedAfterNoResponse) {
+      // Replaying a paused question starts a fresh answer window, just like
+      // the microphone retry button, without adding the resume announcement.
+      setState(() {
+        _pausedAfterNoResponse = false;
+        _invalidResponseCount = 0;
+        _attemptNumber = 0;
+        _message = null;
+      });
+    }
     if (_recording) {
       _recordingEndpointDetector.cancel();
       _cancelIosRecordingCompletion();
