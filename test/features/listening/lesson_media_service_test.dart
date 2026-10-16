@@ -454,6 +454,64 @@ void main() {
     },
   );
 
+  test('iOS accepts a stable source end without a native end event', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final playback = _PositionOnlyPrearmedPlaybackService()
+      ..duration = const Duration(seconds: 2);
+    final media = LessonMediaService(
+      playbackService: playback,
+      audioInterruptionEvents: const Stream<AudioInterruptionEvent>.empty(),
+    );
+    addTearDown(media.dispose);
+
+    var finished = false;
+    final completion = media
+        .playToCompletion(
+          Uri.parse('file:///recorded-take.wav'),
+          timeout: const Duration(seconds: 2),
+        )
+        .then((_) => finished = true);
+    await playback.didPlay.future.timeout(const Duration(seconds: 1));
+    playback.position = const Duration(milliseconds: 1500);
+    await Future<void>.delayed(const Duration(milliseconds: 450));
+    expect(finished, isFalse);
+
+    playback.position = const Duration(seconds: 2);
+    await completion.timeout(const Duration(seconds: 1));
+    expect(finished, isTrue);
+  });
+
+  test('iOS end-position fallback waits through a pause', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final playback = _PositionOnlyPrearmedPlaybackService()
+      ..duration = const Duration(seconds: 2);
+    final media = LessonMediaService(
+      playbackService: playback,
+      audioInterruptionEvents: const Stream<AudioInterruptionEvent>.empty(),
+    );
+    addTearDown(media.dispose);
+
+    var finished = false;
+    final completion = media
+        .playToCompletion(
+          Uri.parse('file:///recorded-take.wav'),
+          timeout: const Duration(seconds: 2),
+        )
+        .then((_) => finished = true);
+    await playback.didPlay.future.timeout(const Duration(seconds: 1));
+    playback.position = const Duration(seconds: 2);
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+    playback.pauseTemporarily();
+    await Future<void>.delayed(const Duration(milliseconds: 450));
+    expect(finished, isFalse);
+
+    playback.resume();
+    await completion.timeout(const Duration(seconds: 1));
+    expect(finished, isTrue);
+  });
+
   test(
     'Android selected H20 route is prepared before lesson playback starts',
     () async {
@@ -1201,6 +1259,22 @@ class _ProgressAwareCompletionPlaybackService
 
   @override
   Stream<Duration?> get durationStream => const Stream<Duration?>.empty();
+}
+
+class _PositionOnlyPrearmedPlaybackService
+    extends _ProgressAwareCompletionPlaybackService
+    implements PrearmedCompletionAudioPlaybackService {
+  final Completer<void> didPlay = Completer<void>();
+
+  @override
+  Stream<void> completionStreamForNextPlay(Uri uri) => completionStream;
+
+  @override
+  Future<PlaybackStartMetrics> play(Uri uri) async {
+    final metrics = await super.play(uri);
+    if (!didPlay.isCompleted) didPlay.complete();
+    return metrics;
+  }
 }
 
 class _StaleCompletionPlaybackService

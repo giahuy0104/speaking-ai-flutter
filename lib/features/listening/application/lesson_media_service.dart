@@ -31,6 +31,8 @@ enum LessonPlaybackRoute { selectedLessonDevice, phoneSpeaker }
 /// pauses on becoming-noisy (and on iOS route-loss) without ever resuming, and
 /// a completion-aware clip that is paused never reports its end.
 const Duration _pausedPlaybackResumeDelay = Duration(seconds: 1);
+const Duration _iosPlaybackEndGracePeriod = Duration(milliseconds: 300);
+const Duration _iosPlaybackEndPositionMargin = Duration(milliseconds: 20);
 
 /// A pause this close to the end is left to report completion by itself.
 const Duration _pausedPlaybackEndMargin = Duration(milliseconds: 500);
@@ -317,9 +319,12 @@ class LessonMediaService {
     _activePlaybackCompletion = completed;
     var started = false;
     var playStarted = false;
+    var playbackIsPlaying = false;
     var resumed = false;
     var interrupted = false;
     Timer? resumeTimer;
+    Timer? endPositionTimer;
+    DateTime? endPositionObservedAt;
     final CompletionAwareAudioPlaybackService? completionPlayback =
         playback is CompletionAwareAudioPlaybackService
         ? playback as CompletionAwareAudioPlaybackService
@@ -330,6 +335,7 @@ class LessonMediaService {
         : null;
     final subscription = playback.playingStream.listen(
       (playing) {
+        playbackIsPlaying = playing;
         if (playing) {
           started = true;
           resumeTimer?.cancel();
@@ -406,6 +412,49 @@ class LessonMediaService {
       await playback.play(uri);
       started = true;
       playStarted = true;
+      if (!kIsWeb &&
+          defaultTargetPlatform == TargetPlatform.iOS &&
+          prearmedPlayback != null &&
+          playback is ProgressAwareAudioPlaybackService) {
+        final progress = playback as ProgressAwareAudioPlaybackService;
+        // On iOS, AVPlayer can reach the file's end without just_audio
+        // publishing ProcessingState.completed. Confirm a stable end position
+        // for this request so a finished take does not time out after playing.
+        endPositionTimer = Timer.periodic(const Duration(milliseconds: 100), (
+          _,
+        ) {
+          if (completed.isCompleted ||
+              generation != _playbackRequestGeneration ||
+              !identical(_activePlaybackCompletion, completed) ||
+              interrupted ||
+              !playbackIsPlaying ||
+              (_shouldUseSelectedHfp &&
+                  _hfpAudioControl?.status.routeActive != true)) {
+            endPositionObservedAt = null;
+            return;
+          }
+          final duration = progress.duration;
+          final position = progress.position;
+          final atCurrentSourceEnd =
+              duration != null &&
+              duration > Duration.zero &&
+              position >= duration - _iosPlaybackEndPositionMargin;
+          if (!atCurrentSourceEnd) {
+            endPositionObservedAt = null;
+            return;
+          }
+          endPositionObservedAt ??= DateTime.now();
+          if (DateTime.now().difference(endPositionObservedAt!) <
+              _iosPlaybackEndGracePeriod) {
+            return;
+          }
+          debugPrint(
+            'HOMI iOS lesson playback completion inferred at source end: '
+            'position=$position duration=$duration',
+          );
+          completed.complete();
+        });
+      }
       // Other completion-aware implementations may replay a stale completion
       // on subscription, so retain their post-start subscription behavior.
       completionSubscription ??= completionPlayback == null
@@ -419,6 +468,7 @@ class LessonMediaService {
       debugPrint(
         'HOMI lesson playback timeout: route=${route.name} '
         'started=$started playStarted=$playStarted '
+        'playing=$playbackIsPlaying interrupted=$interrupted '
         'position=${progress?.position} duration=${progress?.duration} '
         'hfpPhase=${_hfpAudioControl?.status.phase.name} '
         'hfpActive=${_hfpAudioControl?.status.routeActive}',
@@ -426,6 +476,7 @@ class LessonMediaService {
       rethrow;
     } finally {
       resumeTimer?.cancel();
+      endPositionTimer?.cancel();
       await Future.wait<void>(<Future<void>>[
         subscription.cancel(),
         interruptionSubscription.cancel(),
