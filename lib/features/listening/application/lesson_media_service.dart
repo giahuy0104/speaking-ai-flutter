@@ -325,6 +325,7 @@ class LessonMediaService {
     Timer? resumeTimer;
     Timer? endPositionTimer;
     DateTime? endPositionObservedAt;
+    var observedProgressWhilePlaying = false;
     final CompletionAwareAudioPlaybackService? completionPlayback =
         playback is CompletionAwareAudioPlaybackService
         ? playback as CompletionAwareAudioPlaybackService
@@ -427,7 +428,6 @@ class LessonMediaService {
               generation != _playbackRequestGeneration ||
               !identical(_activePlaybackCompletion, completed) ||
               interrupted ||
-              !playbackIsPlaying ||
               (_shouldUseSelectedHfp &&
                   _hfpAudioControl?.status.routeActive != true)) {
             endPositionObservedAt = null;
@@ -435,7 +435,15 @@ class LessonMediaService {
           }
           final duration = progress.duration;
           final position = progress.position;
+          if (playbackIsPlaying &&
+              duration != null &&
+              duration > Duration.zero &&
+              position > Duration.zero &&
+              position < duration - _iosPlaybackEndPositionMargin) {
+            observedProgressWhilePlaying = true;
+          }
           final atCurrentSourceEnd =
+              observedProgressWhilePlaying &&
               duration != null &&
               duration > Duration.zero &&
               position >= duration - _iosPlaybackEndPositionMargin;
