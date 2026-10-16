@@ -823,6 +823,42 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
       connectedHfpDeviceIds: connectedHfpDeviceIds,
     );
     final targetId = candidate?.id;
+    if (const bool.fromEnvironment('HOMI_BLE_DIAGNOSTICS') &&
+        !kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        await _methodChannel.invokeMethod<void>('bleDiagnostic', {
+          'savedId': savedDeviceId,
+          'savedName': savedDeviceName,
+          'connectedHfpIds': connectedHfpDeviceIds,
+          'selectedId': targetId,
+          'outcome': devices.isEmpty
+              ? 'no_scan_results'
+              : candidate == null
+              ? 'no_unambiguous_candidate'
+              : 'candidate_selected',
+          'devices': devices
+              .map(
+                (device) => {
+                  'id': device.id,
+                  'name': device.name,
+                  'rssi': device.rssi,
+                  'likely': device.isLikelyAiv0,
+                  'controlService': device.advertisesControlService,
+                  'matchesHfpAddress': connectedHfpDeviceIds.any(
+                    (id) => id.toUpperCase() == device.id.toUpperCase(),
+                  ),
+                  'exactHmD001Name':
+                      device.name.trim().toLowerCase() == 'hm-d001',
+                  'selected': device.id == targetId,
+                },
+              )
+              .toList(),
+        });
+      } catch (_) {
+        // Diagnostics must never change the connection outcome.
+      }
+    }
     if (targetId == null || targetId.isEmpty) {
       if (migratingFromH20 &&
           savedDeviceId != null &&

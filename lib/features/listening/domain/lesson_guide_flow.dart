@@ -251,7 +251,7 @@ class LessonGuideFlowV2 {
   /// touching or clipping the final syllable of the spoken guide.
   static const Duration guideToSamplePause = Duration(milliseconds: 300);
 
-  /// The bilingual lesson script requires a clear two-second pause after the
+  /// The bilingual lesson script requires a clear zero-second pause after the
   /// English sample before its Vietnamese meaning is played.
   static const Duration englishToVietnamesePause = Duration(seconds: 0);
 

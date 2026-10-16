@@ -135,6 +135,10 @@ class Aiv0BleControlBridge(
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
+            "bleDiagnostic" -> {
+                BleDiagnostics.event(appContext, "selection", call.arguments as? Map<String, Any?> ?: emptyMap())
+                result.success(null)
+            }
             "initialize" -> initialize(result)
             "requestPermissions" -> requestPermissions(result)
             "bluetoothAdapterState" -> result.success(bluetoothAdapterState())
@@ -343,6 +347,7 @@ class Aiv0BleControlBridge(
     }
 
     private fun scan(call: MethodCall, result: MethodChannel.Result) {
+        BleDiagnostics.event(appContext, "scan.request", mapOf("timeoutMs" to call.argument<Number>("timeoutMs"), "permissions" to hasPermissions(), "adapter" to bluetoothAdapterState()))
         if (!ensureBluetoothReady(result)) return
         if (scanResult != null) {
             result.error("SCAN_IN_PROGRESS", "Đang quét thiết bị Bluetooth.", null)
@@ -360,6 +365,7 @@ class Aiv0BleControlBridge(
             }
 
             override fun onScanFailed(errorCode: Int) {
+                BleDiagnostics.event(appContext, "scan.failed", mapOf("code" to errorCode))
                 val pending = this@Aiv0BleControlBridge.scanResult
                 this@Aiv0BleControlBridge.scanResult = null
                 scanCallback = null
@@ -405,6 +411,9 @@ class Aiv0BleControlBridge(
             normalizedName.contains("innotrik") ||
             normalizedName == "hm-d001"
         val previous = scanDevices[id]
+        if (previous == null || previous.name != name) {
+            BleDiagnostics.event(appContext, "scan.device", mapOf("id" to id, "name" to name, "advertisedName" to advertisedName, "rssi" to result.rssi, "uuids" to result.scanRecord?.serviceUuids?.map { it.toString() }, "connectable" to if (Build.VERSION.SDK_INT >= 26) result.isConnectable else null, "likely" to likely, "controlService" to advertisesControlService))
+        }
         if (previous == null || result.rssi > previous.rssi) {
             scanDevices[id] = ScannedDevice(
                 id = id,
@@ -424,6 +433,7 @@ class Aiv0BleControlBridge(
         val pending = scanResult
         scanResult = null
         if (complete && pending != null) {
+            BleDiagnostics.event(appContext, "scan.complete", mapOf("count" to scanDevices.size, "devices" to scanDevices.values.map { it.toMap() }))
             val devices = scanDevices.values.sortedWith(
                 compareByDescending<ScannedDevice> { it.likely }
                     .thenByDescending { it.rssi },
@@ -523,6 +533,7 @@ class Aiv0BleControlBridge(
     }
 
     private fun openGatt(device: BluetoothDevice) {
+        BleDiagnostics.event(appContext, "gatt.open", mapOf("id" to device.address, "name" to device.name))
         cancelPendingReconnect()
         mainHandler.removeCallbacks(connectionTimeout)
         val opened = runCatching {
@@ -541,6 +552,7 @@ class Aiv0BleControlBridge(
 
     private val gattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+            BleDiagnostics.event(appContext, "gatt.state", mapOf("id" to gatt.device.address, "status" to status, "state" to newState))
             mainHandler.post {
                 if (gatt !== bluetoothGatt) {
                     // A cancelled session can deliver its disconnect after a new
@@ -571,6 +583,7 @@ class Aiv0BleControlBridge(
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
+            BleDiagnostics.event(appContext, "gatt.services", mapOf("status" to status, "services" to gatt.services.map { service -> mapOf("uuid" to service.uuid.toString(), "characteristics" to service.characteristics.map { mapOf("uuid" to it.uuid.toString(), "properties" to it.properties) }) }))
             mainHandler.post {
                 if (gatt !== bluetoothGatt) return@post
                 if (status != BluetoothGatt.GATT_SUCCESS) {
@@ -978,6 +991,7 @@ class Aiv0BleControlBridge(
     }
 
     private fun failConnection(reason: String) {
+        BleDiagnostics.event(appContext, "gatt.failure", mapOf("reason" to reason))
         mainHandler.removeCallbacks(connectionTimeout)
         shouldReconnect = false
         cancelPendingReconnect()
