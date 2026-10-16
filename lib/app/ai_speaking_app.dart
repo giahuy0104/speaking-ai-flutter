@@ -3114,7 +3114,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                   onRetryPermissions: () => unawaited(
                     _requestStartupPermissions(
                       parentInitiated: true,
-                      autoConnectH20: true,
+                      autoConnectH20: false,
                     ),
                   ),
                   onSetupH20: _configureH20ForParentSetup,

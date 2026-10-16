@@ -13,6 +13,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     var selectedAge = 6;
+    var permissionsGranted = false;
     await tester.pumpWidget(
       StatefulBuilder(
         builder: (context, setState) => MaterialApp(
@@ -24,9 +25,9 @@ void main() {
             privacyConfigurationComplete: true,
             privacyConsentGranted: true,
             limitedModeSelected: false,
-            microphoneGranted: true,
-            bluetoothRequired: false,
-            bluetoothGranted: true,
+            microphoneGranted: permissionsGranted,
+            bluetoothRequired: true,
+            bluetoothGranted: permissionsGranted,
             h20BleConnected: false,
             h20HfpConfigured: false,
             selectedAge: selectedAge,
@@ -34,7 +35,7 @@ void main() {
             dataRetentionSummary: 'Lưu theo chính sách HOMI.',
             onGrantPrivacyConsent: () async {},
             onContinueWithoutVoice: () async {},
-            onRetryPermissions: () {},
+            onRetryPermissions: () => setState(() => permissionsGranted = true),
             onSetupH20: () async => false,
             onAgeSelected: (age) => setState(() => selectedAge = age),
             onCompleteSetup: () async {},
@@ -52,6 +53,7 @@ void main() {
         ].map((provider) => precacheImage(provider, context)),
       );
     });
+    await tester.pumpAndSettle();
 
     await expectLater(
       find.byType(StartupSetupScreen),
@@ -73,6 +75,12 @@ void main() {
       find.byType(StartupSetupScreen),
       matchesGoldenFile('goldens/startup-permissions-390x844.png'),
     );
+    await tester.tap(find.byKey(const Key('startup-request-permissions')));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(StartupSetupScreen),
+      matchesGoldenFile('goldens/startup-device-390x844.png'),
+    );
   });
 
   testWidgets('all three setup steps share one dark HOMI form', (tester) async {
@@ -81,6 +89,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     var selectedAge = 6;
+    var permissionsGranted = false;
     await tester.pumpWidget(
       StatefulBuilder(
         builder: (context, setState) => MaterialApp(
@@ -94,9 +103,9 @@ void main() {
             privacyConfigurationComplete: true,
             privacyConsentGranted: true,
             limitedModeSelected: false,
-            microphoneGranted: true,
-            bluetoothRequired: false,
-            bluetoothGranted: true,
+            microphoneGranted: permissionsGranted,
+            bluetoothRequired: true,
+            bluetoothGranted: permissionsGranted,
             h20BleConnected: false,
             h20HfpConfigured: false,
             selectedAge: selectedAge,
@@ -104,7 +113,7 @@ void main() {
             dataRetentionSummary: 'Lưu theo chính sách HOMI.',
             onGrantPrivacyConsent: () async {},
             onContinueWithoutVoice: () async {},
-            onRetryPermissions: () {},
+            onRetryPermissions: () => setState(() => permissionsGranted = true),
             onSetupH20: () async => false,
             onAgeSelected: (age) => setState(() => selectedAge = age),
             onCompleteSetup: () async {},
@@ -122,6 +131,7 @@ void main() {
         ].map((provider) => precacheImage(provider, context)),
       );
     });
+    await tester.pumpAndSettle();
 
     await expectLater(
       find.byType(StartupSetupScreen),
@@ -138,6 +148,12 @@ void main() {
     await expectLater(
       find.byType(StartupSetupScreen),
       matchesGoldenFile('goldens/dark-startup-permissions-390x844.png'),
+    );
+    await tester.tap(find.byKey(const Key('startup-request-permissions')));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(StartupSetupScreen),
+      matchesGoldenFile('goldens/dark-startup-device-390x844.png'),
     );
   });
 }

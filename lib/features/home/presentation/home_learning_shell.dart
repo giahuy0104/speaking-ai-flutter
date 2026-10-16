@@ -193,7 +193,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         delay: const Duration(milliseconds: 450),
       );
     });
-    if (widget.onboardingStore != null) {
+    if (widget.onboardingStore != null &&
+        defaultTargetPlatform != TargetPlatform.android) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         unawaited(_showTutorialOnFirstUse());
       });
@@ -908,15 +909,6 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
   List<UserOnboardingStep> get _tutorialSteps => <UserOnboardingStep>[
     UserOnboardingStep(
-      kind: UserOnboardingStepKind.welcome,
-      title: context.tr('Chào mừng đến với HOMI', '欢迎使用 HOMI'),
-      description: context.tr(
-        'Mình sẽ chỉ cho bạn những khu vực quan trọng để bắt đầu học thật dễ dàng.',
-        '接下来带你快速认识几个重要功能，轻松开始学习。',
-      ),
-      icon: Icons.waving_hand_rounded,
-    ),
-    UserOnboardingStep(
       kind: UserOnboardingStepKind.spotlight,
       title: context.tr('Bắt đầu nói', '开始说话'),
       description: context.tr(
@@ -1435,7 +1427,6 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           themeMode: widget.themeMode,
           onThemeModeChanged: widget.onThemeModeChanged,
           onChildAgeChanged: widget.onChildAgeChanged,
-          onStartTutorial: _startTutorial,
           config: widget.config,
           privacyConsentGranted: widget.privacyConsentGranted,
           voiceAccessEnabled: widget.voiceAccessEnabled,
