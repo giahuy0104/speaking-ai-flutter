@@ -127,6 +127,7 @@ class LessonMediaService {
       _playbackService ??= JustAudioPlaybackService(
         audioTurnCoordinator: _audioTurnCoordinator,
         audioTurnOwner: _audioTurnOwner,
+        manageIosAudioSession: true,
       );
 
   bool get _shouldUseSelectedHfp =>
@@ -323,6 +324,10 @@ class LessonMediaService {
         playback is CompletionAwareAudioPlaybackService
         ? playback as CompletionAwareAudioPlaybackService
         : null;
+    final PrearmedCompletionAudioPlaybackService? prearmedPlayback =
+        playback is PrearmedCompletionAudioPlaybackService
+        ? playback as PrearmedCompletionAudioPlaybackService
+        : null;
     final subscription = playback.playingStream.listen(
       (playing) {
         if (playing) {
@@ -376,28 +381,49 @@ class LessonMediaService {
           interrupted = event.begin && event.type != AudioInterruptionType.duck,
       onError: (Object _) {},
     );
+    StreamSubscription<void> listenForCompletion(Stream<void> stream) =>
+        stream.listen(
+          (_) {
+            if (!completed.isCompleted) {
+              completed.complete();
+            }
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            if (!completed.isCompleted) {
+              completed.completeError(error, stackTrace);
+            }
+          },
+        );
     StreamSubscription<void>? completionSubscription;
     try {
+      // The source-scoped stream ignores completion from the previous clip.
+      // Arm it before play(), which may return after a very short clip ends.
+      if (!kIsWeb && prearmedPlayback != null) {
+        completionSubscription = listenForCompletion(
+          prearmedPlayback.completionStreamForNextPlay(uri),
+        );
+      }
       await playback.play(uri);
       started = true;
       playStarted = true;
-      // Subscribe only after this source has actually started. just_audio's
-      // state stream can replay ProcessingState.completed from the previous
-      // source when a listener is attached, which must not finish the new
-      // lesson intro early.
-      completionSubscription = completionPlayback?.completionStream.listen(
-        (_) {
-          if (!completed.isCompleted) {
-            completed.complete();
-          }
-        },
-        onError: (Object error, StackTrace stackTrace) {
-          if (!completed.isCompleted) {
-            completed.completeError(error, stackTrace);
-          }
-        },
-      );
+      // Other completion-aware implementations may replay a stale completion
+      // on subscription, so retain their post-start subscription behavior.
+      completionSubscription ??= completionPlayback == null
+          ? null
+          : listenForCompletion(completionPlayback.completionStream);
       await completed.future.timeout(timeout);
+    } on TimeoutException {
+      final progress = playback is ProgressAwareAudioPlaybackService
+          ? playback as ProgressAwareAudioPlaybackService
+          : null;
+      debugPrint(
+        'HOMI lesson playback timeout: route=${route.name} '
+        'started=$started playStarted=$playStarted '
+        'position=${progress?.position} duration=${progress?.duration} '
+        'hfpPhase=${_hfpAudioControl?.status.phase.name} '
+        'hfpActive=${_hfpAudioControl?.status.routeActive}',
+      );
+      rethrow;
     } finally {
       resumeTimer?.cancel();
       await Future.wait<void>(<Future<void>>[
@@ -626,9 +652,16 @@ class LessonMediaService {
       await playback.prepare();
       return;
     }
-    // Configure playAndRecord/voiceChat first, then re-assert the selected HFP
-    // input. This order prevents just_audio's playback preparation from
-    // replacing the route selected by the native H20 bridge.
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      // Native HFP must own the shared AVAudioSession before just_audio's
+      // prepare() checks isAudioHandoffActive. Preparing first can race the
+      // speech-to-playback handoff and make iOS reject a category change with
+      // '!pri', leaving the child's recording inaudible.
+      await _activateSelectedHfpRoute(force: true);
+      await playback.prepare();
+      return;
+    }
+    // Android sets communication attributes before opening SCO.
     await playback.prepare();
     await _activateSelectedHfpRoute(
       force: !kIsWeb && defaultTargetPlatform == TargetPlatform.android,

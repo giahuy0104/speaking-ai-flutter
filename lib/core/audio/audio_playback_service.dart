@@ -49,6 +49,13 @@ abstract interface class CompletionAwareAudioPlaybackService {
   Stream<void> get completionStream;
 }
 
+/// Completes only for the next play request of [uri]. It can be armed before
+/// [AudioPlaybackService.play] without accepting an old source's end event.
+abstract interface class PrearmedCompletionAudioPlaybackService
+    implements CompletionAwareAudioPlaybackService {
+  Stream<void> completionStreamForNextPlay(Uri uri);
+}
+
 /// Optional playback telemetry used by long-form media such as songs.
 ///
 /// Short lesson prompts do not need to implement this capability, which keeps
@@ -134,6 +141,7 @@ class JustAudioPlaybackService
     implements
         AudioPlaybackService,
         CompletionAwareAudioPlaybackService,
+        PrearmedCompletionAudioPlaybackService,
         ProgressAwareAudioPlaybackService,
         SeekableAudioPlaybackService,
         UserGestureAudioPlaybackService,
@@ -159,14 +167,18 @@ class JustAudioPlaybackService
     DeviceAudioCache? cache,
     AudioTurnCoordinator? audioTurnCoordinator,
     AudioTurnOwner audioTurnOwner = AudioTurnOwner.legacy,
+    bool manageIosAudioSession = false,
   }) {
-    final defaults = player == null ? _createDefaultPlayer() : null;
+    final defaults = player == null
+        ? _createDefaultPlayer(manageIosAudioSession: manageIosAudioSession)
+        : null;
     return JustAudioPlaybackService._(
       player: player ?? defaults!.player,
       androidLoudnessEnhancer: defaults?.loudnessEnhancer,
       cache: cache,
       audioTurnCoordinator: audioTurnCoordinator,
       audioTurnOwner: audioTurnOwner,
+      manageIosAudioSession: manageIosAudioSession,
     );
   }
 
@@ -176,13 +188,15 @@ class JustAudioPlaybackService
     DeviceAudioCache? cache,
     AudioTurnCoordinator? audioTurnCoordinator,
     required AudioTurnOwner audioTurnOwner,
+    required bool manageIosAudioSession,
   }) : _cache = cache ?? DeviceAudioCache(),
        _ownsCache = cache == null,
        _browserPlayback = createBrowserAudioPlayback(),
        _player = player,
        _androidLoudnessEnhancer = androidLoudnessEnhancer,
        _audioTurnCoordinator = audioTurnCoordinator,
-       _audioTurnOwner = audioTurnOwner {
+       _audioTurnOwner = audioTurnOwner,
+       _manageIosAudioSession = manageIosAudioSession {
     _audioSession = AudioSession.instance;
     if (audioTurnCoordinator != null) {
       _audioTurnCompletionSubscription = completionStream.listen((_) {
@@ -192,7 +206,9 @@ class JustAudioPlaybackService
     }
   }
 
-  static _DefaultAudioPlayer _createDefaultPlayer() {
+  static _DefaultAudioPlayer _createDefaultPlayer({
+    required bool manageIosAudioSession,
+  }) {
     final androidEffects = <AndroidAudioEffect>[];
     AndroidLoudnessEnhancer? loudnessEnhancer;
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
@@ -205,6 +221,14 @@ class JustAudioPlaybackService
     }
     return _DefaultAudioPlayer(
       player: AudioPlayer(
+        // The iOS HFP bridge already owns the live AVAudioSession. just_audio
+        // calls setActive(true) on every play() by default; iOS can reject
+        // that redundant call with '!pri' after Apple Speech, leaving the
+        // player flagged as started without audible output.
+        handleAudioSessionActivation:
+            !manageIosAudioSession ||
+            kIsWeb ||
+            defaultTargetPlatform != TargetPlatform.iOS,
         // Android attributes belong to this player. Another idle feature may
         // configure the process-wide session for media while H20 is playing.
         androidApplyAudioAttributes:
@@ -231,6 +255,7 @@ class JustAudioPlaybackService
   final bool _ownsCache;
   final AudioTurnCoordinator? _audioTurnCoordinator;
   final AudioTurnOwner _audioTurnOwner;
+  final bool _manageIosAudioSession;
   late final Future<AudioSession> _audioSession;
   StreamSubscription<void>? _audioTurnCompletionSubscription;
   AudioTurnLease? _audioTurnLease;
@@ -391,33 +416,49 @@ class JustAudioPlaybackService
             androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
           ),
         );
+      } else {
+        await session.configure(
+          const AudioSessionConfiguration(
+            avAudioSessionCategory: AVAudioSessionCategory.playback,
+            avAudioSessionMode: AVAudioSessionMode.spokenAudio,
+            androidAudioAttributes: AndroidAudioAttributes(
+              contentType: AndroidAudioContentType.music,
+              usage: AndroidAudioUsage.media,
+            ),
+            androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
+          ),
+        );
+      }
+    } on PlatformException catch (error) {
+      if (await _reuseIosNativeAudioSession()) {
+        // Native capture may have acquired the shared session while Dart was
+        // configuring it. Its active route remains the correct output.
         return;
       }
-      await session.configure(
-        const AudioSessionConfiguration(
-          avAudioSessionCategory: AVAudioSessionCategory.playback,
-          avAudioSessionMode: AVAudioSessionMode.spokenAudio,
-          androidAudioAttributes: AndroidAudioAttributes(
-            contentType: AndroidAudioContentType.music,
-            usage: AndroidAudioUsage.media,
-          ),
-          androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
-        ),
-      );
-    } on PlatformException catch (error) {
-      if (defaultTargetPlatform == TargetPlatform.iOS) {
-        // When session.configure(...) is called on iOS, if a PlatformException
-        // is thrown (e.g. '!pri' or AVAudioSession category transition error
-        // after Apple Speech stops), catch it gracefully and do not rethrow,
-        // so just_audio can continue playing through the active iOS audio
-        // session instead of aborting playback.
+      if (defaultTargetPlatform == TargetPlatform.iOS &&
+          !_manageIosAudioSession) {
         AudioDiagnostics.event('audio.session.configure.ios_suppressed', {
           'code': error.code,
           'message': error.message,
         });
         return;
       }
+      AudioDiagnostics.event('audio.session.configure.failed', {
+        'code': error.code,
+        'message': error.message,
+      });
       rethrow;
+    }
+    if (_manageIosAudioSession &&
+        !kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.iOS) {
+      // With just_audio's implicit activation disabled, phone-speaker playback
+      // activates its own session here. HFP playback returned above and keeps
+      // the native session untouched.
+      final active = await session.setActive(true);
+      if (!active) {
+        throw const PlaybackException('Không thể kích hoạt âm thanh iPhone.');
+      }
     }
   }
 
@@ -516,6 +557,7 @@ class JustAudioPlaybackService
         _applyAndroidPlaybackAttributes(request.communicationRoute),
       );
       _requireCurrentPlayback(request);
+      request.playbackInvoked = true;
       final playback = _player.play();
       unawaited(
         playback.catchError((Object error, StackTrace stackTrace) {
@@ -540,6 +582,10 @@ class JustAudioPlaybackService
         duration > Duration.zero &&
         _player.position >= duration - const Duration(milliseconds: 20);
     if (_player.processingState == ProcessingState.completed || reachedEnd) {
+      // just_audio keeps playing=true after completion. Seeking while it is
+      // true can restart the old source before the next request is armed, and
+      // its following play() then returns without issuing a new play command.
+      if (_player.playing) await _player.pause();
       await _player.seek(Duration.zero);
     }
   }
@@ -660,6 +706,42 @@ class JustAudioPlaybackService
             duration: _player.duration,
           ),
         )
+        .map((_) {});
+  }
+
+  @override
+  Stream<void> completionStreamForNextPlay(Uri uri) {
+    if (_browserPlayback != null) return completionStream;
+    final previousRequest = _playbackRequest;
+    _PlaybackRequest? nextRequest;
+    final tracker = PlaybackCompletionTracker(
+      processingState: ProcessingState.idle,
+      playing: false,
+      duration: null,
+    );
+    // playerStateStream is derived asynchronously from playerEventStream. Its
+    // queued old states could arrive after the new request starts. Observe the
+    // synchronous source events so request identity is checked at emission.
+    return _player.playerEventStream
+        .where((event) {
+          final request = _playbackRequest;
+          if (request == null || identical(request, previousRequest)) {
+            return false;
+          }
+          nextRequest ??= request;
+          if (!identical(request, nextRequest) ||
+              request.isCancelled ||
+              !request.playbackInvoked ||
+              _loadedOriginalUri != uri) {
+            return false;
+          }
+          return tracker.observe(
+            processingState: event.playbackEvent.processingState,
+            playing: event.playing,
+            position: event.playbackEvent.updatePosition,
+            duration: event.playbackEvent.duration,
+          );
+        })
         .map((_) {});
   }
 
@@ -1001,6 +1083,7 @@ class _PlaybackRequest {
   final bool communicationRoute;
   final AudioTurnCancellation turnCancellation = AudioTurnCancellation();
   final Completer<void> _cancelled = Completer<void>();
+  bool playbackInvoked = false;
 
   bool get isCancelled => _cancelled.isCompleted;
 
