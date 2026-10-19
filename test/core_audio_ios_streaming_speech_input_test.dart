@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
+import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_route_coordinator.dart';
 import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -54,6 +55,65 @@ void main() {
     final amplitude = input.amplitudeDbfs.first;
     events.add(<String, dynamic>{'type': 'speech.rms', 'rmsDb': -18.5});
     expect(await amplitude, -18.5);
+  });
+
+  test('iOS keeps a final that lands while speech.stop is in flight', () async {
+    const methodChannel = MethodChannel('test_ios_final_before_stop_reply');
+    final events = StreamController<dynamic>.broadcast();
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(methodChannel, (call) async {
+      switch (call.method) {
+        case 'speech.isAvailable':
+        case 'speech.prepare':
+          return true;
+        case 'speech.start':
+          scheduleMicrotask(() {
+            events.add(<String, dynamic>{'type': 'speech.ready'});
+          });
+          return true;
+        case 'speech.stop':
+          // Apple finalized on its own just before native handled the stop:
+          // the final transcript is already on the event channel and the
+          // bridge no longer has an active turn to stop.
+          events.add(<String, dynamic>{
+            'type': 'speech.final',
+            'text': 'chủ đề',
+            'alternatives': <String>['chủ đề'],
+            'confidence': 0.9,
+          });
+          await Future<void>.delayed(Duration.zero);
+          throw PlatformException(
+            code: 'SPEECH_NOT_ACTIVE',
+            message: 'Chưa có lượt Apple Speech đang chạy.',
+          );
+        case 'speech.cancel':
+          return true;
+      }
+      return null;
+    });
+    addTearDown(() async {
+      messenger.setMockMethodCallHandler(methodChannel, null);
+      await events.close();
+    });
+
+    final input = IOSStreamingSpeechInput(
+      methodChannel: methodChannel,
+      eventStream: events.stream,
+    );
+    addTearDown(input.dispose);
+
+    await input.start();
+    events.add(<String, dynamic>{
+      'type': 'speech.partial',
+      'text': 'chủ đề',
+      'alternatives': <String>['chủ đề'],
+    });
+    await Future<void>.delayed(Duration.zero);
+
+    final capture = await input.stop();
+    expect(capture.sourceText, 'chủ đề');
+    expect(capture.confidence, 0.9);
   });
 
   test('iOS native speech keeps Apple latency and privacy telemetry', () async {
@@ -752,6 +812,56 @@ void main() {
     expect(route.startRouteCount, 2);
     expect(route.status.phase, BluetoothAudioConnectionPhase.recording);
   });
+
+  test(
+    'iOS lesson take re-arms a ready H20 route still held by the lesson prompt',
+    () async {
+      const methodChannel = MethodChannel('test_ios_hfp_route_rearm_shared');
+      final events = StreamController<dynamic>.broadcast();
+      final route = _FakeHfpAudioControl();
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(methodChannel, (call) async {
+        switch (call.method) {
+          case 'speech.isAvailable':
+            return true;
+          case 'speech.start':
+            scheduleMicrotask(() {
+              events.add(<String, dynamic>{'type': 'speech.ready'});
+            });
+            return true;
+          case 'speech.cancel':
+            return true;
+        }
+        return null;
+      });
+      addTearDown(() async {
+        messenger.setMockMethodCallHandler(methodChannel, null);
+        await events.close();
+        await route.dispose();
+      });
+      // iOS wiring from ai_speaking_app.dart: no handoff grace, no revalidate.
+      final coordinator = HfpAudioRouteCoordinator(route);
+      final lessonPrompt = coordinator.createScope('listening-1');
+      final input = IOSStreamingSpeechInput(
+        methodChannel: methodChannel,
+        eventStream: events.stream,
+        audioRouteControl: coordinator.createScope('native-speech'),
+      );
+      addTearDown(input.dispose);
+
+      // The lesson prompt keeps its lease until the take has started; a route
+      // blip in between leaves the still-active HM-D001 route "ready".
+      await lessonPrompt.startAudioRoute();
+      route.markActiveRouteReady();
+      await input.startLessonEnglishRecognitionWithRecording(
+        '/recordings/lesson-attempt.wav',
+      );
+
+      expect(route.startRouteCount, 2);
+      expect(route.status.phase, BluetoothAudioConnectionPhase.recording);
+    },
+  );
 
   test(
     'iOS MAIN cancellation invalidates a pending lesson HFP activation',

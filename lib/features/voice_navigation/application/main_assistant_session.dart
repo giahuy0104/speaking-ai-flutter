@@ -77,6 +77,9 @@ class MainAssistantSession {
       }
       final pause = await _appFlowCoordinator.pauseForMainAssistant();
       if (generation != _generation || !canContinue()) return false;
+      // A visible learning module still owns this MAIN turn if its audio
+      // could not be paused. Do not route the same command to the global menu.
+      if (hadActiveModule && !pause.paused) return false;
       final activated = await activateVoice(
         activeLearning: pause.hasActiveModule,
         activeLearningKind: pause.activeKind,

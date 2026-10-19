@@ -439,6 +439,93 @@ void main() {
   );
 
   test(
+    'prearmed playback catches a clip that ends before play returns',
+    () async {
+      final playback = _ImmediateCompletionPlaybackService();
+      final mediaService = LessonMediaService(playbackService: playback);
+
+      await mediaService.playToCompletion(
+        Uri.parse('file:///short-take.wav'),
+        timeout: const Duration(milliseconds: 100),
+      );
+      expect(playback.playCalls, 1);
+
+      await mediaService.dispose();
+    },
+  );
+
+  test(
+    'iOS accepts a stopped source at end without a native end event',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final playback = _PositionOnlyPrearmedPlaybackService()
+        ..duration = const Duration(seconds: 2);
+      final media = LessonMediaService(
+        playbackService: playback,
+        audioInterruptionEvents: const Stream<AudioInterruptionEvent>.empty(),
+      );
+      addTearDown(media.dispose);
+
+      var finished = false;
+      final completion = media
+          .playToCompletion(
+            Uri.parse('file:///recorded-take.wav'),
+            timeout: const Duration(seconds: 2),
+          )
+          .then((_) => finished = true);
+      await playback.didPlay.future.timeout(const Duration(seconds: 1));
+      playback.position = const Duration(milliseconds: 1500);
+      await Future<void>.delayed(const Duration(milliseconds: 450));
+      expect(finished, isFalse);
+
+      playback.position = const Duration(seconds: 2);
+      playback.pauseTemporarily();
+      await completion.timeout(const Duration(seconds: 1));
+      expect(finished, isTrue);
+    },
+  );
+
+  test('iOS end-position fallback waits through an interruption', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final playback = _PositionOnlyPrearmedPlaybackService()
+      ..duration = const Duration(seconds: 2);
+    final interruptions = StreamController<AudioInterruptionEvent>.broadcast();
+    addTearDown(interruptions.close);
+    final media = LessonMediaService(
+      playbackService: playback,
+      audioInterruptionEvents: interruptions.stream,
+    );
+    addTearDown(media.dispose);
+
+    var finished = false;
+    final completion = media
+        .playToCompletion(
+          Uri.parse('file:///recorded-take.wav'),
+          timeout: const Duration(seconds: 2),
+        )
+        .then((_) => finished = true);
+    await playback.didPlay.future.timeout(const Duration(seconds: 1));
+    playback.position = const Duration(milliseconds: 1200);
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+    playback.position = const Duration(seconds: 2);
+    interruptions.add(
+      AudioInterruptionEvent(true, AudioInterruptionType.pause),
+    );
+    playback.pauseTemporarily();
+    await Future<void>.delayed(const Duration(milliseconds: 450));
+    expect(finished, isFalse);
+
+    interruptions.add(
+      AudioInterruptionEvent(false, AudioInterruptionType.pause),
+    );
+    playback.resume();
+    await completion.timeout(const Duration(seconds: 1));
+    expect(finished, isTrue);
+  });
+
+  test(
     'Android selected H20 route is prepared before lesson playback starts',
     () async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
@@ -513,6 +600,44 @@ void main() {
     await mediaService.dispose();
   });
 
+  test('waits briefly for a lost HM-D001 route to come back', () async {
+    final statuses = StreamController<BluetoothAudioStatus>.broadcast();
+    addTearDown(statuses.close);
+    final hfp = _FakeHfpAudioControl(
+      <String>[],
+      status: const BluetoothAudioStatus(
+        phase: BluetoothAudioConnectionPhase.error,
+        deviceId: 'h20-uid',
+        deviceName: 'H20',
+        sampleRate: 16000,
+      ),
+      changes: statuses.stream,
+    );
+    final mediaService = LessonMediaService(
+      playbackService: _ControlledPlaybackService(),
+      hfpAudioControl: hfp,
+    );
+    addTearDown(mediaService.dispose);
+
+    final returned = mediaService.waitForSelectedHfpRoute();
+    statuses.add(
+      const BluetoothAudioStatus(
+        phase: BluetoothAudioConnectionPhase.ready,
+        deviceId: 'h20-uid',
+        deviceName: 'H20',
+        sampleRate: 16000,
+        routeActive: true,
+      ),
+    );
+    expect(await returned, isTrue);
+    expect(
+      await mediaService.waitForSelectedHfpRoute(
+        timeout: const Duration(milliseconds: 20),
+      ),
+      isFalse,
+    );
+  });
+
   test('take replay route retry is bounded and stops with the clip', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
@@ -577,8 +702,8 @@ void main() {
 
     expect(events, <String>[
       'communication:true',
-      'prepare',
       'hfp:start',
+      'prepare',
       'play',
     ]);
     expect(hfp.startCalls, 1);
@@ -586,6 +711,47 @@ void main() {
     playback.finish();
     await playing;
     await mediaService.dispose();
+  });
+
+  test('iOS revalidates HFP before another lesson clip', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final events = <String>[];
+    final playback = _RouteAwareControlledPlaybackService(events);
+    final hfp = _FakeHfpAudioControl(
+      events,
+      status: const BluetoothAudioStatus(
+        phase: BluetoothAudioConnectionPhase.ready,
+        deviceId: 'h20-uid',
+        routeActive: true,
+      ),
+    );
+    final media = LessonMediaService(
+      playbackService: playback,
+      hfpAudioControl: hfp,
+    );
+
+    for (final uri in <Uri>[
+      Uri.parse('file:///first.wav'),
+      Uri.parse('file:///second.wav'),
+    ]) {
+      final playing = media.playToCompletion(uri);
+      await Future<void>.delayed(Duration.zero);
+      playback.finish();
+      await playing;
+    }
+    expect(hfp.startCalls, 2);
+    expect(events, <String>[
+      'communication:true',
+      'hfp:start',
+      'prepare',
+      'play',
+      'communication:true',
+      'hfp:start',
+      'prepare',
+      'play',
+    ]);
+    await media.dispose();
   });
 
   test('phone playback does not activate an unselected HFP route', () async {
@@ -1082,6 +1248,20 @@ class _CompletionAwareControlledPlaybackService
   }
 }
 
+class _ImmediateCompletionPlaybackService
+    extends _CompletionAwareControlledPlaybackService
+    implements PrearmedCompletionAudioPlaybackService {
+  @override
+  Stream<void> completionStreamForNextPlay(Uri uri) => completionStream;
+
+  @override
+  Future<PlaybackStartMetrics> play(Uri uri) {
+    final started = super.play(uri);
+    finish();
+    return started;
+  }
+}
+
 class _ProgressAwareCompletionPlaybackService
     extends _CompletionAwareControlledPlaybackService
     implements ProgressAwareAudioPlaybackService {
@@ -1096,6 +1276,22 @@ class _ProgressAwareCompletionPlaybackService
 
   @override
   Stream<Duration?> get durationStream => const Stream<Duration?>.empty();
+}
+
+class _PositionOnlyPrearmedPlaybackService
+    extends _ProgressAwareCompletionPlaybackService
+    implements PrearmedCompletionAudioPlaybackService {
+  final Completer<void> didPlay = Completer<void>();
+
+  @override
+  Stream<void> completionStreamForNextPlay(Uri uri) => completionStream;
+
+  @override
+  Future<PlaybackStartMetrics> play(Uri uri) async {
+    final metrics = await super.play(uri);
+    if (!didPlay.isCompleted) didPlay.complete();
+    return metrics;
+  }
 }
 
 class _StaleCompletionPlaybackService

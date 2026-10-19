@@ -284,6 +284,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
   private var authoredPromptAudioToken: UUID?
   private var authoredPromptExpectsHfp = false
   private var authoredPromptFiles: [URL] = []
+  private let promptPlayerQueue = DispatchQueue(label: "ailingo.voice-prompt.player", qos: .userInitiated)
   private var routeChangeToken: NSObjectProtocol?
   private var interruptionToken: NSObjectProtocol?
   private var promptOperationLeases = IOSPromptOperationLeaseState()
@@ -297,20 +298,20 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     channel = FlutterMethodChannel(name: "ailingo_voice_prompt", binaryMessenger: messenger)
     super.init()
     synthesizer.delegate = self
-    channel.setMethodCallHandler { [weak self] call, result in
+    channel.setMethodCallHandler(IOSNativeWork.handler { [weak self] call, result in
       self?.handle(call, result: result)
-    }
+    })
     routeChangeToken = NotificationCenter.default.addObserver(
       forName: AVAudioSession.routeChangeNotification,
       object: audioSessionCoordinator.session,
-      queue: .main
+      queue: IOSNativeWork.operationQueue
     ) { [weak self] _ in
       self?.stopPlaybackIfSelectedHfpRouteWasLost()
     }
     interruptionToken = NotificationCenter.default.addObserver(
       forName: AVAudioSession.interruptionNotification,
       object: audioSessionCoordinator.session,
-      queue: .main
+      queue: IOSNativeWork.operationQueue
     ) { [weak self] notification in
       let rawType = (notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? NSNumber)?.uintValue
       guard rawType == AVAudioSession.InterruptionType.began.rawValue else { return }
@@ -440,7 +441,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
           frameLength: Int(buffer.frameLength),
           sampleRate: format.sampleRate
         ) else {
-          DispatchQueue.main.async { result(path) }
+          IOSNativeWork.queue.async { result(path) }
           return
         }
         let outputURL = sourceURL.deletingPathExtension()
@@ -462,9 +463,9 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
         )
         try output.write(from: buffer)
         try? FileManager.default.removeItem(at: sourceURL)
-        DispatchQueue.main.async { result(outputURL.path) }
+        IOSNativeWork.queue.async { result(outputURL.path) }
       } catch {
-        DispatchQueue.main.async {
+        IOSNativeWork.queue.async {
           result(FlutterError(
             code: "LESSON_RECORDING_NORMALIZATION_FAILED",
             message: "Unable to normalize lesson recording.",
@@ -691,14 +692,14 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       self.failSynthesizedPrompt(audioToken: audioToken, code: "PROMPT_SYNTHESIS_TIMEOUT")
     }
     synthesisTimeout = timeout
-    DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(30), execute: timeout)
+    IOSNativeWork.queue.asyncAfter(deadline: .now() + .seconds(30), execute: timeout)
     audioSessionCoordinator.trace(
       stage: "prompt_synthesis_started", caller: "VoicePromptBridge.synthesizePrompt",
       values: ["requestedGainDb": gainDb]
     )
     synthesizer.write(utterance) { [weak self] buffer in
       operation.accept(buffer) { outcome in
-        DispatchQueue.main.async {
+        IOSNativeWork.queue.async {
           guard let self, self.activeUtteranceAudioToken == audioToken,
             self.synthesisOperation === operation else { operation.cancel(); return }
           switch outcome {
@@ -724,7 +725,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       let measured = try? IOSPromptPlaybackAudio.prepare(source: operation.source, output: operation.output)
       guard !operation.isCancelled else { operation.removeFiles(); return }
       let url = measured == nil ? operation.source : operation.output
-      DispatchQueue.main.async {
+      IOSNativeWork.queue.async {
         guard let self, self.activeUtteranceAudioToken == audioToken,
           self.synthesisOperation === operation else { operation.cancel(); return }
         let expectsHfp = self.activeUtteranceExpectsHfp
@@ -769,7 +770,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       completion(false)
       return
     }
-    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
+    IOSNativeWork.queue.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
       self?.waitForSelectedPromptRoute(
         expectsHfp: expectsHfp,
         attemptsRemaining: attemptsRemaining - 1,
@@ -930,7 +931,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       } catch {
         prepared = .failure(error)
       }
-      DispatchQueue.main.async {
+      IOSNativeWork.queue.async {
         guard let self, self.authoredPromptAudioToken == token else {
           try? FileManager.default.removeItem(at: source)
           try? FileManager.default.removeItem(at: output)
@@ -959,21 +960,39 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
         self.finishAuthoredPrompt(success: false, errorCode: "PROMPT_AUDIO_ROUTE_FAILED")
         return
       }
-      self.startAuthoredPromptPlayback(url, expectsHfp: expectsHfp,
+      self.prepareAuthoredPromptPlayer(url, token: token, expectsHfp: expectsHfp,
                                        gainDb: gainDb, requestedGainDb: requestedGainDb)
     }
   }
 
+  private func prepareAuthoredPromptPlayer(
+    _ url: URL, token: UUID, expectsHfp: Bool, gainDb: Double, requestedGainDb: Double
+  ) {
+    // Opening the file and priming its audio queue blocks the caller, and a
+    // prompt usually starts while a page transition is still animating.
+    promptPlayerQueue.async { [weak self] in
+      let player = try? AVAudioPlayer(contentsOf: url)
+      player?.prepareToPlay()
+      IOSNativeWork.queue.async {
+        guard let self, self.authoredPromptAudioToken == token else { return }
+        guard let player else {
+          self.finishAuthoredPrompt(success: false)
+          return
+        }
+        self.startAuthoredPromptPlayback(player, expectsHfp: expectsHfp,
+                                         gainDb: gainDb, requestedGainDb: requestedGainDb)
+      }
+    }
+  }
+
   private func startAuthoredPromptPlayback(
-    _ url: URL, expectsHfp: Bool, gainDb: Double, requestedGainDb: Double
+    _ player: AVAudioPlayer, expectsHfp: Bool, gainDb: Double, requestedGainDb: Double
   ) {
     do {
-      let player = try AVAudioPlayer(contentsOf: url)
       authoredPromptPlayer = player
       player.delegate = self
       player.volume = 1.0
       player.numberOfLoops = 0
-      player.prepareToPlay()
       authoredPromptExpectsHfp = expectsHfp
       // Speed was applied once during offline generation; playback stays at 1x.
       guard player.play() else { throw ReadyCueError.playbackFailed }
@@ -1077,6 +1096,12 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
   }
 
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
+        self?.speechSynthesizer(synthesizer, didFinish: utterance)
+      }
+      return
+    }
     if activeUtterance === utterance, synthesisOperation != nil { return }
     guard activeUtterance === utterance else {
       audioSessionCoordinator.trace(
@@ -1096,6 +1121,12 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
   }
 
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
+        self?.speechSynthesizer(synthesizer, didStart: utterance)
+      }
+      return
+    }
     guard activeUtterance === utterance else { return }
     guard synthesisOperation == nil else { return }
     audioSessionCoordinator.trace(
@@ -1108,6 +1139,12 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
   }
 
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
+        self?.speechSynthesizer(synthesizer, didCancel: utterance)
+      }
+      return
+    }
     guard activeUtterance === utterance else {
       audioSessionCoordinator.trace(
         stage: "prompt_stale_cancel_ignored",
@@ -1154,13 +1191,29 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       readyCueResults.append(result)
       return
     }
-    guard let audioToken = configurePromptAudioSession() else {
-      result(FlutterError(
-        code: "PROMPT_AUDIO_ROUTE_FAILED",
-        message: "Unable to prepare the speech-ready cue route.",
-        details: nil
-      ))
-      return
+    let audioToken: UUID?
+    let expectsHfp: Bool
+    if audioSessionCoordinator.isSpeechCaptureActive {
+      // Flutter requests the cue once the command microphone is open. Setting
+      // the prompt category or the speaker override now would rebuild the
+      // capture graph under Apple Speech, so play on the live capture route.
+      audioSessionCoordinator.trace(
+        stage: "ready_cue_capture_route_reused",
+        caller: "VoicePromptBridge.playSpeechReadyCue"
+      )
+      audioToken = nil
+      expectsHfp = audioSessionCoordinator.hasSelectedTwoWayHfpRoute()
+    } else {
+      guard let promptToken = configurePromptAudioSession() else {
+        result(FlutterError(
+          code: "PROMPT_AUDIO_ROUTE_FAILED",
+          message: "Unable to prepare the speech-ready cue route.",
+          details: nil
+        ))
+        return
+      }
+      audioToken = promptToken
+      expectsHfp = promptExpectsHfp(forcePhoneSpeaker: false)
     }
     audioSessionCoordinator.trace(stage: "ready_cue_started", caller: "VoicePromptBridge.playSpeechReadyCue")
 
@@ -1168,7 +1221,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     readyCueToken = token
     readyCueAudioToken = audioToken
     readyCueResults.append(result)
-    readyCueExpectsHfp = promptExpectsHfp(forcePhoneSpeaker: false)
+    readyCueExpectsHfp = expectsHfp
     // setPreferredInput can return before the Bluetooth voice route is live.
     // Starting this very short WAV then can play it on the phone (or lose it)
     // while the lesson already opens its microphone gate. Android likewise
@@ -1191,7 +1244,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
         completeReadyCue(token: token, errorCode: "READY_CUE_ROUTE_UNAVAILABLE")
         return
       }
-      DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
+      IOSNativeWork.queue.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
         self?.waitForReadyCueRoute(
           token: token,
           expectsHfp: expectsHfp,
@@ -1223,13 +1276,19 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
 
     // AVAudioPlayer normally completes after 120 ms. Leave room for the same
     // acoustic tail as Android before opening the lesson microphone gate.
-    DispatchQueue.main.asyncAfter(
+    IOSNativeWork.queue.asyncAfter(
       deadline: .now() + .milliseconds(900),
       execute: fallback
     )
   }
 
   func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
+        self?.audioPlayerDidFinishPlaying(player, successfully: flag)
+      }
+      return
+    }
     if player === authoredPromptPlayer {
       finishAuthoredPrompt(success: flag)
       return
@@ -1240,12 +1299,18 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       return
     }
     guard let token = readyCueToken else { return }
-    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(180)) { [weak self] in
+    IOSNativeWork.queue.asyncAfter(deadline: .now() + .milliseconds(180)) { [weak self] in
       self?.completeReadyCue(token: token)
     }
   }
 
   func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
+        self?.audioPlayerDecodeErrorDidOccur(player, error: error)
+      }
+      return
+    }
     if player === authoredPromptPlayer {
       finishAuthoredPrompt(success: false)
     } else if player === readyCuePlayer {
@@ -1255,7 +1320,10 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
 
   static func makeReadyCueWavData() -> Data {
     // Match Android ReadyCueWaveform exactly: 120 ms, 880 Hz, 8 ms edge
-    // fades, and -21 dBFS active RMS. HFP carries 16 kHz mono PCM directly.
+    // fades, and -33 dBFS active RMS. A steady tone at the prompts' -21 dBFS
+    // target comes out of a phone speaker about 10 dB louder than speech at
+    // the same RMS, so the cue sits 12 dB under the target to stay a quiet
+    // "ready" tick between prompts. HFP carries 16 kHz mono PCM directly.
     let sampleRate: UInt32 = 16_000
     let sampleCount = Int(sampleRate * 120 / 1_000)
     let dataByteCount = UInt32(sampleCount * MemoryLayout<Int16>.size)
@@ -1275,7 +1343,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
 
     let frequency = 880.0
     let fadeSamples = Double(sampleRate * 8 / 1_000)
-    let amplitude = sqrt(2.0) * pow(10.0, -21.0 / 20.0)
+    let amplitude = sqrt(2.0) * pow(10.0, -33.0 / 20.0)
     for index in 0..<sampleCount {
       let position = Double(index)
       let fadeIn = min(1.0, position / fadeSamples)
@@ -1342,7 +1410,8 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     )
     disposed = true
     synthesizer.delegate = nil
-    channel.setMethodCallHandler(nil)
+    let channel = channel
+    IOSNativeWork.onMain { channel.setMethodCallHandler(nil) }
   }
 }
 

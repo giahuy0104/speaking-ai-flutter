@@ -28,7 +28,6 @@ class LessonOverviewScreen extends StatefulWidget {
     this.controller,
     this.topicContent,
     this.contentGroup,
-    this.levelContent,
     this.guideAudioLibrary,
     this.voicePromptService,
     this.englishSentencePause,
@@ -45,7 +44,6 @@ class LessonOverviewScreen extends StatefulWidget {
   final LearningAudioDependencies? controller;
   final ListeningTopicContent? topicContent;
   final ListeningContentAgeGroup? contentGroup;
-  final ListeningLevelContent? levelContent;
   final ListeningProgressStore progressStore;
   final LessonMediaService mediaService;
   final LessonGuideAudioLibrary? guideAudioLibrary;
@@ -78,7 +76,6 @@ class _LessonOverviewScreenState extends State<LessonOverviewScreen> {
         controller: widget.controller,
         topicContent: widget.topicContent,
         contentGroup: widget.contentGroup,
-        levelContent: widget.levelContent,
         progressStore: widget.progressStore,
         mediaService: widget.mediaService,
         guideAudioLibrary: widget.guideAudioLibrary,

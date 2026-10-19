@@ -167,12 +167,16 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   StreamSubscription<AudioTurnDiagnostic>? _audioTurnDiagnosticSubscription;
   Timer? _deviceConnectionFeedbackTimer;
   DeviceConnectionFeedbackStage? _deviceConnectionFeedbackStage;
+  Timer? _iosBleReconnectNoticeTimer;
+  bool _iosBleReconnectNoticeVisible = false;
+  bool _iosBleHasConnectedOnce = false;
   final DeviceConnectionFeedbackGate _deviceConnectionFeedbackGate =
       DeviceConnectionFeedbackGate();
   bool _aiv0AutoConnectAttemptActive = false;
   Future<bool>? _androidHfpAutoSelectionFuture;
   Timer? _androidHfpAutoSelectionTimer;
   Future<bool>? _iosHfpAutoSelectionFuture;
+  Timer? _iosUnifiedConnectionRetryTimer;
   bool _iosBleWasConnected = false;
   bool _iosHfpAutoSelectionPending = false;
   Future<bool>? _androidMainHfpRoutePreparation;
@@ -251,8 +255,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) {
+      _hideIosBleReconnectNotice();
       return;
     }
+    final bleStatus = _aiv0BleControl?.status;
+    if (bleStatus != null) _updateIosBleReconnectNotice(bleStatus);
     unawaited(_prepareOfflineLanguageModels());
     if (_retryParentH20SetupOnResume && _privacyConsentGranted) {
       _retryParentH20SetupOnResume = false;
@@ -422,6 +429,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (_privacyConsentGranted && _parentSetupCompleted) {
       _startBackgroundWork();
       _syncAndroidHfpAutoSelectionRetry();
+      _syncIosUnifiedConnectionRetry();
       // Stored parental consent allows us to query the existing native grants.
       // Without this refresh `_microphonePermissionGranted` remains false on
       // every cold launch even though iOS already authorized the app, hiding
@@ -488,6 +496,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     setState(() => _parentSetupCompleted = true);
     if (_privacyConsentGranted) {
       _startBackgroundWork();
+      _syncIosUnifiedConnectionRetry();
       if (defaultTargetPlatform == TargetPlatform.android) {
         _syncAndroidHfpAutoSelectionRetry();
         if (_controller?.canUseAiv0Ble == true &&
@@ -645,6 +654,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       _startupPermissionError = null;
     });
     _syncAndroidHfpAutoSelectionRetry();
+    _syncIosUnifiedConnectionRetry();
   }
 
   Future<void> _autoConnectH20Ble({
@@ -1259,6 +1269,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (_usesIosHfpLifecycle) {
       _deviceConnectionFeedbackGate.clear();
       _hideDeviceConnectionFeedback();
+      _updateIosBleReconnectNotice(status);
       final justConnected = status.isConnected && !_iosBleWasConnected;
       _iosBleWasConnected = status.isConnected;
       if (!status.isConnected) {
@@ -1384,6 +1395,51 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     setState(() => _deviceConnectionFeedbackStage = null);
   }
 
+  void _updateIosBleReconnectNotice(Aiv0BleStatus status) {
+    if (!_usesIosHfpLifecycle) return;
+    if (status.isConnected) {
+      _iosBleHasConnectedOnce = true;
+      _hideIosBleReconnectNotice();
+      return;
+    }
+    final recovering =
+        status.phase == Aiv0BlePhase.scanning ||
+        status.phase == Aiv0BlePhase.connecting ||
+        status.phase == Aiv0BlePhase.reconnecting;
+    if (!_iosBleHasConnectedOnce ||
+        !_startupReady ||
+        !recovering ||
+        WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+      _hideIosBleReconnectNotice();
+      return;
+    }
+    if (_iosBleReconnectNoticeVisible || _iosBleReconnectNoticeTimer != null) {
+      return;
+    }
+    _iosBleReconnectNoticeTimer = Timer(const Duration(seconds: 2), () {
+      _iosBleReconnectNoticeTimer = null;
+      final current = _aiv0BleControl?.status;
+      if (!mounted ||
+          !_startupReady ||
+          current == null ||
+          current.isConnected ||
+          (current.phase != Aiv0BlePhase.scanning &&
+              current.phase != Aiv0BlePhase.connecting &&
+              current.phase != Aiv0BlePhase.reconnecting) ||
+          WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+        return;
+      }
+      setState(() => _iosBleReconnectNoticeVisible = true);
+    });
+  }
+
+  void _hideIosBleReconnectNotice() {
+    _iosBleReconnectNoticeTimer?.cancel();
+    _iosBleReconnectNoticeTimer = null;
+    if (!mounted || !_iosBleReconnectNoticeVisible) return;
+    setState(() => _iosBleReconnectNoticeVisible = false);
+  }
+
   bool get _isAppAudioPlaybackActive {
     return _deviceConnectionFeedbackGate.isPlaybackActive(
       currentMode: _audioTurnCoordinator?.currentToken?.mode,
@@ -1485,7 +1541,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (controller == null || ble == null || !controller.canUseAiv0Ble) {
       return Future<bool>.value(false);
     }
-    if (controller.usesHfpInput) {
+    if (controller.usesHfpInput && controller.hfpAudioStatus.isConnected) {
       _iosHfpAutoSelectionPending = false;
       return Future<bool>.value(true);
     }
@@ -1523,7 +1579,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     await Future<void>.delayed(const Duration(milliseconds: 400));
     if (!mounted ||
         !controller.canUseAiv0Ble ||
-        controller.usesHfpInput ||
+        (controller.usesHfpInput && controller.hfpAudioStatus.isConnected) ||
         !_canRestoreHfpAfterMainFlow ||
         controller.hfpAudioStatus.isBusy ||
         _isAppAudioPlaybackActive ||
@@ -1565,6 +1621,52 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         _androidHfpAutoSelectionFuture = null;
       }
     });
+  }
+
+  void _syncIosUnifiedConnectionRetry() {
+    if (!_usesIosHfpLifecycle ||
+        !_config.enableAiv0BleControl ||
+        !_privacyConsentGranted ||
+        !_parentSetupCompleted) {
+      _iosUnifiedConnectionRetryTimer?.cancel();
+      _iosUnifiedConnectionRetryTimer = null;
+      return;
+    }
+    // Bluetooth Classic may connect after HOMI is already open. Keep looking
+    // for the verified BLE MAIN link and matching HFP input without asking the
+    // parent to scan or select a second device.
+    _iosUnifiedConnectionRetryTimer ??= Timer.periodic(
+      const Duration(seconds: 15),
+      (_) {
+        if (!mounted ||
+            !_startupReady ||
+            !_bluetoothPermissionGranted ||
+            WidgetsBinding.instance.lifecycleState !=
+                AppLifecycleState.resumed) {
+          return;
+        }
+        final controller = _controller;
+        if (controller == null) return;
+        if (controller.canUseAiv0Ble) {
+          if (!(controller.usesHfpInput &&
+                  controller.hfpAudioStatus.isConnected) &&
+              !controller.hfpAudioStatus.isBusy) {
+            _iosHfpAutoSelectionPending = true;
+            unawaited(_autoSelectAvailableIosHfp());
+          }
+          return;
+        }
+        final lastAttempt = _lastAiv0AutoConnectAttempt;
+        if (lastAttempt != null &&
+            DateTime.now().difference(lastAttempt) <
+                const Duration(seconds: 60)) {
+          return;
+        }
+        unawaited(
+          _autoConnectH20Ble(reason: _H20AutoConnectReason.periodicRetry),
+        );
+      },
+    );
   }
 
   void _syncAndroidHfpAutoSelectionRetry() {
@@ -2950,7 +3052,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     WidgetsBinding.instance.removeObserver(this);
     _offlineSpeechModelTimer?.cancel();
     _androidHfpAutoSelectionTimer?.cancel();
+    _iosUnifiedConnectionRetryTimer?.cancel();
     _deviceConnectionFeedbackTimer?.cancel();
+    _iosBleReconnectNoticeTimer?.cancel();
     unawaited(_aiv0BleFeedbackSubscription?.cancel());
     unawaited(_audioTurnDiagnosticSubscription?.cancel());
     unawaited(_offlineTranslator.close());
@@ -3028,6 +3132,16 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                 if (_deviceConnectionFeedbackStage != null)
                   DeviceConnectionFeedbackOverlay(
                     stage: _deviceConnectionFeedbackStage!,
+                  ),
+                if (_iosBleReconnectNoticeVisible)
+                  const Positioned(
+                    top: 0,
+                    left: 16,
+                    right: 16,
+                    child: SafeArea(
+                      bottom: false,
+                      child: Center(child: IosBleReconnectNotice()),
+                    ),
                   ),
               ],
             ),

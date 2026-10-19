@@ -2,6 +2,7 @@ import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +34,139 @@ void main() {
     expect(control.status.phase, Aiv0BlePhase.idle);
     await control.dispose();
   });
+
+  test('iOS forwards the dual-mode pairing setting to CoreBluetooth', () async {
+    MethodCall? initializeCall;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          if (call.method == 'initialize') initializeCall = call;
+          return <Object?, Object?>{'phase': 'idle'};
+        });
+    final control = MethodChannelAiv0BleControl(
+      enabled: true,
+      draftProtocolConfirmed: false,
+      dualModePairingEnabled: true,
+    );
+
+    await control.initialize();
+
+    expect(initializeCall?.arguments, <String, Object?>{
+      'enableTransportBridging': true,
+    });
+    await control.dispose();
+  });
+
+  test('HM-D001 transport bridging is enabled for normal iOS builds', () async {
+    MethodCall? initializeCall;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          if (call.method == 'initialize') initializeCall = call;
+          return <Object?, Object?>{'phase': 'idle'};
+        });
+    final control = MethodChannelAiv0BleControl(
+      enabled: true,
+      draftProtocolConfirmed: false,
+    );
+
+    await control.initialize();
+
+    expect(initializeCall?.arguments, <String, Object?>{
+      'enableTransportBridging': true,
+    });
+    await control.dispose();
+  });
+
+  test(
+    'iOS connect reads verified BLE status before setup continues',
+    () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final methods = <String>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            methods.add(call.method);
+            switch (call.method) {
+              case 'initialize':
+                return <Object?, Object?>{'phase': 'idle'};
+              case 'requestPermissions':
+                return true;
+              case 'connect':
+                return null;
+              case 'status':
+                return <Object?, Object?>{
+                  'phase': 'connected',
+                  'peripheralState': 'CBPeripheralState(rawValue: 2)',
+                  'deviceId': 'homi-device',
+                  'deviceName': 'HM-D001',
+                  'mainNotificationState': 'notifying',
+                };
+              default:
+                return null;
+            }
+          });
+      final control = MethodChannelAiv0BleControl(
+        enabled: true,
+        draftProtocolConfirmed: false,
+      );
+
+      await control.connect('homi-device');
+
+      expect(methods, containsAllInOrder(<String>['connect', 'status']));
+      expect(control.status.isConnected, isTrue);
+      expect(control.status.mainNotificationState, 'notifying');
+      await control.dispose();
+    },
+  );
+
+  test(
+    'iOS retries a saved BLE link when CoreBluetooth reports reconnecting',
+    () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{
+        'aiv0_ble_last_device_id': 'homi-device',
+        'aiv0_ble_last_device_name': 'HM-D001',
+      });
+      final methods = <String>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            methods.add(call.method);
+            switch (call.method) {
+              case 'initialize':
+                return <Object?, Object?>{
+                  'phase': 'connected',
+                  'peripheralState': 'CBPeripheralState(rawValue: 0)',
+                  'deviceId': 'homi-device',
+                  'deviceName': 'HM-D001',
+                  'mainNotificationState': 'notifying',
+                };
+              case 'requestPermissions':
+                return true;
+              case 'connect':
+                expect(call.arguments, <String, Object?>{
+                  'deviceId': 'homi-device',
+                });
+                return null;
+              case 'status':
+                return <Object?, Object?>{
+                  'phase': 'connected',
+                  'peripheralState': 'CBPeripheralState(rawValue: 2)',
+                  'deviceId': 'homi-device',
+                  'deviceName': 'HM-D001',
+                  'mainNotificationState': 'notifying',
+                };
+              default:
+                return null;
+            }
+          });
+      final control = MethodChannelAiv0BleControl(
+        enabled: true,
+        draftProtocolConfirmed: false,
+      );
+
+      expect(await control.autoConnectKnownOrNearby(), isTrue);
+      expect(methods, containsAllInOrder(<String>['connect', 'status']));
+      expect(control.status.isConnected, isTrue);
+      await control.dispose();
+    },
+  );
 
   test(
     'control context is forwarded without starting audio or recording',

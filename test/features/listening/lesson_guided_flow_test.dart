@@ -880,6 +880,7 @@ void main() {
         await _pumpGuidedSpeechTurn(tester);
 
         expect(voicePrompts.spoken, <String>[
+          'vi-VN|Cùng học tiếp nhé',
           'en-US|Sentence ${sentenceIndex + 1}',
           'vi-VN|Câu ${sentenceIndex + 1}',
           sentenceIndex == 0 ? 'vi-VN|Bạn nói lại nhé.' : 'vi-VN|Đến lượt bạn.',
@@ -1129,6 +1130,66 @@ void main() {
     );
     expect(progressStore.earnedStars, isEmpty);
     expect(progressStore.sessionResults, isEmpty);
+  });
+
+  testWidgets('V4 replays the take again after a short HM-D001 route blip', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final mediaService = _RouteBlipAttemptPlaybackMediaService(
+      routeReturns: true,
+    );
+    await tester.pumpWidget(
+      _subject(
+        _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+        mediaService,
+        guideAudioLibrary: _silentGuideAudioLibrary(),
+        attemptEvaluator: _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
+          LessonAttemptOutcome.good,
+        ]),
+        voicePromptService: _FakeVoicePromptService(),
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+    await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+    await _pumpGuidedSpeechTurn(tester);
+
+    expect(mediaService.routeWaits, 1);
+    expect(mediaService.takeReplays, 2);
+    expect(
+      find.text('Chưa phát lại được bản ghi. Con hãy ghi âm lại nhé.'),
+      findsNothing,
+    );
+  });
+
+  testWidgets('V4 asks for a new take when the HM-D001 route stays lost', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final mediaService = _RouteBlipAttemptPlaybackMediaService(
+      routeReturns: false,
+    );
+    await tester.pumpWidget(
+      _subject(
+        _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+        mediaService,
+        guideAudioLibrary: _silentGuideAudioLibrary(),
+        attemptEvaluator: _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
+          LessonAttemptOutcome.good,
+        ]),
+        voicePromptService: _FakeVoicePromptService(),
+      ),
+    );
+    await _pumpGuidedSpeechTurn(tester);
+    await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+    await _pumpGuidedSpeechTurn(tester);
+
+    expect(mediaService.routeWaits, 1);
+    expect(mediaService.takeReplays, 1);
+    expect(
+      find.text('Chưa phát lại được bản ghi. Con hãy ghi âm lại nhé.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('V2 keeps scoring a valid attempt if replay fails', (
@@ -2075,12 +2136,6 @@ void main() {
       intro: 'Mở đầu bài hai.',
       introAudioUri: nextIntroUri,
     );
-    const levelContent = ListeningLevelContent(
-      id: 'v4-level-1',
-      number: 1,
-      titleVi: 'Level 1',
-      topicNumbers: <int>[1, 2, 3],
-    );
     final mediaService = _ControlledNextIntroMediaService(nextIntroUri);
     await tester.pumpWidget(
       _subject(
@@ -2090,7 +2145,6 @@ void main() {
           firstLesson,
           nextLesson,
         ]),
-        levelContent: levelContent,
         guideAudioLibrary: _silentGuideAudioLibrary(),
         voicePromptService: _FakeVoicePromptService(),
         completionChoiceRecognizer: _FakeCompletionChoiceRecognizer(
@@ -2117,12 +2171,6 @@ void main() {
           .lesson
           .id,
       nextLesson.id,
-    );
-    expect(
-      tester
-          .widget<LessonIntroScreen>(find.byType(LessonIntroScreen))
-          .levelContent,
-      same(levelContent),
     );
 
     await tester.pumpWidget(const SizedBox.shrink());
@@ -3912,7 +3960,6 @@ Widget _subject(
   bool useOwnedEvaluator = false,
   LessonGuideAudioLibrary? guideAudioLibrary,
   ListeningTopicContent? topicContent,
-  ListeningLevelContent? levelContent,
   ListeningProgressStore? progressStore,
   LessonAttemptEvaluator? attemptEvaluator,
   VoicePromptService? voicePromptService,
@@ -3938,7 +3985,6 @@ Widget _subject(
       lesson: lesson,
       controller: controller,
       topicContent: topicContent,
-      levelContent: levelContent,
       progressStore: progressStore ?? _MemoryProgressStore(),
       mediaService: mediaService,
       vocabularyStore: vocabularyStore ?? _MemoryVocabularyStore(),
@@ -4665,6 +4711,44 @@ class _FailingAttemptPlaybackMediaService extends _GuidedMediaService {
       playbackGainDb: playbackGainDb,
       fixedPlaybackGain: fixedPlaybackGain,
     );
+  }
+}
+
+class _RouteBlipAttemptPlaybackMediaService extends _GuidedMediaService {
+  _RouteBlipAttemptPlaybackMediaService({required this.routeReturns});
+
+  final bool routeReturns;
+  int takeReplays = 0;
+  int routeWaits = 0;
+
+  @override
+  Future<void> playToCompletion(
+    Uri uri, {
+    Duration timeout = const Duration(seconds: 15),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
+  }) async {
+    if (uri.toString().contains('latest.m4a') && ++takeReplays == 1) {
+      throw const HfpAudioException(
+        'Kết nối âm thanh HM-D001 bị gián đoạn. Bạn bấm nghe lại nhé.',
+      );
+    }
+    await super.playToCompletion(
+      uri,
+      timeout: timeout,
+      route: route,
+      playbackGainDb: playbackGainDb,
+      fixedPlaybackGain: fixedPlaybackGain,
+    );
+  }
+
+  @override
+  Future<bool> waitForSelectedHfpRoute({
+    Duration timeout = const Duration(milliseconds: 1500),
+  }) async {
+    routeWaits += 1;
+    return routeReturns;
   }
 }
 

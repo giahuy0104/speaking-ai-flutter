@@ -3,10 +3,12 @@ import 'dart:math' as math;
 
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_turn_coordinator.dart';
+import 'package:ai_speaking_flutter_app/core/audio/device_audio_cache.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:just_audio/just_audio.dart';
 
 import 'support/controlled_audio_playback.dart';
 
@@ -410,4 +412,222 @@ void main() {
       ]);
     },
   );
+
+  test(
+    'next-play completion ignores the old end and catches an early end',
+    () async {
+      final player = _ControlledPlayer();
+      final cache = _ControlledCache();
+      final service = JustAudioPlaybackService(player: player, cache: cache);
+      addTearDown(() async {
+        await service.dispose();
+        cache.dispose();
+      });
+
+      await service.play(firstUri);
+      var completed = false;
+      final completion = service
+          .completionStreamForNextPlay(firstUri)
+          .first
+          .then((_) => completed = true);
+      player.finish();
+      await _flush();
+      expect(completed, isFalse);
+
+      player.finishImmediately = true;
+      await service.play(firstUri);
+      await completion.timeout(const Duration(seconds: 1));
+      expect(completed, isTrue);
+    },
+  );
+
+  test('replaying a completed source starts a fresh play request', () async {
+    final player = _StickyCompletedPlayer();
+    final cache = _ControlledCache();
+    final service = JustAudioPlaybackService(player: player, cache: cache);
+    addTearDown(() async {
+      await service.dispose();
+      cache.dispose();
+    });
+
+    await service.play(firstUri);
+    final finishedAgain = service.completionStreamForNextPlay(firstUri).first;
+    await service.play(firstUri).timeout(const Duration(milliseconds: 500));
+    await finishedAgain.timeout(const Duration(milliseconds: 500));
+    expect(player.actualPlayCalls, 2);
+    expect(player.pauseCalls, 1);
+  });
+}
+
+Future<void> _flush() async {
+  for (var index = 0; index < 8; index++) {
+    await Future<void>.delayed(Duration.zero);
+  }
+}
+
+class _ControlledCache extends DeviceAudioCache {
+  Completer<Uri>? pendingResolve;
+  final resolveEntered = Completer<void>();
+  int resolveCalls = 0;
+
+  @override
+  Future<Uri> resolveAfterPreload(
+    Uri uri, {
+    Duration maxWait = const Duration(milliseconds: 500),
+  }) async {
+    resolveCalls++;
+    if (!resolveEntered.isCompleted) resolveEntered.complete();
+    return pendingResolve?.future ?? uri;
+  }
+}
+
+class _ControlledPlayer implements AudioPlayer {
+  final _states = StreamController<PlayerState>.broadcast(sync: true);
+  final _events = StreamController<PlayerEvent>.broadcast(sync: true);
+  final _positions = StreamController<Duration>.broadcast(sync: true);
+  final List<String> playedPaths = <String>[];
+  final List<double> volumeChanges = <double>[];
+  final List<double> volumesAtPlay = <double>[];
+  final List<AndroidAudioAttributes> attributesAtPlay =
+      <AndroidAudioAttributes>[];
+  final blockedLoadEntered = Completer<void>();
+  final speedEntered = Completer<void>();
+  Completer<void>? pendingLoad;
+  Completer<void>? pendingSpeed;
+  AndroidAudioAttributes? attributes;
+  String? loadedPath;
+  int disposeCalls = 0;
+  bool finishImmediately = false;
+  bool _playing = false;
+  double _volume = 1.0;
+
+  @override
+  bool get playing => _playing;
+  @override
+  ProcessingState get processingState => ProcessingState.ready;
+  @override
+  Duration get position => Duration.zero;
+  @override
+  Duration? get duration => const Duration(seconds: 2);
+  @override
+  Stream<PlayerState> get playerStateStream => _states.stream;
+  @override
+  Stream<PlayerEvent> get playerEventStream => _events.stream;
+  @override
+  Stream<Duration> get positionStream => _positions.stream;
+
+  @override
+  Future<Duration?> setFilePath(
+    String path, {
+    Duration? initialPosition,
+    bool preload = true,
+    dynamic tag,
+  }) async {
+    final pending = pendingLoad;
+    if (pending != null) {
+      if (!blockedLoadEntered.isCompleted) blockedLoadEntered.complete();
+      await pending.future;
+    }
+    loadedPath = path;
+    return duration;
+  }
+
+  @override
+  Future<void> setSpeed(double speed) async {
+    if (!speedEntered.isCompleted) speedEntered.complete();
+    await pendingSpeed?.future;
+  }
+
+  @override
+  Future<void> setAndroidAudioAttributes(AndroidAudioAttributes value) async {
+    attributes = value;
+  }
+
+  @override
+  Future<void> setVolume(double volume) async {
+    _volume = volume;
+    volumeChanges.add(volume);
+  }
+
+  @override
+  Future<void> play() async {
+    playedPaths.add(loadedPath!);
+    volumesAtPlay.add(_volume);
+    if (attributes != null) attributesAtPlay.add(attributes!);
+    _playing = true;
+    _states.add(PlayerState(true, ProcessingState.ready));
+    _emitEvent(ProcessingState.ready);
+    if (finishImmediately) finish();
+  }
+
+  void finish() {
+    _playing = false;
+    _states.add(PlayerState(false, ProcessingState.completed));
+    _emitEvent(ProcessingState.completed);
+  }
+
+  void _emitEvent(ProcessingState state) => _events.add(
+    PlayerEvent(
+      playing: _playing,
+      playbackEvent: PlaybackEvent(
+        processingState: state,
+        updatePosition: position,
+        duration: duration,
+      ),
+    ),
+  );
+
+  @override
+  Future<void> pause() async {
+    _playing = false;
+    _states.add(PlayerState(false, ProcessingState.ready));
+    _emitEvent(ProcessingState.ready);
+  }
+
+  @override
+  Future<void> dispose() async {
+    disposeCalls++;
+    await _states.close();
+    await _events.close();
+    await _positions.close();
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _StickyCompletedPlayer extends _ControlledPlayer {
+  int actualPlayCalls = 0;
+  int pauseCalls = 0;
+  bool atEnd = false;
+
+  @override
+  ProcessingState get processingState =>
+      atEnd ? ProcessingState.completed : ProcessingState.ready;
+
+  @override
+  Duration get position => atEnd ? duration! : Duration.zero;
+
+  @override
+  Future<void> play() async {
+    if (_playing) return;
+    actualPlayCalls++;
+    await super.play();
+    atEnd = true;
+    _states.add(PlayerState(true, ProcessingState.completed));
+    _emitEvent(ProcessingState.completed);
+  }
+
+  @override
+  Future<void> pause() async {
+    pauseCalls++;
+    await super.pause();
+  }
+
+  @override
+  Future<void> seek(Duration? position, {int? index}) async {
+    atEnd = false;
+    _states.add(PlayerState(_playing, ProcessingState.ready));
+    _emitEvent(ProcessingState.ready);
+  }
 }

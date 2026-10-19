@@ -441,7 +441,8 @@ class MainVoiceAssistantFlow {
     if (_isStopChoice(normalized)) {
       return _stage != MainVoiceAssistantStage.idle;
     }
-    return _selectionModuleDestination(normalized) != null ||
+    return _directVocabularyTarget(normalized) != null ||
+        _selectionModuleDestination(normalized) != null ||
         stageCanHandle ||
         (_stage != MainVoiceAssistantStage.idle && _isHelpChoice(normalized));
   }
@@ -502,6 +503,7 @@ class MainVoiceAssistantFlow {
       // normal final-result path, just like a choice within the topic catalog.
       return false;
     }
+    if (_directVocabularyTarget(normalized) != null) return true;
     final selectionDestination = _selectionModuleDestination(normalized);
     if (selectionDestination != null) {
       return true;
@@ -618,6 +620,25 @@ class MainVoiceAssistantFlow {
     MainVoiceAssistantStage.idle => false,
   };
 
+  VoiceVocabularyTarget? _directVocabularyTarget(String normalized) {
+    if (!const <MainVoiceAssistantStage>{
+      MainVoiceAssistantStage.chooseFeature,
+      MainVoiceAssistantStage.chooseOtherLearning,
+      MainVoiceAssistantStage.chooseAfterTranslationStop,
+      MainVoiceAssistantStage.chooseModuleSwitch,
+      MainVoiceAssistantStage.chooseAlternativeAfterLearning,
+      MainVoiceAssistantStage.askAge,
+      MainVoiceAssistantStage.chooseTopic,
+      MainVoiceAssistantStage.chooseTopicAfterCompletion,
+      MainVoiceAssistantStage.confirmReplayTopic,
+      MainVoiceAssistantStage.chooseLesson,
+      MainVoiceAssistantStage.confirmReplayLesson,
+    }.contains(_stage)) {
+      return null;
+    }
+    return _vocabularyTarget(normalized);
+  }
+
   Future<MainVoiceAssistantTurn> handle(String recognizedText) async {
     final normalized = _normalize(recognizedText);
     final isPromptEcho = _looksLikePromptEcho(normalized);
@@ -634,6 +655,17 @@ class MainVoiceAssistantFlow {
     }
     if (_isHelpChoice(normalized)) {
       return _helpTurn();
+    }
+    final vocabularyTarget = isPromptEcho
+        ? null
+        : _directVocabularyTarget(normalized);
+    if (vocabularyTarget != null) {
+      return _moduleNavigationTurn(
+        recognizedText: recognizedText,
+        destination: VoiceNavigationDestination.vocabulary,
+        promptText: '',
+        vocabularyTarget: vocabularyTarget,
+      );
     }
     final selectionDestination = _selectionModuleDestination(normalized);
     if (selectionDestination != null) {
@@ -1337,8 +1369,7 @@ class MainVoiceAssistantFlow {
     final promptText = switch (command) {
       ActiveLearningCommand.resume =>
         isVocabulary ||
-                _activeVoiceNode == ActiveLearningVoiceNode.intro ||
-                _activeVoiceNode == ActiveLearningVoiceNode.challenge
+                _activeVoiceNode == ActiveLearningVoiceNode.intro
             ? ''
             : _activeVoiceNode == ActiveLearningVoiceNode.core
             ? MasterNavigationContract.continueSubject

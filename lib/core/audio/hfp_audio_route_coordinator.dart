@@ -73,7 +73,10 @@ class HfpAudioRouteCoordinator {
       try {
         if (_active.isEmpty ||
             revalidateOnAcquire ||
-            !_delegate.status.routeActive) {
+            !_delegate.status.routeActive ||
+            // iOS reports a route that came back after a blip as "ready", not
+            // "recording". Only a native start confirms it for a new owner.
+            _delegate.status.phase != BluetoothAudioConnectionPhase.recording) {
           await _delegate.startAudioRoute();
         }
       } catch (_) {

@@ -261,15 +261,15 @@ class _FakeHfpAudioControl implements HfpAudioControl {
   int disposeCalls = 0;
   Completer<void>? startGate;
   bool routeActive = true;
+  // Native reports "recording" once a start has confirmed the route.
+  BluetoothAudioConnectionPhase phase = BluetoothAudioConnectionPhase.ready;
 
   @override
   bool get usesBrowserAudioInput => false;
 
   @override
-  BluetoothAudioStatus get status => BluetoothAudioStatus(
-    phase: BluetoothAudioConnectionPhase.ready,
-    routeActive: routeActive,
-  );
+  BluetoothAudioStatus get status =>
+      BluetoothAudioStatus(phase: phase, routeActive: routeActive);
 
   @override
   Stream<BluetoothAudioStatus> get statusChanges =>
@@ -292,6 +292,7 @@ class _FakeHfpAudioControl implements HfpAudioControl {
     startCalls += 1;
     await startGate?.future;
     routeActive = true;
+    phase = BluetoothAudioConnectionPhase.recording;
   }
 
   @override

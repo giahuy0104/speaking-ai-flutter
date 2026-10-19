@@ -183,9 +183,6 @@ abstract final class LessonAgeFeedbackLibrary {
 const String v4SongPrealertAudioId = 'SONG_PREALERT';
 const String v4ChallengeIntroAudioId = 'CHALLENGE_INTRO';
 const String v4ChallengeIntro = 'Tiếp theo là một câu thử thách nhé.';
-const String v4MissionIntroAudioId = 'MISSION_INTRO';
-const String v4MissionIntro =
-    'Tiếp theo là Nhiệm vụ cuối Level. Bạn sẽ có bốn câu thử thách.';
 const String v4SongPrealertTemplate =
     'Tiếp theo là một câu thử thách. Xong rồi mình nghe bài hát [SONG_TITLE] nhé.';
 const String v4SongStartCueAudioId = 'SONG_START_CUE';
@@ -253,7 +250,7 @@ class LessonGuideFlowV2 {
 
   /// The bilingual lesson script requires a clear zero-second pause after the
   /// English sample before its Vietnamese meaning is played.
-  static const Duration englishToVietnamesePause = Duration(seconds: 0);
+  static const Duration englishToVietnamesePause = Duration(seconds: 2);
 
   /// Lets the previous recognition/audio session finish releasing the input
   /// route before an ASR/no-response retry claims the microphone again.

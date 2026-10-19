@@ -182,6 +182,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   StreamSubscription<void>? _completionChoiceCompletedSubscription;
   StreamSubscription<String>? _completionChoicePartialSubscription;
   bool _pausedForMainAssistant = false;
+  bool _pausedByStop = false;
   bool _challengeEntryPending = false;
   int _challengeEntryRequest = 0;
   bool _exiting = false;
@@ -228,7 +229,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       ActiveLearningModuleKind.listeningLesson;
 
   @override
-  bool get isPausedForMain => _pausedForMainAssistant;
+  bool get isPausedForMain => _pausedForMainAssistant || _pausedByStop;
 
   @override
   void initState() {
@@ -552,6 +553,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   @override
   Future<void> pauseForMainAssistant({bool waitForCleanup = true}) async {
     _pausedForMainAssistant = true;
+    _pausedByStop = false;
     _lessonSession.invalidateMainPause();
     _lessonSession.invalidateActiveTurn();
     _cancelPendingLessonDelays();
@@ -677,6 +679,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             _pausedForMainAssistant &&
             _lessonSession.isCurrentMainPause(stopTicket)) {
           setState(() {
+            _pausedByStop = true;
             _message = 'Đã dừng. Nhấn MAIN để tiếp tục.';
             if (_v4CompletionChoiceVisible) {
               _completionChoiceStatus.value =
@@ -688,11 +691,17 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           spokenReply: 'Đã dừng.',
         );
       case ActiveLearningCommand.resume:
+        final wasPausedByStop = _pausedByStop;
         _pausedForMainAssistant = false;
+        _pausedByStop = false;
         // The full EN -> VI -> cue sequence can exceed the registry's command
         // timeout. Hand ownership back immediately and let the screen finish
         // its guarded sequence under the lesson lifecycle ticket.
-        unawaited(_runNavigationSequence(_resumeCoreAfterMain));
+        unawaited(
+          _runNavigationSequence(
+            () => _resumeCoreAfterMain(wasPausedByStop: wasPausedByStop),
+          ),
+        );
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.replayCurrent:
         _pausedForMainAssistant = false;
@@ -798,12 +807,29 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
   }
 
-  Future<void> _resumeCoreAfterMain() async {
+  Future<void> _resumeCoreAfterMain({bool wasPausedByStop = false}) async {
+    _pausedByStop = false;
     if (_challengeEntryPending) {
+      if (wasPausedByStop) {
+        await _navigateWithLead(
+          'Cùng học tiếp nhé',
+          () => _openReview(resumeStage: ListeningResumeStage.challenge),
+          audioKey: MainAssistantAudioKeys.resumeLearning,
+        );
+        return;
+      }
       await _openReview(resumeStage: ListeningResumeStage.challenge);
       return;
     }
     if (!_usesGuideV2) {
+      if (wasPausedByStop) {
+        await _navigateWithLead(
+          'Cùng học tiếp nhé',
+          _startRecording,
+          audioKey: MainAssistantAudioKeys.resumeLearning,
+        );
+        return;
+      }
       await _startRecording();
       return;
     }
@@ -813,6 +839,17 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
     // A resumed Core turn is a new attempt and must always replay the complete
     // EN -> VI -> cue sequence before opening the microphone.
+    if (wasPausedByStop) {
+      await _navigateWithLead(
+        'Cùng học tiếp nhé',
+        () => _activateCurrentSentence(
+          autoPlay: true,
+          restoreExistingRecording: false,
+        ),
+        audioKey: MainAssistantAudioKeys.resumeLearning,
+      );
+      return;
+    }
     await _activateCurrentSentence(
       autoPlay: true,
       restoreExistingRecording: false,
@@ -1205,13 +1242,34 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     final timeout = requestedTimeout < const Duration(seconds: 10)
         ? const Duration(seconds: 10)
         : requestedTimeout;
+    final sentenceIndex = _sentenceIndex;
+    final sentenceId = _sentence.id;
+    final pauseTicket = _lessonSession.mainPauseTicket;
+    Future<void> replay() => widget.mediaService.playToCompletion(
+      uri,
+      timeout: timeout,
+      playbackGainDb: lessonRecordingPlaybackGainDb,
+      fixedPlaybackGain: true,
+    );
     try {
-      await widget.mediaService.playToCompletion(
-        uri,
-        timeout: timeout,
-        playbackGainDb: lessonRecordingPlaybackGainDb,
-        fixedPlaybackGain: true,
-      );
+      await replay();
+      return true;
+    } on HfpAudioException catch (error) {
+      debugPrint('HOMI lesson attempt playback lost the HFP route: $error');
+      if (!await widget.mediaService.waitForSelectedHfpRoute() ||
+          !mounted ||
+          _pausedForMainAssistant ||
+          !_lessonSession.isCurrentMainPause(pauseTicket) ||
+          sentenceIndex != _sentenceIndex ||
+          sentenceId != _sentence.id) {
+        return false;
+      }
+    } catch (error) {
+      debugPrint('HOMI lesson attempt playback failed: $error');
+      return false;
+    }
+    try {
+      await replay();
       return true;
     } catch (error) {
       debugPrint('HOMI lesson attempt playback failed: $error');

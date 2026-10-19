@@ -87,7 +87,10 @@ class VocabularyPracticeScreen extends StatefulWidget {
 }
 
 class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
-    implements ActiveLearningModuleController, ActiveLearningVoiceContext {
+    implements
+        ActiveLearningModuleController,
+        ActiveLearningVoiceContext,
+        ActiveLearningNavigationCheckpoint {
   late VocabularyPracticeSession _session;
   late final LessonAttemptEvaluator _attemptEvaluator;
   late final bool _ownsAttemptEvaluator;
@@ -147,6 +150,22 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
 
   @override
   bool get isPausedForMain => _paused;
+
+  bool get isReviewPractice => _session.mode == VocabularyPracticeMode.review;
+
+  @override
+  Future<bool> preserveForNavigation() async {
+    if (!mounted) return false;
+    if (_loading || _completed) return true;
+    try {
+      await widget.sessionStore.saveActive(
+        _session.copyWith(currentIndex: _index),
+      );
+      return mounted;
+    } catch (_) {
+      return false;
+    }
+  }
 
   @override
   void initState() {
@@ -989,6 +1008,21 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       );
       if (!mounted) return const ActiveLearningCommandResult.unavailable();
       _finish(VocabularyPracticeResult.vocabularyRoot);
+      return const ActiveLearningCommandResult.handled();
+    }
+    if (_isReview &&
+        !_completed &&
+        (command == ActiveLearningCommand.vocabularyParentAdded ||
+            command == ActiveLearningCommand.vocabularyStars)) {
+      await pauseForMainAssistant();
+      _session = _session.copyWith(currentIndex: _index);
+      await widget.sessionStore.saveActive(_session);
+      if (!mounted) return const ActiveLearningCommandResult.unavailable();
+      _finish(
+        command == ActiveLearningCommand.vocabularyParentAdded
+            ? VocabularyPracticeResult.parentAdded
+            : VocabularyPracticeResult.stars,
+      );
       return const ActiveLearningCommandResult.handled();
     }
     if (_completed) {

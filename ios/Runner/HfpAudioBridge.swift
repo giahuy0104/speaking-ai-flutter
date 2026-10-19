@@ -172,9 +172,9 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
     methodChannel = FlutterMethodChannel(name: "ailingo_hfp_audio", binaryMessenger: messenger)
     eventChannel = FlutterEventChannel(name: "ailingo_hfp_audio/events", binaryMessenger: messenger)
     super.init()
-    methodChannel.setMethodCallHandler { [weak self] call, result in
+    methodChannel.setMethodCallHandler(IOSNativeWork.handler { [weak self] call, result in
       self?.handle(call, result: result)
-    }
+    })
     eventChannel.setStreamHandler(self)
     observeAudioSession()
   }
@@ -304,7 +304,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       result(devices)
       return
     }
-    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
+    IOSNativeWork.queue.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
       guard let self, !self.disposed else {
         result(
           FlutterError(
@@ -543,7 +543,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       )
       return
     }
-    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
+    IOSNativeWork.queue.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
       guard let self else {
         result(
           FlutterError(
@@ -602,7 +602,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       )
       emitStatus()
       // Let AVAudioSession finish settling before AVAudioEngine opens its tap.
-      DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(150)) { [weak self] in
+      IOSNativeWork.queue.asyncAfter(deadline: .now() + .milliseconds(150)) { [weak self] in
         guard let self,
           !self.disposed,
           generation == self.routeActivationGeneration
@@ -679,7 +679,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       fail(result, code: "HFP_ROUTE_UNAVAILABLE", error: HfpBridgeError.routeUnavailable)
       return
     }
-    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
+    IOSNativeWork.queue.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
       guard let self else {
         result(
           FlutterError(
@@ -765,7 +765,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       emitStatus()
       result(snapshot())
     case .wait:
-      DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
+      IOSNativeWork.queue.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
         guard let self else {
           result(
             FlutterError(
@@ -906,7 +906,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       center.addObserver(
         forName: AVAudioSession.routeChangeNotification,
         object: audioSession,
-        queue: .main
+        queue: IOSNativeWork.operationQueue
       ) { [weak self] _ in
         guard let self else { return }
         self.routeSequence += 1
@@ -917,7 +917,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       center.addObserver(
         forName: AVAudioSession.mediaServicesWereResetNotification,
         object: audioSession,
-        queue: .main
+        queue: IOSNativeWork.operationQueue
       ) { [weak self] _ in
         guard let self else { return }
         self.selectedInputVerified = false
@@ -985,13 +985,19 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
   }
 
   func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
-    eventSink = events
-    events(snapshot())
+    let events = IOSNativeWork.mainSink(events)
+    IOSNativeWork.queue.async { [weak self] in
+      guard let self else { return }
+      self.eventSink = events
+      events(self.snapshot())
+    }
     return nil
   }
 
   func onCancel(withArguments arguments: Any?) -> FlutterError? {
-    eventSink = nil
+    IOSNativeWork.queue.async { [weak self] in
+      self?.eventSink = nil
+    }
     return nil
   }
 
@@ -1003,8 +1009,12 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
     notificationTokens.forEach { NotificationCenter.default.removeObserver($0) }
     notificationTokens.removeAll()
     eventSink = nil
-    methodChannel.setMethodCallHandler(nil)
-    eventChannel.setStreamHandler(nil)
+    let methodChannel = methodChannel
+    let eventChannel = eventChannel
+    IOSNativeWork.onMain {
+      methodChannel.setMethodCallHandler(nil)
+      eventChannel.setStreamHandler(nil)
+    }
   }
 }
 

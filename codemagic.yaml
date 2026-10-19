@@ -185,11 +185,31 @@ workflows:
           set -euo pipefail
           unset HOMI_IOS_TRANSLATION_SIMULATOR_STUB
           python3 tool/prepare_ios_translation_pods.py device
-          # BUILD_NUMBER is per-workflow; use the app-wide counter for uploads.
-          echo "IPA build number: $PROJECT_BUILD_NUMBER (workflow build: $BUILD_NUMBER)"
+          APP_STORE_APPLE_ID="$(
+            app-store-connect apps list \
+              --json \
+              --bundle-id-identifier "$BUNDLE_ID" \
+              --strict-match-identifier |
+              python3 -c 'import json, sys; apps = json.load(sys.stdin); matches = [app["id"] for app in apps if app.get("attributes", {}).get("bundleId") == sys.argv[1]]; print(matches[0]) if len(matches) == 1 else sys.exit("Expected exactly one App Store Connect app for " + sys.argv[1])' "$BUNDLE_ID"
+          )"
+          LATEST_APP_STORE_BUILD_NUMBER="$(
+            app-store-connect get-latest-build-number "$APP_STORE_APPLE_ID" \
+              --platform IOS \
+              --all-versions
+          )"
+          if [[ ! "$LATEST_APP_STORE_BUILD_NUMBER" =~ ^[0-9]+$ ]] ||
+             [[ ! "$PROJECT_BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "Invalid App Store Connect or Codemagic build number."
+            exit 1
+          fi
+          IPA_BUILD_NUMBER="$((LATEST_APP_STORE_BUILD_NUMBER + 1))"
+          if (( PROJECT_BUILD_NUMBER >= IPA_BUILD_NUMBER )); then
+            IPA_BUILD_NUMBER="$((PROJECT_BUILD_NUMBER + 1))"
+          fi
+          echo "IPA build number: $IPA_BUILD_NUMBER (App Store Connect latest: $LATEST_APP_STORE_BUILD_NUMBER; project build: $PROJECT_BUILD_NUMBER; workflow build: $BUILD_NUMBER)"
           flutter build ipa \
             --release \
-            --build-number="$PROJECT_BUILD_NUMBER" \
+            --build-number="$IPA_BUILD_NUMBER" \
             --export-options-plist="$HOME/export_options.plist" \
             --dart-define=BACKEND_BASE_URL="$BACKEND_BASE_URL" \
             --dart-define=USE_DEMO_BACKEND="$USE_DEMO_BACKEND" \
