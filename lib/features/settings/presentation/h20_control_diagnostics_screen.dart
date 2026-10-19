@@ -7,6 +7,7 @@ import '../../../app/homi_ui.dart';
 import '../../../core/audio/audio_input.dart';
 import '../../../core/device/aiv0_ble_control.dart';
 import '../../../core/device/aivo_control_dispatcher.dart';
+import '../../../core/device/device_display_name.dart';
 import '../../conversation/application/conversation_settings_port.dart';
 
 /// Button diagnostics only: never exports voice, ASR or API diagnostics.
@@ -98,7 +99,16 @@ class _H20ControlDiagnosticsScreenState
                 ),
                 const SizedBox(height: 16),
                 _section(context, 'Kết nối hiện tại', [
-                  _field('Thiết bị', ble.deviceName ?? 'Chưa kết nối'),
+                  _field(
+                    'Thiết bị',
+                    ble.deviceId == null
+                        ? 'Chưa kết nối'
+                        : localizedDeviceName(
+                            ble.deviceName,
+                            widget.controller.displayLanguage,
+                            deviceId: ble.deviceId,
+                          ),
+                  ),
                   _field('Mã thiết bị', ble.deviceId ?? '—'),
                   _field('BLE Control', _blePhase(ble.phase)),
                   _field(

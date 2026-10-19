@@ -47,7 +47,7 @@ class Aiv0BleDevice {
   factory Aiv0BleDevice.fromMap(Map<Object?, Object?> map) {
     return Aiv0BleDevice(
       id: map['id']?.toString() ?? '',
-      name: map['name']?.toString() ?? 'H20',
+      name: map['name']?.toString().trim() ?? '',
       rssi: (map['rssi'] as num?)?.toInt() ?? 0,
       isLikelyAiv0: map['isLikelyAiv0'] == true,
       advertisesControlService: map['advertisesControlService'] == true,
@@ -597,6 +597,8 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   Timer? _batteryRefreshTimer;
   bool _batteryRefreshInFlight = false;
   bool _manualDisconnectRequested = false;
+  int _connectionGeneration = 0;
+  final Set<void Function()> _connectionCancellations = {};
 
   @override
   Aiv0BleStatus get status => _status;
@@ -610,6 +612,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   @override
   Future<void> initialize() async {
     if (!_enabled || _eventSubscription != null) return;
+    final generation = _connectionGeneration;
     _eventSubscription = _eventChannel.receiveBroadcastStream().listen(
       _handleEvent,
       onError: (Object error) => _setStatus(
@@ -623,7 +626,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     final map = await _methodChannel.invokeMapMethod<Object?, Object?>(
       'initialize',
     );
-    if (map != null) _updateStatus(map);
+    if (map != null && generation == _connectionGeneration) _updateStatus(map);
   }
 
   /// Observation only: native adapters must not claim audio focus or infer
@@ -647,8 +650,12 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   /// operates the physical MAIN button.
   Future<bool> requestPermissions() async {
     if (!_enabled) return true;
-    await initialize();
-    return await _methodChannel.invokeMethod<bool>('requestPermissions') ??
+    final generation = _connectionGeneration;
+    await _connectionStep(generation, initialize);
+    return await _connectionStep<bool?>(
+          generation,
+          () => _methodChannel.invokeMethod<bool>('requestPermissions'),
+        ) ??
         false;
   }
 
@@ -656,15 +663,67 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   /// A granted permission does not mean the user has turned Bluetooth on.
   Future<Aiv0BluetoothAdapterState> readBluetoothAdapterState() async {
     if (!_enabled) return Aiv0BluetoothAdapterState.unsupported;
-    await initialize();
     try {
+      await initialize();
       final value = await _methodChannel.invokeMethod<Object?>(
         'bluetoothAdapterState',
       );
       return Aiv0BluetoothAdapterState.fromNative(value);
     } on MissingPluginException {
       return Aiv0BluetoothAdapterState.unknown;
+    } on PlatformException {
+      return Aiv0BluetoothAdapterState.unknown;
     }
+  }
+
+  /// Offers Android system pairing for the currently verified MAIN device.
+  /// Call only from an explicit user action. This retains the healthy BLE
+  /// connection and does not scan, reconnect, or claim that HFP is connected.
+  Future<bool> requestSystemPairingForConnectedDevice() async {
+    if (!_enabled ||
+        !_dualModePairingEnabled ||
+        defaultTargetPlatform != TargetPlatform.android ||
+        _manualDisconnectRequested) {
+      return false;
+    }
+    final generation = _connectionGeneration;
+    try {
+      await _connectionStep(generation, initialize);
+      final deviceId = _status.deviceId?.trim();
+      if (!_status.isConnected || deviceId == null || deviceId.isEmpty) {
+        return false;
+      }
+      final paired = await _requestSystemPairing(
+        deviceId,
+        generation,
+        requireConnected: true,
+      );
+      _ensureConnectionCurrent(generation);
+      return paired && _isConnectedDevice(deviceId);
+    } catch (error) {
+      debugPrint('H20 system pairing did not complete: $error');
+      return false;
+    }
+  }
+
+  bool _isConnectedDevice(String deviceId) =>
+      _status.isConnected && _status.deviceId?.trim() == deviceId;
+
+  Future<bool> _requestSystemPairing(
+    String deviceId,
+    int generation, {
+    bool requireConnected = false,
+  }) async {
+    if (!await _connectionStep(generation, requestPermissions)) return false;
+    if (requireConnected && !_isConnectedDevice(deviceId)) return false;
+    return await _connectionStep<bool?>(
+          generation,
+          () => _methodChannel.invokeMethod<bool>(
+            'requestDualModeBond',
+            <String, Object?>{'deviceId': deviceId},
+          ),
+        ) ==
+        true;
   }
 
   /// Android displays the system-owned enable-Bluetooth confirmation. iOS
@@ -693,22 +752,63 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     }
   }
 
+  /// Distinguishes a blocked system prompt from an ordinary permission denial.
+  Future<bool> bluetoothPermissionRequiresSettings() async {
+    if (!_enabled || kIsWeb) return false;
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return await readBluetoothAdapterState() ==
+          Aiv0BluetoothAdapterState.unauthorized;
+    }
+    try {
+      return await _methodChannel.invokeMethod<bool>(
+            'bluetoothPermissionRequiresSettings',
+          ) ??
+          false;
+    } on MissingPluginException {
+      return false;
+    } on PlatformException {
+      return false;
+    }
+  }
+
+  /// Opens this app's permission page, independently of the radio settings.
+  Future<bool> openPermissionSettings() async {
+    if (!_enabled) return false;
+    try {
+      return await _methodChannel.invokeMethod<bool>(
+            'openPermissionSettings',
+          ) ??
+          false;
+    } on MissingPluginException {
+      return false;
+    } on PlatformException {
+      return false;
+    }
+  }
+
   @override
   Future<List<Aiv0BleDevice>> scan({
     Duration timeout = const Duration(seconds: 8),
-  }) async {
+  }) => _scan(timeout, _connectionGeneration);
+
+  Future<List<Aiv0BleDevice>> _scan(Duration timeout, int generation) async {
     if (!_enabled) return const [];
-    await initialize();
-    final permissionGranted = await requestPermissions();
+    await _connectionStep(generation, initialize);
+    final permissionGranted = await _connectionStep(
+      generation,
+      requestPermissions,
+    );
     if (!permissionGranted) {
       throw PlatformException(
         code: 'PERMISSION_REQUIRED',
         message: 'Cần cấp quyền Thiết bị ở gần/Bluetooth để tìm HM-D001.',
       );
     }
-    final devices = await _methodChannel.invokeListMethod<Object?>(
-      'scan',
-      <String, Object?>{'timeoutMs': timeout.inMilliseconds},
+    final devices = await _connectionStep(
+      generation,
+      () => _methodChannel.invokeListMethod<Object?>('scan', <String, Object?>{
+        'timeoutMs': timeout.inMilliseconds,
+      }),
     );
     return (devices ?? const [])
         .whereType<Map<Object?, Object?>>()
@@ -720,27 +820,45 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   Future<void> connect(String deviceId) async {
     if (!_enabled) return;
     _manualDisconnectRequested = false;
-    await initialize();
-    final permissionGranted = await requestPermissions();
+    await _connect(deviceId, _connectionGeneration);
+  }
+
+  Future<void> _connect(String deviceId, int generation) async {
+    await _connectionStep(generation, initialize);
+    final permissionGranted = await _connectionStep(
+      generation,
+      requestPermissions,
+    );
     if (!permissionGranted) {
       throw PlatformException(
         code: 'PERMISSION_REQUIRED',
         message: 'Cần cấp quyền Bluetooth để kết nối HM-D001.',
       );
     }
-    final connectedStatus = await _methodChannel
-        .invokeMapMethod<Object?, Object?>('connect', <String, Object?>{
-          'deviceId': deviceId,
-        });
+    final connectedStatus = await _connectionStep(
+      generation,
+      () => _methodChannel.invokeMapMethod<Object?, Object?>(
+        'connect',
+        <String, Object?>{'deviceId': deviceId},
+      ),
+    );
     // Android returns the verified GATT/MAIN Notify snapshot with the connect
     // result. Its EventChannel update may arrive after setup checks BLE state.
     if (connectedStatus != null) _updateStatus(connectedStatus);
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.setString(_lastDeviceIdPreference, deviceId);
-    final connectedName = _status.deviceName?.trim();
-    if (connectedName != null && connectedName.isNotEmpty) {
-      await preferences.setString(_lastDeviceNamePreference, connectedName);
-    }
+    final preferences = await _connectionStep(
+      generation,
+      SharedPreferences.getInstance,
+    );
+    await _connectionStep(
+      generation,
+      () => preferences.setString(_lastDeviceIdPreference, deviceId),
+    );
+    final connectedName = _status.deviceName?.trim() ?? '';
+    // An unnamed new device must not inherit the previous device's name.
+    await _connectionStep(
+      generation,
+      () => preferences.setString(_lastDeviceNamePreference, connectedName),
+    );
   }
 
   /// Reconnects BLE Control without requiring a second user action after H20
@@ -753,17 +871,30 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     Duration scanTimeout = const Duration(seconds: 4),
     bool requestBond = false,
     Iterable<String> connectedHfpDeviceIds = const <String>[],
+    bool forceScan = false,
+    String? onlyDeviceId,
   }) {
     if (!_enabled || _manualDisconnectRequested) {
       return Future<bool>.value(false);
     }
     final pending = _autoConnectFuture;
     if (pending != null) return pending;
-    final future = _runAutoConnect(
-      scanTimeout,
-      requestBond: requestBond && _dualModePairingEnabled,
-      connectedHfpDeviceIds: connectedHfpDeviceIds.toList(growable: false),
-    );
+    final future =
+        _runAutoConnect(
+          scanTimeout,
+          generation: _connectionGeneration,
+          requestBond: requestBond && _dualModePairingEnabled,
+          connectedHfpDeviceIds: connectedHfpDeviceIds.toList(growable: false),
+          forceScan: forceScan,
+          onlyDeviceId: onlyDeviceId,
+        ).catchError((Object error) {
+          if (error is PlatformException &&
+              (error.code == 'CONNECT_CANCELLED' ||
+                  error.code == 'BLUETOOTH_DISABLED')) {
+            return false;
+          }
+          throw error;
+        });
     _autoConnectFuture = future;
     return future.whenComplete(() {
       if (identical(_autoConnectFuture, future)) {
@@ -774,10 +905,13 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
 
   Future<bool> _runAutoConnect(
     Duration scanTimeout, {
+    required int generation,
     required bool requestBond,
     required List<String> connectedHfpDeviceIds,
+    required bool forceScan,
+    String? onlyDeviceId,
   }) async {
-    await initialize();
+    await _connectionStep(generation, initialize);
     if (_status.isConnected) return true;
     if (_status.phase == Aiv0BlePhase.scanning ||
         _status.phase == Aiv0BlePhase.connecting ||
@@ -785,12 +919,37 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
       return false;
     }
 
-    final preferences = await SharedPreferences.getInstance();
+    // Audio can keep using HFP while MAIN recovers. In that case restore only
+    // its verified control identity: never pair or select another nearby unit.
+    if (onlyDeviceId != null) {
+      if (onlyDeviceId.trim().isEmpty) return false;
+      try {
+        await _connectCandidate(
+          onlyDeviceId.trim(),
+          requestBond: false,
+          generation: generation,
+        );
+        return true;
+      } catch (error) {
+        _ensureConnectionCurrent(generation);
+        if (error is PlatformException && error.code == 'BLUETOOTH_DISABLED') {
+          rethrow;
+        }
+        debugPrint('Known HOMI control link recovery failed: $error');
+        return false;
+      }
+    }
+
+    final preferences = await _connectionStep(
+      generation,
+      SharedPreferences.getInstance,
+    );
     final savedDeviceId = preferences.getString(_lastDeviceIdPreference);
     final savedDeviceName = preferences.getString(_lastDeviceNamePreference);
     final migratingFromH20 =
         savedDeviceName?.toLowerCase().contains('h20') ?? false;
-    if (savedDeviceId != null &&
+    if (!forceScan &&
+        savedDeviceId != null &&
         savedDeviceId.trim().isNotEmpty &&
         !migratingFromH20 &&
         (connectedHfpDeviceIds.isEmpty ||
@@ -800,9 +959,16 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
       try {
         // This is the fast path for normal daily use: native can reopen the
         // verified GATT identifier directly without waiting for another scan.
-        await _connectCandidate(savedDeviceId.trim(), requestBond: requestBond);
+        await _connectCandidate(
+          savedDeviceId.trim(),
+          requestBond: requestBond,
+          generation: generation,
+        );
         return true;
       } catch (error) {
+        if (error is PlatformException && error.code == 'BLUETOOTH_DISABLED') {
+          rethrow;
+        }
         debugPrint(
           'Saved H20 BLE address was unavailable; scanning nearby: $error',
         );
@@ -811,10 +977,16 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
 
     List<Aiv0BleDevice> devices = const [];
     try {
-      devices = await scan(timeout: scanTimeout);
+      devices = await _scan(scanTimeout, generation);
     } catch (error) {
+      // Radio state can change after the caller's readiness check. End this
+      // round quietly; do not try another address while Bluetooth is off.
+      if (error is PlatformException && error.code == 'BLUETOOTH_DISABLED') {
+        rethrow;
+      }
       debugPrint('Automatic H20 BLE scan was skipped: $error');
     }
+    _ensureConnectionCurrent(generation);
 
     final candidate = selectAiv0AutoConnectCandidate(
       devices,
@@ -860,13 +1032,15 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
       }
     }
     if (targetId == null || targetId.isEmpty) {
-      if (migratingFromH20 &&
+      if (!forceScan &&
+          migratingFromH20 &&
           savedDeviceId != null &&
           connectedHfpDeviceIds.isEmpty) {
         try {
           await _connectCandidate(
             savedDeviceId.trim(),
             requestBond: requestBond,
+            generation: generation,
           );
           return true;
         } catch (_) {
@@ -877,11 +1051,18 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     }
 
     try {
-      await _connectCandidate(targetId, requestBond: requestBond);
+      await _connectCandidate(
+        targetId,
+        requestBond: requestBond,
+        generation: generation,
+      );
       if (candidate != null && candidate.name.trim().isNotEmpty) {
-        await preferences.setString(
-          _lastDeviceNamePreference,
-          candidate.name.trim(),
+        await _connectionStep(
+          generation,
+          () => preferences.setString(
+            _lastDeviceNamePreference,
+            candidate.name.trim(),
+          ),
         );
       }
       // Native completes `connect` only after service 9E3B0001 is verified and
@@ -897,15 +1078,14 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   Future<void> _connectCandidate(
     String deviceId, {
     required bool requestBond,
+    required int generation,
   }) async {
-    if (requestBond &&
-        defaultTargetPlatform == TargetPlatform.android &&
-        await requestPermissions()) {
+    _ensureConnectionCurrent(generation);
+    if (requestBond && defaultTargetPlatform == TargetPlatform.android) {
       try {
-        await _methodChannel.invokeMethod<bool>(
-          'requestDualModeBond',
-          <String, Object?>{'deviceId': deviceId},
-        );
+        // A declined bond may still permit the independent MAIN connection.
+        // The caller must verify HFP separately before reporting HOMI ready.
+        await _requestSystemPairing(deviceId, generation);
       } catch (error) {
         debugPrint('H20 system pairing was unavailable: $error');
       }
@@ -913,13 +1093,102 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     if (_manualDisconnectRequested) {
       throw StateError('H20 connection was cancelled.');
     }
-    await connect(deviceId);
+    _ensureConnectionCurrent(generation);
+    await _connect(deviceId, generation);
+  }
+
+  /// Cancels this attempt only. A verified BLE link is retained when the app
+  /// is still looking for its HFP input; the normal retry scheduler may resume.
+  Future<void> cancelConnectionAttempt() async {
+    _invalidateConnectionAttempt();
+    if (!_enabled) return;
+    final generation = _connectionGeneration;
+    final map = await _methodChannel.invokeMapMethod<Object?, Object?>(
+      'cancelConnectionAttempt',
+    );
+    if (map != null && generation == _connectionGeneration) _updateStatus(map);
+  }
+
+  /// Explicit retry starts a fresh scan, even after a manual disconnect. A
+  /// healthy BLE link is reused while the app retries the separate HFP input.
+  Future<bool> retryKnownOrNearby({
+    Duration scanTimeout = const Duration(seconds: 4),
+    bool requestBond = false,
+    Iterable<String> connectedHfpDeviceIds = const <String>[],
+  }) async {
+    final cancellation = cancelConnectionAttempt();
+    final generation = _connectionGeneration;
+    await cancellation;
+    if (generation != _connectionGeneration) return false;
+    _manualDisconnectRequested = false;
+    return autoConnectKnownOrNearby(
+      scanTimeout: scanTimeout,
+      requestBond: requestBond,
+      connectedHfpDeviceIds: connectedHfpDeviceIds,
+      forceScan: true,
+    );
+  }
+
+  void _invalidateConnectionAttempt() {
+    _connectionGeneration += 1;
+    for (final cancel in _connectionCancellations.toList()) {
+      cancel();
+    }
+    _connectionCancellations.clear();
+    _autoConnectFuture = null;
+  }
+
+  void _ensureConnectionCurrent(int generation) {
+    if (generation != _connectionGeneration) {
+      throw PlatformException(
+        code: 'CONNECT_CANCELLED',
+        message: 'Đã hủy kết nối HOMI.',
+      );
+    }
+  }
+
+  Future<T> _connectionStep<T>(
+    int generation,
+    Future<T> Function() action,
+  ) async {
+    _ensureConnectionCurrent(generation);
+    final completion = Completer<T>();
+    void cancel() {
+      if (!completion.isCompleted) {
+        completion.completeError(
+          PlatformException(
+            code: 'CONNECT_CANCELLED',
+            message: 'Đã hủy kết nối HOMI.',
+          ),
+        );
+      }
+    }
+
+    _connectionCancellations.add(cancel);
+    try {
+      action().then(
+        (value) {
+          if (!completion.isCompleted) completion.complete(value);
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          if (!completion.isCompleted) {
+            completion.completeError(error, stackTrace);
+          }
+        },
+      );
+      final result = await completion.future;
+      _ensureConnectionCurrent(generation);
+      return result;
+    } finally {
+      _connectionCancellations.remove(cancel);
+    }
   }
 
   @override
   Future<void> disconnect() async {
     if (!_enabled) return;
     _manualDisconnectRequested = true;
+    _invalidateConnectionAttempt();
     await _methodChannel.invokeMethod<void>('disconnect');
   }
 
@@ -1113,6 +1382,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
 
   @override
   Future<void> dispose() async {
+    _invalidateConnectionAttempt();
     _batteryRefreshTimer?.cancel();
     _batteryRefreshTimer = null;
     await _eventSubscription?.cancel();

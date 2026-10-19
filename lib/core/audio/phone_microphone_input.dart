@@ -13,11 +13,15 @@ import 'recording_storage.dart';
 import 'wav_audio.dart';
 
 class PhoneMicrophoneInput
-    implements ChunkedAudioInput, SelectableAudioInputControl {
+    implements
+        ChunkedAudioInput,
+        SelectableAudioInputControl,
+        AudioInputSelectionCancellation {
   PhoneMicrophoneInput({AudioRecorder? recorder})
     : _recorder = recorder ?? AudioRecorder();
 
   final AudioRecorder _recorder;
+  int _inputSelectionGeneration = 0;
   final StreamController<Uint8List> _audioChunkController =
       StreamController<Uint8List>.broadcast(sync: true);
   DateTime? _startedAt;
@@ -122,11 +126,13 @@ class PhoneMicrophoneInput
   Future<void> selectAudioInputDevice(
     SelectableAudioInputDevice? device,
   ) async {
+    final generation = ++_inputSelectionGeneration;
     if (device == null) {
       _selectedInputDevice = null;
       return;
     }
     final available = await _recorder.listInputDevices();
+    if (generation != _inputSelectionGeneration) return;
     InputDevice? selected;
     for (final item in available) {
       if (item.id == device.id) {
@@ -140,6 +146,11 @@ class PhoneMicrophoneInput
       );
     }
     _selectedInputDevice = selected;
+  }
+
+  @override
+  void cancelAudioInputSelection() {
+    _inputSelectionGeneration++;
   }
 
   Future<void> _prepareRecording() async {

@@ -14,7 +14,17 @@ abstract final class MainButtonActivationPolicy {
     required bool isNativeMobile,
     required bool isIos,
     required bool isH20Ready,
+    bool? isHomiAudioReady,
+    bool hasSelectedHfpInput = false,
   }) {
+    // MAIN is an independent control link. Losing it must never change the
+    // selected microphone while its verified HFP connection is still alive.
+    if (isHomiAudioReady ?? isH20Ready) {
+      return MainButtonAudioRoute.selectedHfp;
+    }
+    // Keep a lost/unverified selected headset explicit instead of silently
+    // recording from the handset. Phone-only use still works without one.
+    if (hasSelectedHfpInput) return MainButtonAudioRoute.unavailable;
     if (source == MainButtonSource.ble && isIos && !isH20Ready) {
       return MainButtonAudioRoute.unavailable;
     }
@@ -25,14 +35,21 @@ abstract final class MainButtonActivationPolicy {
   }
 
   /// A module's follow-up question (the vocabulary menu, for example)
-  /// continues the session that opened it. Android prepares the H20 route
-  /// before every activation, so without a ready H20 the follow-up keeps the
-  /// handset microphone; otherwise no microphone opens after the prompt. iOS
-  /// has no such gate and keeps its route unchanged.
+  /// continues with the selected microphone even when BLE MAIN is recovering.
+  /// The handset route is retained only for a session without a selected HFP
+  /// device. An unavailable selected headset requires reconnection.
   static MainButtonAudioRoute followUpAudioRoute({
     required bool isAndroid,
     required bool isH20Ready,
-  }) => isAndroid && !isH20Ready
-      ? MainButtonAudioRoute.phoneMicrophone
-      : MainButtonAudioRoute.selectedHfp;
+    bool? isHomiAudioReady,
+    bool hasSelectedHfpInput = false,
+  }) {
+    if (isHomiAudioReady ?? isH20Ready) {
+      return MainButtonAudioRoute.selectedHfp;
+    }
+    if (hasSelectedHfpInput) return MainButtonAudioRoute.unavailable;
+    return isAndroid
+        ? MainButtonAudioRoute.phoneMicrophone
+        : MainButtonAudioRoute.selectedHfp;
+  }
 }

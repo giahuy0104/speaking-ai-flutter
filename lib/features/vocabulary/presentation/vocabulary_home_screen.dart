@@ -6,12 +6,14 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/app_theme.dart';
+import '../../../app/homi_connection_presentation.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
 import '../../../core/audio/audio_gain.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/active_learning_module.dart';
+import '../../../core/device/h20_connection_state.dart';
 import '../../../core/navigation/active_learning_navigation.dart';
 import '../../../l10n/display_language.dart';
 import '../../listening/application/lesson_media_service.dart';
@@ -118,6 +120,9 @@ class VocabularyHomeScreen extends StatefulWidget {
     required this.onReturnToConversation,
     required this.onHistory,
     required this.onSettings,
+    this.connectionState,
+    this.ensureDeviceConnected,
+    this.isDeviceConnectionReady,
     this.isActive = true,
     this.store = const VocabularyStore(),
     this.sessionStore = const VocabularySessionStore(),
@@ -139,6 +144,9 @@ class VocabularyHomeScreen extends StatefulWidget {
   });
 
   final bool isReady;
+  final H20ConnectionState? connectionState;
+  final Future<bool> Function()? ensureDeviceConnected;
+  final bool Function()? isDeviceConnectionReady;
   final VoidCallback onReturnToConversation;
   final VoidCallback onHistory;
   final VoidCallback onSettings;
@@ -184,6 +192,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   VocabularyJourneyIndex _journeyIndex = VocabularyJourneyIndex.empty();
   _VocabularyJourney? _selectedJourney;
   bool _loading = true;
+  bool _waitingForDevice = false;
   bool _translating = false;
   bool _pausedForMainAssistant = false;
   bool _openingPractice = false;
@@ -605,6 +614,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
             children: <Widget>[
               _VocabularyHeader(
                 isReady: widget.isReady,
+                connectionState: widget.connectionState,
                 onBrandPressed: _selectedJourney == null
                     ? widget.onReturnToConversation
                     : () => unawaited(
@@ -618,6 +628,12 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                 showAddAction:
                     _selectedJourney == null ||
                     _selectedJourney == _VocabularyJourney.family,
+              ),
+              HomiConnectionNotice(
+                status: HomiConnectionPresentation.from(
+                  widget.connectionState,
+                  isReady: widget.isReady,
+                ),
               ),
               Expanded(
                 child: AnimatedSwitcher(
@@ -706,10 +722,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                   _JourneyCard(
                     key: const Key('vocabulary-family-card'),
                     height: cardHeight,
-                    onPressed: () {
-                      _endVoiceChoiceForTouch();
-                      _openJourney(_VocabularyJourney.family);
-                    },
+                    onPressed: () => unawaited(
+                      _runDeviceAction(() async {
+                        _openJourney(_VocabularyJourney.family);
+                      }),
+                    ),
                     child: Row(
                       children: <Widget>[
                         Expanded(
@@ -745,10 +762,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                   _JourneyCard(
                     key: const Key('vocabulary-stars-card'),
                     height: cardHeight,
-                    onPressed: () {
-                      _endVoiceChoiceForTouch();
-                      _openJourney(_VocabularyJourney.stars);
-                    },
+                    onPressed: () => unawaited(
+                      _runDeviceAction(() async {
+                        _openJourney(_VocabularyJourney.stars);
+                      }),
+                    ),
                     child: Row(
                       children: <Widget>[
                         Expanded(
@@ -780,10 +798,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                   _JourneyCard(
                     key: const Key('vocabulary-review-card'),
                     height: cardHeight,
-                    onPressed: () {
-                      _endVoiceChoiceForTouch();
-                      _openJourney(_VocabularyJourney.review);
-                    },
+                    onPressed: () => unawaited(
+                      _runDeviceAction(() async {
+                        _openJourney(_VocabularyJourney.review);
+                      }),
+                    ),
                     child: Row(
                       children: <Widget>[
                         Expanded(
@@ -973,14 +992,13 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                 key: ValueKey<String>('vocabulary-${journey.name}-action'),
                 onPressed: visibleEntries.isEmpty || _playingCollection
                     ? null
-                    : () {
-                        _endVoiceChoiceForTouch();
-                        unawaited(
-                          journey == _VocabularyJourney.review
+                    : () => unawaited(
+                        _runDeviceAction(
+                          () => journey == _VocabularyJourney.review
                               ? _startReview()
                               : _playJourney(journey),
-                        );
-                      },
+                        ),
+                      ),
                 icon: _playingCollection
                     ? const SizedBox.square(
                         dimension: 18,
@@ -1342,10 +1360,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                     entries[index].isLearnedWell,
                 statusLabel: statusLabel,
                 active: _activeEntryId == entries[index].id,
-                onPlay: () {
-                  _endVoiceChoiceForTouch();
-                  unawaited(_playEntry(entries[index]));
-                },
+                onPlay: () => unawaited(
+                  _runDeviceAction(() => _playEntry(entries[index])),
+                ),
               ),
             ),
         ],
@@ -1407,10 +1424,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                         !entries[index].isParentAdded ||
                         entries[index].isLearnedWell,
                     active: _activeEntryId == entries[index].id,
-                    onPlay: () {
-                      _endVoiceChoiceForTouch();
-                      unawaited(_playEntry(entries[index]));
-                    },
+                    onPlay: () => unawaited(
+                      _runDeviceAction(() => _playEntry(entries[index])),
+                    ),
                   ),
                   if (index != entries.length - 1)
                     Divider(
@@ -1429,6 +1445,21 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   void _endVoiceChoiceForTouch() {
     _pausedForMainAssistant = false;
     ActiveLearningModuleScope.notifyNavigationExit(context);
+  }
+
+  Future<void> _runDeviceAction(Future<void> Function() action) async {
+    if (_waitingForDevice) return;
+    _waitingForDevice = true;
+    var connected = false;
+    try {
+      final ensureConnected = widget.ensureDeviceConnected;
+      connected = ensureConnected == null || await ensureConnected();
+    } finally {
+      _waitingForDevice = false;
+    }
+    if (!connected || !mounted || !_isEffectivelyActive) return;
+    _endVoiceChoiceForTouch();
+    await action();
   }
 
   void _openJourney(_VocabularyJourney journey) {
@@ -1636,7 +1667,8 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   }
 
   Future<void> _maybeStartToday() async {
-    if (!mounted ||
+    if (widget.isDeviceConnectionReady?.call() == false ||
+        !mounted ||
         _selectedJourney != null ||
         !(widget.activationController?.autoStartToday ?? true) ||
         !_isEffectivelyActive ||
@@ -1648,6 +1680,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _startingToday = true;
     final generation = _automaticEntryGeneration;
     bool isCurrent() =>
+        widget.isDeviceConnectionReady?.call() != false &&
         mounted &&
         _isEffectivelyActive &&
         !_pausedForMainAssistant &&
@@ -3020,6 +3053,7 @@ class _JourneyDetailHeader extends StatelessWidget {
 class _VocabularyHeader extends StatelessWidget {
   const _VocabularyHeader({
     required this.isReady,
+    required this.connectionState,
     required this.onBrandPressed,
     required this.backTooltip,
     required this.onAddPressed,
@@ -3028,6 +3062,7 @@ class _VocabularyHeader extends StatelessWidget {
   });
 
   final bool isReady;
+  final H20ConnectionState? connectionState;
   final VoidCallback onBrandPressed;
   final String backTooltip;
   final VoidCallback? onAddPressed;
@@ -3040,6 +3075,15 @@ class _VocabularyHeader extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final foreground = isDark ? colorScheme.primary : AppColors.deepNavy;
     final readyColor = isDark ? colorScheme.tertiary : AppColors.success;
+    final status = HomiConnectionPresentation.from(
+      connectionState,
+      isReady: isReady,
+    );
+    final statusColor = status == HomiConnectionPresentation.ready
+        ? readyColor
+        : status.isPartial
+        ? status.partialColor(context)
+        : AppColors.muted;
 
     return Center(
       child: ConstrainedBox(
@@ -3130,9 +3174,7 @@ class _VocabularyHeader extends StatelessWidget {
                                     width: 10,
                                     height: 10,
                                     decoration: BoxDecoration(
-                                      color: isReady
-                                          ? readyColor
-                                          : AppColors.muted,
+                                      color: statusColor,
                                       shape: BoxShape.circle,
                                       boxShadow: isReady
                                           ? const <BoxShadow>[
@@ -3147,19 +3189,17 @@ class _VocabularyHeader extends StatelessWidget {
                                   const SizedBox(width: 6),
                                   Flexible(
                                     child: Text(
-                                      isReady
-                                          ? context.tr('Sẵn sàng', '已就绪')
-                                          : context.tr('Chưa kết nối', '未连接'),
-                                      maxLines: 1,
+                                      status.label(context),
+                                      maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium
                                           ?.copyWith(
-                                            color: isReady
-                                                ? readyColor
-                                                : AppColors.muted,
-                                            fontSize: 14,
+                                            color: statusColor,
+                                            fontSize: status.isPartial
+                                                ? 13
+                                                : 14,
                                             fontWeight: FontWeight.w700,
                                           ),
                                     ),

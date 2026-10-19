@@ -42,6 +42,32 @@ void main() {
     registry.dispose();
   });
 
+  for (final confirmed in [false, true]) {
+    test(
+      'reported MAIN hex dispatches without parser changes, draft=$confirmed',
+      () async {
+        final event = Aiv0DraftProtocolCodec(confirmed: confirmed)
+            .decodeButtonEvent(
+              Uint8List.fromList([1, 1, 1, 0, 10, 0, 42, 0, 244, 215, 21, 0]),
+              deviceId: 'test-device',
+            );
+        expect(event.button, Aiv0Button.main);
+        expect(event.gesture, Aiv0ButtonGesture.shortPress);
+        expect(event.sequence, 10);
+        expect(event.batteryPercent, 42);
+        expect(event.uptimeMilliseconds, 0x0015D7F4);
+        expect(event.isActionable, isTrue);
+        expect(event.isDuplicate, isFalse);
+        final input = AivoControlInput.fromBle(event);
+        expect(await controls.dispatch(input), AivoControlStatus.accepted);
+        expect(mainCalls, 1);
+        // Native duplicate=false does not bypass Dart's independent dedup guard.
+        expect(await controls.dispatch(input), AivoControlStatus.duplicate);
+        expect(mainCalls, 1);
+      },
+    );
+  }
+
   AivoControlInput input(
     Aiv0Button button,
     Aiv0ButtonGesture gesture, {

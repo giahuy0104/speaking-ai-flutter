@@ -28,6 +28,146 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  for (final journey in <String>['family', 'stars', 'review']) {
+    testWidgets('vocabulary $journey touch waits for device before entering', (
+      tester,
+    ) async {
+      final gate = Completer<bool>();
+      var checks = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: VocabularyHomeScreen(
+            isReady: false,
+            ensureDeviceConnected: () {
+              checks++;
+              return gate.future;
+            },
+            voicePromptService: const _FakeVoicePromptService(),
+            mediaService: _ImmediateLessonMediaService(),
+            store: _MemoryVocabularyStore([]),
+            onReturnToConversation: () {},
+            onHistory: () {},
+            onSettings: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final card = find.byKey(ValueKey('vocabulary-$journey-card'));
+      await tester.ensureVisible(card);
+      await tester.tap(card);
+      await tester.tap(card);
+      await tester.pump();
+      expect(checks, 1);
+      expect(
+        find.byKey(const ValueKey('vocabulary-journey-landing')),
+        findsOneWidget,
+      );
+      gate.complete(false);
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('vocabulary-journey-landing')),
+        findsOneWidget,
+      );
+    });
+  }
+
+  testWidgets(
+    'disconnected vocabulary entry stays silent without opening a gate',
+    (tester) async {
+      var checks = 0;
+      final prompts = _RecordingVoicePromptService();
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: VocabularyHomeScreen(
+            isReady: false,
+            autoStartToday: true,
+            isDeviceConnectionReady: () => false,
+            ensureDeviceConnected: () async {
+              checks++;
+              return false;
+            },
+            voicePromptService: prompts,
+            mediaService: _ImmediateLessonMediaService(),
+            store: _MemoryVocabularyStore([]),
+            onReturnToConversation: () {},
+            onHistory: () {},
+            onSettings: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(checks, 0);
+      expect(prompts.spokenTexts, isEmpty);
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+      expect(
+        find.byKey(const ValueKey('vocabulary-journey-landing')),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets('vocabulary playback rechecks device after entering a journey', (
+    tester,
+  ) async {
+    var connected = true;
+    var checks = 0;
+    final audio = _RecordingVocabularyAudioService();
+    final prompts = _RecordingVoicePromptService();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: VocabularyHomeScreen(
+          isReady: true,
+          ensureDeviceConnected: () async {
+            checks++;
+            return connected;
+          },
+          store: _MemoryVocabularyStore([
+            VocabularyEntry(
+              id: 'apple',
+              word: 'Apple',
+              meaning: 'Quả táo',
+              addedAt: DateTime(2026, 10, 19),
+              status: VocabularyLearningStatus.learnedWell,
+              source: VocabularySource.parent,
+              parentState: ParentVocabularyState.unlocked,
+            ),
+          ]),
+          voicePromptService: prompts,
+          mediaService: _ImmediateLessonMediaService(),
+          vocabularyAudioService: audio,
+          fixedPromptAudioService: const _UnavailableFixedPromptAudioService(),
+          onReturnToConversation: () {},
+          onHistory: () {},
+          onSettings: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+    await tester.pumpAndSettle();
+    expect(checks, 1);
+    expect(
+      find.byKey(const ValueKey('vocabulary-journey-landing')),
+      findsNothing,
+    );
+    connected = false;
+    final playAll = find.byKey(const ValueKey('vocabulary-family-action'));
+    await tester.ensureVisible(playAll);
+    await tester.tap(playAll);
+    await tester.pumpAndSettle();
+    expect(checks, 2);
+    final playEntry = find.byKey(const ValueKey('vocabulary-action-apple'));
+    await tester.ensureVisible(playEntry);
+    await tester.tap(playEntry);
+    await tester.pumpAndSettle();
+    expect(checks, 3);
+    expect(audio.spoken, isEmpty);
+    expect(prompts.spokenTexts, isEmpty);
+  });
+
   for (final command in <ActiveLearningCommand>[
     ActiveLearningCommand.vocabularyParentAdded,
     ActiveLearningCommand.vocabularyStars,

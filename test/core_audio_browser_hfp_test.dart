@@ -68,6 +68,42 @@ void main() {
     );
   });
 
+  test(
+    'ambiguous same-name microphones require selection or saved identity',
+    () {
+      const devices = [
+        HfpAudioDevice(id: 'first', name: 'HM-D001', isConnected: true),
+        HfpAudioDevice(id: 'second', name: 'HM-D001', isConnected: true),
+      ];
+      expect(selectLikelyH20HfpDevice(devices), isNull);
+      expect(
+        selectLikelyH20HfpDevice(devices, preferredDeviceId: 'second')?.id,
+        'second',
+      );
+      expect(
+        selectLikelyH20HfpDevice(
+          devices,
+          bleDeviceId: 'first',
+          preferredDeviceId: 'second',
+        )?.id,
+        'first',
+      );
+    },
+  );
+
+  test(
+    'an unnamed microphone never borrows its identifier as a device name',
+    () {
+      const device = HfpAudioDevice(
+        id: 'H20-looking-id',
+        name: '',
+        isConnected: true,
+      );
+      expect(device.displayName, isEmpty);
+      expect(selectLikelyH20HfpDevice([device]), isNull);
+    },
+  );
+
   test('automatic HFP selection prefers HM-D001 over legacy H20', () {
     const devices = <HfpAudioDevice>[
       HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),

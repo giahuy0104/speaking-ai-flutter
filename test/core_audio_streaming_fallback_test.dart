@@ -18,8 +18,10 @@ import 'package:flutter/foundation.dart'
     show TargetPlatform, debugDefaultTargetPlatformOverride;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUp(() => SharedPreferences.setMockInitialValues({}));
   test(
     'iOS parent vocabulary translates both directions without API calls',
     () async {
@@ -2918,7 +2920,8 @@ class _FakeHfpAudioControl implements HfpAudioControl {
   final bool usesBrowserAudioInput;
 
   @override
-  BluetoothAudioStatus get status => const BluetoothAudioStatus(
+  BluetoothAudioStatus get status => _status;
+  BluetoothAudioStatus _status = const BluetoothAudioStatus(
     phase: BluetoothAudioConnectionPhase.ready,
     deviceId: '00:11:22:33:44:55',
     deviceName: 'Tai nghe HFP',
@@ -2936,7 +2939,14 @@ class _FakeHfpAudioControl implements HfpAudioControl {
   Future<List<HfpAudioDevice>> findDevices() async => const <HfpAudioDevice>[];
 
   @override
-  Future<void> connect(HfpAudioDevice device) async {}
+  Future<void> connect(HfpAudioDevice device) async {
+    _status = BluetoothAudioStatus(
+      phase: BluetoothAudioConnectionPhase.ready,
+      deviceId: device.id,
+      deviceName: device.name,
+      sampleRate: 16000,
+    );
+  }
 
   @override
   Future<void> disconnect() async {}

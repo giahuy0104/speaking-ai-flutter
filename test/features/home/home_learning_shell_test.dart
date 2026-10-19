@@ -42,6 +42,84 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  testWidgets(
+    'device gate delays Home start, deduplicates taps and allows stop',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final speech = _FakeStreamingSpeechInput();
+      final controller = _ObservedPrimaryActionController(speech);
+      addTearDown(controller.dispose);
+      final gate = Completer<bool>();
+      var checks = 0;
+      await tester.pumpWidget(
+        _app(
+          controller,
+          ensureDeviceConnected: () {
+            checks++;
+            return gate.future;
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+      final start = find.text('Bắt đầu nói');
+      await tester.tap(start);
+      await tester.tap(start);
+      await tester.pump();
+      expect(checks, 1);
+      expect(speech.startCount, 0);
+      gate.complete(true);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(speech.startCount, 1);
+      expect(controller.isRecording, isTrue);
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+      expect(controller.isPreparingMicrophone, isFalse);
+      await tester.tap(find.text('Dừng ghi âm'));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(checks, 1);
+      expect(controller.primaryActionPhases, <ConversationPhase>[
+        ConversationPhase.idle,
+        ConversationPhase.recording,
+      ]);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 3));
+    },
+  );
+
+  testWidgets('cancelled device gate keeps Home idle and tabs browsable', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final controller = _controller();
+    addTearDown(controller.dispose);
+    var checks = 0;
+    await tester.pumpWidget(
+      _app(
+        controller,
+        ensureDeviceConnected: () async {
+          checks++;
+          return false;
+        },
+        isDeviceConnectionReady: () => false,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Bắt đầu nói'));
+    await tester.pumpAndSettle();
+    expect(checks, 1);
+    expect(controller.isRecording, isFalse);
+    await tester.tap(find.byKey(const Key('topic-listening-edge-tab')));
+    await tester.pumpAndSettle();
+    expect(checks, 1);
+    expect(find.byType(TopicListeningScreen), findsOneWidget);
+    final topics = tester.widget<TopicListeningScreen>(
+      find.byType(TopicListeningScreen),
+    );
+    expect(topics.ensureDeviceConnected, isNotNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   testWidgets('Android does not launch the six-step guide after setup', (
     tester,
   ) async {
@@ -2006,6 +2084,8 @@ void _rebuildCountTests() {
 
 Widget _app(
   ConversationController controller, {
+  Future<bool> Function()? ensureDeviceConnected,
+  bool Function()? isDeviceConnectionReady,
   bool autoStartVoiceNavigation = false,
   int childAge = 6,
   VoiceNavigationController? voiceNavigationController,
@@ -2033,6 +2113,8 @@ Widget _app(
 }) {
   final home = HomeLearningShell(
     controller: controller,
+    ensureDeviceConnected: ensureDeviceConnected,
+    isDeviceConnectionReady: isDeviceConnectionReady,
     voiceNavigationController: voiceNavigationController,
     vocabularyAudioService: vocabularyAudioService,
     vocabularyMediaService: vocabularyMediaService,
@@ -2243,6 +2325,26 @@ class _FakeScreenAwareBackgroundLearningSession
   Future<bool?> isScreenInteractive() async {
     screenStateReadCount += 1;
     return screenInteractive;
+  }
+}
+
+class _ObservedPrimaryActionController extends ConversationController {
+  _ObservedPrimaryActionController(StreamingSpeechInput speech)
+    : super(
+        audioInput: _FakeAudioInput(),
+        streamingSpeechInput: speech,
+        playbackService: const _FakePlaybackService(),
+        repository: const DemoConversationRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+      );
+
+  final List<ConversationPhase> primaryActionPhases = <ConversationPhase>[];
+
+  @override
+  Future<void> onPrimaryAction() {
+    primaryActionPhases.add(phase);
+    return super.onPrimaryAction();
   }
 }
 

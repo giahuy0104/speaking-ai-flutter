@@ -21,6 +21,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   Widget buildSubject({
+    Future<bool> Function()? ensureDeviceConnected,
     int childAge = 6,
     DisplayLanguage language = DisplayLanguage.vietnamese,
     double textScale = 1,
@@ -49,6 +50,7 @@ void main() {
           textScaler: TextScaler.linear(textScale),
         ),
         child: TopicListeningScreen(
+          ensureDeviceConnected: ensureDeviceConnected,
           language: language,
           childAge: childAge,
           onVoiceNavigationPause: onVoiceNavigationPause,
@@ -70,6 +72,132 @@ void main() {
       ),
     );
   }
+
+  testWidgets(
+    'topic touch waits for device and cancellation has no navigation',
+    (tester) async {
+      final gate = Completer<bool>();
+      var checks = 0;
+      final progress = _MemoryProgressStore();
+      await tester.pumpWidget(
+        buildSubject(
+          progressStore: progress,
+          ensureDeviceConnected: () {
+            checks++;
+            return gate.future;
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+      final topic = find.byKey(const ValueKey('topic-action-6-7-0'));
+      await tester.tap(topic);
+      await tester.tap(topic);
+      await tester.pump();
+      expect(checks, 1);
+      expect(find.byType(TopicLessonListScreen), findsNothing);
+      gate.complete(false);
+      await tester.pumpAndSettle();
+      expect(find.byType(TopicLessonListScreen), findsNothing);
+      expect(await progress.readAll(), isEmpty);
+    },
+  );
+
+  testWidgets('topic touch resumes after device gate succeeds', (tester) async {
+    var checks = 0;
+    final gate = Completer<bool>();
+    await tester.pumpWidget(
+      buildSubject(
+        ensureDeviceConnected: () {
+          checks++;
+          return gate.future;
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('topic-action-6-7-0')));
+    await tester.pump();
+    expect(find.byType(TopicLessonListScreen), findsNothing);
+    gate.complete(true);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(checks, 1);
+    final list = tester.widget<TopicLessonListScreen>(
+      find.byType(TopicLessonListScreen),
+    );
+    expect(list.ensureDeviceConnected, isNotNull);
+  });
+
+  testWidgets('topic songs require device before opening song list', (
+    tester,
+  ) async {
+    var checks = 0;
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      buildSubject(
+        childAge: 3,
+        ensureDeviceConnected: () async {
+          checks++;
+          return false;
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
+    final song = find.byKey(const ValueKey('topic-songs-3-5-1'));
+    await tester.scrollUntilVisible(
+      song,
+      150,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await Scrollable.ensureVisible(tester.element(song), alignment: 0.5);
+    await tester.pump();
+    await tester.tap(song);
+    await tester.pumpAndSettle();
+    expect(checks, 1);
+    expect(find.byType(TopicLessonListScreen), findsNothing);
+  });
+
+  testWidgets(
+    'lesson touch rechecks device before changing progress or route',
+    (tester) async {
+      final catalog = await AssetListeningContentRepository().load();
+      final content = catalog.topic(startAge: 6, endAge: 7, topicNumber: 1);
+      final topic = listeningCatalogs
+          .firstWhere((group) => group.startAge == 6)
+          .topics
+          .first;
+      final progress = _MemoryProgressStore();
+      var checks = 0;
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: TopicLessonListScreen(
+            language: DisplayLanguage.vietnamese,
+            startAge: 6,
+            endAge: 7,
+            topic: topic,
+            content: content,
+            progressStore: progress,
+            voicePromptService: _ImmediateVoicePromptService(),
+            ensureDeviceConnected: () async {
+              checks++;
+              return false;
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final lesson = find.byKey(ValueKey('lesson-${content.lessons.first.id}'));
+      await tester.ensureVisible(lesson);
+      await tester.tap(lesson);
+      await tester.pumpAndSettle();
+      expect(checks, 1);
+      expect(find.byType(LessonIntroScreen), findsNothing);
+      expect(await progress.readAll(), isEmpty);
+    },
+  );
 
   testWidgets('dark theme keeps the listening journey text readable', (
     tester,

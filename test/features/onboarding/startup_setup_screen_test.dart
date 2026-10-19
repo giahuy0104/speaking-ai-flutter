@@ -1,11 +1,347 @@
 import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
+import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
+import 'package:ai_speaking_flutter_app/core/device/bluetooth_power_controller.dart';
+import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:ai_speaking_flutter_app/features/onboarding/presentation/startup_setup_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  for (final language in DisplayLanguage.values) {
+    for (final unsupported in <bool>[true, false]) {
+      testWidgets(
+        'startup explicit no-voice escape ${unsupported ? 'unsupported' : 'partial'} in ${language.code}',
+        (tester) async {
+          await tester.binding.setSurfaceSize(const Size(390, 844));
+          addTearDown(() => tester.binding.setSurfaceSize(null));
+          var limited = false;
+          var limitedCalls = 0;
+          var completed = false;
+          var connectCalls = 0;
+          var reads = 0;
+          final pending = Completer<void>();
+          final power = BluetoothPowerController(
+            readState: () async {
+              reads++;
+              return unsupported
+                  ? Aiv0BluetoothAdapterState.unsupported
+                  : Aiv0BluetoothAdapterState.poweredOn;
+            },
+            requestEnable: () async => false,
+            requestPermission: () async => false,
+            canRequestEnable: true,
+          );
+          addTearDown(power.dispose);
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: buildAppTheme(),
+              home: DisplayLanguageScope(
+                language: language,
+                child: StatefulBuilder(
+                  builder: (context, setState) => StartupSetupScreen(
+                    bluetoothPower: power,
+                    profileLoading: false,
+                    permissionRequestInProgress: false,
+                    privacyConfigurationComplete: true,
+                    privacyConsentGranted: !limited,
+                    limitedModeSelected: limited,
+                    microphoneGranted: true,
+                    bluetoothRequired: true,
+                    bluetoothGranted: !unsupported,
+                    h20BleConnected: !unsupported,
+                    h20HfpConfigured: false,
+                    selectedAge: 8,
+                    aiSubprocessors: 'HOMI',
+                    dataRetentionSummary: 'Test',
+                    onGrantPrivacyConsent: () async {},
+                    onContinueWithoutVoice: () async {
+                      limitedCalls++;
+                      await pending.future;
+                      setState(() => limited = true);
+                    },
+                    onRetryPermissions: () {},
+                    onSetupH20: () async {
+                      connectCalls++;
+                      return false;
+                    },
+                    onAgeSelected: (_) {},
+                    onCompleteSetup: () async {
+                      completed = true;
+                    },
+                  ),
+                ),
+              ),
+            ),
+          );
+          final escape = find.byKey(
+            const Key('startup-continue-without-voice-after-consent'),
+          );
+          for (var i = 0; i < 2; i++) {
+            expect(escape, findsNothing);
+            expect(reads, 0);
+            await tester.ensureVisible(find.byKey(const Key('startup-next')));
+            await tester.tap(find.byKey(const Key('startup-next')));
+            await tester.pumpAndSettle();
+          }
+          expect(escape, findsOneWidget);
+          expect(
+            find.text(
+              language.choose('Tiếp tục không dùng giọng nói', '不使用语音继续'),
+            ),
+            findsOneWidget,
+          );
+          expect(find.byKey(const Key('startup-confirm-age')), findsNothing);
+          if (unsupported) {
+            expect(find.byKey(const Key('startup-setup-h20')), findsNothing);
+          } else {
+            expect(
+              find.text(
+                language.choose(
+                  'Nút MAIN đã kết nối · Mic chưa kết nối',
+                  'MAIN 按钮已连接 · 麦克风尚未连接',
+                ),
+              ),
+              findsOneWidget,
+            );
+          }
+          await tester.ensureVisible(escape);
+          await tester.tap(escape);
+          await tester.pump();
+          expect(limitedCalls, 1);
+          expect(tester.widget<TextButton>(escape).onPressed, isNull);
+          expect(completed, isFalse);
+          pending.complete();
+          await tester.pumpAndSettle();
+          expect(
+            find.byKey(const ValueKey<String>('startup-limited-step')),
+            findsOneWidget,
+          );
+          expect(
+            find.byKey(const Key('startup-connection-success-dialog')),
+            findsNothing,
+          );
+          expect(connectCalls, 0);
+          expect(
+            find.text(
+              language.choose(
+                'HOMI sẽ mở bài học ở chế độ không dùng giọng nói.',
+                'HOMI 将以不使用语音的模式打开课程。',
+              ),
+            ),
+            findsOneWidget,
+          );
+          final complete = find.byKey(const Key('startup-confirm-age'));
+          await tester.ensureVisible(complete);
+          await tester.tap(complete);
+          await tester.pumpAndSettle();
+          expect(completed, isTrue);
+          expect(limited, isTrue);
+          expect(limitedCalls, 1);
+        },
+      );
+    }
+
+    testWidgets(
+      'startup offers denied Bluetooth help only after parent steps in ${language.code}',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(390, 844));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        var reads = 0;
+        var settingsCalls = 0;
+        final power = BluetoothPowerController(
+          readState: () async {
+            reads++;
+            return Aiv0BluetoothAdapterState.unauthorized;
+          },
+          requestEnable: () async => false,
+          requestPermission: () async => false,
+          openPermissionSettings: () async {
+            settingsCalls++;
+            return true;
+          },
+          canRequestEnable: true,
+        );
+        addTearDown(power.dispose);
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildAppTheme(),
+            home: DisplayLanguageScope(
+              language: language,
+              child: StartupSetupScreen(
+                bluetoothPower: power,
+                profileLoading: false,
+                permissionRequestInProgress: false,
+                privacyConfigurationComplete: true,
+                privacyConsentGranted: true,
+                limitedModeSelected: false,
+                microphoneGranted: true,
+                bluetoothRequired: true,
+                bluetoothGranted: false,
+                h20BleConnected: false,
+                h20HfpConfigured: false,
+                selectedAge: 8,
+                aiSubprocessors: 'HOMI',
+                dataRetentionSummary: 'Test',
+                onGrantPrivacyConsent: () async {},
+                onContinueWithoutVoice: () async {},
+                onRetryPermissions: () {},
+                onSetupH20: () async => false,
+                onAgeSelected: (_) {},
+                onCompleteSetup: () async {},
+              ),
+            ),
+          ),
+        );
+        for (var i = 0; i < 2; i++) {
+          expect(reads, 0);
+          expect(find.byKey(const Key('bluetooth-power-panel')), findsNothing);
+          await tester.ensureVisible(find.byKey(const Key('startup-next')));
+          await tester.tap(find.byKey(const Key('startup-next')));
+          await tester.pumpAndSettle();
+        }
+        expect(reads, 1);
+        expect(
+          find.byKey(const ValueKey<String>('startup-permissions-step')),
+          findsOneWidget,
+        );
+        expect(find.byKey(const Key('startup-setup-h20')), findsNothing);
+        expect(
+          find.byKey(const Key('bluetooth-open-permission-settings')),
+          findsNothing,
+        );
+        final authorize = find.byKey(const Key('bluetooth-authorize'));
+        await tester.ensureVisible(authorize);
+        await tester.tap(authorize);
+        await tester.pumpAndSettle();
+        final settings = find.byKey(
+          const Key('bluetooth-open-permission-settings'),
+        );
+        expect(settings, findsOneWidget);
+        await tester.ensureVisible(settings);
+        await tester.tap(settings);
+        await tester.pumpAndSettle();
+        expect(settingsCalls, 1);
+        expect(find.byKey(const Key('startup-setup-h20')), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'startup waits for Bluetooth and rejects BLE-only success in ${language.code}',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(390, 844));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        var adapter = Aiv0BluetoothAdapterState.poweredOff;
+        var ble = false;
+        var hfp = false;
+        var attempts = 0;
+        var completed = 0;
+        final power = BluetoothPowerController(
+          readState: () async => adapter,
+          requestEnable: () async {
+            adapter = Aiv0BluetoothAdapterState.poweredOn;
+            return true;
+          },
+          requestPermission: () async => true,
+          canRequestEnable: true,
+        );
+        addTearDown(power.dispose);
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildAppTheme(),
+            home: DisplayLanguageScope(
+              language: language,
+              child: StatefulBuilder(
+                builder: (context, setState) => StartupSetupScreen(
+                  bluetoothPower: power,
+                  profileLoading: false,
+                  permissionRequestInProgress: false,
+                  privacyConfigurationComplete: true,
+                  privacyConsentGranted: true,
+                  limitedModeSelected: false,
+                  microphoneGranted: true,
+                  bluetoothRequired: true,
+                  bluetoothGranted: true,
+                  h20BleConnected: ble,
+                  h20HfpConfigured: hfp,
+                  selectedAge: 8,
+                  aiSubprocessors: 'HOMI',
+                  dataRetentionSummary: 'Test',
+                  onGrantPrivacyConsent: () async {},
+                  onContinueWithoutVoice: () async {},
+                  onRetryPermissions: () {},
+                  onSetupH20: () async {
+                    attempts++;
+                    setState(() {
+                      ble = true;
+                      hfp = attempts > 1;
+                    });
+                    return true;
+                  },
+                  onAgeSelected: (_) {},
+                  onCompleteSetup: () async {
+                    completed++;
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+        for (var i = 0; i < 2; i++) {
+          await tester.ensureVisible(find.byKey(const Key('startup-next')));
+          await tester.tap(find.byKey(const Key('startup-next')));
+          await tester.pumpAndSettle();
+        }
+        final connect = find.byKey(const Key('startup-setup-h20'));
+        expect(connect, findsNothing);
+        expect(find.byKey(const Key('startup-confirm-age')), findsNothing);
+        final toggle = find.byKey(const Key('bluetooth-enable-switch'));
+        await tester.ensureVisible(toggle);
+        await tester.tap(toggle);
+        await tester.pumpAndSettle();
+        expect(connect, findsOneWidget);
+        expect(
+          find.text(language.choose('Kết nối HOMI', '连接 HOMI')),
+          findsOneWidget,
+        );
+        await tester.ensureVisible(connect);
+        await tester.tap(connect);
+        await tester.pumpAndSettle();
+        expect(attempts, 1);
+        expect(
+          find.text(
+            language.choose(
+              'Nút MAIN đã kết nối · Mic chưa kết nối',
+              'MAIN 按钮已连接 · 麦克风尚未连接',
+            ),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(const Key('startup-connection-success-dialog')),
+          findsNothing,
+        );
+        expect(find.byKey(const Key('startup-confirm-age')), findsNothing);
+        expect(completed, 0);
+        expect(tester.widget<OutlinedButton>(connect).onPressed, isNotNull);
+        await tester.ensureVisible(connect);
+        await tester.tap(connect);
+        await tester.pumpAndSettle();
+        expect(attempts, 2);
+        expect(
+          find.byKey(const Key('startup-connection-success-dialog')),
+          findsOneWidget,
+        );
+        await tester.tap(
+          find.byKey(const Key('startup-start-after-connection')),
+        );
+        await tester.pumpAndSettle();
+        expect(completed, 1);
+      },
+    );
+  }
+
   testWidgets(
     'requires both BLE MAIN control and H20 microphone before setup can finish',
     (tester) async {
@@ -102,7 +438,8 @@ void main() {
       await tester.tap(find.byKey(const Key('startup-request-permissions')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Kết nối thiết bị'), findsNWidgets(2));
+      expect(find.text('Kết nối thiết bị'), findsOneWidget);
+      expect(find.text('Kết nối HOMI'), findsOneWidget);
       expect(find.text('Cho HOMI quyền cần thiết'), findsNothing);
       expect(
         find.byKey(const Key('startup-request-permissions')),
@@ -121,7 +458,7 @@ void main() {
         findsNothing,
       );
       expect(
-        find.textContaining('Kết nối thiết bị thành công'),
+        find.textContaining('Kết nối HOMI để bắt đầu bài học có giọng nói'),
         findsOneWidget,
       );
 
@@ -274,7 +611,7 @@ void main() {
     expect(completed, isTrue);
   });
 
-  testWidgets('iOS accepts BLE while HOMI microphone is still pending', (
+  testWidgets('legacy iOS fallback accepts BLE without claiming HOMI success', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
@@ -327,15 +664,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       find.byKey(const Key('startup-connection-success-dialog')),
-      findsOneWidget,
+      findsNothing,
     );
-    await tester.tap(find.text('Để sau'));
-    await tester.pumpAndSettle();
-    expect(
-      find.text('Nút MAIN đã kết nối • micro HOMI đang được chuẩn bị'),
-      findsOneWidget,
-    );
-    expect(tester.widget<OutlinedButton>(connectButton).onPressed, isNull);
+    expect(find.text('Nút MAIN đã kết nối · Mic chưa kết nối'), findsOneWidget);
+    expect(tester.widget<OutlinedButton>(connectButton).onPressed, isNotNull);
     expect(
       find.byKey(const Key('startup-choose-h20-microphone')),
       findsOneWidget,
@@ -345,7 +677,7 @@ void main() {
     expect(tester.widget<FilledButton>(completeButton).onPressed, isNotNull);
   });
 
-  testWidgets('Android accepts a slow BLE connection without HFP', (
+  testWidgets('legacy BLE-only opt-in never claims full HOMI success', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
@@ -413,16 +745,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       find.byKey(const Key('startup-connection-success-dialog')),
-      findsOneWidget,
+      findsNothing,
     );
     expect(completed, isFalse);
-    await tester.tap(find.text('Để sau'));
-    await tester.pumpAndSettle();
-    expect(
-      find.text('Nút MAIN đã kết nối • micro HOMI đang được chuẩn bị'),
-      findsOneWidget,
-    );
-    expect(tester.widget<OutlinedButton>(connectButton).onPressed, isNull);
+    expect(find.text('Nút MAIN đã kết nối · Mic chưa kết nối'), findsOneWidget);
+    expect(tester.widget<OutlinedButton>(connectButton).onPressed, isNotNull);
     expect(
       find.byKey(const Key('startup-choose-h20-microphone')),
       findsNothing,

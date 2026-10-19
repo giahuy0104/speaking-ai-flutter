@@ -29,6 +29,7 @@ class TopicLessonListScreen extends StatefulWidget {
     this.contentGroup,
     this.levelContent,
     this.controller,
+    this.ensureDeviceConnected,
     this.onMainPressed,
     this.onVocabularyRequested,
     this.onVoiceNavigationPause,
@@ -54,6 +55,7 @@ class TopicLessonListScreen extends StatefulWidget {
   final ListeningContentAgeGroup? contentGroup;
   final ListeningLevelContent? levelContent;
   final LearningAudioDependencies? controller;
+  final Future<bool> Function()? ensureDeviceConnected;
   final Future<void> Function()? onMainPressed;
   final VoidCallback? onVocabularyRequested;
   final Future<void> Function()? onVoiceNavigationPause;
@@ -94,6 +96,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
   late final VoicePromptService _voicePromptService;
   late final bool _ownsVoicePromptService;
   bool _initialLessonOpened = false;
+  bool _waitingForDevice = false;
 
   @override
   void initState() {
@@ -289,7 +292,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
                                   isLast:
                                       index ==
                                       widget.content.lessons.length - 1,
-                                  onPressed: () => _startLesson(
+                                  onPressed: () => _startLessonFromTouch(
                                     lesson,
                                     reviewFromBeginning:
                                         lesson.sentences.isNotEmpty &&
@@ -375,7 +378,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
                                       !lessonCompleted,
                                   isLast:
                                       index == widget.songEntries.length - 1,
-                                  onPressed: () => _startLesson(
+                                  onPressed: () => _startLessonFromTouch(
                                     song,
                                     reviewFromBeginning:
                                         song.sentences.isNotEmpty &&
@@ -448,7 +451,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
                                   isLast:
                                       index ==
                                       widget.legacySongEntries.length - 1,
-                                  onPressed: () => _startLesson(
+                                  onPressed: () => _startLessonFromTouch(
                                     song,
                                     reviewFromBeginning:
                                         song.sentences.isNotEmpty &&
@@ -507,6 +510,22 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
       reviewFromBeginning: widget.relearnInitialLesson,
       leadPrompt: widget.initialLessonLeadPrompt,
     );
+  }
+
+  Future<void> _startLessonFromTouch(
+    ListeningLessonContent lesson, {
+    required bool reviewFromBeginning,
+  }) async {
+    if (_waitingForDevice) return;
+    _waitingForDevice = true;
+    try {
+      final ensureConnected = widget.ensureDeviceConnected;
+      if (ensureConnected != null && !await ensureConnected()) return;
+      if (!mounted) return;
+      await _startLesson(lesson, reviewFromBeginning: reviewFromBeginning);
+    } finally {
+      _waitingForDevice = false;
+    }
   }
 
   Future<void> _startLesson(

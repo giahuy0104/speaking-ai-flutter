@@ -159,6 +159,10 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
   private var message: String?
   private var routeActive = false
   private var routeActivationGeneration = 0
+  private var selectionBeforeConnectionAttempt: (
+    id: String?, name: String?, verified: Bool
+  )?
+  private var suppressUnclaimedRouteSelection = false
   private var routeSequence = 0
   private var hfpRouteLease = IOSHfpRouteLeaseState()
   private var notificationTokens: [NSObjectProtocol] = []
@@ -208,6 +212,8 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       )
     case "disconnect":
       disconnect(result)
+    case "cancelConnectionAttempt":
+      cancelConnectionAttempt(result)
     case "startAudioRoute":
       startAudioRoute(result)
     case "stopAudioRoute":
@@ -242,6 +248,9 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
   }
 
   private func findDevices(_ result: @escaping FlutterResult) {
+    let generation = beginConnectionAttempt()
+    let finish = connectionAttemptResult(generation: generation, result: result)
+    suppressUnclaimedRouteSelection = true
     do {
       // iOS can keep a connected headset out of availableInputs until a
       // record-capable session is active. Wake the voice profile, then give
@@ -250,23 +259,43 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       message = "Đang yêu cầu iOS mở profile âm thanh HFP…"
       emitStatus()
       try configureSession(activate: true)
-      waitForDiscoverableInputs(attemptsRemaining: 15, result: result)
+      waitForDiscoverableInputs(
+        generation: generation,
+        attemptsRemaining: 15,
+        result: finish
+      )
     } catch {
       audioSessionCoordinator.releaseAudioSessionIfIdle(
         caller: "HfpAudioBridge.findDevices.failed"
       )
-      fail(result, code: "HFP_LIST_FAILED", error: error)
+      fail(finish, code: "HFP_LIST_FAILED", error: error)
     }
   }
 
   private func waitForDiscoverableInputs(
+    generation: Int,
     attemptsRemaining: Int,
     result: @escaping FlutterResult
   ) {
+    guard !disposed, generation == routeActivationGeneration else {
+      result(
+        FlutterError(
+          code: "HFP_ROUTE_CANCELLED",
+          message: HfpBridgeError.routeCancelled.localizedDescription,
+          details: nil
+        )
+      )
+      return
+    }
     let inputs = bluetoothInputs()
     if !inputs.isEmpty || attemptsRemaining <= 0 {
       let activeInput = activeTwoWayHfpInput()
-      if let activeInput {
+      if let activeInput, selectedInputVerified,
+        IOSHfpInputSelectionPolicy.select(
+          from: [IOSHfpInputIdentity(uid: activeInput.uid, name: activeInput.portName)],
+          selectedUID: selectedInputId,
+          selectedName: selectedInputName
+        ) != nil {
         selectedInputId = activeInput.uid
         selectedInputName = activeInput.portName
         routeActive = true
@@ -274,7 +303,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
         message = "Đã xác nhận mic và loa HOMI trên route bluetoothHFP."
       } else {
         routeActive = false
-        phase = "idle"
+        phase = selectedInputVerified && selectedInputId != nil ? "ready" : "idle"
         message = inputs.isEmpty
           ? "iOS chưa công bố đầu vào bluetoothHFP dù HM-D001 đang ghép đôi. Hãy tắt/bật lại HM-D001 rồi thử lại."
           : "Đã tìm thấy \(inputs.count) mic HFP; hãy chọn HM-D001 để mở route hai chiều."
@@ -316,6 +345,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
         return
       }
       self.waitForDiscoverableInputs(
+        generation: generation,
         attemptsRemaining: attemptsRemaining - 1,
         result: result
       )
@@ -333,8 +363,9 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       result(FlutterError(code: "INVALID_DEVICE", message: "Thiếu mã mic HFP.", details: nil))
       return
     }
-    routeActivationGeneration += 1
-    let activationGeneration = routeActivationGeneration
+    let activationGeneration = beginConnectionAttempt()
+    let finish = connectionAttemptResult(generation: activationGeneration, result: result)
+    suppressUnclaimedRouteSelection = false
     selectedInputId = deviceId
     selectedInputVerified = false
     let normalizedName = deviceName?.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -360,19 +391,64 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
         attemptsRemaining: 30,
         recording: false,
         releaseLeaseOnFailure: false,
-        result: result
+        result: finish
       )
     } catch {
       audioSessionCoordinator.releaseAudioSessionIfIdle(
         caller: "HfpAudioBridge.connect.failed"
       )
-      fail(result, code: "HFP_CONNECT_FAILED", error: error)
+      fail(finish, code: "HFP_CONNECT_FAILED", error: error)
     }
+  }
+
+  private func beginConnectionAttempt() -> Int {
+    if selectionBeforeConnectionAttempt == nil {
+      selectionBeforeConnectionAttempt = (
+        selectedInputVerified ? selectedInputId : nil,
+        selectedInputVerified ? selectedInputName : nil,
+        selectedInputVerified
+      )
+    }
+    routeActivationGeneration += 1
+    return routeActivationGeneration
+  }
+
+  private func connectionAttemptResult(
+    generation: Int,
+    result: @escaping FlutterResult
+  ) -> FlutterResult {
+    { [weak self] value in
+      if self?.routeActivationGeneration == generation {
+        self?.selectionBeforeConnectionAttempt = nil
+      }
+      result(value)
+    }
+  }
+
+  private func cancelConnectionAttempt(_ result: @escaping FlutterResult) {
+    routeActivationGeneration += 1
+    suppressUnclaimedRouteSelection = true
+    if let previous = selectionBeforeConnectionAttempt {
+      selectedInputId = previous.id
+      selectedInputName = previous.name
+      selectedInputVerified = previous.verified
+      selectionBeforeConnectionAttempt = nil
+      routeActive = false
+      audioSessionCoordinator.releaseAudioSessionIfIdle(
+        caller: "HfpAudioBridge.cancelConnectionAttempt"
+      )
+    }
+    phase = selectedInputVerified && selectedInputId != nil ? "ready" : "idle"
+    message = nil
+    emitStatus()
+    result(snapshot())
   }
 
   private func disconnect(_ result: @escaping FlutterResult) {
     do {
       routeActivationGeneration += 1
+      selectionBeforeConnectionAttempt = nil
+      suppressUnclaimedRouteSelection = true
       routeActive = false
       releaseHfpSessionLease(
         caller: "HfpAudioBridge.disconnect"
@@ -843,7 +919,9 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
     -> AVAudioSessionPortDescription?
   {
     guard let active = activeTwoWayHfpInput() else { return nil }
-    guard selectedInputId != nil else { return active }
+    guard selectedInputId != nil else {
+      return suppressUnclaimedRouteSelection ? nil : active
+    }
     let selected = IOSHfpInputSelectionPolicy.select(
       from: [IOSHfpInputIdentity(uid: active.uid, name: active.portName)],
       selectedUID: selectedInputId,

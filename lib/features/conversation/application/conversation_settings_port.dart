@@ -4,9 +4,27 @@ import '../../../core/audio/audio_input.dart';
 import '../../../core/audio/hfp_audio_control.dart';
 import '../../../core/audio/streaming_speech_input.dart';
 import '../../../core/device/aiv0_ble_control.dart';
+import '../../../core/device/device_connection_history.dart';
 import '../../../core/device/h20_connection_state.dart';
 import '../../../l10n/display_language.dart';
 import '../domain/conversation_models.dart';
+
+enum DeviceConnectionOutcome { success, busy, cancelled, unavailable, failed }
+
+final class DeviceConnectionResult {
+  const DeviceConnectionResult(this.outcome, {this.message});
+
+  final DeviceConnectionOutcome outcome;
+  final String? message;
+  bool get succeeded => outcome == DeviceConnectionOutcome.success;
+}
+
+final class DeviceConnectionBusyException implements Exception {
+  const DeviceConnectionBusyException();
+
+  @override
+  String toString() => 'A device or audio operation is already in progress.';
+}
 
 enum H20HardwareTestPhase {
   idle,
@@ -72,6 +90,11 @@ abstract interface class ConversationSettingsPort
     implements Listenable, ConversationHistoryPort {
   int get childAge;
   bool get isBusy;
+  bool get isDeviceConnectionBusy;
+  bool get automaticHfpSelectionAllowed;
+  bool get automaticBleConnectionAllowed;
+  ConnectionDeviceRecord? get lastConnectedBleDevice;
+  ConnectionDeviceRecord? get lastConnectedMicrophone;
   String get inputLabel;
   bool get usesHfpInput;
   bool get supportsBrowserHfp;
@@ -102,11 +125,16 @@ abstract interface class ConversationSettingsPort
   Future<void> playH20BundledSpeakerTest();
   Future<void> testInnotrikMicrophone();
   Future<List<Aiv0BleDevice>> scanAiv0Devices();
-  Future<void> connectAiv0Device(Aiv0BleDevice device);
-  Future<void> disconnectAiv0Device();
+  Future<DeviceConnectionResult> connectAiv0Device(Aiv0BleDevice device);
+  Future<DeviceConnectionResult> disconnectAiv0Device();
   Future<List<BluetoothAudioDevice>> scanInnotrikDevices();
   Future<void> connectInnotrikDevice(BluetoothAudioDevice device);
   Future<List<HfpAudioDevice>> findHfpDevices();
-  Future<void> connectHfpDevice(HfpAudioDevice device);
-  Future<void> disconnectHfpDevice();
+  bool requiresHomiMicrophoneConfirmation(HfpAudioDevice device);
+  Future<DeviceConnectionResult> connectHfpDevice(
+    HfpAudioDevice device, {
+    bool confirmHomiAssociation = false,
+  });
+  Future<DeviceConnectionResult> disconnectHfpDevice();
+  Future<void> cancelManualDeviceConnection();
 }

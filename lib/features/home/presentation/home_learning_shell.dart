@@ -1,4 +1,6 @@
 import 'dart:async';
+
+import '../../../core/device/device_connection_coordinator.dart';
 import '../../../core/audio/audio_diagnostics.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 
@@ -6,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
+import '../../../app/homi_connection_presentation.dart';
 import '../../../config/app_config.dart';
 import '../../../l10n/display_language.dart';
 import '../../../core/navigation/active_learning_navigation.dart';
@@ -50,6 +53,12 @@ class HomeLearningShell extends StatefulWidget {
     this.onActiveLearningExitCommitted,
     this.onMainSpeakingModeStarted,
     this.onScreenMainPressed,
+    this.ensureDeviceConnected,
+    this.sessionActive = false,
+    this.isStoppingSession = false,
+    this.onStopSession,
+    this.connectionCoordinator,
+    this.isDeviceConnectionReady,
     this.onVocabularyVoiceChoiceRequested,
     this.vocabularySuggestionProvider,
     this.vocabularyAudioService,
@@ -73,6 +82,7 @@ class HomeLearningShell extends StatefulWidget {
 
   final ConversationController controller;
   final AppConfig config;
+  final DeviceConnectionCoordinator? connectionCoordinator;
   final VoiceNavigationController? voiceNavigationController;
   final MainSpeakingSessionController? speakingSessionController;
   final ThemeMode themeMode;
@@ -81,6 +91,11 @@ class HomeLearningShell extends StatefulWidget {
   final VoidCallback? onActiveLearningExitCommitted;
   final Future<void> Function()? onMainSpeakingModeStarted;
   final Future<void> Function()? onScreenMainPressed;
+  final Future<bool> Function()? ensureDeviceConnected;
+  final bool sessionActive;
+  final bool isStoppingSession;
+  final Future<void> Function()? onStopSession;
+  final bool Function()? isDeviceConnectionReady;
   final Future<void> Function({
     String? noSpeechRetryPrompt,
     String? noSpeechExitPrompt,
@@ -117,7 +132,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   // Controller values the shell last rendered; see
   // _onConversationControllerChanged.
   DisplayLanguage? _builtDisplayLanguage;
-  bool? _builtInputAvailable;
+  HomiConnectionPresentation? _builtHomiStatus;
   int? _builtChildAge;
   int _requestedPage = 0;
   int _pageNavigationGeneration = 0;
@@ -420,7 +435,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   @override
   Widget build(BuildContext context) {
     _builtDisplayLanguage = widget.controller.displayLanguage;
-    _builtInputAvailable = widget.controller.isInputAvailable;
+    _builtHomiStatus = HomiConnectionPresentation.from(
+      widget.controller.h20ConnectionState(),
+      isReady: widget.controller.isH20Ready,
+    );
     _builtChildAge = widget.controller.childAge;
     final screenSize = MediaQuery.sizeOf(context);
     final compact = screenSize.height < 900;
@@ -456,6 +474,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                     enabled: _page == 0,
                     child: ConversationScreen(
                       controller: widget.controller,
+                      ensureDeviceConnected: widget.ensureDeviceConnected,
+                      sessionActive: widget.sessionActive,
+                      isStoppingSession: widget.isStoppingSession,
+                      onStopSession: widget.onStopSession,
                       speakActionKey: _speakActionKey,
                       resultPanelKey: _resultPanelKey,
                       historyButtonKey: _historyButtonKey,
@@ -467,7 +489,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                   HeroMode(
                     enabled: _page == 1,
                     child: VocabularyHomeScreen(
-                      isReady: widget.controller.isInputAvailable,
+                      isReady: widget.controller.isH20Ready,
+                      connectionState: widget.controller.h20ConnectionState(),
+                      ensureDeviceConnected: widget.ensureDeviceConnected,
+                      isDeviceConnectionReady: widget.isDeviceConnectionReady,
                       isActive: _page == 1,
                       navigationController: _vocabularyNavigationController,
                       activationController: _vocabularyActivationController,
@@ -608,7 +633,11 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     // the shell itself renders has changed, so a tab transition is not
     // competing with a rebuild per audio sample.
     if (widget.controller.displayLanguage != _builtDisplayLanguage ||
-        widget.controller.isInputAvailable != _builtInputAvailable ||
+        HomiConnectionPresentation.from(
+              widget.controller.h20ConnectionState(),
+              isReady: widget.controller.isH20Ready,
+            ) !=
+            _builtHomiStatus ||
         widget.controller.childAge != _builtChildAge) {
       setState(() {});
     }
@@ -1232,6 +1261,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           language: widget.controller.displayLanguage,
           childAge: widget.controller.childAge,
           controller: widget.controller,
+          ensureDeviceConnected: widget.ensureDeviceConnected,
           onMainPressed: widget.onScreenMainPressed,
           onVocabularyRequested: _showVocabulary,
           onVoiceNavigationPause: () =>
@@ -1409,6 +1439,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         showDragHandle: true,
         builder: (_) => SettingsSheet(
           controller: widget.controller,
+          connectionCoordinator: widget.connectionCoordinator,
           themeMode: widget.themeMode,
           onThemeModeChanged: widget.onThemeModeChanged,
           onChildAgeChanged: widget.onChildAgeChanged,

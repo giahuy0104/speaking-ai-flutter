@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/app_theme.dart';
+import '../../../app/bluetooth_power_panel.dart';
+import '../../../core/device/bluetooth_power_controller.dart';
+import '../../../core/device/aiv0_ble_control.dart';
+import '../../../l10n/display_language.dart';
 import '../../../app/device_connection_feedback_overlay.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
@@ -33,6 +37,7 @@ class StartupSetupScreen extends StatefulWidget {
     required this.onSetupH20,
     required this.onAgeSelected,
     required this.onCompleteSetup,
+    this.bluetoothPower,
     this.allowPhoneMicFallback = false,
     this.allowBleOnlySetup = false,
     this.androidOfflineEnglishModelOptionAvailable = false,
@@ -47,6 +52,7 @@ class StartupSetupScreen extends StatefulWidget {
     super.key,
   });
 
+  final BluetoothPowerController? bluetoothPower;
   final bool profileLoading;
   final bool permissionRequestInProgress;
   final bool privacyConfigurationComplete;
@@ -94,15 +100,18 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
   bool get _privacyChoiceMade =>
       widget.privacyConsentGranted || widget.limitedModeSelected;
 
-  bool get _h20Ready => widget.h20BleConnected && widget.h20HfpConfigured;
+  bool get _canUseBluetooth => widget.bluetoothPower?.canConnect ?? true;
+
+  bool get _bluetoothAvailable =>
+      widget.bluetoothPower == null ||
+      (widget.bluetoothPower!.hasChecked &&
+          widget.bluetoothPower!.state == Aiv0BluetoothAdapterState.poweredOn);
+
+  bool get _h20Ready =>
+      _bluetoothAvailable && widget.h20BleConnected && widget.h20HfpConfigured;
 
   bool get _bleOnlySetupAccepted =>
       widget.allowBleOnlySetup && widget.h20BleConnected;
-
-  bool get _deviceConnectionAccepted =>
-      _h20Ready ||
-      _bleOnlySetupAccepted ||
-      (widget.allowPhoneMicFallback && widget.h20BleConnected);
 
   bool get _canComplete =>
       widget.limitedModeSelected ||
@@ -118,15 +127,30 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
     super.initState();
     _adultRoleConfirmed = widget.privacyConsentGranted;
     _legalReviewCompleted = widget.privacyConsentGranted;
+    widget.bluetoothPower?.addListener(_onBluetoothPowerChanged);
   }
 
   @override
   void didUpdateWidget(StartupSetupScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.bluetoothPower != widget.bluetoothPower) {
+      oldWidget.bluetoothPower?.removeListener(_onBluetoothPowerChanged);
+      widget.bluetoothPower?.addListener(_onBluetoothPowerChanged);
+    }
     if (!oldWidget.privacyConsentGranted && widget.privacyConsentGranted) {
       _adultRoleConfirmed = true;
       _legalReviewCompleted = true;
     }
+  }
+
+  void _onBluetoothPowerChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    widget.bluetoothPower?.removeListener(_onBluetoothPowerChanged);
+    super.dispose();
   }
 
   @override
@@ -363,19 +387,24 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
     if (widget.limitedModeSelected) {
       return _SetupStepLayout(
         key: const ValueKey<String>('startup-limited-step'),
-        title: 'Sẵn sàng bắt đầu',
-        subtitle: 'HOMI sẽ mở bài học ở chế độ không dùng giọng nói.',
-        panel: const _InfoBox(
+        title: context.tr('Sẵn sàng bắt đầu', '准备开始'),
+        subtitle: context.tr(
+          'HOMI sẽ mở bài học ở chế độ không dùng giọng nói.',
+          'HOMI 将以不使用语音的模式打开课程。',
+        ),
+        panel: _InfoBox(
           icon: Icons.mic_off_outlined,
-          text:
-              'Trẻ vẫn xem và nghe được bài học. Phụ huynh có thể bật giọng nói sau trong Cài đặt.',
+          text: context.tr(
+            'Trẻ vẫn xem và nghe được bài học. Phụ huynh có thể bật giọng nói sau trong Cài đặt.',
+            '孩子仍可观看和收听课程。家长可以稍后在设置中启用语音。',
+          ),
         ),
         footer: <Widget>[
           FilledButton.icon(
             key: const Key('startup-confirm-age'),
             onPressed: widget.onCompleteSetup,
             icon: const Icon(Icons.play_circle_outline_rounded),
-            label: const Text('Bắt đầu bài học'),
+            label: Text(context.tr('Bắt đầu bài học', '开始课程')),
           ),
         ],
       );
@@ -413,6 +442,11 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
                   widget.profileLoading || widget.permissionRequestInProgress,
             ),
           ],
+          if (widget.bluetoothRequired && !widget.bluetoothGranted)
+            if (widget.bluetoothPower case final power?) ...<Widget>[
+              const SizedBox(height: 12),
+              BluetoothPowerPanel(controller: power),
+            ],
           if (widget.permissionError != null) ...<Widget>[
             const SizedBox(height: 12),
             _InfoBox(
@@ -448,6 +482,7 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
                 : 'Cấp quyền và tiếp tục',
           ),
         ),
+        _continueWithoutVoiceAction(),
       ],
     );
   }
@@ -455,34 +490,55 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
   Widget _buildDeviceConnectionStep(ThemeData theme) {
     return _SetupStepLayout(
       key: const ValueKey<String>('startup-device-step'),
-      title: 'Kết nối thiết bị',
-      subtitle: 'Bật HM-D001, đặt gần điện thoại rồi nhấn Kết nối.',
+      title: context.tr('Kết nối thiết bị', '连接设备'),
+      subtitle: context.tr(
+        'Bật HOMI và đặt gần điện thoại để kết nối.',
+        '请开启 HOMI 并放在手机附近进行连接。',
+      ),
       panelPadding: EdgeInsets.zero,
       panel: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
+          if (widget.bluetoothPower case final power?) ...<Widget>[
+            BluetoothPowerPanel(controller: power),
+            const SizedBox(height: 12),
+          ],
           _DeviceChoiceCard(
             key: const Key('startup-h20-choice'),
             icon: Icons.bluetooth_audio_rounded,
-            title: 'Thiết bị HOMI',
-            description: 'HM-D001 • nút MAIN và micro',
-            selected: _deviceConnectionAccepted,
-            status: _h20Ready
-                ? 'Nút MAIN và micro HOMI đã sẵn sàng'
-                : (widget.allowPhoneMicFallback || widget.allowBleOnlySetup) &&
-                      widget.h20BleConnected
-                ? 'Nút MAIN đã kết nối • micro HOMI đang được chuẩn bị'
-                : widget.h20BleConnected || widget.h20HfpConfigured
-                ? 'Đang hoàn tất kết nối…'
+            title: context.tr('Thiết bị HOMI', 'HOMI 设备'),
+            description: context.tr('Nút MAIN và micro', 'MAIN 按钮与麦克风'),
+            selected: _h20Ready,
+            status: !_bluetoothAvailable
+                ? context.tr('Chưa kết nối', '尚未连接')
+                : _h20Ready
+                ? context.tr(
+                    'Nút MAIN và micro HOMI đã sẵn sàng',
+                    'MAIN 按钮和 HOMI 麦克风已就绪',
+                  )
+                : widget.h20BleConnected
+                ? context.tr(
+                    'Nút MAIN đã kết nối · Mic chưa kết nối',
+                    'MAIN 按钮已连接 · 麦克风尚未连接',
+                  )
+                : widget.h20HfpConfigured
+                ? context.tr(
+                    'Mic đã kết nối · Nút MAIN chưa kết nối',
+                    '麦克风已连接 · MAIN 按钮尚未连接',
+                  )
                 : _h20SetupRequested
-                ? 'Chưa tìm thấy thiết bị. Hãy kiểm tra và thử lại.'
-                : 'Chưa kết nối',
+                ? context.tr(
+                    'Chưa tìm thấy thiết bị. Hãy kiểm tra và thử lại.',
+                    '未找到设备，请检查后重试。',
+                  )
+                : context.tr('Chưa kết nối', '尚未连接'),
             actionKey: const Key('startup-setup-h20'),
-            actionLabel: _deviceConnectionAccepted
-                ? 'Đã kết nối'
-                : 'Kết nối thiết bị',
+            actionLabel: _h20Ready
+                ? context.tr('Đã kết nối', '已连接')
+                : context.tr('Kết nối HOMI', '连接 HOMI'),
+            showAction: _canUseBluetooth,
             busy: _choiceInProgress,
-            onPressed: _choiceInProgress || _deviceConnectionAccepted
+            onPressed: _choiceInProgress || _h20Ready || !_canUseBluetooth
                 ? null
                 : _setupH20,
           ),
@@ -492,7 +548,9 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
             const SizedBox(height: 12),
             OutlinedButton.icon(
               key: const Key('startup-choose-h20-microphone'),
-              onPressed: _choiceInProgress ? null : _chooseH20Microphone,
+              onPressed: _choiceInProgress || !_canUseBluetooth
+                  ? null
+                  : _chooseH20Microphone,
               icon: const Icon(Icons.headset_mic_rounded),
               label: const Text('Chọn micro HOMI'),
             ),
@@ -536,14 +594,39 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
           )
         else
           Text(
-            'Kết nối thiết bị thành công để bắt đầu bài học.',
+            context.tr(
+              'Kết nối HOMI để bắt đầu bài học có giọng nói.',
+              '连接 HOMI 后即可开始语音课程。',
+            ),
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
+        if (!_h20Ready) _continueWithoutVoiceAction(),
       ],
     );
+  }
+
+  Widget _continueWithoutVoiceAction() => TextButton.icon(
+    key: const Key('startup-continue-without-voice-after-consent'),
+    onPressed: _choiceInProgress || widget.permissionRequestInProgress
+        ? null
+        : _continueWithoutVoiceHere,
+    icon: const Icon(Icons.mic_off_outlined),
+    label: Text(context.tr('Tiếp tục không dùng giọng nói', '不使用语音继续')),
+  );
+
+  Future<void> _continueWithoutVoiceHere() async {
+    if (_choiceInProgress || widget.permissionRequestInProgress) return;
+    setState(() => _choiceInProgress = true);
+    try {
+      // Keep the selected age and current parent step. The existing callback
+      // switches to limited mode; it never selects the phone microphone.
+      await widget.onContinueWithoutVoice();
+    } finally {
+      if (mounted) setState(() => _choiceInProgress = false);
+    }
   }
 
   Future<void> _grantConsentAndContinue() async {
@@ -561,6 +644,7 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
   }
 
   Future<void> _setupH20() async {
+    if (!_canUseBluetooth || _choiceInProgress) return;
     setState(() {
       _choiceInProgress = true;
       _h20SetupRequested = true;
@@ -587,8 +671,12 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
         await _setupH20();
       }
     } else if (connected) {
+      // The callback may update its parent in this frame. Success is based on
+      // refreshed live MAIN + microphone state, never on a BLE-only result.
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted || !_h20Ready) return;
       final startLesson = await _showConnectionSuccessSheet();
-      if (startLesson == true && mounted) {
+      if (startLesson == true && mounted && _h20Ready) {
         await widget.onCompleteSetup();
       }
     }
@@ -660,9 +748,10 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  widget.h20HfpConfigured
-                      ? 'Nút MAIN và micro HOMI đã sẵn sàng. Bé có thể bắt đầu bài học.'
-                      : 'Nút MAIN đã sẵn sàng. HOMI sẽ tiếp tục chuẩn bị micro của thiết bị khi bé học.',
+                  context.tr(
+                    'Nút MAIN và micro HOMI đã sẵn sàng. Bé có thể bắt đầu bài học.',
+                    'MAIN 按钮和 HOMI 麦克风已就绪，可以开始学习。',
+                  ),
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
@@ -1516,6 +1605,7 @@ class _DeviceChoiceCard extends StatelessWidget {
     required this.actionLabel,
     required this.busy,
     required this.onPressed,
+    this.showAction = true,
     super.key,
   });
   final IconData icon;
@@ -1526,6 +1616,7 @@ class _DeviceChoiceCard extends StatelessWidget {
   final Key actionKey;
   final String actionLabel;
   final bool busy;
+  final bool showAction;
   final VoidCallback? onPressed;
 
   @override
@@ -1615,34 +1706,38 @@ class _DeviceChoiceCard extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 20),
-        OutlinedButton.icon(
-          key: actionKey,
-          onPressed: onPressed,
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size.fromHeight(58),
-            backgroundColor: isDark
-                ? theme.colorScheme.primary
-                : AppColors.indigo,
-            foregroundColor: isDark
-                ? theme.colorScheme.onPrimary
-                : Colors.white,
-            disabledBackgroundColor: theme.colorScheme.surfaceContainerHighest,
-            side: BorderSide.none,
-            elevation: 4,
-            shadowColor: AppColors.primaryNavy.withValues(alpha: 0.2),
-          ),
-          icon: busy
-              ? const SizedBox.square(
-                  dimension: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.2,
-                    color: Colors.white,
+        if (showAction) const SizedBox(height: 20),
+        if (showAction)
+          OutlinedButton.icon(
+            key: actionKey,
+            onPressed: onPressed,
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(58),
+              backgroundColor: isDark
+                  ? theme.colorScheme.primary
+                  : AppColors.indigo,
+              foregroundColor: isDark
+                  ? theme.colorScheme.onPrimary
+                  : Colors.white,
+              disabledBackgroundColor:
+                  theme.colorScheme.surfaceContainerHighest,
+              side: BorderSide.none,
+              elevation: 4,
+              shadowColor: AppColors.primaryNavy.withValues(alpha: 0.2),
+            ),
+            icon: busy
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.2,
+                      color: Colors.white,
+                    ),
+                  )
+                : Icon(
+                    selected ? Icons.check_rounded : Icons.bluetooth_rounded,
                   ),
-                )
-              : Icon(selected ? Icons.check_rounded : Icons.bluetooth_rounded),
-          label: Text(actionLabel),
-        ),
+            label: Text(actionLabel),
+          ),
       ],
     );
   }

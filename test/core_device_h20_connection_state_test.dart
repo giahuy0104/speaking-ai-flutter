@@ -24,12 +24,68 @@ void main() {
   );
   const bleReady = Aiv0BleStatus(
     phase: Aiv0BlePhase.connected,
+    deviceId: 'h20-hfp',
     protocolConfirmed: false,
   );
   const bleMissing = Aiv0BleStatus(
     phase: Aiv0BlePhase.idle,
     protocolConfirmed: false,
   );
+
+  test('unrelated microphone remains usable without making HOMI ready', () {
+    final state = H20ConnectionState.from(
+      hfpStatus: const BluetoothAudioStatus(
+        phase: BluetoothAudioConnectionPhase.ready,
+        deviceId: 'airpods',
+        deviceName: 'AirPods Pro',
+      ),
+      bleStatus: bleReady,
+    );
+    expect(state.hfpReady, isTrue);
+    expect(state.hfpMatchesHomi, isFalse);
+    expect(state.isH20Ready, isFalse);
+    expect(state.canStartStrictHfpTurn, isFalse);
+  });
+
+  test('same advertised name is not proof of a physical association', () {
+    final state = H20ConnectionState.from(
+      hfpStatus: const BluetoothAudioStatus(
+        phase: BluetoothAudioConnectionPhase.ready,
+        deviceId: 'hfp-uuid',
+        deviceName: 'H20',
+      ),
+      bleStatus: const Aiv0BleStatus(
+        phase: Aiv0BlePhase.connected,
+        protocolConfirmed: true,
+        deviceId: 'ble-uuid',
+        deviceName: 'H20',
+      ),
+    );
+    expect(state.hfpReady, isTrue);
+    expect(state.isH20Ready, isFalse);
+  });
+
+  test(
+    'an explicitly confirmed association supports separate platform IDs',
+    () {
+      final state = H20ConnectionState.from(
+        hfpStatus: hfpReadyIdle,
+        bleStatus: const Aiv0BleStatus(
+          phase: Aiv0BlePhase.connected,
+          protocolConfirmed: true,
+          deviceId: 'ble-uuid',
+        ),
+        hfpMatchesHomi: true,
+      );
+      expect(state.isH20Ready, isTrue);
+    },
+  );
+
+  test('normalizes MAC formatting without collapsing unrelated opaque IDs', () {
+    expect(sameConnectionDeviceId('AA:BB:CC:DD:EE:FF', 'aabbccddeeff'), isTrue);
+    expect(sameConnectionDeviceId('id-a', 'ida'), isFalse);
+    expect(sameConnectionDeviceId('', ''), isFalse);
+  });
 
   test('requires both transports before reporting H20 ready', () {
     expect(
@@ -45,6 +101,28 @@ void main() {
       H20ConnectionPhase.h20Ready,
     );
   });
+
+  test(
+    'verified HFP audio survives MAIN loss without claiming full readiness',
+    () {
+      final state = H20ConnectionState.from(
+        hfpStatus: hfpReadyIdle,
+        bleStatus: bleMissing,
+        hfpMatchesHomi: true,
+      );
+      expect(state.isHomiAudioReady, isTrue);
+      expect(state.isH20Ready, isFalse);
+      expect(state.canStartStrictHfpTurn, isFalse);
+      expect(
+        H20ConnectionState.from(
+          hfpStatus: hfpSelectedButIdle,
+          bleStatus: bleMissing,
+          hfpMatchesHomi: true,
+        ).isHomiAudioReady,
+        isFalse,
+      );
+    },
+  );
 
   test('keeps HFP ownership visible while a MAIN turn is active', () {
     final state = H20ConnectionState.from(

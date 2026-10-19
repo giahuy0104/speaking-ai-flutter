@@ -14,10 +14,12 @@ import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.content.BroadcastReceiver
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -50,6 +52,7 @@ class Aiv0BleControlBridge(
         private const val RUNTIME_PREFERENCES = "homi_android_runtime"
         private const val LAST_DEVICE_ID = "h20_ble_device_id"
         private const val LAST_DEVICE_NAME = "h20_ble_device_name"
+        private const val MANUAL_DISCONNECT = "h20_ble_manual_disconnect"
         private const val MAX_BUFFERED_BUTTON_EVENTS = 32
     }
 
@@ -58,8 +61,8 @@ class Aiv0BleControlBridge(
     private val appContext = host.applicationContext
     private val mainHandler = Handler(Looper.getMainLooper())
     private val bluetoothManager =
-        appContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-    private val adapter: BluetoothAdapter? get() = bluetoothManager.adapter
+        appContext.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+    private val adapter: BluetoothAdapter? get() = bluetoothManager?.adapter
     private val scanDevices = linkedMapOf<String, ScannedDevice>()
     private val runtimePreferences =
         appContext.getSharedPreferences(RUNTIME_PREFERENCES, Context.MODE_PRIVATE)
@@ -89,6 +92,7 @@ class Aiv0BleControlBridge(
     private var bondPoll: Runnable? = null
     private var pendingWriteResult: MethodChannel.Result? = null
     private var scanCallback: ScanCallback? = null
+    private var scanTimeout: Runnable? = null
     private var bluetoothGatt: BluetoothGatt? = null
     private var buttonCharacteristic: BluetoothGattCharacteristic? = null
     private var stateCharacteristic: BluetoothGattCharacteristic? = null
@@ -114,6 +118,7 @@ class Aiv0BleControlBridge(
             when (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)) {
                 BluetoothAdapter.STATE_TURNING_OFF, BluetoothAdapter.STATE_OFF ->
                     handleAdapterOff()
+                BluetoothAdapter.STATE_TURNING_ON -> if (!disposed) emitStatus()
                 BluetoothAdapter.STATE_ON -> handleAdapterOn()
             }
         }
@@ -142,12 +147,18 @@ class Aiv0BleControlBridge(
             "initialize" -> initialize(result)
             "requestPermissions" -> requestPermissions(result)
             "bluetoothAdapterState" -> result.success(bluetoothAdapterState())
+            "bluetoothPermissionRequiresSettings" -> result.success(permissionRequiresSettings())
             "requestEnableBluetooth" -> requestEnableBluetooth(result)
             "openBluetoothSettings" -> openBluetoothSettings(result)
+            "openPermissionSettings" -> openPermissionSettings(result)
             "scan" -> scan(call, result)
             "connect" -> connect(call, result)
             "requestDualModeBond" -> requestDualModeBond(call, result)
             "disconnect" -> disconnect(result)
+            "cancelConnectionAttempt" -> {
+                cancelConnectionAttempt(preserveConnected = true)
+                result.success(snapshot())
+            }
             "refreshBattery" -> refreshBattery(result)
             "sendAppState" -> sendAppState(call, result)
             "status" -> result.success(snapshot())
@@ -197,6 +208,7 @@ class Aiv0BleControlBridge(
     }
 
     private fun initialize(result: MethodChannel.Result) {
+        val adapterState = bluetoothAdapterState()
         phase = when {
             !appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) ->
                 "disabled"
@@ -205,7 +217,8 @@ class Aiv0BleControlBridge(
         }
         message = when {
             phase == "disabled" -> "Điện thoại không hỗ trợ Bluetooth Low Energy."
-            adapter?.isEnabled != true -> "Bluetooth đang tắt."
+            adapterState == "unauthorized" -> "Cần cấp quyền Bluetooth trước."
+            adapterState == "poweredOff" -> "Bluetooth đang tắt."
             else -> message
         }
         result.success(snapshot())
@@ -223,6 +236,16 @@ class Aiv0BleControlBridge(
         appContext.checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED
     }
 
+    private fun permissionRequiresSettings(): Boolean {
+        if (hasPermissions()) return false
+        val activity = host.currentActivity ?: return false
+        return runtimePreferences.getBoolean("ble_permission_prompt_blocked", false) &&
+            requiredPermissions().any {
+                appContext.checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED &&
+                    !activity.shouldShowRequestPermissionRationale(it)
+            }
+    }
+
     private fun requestPermissions(result: MethodChannel.Result) {
         if (hasPermissions()) {
             result.success(true)
@@ -233,6 +256,7 @@ class Aiv0BleControlBridge(
             return
         }
         permissionResult = result
+        Log.i(TAG, "Requesting Bluetooth permission; activity=${host.currentActivity != null}")
         message = "Cần quyền Thiết bị ở gần/Bluetooth để tìm HM-D001."
         emitStatus()
         if (!host.requestPermissions(requiredPermissions(), PERMISSION_REQUEST_CODE)) {
@@ -249,6 +273,17 @@ class Aiv0BleControlBridge(
         if (requestCode != PERMISSION_REQUEST_CODE) return false
         val granted = grantResults.isNotEmpty() &&
             grantResults.all { it == PackageManager.PERMISSION_GRANTED }
+        // An empty result may be an interrupted/concurrent request, not a
+        // permanent denial. Only classify a completed system response.
+        if (grantResults.isNotEmpty()) {
+            val activity = host.currentActivity
+            val blocked = !granted && activity != null && requiredPermissions().any {
+                appContext.checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED &&
+                    !activity.shouldShowRequestPermissionRationale(it)
+            }
+            runtimePreferences.edit().putBoolean("ble_permission_prompt_blocked", blocked).apply()
+        }
+        Log.i(TAG, "Bluetooth permission result: granted=$granted settingsRequired=${permissionRequiresSettings()}")
         permissionResult?.success(granted)
         permissionResult = null
         phase = if (granted) "idle" else "error"
@@ -259,37 +294,57 @@ class Aiv0BleControlBridge(
 
     fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         if (requestCode != ENABLE_BLUETOOTH_REQUEST_CODE) return false
-        val pending = enableBluetoothResult
+        // A late Activity result must not reset a newer GATT connection, or
+        // revive a bridge that has already completed/disposed this request.
+        val pending = enableBluetoothResult ?: return true
         enableBluetoothResult = null
-        val enabled = resultCode == Activity.RESULT_OK && adapter?.isEnabled == true
-        phase = if (enabled) "idle" else "error"
-        message = if (enabled) null else "Bluetooth vẫn đang tắt."
+        val adapterState = bluetoothAdapterState()
+        val enabled = resultCode == Activity.RESULT_OK && adapterState == "poweredOn"
+        if (phase == "idle" || phase == "error" || phase == "disabled") {
+            phase = if (enabled) "idle" else "error"
+            message = when {
+                enabled -> null
+                adapterState == "unauthorized" -> "Cần cấp quyền Bluetooth trước."
+                adapterState == "unsupported" -> "Điện thoại không hỗ trợ BLE."
+                else -> "Bluetooth vẫn đang tắt."
+            }
+        }
         emitStatus()
-        pending?.success(enabled)
+        pending.success(enabled)
         return true
     }
 
-    private fun bluetoothAdapterState(): String = when {
-        adapter == null ||
-            !appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) ->
-            "unsupported"
-        !hasPermissions() -> "unauthorized"
-        adapter?.isEnabled == true -> "poweredOn"
-        else -> "poweredOff"
+    private fun bluetoothAdapterState(): String {
+        val bluetoothAdapter = adapter
+        if (bluetoothAdapter == null ||
+            !appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
+        ) return "unsupported"
+        if (!hasPermissions()) return "unauthorized"
+        return try {
+            when (bluetoothAdapter.state) {
+                BluetoothAdapter.STATE_ON -> "poweredOn"
+                BluetoothAdapter.STATE_OFF -> "poweredOff"
+                BluetoothAdapter.STATE_TURNING_ON, BluetoothAdapter.STATE_TURNING_OFF -> "resetting"
+                else -> "unknown"
+            }
+        } catch (_: SecurityException) {
+            // Permissions can be revoked between the check and binder call.
+            "unauthorized"
+        }
     }
 
     private fun requestEnableBluetooth(result: MethodChannel.Result) {
-        if (adapter == null ||
-            !appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
-        ) {
+        val adapterState = bluetoothAdapterState()
+        Log.i(TAG, "Request enable Bluetooth: state=$adapterState activity=${host.currentActivity != null}")
+        if (adapterState == "unsupported") {
             result.error("BLE_UNSUPPORTED", "Điện thoại không hỗ trợ BLE.", null)
             return
         }
-        if (!hasPermissions()) {
+        if (adapterState == "unauthorized") {
             result.error("PERMISSION_REQUIRED", "Cần cấp quyền Bluetooth trước.", null)
             return
         }
-        if (adapter?.isEnabled == true) {
+        if (adapterState == "poweredOn") {
             result.success(true)
             return
         }
@@ -311,10 +366,23 @@ class Aiv0BleControlBridge(
             return
         }
         enableBluetoothResult = result
-        activity.startActivityForResult(
-            Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE),
-            ENABLE_BLUETOOTH_REQUEST_CODE,
-        )
+        try {
+            activity.startActivityForResult(
+                Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE),
+                ENABLE_BLUETOOTH_REQUEST_CODE,
+            )
+        } catch (_: ActivityNotFoundException) {
+            enableBluetoothResult = null
+            result.error(
+                "ENABLE_BLUETOOTH_UNAVAILABLE",
+                "Máy không thể mở yêu cầu bật Bluetooth.",
+                null,
+            )
+        } catch (error: SecurityException) {
+            enableBluetoothResult = null
+            Log.w(TAG, "System Bluetooth enable dialog rejected", error)
+            result.error("PERMISSION_REQUIRED", "Cần cấp quyền Bluetooth trước.", null)
+        }
     }
 
     private fun openBluetoothSettings(result: MethodChannel.Result) {
@@ -330,17 +398,34 @@ class Aiv0BleControlBridge(
         }
     }
 
+    private fun openPermissionSettings(result: MethodChannel.Result) {
+        // This destination repairs an app permission that Android can no
+        // longer prompt for. Radio power uses ACTION_REQUEST_ENABLE instead.
+        val intent = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            Uri.fromParts("package", appContext.packageName, null),
+        )
+        val opened = try {
+            host.startVisibleActivity(intent)
+        } catch (_: ActivityNotFoundException) {
+            false
+        } catch (_: SecurityException) {
+            false
+        }
+        result.success(opened)
+    }
+
     private fun ensureBluetoothReady(result: MethodChannel.Result): Boolean {
         if (adapter == null || !appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             result.error("BLE_UNSUPPORTED", "Điện thoại không hỗ trợ BLE.", null)
             return false
         }
-        if (adapter?.isEnabled != true) {
-            result.error("BLUETOOTH_DISABLED", "Bluetooth đang tắt.", null)
-            return false
-        }
         if (!hasPermissions()) {
             result.error("PERMISSION_REQUIRED", "Cần cấp quyền Bluetooth trước.", null)
+            return false
+        }
+        if (bluetoothAdapterState() != "poweredOn") {
+            result.error("BLUETOOTH_DISABLED", "Bluetooth đang tắt.", null)
             return false
         }
         return true
@@ -357,14 +442,19 @@ class Aiv0BleControlBridge(
         scanDevices.clear()
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, scanResult: ScanResult) {
+                if (scanCallback !== this) return
                 addScanResult(scanResult)
             }
 
             override fun onBatchScanResults(results: MutableList<ScanResult>) {
+                if (scanCallback !== this) return
                 results.forEach(::addScanResult)
             }
 
             override fun onScanFailed(errorCode: Int) {
+                if (scanCallback !== this) return
+                scanTimeout?.let(mainHandler::removeCallbacks)
+                scanTimeout = null
                 BleDiagnostics.event(appContext, "scan.failed", mapOf("code" to errorCode))
                 val pending = this@Aiv0BleControlBridge.scanResult
                 this@Aiv0BleControlBridge.scanResult = null
@@ -393,14 +483,18 @@ class Aiv0BleControlBridge(
         }
         val timeout = (call.argument<Number>("timeoutMs")?.toLong() ?: 8_000L)
             .coerceIn(2_000L, 15_000L)
-        mainHandler.postDelayed({ stopScan(complete = true) }, timeout)
+        val timeoutTask = Runnable {
+            if (scanCallback === callback) stopScan(complete = true)
+        }
+        scanTimeout = timeoutTask
+        mainHandler.postDelayed(timeoutTask, timeout)
     }
 
     private fun addScanResult(result: ScanResult) {
         val device = result.device ?: return
         val id = device.address ?: return
-        val advertisedName = result.scanRecord?.deviceName
-        val name = advertisedName ?: runCatching { device.name }.getOrNull().orEmpty()
+        val advertisedName = result.scanRecord?.deviceName?.trim()?.takeIf { it.isNotEmpty() }
+        val name = advertisedName ?: runCatching { device.name }.getOrNull().orEmpty().trim()
         val advertisesControlService = result.scanRecord?.serviceUuids?.any {
             it.uuid == Aiv0BleProtocol.controlServiceUuid
         } == true
@@ -417,7 +511,7 @@ class Aiv0BleControlBridge(
         if (previous == null || result.rssi > previous.rssi) {
             scanDevices[id] = ScannedDevice(
                 id = id,
-                name = name.ifBlank { "H20" },
+                name = name.trim(),
                 rssi = result.rssi,
                 likely = likely,
                 advertisesControlService = advertisesControlService,
@@ -426,6 +520,8 @@ class Aiv0BleControlBridge(
     }
 
     private fun stopScan(complete: Boolean) {
+        scanTimeout?.let(mainHandler::removeCallbacks)
+        scanTimeout = null
         scanCallback?.let { callback ->
             runCatching { adapter?.bluetoothLeScanner?.stopScan(callback) }
         }
@@ -466,9 +562,10 @@ class Aiv0BleControlBridge(
             return
         }
         deviceId = requestedId
-        deviceName = runCatching { device.name }.getOrNull()
+        runtimePreferences.edit().putBoolean(MANUAL_DISCONNECT, false).apply()
+        deviceName = runCatching { device.name }.getOrNull()?.trim()?.takeIf { it.isNotEmpty() }
             ?: scanDevices[requestedId]?.name
-            ?: "H20"
+            ?: ""
         shouldReconnect = true
         reconnectAttempts = 0
         connectResult = result
@@ -866,17 +963,34 @@ class Aiv0BleControlBridge(
     }
 
     private fun disconnect(result: MethodChannel.Result) {
+        runtimePreferences.edit().putBoolean(MANUAL_DISCONNECT, true).apply()
+        cancelConnectionAttempt(preserveConnected = false)
+        result.success(null)
+    }
+
+    private fun cancelConnectionAttempt(preserveConnected: Boolean) {
+        val keepLink = preserveConnected && bluetoothGatt != null &&
+            buttonCharacteristic != null && stateCharacteristic != null && connectResult == null
+        stopScan(complete = true)
         finishBond(false)
+        if (keepLink) {
+            phase = "connected"
+            message = null
+            emitStatus()
+            return
+        }
         shouldReconnect = false
         reconnectAttempts = 0
         cancelPendingReconnect()
+        mainHandler.removeCallbacks(connectionTimeout)
         connectResult?.error("CONNECT_CANCELLED", "Đã hủy kết nối.", null)
         connectResult = null
+        pendingWriteResult?.error("CONNECT_CANCELLED", "Đã hủy kết nối.", null)
+        pendingWriteResult = null
         closeGatt()
         phase = "idle"
         message = "Đã ngắt BLE Control AIV0."
         emitStatus()
-        result.success(null)
     }
 
     private fun handleDisconnected(gatt: BluetoothGatt, status: Int) {
@@ -958,10 +1072,17 @@ class Aiv0BleControlBridge(
     }
 
     private fun handleAdapterOn() {
-        if (disposed || !shouldReconnect || bluetoothGatt != null ||
+        if (disposed) return
+        // First setup has no saved control device/reconnect intent yet. Still
+        // notify Flutter so the power UI reads the now-ready radio state.
+        if (!shouldReconnect || bluetoothGatt != null ||
             phase == "connecting" || phase == "reconnecting" ||
             !hasPermissions() || deviceId == null
-        ) return
+        ) {
+            if (phase == "idle") message = null
+            emitStatus()
+            return
+        }
         Log.i(TAG, "Bluetooth is back on; reopening $deviceName")
         reconnectAttempts = 0
         phase = "reconnecting"
@@ -1066,6 +1187,7 @@ class Aiv0BleControlBridge(
     fun onBackgroundSessionStarted() {
         mainHandler.post {
             if (disposed || bluetoothGatt != null ||
+                runtimePreferences.getBoolean(MANUAL_DISCONNECT, false) ||
                 phase == "connecting" || phase == "reconnecting" ||
                 !hasPermissions() || adapter?.isEnabled != true
             ) {
@@ -1080,7 +1202,7 @@ class Aiv0BleControlBridge(
             deviceId = savedId
             deviceName = runtimePreferences.getString(LAST_DEVICE_NAME, null)
                 ?: runCatching { device.name }.getOrNull()
-                ?: "H20"
+                ?: ""
             shouldReconnect = true
             reconnectAttempts = 0
             cancelPendingReconnect()
@@ -1095,11 +1217,7 @@ class Aiv0BleControlBridge(
     fun onBackgroundSessionStopped() {
         mainHandler.post {
             if (disposed) return@post
-            shouldReconnect = false
-            reconnectAttempts = 0
-            cancelPendingReconnect()
-            closeGatt()
-            phase = "idle"
+            cancelConnectionAttempt(preserveConnected = false)
             message = "Phiên HOMI nền đã dừng."
             emitStatus()
         }

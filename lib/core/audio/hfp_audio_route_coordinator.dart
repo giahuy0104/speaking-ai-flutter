@@ -216,6 +216,7 @@ class HfpAudioRouteCoordinator {
 class ScopedHfpAudioControl
     implements
         HfpAudioControl,
+        HfpConnectionAttemptControl,
         HfpAudioRouteLeaseControl,
         HfpImmediateRouteReleaseControl {
   ScopedHfpAudioControl._(this._coordinator, this.owner);
@@ -249,6 +250,14 @@ class ScopedHfpAudioControl
 
   @override
   Future<void> connect(HfpAudioDevice device) => _delegate.connect(device);
+
+  @override
+  Future<void> cancelConnectionAttempt() async {
+    final delegate = _delegate;
+    if (delegate is HfpConnectionAttemptControl) {
+      await (delegate as HfpConnectionAttemptControl).cancelConnectionAttempt();
+    }
+  }
 
   @override
   Future<void> disconnect() {

@@ -419,7 +419,10 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   private var lastDisconnectMessage: String?
   private var lastDisconnectPeripheralState: String?
   private var lastNotificationRecovery: String?
-  private var manualDisconnect = false
+  private static let manualDisconnectPreference = "homi.ble.manual-disconnect.v1"
+  private var manualDisconnect = UserDefaults.standard.bool(
+    forKey: Aiv0BleControlBridge.manualDisconnectPreference
+  )
   private var disposed = false
 
   init(
@@ -497,7 +500,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       // iOS owns the Bluetooth radio and does not expose a public API that lets
       // an app turn it on. Flutter presents guidance and may open Settings.
       result(false)
-    case "openBluetoothSettings":
+    case "openBluetoothSettings", "openPermissionSettings":
       openBluetoothSettings(result)
     case "scan":
       let arguments = call.arguments as? [String: Any]
@@ -508,6 +511,9 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       connect(deviceId: arguments?["deviceId"] as? String, result: result)
     case "disconnect":
       disconnect(result)
+    case "cancelConnectionAttempt":
+      cancelConnectionAttempt(preserveConnected: true)
+      result(snapshot())
     case "refreshBattery":
       refreshBattery(result)
     case "sendAppState":
@@ -714,6 +720,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     cancelReconnectTasks()
     reconnectAttempt = 0
     manualDisconnect = false
+    UserDefaults.standard.set(false, forKey: Self.manualDisconnectPreference)
     if let previous = connectedPeripheral,
       previous.identifier != peripheral.identifier {
       requestPeripheralDisconnect(
@@ -778,15 +785,37 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   }
 
   private func disconnect(_ result: @escaping FlutterResult) {
+    UserDefaults.standard.set(true, forKey: Self.manualDisconnectPreference)
+    cancelConnectionAttempt(preserveConnected: false)
+    result(nil)
+  }
+
+  private func cancelConnectionAttempt(preserveConnected: Bool) {
+    let keepLink = preserveConnected
+      && connectedPeripheral?.state == .connected
+      && buttonCharacteristic?.isNotifying == true
+      && stateCharacteristic != nil
+      && pendingConnectResult == nil
+    finishScanIfNeeded()
+    if keepLink {
+      phase = "connected"
+      message = nil
+      emitStatus()
+      return
+    }
     manualDisconnect = true
     cancelReconnectTasks()
     connectTimeoutWorkItem?.cancel()
     connectTimeoutWorkItem = nil
     failPendingConnect(code: "CONNECT_CANCELLED", message: "Đã hủy kết nối HOMI.")
+    pendingWriteResult?(FlutterError(
+      code: "CONNECT_CANCELLED", message: "Đã hủy kết nối HOMI.", details: nil
+    ))
+    pendingWriteResult = nil
     if let peripheral = connectedPeripheral {
       requestPeripheralDisconnect(
         peripheral,
-        caller: "Aiv0BleControlBridge.disconnect",
+        caller: "Aiv0BleControlBridge.cancelConnectionAttempt",
         code: "manual_disconnect"
       )
     }
@@ -795,7 +824,6 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     phase = "idle"
     message = nil
     emitStatus()
-    result(nil)
   }
 
   private func requestPeripheralDisconnect(
@@ -1474,7 +1502,9 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     ]
     if let peripheral = connectedPeripheral {
       value["deviceId"] = peripheral.identifier.uuidString
-      value["deviceName"] = peripheral.name ?? discoveredDevices[peripheral.identifier]?.name ?? "H20"
+      value["deviceName"] = [peripheral.name, discoveredDevices[peripheral.identifier]?.name]
+        .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+        .first { !$0.isEmpty } ?? ""
       value["peripheralState"] = String(describing: peripheral.state)
     } else {
       value["peripheralState"] = "unavailable"
@@ -1590,6 +1620,11 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
     let restored =
       dict[CBCentralManagerRestoredStatePeripheralsKey] as? [CBPeripheral]
       ?? []
+    guard !UserDefaults.standard.bool(forKey: Self.manualDisconnectPreference) else {
+      manualDisconnect = true
+      restored.forEach { central.cancelPeripheralConnection($0) }
+      return
+    }
     guard let peripheral = restored.first else {
       audioSessionCoordinator.trace(
         stage: "ble_state_restored_empty",
@@ -1604,7 +1639,7 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
     discoveredDevices[peripheral.identifier] = DiscoveredDevice(
       peripheral: peripheral,
       name: peripheral.name?.trimmingCharacters(in: .whitespacesAndNewlines)
-        ?? "H20",
+        ?? "",
       rssi: 0,
       likely: true,
       advertisesControlService: true
@@ -1704,9 +1739,9 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
     rssi RSSI: NSNumber
   ) {
     let advertisedName = advertisementData[CBAdvertisementDataLocalNameKey] as? String
-    let name = advertisedName?.trimmingCharacters(in: .whitespacesAndNewlines)
-      ?? peripheral.name?.trimmingCharacters(in: .whitespacesAndNewlines)
-      ?? "H20"
+    let name = [advertisedName, peripheral.name]
+      .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+      .first { !$0.isEmpty } ?? ""
     let services = advertisementData[CBAdvertisementDataServiceUUIDsKey] as? [CBUUID] ?? []
     let advertisesControl = services.contains(ProtocolUUID.controlService)
     let lowerName = name.lowercased()
@@ -1717,7 +1752,7 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
     if current == nil || RSSI.intValue > current!.rssi {
       discoveredDevices[peripheral.identifier] = DiscoveredDevice(
         peripheral: peripheral,
-        name: name.isEmpty ? "H20" : name,
+        name: name,
         rssi: RSSI.intValue,
         likely: likely,
         advertisesControlService: advertisesControl

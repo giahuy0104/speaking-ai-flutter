@@ -313,7 +313,7 @@ void main() {
 
     expect(find.text('Thông tin thiết bị HOMI'), findsOneWidget);
     expect(find.text('Pin thiết bị'), findsOneWidget);
-    expect(find.text('Kết nối HM-D001 (BLE)'), findsOneWidget);
+    expect(find.text('Thiết bị điều khiển (BLE)'), findsOneWidget);
     expect(find.text('Chọn mic'), findsOneWidget);
     expect(find.byKey(const Key('settings-recognition-section')), findsNothing);
     expect(
@@ -350,7 +350,7 @@ void main() {
     await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
     await tester.pump(const Duration(milliseconds: 400));
 
-    expect(find.text('Kết nối HM-D001 (BLE)'), findsOneWidget);
+    expect(find.text('Thiết bị điều khiển (BLE)'), findsOneWidget);
     expect(find.byKey(const Key('aiv0-technical-details')), findsNothing);
     expect(find.byKey(const Key('aiv0-native-diagnostics')), findsNothing);
     expect(find.byKey(const Key('aiv0-packet-details')), findsNothing);
