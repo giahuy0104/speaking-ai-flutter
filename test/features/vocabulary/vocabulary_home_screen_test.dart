@@ -11,6 +11,7 @@ import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_intent_resolver.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_audio_service.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_fixed_prompt_audio_service.dart';
@@ -28,6 +29,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  test('unattached vocabulary navigation reports a missing destination', () async {
+    final navigation = VocabularyHomeNavigationController();
+    expect(navigation.isAttached, isFalse);
+    await expectLater(
+      navigation.openVoiceTarget(VoiceVocabularyTarget.star),
+      throwsStateError,
+    );
+  });
+
   for (final command in <ActiveLearningCommand>[
     ActiveLearningCommand.vocabularyParentAdded,
     ActiveLearningCommand.vocabularyStars,

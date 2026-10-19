@@ -3228,7 +3228,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                   onRetryPermissions: () => unawaited(
                     _requestStartupPermissions(
                       parentInitiated: true,
-                      autoConnectH20: false,
+                      autoConnectH20:
+                          !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS,
                     ),
                   ),
                   onSetupH20: _configureH20ForParentSetup,

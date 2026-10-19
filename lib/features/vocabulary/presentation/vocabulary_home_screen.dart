@@ -68,6 +68,8 @@ class VocabularyHomeNavigationController {
   Future<void> Function(VoiceVocabularyTarget target)? _openVoiceTarget;
   Future<void> Function()? _openVoiceRoot;
 
+  bool get isAttached => _openVoiceTarget != null;
+
   Future<bool> handleBack() async => await _handleBack?.call() ?? false;
 
   Future<bool> leaveForOtherContent() async =>
@@ -77,7 +79,11 @@ class VocabularyHomeNavigationController {
       await _closePracticeForOtherContent?.call() ?? false;
 
   Future<void> openVoiceTarget(VoiceVocabularyTarget target) async {
-    await _openVoiceTarget?.call(target);
+    final open = _openVoiceTarget;
+    if (open == null) {
+      throw StateError('Vocabulary destination is unavailable.');
+    }
+    await open(target);
   }
 
   Future<void> openVoiceRoot() async {
