@@ -7,6 +7,7 @@ import 'package:ai_speaking_flutter_app/features/conversation/domain/conversatio
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -82,9 +83,18 @@ void main() {
       expect(find.text('Ngữ cảnh'), findsNothing);
       expect(find.text('Dữ liệu và quyền riêng tư'), findsOneWidget);
       expect(find.text('Xem hoặc xóa dữ liệu'), findsNothing);
-      expect(find.text('Xem lịch sử gần đây'), findsOneWidget);
+      expect(
+        find.text('Xem lịch sử gần đây'),
+        defaultTargetPlatform == TargetPlatform.iOS
+            ? findsOneWidget
+            : findsNothing,
+      );
       semantics.dispose();
     },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
   );
 }
 

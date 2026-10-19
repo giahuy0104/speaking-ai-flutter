@@ -501,8 +501,27 @@ void main() {
             .onPressed,
         isNull,
       );
-      expect(find.byKey(const Key('previous-lesson-sentence')), findsNothing);
-      expect(find.byKey(const Key('continue-lesson-sentence')), findsNothing);
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        expect(
+          tester
+              .widget<OutlinedButton>(
+                find.byKey(const Key('previous-lesson-sentence')),
+              )
+              .onPressed,
+          isNull,
+        );
+        expect(
+          tester
+              .widget<FilledButton>(
+                find.byKey(const Key('continue-lesson-sentence')),
+              )
+              .onPressed,
+          isNull,
+        );
+      } else {
+        expect(find.byKey(const Key('previous-lesson-sentence')), findsNothing);
+        expect(find.byKey(const Key('continue-lesson-sentence')), findsNothing);
+      }
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump();
     },

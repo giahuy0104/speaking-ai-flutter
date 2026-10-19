@@ -248,7 +248,7 @@ void main() {
 
   testWidgets('H20 settings use one compact shared surface', (tester) async {
     await _usePhoneSurface(tester);
-    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     final controller = ConversationController(
       audioInput: _FakeAudioInput(),
@@ -328,35 +328,36 @@ void main() {
     expect(find.text('Kiểm tra phần cứng HOMI offline'), findsNothing);
   });
 
-  testWidgets('device settings keep diagnostics out of the parent view', (
-    tester,
-  ) async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-    addTearDown(() => debugDefaultTargetPlatformOverride = null);
-    final controller = ConversationController(
-      audioInput: _FakeAudioInput(),
-      aiv0BleControl: _DiagnosticAiv0BleControl(),
-      playbackService: const _FakePlaybackService(),
-      repository: const DemoConversationRepository(),
-      childAge: 6,
-    );
-    addTearDown(controller.dispose);
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: buildAppTheme(),
-        home: Scaffold(body: SettingsSheet(controller: controller)),
-      ),
-    );
-    await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
-    await tester.pump(const Duration(milliseconds: 400));
+  testWidgets(
+    'Android device settings keep diagnostics out of the parent view',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        aiv0BleControl: _DiagnosticAiv0BleControl(),
+        playbackService: const _FakePlaybackService(),
+        repository: const DemoConversationRepository(),
+        childAge: 6,
+      );
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: Scaffold(body: SettingsSheet(controller: controller)),
+        ),
+      );
+      await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
+      await tester.pump(const Duration(milliseconds: 400));
 
-    expect(find.text('Kết nối HM-D001 (BLE)'), findsOneWidget);
-    expect(find.byKey(const Key('aiv0-technical-details')), findsNothing);
-    expect(find.byKey(const Key('aiv0-native-diagnostics')), findsNothing);
-    expect(find.byKey(const Key('aiv0-packet-details')), findsNothing);
-    expect(find.textContaining('CBErrorDomain:7'), findsNothing);
-    debugDefaultTargetPlatformOverride = null;
-  });
+      expect(find.text('Kết nối HM-D001 (BLE)'), findsOneWidget);
+      expect(find.byKey(const Key('aiv0-technical-details')), findsNothing);
+      expect(find.byKey(const Key('aiv0-native-diagnostics')), findsNothing);
+      expect(find.byKey(const Key('aiv0-packet-details')), findsNothing);
+      expect(find.textContaining('CBErrorDomain:7'), findsNothing);
+      debugDefaultTargetPlatformOverride = null;
+    },
+  );
 
   testWidgets('settings hides removed privacy and guide shortcuts', (
     tester,

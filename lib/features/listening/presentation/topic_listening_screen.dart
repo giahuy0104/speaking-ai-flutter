@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
+import '../../../app/homi_bottom_navigation.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
 import '../../../core/audio/voice_prompt_service.dart';
@@ -21,6 +22,7 @@ import '../domain/listening_curriculum_flow.dart';
 import '../../voice_navigation/application/main_voice_assistant_flow.dart';
 import '../../voice_navigation/domain/main_assistant_audio_keys.dart';
 import 'listening_route_names.dart';
+import 'lesson_recording_history_sheet.dart';
 import 'topic_lesson_list_screen.dart';
 
 typedef TopicLessonSelectionPrompt =
@@ -50,6 +52,7 @@ class TopicListeningScreen extends StatefulWidget {
     this.onVoiceNavigationPause,
     this.onVoiceNavigationResume,
     this.initialVoiceTarget,
+    this.initialVoiceActivationGate,
     this.onTopicSelected,
     this.onLessonSelectionRequested,
     this.onTopicSelectionRequested,
@@ -72,6 +75,7 @@ class TopicListeningScreen extends StatefulWidget {
   final Future<void> Function()? onVoiceNavigationPause;
   final VoidCallback? onVoiceNavigationResume;
   final ListeningVoiceNavigationTarget? initialVoiceTarget;
+  final Future<void>? initialVoiceActivationGate;
   final ValueChanged<int>? onTopicSelected;
   final TopicLessonSelectionPrompt? onLessonSelectionRequested;
   final TopicSelectionPrompt? onTopicSelectionRequested;
@@ -104,6 +108,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
   late final VoicePromptService _voicePromptService;
   late final bool _ownsVoicePromptService;
   bool _initialVoiceTargetHandled = false;
+  bool _catalogHiddenForVoiceTarget = false;
   List<int> _activeVoiceTopicNumbers = const <int>[];
   bool _activeCourseRelearnSelection = false;
   int? _activeVoiceTopicRevision;
@@ -114,6 +119,10 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
   @override
   void initState() {
     super.initState();
+    _catalogHiddenForVoiceTarget =
+        !kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.iOS &&
+        widget.initialVoiceTarget != null;
     final requestedAge = widget.initialVoiceTarget?.childAge ?? widget.childAge;
     AudioDiagnostics.event('screen.topics.init');
     if (AudioDiagnostics.enabled) {
@@ -249,6 +258,16 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_catalogHiddenForVoiceTarget) {
+      return const Scaffold(
+        backgroundColor: Colors.transparent,
+        body: LearningScenery(
+          imageAlignment: Alignment.topCenter,
+          overlayOpacity: 0.36,
+          child: SizedBox.expand(),
+        ),
+      );
+    }
     return DisplayLanguageScope(
       language: widget.language,
       child: Scaffold(
@@ -257,6 +276,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           imageAlignment: Alignment.topCenter,
           overlayOpacity: 0.36,
           child: SafeArea(
+            bottom: kIsWeb || defaultTargetPlatform != TargetPlatform.iOS,
             child: CustomScrollView(
               key: const Key('topic-listening-screen'),
               slivers: <Widget>[
@@ -344,8 +364,51 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
             ),
           ),
         ),
+        bottomNavigationBar:
+            !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+            ? KeyedSubtree(
+                key: const Key('listening-bottom-navigation'),
+                child: HomiBottomNavigation(
+                  selectedIndex: 1,
+                  onConversation: () => Navigator.of(context).pop(),
+                  onTopics: () {},
+                  onMain: widget.onMainPressed == null
+                      ? null
+                      : () => unawaited(widget.onMainPressed!()),
+                  onVocabulary: _openVocabulary,
+                  onHistory: () => unawaited(_openHistory()),
+                  conversationKey: const Key('listening-conversation-tab'),
+                  topicsKey: const Key('listening-topics-tab'),
+                  mainKey: const Key('listening-main-button'),
+                  vocabularyKey: const Key('listening-vocabulary-tab'),
+                  historyKey: const Key('listening-history-tab'),
+                ),
+              )
+            : null,
       ),
     );
+  }
+
+  void _openVocabulary() {
+    Navigator.of(context).pop();
+    widget.onVocabularyRequested?.call();
+  }
+
+  Future<void> _openHistory() async {
+    await widget.onVoiceNavigationPause?.call();
+    try {
+      if (!mounted) return;
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        showDragHandle: true,
+        builder: (_) =>
+            LessonRecordingHistorySheet(mediaService: _historyMediaService),
+      );
+    } finally {
+      if (mounted) widget.onVoiceNavigationResume?.call();
+    }
   }
 
   Widget _buildHeader(BuildContext context) {
@@ -474,13 +537,27 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
         _completedV4LessonActivities = progress.completedV4LessonActivities;
         _startedLessonIds = progress.startedLessonIds;
       });
+      final mainReply = widget.initialVoiceActivationGate;
+      final opensUnderMainReply =
+          mainReply != null && widget.initialVoiceTarget?.openLesson == true;
+      if (!opensUnderMainReply) {
+        await mainReply;
+        if (!mounted) return;
+        if (mainReply != null && ModalRoute.of(context)?.isCurrent != true) {
+          return;
+        }
+      }
       final courseId = '${_catalog.startAge}-${_catalog.endAge}';
       final courseCompleted = await widget.progressStore.isCourseCompleted(
         courseId,
       );
       if (!mounted) return;
       if (widget.initialVoiceTarget != null) {
-        unawaited(_openInitialVoiceTarget());
+        unawaited(
+          _openInitialVoiceTarget(
+            mainReply: opensUnderMainReply ? mainReply : null,
+          ),
+        );
       } else if (courseCompleted) {
         final group = catalog.groups.firstWhere(
           (candidate) =>
@@ -495,6 +572,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
       debugPrint(
         'HOMI topic content/progress load failed: $error\n$stackTrace',
       );
+      _revealCatalog();
       // The topic catalog remains usable while lesson content is unavailable.
     }
   }
@@ -718,7 +796,13 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
                   for (final topicNumber in topicNumbers) ...<Widget>[
                     const SizedBox(height: 10),
                     FilledButton(
-                      key: ValueKey<String>('topic-choice-$topicNumber'),
+                      key: ValueKey<String>(
+                        courseCompleted &&
+                                !kIsWeb &&
+                                defaultTargetPlatform == TargetPlatform.iOS
+                            ? 'course-relearn-topic-$topicNumber'
+                            : 'topic-choice-$topicNumber',
+                      ),
                       onPressed: () =>
                           Navigator.of(sheetContext).pop(topicNumber),
                       child: Text(
@@ -749,30 +833,37 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     }
   }
 
-  Future<void> _openInitialVoiceTarget() async {
+  Future<void> _openInitialVoiceTarget({Future<void>? mainReply}) async {
     final target = widget.initialVoiceTarget;
     if (_initialVoiceTargetHandled || target == null || !mounted) {
       return;
     }
     _initialVoiceTargetHandled = true;
-    final topicIndex = target.resolveTopicIndex(_catalog);
-    if (topicIndex == null) {
-      return;
+    try {
+      final topicIndex = target.resolveTopicIndex(_catalog);
+      if (topicIndex == null) return;
+      await Future<void>.delayed(Duration.zero);
+      if (!mounted) return;
+      await _openTopic(
+        _catalog.topics[topicIndex],
+        topicIndex,
+        initialLessonNumber: target.openLesson
+            ? target.resolvedLessonNumber
+            : null,
+        requestVoiceLessonSelection: false,
+        forceRelearnTopic: target.relearnTopic,
+        forceRelearnLesson: target.relearnLesson,
+        coverLessonList: _catalogHiddenForVoiceTarget,
+        mainReply: mainReply,
+      );
+    } finally {
+      _revealCatalog();
     }
-    await Future<void>.delayed(Duration.zero);
-    if (!mounted) {
-      return;
-    }
-    await _openTopic(
-      _catalog.topics[topicIndex],
-      topicIndex,
-      initialLessonNumber: target.openLesson
-          ? target.resolvedLessonNumber
-          : null,
-      requestVoiceLessonSelection: false,
-      forceRelearnTopic: target.relearnTopic,
-      forceRelearnLesson: target.relearnLesson,
-    );
+  }
+
+  void _revealCatalog() {
+    if (!mounted || !_catalogHiddenForVoiceTarget) return;
+    setState(() => _catalogHiddenForVoiceTarget = false);
   }
 
   Future<void> _openTopicSongs(ListeningTopic topic, int topicIndex) async {
@@ -855,6 +946,8 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     bool requestVoiceLessonSelection = true,
     bool forceRelearnTopic = false,
     bool forceRelearnLesson = false,
+    bool coverLessonList = false,
+    Future<void>? mainReply,
   }) async {
     _activeVoiceTopicNumbers = const <int>[];
     _activeCourseRelearnSelection = false;
@@ -954,6 +1047,8 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           voicePromptService: _voicePromptService,
           initialLessonNumber: lessonNumber,
           initialLessonLeadPrompt: resumePrompt,
+          initialLessonMainReply: mainReply,
+          coverUntilInitialLessonReturns: coverLessonList,
           relearnInitialLesson: forceRelearnLesson || relearnTopicSequence,
           relearnTopicSequence: relearnTopicSequence,
           onTopicCompleted: () => topicCompletedDuringVisit = true,
@@ -962,6 +1057,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
         settings: const RouteSettings(name: ListeningRouteNames.topicLessons),
       );
       await route;
+      _revealCatalog();
       await _reloadProgress();
       final courseId =
           '${selectedAgeCatalog.startAge}-${selectedAgeCatalog.endAge}';

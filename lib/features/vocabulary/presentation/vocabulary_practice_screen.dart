@@ -1620,12 +1620,14 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     if (mounted) Navigator.of(context).pop();
   }
 
-  Future<void> leaveForOtherContent() async {
-    if (!mounted || _exiting) return;
+  Future<bool> leaveForOtherContent() async {
+    if (!mounted || _exiting) return false;
     final route = ModalRoute.of(context);
+    if (route == null || !route.isCurrent) return false;
     _commitNavigationExit();
     Navigator.of(context).pop();
-    await route?.completed;
+    await route.completed;
+    return true;
   }
 
   void _commitNavigationExit({

@@ -328,9 +328,19 @@ void main() {
       );
       expect(topicTabRect.top, closeTo(vocabularyTabRect.top, 0.01));
       expect(vocabularyTabRect.top, closeTo(844 * 0.27, 0.01));
-      expect(find.byKey(const Key('home-conversation-tab')), findsNothing);
-      expect(find.byKey(const Key('home-main-button')), findsNothing);
-      expect(find.byKey(const Key('home-history-tab')), findsNothing);
+      final iosNavigation = defaultTargetPlatform == TargetPlatform.iOS;
+      expect(
+        find.byKey(const Key('home-conversation-tab')),
+        iosNavigation ? findsOneWidget : findsNothing,
+      );
+      expect(
+        find.byKey(const Key('home-main-button')),
+        iosNavigation ? findsOneWidget : findsNothing,
+      );
+      expect(
+        find.byKey(const Key('home-history-tab')),
+        iosNavigation ? findsOneWidget : findsNothing,
+      );
       expect(
         find.byKey(const Key('main-voice-assistant-button')),
         findsNothing,
@@ -346,8 +356,14 @@ void main() {
       await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
       await tester.pumpAndSettle();
       expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
-      expect(find.byKey(const Key('home-main-button')), findsNothing);
-      expect(find.byKey(const Key('home-vocabulary-tab')), findsNothing);
+      expect(
+        find.byKey(const Key('home-main-button')),
+        iosNavigation ? findsOneWidget : findsNothing,
+      );
+      expect(
+        find.byKey(const Key('home-vocabulary-tab')),
+        iosNavigation ? findsOneWidget : findsNothing,
+      );
       expect(
         find.byKey(const Key('vocabulary-home-back-button')),
         findsOneWidget,
@@ -545,7 +561,7 @@ void main() {
     expect(visibilityChanges, <bool>[true, false]);
   });
 
-  testWidgets('iOS keeps physical MAIN active without the bottom navigation', (
+  testWidgets('iOS keeps physical MAIN active with on-screen navigation', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -589,14 +605,17 @@ void main() {
     await tester.tap(find.byTooltip('Cài đặt'));
     await tester.pumpAndSettle();
     expect(find.text('Thiết lập phụ huynh'), findsOneWidget);
-    expect(find.byKey(const Key('settings-recognition-section')), findsNothing);
+    expect(
+      find.byKey(const Key('settings-recognition-section')),
+      findsOneWidget,
+    );
     Navigator.of(tester.element(find.text('Thiết lập phụ huynh'))).pop();
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
     await tester.pumpAndSettle();
     expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
-    expect(find.byKey(const Key('home-main-button')), findsNothing);
+    expect(find.byKey(const Key('home-main-button')), findsOneWidget);
     expect(await voiceNavigationController.activateFromMainButton(), isTrue);
     await tester.pump(const Duration(milliseconds: 700));
     expect(speechInput.startCount, 1);
@@ -613,7 +632,7 @@ void main() {
     expect(speechInput.startCount, 2);
     expect(voiceNavigationController.isMainButtonSessionActive, isTrue);
     expect(voiceNavigationController.isListening, isTrue);
-    expect(find.byKey(const Key('home-main-button')), findsNothing);
+    expect(find.byKey(const Key('home-main-button')), findsOneWidget);
 
     // BLE/HFP status and diagnostics are surfaced through ConversationController
     // notifications. On iOS they must not cancel the explicit MAIN recognizer;
@@ -625,7 +644,7 @@ void main() {
     expect(voiceNavigationController.isMainButtonSessionActive, isTrue);
     expect(voiceNavigationController.isListening, isTrue);
     expect(speechInput.cancelCount, cancelCountBeforeAgeChange);
-    expect(find.byKey(const Key('home-main-button')), findsNothing);
+    expect(find.byKey(const Key('home-main-button')), findsOneWidget);
 
     await voiceNavigationController.pause();
     await tester.pump();

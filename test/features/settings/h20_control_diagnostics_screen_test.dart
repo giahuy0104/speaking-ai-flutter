@@ -16,46 +16,50 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
-    testWidgets('${platform.name} parent settings hides button diagnostics', (
-      tester,
-    ) async {
-      debugDefaultTargetPlatformOverride = platform;
-      addTearDown(() => debugDefaultTargetPlatformOverride = null);
-      final fixture = _Fixture(platform: platform.name);
-      final controller = ConversationController(
-        audioInput: _AudioInput(),
-        playbackService: _Playback(),
-        repository: const DemoConversationRepository(),
-        childAge: 6,
-      );
-      addTearDown(controller.dispose);
-      addTearDown(fixture.dispose);
-      await tester.pumpWidget(
-        AivoControlScope(
-          controller: fixture.controls,
-          child: MaterialApp(
-            home: Scaffold(body: SettingsSheet(controller: controller)),
+    testWidgets(
+      '${platform.name} parent settings preserves button diagnostics visibility',
+      (tester) async {
+        debugDefaultTargetPlatformOverride = platform;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        final fixture = _Fixture(platform: platform.name);
+        final controller = ConversationController(
+          audioInput: _AudioInput(),
+          playbackService: _Playback(),
+          repository: const DemoConversationRepository(),
+          childAge: 6,
+        );
+        addTearDown(controller.dispose);
+        addTearDown(fixture.dispose);
+        await tester.pumpWidget(
+          AivoControlScope(
+            controller: fixture.controls,
+            child: MaterialApp(
+              home: Scaffold(body: SettingsSheet(controller: controller)),
+            ),
           ),
-        ),
-      );
-      final scroll = find
-          .descendant(
-            of: find.byKey(const Key('settings-scroll-view')),
-            matching: find.byType(Scrollable),
-          )
-          .first;
-      final section = find.byKey(const Key('settings-audio-h20-section'));
-      await tester.scrollUntilVisible(section, 350, scrollable: scroll);
-      await tester.tap(section);
-      await tester.pumpAndSettle();
-      final button = find.byKey(const Key('open-h20-control-diagnostics'));
-      expect(button, findsNothing);
-      expect(find.byType(H20ControlDiagnosticsScreen), findsNothing);
-      expect(fixture.controls.diagnosticsActive, isFalse);
-      expect(fixture.controls.executeTests, isFalse);
-      expect(fixture.mainCalls, 0);
-      debugDefaultTargetPlatformOverride = null;
-    });
+        );
+        final scroll = find
+            .descendant(
+              of: find.byKey(const Key('settings-scroll-view')),
+              matching: find.byType(Scrollable),
+            )
+            .first;
+        final section = find.byKey(const Key('settings-audio-h20-section'));
+        await tester.scrollUntilVisible(section, 350, scrollable: scroll);
+        await tester.tap(section);
+        await tester.pumpAndSettle();
+        final button = find.byKey(const Key('open-h20-control-diagnostics'));
+        expect(
+          button,
+          platform == TargetPlatform.iOS ? findsOneWidget : findsNothing,
+        );
+        expect(find.byType(H20ControlDiagnosticsScreen), findsNothing);
+        expect(fixture.controls.diagnosticsActive, isFalse);
+        expect(fixture.controls.executeTests, isFalse);
+        expect(fixture.mainCalls, 0);
+        debugDefaultTargetPlatformOverride = null;
+      },
+    );
   }
 
   testWidgets('UNKNOWN keeps exact raw; copy and clear use only control log', (

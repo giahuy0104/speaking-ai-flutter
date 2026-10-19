@@ -29,14 +29,71 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  test('unattached vocabulary navigation reports a missing destination', () async {
-    final navigation = VocabularyHomeNavigationController();
-    expect(navigation.isAttached, isFalse);
-    await expectLater(
-      navigation.openVoiceTarget(VoiceVocabularyTarget.star),
-      throwsStateError,
-    );
-  });
+  test(
+    'unattached vocabulary navigation reports a missing destination',
+    () async {
+      final navigation = VocabularyHomeNavigationController();
+      expect(navigation.isAttached, isFalse);
+      await expectLater(
+        navigation.openVoiceTarget(VoiceVocabularyTarget.star),
+        throwsStateError,
+      );
+    },
+  );
+
+  testWidgets(
+    'MAIN does not resume an idle vocabulary menu after Stop',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: MaterialApp(
+            theme: buildAppTheme(),
+            home: DisplayLanguageScope(
+              language: DisplayLanguage.vietnamese,
+              child: VocabularyHomeScreen(
+                isReady: true,
+                isActive: true,
+                store: _MemoryVocabularyStore(),
+                mediaService: _ImmediateLessonMediaService(),
+                voicePromptService: _RecordingVoicePromptService(),
+                fixedPromptAudioService:
+                    const _UnavailableFixedPromptAudioService(),
+                onReturnToConversation: () {},
+                onHistory: () {},
+                onSettings: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect(
+        (await registry.execute(ActiveLearningCommand.stop)).wasHandled,
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+      expect(registry.isActiveModulePaused, isFalse);
+
+      expect(
+        (await registry.execute(
+          ActiveLearningCommand.vocabularyStars,
+        )).wasHandled,
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect(registry.isActiveModulePaused, isTrue);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
 
   for (final command in <ActiveLearningCommand>[
     ActiveLearningCommand.vocabularyParentAdded,
@@ -1936,7 +1993,7 @@ void main() {
 
     expect(registry.activeKind, ActiveLearningModuleKind.vocabulary);
     await registry.pauseForMainAssistant();
-    expect(registry.isActiveModulePaused, isTrue);
+    expect(registry.isActiveModulePaused, isFalse);
 
     final review = await registry.execute(
       ActiveLearningCommand.vocabularyPracticeAgain,

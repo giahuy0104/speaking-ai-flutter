@@ -13,6 +13,7 @@ import '../domain/master_navigation_contract.dart';
 import '../domain/main_assistant_audio_keys.dart';
 import 'active_learning_command_resolver.dart';
 import 'voice_navigation_intent_resolver.dart';
+import 'package:flutter/foundation.dart';
 
 enum MainVoiceAssistantStage {
   idle,
@@ -323,7 +324,13 @@ class MainVoiceAssistantFlow {
     }
     _selectedAge = childAge;
     _selectedCatalog = catalog;
-    _allowedTopicNumbers = topicNumbers.toSet();
+    _allowedTopicNumbers =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+        ? {
+            for (var number = 1; number <= catalog.topics.length; number++)
+              number,
+          }
+        : topicNumbers.toSet();
     _completedTopicNumbers = completedTopicNumbers.toSet();
     _courseCompletedTopicSelection = courseCompleted;
     _stage = MainVoiceAssistantStage.chooseTopicAfterCompletion;
@@ -538,6 +545,10 @@ class MainVoiceAssistantFlow {
             _isStarVocabularyChoice(normalized),
       MainVoiceAssistantStage.activeLearning =>
         _resolveActiveCommand(normalized) != null ||
+            (!kIsWeb &&
+                defaultTargetPlatform == TargetPlatform.iOS &&
+                _activeLearningKind != ActiveLearningModuleKind.vocabulary &&
+                _vocabularyTarget(normalized) != null) ||
             MasterNavigationContract.matches('CONTINUE_GLOBAL', normalized) ||
             (_activeLearningKind == ActiveLearningModuleKind.listeningLesson &&
                 MasterNavigationContract.matches(
@@ -1376,8 +1387,7 @@ class MainVoiceAssistantFlow {
         _activeLearningKind == ActiveLearningModuleKind.vocabulary;
     final promptText = switch (command) {
       ActiveLearningCommand.resume =>
-        isVocabulary ||
-                _activeVoiceNode == ActiveLearningVoiceNode.intro
+        isVocabulary || _activeVoiceNode == ActiveLearningVoiceNode.intro
             ? ''
             : _activeVoiceNode == ActiveLearningVoiceNode.core
             ? MasterNavigationContract.continueSubject
@@ -1959,7 +1969,31 @@ class MainVoiceAssistantFlow {
         nearestIntent = intent;
       }
     }
-    return nearestPhrase;
+    return nearestPhrase ??
+        (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+            ? _truncatedFeaturePhrase(words)
+            : null);
+  }
+
+  static String? _truncatedFeaturePhrase(List<String> words) {
+    String? truncatedPhrase;
+    String? truncatedIntent;
+    for (final intent in _featurePhraseIntents) {
+      for (final phrase
+          in MasterNavigationContract.phrases[intent] ?? const <String>[]) {
+        final approved = _normalize(phrase).split(' ');
+        if (approved.length <= words.length) continue;
+        var matches = true;
+        for (var index = 0; index < words.length && matches; index += 1) {
+          matches = words[index] == approved[index];
+        }
+        if (!matches) continue;
+        if (truncatedIntent != null && truncatedIntent != intent) return null;
+        truncatedPhrase ??= phrase;
+        truncatedIntent = intent;
+      }
+    }
+    return truncatedPhrase;
   }
 
   static bool _isNearSyllable(String heard, String approved) {
@@ -2055,6 +2089,9 @@ class MainVoiceAssistantFlow {
       _containsPhrase(normalized, 'yeu thich');
 
   static VoiceVocabularyTarget? _vocabularyTarget(String normalized) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      return VoiceNavigationIntentResolver.directVocabularyTarget(normalized);
+    }
     if (MasterNavigationContract.matches('OPEN_PARENT', normalized)) {
       return VoiceVocabularyTarget.parent;
     }

@@ -24,15 +24,19 @@ void main() {
     messenger.setMockMethodCallHandler(backgroundEvents, null);
   });
 
-  testWidgets('home communication matches image one', (tester) async {
-    final controller = await _pumpGoldenApp(tester);
-    addTearDown(controller.dispose);
+  testWidgets(
+    'home communication matches image one',
+    (tester) async {
+      final controller = await _pumpGoldenApp(tester);
+      addTearDown(controller.dispose);
 
-    await expectLater(
-      find.byType(HomeLearningShell),
-      matchesGoldenFile('goldens/home-communication-390x844.png'),
-    );
-  });
+      await expectLater(
+        find.byType(HomeLearningShell),
+        matchesGoldenFile('goldens/home-communication-390x844.png'),
+      );
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
 
   testWidgets('vocabulary page matches image two', (tester) async {
     final controller = await _pumpGoldenApp(tester);
@@ -47,19 +51,23 @@ void main() {
     );
   });
 
-  testWidgets('topic rail opens the catalog directly', (tester) async {
-    final controller = await _pumpGoldenApp(tester);
-    addTearDown(controller.dispose);
+  testWidgets(
+    'topic rail opens the catalog directly',
+    (tester) async {
+      final controller = await _pumpGoldenApp(tester);
+      addTearDown(controller.dispose);
 
-    await tester.tap(find.byKey(const Key('topic-listening-edge-tab')));
-    await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('topic-listening-edge-tab')));
+      await tester.pumpAndSettle();
 
-    expect(find.byType(TopicListeningScreen), findsOneWidget);
-    await expectLater(
-      find.byType(TopicListeningScreen),
-      matchesGoldenFile('goldens/home-topic-expanded-390x844.png'),
-    );
-  });
+      expect(find.byType(TopicListeningScreen), findsOneWidget);
+      await expectLater(
+        find.byType(TopicListeningScreen),
+        matchesGoldenFile('goldens/home-topic-expanded-390x844.png'),
+      );
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
 
   testWidgets('add vocabulary dialog matches image three', (tester) async {
     final controller = await _pumpGoldenApp(tester);
@@ -76,45 +84,55 @@ void main() {
     );
   });
 
-  testWidgets('dark communication matches the approved rail treatment', (
-    tester,
-  ) async {
-    final controller = await _pumpGoldenApp(tester, themeMode: ThemeMode.dark);
-    addTearDown(controller.dispose);
+  testWidgets(
+    'dark communication matches the approved rail treatment',
+    (tester) async {
+      final controller = await _pumpGoldenApp(
+        tester,
+        themeMode: ThemeMode.dark,
+      );
+      addTearDown(controller.dispose);
 
-    await expectLater(
-      find.byType(HomeLearningShell),
-      matchesGoldenFile('goldens/dark-home-communication-390x844.png'),
-    );
-  });
+      await expectLater(
+        find.byType(HomeLearningShell),
+        matchesGoldenFile('goldens/dark-home-communication-390x844.png'),
+      );
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
 
-  testWidgets('dark home keeps the approved option two composition', (
-    tester,
-  ) async {
-    final controller = await _pumpGoldenApp(tester, themeMode: ThemeMode.dark);
-    addTearDown(controller.dispose);
+  testWidgets(
+    'dark home keeps the approved option two composition',
+    (tester) async {
+      final controller = await _pumpGoldenApp(
+        tester,
+        themeMode: ThemeMode.dark,
+      );
+      addTearDown(controller.dispose);
 
-    await expectLater(
-      find.byType(HomeLearningShell),
-      matchesGoldenFile('goldens/dark-home-communication-390x844.png'),
-    );
+      await expectLater(
+        find.byType(HomeLearningShell),
+        matchesGoldenFile('goldens/dark-home-communication-390x844.png'),
+      );
 
-    await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
-    await tester.pumpAndSettle();
-    await expectLater(
-      find.byType(HomeLearningShell),
-      matchesGoldenFile('goldens/dark-home-vocabulary-390x844.png'),
-    );
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(HomeLearningShell),
+        matchesGoldenFile('goldens/dark-home-vocabulary-390x844.png'),
+      );
 
-    await tester.tap(find.byKey(const Key('vocabulary-practice-button')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('topic-listening-edge-tab')));
-    await tester.pumpAndSettle();
-    await expectLater(
-      find.byType(TopicListeningScreen),
-      matchesGoldenFile('goldens/dark-home-topics-390x844.png'),
-    );
-  });
+      await tester.tap(find.byKey(const Key('vocabulary-practice-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('topic-listening-edge-tab')));
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(TopicListeningScreen),
+        matchesGoldenFile('goldens/dark-home-topics-390x844.png'),
+      );
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
 }
 
 Future<ConversationController> _pumpGoldenApp(

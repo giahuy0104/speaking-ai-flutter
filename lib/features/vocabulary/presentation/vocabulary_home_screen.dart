@@ -65,6 +65,8 @@ class VocabularyHomeNavigationController {
   Future<bool> Function()? _handleBack;
   Future<bool> Function()? _leaveForOtherContent;
   Future<bool> Function()? _closePracticeForOtherContent;
+  bool Function()? _hasReviewPractice;
+  Future<bool> Function()? _closeReviewPracticeForTranslation;
   Future<void> Function(VoiceVocabularyTarget target)? _openVoiceTarget;
   Future<void> Function()? _openVoiceRoot;
 
@@ -77,6 +79,11 @@ class VocabularyHomeNavigationController {
 
   Future<bool> closePracticeForOtherContent() async =>
       await _closePracticeForOtherContent?.call() ?? false;
+
+  bool get hasReviewPractice => _hasReviewPractice?.call() ?? false;
+
+  Future<bool> closeReviewPracticeForTranslation() async =>
+      await _closeReviewPracticeForTranslation?.call() ?? false;
 
   Future<void> openVoiceTarget(VoiceVocabularyTarget target) async {
     final open = _openVoiceTarget;
@@ -95,6 +102,8 @@ class VocabularyHomeNavigationController {
     required Future<bool> Function() handleBack,
     required Future<bool> Function() leaveForOtherContent,
     required Future<bool> Function() closePracticeForOtherContent,
+    required bool Function() hasReviewPractice,
+    required Future<bool> Function() closeReviewPracticeForTranslation,
     required Future<void> Function(VoiceVocabularyTarget target)
     openVoiceTarget,
     required Future<void> Function() openVoiceRoot,
@@ -103,6 +112,8 @@ class VocabularyHomeNavigationController {
     _handleBack = handleBack;
     _leaveForOtherContent = leaveForOtherContent;
     _closePracticeForOtherContent = closePracticeForOtherContent;
+    _hasReviewPractice = hasReviewPractice;
+    _closeReviewPracticeForTranslation = closeReviewPracticeForTranslation;
     _openVoiceTarget = openVoiceTarget;
     _openVoiceRoot = openVoiceRoot;
   }
@@ -113,6 +124,8 @@ class VocabularyHomeNavigationController {
     _handleBack = null;
     _leaveForOtherContent = null;
     _closePracticeForOtherContent = null;
+    _hasReviewPractice = null;
+    _closeReviewPracticeForTranslation = null;
     _openVoiceTarget = null;
     _openVoiceRoot = null;
   }
@@ -386,8 +399,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       closePracticeForOtherContent: () async {
         final practice = _practiceScreenKey.currentState;
         if (practice == null) return false;
-        await practice.leaveForOtherContent();
-        return true;
+        return practice.leaveForOtherContent();
+      },
+      hasReviewPractice: () =>
+          _practiceScreenKey.currentState?.isReviewPractice ?? false,
+      closeReviewPracticeForTranslation: () async {
+        final practice = _practiceScreenKey.currentState;
+        if (practice == null || !practice.isReviewPractice) return false;
+        return practice.leaveForOtherContent();
       },
       openVoiceTarget: _openVoiceTarget,
       openVoiceRoot: _openVocabularyRoot,
@@ -406,7 +425,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         await _playJourney(_VocabularyJourney.stars);
         return;
       case VoiceVocabularyTarget.review:
-        await _startReview();
+        if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+          await _runAudioCommand(_openReviewFromVoice);
+        } else {
+          await _startReview();
+        }
         return;
     }
   }
@@ -440,7 +463,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       ActiveLearningModuleKind.vocabulary;
 
   @override
-  bool get isPausedForMain => _pausedForMainAssistant;
+  bool get isPausedForMain => _pausedForMainAssistant && _hasResumableAudio;
+
+  bool get _hasResumableAudio =>
+      _playbackInterrupted ||
+      _waitingForPlaybackContinuation ||
+      (_playbackQueue.isEmpty &&
+          (_selectedJourney == _VocabularyJourney.family ||
+              _selectedJourney == _VocabularyJourney.stars));
 
   @override
   ActiveLearningVoiceNode get mainVoiceNode {
@@ -480,6 +510,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   @override
   Future<void> pauseForMainAssistant() async {
+    final hadActivePlayback = _hasActiveVocabularyPlayback;
+    final pendingCleanup = _playbackNavigationCleanupCompleter?.future;
+    _automaticEntryGeneration++;
     _audioCommandGeneration += 1;
     _cancelPendingFixedPrompt();
     _pausedForMainAssistant = true;
@@ -490,6 +523,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         _playingCollection = false;
         _activeEntryId = null;
       });
+    }
+    if (pendingCleanup != null) {
+      if (!await pendingCleanup) {
+        throw StateError('Vocabulary audio has not finished stopping');
+      }
+      if (!_hasActiveVocabularyPlayback) return;
+    } else if (!hadActivePlayback) {
+      return;
     }
     await Future.wait<void>(<Future<void>>[
       _voicePromptService.stop().catchError((Object _) {}),
@@ -530,6 +571,33 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         unawaited(_playJourney(_VocabularyJourney.family));
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.vocabularyPracticeAgain:
+        if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+          if (!await _prepareReviewFromVoice()) {
+            return const ActiveLearningCommandResult.busy(
+              spokenReply: 'Chưa mở được Luyện lại. Bạn hãy thử lại.',
+            );
+          }
+          final reviewStarted = Completer<bool>();
+          unawaited(
+            _runAudioCommand(
+              () => _startReview(
+                allowPendingToday: true,
+                onNavigationDecided: (started) {
+                  if (!reviewStarted.isCompleted) {
+                    reviewStarted.complete(started);
+                  }
+                },
+              ),
+            ).whenComplete(() {
+              if (!reviewStarted.isCompleted) reviewStarted.complete(false);
+            }),
+          );
+          return await reviewStarted.future
+              ? const ActiveLearningCommandResult.handled()
+              : const ActiveLearningCommandResult.busy(
+                  spokenReply: 'Chưa mở được Luyện lại. Bạn hãy thử lại.',
+                );
+        }
         if (_awaitingPlaybackEndChoice && _selectedJourney != null) {
           _pausedForMainAssistant = false;
           unawaited(_runAudioCommand(_restartCompletedPlayback));
@@ -1704,19 +1772,30 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     if (settled) await _maybeStartToday();
   }
 
-  Future<void> _startReview() async {
-    if (_openingPractice || !mounted) return;
+  Future<void> _startReview({
+    bool allowPendingToday = false,
+    void Function(bool started)? onNavigationDecided,
+  }) async {
+    if (_openingPractice || !mounted) {
+      onNavigationDecided?.call(false);
+      return;
+    }
     _openJourney(_VocabularyJourney.review);
     final active = await widget.sessionStore.readActive();
-    if (active?.mode == VocabularyPracticeMode.today) {
+    if (active?.mode == VocabularyPracticeMode.today && !allowPendingToday) {
       await _speakOnSelectedOutput(VocabularyFlowV3.finishActiveGroupFirst);
-      await _runPracticeSession(active!, announceInitialIntro: false);
+      await _runPracticeSession(
+        active!,
+        announceInitialIntro: false,
+        onRoutePushed: () => onNavigationDecided?.call(true),
+      );
       return;
     }
     final session = active?.mode == VocabularyPracticeMode.review
         ? active
         : await widget.sessionStore.prepareReview(widget.store);
     if (session == null || !mounted) {
+      onNavigationDecided?.call(mounted);
       await _speakAndRequestChoice(VocabularyFlowV3.reviewEmpty);
       return;
     }
@@ -1724,13 +1803,32 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       session,
       announceInitialIntro: active?.id != session.id,
       announceInitialResume: active?.id == session.id,
+      onRoutePushed: () => onNavigationDecided?.call(true),
     );
+  }
+
+  Future<void> _openReviewFromVoice() async {
+    if (!await _prepareReviewFromVoice()) return;
+    await _startReview(allowPendingToday: true);
+  }
+
+  Future<bool> _prepareReviewFromVoice() async {
+    if (_openingPractice || !mounted || !_isEffectivelyActive) return false;
+    final settled = await _leavePlaybackForOtherContent(
+      announceMenu: false,
+      notifyNavigationExit: false,
+    );
+    if (!settled || !mounted || !_isEffectivelyActive) return false;
+    _playbackQueue = const <VocabularyEntry>[];
+    _pausedForMainAssistant = false;
+    return true;
   }
 
   Future<void> _runPracticeSession(
     VocabularyPracticeSession first, {
     bool announceInitialIntro = true,
     bool announceInitialResume = false,
+    VoidCallback? onRoutePushed,
   }) async {
     if (_openingPractice || !mounted) return;
     _openingPractice = true;
@@ -1741,7 +1839,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       while (true) {
         if (!mounted) return;
         final language = DisplayLanguageScope.of(context);
-        final result = await pushForActiveLearning<VocabularyPracticeResult>(
+        final routeResult = pushForActiveLearning<VocabularyPracticeResult>(
           context,
           (_) => VocabularyPracticeScreen(
             key: _practiceScreenKey,
@@ -1760,6 +1858,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
             announceResume: announceResume,
           ),
         );
+        onRoutePushed?.call();
+        onRoutePushed = null;
+        final result = await routeResult;
         if (!mounted) return;
         await _load();
         if (result == null) {
@@ -2341,38 +2442,35 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     bool notifyNavigationExit = true,
   }) async {
     if (_playbackNavigationCleanup != null && announceMenu) return true;
-    final activeVocabularyTurn =
-        widget.audioDependencies?.audioTurnCoordinator?.currentToken?.owner ==
-        AudioTurnOwner.vocabulary;
+    final isIos = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
     final hasActiveAudio =
-        activeVocabularyTurn ||
-        _selectedJourney != null ||
-        _playingCollection ||
-        _activeEntryId != null ||
-        _waitingForPlaybackContinuation ||
-        _awaitingPlaybackEndChoice;
+        _hasActiveVocabularyPlayback ||
+        (isIos && _playbackNavigationCleanup != null);
     _cancelPendingFixedPrompt();
     if (!announceMenu && notifyNavigationExit) {
       ActiveLearningModuleScope.notifyNavigationExit(context);
     }
     final journey = _selectedJourney;
+    final deferJourneyClose = isIos && !announceMenu && !notifyNavigationExit;
     // Touch and MAIN use the same cancellation boundary. Update the screen
     // immediately, while an old audio callback can no longer advance its queue.
-    _playbackGeneration++;
+    final cleanupGeneration = ++_playbackGeneration;
     _playbackInterrupted = false;
     _waitingForPlaybackContinuation = false;
     _awaitingPlaybackEndChoice = false;
     _playingCollection = false;
     _activeEntryId = null;
-    _closeJourney();
-    final cleanupResult = _boundPlaybackNavigationCleanup(
-      Future.wait<void>(<Future<void>>[
-        _voicePromptService.stop().catchError((Object _) {}),
-        _mediaService.stopPlayback().catchError((Object _) {}),
-        if (_vocabularyAudioService != null)
-          _vocabularyAudioService!.stop().catchError((Object _) {}),
-      ]).then<void>((_) {}),
-    );
+    if (!deferJourneyClose) _closeJourney();
+    final cleanupResult = !isIos || hasActiveAudio
+        ? _boundPlaybackNavigationCleanup(
+            Future.wait<void>(<Future<void>>[
+              _voicePromptService.stop().catchError((Object _) {}),
+              _mediaService.stopPlayback().catchError((Object _) {}),
+              if (_vocabularyAudioService != null)
+                _vocabularyAudioService!.stop().catchError((Object _) {}),
+            ]).then<void>((_) {}),
+          )
+        : Future<bool>.value(true);
     final cleanup = cleanupResult.then<void>((_) {});
     _playbackNavigationCleanup = cleanup;
     unawaited(
@@ -2385,8 +2483,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     // An idle vocabulary root owns no child audio. Its defensive stop may
     // still wait on a plugin callback, but MAIN need not hold the next mic for
     // that callback when no vocabulary playback/route lease is active.
-    final settled = announceMenu || hasActiveAudio ? await cleanupResult : true;
+    final settled = isIos || announceMenu || hasActiveAudio
+        ? await cleanupResult
+        : true;
     if (!settled) return false;
+    if (deferJourneyClose) {
+      if (!mounted || cleanupGeneration != _playbackGeneration) return false;
+      if (_selectedJourney == journey) _closeJourney();
+    }
     if (!announceMenu ||
         !mounted ||
         !_isEffectivelyActive ||
@@ -2402,6 +2506,15 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     );
     return true;
   }
+
+  bool get _hasActiveVocabularyPlayback =>
+      widget.audioDependencies?.audioTurnCoordinator?.currentToken?.owner ==
+          AudioTurnOwner.vocabulary ||
+      _selectedJourney != null ||
+      _playingCollection ||
+      _activeEntryId != null ||
+      _waitingForPlaybackContinuation ||
+      _awaitingPlaybackEndChoice;
 
   Future<bool> _boundPlaybackNavigationCleanup(Future<void> operation) {
     _finishPlaybackNavigationCleanup();

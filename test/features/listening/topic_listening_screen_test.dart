@@ -721,7 +721,15 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('topic-choice-1')));
+        await tester.tap(
+          find.byKey(
+            ValueKey<String>(
+              defaultTargetPlatform == TargetPlatform.iOS
+                  ? 'course-relearn-topic-1'
+                  : 'topic-choice-1',
+            ),
+          ),
+        );
         await tester.pumpAndSettle();
 
         final replayTopic = group.topics.first;

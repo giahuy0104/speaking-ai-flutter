@@ -14,6 +14,7 @@ import '../../../core/privacy/parental_gate.dart';
 import '../../../l10n/display_language.dart';
 import '../../conversation/application/conversation_settings_port.dart';
 import '../../listening/domain/listening_catalog.dart';
+import 'ios_settings_sheet.dart';
 
 class SettingsSheet extends StatelessWidget {
   const SettingsSheet({
@@ -49,6 +50,23 @@ class SettingsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      return IosSettingsSheet(
+        controller: controller,
+        themeMode: themeMode,
+        onThemeModeChanged: onThemeModeChanged,
+        onChildAgeChanged: onChildAgeChanged,
+        onStartTutorial: onStartTutorial,
+        config: config,
+        privacyConsentGranted: privacyConsentGranted,
+        voiceAccessEnabled: voiceAccessEnabled,
+        onRequestVoiceAccess: onRequestVoiceAccess,
+        onManagePrivacyConsent: onManagePrivacyConsent,
+        onRevokePrivacyConsent: onRevokePrivacyConsent,
+        stopMediaWhenBackgrounded: stopMediaWhenBackgrounded,
+        onStopMediaWhenBackgroundedChanged: onStopMediaWhenBackgroundedChanged,
+      );
+    }
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {

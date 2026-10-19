@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -8,6 +9,7 @@ import '../../../app/device_connection_feedback_overlay.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
 import '../../listening/domain/listening_catalog.dart';
+import 'ios_startup_setup_screen.dart';
 
 enum _ParentSetupStep { privacy, profile, permissions }
 
@@ -131,6 +133,43 @@ class _StartupSetupScreenState extends State<StartupSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      return IosStartupSetupScreen(
+        profileLoading: widget.profileLoading,
+        permissionRequestInProgress: widget.permissionRequestInProgress,
+        privacyConfigurationComplete: widget.privacyConfigurationComplete,
+        privacyConsentGranted: widget.privacyConsentGranted,
+        limitedModeSelected: widget.limitedModeSelected,
+        microphoneGranted: widget.microphoneGranted,
+        bluetoothRequired: widget.bluetoothRequired,
+        bluetoothGranted: widget.bluetoothGranted,
+        h20BleConnected: widget.h20BleConnected,
+        h20HfpConfigured: widget.h20HfpConfigured,
+        selectedAge: widget.selectedAge,
+        aiSubprocessors: widget.aiSubprocessors,
+        dataRetentionSummary: widget.dataRetentionSummary,
+        onGrantPrivacyConsent: widget.onGrantPrivacyConsent,
+        onContinueWithoutVoice: widget.onContinueWithoutVoice,
+        onRetryPermissions: widget.onRetryPermissions,
+        onSetupH20: widget.onSetupH20,
+        onAgeSelected: widget.onAgeSelected,
+        onCompleteSetup: widget.onCompleteSetup,
+        allowPhoneMicFallback: widget.allowPhoneMicFallback,
+        allowBleOnlySetup: widget.allowBleOnlySetup,
+        androidOfflineEnglishModelOptionAvailable:
+            widget.androidOfflineEnglishModelOptionAvailable,
+        androidOfflineEnglishModelDownloadAllowed:
+            widget.androidOfflineEnglishModelDownloadAllowed,
+        onAndroidOfflineEnglishModelDownloadChanged:
+            widget.onAndroidOfflineEnglishModelDownloadChanged,
+        onChooseH20Microphone: widget.onChooseH20Microphone,
+        h20DeviceName: widget.h20DeviceName,
+        privacyPolicyUri: widget.privacyPolicyUri,
+        termsUri: widget.termsUri,
+        supportUri: widget.supportUri,
+        permissionError: widget.permissionError,
+      );
+    }
     final theme = Theme.of(context);
     final stepNumber = _step.index + 1;
     return Stack(

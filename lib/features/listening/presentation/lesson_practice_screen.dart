@@ -1046,6 +1046,21 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
                                         canGoPrevious: _sentenceIndex > 0,
                                         finalSentence:
                                             _sentenceIndex == total - 1,
+                                      )
+                                    else if (defaultTargetPlatform !=
+                                        TargetPlatform.android)
+                                      _LessonNavigationActions(
+                                        current: _sentenceIndex,
+                                        total: total,
+                                        busy: interactionBusy,
+                                        allowPrevious:
+                                            widget.lesson.usesV4Flow ||
+                                            _sentenceIndex > 0,
+                                        allowNext:
+                                            !widget.lesson.usesV4Flow ||
+                                            _sentenceIndex < total - 1,
+                                        onPrevious: _previous,
+                                        onContinue: _continue,
                                       ),
                                     if (_showSkip &&
                                         _recordingPath == null) ...<Widget>[
@@ -2731,11 +2746,35 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     ListeningPendingChoiceStage? resumePendingStage,
   }) async {
     if (!mounted || _v4CompletionChoiceVisible) return;
-    if (resumePendingStage == ListeningPendingChoiceStage.nextLevel) {
-      // Older builds persisted index 3 while waiting to start another Level.
-      // Drop that obsolete choice and recompute completion across all topics.
+    final isIos = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    if (isIos && await _allTopicsInCourseCompleted()) {
+      final courseId = '${widget.startAge}-${widget.endAge}';
+      await widget.progressStore.markCourseCompleted(courseId);
+      if (!await widget.progressStore.hasCourseCompletionEventCreated(
+        courseId,
+      )) {
+        await _speakLessonPrompt('Bạn đã hoàn thành khóa học rồi!');
+        await widget.progressStore.markCourseCompletionEventCreated(courseId);
+      }
       await widget.progressStore.clearPendingCompletionChoice(widget.lesson.id);
-      resumePendingStage = null;
+      widget.onTopicCompleted?.call();
+      await _returnToTopicSelection();
+      return;
+    }
+    if (resumePendingStage == ListeningPendingChoiceStage.nextLevel) {
+      if (isIos) {
+        final remaining = await _incompleteTopicsInCourse();
+        resumePendingStage = remaining.length == 1
+            ? ListeningPendingChoiceStage.topicEndOneRemaining
+            : ListeningPendingChoiceStage.topicEnd;
+      } else {
+        // Older builds persisted index 3 while waiting to start another Level.
+        // Drop that obsolete choice and recompute completion across all topics.
+        await widget.progressStore.clearPendingCompletionChoice(
+          widget.lesson.id,
+        );
+        resumePendingStage = null;
+      }
     }
     if (resumePendingStage != null) {
       final pendingStage = resumePendingStage;
@@ -3162,6 +3201,11 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   Future<bool> _allTopicsInCourseCompleted() async {
     final group = widget.contentGroup;
     if (group == null || !_isLastLessonInTopic) return false;
+    if (!kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.iOS &&
+        group.topics.length != 10) {
+      return false;
+    }
     final progress = await widget.progressStore.readAll();
     final activities = await widget.progressStore
         .readCompletedV4LessonActivities();
@@ -5335,6 +5379,86 @@ class _CompactAction extends StatelessWidget {
           width: 1.2,
         ),
       ),
+    );
+  }
+}
+
+class _LessonNavigationActions extends StatelessWidget {
+  const _LessonNavigationActions({
+    required this.current,
+    required this.total,
+    required this.busy,
+    required this.allowPrevious,
+    required this.allowNext,
+    required this.onPrevious,
+    required this.onContinue,
+  });
+
+  final int current;
+  final int total;
+  final bool busy;
+  final bool allowPrevious;
+  final bool allowNext;
+  final VoidCallback onPrevious;
+  final VoidCallback onContinue;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: OutlinedButton.icon(
+            key: const Key('previous-lesson-sentence'),
+            onPressed: busy || !allowPrevious ? null : onPrevious,
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(62),
+              foregroundColor: isDark ? colorScheme.primary : AppColors.indigo,
+              backgroundColor: isDark
+                  ? colorScheme.surfaceContainer
+                  : Colors.white,
+              disabledBackgroundColor: isDark
+                  ? colorScheme.surfaceContainer.withValues(alpha: 0.72)
+                  : Colors.white.withValues(alpha: 0.72),
+              side: BorderSide(
+                color: isDark ? colorScheme.outline : AppColors.lavenderBorder,
+              ),
+              textStyle: const TextStyle(
+                fontFamily: 'Roboto',
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            icon: const Icon(Icons.arrow_back_rounded),
+            label: Text(context.tr('Câu trước', '上一句'), maxLines: 1),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: FilledButton.icon(
+            key: const Key('continue-lesson-sentence'),
+            onPressed: busy || !allowNext ? null : onContinue,
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(62),
+              textStyle: const TextStyle(
+                fontFamily: 'Roboto',
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            iconAlignment: IconAlignment.end,
+            icon: const Icon(Icons.arrow_forward_rounded),
+            label: Text(
+              context.tr(
+                current == total - 1 ? 'Hoàn thành câu này' : 'Tiếp tục',
+                current == total - 1 ? '请完成本句' : '继续',
+              ),
+              maxLines: 1,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

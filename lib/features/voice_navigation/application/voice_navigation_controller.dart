@@ -172,6 +172,7 @@ class VoiceNavigationController extends ChangeNotifier {
   bool _awaitingCommand = false;
   bool _acknowledgingWakeWord = false;
   bool _buttonCommandSession = false;
+  ActiveLearningModuleKind? _mainButtonActiveLearningKind;
   bool _mainButtonActivationInProgress = false;
   bool _disposed = false;
   int _generation = 0;
@@ -277,6 +278,9 @@ class VoiceNavigationController extends ChangeNotifier {
       () {
         // Only an explicit MAIN activation releases the stopped-session gate.
         _translationStoppedAwaitingMain = false;
+        _mainButtonActiveLearningKind = activeLearning
+            ? activeLearningKind
+            : null;
         if (activeLearning) {
           return _mainAssistantFlow.beginActiveLearning(
             kind: activeLearningKind,
@@ -568,7 +572,34 @@ class VoiceNavigationController extends ChangeNotifier {
     // A valid transcript starts a new response window at the resulting node.
     _mainNoSpeechRetryCount = 0;
 
-    final navigationBeforePrompt = turn.navigationBeforePrompt;
+    final navigationAfterPrompt = turn.navigationAfterPrompt;
+    final prepareModuleBeforePrompt =
+        iosNavigation &&
+        choiceStage == MainVoiceAssistantStage.activeLearning &&
+        _mainButtonActiveLearningKind == ActiveLearningModuleKind.vocabulary &&
+        turn.navigationBeforePrompt == null &&
+        ((navigationAfterPrompt?.destination ==
+                    VoiceNavigationDestination.conversation &&
+                navigationAfterPrompt?.enterMainSpeakingMode == true &&
+                turn.promptSequence.isNotEmpty) ||
+            (navigationAfterPrompt?.destination ==
+                    VoiceNavigationDestination.topics &&
+                turn.promptText.trim().isNotEmpty));
+    final navigationBeforePrompt = prepareModuleBeforePrompt
+        ? VoiceNavigationIntent(
+            destination: navigationAfterPrompt!.destination,
+            recognizedText: navigationAfterPrompt.recognizedText,
+            matchedPhrase: navigationAfterPrompt.matchedPhrase,
+            topicNumber: navigationAfterPrompt.topicNumber,
+            lessonNumber: navigationAfterPrompt.lessonNumber,
+            childAge: navigationAfterPrompt.childAge,
+            openLesson: navigationAfterPrompt.openLesson,
+            relearnTopic: navigationAfterPrompt.relearnTopic,
+            relearnLesson: navigationAfterPrompt.relearnLesson,
+            prepareOnly: true,
+            vocabularyTarget: navigationAfterPrompt.vocabularyTarget,
+          )
+        : turn.navigationBeforePrompt;
     if (navigationBeforePrompt != null) {
       final dispatched = await _dispatchIntent(navigationBeforePrompt);
       if (!dispatched &&
@@ -587,7 +618,9 @@ class VoiceNavigationController extends ChangeNotifier {
       if (_disposed || generation != _generation || !_buttonCommandSession) {
         return false;
       }
-      if (iosNavigation && _mainAssistantFlow.stage == choiceStage) {
+      if (iosNavigation &&
+          turn.navigationAfterPrompt == null &&
+          _mainAssistantFlow.stage == choiceStage) {
         _mainAssistantFlow.reset();
       }
     }
@@ -721,7 +754,6 @@ class VoiceNavigationController extends ChangeNotifier {
         return false;
       }
     }
-    final navigationAfterPrompt = turn.navigationAfterPrompt;
     if (navigationAfterPrompt != null) {
       final dispatched = await _dispatchIntent(navigationAfterPrompt);
       if (!dispatched &&
@@ -1044,8 +1076,8 @@ class VoiceNavigationController extends ChangeNotifier {
 
   Future<bool> _dispatchIntent(VoiceNavigationIntent intent) async {
     final handler = _intentHandler;
-    final resultHandler = ((!kIsWeb &&
-                defaultTargetPlatform == TargetPlatform.iOS) ||
+    final resultHandler =
+        ((!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) ||
             intent.vocabularyTarget != null)
         ? _intentResultHandler
         : null;
@@ -1505,8 +1537,9 @@ class VoiceNavigationController extends ChangeNotifier {
     }
     _commandAnswerComplete = _mainAssistantFlow.canEndOnSilence(text);
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
-      _commandAnswerEndsEarly =
-          _mainAssistantFlow.canEndUnfinishedAnswerEarly(text);
+      _commandAnswerEndsEarly = _mainAssistantFlow.canEndUnfinishedAnswerEarly(
+        text,
+      );
       _commandAnswerHeard = true;
     }
     if (_commandVoiceSeen) {
