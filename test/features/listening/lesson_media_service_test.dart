@@ -9,11 +9,67 @@ import 'package:ai_speaking_flutter_app/core/audio/wav_audio.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:ai_speaking_flutter_app/features/listening/data/lesson_recording_history_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:record/record.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test(
+    'iOS prepares normalized audio without history; registration saves it',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      final temporary = await Directory.systemTemp.createTemp(
+        'native-replay-test-',
+      );
+      final original = await File(
+        '${temporary.path}/take.wav',
+      ).writeAsBytes([1]);
+      final normalized = await File(
+        '${temporary.path}/take.normalized.wav',
+      ).writeAsBytes([2]);
+      final historyFile = File('${temporary.path}/history.json');
+      final history = LessonRecordingHistoryStore(customPath: historyFile.path);
+      final media = LessonMediaService(historyStore: history);
+      const channel = MethodChannel('ailingo_voice_prompt');
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      addTearDown(() async {
+        messenger.setMockMethodCallHandler(channel, null);
+        debugDefaultTargetPlatformOverride = null;
+        await media.dispose();
+        await temporary.delete(recursive: true);
+      });
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        expect(call.method, 'normalizeLessonRecording');
+        expect((call.arguments as Map)['path'], original.path);
+        return normalized.path;
+      });
+      final recording = LessonRecording(
+        filePath: original.path,
+        duration: const Duration(seconds: 2),
+      );
+      final prepared = await media.prepareExternalRecordingForPlayback(
+        recording,
+      );
+      expect(prepared.filePath, normalized.path);
+      expect(prepared.duration, recording.duration);
+      expect(await historyFile.exists(), isFalse);
+      final registered = await media.registerExternalRecording(
+        recording: recording,
+        lessonId: 'test-lesson',
+        lessonTitle: 'Test',
+        sentenceId: 'test-sentence',
+        sentenceNumber: 1,
+        english: 'Hello',
+        vietnamese: 'Xin chào',
+      );
+      expect(registered.filePath, normalized.path);
+      expect((await history.readAll()).single.filePath, normalized.path);
+    },
+  );
 
   group('Android lesson capture route', () {
     late Directory temporary;

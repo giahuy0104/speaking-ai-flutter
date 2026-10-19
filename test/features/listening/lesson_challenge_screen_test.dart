@@ -1123,6 +1123,55 @@ void main() {
     variant: TargetPlatformVariant.only(TargetPlatform.iOS),
   );
 
+  for (final recognitionFails in <bool>[false, true]) {
+    testWidgets(
+      'iOS waits for normalized replay (recognitionFails=$recognitionFails)',
+      (tester) async {
+        await _usePhoneSurface(tester);
+        final media = _FakeLessonMediaService()
+          ..preparationGate = Completer<LessonRecording>();
+        final speech = _RecordingFailureIosInput();
+        addTearDown(speech.dispose);
+        await tester.pumpWidget(
+          _subject(
+            startAge: 7,
+            mediaService: media,
+            iosSpeechInput: recognitionFails
+                ? speech
+                : _FakeLessonEnglishSpeechInput(
+                    'Go straight.',
+                    recordedAudio: speech.takeLessonRecordingAudioCapture(),
+                  ),
+          ),
+        );
+        await _pumpChallengeTransition(tester);
+        await tester.tap(
+          find.byKey(const Key('lesson-challenge-record-button')),
+        );
+        await _pumpChallengeTransition(tester);
+        expect(
+          media.preparedRecordings.single.filePath,
+          '/recordings/answer.wav',
+        );
+        expect(media.completedPlaybackUris, isEmpty);
+        media.preparationGate!.complete(
+          const LessonRecording(
+            filePath: '/recordings/answer.normalized.wav',
+            duration: Duration(seconds: 1),
+          ),
+        );
+        await _pumpChallengeTransition(tester);
+        expect(media.completedPlaybackUris, <Uri>[
+          Uri.file('/recordings/answer.normalized.wav'),
+        ]);
+        expect(media.completedPlaybackGains, <double>[0]);
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump();
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    );
+  }
+
   testWidgets('iOS scores a challenge on device without calling the backend', (
     tester,
   ) async {
@@ -1409,6 +1458,17 @@ ListeningLessonContent _lesson() {
 }
 
 class _FakeLessonMediaService extends LessonMediaService {
+  Completer<LessonRecording>? preparationGate;
+  final List<LessonRecording> preparedRecordings = <LessonRecording>[];
+
+  @override
+  Future<LessonRecording> prepareExternalRecordingForPlayback(
+    LessonRecording recording,
+  ) async {
+    preparedRecordings.add(recording);
+    return preparationGate == null ? recording : await preparationGate!.future;
+  }
+
   @override
   Future<String> recordingPath({
     required String lessonId,
@@ -1606,8 +1666,10 @@ class _FakeLessonEnglishSpeechInput implements LessonEnglishSpeechInput {
     this.transcript, {
     this.startError,
     this.startGate,
+    this.recordedAudio,
   });
 
+  final AudioCapture? recordedAudio;
   final String transcript;
   final Object? startError;
   final Completer<void>? startGate;
@@ -1630,6 +1692,7 @@ class _FakeLessonEnglishSpeechInput implements LessonEnglishSpeechInput {
       sourceText: transcript,
       duration: const Duration(seconds: 1),
       inputLabel: 'H20 Apple Speech',
+      recordedAudio: recordedAudio,
       confidence: 1,
       firstResultMs: 120,
       finalAfterStopMs: 80,

@@ -793,7 +793,16 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
           _recording = false;
           _recordingUsesIosSpeech = false;
         });
-        await _playAttemptRecordingToCompletion(completedRecording);
+        var replayRecording = completedRecording;
+        try {
+          replayRecording = await widget.mediaService
+              .prepareExternalRecordingForPlayback(completedRecording);
+        } catch (error) {
+          // Keep the answer and original audio usable if preparation fails.
+          debugPrint('HOMI challenge recording normalization failed: $error');
+        }
+        if (!mounted || _pausedForMainAssistant || request != _request) return;
+        await _playAttemptRecordingToCompletion(replayRecording);
         if (!mounted || _pausedForMainAssistant || request != _request) return;
       }
       if (outcome != LessonAttemptOutcome.unclear &&
