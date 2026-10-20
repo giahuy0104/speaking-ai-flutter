@@ -95,12 +95,17 @@ final class AudioPromptResolver {
     if (prompt.remoteUri != null) {
       try {
         final bytes = await repository.downloadPrompt(prompt);
-        await repository.cache.putVerified(
-          pack: indexed.pack.pack,
-          sha256: prompt.sha256,
-          bytes: bytes,
-          maximumBytes: repository.maximumAudioBytes,
-        );
+        try {
+          await repository.cache.putVerified(
+            pack: indexed.pack.pack,
+            sha256: prompt.sha256,
+            bytes: bytes,
+            maximumBytes: repository.maximumAudioBytes,
+          );
+        } catch (error) {
+          // Verified audio can still play when storage is full/unavailable.
+          _diagnoseFailure(request, 'cache_write', error);
+        }
         return AudioPromptResolution(
           source: AudioPromptSource.remote,
           bytes: bytes,

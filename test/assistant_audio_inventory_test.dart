@@ -196,7 +196,7 @@ void main() {
   );
 
   test(
-    'pubspec bundles approved media, assistant-core and GAP66 independently',
+    'pubspec keeps assistant manifest while bundling other audio packs',
     () async {
       final pubspec = await File('pubspec.yaml').readAsString();
       expect(
@@ -204,7 +204,7 @@ void main() {
         contains('assets/audio/A-3-5/GUIDE_RECORD/A035_GUIDE_RECORD_01.mp3'),
       );
       expect(pubspec, contains('assets/audio/MAIN/SFX_STAR_TING.mp3'));
-      expect(pubspec, contains('assets/audio/assistant-core/'));
+      expect(pubspec, isNot(contains('assets/audio/assistant-core/')));
       expect(pubspec, contains('assets/data/assistant_core_audio.json'));
       expect(pubspec, contains('assets/audio/MAIN/GAP66/'));
       expect(pubspec, contains('assets/data/homi_gap66_audio.json'));

@@ -8,6 +8,7 @@ import '../../../app/homi_ui.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
 import '../../../core/audio/streaming_speech_input.dart';
+import '../../../core/audio/audio_gain.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/active_learning_module.dart';
 import '../../../l10n/display_language.dart';
@@ -154,13 +155,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     super.initState();
     _ownsAttemptEvaluator = widget.attemptEvaluator == null;
     _attemptEvaluator =
-        widget.attemptEvaluator ??
-        createDefaultLessonAttemptEvaluator(preferAndroidOnDevice: true);
-    final evaluator = _attemptEvaluator;
-    if (_ownsAttemptEvaluator &&
-        evaluator is AndroidOnDeviceFirstLessonAttemptEvaluator) {
-      unawaited(evaluator.prepare());
-    }
+        widget.attemptEvaluator ?? createDefaultLessonAttemptEvaluator();
     _voicePromptService = widget.voicePromptService;
     _pausedForMainAssistant = widget.startPaused;
     if (widget.startPaused) _message = 'Phần thử thách đang tạm dừng.';
@@ -185,10 +180,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     // put the Challenge UI back into a recording state with no microphone.
     _request += 1;
     _recordingEndpointDetector.cancel();
-    final evaluator = _attemptEvaluator;
-    if (evaluator is AndroidOnDeviceFirstLessonAttemptEvaluator) {
-      unawaited(evaluator.cancelLiveRecognition());
-    }
     _cancelIosRecordingCompletion();
     setState(() {
       _recording = false;
@@ -242,10 +233,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       unawaited(widget.mediaService.stopPlayback());
     }
     if (wasRecording) {
-      final evaluator = _attemptEvaluator;
-      if (evaluator is AndroidOnDeviceFirstLessonAttemptEvaluator) {
-        unawaited(evaluator.cancelLiveRecognition());
-      }
       if (_recordingUsesIosSpeech && widget.iosSpeechInput != null) {
         unawaited(widget.iosSpeechInput!.cancel());
       } else {
@@ -273,10 +260,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     _request += 1;
     _mainPauseGeneration += 1;
     _recordingEndpointDetector.cancel();
-    final evaluator = _attemptEvaluator;
-    if (evaluator is AndroidOnDeviceFirstLessonAttemptEvaluator) {
-      unawaited(evaluator.cancelLiveRecognition());
-    }
     _cancelIosRecordingCompletion();
     _promptCompletionTimer?.cancel();
     _promptCompletionTimer = null;
@@ -391,9 +374,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       await _prepareSelectedLessonOutputWithRetry(request);
       if (!mounted || request != _request) return false;
       if (announceIntro) {
-        // Once the first introduction starts, a later MAIN stop/resume is a
-        // continuation of this challenge, even if the question was interrupted.
-        _initialPromptPending = false;
         await _speakPromptAndWait(
           'Tiếp theo là một câu thử thách nhé.',
           audioKey: ListeningAudioKeys.challengeIntro,
@@ -460,17 +440,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   }
 
   Future<void> _replayCurrent() async {
-    if (!mounted) return;
-    if (_pausedAfterNoResponse) {
-      // Replaying a paused question starts a fresh answer window, just like
-      // the microphone retry button, without adding the resume announcement.
-      setState(() {
-        _pausedAfterNoResponse = false;
-        _invalidResponseCount = 0;
-        _attemptNumber = 0;
-        _message = null;
-      });
-    }
     if (_recording) {
       _recordingEndpointDetector.cancel();
       _cancelIosRecordingCompletion();
@@ -485,7 +454,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         _recordingUsesIosSpeech = false;
       });
     }
-    await _playCurrentPrompt(announceIntro: false);
+    await _playCurrentPrompt(announceIntro: true);
   }
 
   Future<void> _speakPromptAndWait(
@@ -725,11 +694,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         }
         return;
       }
-      final evaluator = _attemptEvaluator;
-      if (!usesIosSpeech &&
-          evaluator is AndroidOnDeviceFirstLessonAttemptEvaluator) {
-        evaluator.beginLiveRecognition(widget.mediaService.activeRecordingPath);
-      }
       if (!cueBeforeStart && prompt is SpeechReadyCuePlayer) {
         await (prompt as SpeechReadyCuePlayer).playSpeechReadyCue();
       }
@@ -829,10 +793,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
           _recording = false;
           _recordingUsesIosSpeech = false;
         });
-        final replayRecording = await widget.mediaService
-            .prepareExternalRecordingForPlayback(completedRecording);
-        if (!mounted || _pausedForMainAssistant || request != _request) return;
-        await _playAttemptRecordingToCompletion(replayRecording);
+        await _playAttemptRecordingToCompletion(completedRecording);
         if (!mounted || _pausedForMainAssistant || request != _request) return;
       }
       if (outcome != LessonAttemptOutcome.unclear &&
@@ -871,7 +832,25 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   Future<void> _playAttemptRecordingToCompletion(
     LessonRecording recording,
   ) async {
-    await widget.mediaService.playRecordingToCompletion(recording);
+    final parsed = Uri.tryParse(recording.filePath);
+    final uri = parsed != null && parsed.hasScheme
+        ? parsed
+        : Uri.file(recording.filePath);
+    final requestedTimeout = recording.duration + const Duration(seconds: 5);
+    final timeout = requestedTimeout < const Duration(seconds: 10)
+        ? const Duration(seconds: 10)
+        : requestedTimeout;
+    try {
+      await widget.mediaService.playToCompletion(
+        uri,
+        timeout: timeout,
+        playbackGainDb: lessonRecordingPlaybackGainDb,
+        fixedPlaybackGain: true,
+      );
+    } catch (error) {
+      // A playback problem must not discard the answer or prevent scoring.
+      debugPrint('HOMI challenge attempt playback failed: $error');
+    }
   }
 
   Future<(LessonAttemptOutcome, LessonRecording?)> _stopAndScoreIosOnDevice(
@@ -1109,7 +1088,6 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   int get _recordingNumber => 100 + _challengeIndex + 1;
 
   String _friendlyError(Object error) {
-    if (error is LessonMediaException) return error.toString();
     if (error is StreamingSpeechInputException) {
       return error.message;
     }
