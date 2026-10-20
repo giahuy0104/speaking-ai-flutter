@@ -5,6 +5,17 @@
   "enabled": true,
   "prompts": [
     {
+      "key": "assistant.main.song_skipped.vi",
+      "enabled": true,
+      "locale": "vi-VN",
+      "asset": "assets/audio/assistant-core/assistant.main.song_skipped.vi.mp3",
+      "durationSeconds": 1.410563,
+      "sha256": "81606cd5a870e069eab657d4910a44c44548d78811696257529a7f813924809e",
+      "sizeBytes": 39506,
+      "text": "Mình bỏ qua bài hát nhé.",
+      "textHash": "b5b22dbb02e8272bdc2ac307d4a84c723c732f9e4c3845a81939dff752353d4f"
+    },
+    {
       "key": "assistant.main.open_menu.vi",
       "enabled": true,
       "locale": "vi-VN",

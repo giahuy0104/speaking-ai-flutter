@@ -203,6 +203,11 @@ void main() {
     expect(flow.currentPromptAudioKey, MainAssistantAudioKeys.songControls);
     final skipped = await flow.handle('Bỏ qua bài hát');
     expect(skipped.promptText, MasterNavigationContract.songSkipped);
+    expect(skipped.promptAudioKey, MainAssistantAudioKeys.songSkipped);
+    expect(
+      flow.audioKeyForPrompt(MasterNavigationContract.songSkipped),
+      MainAssistantAudioKeys.songSkipped,
+    );
     expect(skipped.activeLearningCommand, ActiveLearningCommand.nextItem);
 
     final replayed = await flow.handle('Nghe lại');

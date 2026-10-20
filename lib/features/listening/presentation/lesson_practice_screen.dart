@@ -11,7 +11,6 @@ import '../../../app/mascot_assets.dart';
 import '../../../app/praise_fireworks.dart';
 import '../../../core/audio/streaming_speech_input.dart';
 import '../../../core/audio/catalog/media_audio_keys.dart';
-import '../../../core/audio/audio_gain.dart';
 import '../../../core/audio/hfp_audio_control.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
 import '../../../core/audio/voice_prompt_service.dart';
@@ -1254,13 +1253,12 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     if (path == null) {
       return;
     }
-    final parsed = Uri.tryParse(path);
-    final uri = parsed != null && parsed.hasScheme ? parsed : Uri.file(path);
     await _runMediaAction(
-      () => widget.mediaService.play(
-        uri,
-        playbackGainDb: lessonRecordingPlaybackGainDb,
-        fixedPlaybackGain: true,
+      () => widget.mediaService.playRecordingToCompletion(
+        LessonRecording(
+          filePath: path,
+          duration: _recordingDuration ?? Duration.zero,
+        ),
       ),
     );
   }
@@ -1268,44 +1266,8 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   Future<bool> _playAttemptRecordingToCompletion(
     LessonRecording recording,
   ) async {
-    final parsed = Uri.tryParse(recording.filePath);
-    final uri = parsed != null && parsed.hasScheme
-        ? parsed
-        : Uri.file(recording.filePath);
-    final requestedTimeout = recording.duration + const Duration(seconds: 5);
-    final timeout = requestedTimeout < const Duration(seconds: 10)
-        ? const Duration(seconds: 10)
-        : requestedTimeout;
-    final sentenceIndex = _sentenceIndex;
-    final sentenceId = _sentence.id;
-    final pauseTicket = _lessonSession.mainPauseTicket;
-    Future<void> replay() => widget.mediaService.playToCompletion(
-      uri,
-      timeout: timeout,
-      playbackGainDb: lessonRecordingPlaybackGainDb,
-      fixedPlaybackGain: true,
-    );
     try {
-      await replay();
-      return true;
-    } on HfpAudioException catch (error) {
-      // An HM-D001 route blip stops the replay rather than letting it go on
-      // through the phone speaker. Replay once if the route comes back.
-      debugPrint('HOMI lesson attempt playback lost the HFP route: $error');
-      if (!await widget.mediaService.waitForSelectedHfpRoute() ||
-          !mounted ||
-          _pausedForMainAssistant ||
-          !_lessonSession.isCurrentMainPause(pauseTicket) ||
-          sentenceIndex != _sentenceIndex ||
-          sentenceId != _sentence.id) {
-        return false;
-      }
-    } catch (error) {
-      debugPrint('HOMI lesson attempt playback failed: $error');
-      return false;
-    }
-    try {
-      await replay();
+      await widget.mediaService.playRecordingToCompletion(recording);
       return true;
     } catch (error) {
       debugPrint('HOMI lesson attempt playback failed: $error');
@@ -1745,25 +1707,38 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     });
     final completedRecording = recording;
     if (completedRecording != null) {
-      var finalizedRecording = completedRecording;
+      final LessonRecording finalizedRecording;
       try {
         finalizedRecording = await widget.mediaService
-            .registerExternalRecording(
-              recording: completedRecording,
-              lessonId: widget.lesson.id,
-              lessonTitle: widget.lesson.titleVi,
-              sentenceId: evaluatedSentence.id,
-              sentenceNumber: evaluatedSentence.number,
-              english: evaluatedSentence.english,
-              vietnamese: evaluatedSentence.vietnamese,
-            );
+            .prepareExternalRecordingForPlayback(completedRecording);
+      } catch (error) {
         if (_isCurrentEvaluation(
           evaluationRequest,
           evaluatedSentenceIndex,
           evaluatedSentence.id,
         )) {
-          setState(() => _recordingPath = finalizedRecording.filePath);
+          _showAttemptReplayFailure();
         }
+        return;
+      }
+      if (!_isCurrentEvaluation(
+        evaluationRequest,
+        evaluatedSentenceIndex,
+        evaluatedSentence.id,
+      )) {
+        return;
+      }
+      setState(() => _recordingPath = finalizedRecording.filePath);
+      try {
+        await widget.mediaService.registerExternalRecording(
+          recording: finalizedRecording,
+          lessonId: widget.lesson.id,
+          lessonTitle: widget.lesson.titleVi,
+          sentenceId: evaluatedSentence.id,
+          sentenceNumber: evaluatedSentence.number,
+          english: evaluatedSentence.english,
+          vietnamese: evaluatedSentence.vietnamese,
+        );
       } catch (error) {
         debugPrint(
           'HOMI could not archive the Apple Speech lesson WAV: $error',
@@ -1787,9 +1762,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         return;
       }
       if (widget.lesson.usesV4Flow && !replayedRecording) {
-        debugPrint(
-          'HOMI iOS lesson recording replay failed; outcome=$outcome',
-        );
+        debugPrint('HOMI iOS lesson recording replay failed; outcome=$outcome');
         _showAttemptReplayFailure();
         return;
       }

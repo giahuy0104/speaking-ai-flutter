@@ -1772,6 +1772,15 @@ void main() {
   testWidgets(
     'iOS closes Review before translation starts and keeps its checkpoint',
     (tester) async {
+      // Exercise foreground navigation: a detached binding skips animations
+      // and hides the deadlock caused by the covered shell's muted tickers.
+      final previousLifecycleState = tester.binding.lifecycleState;
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      addTearDown(() {
+        tester.binding.handleAppLifecycleStateChanged(
+          previousLifecycleState ?? AppLifecycleState.detached,
+        );
+      });
       SharedPreferences.setMockInitialValues(<String, Object>{});
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1;
@@ -1867,8 +1876,8 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       }
 
-      expect(await navigation, isTrue);
       expect(translationStarted, isTrue);
+      expect(await navigation, isTrue);
       expect(practiceVisibleWhenStarted, isFalse);
       expect(pageWhenTranslationStarted, closeTo(0, 0.001));
       expect(navigationExits, exitsBeforeTransfer + 1);

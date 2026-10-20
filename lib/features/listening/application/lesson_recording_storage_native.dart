@@ -58,8 +58,9 @@ Future<void> deleteLessonRecording(String path) async {
 
 Future<String?> resolveLessonRecording(
   String? recordedPath,
-  String expectedPath,
-) async {
+  String expectedPath, {
+  bool requireNormalization = false,
+}) async {
   final path = recordedPath ?? expectedPath;
   final recording = File(path);
   if (!await recording.exists()) return null;
@@ -98,10 +99,15 @@ Future<String?> resolveLessonRecording(
           await File(normalizedPath).exists()) {
         return normalizedPath;
       }
+      if (requireNormalization) {
+        throw StateError('Native normalization returned no usable recording.');
+      }
     } on MissingPluginException {
+      if (requireNormalization) rethrow;
       // Unit tests and older native shells do not expose the normalizer. Keep
       // the valid original recording instead of making capture unusable.
     } on PlatformException catch (error) {
+      if (requireNormalization) rethrow;
       debugPrint('iOS lesson recording normalization skipped: $error');
     }
   }

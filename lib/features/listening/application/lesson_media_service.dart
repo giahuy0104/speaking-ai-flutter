@@ -89,6 +89,7 @@ class LessonMediaService {
   }
 
   final LessonRecordingHistoryStore historyStore;
+  final Map<String, Future<String>> _preparedRecordingPaths = {};
 
   AudioRecorder? _recorder;
   AudioPlaybackService? _playbackService;
@@ -834,17 +835,13 @@ class LessonMediaService {
           _recordingStartedAt = null;
           _activePath = null;
           _activeContext = null;
-          final resolvedPath = await resolveLessonRecording(
-            recordedPath,
-            expectedPath,
+          final recording = await prepareExternalRecordingForPlayback(
+            LessonRecording(
+              filePath: recordedPath ?? expectedPath,
+              duration: stoppedAt.difference(startedAt),
+            ),
           );
-          if (resolvedPath == null) {
-            throw const LessonMediaException('Không tìm thấy bản ghi vừa tạo.');
-          }
-          final recording = LessonRecording(
-            filePath: resolvedPath,
-            duration: stoppedAt.difference(startedAt),
-          );
+          final resolvedPath = recording.filePath;
           if (context.saveToHistory) {
             final createdAt = DateTime.now();
             final evictedPaths = await historyStore.addSuccessful(
@@ -884,16 +881,64 @@ class LessonMediaService {
   Future<LessonRecording> prepareExternalRecordingForPlayback(
     LessonRecording recording,
   ) async {
-    final resolvedPath = await resolveLessonRecording(
+    final pending = _preparedRecordingPaths.putIfAbsent(
       recording.filePath,
-      recording.filePath,
+      () => _normalizeRecordingWithRetry(recording.filePath),
     );
-    if (resolvedPath == null) {
-      throw const LessonMediaException('Không tìm thấy bản ghi vừa tạo.');
+    try {
+      final resolvedPath = await pending;
+      _preparedRecordingPaths[resolvedPath] = Future.value(resolvedPath);
+      return LessonRecording(
+        filePath: resolvedPath,
+        duration: recording.duration,
+      );
+    } catch (_) {
+      _preparedRecordingPaths.remove(recording.filePath);
+      rethrow;
     }
-    return LessonRecording(
-      filePath: resolvedPath,
-      duration: recording.duration,
+  }
+
+  Future<String> _normalizeRecordingWithRetry(String path) async {
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        final resolved = await resolveLessonRecording(
+          path,
+          path,
+          requireNormalization: true,
+        );
+        if (resolved == null) throw StateError('Recording is missing.');
+        return resolved;
+      } catch (error) {
+        debugPrint(
+          'Lesson recording preparation attempt ${attempt + 1}: $error',
+        );
+      }
+    }
+    throw const LessonMediaException(
+      'Không thể chuẩn hóa bản ghi để phát lại. Bạn ghi lại nhé.',
+    );
+  }
+
+  /// Shared replay policy for prepared topic and challenge recordings.
+  Future<void> playRecordingToCompletion(LessonRecording recording) {
+    final parsed = Uri.tryParse(recording.filePath);
+    final isWindowsPath = RegExp(
+      r'^[a-zA-Z]:[/\\]',
+    ).hasMatch(recording.filePath);
+    final uri = isWindowsPath
+        ? Uri.file(recording.filePath, windows: true)
+        : parsed != null && parsed.hasScheme
+        ? parsed
+        : Uri.file(recording.filePath);
+    final requestedTimeout = recording.duration + const Duration(seconds: 5);
+    return playToCompletion(
+      uri,
+      timeout: requestedTimeout < const Duration(seconds: 10)
+          ? const Duration(seconds: 10)
+          : requestedTimeout,
+      route: LessonPlaybackRoute.selectedLessonDevice,
+      playbackGainDb: lessonRecordingPlaybackGainDb,
+      fixedPlaybackGain: true,
     );
   }
 
@@ -985,6 +1030,7 @@ class LessonMediaService {
   }
 
   Future<void> dispose() async {
+    _preparedRecordingPaths.clear();
     _playbackRequestGeneration += 1;
     await _hfpStatusSubscription?.cancel();
     await _recordingOperation;

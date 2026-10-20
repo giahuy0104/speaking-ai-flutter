@@ -174,6 +174,9 @@ class MainVoiceAssistantFlow {
   /// Maps the finite dynamic prompts in the Topic flow to authored recordings.
   String? audioKeyForPrompt(String text) {
     final value = text.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (value == MasterNavigationContract.songSkipped) {
+      return MainAssistantAudioKeys.songSkipped;
+    }
     if (value == courseRelearnTopicPrompt) {
       return MainAssistantAudioKeys.courseRelearnTopic;
     }
@@ -1439,6 +1442,10 @@ class MainVoiceAssistantFlow {
       ActiveLearningCommand.replayCurrent =>
         _activeVoiceNode == ActiveLearningVoiceNode.song && !isVocabulary
             ? MainAssistantAudioKeys.songReplay
+            : null,
+      ActiveLearningCommand.nextItem =>
+        _activeVoiceNode == ActiveLearningVoiceNode.song && !isVocabulary
+            ? MainAssistantAudioKeys.songSkipped
             : null,
       _ => null,
     };

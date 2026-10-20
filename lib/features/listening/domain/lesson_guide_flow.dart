@@ -250,7 +250,7 @@ class LessonGuideFlowV2 {
 
   /// The bilingual lesson script requires a clear two-second pause after the
   /// English sample before its Vietnamese meaning is played.
-  static const Duration englishToVietnamesePause = Duration(seconds: 2);
+  static const Duration englishToVietnamesePause = Duration(seconds: 0);
 
   /// Lets the previous recognition/audio session finish releasing the input
   /// route before an ASR/no-response retry claims the microphone again.

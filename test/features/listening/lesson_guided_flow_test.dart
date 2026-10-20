@@ -1167,7 +1167,7 @@ void main() {
     expect(progressStore.sessionResults, isEmpty);
   });
 
-  testWidgets('V4 replays the take again after a short HM-D001 route blip', (
+  testWidgets('V4 reports a replay failure consistently after a route blip', (
     tester,
   ) async {
     await _usePhoneSurface(tester);
@@ -1189,11 +1189,11 @@ void main() {
     await tester.tap(find.byKey(const Key('record-lesson-sentence')));
     await _pumpGuidedSpeechTurn(tester);
 
-    expect(mediaService.routeWaits, 1);
-    expect(mediaService.takeReplays, 2);
+    expect(mediaService.routeWaits, 0);
+    expect(mediaService.takeReplays, 1);
     expect(
       find.text('Chưa phát lại được bản ghi. Con hãy ghi âm lại nhé.'),
-      findsNothing,
+      findsOneWidget,
     );
   });
 
@@ -1219,7 +1219,7 @@ void main() {
     await tester.tap(find.byKey(const Key('record-lesson-sentence')));
     await _pumpGuidedSpeechTurn(tester);
 
-    expect(mediaService.routeWaits, 1);
+    expect(mediaService.routeWaits, 0);
     expect(mediaService.takeReplays, 1);
     expect(
       find.text('Chưa phát lại được bản ghi. Con hãy ghi âm lại nhé.'),
@@ -1421,6 +1421,62 @@ void main() {
         await tester.pump();
       },
       variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    );
+  }
+
+  for (final preparationFails in [false, true]) {
+    testWidgets(
+      'iOS replay is independent of history (preparationFails=$preparationFails)',
+      (tester) async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        await _usePhoneSurface(tester);
+        final media = _IosLessonMediaService()
+          ..preparationFails = preparationFails
+          ..historyFails = true
+          ..normalizedPath = '/recordings/take.normalized.wav';
+        final speech = _MissingRecordingIosSpeechInput(
+          recordedAudio: const AudioCapture(
+            filePath: '/recordings/take.wav',
+            mimeType: 'audio/wav',
+            duration: Duration(seconds: 2),
+            inputLabel: 'Apple Native Speech',
+            isBluetoothInput: false,
+            initialNoiseRms: null,
+          ),
+        );
+        await tester.pumpWidget(
+          _subject(
+            _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+            media,
+            controller: _IosLearningAudioDependencies(speech),
+            useOwnedEvaluator: true,
+            guideAudioLibrary: _silentGuideAudioLibrary(),
+            voicePromptService: _FakeVoicePromptService(),
+          ),
+        );
+        await _pumpGuidedSpeechTurn(tester);
+        await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+        await _pumpGuidedSpeechTurn(tester);
+        expect(
+          media.playedUris.where((uri) => uri.path.endsWith('take.wav')),
+          isEmpty,
+        );
+        expect(
+          media.playedUris.where(
+            (uri) => uri.path.endsWith('take.normalized.wav'),
+          ),
+          preparationFails ? isEmpty : hasLength(1),
+        );
+        if (preparationFails) {
+          expect(
+            find.text('Chưa phát lại được bản ghi. Con hãy ghi âm lại nhé.'),
+            findsOneWidget,
+          );
+        }
+        await tester.pumpWidget(const SizedBox.shrink());
+        debugDefaultTargetPlatformOverride = null;
+      },
     );
   }
 
@@ -4707,6 +4763,22 @@ class _GuidedMediaService extends LessonMediaService {
 
 class _IosLessonMediaService extends _GuidedMediaService {
   _IosLessonMediaService({super.events});
+  bool preparationFails = false;
+  bool historyFails = false;
+  String? normalizedPath;
+
+  @override
+  Future<LessonRecording> prepareExternalRecordingForPlayback(
+    LessonRecording recording,
+  ) async {
+    if (preparationFails) {
+      throw const LessonMediaException('Preparation failed');
+    }
+    return LessonRecording(
+      filePath: normalizedPath ?? recording.filePath,
+      duration: recording.duration,
+    );
+  }
 
   int nativeHandoffCount = 0;
 
@@ -4731,7 +4803,10 @@ class _IosLessonMediaService extends _GuidedMediaService {
     required int sentenceNumber,
     required String english,
     required String vietnamese,
-  }) async => recording;
+  }) async {
+    if (historyFails) throw StateError('History unavailable');
+    return recording;
+  }
 }
 
 class _FailingAttemptPlaybackMediaService extends _GuidedMediaService {

@@ -41,6 +41,7 @@ abstract final class MainAssistantAudioKeys {
       'assistant.topic.no_lessons_choose_other.vi';
   static const startNow = 'assistant.main.start_now.vi';
   static const songReplay = 'assistant.main.song_replay.vi';
+  static const songSkipped = 'assistant.main.song_skipped.vi';
 
   static String chooseTopic(int topicCount) =>
       'assistant.topic.choose_$topicCount.vi';

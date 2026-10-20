@@ -220,6 +220,14 @@ void main() {
   test('iOS H20 capture keeps the selected output through feedback', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    const channel = MethodChannel('ailingo_voice_prompt');
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(
+      channel,
+      (call) async => (call.arguments as Map)['path'],
+    );
+    addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
     final temporary = await Directory.systemTemp.createTemp(
       'ios-lesson-route-',
     );
