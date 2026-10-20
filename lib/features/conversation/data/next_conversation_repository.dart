@@ -1214,6 +1214,7 @@ class NextConversationRepository
       throw ConversationApiException(
         '${message ?? 'Backend trả về lỗi ${response.statusCode}.'}$supportCode',
         statusCode: response.statusCode,
+        requestId: requestId,
         errorCode: errorCode,
         details: details,
         retryAfter: _parseRetryAfter(response.headers['retry-after']),
@@ -3017,10 +3018,12 @@ class ConversationApiException
     implements
         Exception,
         CodedConversationException,
+        ConversationFailureDiagnostics,
         RetryableConversationException {
   const ConversationApiException(
     this.message, {
     this.statusCode,
+    this.requestId,
     this.errorCode,
     this.details,
     this.retryAfter,
@@ -3028,7 +3031,10 @@ class ConversationApiException
 
   @override
   final String message;
+  @override
   final int? statusCode;
+  @override
+  final String? requestId;
   @override
   final String? errorCode;
   final Map<String, dynamic>? details;
