@@ -61,8 +61,18 @@ void main() {
             'deliverables/homi-gap66-2026-09-17/ready/${e['id']}.json',
           ).readAsStringSync(),
         );
+        // Replacement files have their own verified artifact receipt. Keep
+        // original provider request IDs/source timing as historical evidence.
+        final artifact = receipt['replacementArtifact'] ?? receipt;
         expect(sha256.convert(bytes).toString(), e['sha256']);
-        expect(receipt['finalSha256'], e['sha256']);
+        expect(artifact['asset'], e['asset'], reason: e['id'] as String);
+        expect(artifact['finalSha256'], e['sha256'], reason: e['id'] as String);
+        expect(artifact['bytes'], bytes.length, reason: e['id'] as String);
+        expect(
+          artifact['durationSeconds'],
+          closeTo((e['durationSeconds'] as num).toDouble(), 0.000001),
+          reason: e['id'] as String,
+        );
         expect(receipt['request']['text'], e['text']);
         expect(receipt['request']['model_id'], 'eleven_v3');
         expect(receipt['request']['voice_settings']['speed'], 1.0);

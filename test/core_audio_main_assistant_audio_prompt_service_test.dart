@@ -6,6 +6,8 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/local_cloudinary_audio_client.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -17,6 +19,7 @@ void main() {
         delegate: delegate,
         enabled: true,
         preferBundledAudio: true,
+        httpClient: createLocalCloudinaryAudioClient(),
       );
       addTearDown(service.dispose);
       const prompts = <String, String>{

@@ -16,6 +16,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
+import 'support/local_cloudinary_audio_client.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -548,9 +550,13 @@ void main() {
   );
 
   test('production factory loads generated packs into the registry', () async {
-    final main = createVoicePromptService(owner: AudioTurnOwner.mainAssistant);
+    final main = createVoicePromptService(
+      owner: AudioTurnOwner.mainAssistant,
+      httpClient: createLocalCloudinaryAudioClient(),
+    );
     final listening = createVoicePromptService(
       owner: AudioTurnOwner.listeningLesson,
+      httpClient: createLocalCloudinaryAudioClient(),
     );
     final vocabulary = createVoicePromptService(
       owner: AudioTurnOwner.vocabulary,
@@ -585,7 +591,7 @@ void main() {
         );
         expect(
           resolved.source,
-          AudioPromptSource.bundledAsset,
+          anyOf(AudioPromptSource.remote, AudioPromptSource.deviceCache),
           reason: entry.key,
         );
         expect(

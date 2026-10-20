@@ -5,10 +5,10 @@
   "packs": [
     {
       "pack": "assistant-core",
-      "version": "v3",
+      "version": "v4-cloudinary",
       "minimumAppVersion": "1.0.8",
       "manifest": "assets/data/assistant_core_audio.json",
-      "manifestSha256": "2b33307afdd3b6f6d9b7d02f52c3f02ba62d49c245c78f2127e4bc7ff85f76fa",
+      "manifestSha256": "6da18f47899b51886f5b0b254446050b422f83449188fc1bddc539dcec543e7f",
       "audioCount": 81,
       "sizeBytes": 2921884,
       "preloadGroup": "shared"

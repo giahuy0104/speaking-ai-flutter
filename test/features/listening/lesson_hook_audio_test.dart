@@ -11,6 +11,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../support/local_cloudinary_audio_client.dart';
+
 const _approvedHookAssets = <String, String>{
   'c35-l1-t02-b03': 'nghe-that-ki-nhe.mp3',
   'c35-l2-t05-b01': 'ban-doan-xem-con-gi.mp3',
@@ -50,6 +52,7 @@ void main() {
             'assets/data/assistant_core_audio.json',
           ],
           cache: MemoryAudioPackCache(),
+          httpClient: createLocalCloudinaryAudioClient(),
         );
         addTearDown(repository.dispose);
         final resolver = AudioPromptResolver(repository: repository);
@@ -96,7 +99,12 @@ void main() {
             );
             expect(
               (await resolver.resolve(partRequest)).source,
-              AudioPromptSource.bundledAsset,
+              part.$1.startsWith('assistant.')
+                  ? anyOf(
+                      AudioPromptSource.remote,
+                      AudioPromptSource.deviceCache,
+                    )
+                  : AudioPromptSource.bundledAsset,
               reason: part.$1,
             );
             expect(await resolver.budget(partRequest), isNotNull);

@@ -57,7 +57,6 @@ flutter:
     - assets/data/songs_audio.json
     - assets/data/system_sfx_audio.json
     - assets/data/audio_pack_index.json
-    - assets/audio/assistant-core/
     - assets/audio/MAIN/GAP66/
     - assets/audio/listening-common/
     - assets/audio/LESSON_HOOKS/
