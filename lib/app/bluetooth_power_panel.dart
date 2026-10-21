@@ -5,12 +5,20 @@ import 'package:flutter/material.dart';
 import '../core/device/aiv0_ble_control.dart';
 import '../core/device/bluetooth_power_controller.dart';
 import '../l10n/display_language.dart';
+import 'homi_bluetooth_icon.dart';
 
 /// Checks the actual adapter before offering device connection actions.
 class BluetoothPowerPanel extends StatefulWidget {
-  const BluetoothPowerPanel({required this.controller, super.key});
+  const BluetoothPowerPanel({
+    required this.controller,
+    this.compact = false,
+    this.permissionsOnly = false,
+    super.key,
+  });
 
   final BluetoothPowerController controller;
+  final bool compact;
+  final bool permissionsOnly;
 
   @override
   State<BluetoothPowerPanel> createState() => _BluetoothPowerPanelState();
@@ -58,6 +66,7 @@ class _BluetoothPowerPanelState extends State<BluetoothPowerPanel>
       final state = power.state;
       final checking =
           !power.hasChecked || state == Aiv0BluetoothAdapterState.resetting;
+      if (widget.compact) return _compactPanel(context, power, checking);
       final label = checking
           ? context.tr('Đang kiểm tra Bluetooth…', '正在检查蓝牙…')
           : switch (state) {
@@ -177,4 +186,156 @@ class _BluetoothPowerPanelState extends State<BluetoothPowerPanel>
       );
     },
   );
+
+  Widget _compactPanel(
+    BuildContext context,
+    BluetoothPowerController power,
+    bool checking,
+  ) {
+    final state = power.state;
+    final on = state == Aiv0BluetoothAdapterState.poweredOn;
+    final off = state == Aiv0BluetoothAdapterState.poweredOff;
+    final blocked =
+        state == Aiv0BluetoothAdapterState.unauthorized &&
+        power.needsPermissionSettings &&
+        power.canOpenPermissionSettings;
+    // The onboarding footer owns permission requests. Keep this mounted to
+    // refresh the real adapter on resume, without duplicating controls.
+    if (widget.permissionsOnly) {
+      return Column(
+        key: const Key('bluetooth-power-panel'),
+        children: <Widget>[
+          if (blocked)
+            TextButton(
+              key: const Key('bluetooth-open-permission-settings'),
+              onPressed: power.isBusy
+                  ? null
+                  : () => unawaited(power.openPermissionSettings()),
+              child: Text(context.tr('Mở cài đặt quyền HOMI', '打开 HOMI 权限设置')),
+            ),
+        ],
+      );
+    }
+    final theme = Theme.of(context);
+    final label = checking
+        ? context.tr('Đang kiểm tra…', '正在检查…')
+        : on
+        ? context.tr('Đang bật', '已开启')
+        : off
+        ? context.tr('Đang tắt', '已关闭')
+        : state == Aiv0BluetoothAdapterState.unsupported
+        ? context.tr('Máy này không hỗ trợ Bluetooth', '此设备不支持蓝牙')
+        : state == Aiv0BluetoothAdapterState.unauthorized
+        ? context.tr('Cần quyền Bluetooth', '需要蓝牙权限')
+        : context.tr('Chưa kiểm tra được Bluetooth', '暂时无法检查蓝牙');
+    return Column(
+      key: const Key('bluetooth-power-panel'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainer,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Row(
+            children: <Widget>[
+              const HomiBluetoothIcon(),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Bluetooth',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      label,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (checking || power.isBusy)
+                const SizedBox.square(
+                  dimension: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else if ((off && power.canRequestEnable) || on)
+                Switch.adaptive(
+                  key: const Key('bluetooth-enable-switch'),
+                  value: on,
+                  trackColor: on
+                      ? WidgetStatePropertyAll(theme.colorScheme.tertiary)
+                      : null,
+                  thumbColor: const WidgetStatePropertyAll(Colors.white),
+                  // On is a status indication; HOMI never turns off the radio.
+                  onChanged: on ? null : (_) => unawaited(power.enable()),
+                ),
+            ],
+          ),
+        ),
+        if (off && !power.canRequestEnable) ...<Widget>[
+          const SizedBox(height: 8),
+          Text(
+            context.tr(
+              'Bật Bluetooth trong Trung tâm điều khiển hoặc Cài đặt của iPhone.',
+              '请在 iPhone 控制中心或设置中开启蓝牙。',
+            ),
+            style: theme.textTheme.bodySmall,
+          ),
+          TextButton(
+            key: const Key('bluetooth-refresh'),
+            onPressed: power.isBusy ? null : () => unawaited(power.refresh()),
+            child: Text(context.tr('Kiểm tra lại', '重新检查')),
+          ),
+        ],
+        if (state == Aiv0BluetoothAdapterState.unauthorized)
+          TextButton(
+            key: Key(
+              blocked
+                  ? 'bluetooth-open-permission-settings'
+                  : 'bluetooth-authorize',
+            ),
+            onPressed: power.isBusy
+                ? null
+                : () => unawaited(
+                    blocked
+                        ? power.openPermissionSettings()
+                        : power.authorize(),
+                  ),
+            child: Text(
+              blocked
+                  ? context.tr('Mở cài đặt quyền HOMI', '打开 HOMI 权限设置')
+                  : context.tr('Cho phép Bluetooth', '允许蓝牙'),
+            ),
+          ),
+        if (power.hasChecked &&
+            (state == Aiv0BluetoothAdapterState.unknown ||
+                state == Aiv0BluetoothAdapterState.resetting))
+          TextButton(
+            key: const Key('bluetooth-refresh'),
+            onPressed: power.isBusy ? null : () => unawaited(power.refresh()),
+            child: Text(context.tr('Kiểm tra lại', '重新检查')),
+          ),
+        if (power.actionFailed && !power.isBusy)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              context.tr(
+                'Bluetooth chưa bật. Bạn có thể thử lại.',
+                '蓝牙尚未开启，您可以重试。',
+              ),
+              key: const Key('bluetooth-action-failed'),
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
+      ],
+    );
+  }
 }

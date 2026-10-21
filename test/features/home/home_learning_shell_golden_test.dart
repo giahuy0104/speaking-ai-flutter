@@ -34,6 +34,58 @@ void main() {
     );
   });
 
+  testWidgets('disconnected home matches the approved navy tabs', (
+    tester,
+  ) async {
+    final controller = await _pumpGoldenApp(
+      tester,
+      surfaceSize: const Size(458, 954),
+      deviceReady: false,
+    );
+    addTearDown(controller.dispose);
+    expect(find.text('Kết nối HOMI'), findsOneWidget);
+    expect(find.text('Kết nối với HOMI để bắt đầu sử dụng'), findsOneWidget);
+    await expectLater(
+      find.byType(HomeLearningShell),
+      matchesGoldenFile('goldens/home-disconnected-navy-tabs-458x954.png'),
+    );
+  });
+
+  testWidgets(
+    'small disconnected home keeps both tabs readable with large text',
+    (tester) async {
+      final controller = await _pumpGoldenApp(
+        tester,
+        surfaceSize: const Size(320, 568),
+        deviceReady: false,
+        textScale: 2,
+      );
+      addTearDown(controller.dispose);
+      expect(tester.takeException(), isNull);
+      final left = tester.getRect(find.byKey(const Key('vocabulary-edge-tab')));
+      final right = tester.getRect(
+        find.byKey(const Key('topic-listening-edge-tab')),
+      );
+      expect(left.top, right.top);
+      expect(left.right, lessThan(right.left));
+      expect(
+        find.byKey(const Key('vocabulary-edge-tab')).hitTestable(),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('topic-listening-edge-tab')).hitTestable(),
+        findsOneWidget,
+      );
+      expect(find.text('Kết nối HOMI').hitTestable(), findsOneWidget);
+      await expectLater(
+        find.byType(HomeLearningShell),
+        matchesGoldenFile(
+          'goldens/home-disconnected-navy-tabs-320x568-large-text.png',
+        ),
+      );
+    },
+  );
+
   testWidgets('vocabulary page matches image two', (tester) async {
     final controller = await _pumpGoldenApp(tester);
     addTearDown(controller.dispose);
@@ -120,10 +172,17 @@ void main() {
 Future<ConversationController> _pumpGoldenApp(
   WidgetTester tester, {
   ThemeMode themeMode = ThemeMode.light,
+  Size surfaceSize = const Size(390, 844),
+  bool? deviceReady,
+  double textScale = 1,
 }) async {
   SharedPreferences.setMockInitialValues(<String, Object>{});
   await _loadGoldenFonts();
-  await tester.binding.setSurfaceSize(const Size(390, 844));
+  tester.view.physicalSize = surfaceSize;
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+  await tester.binding.setSurfaceSize(surfaceSize);
   addTearDown(() => tester.binding.setSurfaceSize(null));
 
   final controller = ConversationController(
@@ -138,8 +197,18 @@ Future<ConversationController> _pumpGoldenApp(
       theme: buildAppTheme(),
       darkTheme: buildDarkAppTheme(),
       themeMode: themeMode,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(
+          context,
+        ).copyWith(textScaler: TextScaler.linear(textScale)),
+        child: child!,
+      ),
       home: HomeLearningShell(
         controller: controller,
+        ensureDeviceConnected: deviceReady == null
+            ? null
+            : () async => deviceReady,
+        isDeviceConnectionReady: deviceReady == null ? null : () => deviceReady,
         onScreenMainPressed: () async {},
         config: AppConfig(
           backendBaseUri: Uri.parse('https://example.com'),
@@ -155,6 +224,8 @@ Future<ConversationController> _pumpGoldenApp(
       const <AssetImage>[
         AssetImage('assets/images/learning-minimal-sky-background.png'),
         AssetImage('assets/images/home-hero-blob.png'),
+        AssetImage('assets/images/home-hero-blob-option2.png'),
+        AssetImage('assets/images/home-navigation-rays.png'),
         AssetImage('assets/images/mascot/penguin-avatar.png'),
         AssetImage('assets/images/mascot/penguin-listen.png'),
         AssetImage('assets/images/mascot/penguin-wave.png'),

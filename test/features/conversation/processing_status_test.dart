@@ -43,6 +43,7 @@ void main() {
               children: <Widget>[
                 Expanded(
                   child: VoiceHero(
+                    needsDeviceConnection: true,
                     phase: ConversationPhase.processing,
                     processingStage: testCase.stage,
                     amplitude: 0,
@@ -50,6 +51,7 @@ void main() {
                   ),
                 ),
                 SpeakActionBar(
+                  needsDeviceConnection: true,
                   phase: ConversationPhase.processing,
                   processingStage: testCase.stage,
                   onPressed: null,

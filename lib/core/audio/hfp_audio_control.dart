@@ -202,6 +202,12 @@ class MethodChannelHfpAudioControl
     }
   }
 
+  /// Reads authorization only; never starts a permission request or scan.
+  Future<bool> hasPermissions() async {
+    if (!enabled) return true;
+    return await _methodChannel.invokeMethod<bool>('hasPermissions') ?? false;
+  }
+
   /// Requests the platform Bluetooth permission during app setup when needed.
   Future<bool> requestPermissions() async {
     if (!enabled) return true;

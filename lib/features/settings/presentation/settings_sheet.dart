@@ -114,7 +114,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
                 ),
                 child: SingleChildScrollView(
                   key: const Key('settings-scroll-view'),
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
@@ -123,245 +123,140 @@ class _SettingsSheetState extends State<SettingsSheet> {
                           Expanded(
                             child: Text(
                               context.tr('Thiết lập phụ huynh', '家长设置'),
-                              style: Theme.of(context).textTheme.titleLarge,
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w800,
+                                  ),
                             ),
                           ),
-                          _SettingsRaisedIcon(
-                            icon: Icons.close_rounded,
+                          IconButton(
+                            icon: const Icon(Icons.close_rounded),
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                            ),
                             onPressed: () => Navigator.of(context).pop(),
                             tooltip: context.tr('Đóng', '关闭'),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
-                      _AppearanceSelector(
-                        value: widget.themeMode,
-                        onChanged: widget.onThemeModeChanged,
-                      ),
-                      const SizedBox(height: 16),
-                      _SectionLabel(
-                        label: context.tr('Ngôn ngữ hiển thị', '显示语言'),
-                        icon: Icons.language_rounded,
-                      ),
-                      const SizedBox(height: 10),
-                      if (MediaQuery.textScalerOf(context).scale(1) >= 1.5)
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: DisplayLanguage.values
-                              .map(
-                                (language) => ChoiceChip(
-                                  label: Text(language.nativeLabel),
-                                  selected:
-                                      controller.displayLanguage == language,
-                                  onSelected: (_) =>
-                                      controller.setDisplayLanguage(language),
-                                ),
-                              )
-                              .toList(growable: false),
-                        )
-                      else
-                        SizedBox(
-                          width: double.infinity,
-                          child: SegmentedButton<DisplayLanguage>(
-                            showSelectedIcon: false,
-                            segments: DisplayLanguage.values
-                                .map(
-                                  (language) => ButtonSegment<DisplayLanguage>(
-                                    value: language,
-                                    label: Text(language.nativeLabel),
-                                  ),
-                                )
-                                .toList(growable: false),
-                            selected: <DisplayLanguage>{
-                              controller.displayLanguage,
-                            },
-                            onSelectionChanged: (selection) =>
-                                controller.setDisplayLanguage(selection.first),
-                          ),
-                        ),
-                      const SizedBox(height: 16),
-                      _SectionLabel(
-                        label: context.tr('Nhóm tuổi của trẻ', '孩子年龄组'),
-                        icon: Icons.child_care_rounded,
-                      ),
-                      const SizedBox(height: 10),
-                      _ChildAgeGroupSelector(
-                        childAge: controller.childAge,
-                        enabled:
-                            !controller.isBusy &&
-                            widget.onChildAgeChanged != null,
-                        onChanged: widget.onChildAgeChanged,
-                      ),
-                      const SizedBox(height: 12),
-                      _CompactSettingsSection(
-                        key: const Key('settings-audio-h20-section'),
-                        icon: Icons.headset_mic_rounded,
-                        title: context.tr('Âm thanh & HOMI', '音频与 HOMI'),
-                        summary: h20State.isH20Ready
-                            ? context.tr('Thiết bị đã sẵn sàng', '设备已就绪')
-                            : context.tr(
-                                'Thông tin và kết nối thiết bị',
-                                '设备信息与连接',
+                      const SizedBox(height: 20),
+                      _SettingsRaisedPanel(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                16,
+                                16,
+                                16,
+                                12,
                               ),
-                        children: <Widget>[
-                          HomiSurface(
-                            key: const Key('settings-h20-group'),
-                            padding: const EdgeInsets.all(12),
-                            color: Theme.of(context).colorScheme.surface,
-                            borderColor: Theme.of(
-                              context,
-                            ).colorScheme.outlineVariant,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: <Widget>[
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                    4,
-                                    2,
-                                    4,
-                                    10,
-                                  ),
-                                  child: Text(
-                                    context.tr(
-                                      'Thông tin thiết bị HOMI',
-                                      'HOMI 设备信息',
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: <Widget>[
+                                  if (widget
+                                          .connectionCoordinator
+                                          ?.bluetoothPower
+                                      case final power?)
+                                    Offstage(
+                                      offstage: _canUseBluetooth,
+                                      child: BluetoothPowerPanel(
+                                        controller: power,
+                                      ),
                                     ),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(fontWeight: FontWeight.w800),
-                                  ),
-                                ),
-                                if (widget.connectionCoordinator?.bluetoothPower
-                                    case final power?) ...<Widget>[
-                                  BluetoothPowerPanel(controller: power),
-                                  const SizedBox(height: 8),
-                                ],
-                                if (widget.connectionCoordinator
-                                    case final coordinator?) ...<Widget>[
-                                  _ConnectionSummary(
-                                    coordinator: coordinator,
-                                    connection: HomiConnectionPresentation.from(
-                                      h20State,
-                                      isReady: h20State.isH20Ready,
+                                  if (widget.connectionCoordinator
+                                      case final coordinator?)
+                                    _ConnectionSummary(
+                                      coordinator: coordinator,
+                                      connection:
+                                          HomiConnectionPresentation.from(
+                                            h20State,
+                                            isReady: h20State.isH20Ready,
+                                          ),
+                                      microphoneNeedsConfirmation:
+                                          controller
+                                              .aiv0BleStatus
+                                              .isConnected &&
+                                          controller.usesHfpInput &&
+                                          !h20State.isH20Ready,
+                                      canConnect: _canUseBluetooth,
+                                      onConnect: () =>
+                                          unawaited(_connectHomi()),
+                                      onCancel: () =>
+                                          unawaited(_cancelManualOperation()),
+                                      onChooseMicrophone: () => unawaited(
+                                        _findAndConnectHfp(context),
+                                      ),
+                                    )
+                                  else
+                                    _DeviceHeading(
+                                      label: HomiConnectionPresentation.from(
+                                        h20State,
+                                        isReady: h20State.isH20Ready,
+                                      ).label(context),
                                     ),
-                                    microphoneNeedsConfirmation:
-                                        controller.aiv0BleStatus.isConnected &&
-                                        controller.usesHfpInput &&
-                                        !h20State.isH20Ready,
-                                    canConnect: _canUseBluetooth,
-                                    onConnect: () => unawaited(_connectHomi()),
-                                    onCancel: () =>
-                                        unawaited(_cancelManualOperation()),
-                                    onChooseMicrophone: () =>
-                                        unawaited(_findAndConnectHfp(context)),
-                                  ),
-                                  const SizedBox(height: 12),
                                 ],
-                                _SettingsDeviceTile(
-                                  icon: Icons.battery_full_rounded,
-                                  title: context.tr('Pin thiết bị', '设备电量'),
-                                  trailing: Text(
-                                    controller.aiv0BleStatus.isConnected &&
-                                            controller
-                                                    .aiv0BleStatus
-                                                    .batteryPercent !=
-                                                null
-                                        ? '${controller.aiv0BleStatus.batteryPercent}%'
-                                        : context.tr('Chưa đọc pin', '尚未读取电量'),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleMedium,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                _Aiv0BleControlCard(
-                                  status: controller.aiv0BleStatus,
-                                  disabled:
-                                      !_canUseBluetooth ||
-                                      controller.isBusy ||
-                                      _manualOperationActive,
-                                  onScan: () => _scanAndConnectAiv0(context),
-                                  onDisconnect: () => _disconnectDevice(
-                                    context,
-                                    microphone: false,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                _HfpStatusCard(
-                                  status: controller.hfpAudioStatus,
-                                  selected: controller.usesHfpInput,
-                                  disabled:
-                                      !_canUseBluetooth ||
-                                      controller.isBusy ||
-                                      _manualOperationActive,
-                                  onFind: () => _findAndConnectHfp(context),
-                                  onDisconnect: () => _disconnectDevice(
-                                    context,
-                                    microphone: true,
-                                  ),
-                                ),
-                                if (_manualOperationActive &&
-                                    widget.connectionCoordinator ==
-                                        null) ...<Widget>[
-                                  const SizedBox(height: 8),
-                                  TextButton.icon(
-                                    key: const Key(
-                                      'settings-device-manual-cancel',
-                                    ),
-                                    onPressed: () =>
-                                        unawaited(_cancelManualOperation()),
-                                    icon: const Icon(Icons.close_rounded),
-                                    label: Text(context.tr('Hủy', '取消')),
-                                  ),
-                                ],
-                                if (_manualFailure != null) ...<Widget>[
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    _manualFailure!,
-                                    style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.error,
-                                    ),
-                                  ),
-                                ],
-                                if (controller.lastConnectedBleDevice != null ||
-                                    controller.lastConnectedMicrophone !=
-                                        null) ...<Widget>[
-                                  const Divider(height: 24),
-                                  Text(
-                                    context.tr('Đã kết nối gần nhất', '最近连接'),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleSmall,
-                                  ),
-                                  if (controller.lastConnectedBleDevice
-                                      case final record?)
-                                    _LastConnectedDeviceTile(record: record),
-                                  if (controller.lastConnectedMicrophone
-                                      case final record?)
-                                    _LastConnectedDeviceTile(record: record),
-                                ],
-                              ],
+                              ),
                             ),
-                          ),
-                        ],
+                            const _SettingsDivider(),
+                            _CompactSettingsSection(
+                              key: const Key('settings-audio-h20-section'),
+                              icon: Icons.headset_mic_outlined,
+                              title: context.tr('Âm thanh & thiết bị', '音频与设备'),
+                              children: <Widget>[_deviceDetails(context)],
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 26),
                       _SectionLabel(
-                        label: context.tr('Dữ liệu và quyền riêng tư', '数据与隐私'),
-                        icon: Icons.shield_outlined,
+                        label: context.tr('Trải nghiệm học', '学习体验'),
+                      ),
+                      const SizedBox(height: 12),
+                      _SettingsRaisedPanel(
+                        child: Column(
+                          children: <Widget>[
+                            _SettingsPreferenceRow(
+                              key: const Key('settings-child-age-group'),
+                              icon: Icons.child_care_rounded,
+                              title: context.tr('Nhóm tuổi', '年龄组'),
+                              value: _ageLabel(context),
+                              onTap:
+                                  !controller.isBusy &&
+                                      widget.onChildAgeChanged != null
+                                  ? () => _chooseAge(context)
+                                  : null,
+                            ),
+                            const _SettingsDivider(),
+                            _SettingsPreferenceRow(
+                              key: const Key('settings-language-row'),
+                              icon: Icons.language_rounded,
+                              title: context.tr('Ngôn ngữ', '语言'),
+                              value: controller.displayLanguage.nativeLabel,
+                              onTap: () => _chooseLanguage(context),
+                            ),
+                            const _SettingsDivider(),
+                            _SettingsPreferenceRow(
+                              key: const Key('appearance-settings-card'),
+                              icon: Icons.light_mode_outlined,
+                              title: context.tr('Giao diện', '外观'),
+                              value: _themeLabel(context, widget.themeMode),
+                              onTap: widget.onThemeModeChanged == null
+                                  ? null
+                                  : () => _chooseTheme(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 26),
+                      _SectionLabel(
+                        label: context.tr('Thông tin & hỗ trợ', '信息与支持'),
                       ),
                       const SizedBox(height: 10),
                       _SettingsRaisedPanel(
-                        child: HomiSurface(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 2,
-                          ),
-                          color: Colors.transparent,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
                           child: Column(
                             children: <Widget>[
                               _SettingsActionTile(
@@ -421,6 +316,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
                                 const _SettingsDivider(),
                                 _SettingsActionTile(
                                   key: const Key('settings-enable-voice'),
+                                  showDetail: true,
                                   icon: Icons.mic_rounded,
                                   title: context.tr('Cho phép micro', '允许麦克风'),
                                   detail: context.tr(
@@ -438,6 +334,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
                                   key: const Key(
                                     'settings-manage-privacy-consent',
                                   ),
+                                  showDetail: true,
                                   icon: Icons.verified_user_outlined,
                                   title: context.tr(
                                     'Thiết lập tính năng giọng nói',
@@ -467,6 +364,287 @@ class _SettingsSheetState extends State<SettingsSheet> {
       },
     );
   }
+
+  bool _choiceSheetOpen = false;
+
+  String _ageLabel(BuildContext context) {
+    final catalog = listeningCatalogs.firstWhere(
+      (entry) =>
+          controller.childAge >= entry.startAge &&
+          controller.childAge <= entry.endAge,
+      orElse: () => listeningCatalogs.first,
+    );
+    return context.tr(
+      '${catalog.startAge}–${catalog.endAge} tuổi',
+      '${catalog.startAge}–${catalog.endAge} 岁',
+    );
+  }
+
+  String _themeLabel(BuildContext context, ThemeMode mode) => switch (mode) {
+    ThemeMode.system => context.tr('Hệ thống', '跟随系统'),
+    ThemeMode.light => context.tr('Sáng', '浅色'),
+    ThemeMode.dark => context.tr('Tối', '深色'),
+  };
+
+  Future<T?> _choose<T>(
+    BuildContext context, {
+    required String title,
+    required T selected,
+    required List<({T value, String label, String key})> options,
+    bool useChips = false,
+  }) async {
+    if (_choiceSheetOpen) return null;
+    _choiceSheetOpen = true;
+    try {
+      return await showModalBottomSheet<T>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        showDragHandle: true,
+        builder: (sheetContext) => ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.75,
+          ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 8, 12),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: Theme.of(sheetContext).textTheme.titleLarge,
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: context.tr('Đóng', '关闭'),
+                        onPressed: () => Navigator.of(sheetContext).pop(),
+                        icon: const Icon(Icons.close_rounded),
+                      ),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: useChips
+                        ? SizedBox(
+                            width: double.infinity,
+                            child: Wrap(
+                              spacing: 6,
+                              runSpacing: 2,
+                              children: <Widget>[
+                                for (final option in options)
+                                  ChoiceChip(
+                                    key: ValueKey<String>(option.key),
+                                    showCheckmark: true,
+                                    elevation: 0,
+                                    side: BorderSide(
+                                      color: Theme.of(
+                                        sheetContext,
+                                      ).colorScheme.outlineVariant,
+                                    ),
+                                    label: Text(option.label),
+                                    selected: option.value == selected,
+                                    onSelected: (_) => Navigator.of(
+                                      sheetContext,
+                                    ).pop(option.value),
+                                  ),
+                              ],
+                            ),
+                          )
+                        : Column(
+                            children: <Widget>[
+                              for (final option in options)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 6),
+                                  child: Material(
+                                    borderRadius: BorderRadius.circular(12),
+                                    color: option.value == selected
+                                        ? AppColors.primaryNavy
+                                        : Colors.transparent,
+                                    child: ListTile(
+                                      key: ValueKey<String>(option.key),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      selected: option.value == selected,
+                                      selectedColor: Colors.white,
+                                      title: Text(option.label),
+                                      trailing: option.value == selected
+                                          ? const Icon(Icons.check_rounded)
+                                          : null,
+                                      onTap: () => Navigator.of(
+                                        sheetContext,
+                                      ).pop(option.value),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } finally {
+      _choiceSheetOpen = false;
+    }
+  }
+
+  Future<void> _chooseAge(BuildContext context) async {
+    final catalog = listeningCatalogs.firstWhere(
+      (entry) =>
+          controller.childAge >= entry.startAge &&
+          controller.childAge <= entry.endAge,
+      orElse: () => listeningCatalogs.first,
+    );
+    final value = await _choose<int>(
+      context,
+      title: context.tr('Nhóm tuổi của trẻ', '孩子年龄组'),
+      useChips: true,
+      selected: catalog.startAge,
+      options: [
+        for (final entry in listeningCatalogs)
+          (
+            value: entry.startAge,
+            label: context.tr(
+              '${entry.startAge}–${entry.endAge} tuổi',
+              '${entry.startAge}–${entry.endAge} 岁',
+            ),
+            key: 'settings-age-${entry.id}',
+          ),
+      ],
+    );
+    if (mounted && value != null && !controller.isBusy) {
+      widget.onChildAgeChanged?.call(value);
+    }
+  }
+
+  Future<void> _chooseLanguage(BuildContext context) async {
+    final value = await _choose<DisplayLanguage>(
+      context,
+      title: context.tr('Ngôn ngữ hiển thị', '显示语言'),
+      selected: controller.displayLanguage,
+      options: [
+        for (final language in DisplayLanguage.values)
+          (
+            value: language,
+            label: language.nativeLabel,
+            key: 'settings-language-${language.code}',
+          ),
+      ],
+    );
+    if (mounted && value != null) controller.setDisplayLanguage(value);
+  }
+
+  Future<void> _chooseTheme(BuildContext context) async {
+    final value = await _choose<ThemeMode>(
+      context,
+      title: context.tr('Giao diện', '外观'),
+      selected: widget.themeMode,
+      options: [
+        for (final mode in ThemeMode.values)
+          (
+            value: mode,
+            label: _themeLabel(context, mode),
+            key: 'theme-mode-${mode.name}',
+          ),
+      ],
+    );
+    if (mounted && value != null) widget.onThemeModeChanged?.call(value);
+  }
+
+  Widget _deviceDetails(BuildContext context) => HomiSurface(
+    key: const Key('settings-h20-group'),
+    padding: const EdgeInsets.all(12),
+    color: Theme.of(context).colorScheme.surface,
+    borderColor: Theme.of(context).colorScheme.outlineVariant,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 2, 4, 10),
+          child: Text(
+            context.tr('Thông tin thiết bị HOMI', 'HOMI 设备信息'),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+          ),
+        ),
+        if (widget.connectionCoordinator case final coordinator?)
+          TextButton.icon(
+            key: const Key('settings-open-bluetooth-settings'),
+            onPressed: () => unawaited(coordinator.openBluetoothSettings()),
+            icon: const Icon(Icons.settings_bluetooth_rounded),
+            label: Text(context.tr('Mở cài đặt Bluetooth', '打开蓝牙设置')),
+          ),
+        _SettingsDeviceTile(
+          icon: Icons.battery_full_rounded,
+          title: context.tr('Pin thiết bị', '设备电量'),
+          trailing: Text(
+            controller.aiv0BleStatus.isConnected &&
+                    controller.aiv0BleStatus.batteryPercent != null
+                ? '${controller.aiv0BleStatus.batteryPercent}%'
+                : context.tr('Chưa đọc pin', '尚未读取电量'),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
+        const SizedBox(height: 8),
+        _Aiv0BleControlCard(
+          status: controller.aiv0BleStatus,
+          disabled:
+              !_canUseBluetooth || controller.isBusy || _manualOperationActive,
+          onScan: () => _scanAndConnectAiv0(context),
+          onDisconnect: () => _disconnectDevice(context, microphone: false),
+        ),
+        const SizedBox(height: 8),
+        _HfpStatusCard(
+          status: controller.hfpAudioStatus,
+          selected: controller.usesHfpInput,
+          disabled:
+              !_canUseBluetooth || controller.isBusy || _manualOperationActive,
+          onFind: () => _findAndConnectHfp(context),
+          onDisconnect: () => _disconnectDevice(context, microphone: true),
+        ),
+        if (_manualOperationActive &&
+            widget.connectionCoordinator == null) ...<Widget>[
+          const SizedBox(height: 8),
+          TextButton.icon(
+            key: const Key('settings-device-manual-cancel'),
+            onPressed: () => unawaited(_cancelManualOperation()),
+            icon: const Icon(Icons.close_rounded),
+            label: Text(context.tr('Hủy', '取消')),
+          ),
+        ],
+        if (_manualFailure != null) ...<Widget>[
+          const SizedBox(height: 8),
+          Text(
+            _manualFailure!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+        ],
+        if (controller.lastConnectedBleDevice != null ||
+            controller.lastConnectedMicrophone != null) ...<Widget>[
+          const Divider(height: 24),
+          Text(
+            context.tr('Đã kết nối gần nhất', '最近连接'),
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          if (controller.lastConnectedBleDevice case final record?)
+            _LastConnectedDeviceTile(record: record),
+          if (controller.lastConnectedMicrophone case final record?)
+            _LastConnectedDeviceTile(record: record),
+        ],
+      ],
+    ),
+  );
 
   Future<void> _openParentLink(
     BuildContext context,
@@ -1241,60 +1419,28 @@ class _SettingsSheetState extends State<SettingsSheet> {
 
 class _SettingsRaisedPanel extends StatelessWidget {
   const _SettingsRaisedPanel({required this.child});
-
   final Widget child;
-
   @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(HomiUi.surfaceRadius),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? const <Color>[
-                  AppColors.darkSurfaceRaised,
-                  AppColors.darkSurface,
-                ]
-              : const <Color>[AppColors.surface, AppColors.mintWash],
-        ),
-        border: Border.all(
-          color: isDark ? AppColors.darkOutline : AppColors.mintBorder,
-        ),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: AppColors.primaryNavy.withValues(
-              alpha: isDark ? 0.24 : 0.09,
-            ),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
+  Widget build(BuildContext context) => Material(
+    color: Theme.of(context).brightness == Brightness.dark
+        ? AppColors.darkSurfaceRaised
+        : Colors.white,
+    borderRadius: BorderRadius.circular(18),
+    clipBehavior: Clip.antiAlias,
+    child: child,
+  );
 }
 
 class _SettingsRaisedIcon extends StatelessWidget {
-  const _SettingsRaisedIcon({
-    required this.icon,
-    this.onPressed,
-    this.tooltip,
-    this.foregroundColor,
-  });
+  const _SettingsRaisedIcon({required this.icon, this.foregroundColor});
 
   final IconData icon;
-  final VoidCallback? onPressed;
-  final String? tooltip;
   final Color? foregroundColor;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final size = onPressed == null ? 40.0 : 48.0;
+    const size = 40.0;
     return Container(
       width: size,
       height: size,
@@ -1323,17 +1469,11 @@ class _SettingsRaisedIcon extends StatelessWidget {
           ),
         ],
       ),
-      child: onPressed == null
-          ? Icon(
-              icon,
-              size: 22,
-              color: foregroundColor ?? Theme.of(context).colorScheme.primary,
-            )
-          : IconButton(
-              onPressed: onPressed,
-              tooltip: tooltip,
-              icon: Icon(icon, color: Theme.of(context).colorScheme.primary),
-            ),
+      child: Icon(
+        icon,
+        size: 22,
+        color: foregroundColor ?? Theme.of(context).colorScheme.primary,
+      ),
     );
   }
 }
@@ -1402,50 +1542,33 @@ class _CompactSettingsSection extends StatelessWidget {
   const _CompactSettingsSection({
     required this.icon,
     required this.title,
-    required this.summary,
     required this.children,
     super.key,
   });
-
   final IconData icon;
   final String title;
-  final String summary;
   final List<Widget> children;
-
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return _SettingsRaisedPanel(
-      child: HomiSurface(
-        padding: EdgeInsets.zero,
-        color: Colors.transparent,
-        child: Theme(
-          data: theme.copyWith(dividerColor: Colors.transparent),
-          child: ExpansionTile(
-            tilePadding: const EdgeInsets.fromLTRB(12, 4, 10, 4),
-            childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-            leading: _SettingsRaisedIcon(icon: icon),
-            title: Text(
-              title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            subtitle: Text(
-              summary,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            maintainState: true,
-            children: children,
-          ),
-        ),
+  Widget build(BuildContext context) => Theme(
+    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+    child: ExpansionTile(
+      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+      leading: Icon(
+        icon,
+        size: 26,
+        color: Theme.of(context).colorScheme.primary,
       ),
-    );
-  }
+      title: Text(
+        title,
+        style: Theme.of(
+          context,
+        ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+      ),
+      maintainState: true,
+      children: children,
+    ),
+  );
 }
 
 class _SettingsDivider extends StatelessWidget {
@@ -1455,8 +1578,8 @@ class _SettingsDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Divider(
       height: 1,
-      indent: 66,
-      endIndent: 10,
+      indent: 16,
+      endIndent: 16,
       color: Theme.of(
         context,
       ).colorScheme.outlineVariant.withValues(alpha: 0.7),
@@ -1470,260 +1593,143 @@ class _SettingsActionTile extends StatelessWidget {
     required this.title,
     required this.detail,
     required this.onTap,
+    this.showDetail = false,
     super.key,
   });
-
   final IconData icon;
   final String title;
   final String detail;
   final VoidCallback onTap;
+  final bool showDetail;
+  @override
+  Widget build(BuildContext context) => ListTile(
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    leading: Icon(icon, size: 25, color: Theme.of(context).colorScheme.primary),
+    title: Text(
+      title,
+      style: Theme.of(
+        context,
+      ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+    ),
+    subtitle: showDetail ? Text(detail) : null,
+    trailing: const Icon(Icons.chevron_right_rounded),
+    onTap: onTap,
+  );
+}
 
+class _SettingsPreferenceRow extends StatelessWidget {
+  const _SettingsPreferenceRow({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.onTap,
+    super.key,
+  });
+  final IconData icon;
+  final String title;
+  final String value;
+  final VoidCallback? onTap;
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(HomiUi.controlRadius),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(HomiUi.controlRadius),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(10, 9, 6, 9),
-          child: Row(
-            children: <Widget>[
-              HomiIconBadge(icon: icon),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      detail,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        height: 1.3,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Icons.chevron_right_rounded),
-            ],
-          ),
-        ),
+    final large =
+        MediaQuery.textScalerOf(context).scale(1) >= 1.4 ||
+        MediaQuery.sizeOf(context).width < 360;
+    return ListTile(
+      enabled: onTap != null,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      leading: Icon(icon, size: 26, color: theme.colorScheme.primary),
+      title: Text(
+        title,
+        style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
       ),
-    );
-  }
-}
-
-class _ChildAgeGroupSelector extends StatelessWidget {
-  const _ChildAgeGroupSelector({
-    required this.childAge,
-    required this.enabled,
-    required this.onChanged,
-  });
-
-  final int childAge;
-  final bool enabled;
-  final ValueChanged<int>? onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      key: const Key('settings-child-age-group'),
-      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-      child: Wrap(
-        spacing: 6,
-        runSpacing: 2,
-        children: <Widget>[
-          for (final catalog in listeningCatalogs)
-            ChoiceChip(
-              key: ValueKey('settings-age-${catalog.id}'),
-              showCheckmark: true,
-              elevation: 0,
-              side: BorderSide(
-                color: Theme.of(context).colorScheme.outlineVariant,
-              ),
-              label: Text(
-                context.tr(
-                  '${catalog.startAge}–${catalog.endAge} tuổi',
-                  '${catalog.startAge}–${catalog.endAge} 岁',
-                ),
-              ),
-              selected:
-                  childAge >= catalog.startAge && childAge <= catalog.endAge,
-              onSelected: enabled
-                  ? (_) => onChanged?.call(catalog.startAge)
-                  : null,
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AppearanceSelector extends StatefulWidget {
-  const _AppearanceSelector({required this.value, required this.onChanged});
-
-  final ThemeMode value;
-  final ValueChanged<ThemeMode>? onChanged;
-
-  @override
-  State<_AppearanceSelector> createState() => _AppearanceSelectorState();
-}
-
-class _AppearanceSelectorState extends State<_AppearanceSelector> {
-  late ThemeMode _value = widget.value;
-
-  @override
-  void didUpdateWidget(covariant _AppearanceSelector oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.value != widget.value) {
-      _value = widget.value;
-    }
-  }
-
-  void _select(ThemeMode mode) {
-    if (mode == _value) {
-      return;
-    }
-    setState(() => _value = mode);
-    widget.onChanged?.call(mode);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final options = <({ThemeMode mode, IconData icon, String label})>[
-      (
-        mode: ThemeMode.system,
-        icon: Icons.brightness_auto_rounded,
-        label: context.tr('Hệ thống', '跟随系统'),
-      ),
-      (
-        mode: ThemeMode.light,
-        icon: Icons.light_mode_rounded,
-        label: context.tr('Sáng', '浅色'),
-      ),
-      (
-        mode: ThemeMode.dark,
-        icon: Icons.dark_mode_rounded,
-        label: context.tr('Tối', '深色'),
-      ),
-    ];
-    final selectedLabel = options
-        .firstWhere((option) => option.mode == _value)
-        .label;
-
-    return Padding(
-      key: const Key('appearance-settings-card'),
-      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          if (MediaQuery.textScalerOf(context).scale(1) >= 1.4)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      subtitle: large ? Text(value) : null,
+      trailing: large
+          ? const Icon(Icons.chevron_right_rounded)
+          : Row(
+              mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    const _SettingsRaisedIcon(icon: Icons.palette_outlined),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        context.tr('Giao diện', '外观'),
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
                 Text(
-                  selectedLabel,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.w700,
+                  value,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-              ],
-            )
-          else
-            Row(
-              children: <Widget>[
-                const _SettingsRaisedIcon(icon: Icons.palette_outlined),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    context.tr('Giao diện', '外观'),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                Text(
-                  selectedLabel,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                const SizedBox(width: 6),
+                const Icon(Icons.chevron_right_rounded),
               ],
             ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: options
-                .map(
-                  (option) => FilterChip(
-                    key: ValueKey<String>('theme-mode-${option.mode.name}'),
-                    avatar: Icon(option.icon, size: 18),
-                    label: Text(option.label),
-                    selected: _value == option.mode,
-                    showCheckmark: false,
-                    elevation: 0,
-                    side: BorderSide(color: colorScheme.outlineVariant),
-                    onSelected: widget.onChanged == null
-                        ? null
-                        : (_) => _select(option.mode),
-                  ),
-                )
-                .toList(growable: false),
-          ),
-        ],
-      ),
+      onTap: onTap,
     );
   }
 }
 
 class _SectionLabel extends StatelessWidget {
-  const _SectionLabel({required this.label, required this.icon});
-
+  const _SectionLabel({required this.label});
   final String label;
-  final IconData icon;
-
   @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        _SettingsRaisedIcon(icon: icon),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-          ),
+  Widget build(BuildContext context) => Text(
+    label,
+    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+      fontSize: 19,
+      fontWeight: FontWeight.w800,
+    ),
+  );
+}
+
+class _DeviceHeading extends StatelessWidget {
+  const _DeviceHeading({
+    required this.label,
+    this.busy = false,
+    this.ready = false,
+  });
+  final String label;
+  final bool busy;
+  final bool ready;
+  @override
+  Widget build(BuildContext context) => Row(
+    children: <Widget>[
+      Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.tertiaryContainer,
+          shape: BoxShape.circle,
         ),
-      ],
-    );
-  }
+        child: busy
+            ? const Padding(
+                padding: EdgeInsets.all(14),
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(
+                ready ? Icons.check_rounded : Icons.bluetooth_rounded,
+                color: Theme.of(context).colorScheme.primary,
+                size: 28,
+              ),
+      ),
+      const SizedBox(width: 14),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              context.tr('Thiết bị HOMI', 'HOMI 设备'),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
 }
 
 class _Aiv0BleControlCard extends StatelessWidget {
@@ -1926,29 +1932,7 @@ class _ConnectionSummary extends StatelessWidget {
       key: const Key('settings-homi-connection-summary'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Row(
-          children: <Widget>[
-            if (busy)
-              const Padding(
-                padding: EdgeInsets.only(right: 12),
-                child: SizedBox.square(
-                  dimension: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              )
-            else
-              Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: Icon(
-                  ready ? Icons.check_circle_rounded : Icons.bluetooth_rounded,
-                  color: ready ? AppColors.success : null,
-                ),
-              ),
-            Expanded(
-              child: Text(label, style: Theme.of(context).textTheme.titleSmall),
-            ),
-          ],
-        ),
+        _DeviceHeading(label: label, busy: busy, ready: ready),
         if (connection.isPartial && !microphoneNeedsConfirmation)
           Padding(
             padding: const EdgeInsets.only(top: 8),
@@ -1970,7 +1954,7 @@ class _ConnectionSummary extends StatelessWidget {
             onPressed: onChooseMicrophone,
             child: Text(context.tr('Chọn micro HOMI', '选择 HOMI 麦克风')),
           ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 16),
         if (busy)
           TextButton.icon(
             key: const Key('settings-homi-cancel'),
@@ -1979,22 +1963,20 @@ class _ConnectionSummary extends StatelessWidget {
             label: Text(context.tr('Hủy', '取消')),
           )
         else if (!ready && canConnect)
-          FilledButton.icon(
+          FilledButton(
             key: const Key('settings-homi-connect'),
             onPressed: onConnect,
-            icon: const Icon(Icons.bluetooth_searching_rounded),
-            label: Text(
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
               phase == DeviceConnectionPhase.failed
                   ? context.tr('Thử lại', '重试')
                   : context.tr('Kết nối HOMI', '连接 HOMI'),
             ),
-          ),
-        if (!ready && !busy && canConnect)
-          TextButton.icon(
-            key: const Key('settings-open-bluetooth-settings'),
-            onPressed: () => unawaited(coordinator.openBluetoothSettings()),
-            icon: const Icon(Icons.settings_bluetooth_rounded),
-            label: Text(context.tr('Mở cài đặt Bluetooth', '打开蓝牙设置')),
           ),
       ],
     );

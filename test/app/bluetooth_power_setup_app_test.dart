@@ -12,8 +12,213 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../support/onboarding_actions.dart';
+
 void main() {
   final android = TargetPlatformVariant({TargetPlatform.android});
+
+  testWidgets(
+    'failed MAIN connection never opens or connects a microphone',
+    (tester) async {
+      final app = await _pumpApp(tester, setupCompleted: false);
+      app.hfpDevices = [
+        {'id': 'headset-1', 'name': 'HM-D001', 'isConnected': true},
+      ];
+      await _openPermissionStep(tester);
+      await tester.tap(find.byKey(const Key('startup-setup-h20')));
+      await _drainConnectionRound(tester);
+      expect(app.count('scan'), greaterThan(0));
+      expect(find.text('Chọn micro HOMI'), findsNothing);
+      expect(app.hfpCalls.where((call) => call.method == 'connect'), isEmpty);
+      expect(find.text('Chưa tìm thấy HOMI'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
+    'microphone picker waits until the pending MAIN connection succeeds',
+    (tester) async {
+      final app = await _pumpApp(tester, setupCompleted: false);
+      final connected = Completer<void>();
+      app.scanDevices = [
+        {
+          'id': _NativeApp.deviceId,
+          'name': 'HM-D001',
+          'rssi': -35,
+          'advertisesControlService': true,
+        },
+      ];
+      app.bleConnect = () async {
+        await connected.future;
+        app.bleConnected = true;
+        return app.bleStatus;
+      };
+      app.hfpDevices = [
+        {'id': 'other-mic', 'name': 'Tai nghe Bluetooth', 'isConnected': false},
+      ];
+      await _openPermissionStep(tester);
+      await tester.tap(find.byKey(const Key('startup-setup-h20')));
+      for (var i = 0; i < 8; i++) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
+      expect(app.count('connect'), 1);
+      expect(find.text('Chọn micro HOMI'), findsNothing);
+      expect(app.hfpCalls.where((call) => call.method == 'connect'), isEmpty);
+      connected.complete();
+      await _drainConnectionRound(tester);
+      expect(find.text('Chọn micro HOMI'), findsOneWidget);
+      expect(
+        tester
+            .widget<StartupSetupScreen>(find.byType(StartupSetupScreen))
+            .h20BleConnected,
+        isTrue,
+      );
+      await tester.tap(find.byKey(const Key('parent-homi-microphone-cancel')));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  for (final scale in [1.0, 2.0]) {
+    testWidgets(
+      'microphone sheet scrolls on a small screen and rejects lost MAIN at text $scale',
+      (tester) async {
+        final app = await _pumpApp(
+          tester,
+          bleConnected: true,
+          setupCompleted: false,
+        );
+        tester.view.physicalSize = const Size(360, 640);
+        tester.platformDispatcher.textScaleFactorTestValue = scale;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        app.hfpDevices = List.generate(
+          15,
+          (index) => {
+            'id': 'headset-$index',
+            'name': 'Tai nghe Bluetooth $index',
+            'isConnected': false,
+          },
+        );
+        await _openPermissionStep(tester);
+        await tester.tap(find.byKey(const Key('startup-setup-h20')));
+        await _drainConnectionRound(tester);
+        expect(find.text('Chọn micro HOMI'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        final list = find.byKey(const Key('parent-homi-microphone-list'));
+        await tester.scrollUntilVisible(
+          find.text('Tai nghe Bluetooth 14'),
+          250,
+          scrollable: find.descendant(
+            of: list,
+            matching: find.byType(Scrollable),
+          ),
+        );
+        expect(find.text('Tai nghe Bluetooth 14'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        app.bleConnected = false;
+        await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+          'ailingo_aiv0_ble_control/events',
+          const StandardMethodCodec().encodeSuccessEnvelope(app.bleStatus),
+          (_) {},
+        );
+        await tester.pumpAndSettle();
+        final lastTile = find.ancestor(
+          of: find.text('Tai nghe Bluetooth 14'),
+          matching: find.byType(ListTile),
+        );
+        expect(tester.widget<ListTile>(lastTile).onTap, isNull);
+        expect(app.hfpCalls.where((call) => call.method == 'connect'), isEmpty);
+        await tester.tap(
+          find.byKey(const Key('parent-homi-microphone-cancel')),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Chọn micro HOMI'), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+      variant: android,
+    );
+  }
+
+  for (final radio in ['poweredOn', 'poweredOff']) {
+    testWidgets('step 3 reads existing grants before showing UI: $radio', (
+      tester,
+    ) async {
+      final app = await _pumpApp(
+        tester,
+        adapterState: radio,
+        setupCompleted: false,
+      );
+      await _openPermissionStep(tester);
+      expect(
+        find.byKey(const Key('startup-request-permissions')),
+        findsNothing,
+      );
+      expect(app.count('hasPermissions'), greaterThan(0));
+      expect(app.count('requestPermissions'), 0);
+      expect(app.count('scan'), 0);
+      expect(app.microphoneCalls, isNotEmpty);
+      expect(
+        app.microphoneCalls.every(
+          (call) => (call.arguments as Map)['request'] == false,
+        ),
+        isTrue,
+      );
+      expect(
+        find.byKey(
+          Key(
+            radio == 'poweredOn'
+                ? 'startup-setup-h20'
+                : 'bluetooth-enable-switch',
+          ),
+        ),
+        findsOneWidget,
+      );
+    }, variant: android);
+  }
+
+  testWidgets(
+    'step 3 refreshes granted and revoked permissions on resume without prompting',
+    (tester) async {
+      final app = await _pumpApp(tester, setupCompleted: false);
+      app.microphoneGranted = false;
+      await _openPermissionStep(tester);
+      expect(find.text('Cấp quyền còn thiếu'), findsOneWidget);
+      expect(find.byKey(const Key('startup-setup-h20')), findsNothing);
+      expect(app.count('requestPermissions'), 0);
+      app.microphoneGranted = true;
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('startup-request-permissions')),
+        findsNothing,
+      );
+      expect(find.byKey(const Key('startup-setup-h20')), findsOneWidget);
+      app.microphoneGranted = false;
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(find.text('Cấp quyền còn thiếu'), findsOneWidget);
+      expect(find.byKey(const Key('startup-setup-h20')), findsNothing);
+      expect(app.count('requestPermissions'), 0);
+      expect(app.count('scan'), 0);
+      expect(
+        app.microphoneCalls.every(
+          (call) => (call.arguments as Map)['request'] == false,
+        ),
+        isTrue,
+      );
+    },
+    variant: android,
+  );
 
   testWidgets(
     'first setup requests nearby permission then system Bluetooth enable in app',
@@ -26,6 +231,7 @@ void main() {
       for (var i = 0; i < 2; i++) {
         final next = find.byKey(const Key('startup-next'));
         await tester.ensureVisible(next);
+        await confirmVisibleOnboardingChoices(tester);
         await tester.tap(next);
         await tester.pumpAndSettle();
       }
@@ -49,7 +255,38 @@ void main() {
       expect(app.count('requestEnableBluetooth'), 1);
       expect(app.count('openPermissionSettings'), 0);
       expect(app.count('openBluetoothSettings'), 0);
-      expect(find.byKey(const Key('bluetooth-enable-switch')), findsNothing);
+      expect(
+        tester
+            .widget<Switch>(find.byKey(const Key('bluetooth-enable-switch')))
+            .value,
+        isTrue,
+      );
+    },
+    variant: android,
+  );
+
+  testWidgets(
+    'cancelled first-setup round cannot start scanning after permission returns',
+    (tester) async {
+      final app = await _pumpApp(tester, setupCompleted: false);
+      final permission = Completer<bool>();
+      app.bluetoothGranted = false;
+      app.permissionRequest = () => permission.future;
+      final screen = tester.widget<StartupSetupScreen>(
+        find.byType(StartupSetupScreen),
+      );
+      final connection = screen.onSetupH20();
+      await tester.pump();
+      expect(app.count('requestPermissions'), greaterThan(0));
+      await screen.onCancelH20Setup!();
+      permission.complete(true);
+      await tester.pumpAndSettle();
+      expect(await connection, isFalse);
+      expect(app.count('cancelConnectionAttempt'), greaterThan(0));
+      expect(app.count('scan'), 0);
+      expect(app.count('requestDualModeBond'), 0);
+      expect(app.count('openBluetoothSettings'), 0);
+      expect(find.byType(BottomSheet), findsNothing);
     },
     variant: android,
   );
@@ -196,7 +433,7 @@ void main() {
   );
 
   testWidgets(
-    'real first-setup callback rejects MAIN-only readiness after microphone guidance is dismissed',
+    'real first-setup callback rejects MAIN-only readiness without a blocking guidance popup',
     (tester) async {
       final app = await _pumpApp(
         tester,
@@ -210,10 +447,8 @@ void main() {
       expect(screen.h20HfpConfigured, isFalse);
       final connection = screen.onSetupH20();
       await _drainConnectionRound(tester);
-      expect(find.text('Chưa tìm thấy micro HOMI'), findsOneWidget);
+      expect(find.byType(BottomSheet), findsNothing);
       expect(find.text('Kết nối thành công'), findsNothing);
-      await tester.tap(find.text('Để sau'));
-      await tester.pumpAndSettle();
 
       expect(await connection, isFalse);
       screen = tester.widget<StartupSetupScreen>(
@@ -235,6 +470,14 @@ void main() {
     },
     variant: android,
   );
+}
+
+Future<void> _openPermissionStep(WidgetTester tester) async {
+  await confirmVisibleOnboardingChoices(tester);
+  for (var i = 0; i < 2; i++) {
+    await tester.tap(find.byKey(const Key('startup-next')));
+    await tester.pumpAndSettle();
+  }
 }
 
 Future<void> _drainConnectionRound(WidgetTester tester) async {
@@ -303,9 +546,16 @@ class _NativeApp {
     'homi-power-app-test-',
   );
   final bleCalls = <MethodCall>[];
+  final hfpCalls = <MethodCall>[];
+  List<Map<String, Object?>> hfpDevices = [];
+  List<Map<String, Object?>> scanDevices = [];
+  Future<Map<String, Object?>> Function()? bleConnect;
   String adapterState;
   bool bleConnected;
   bool enableAccepted = false;
+  bool microphoneGranted = true;
+  bool? bluetoothGranted;
+  final microphoneCalls = <MethodCall>[];
   Future<bool> Function()? enableRequest;
   Future<bool> Function()? permissionRequest;
   bool _closed = false;
@@ -330,12 +580,31 @@ class _NativeApp {
         if (name == 'plugins.flutter.io/path_provider') {
           return supportDirectory.path;
         }
+        if (name == 'com.llfbandit.record/messages' &&
+            call.method == 'hasPermission') {
+          microphoneCalls.add(call);
+          if ((call.arguments as Map)['request'] == true) {
+            microphoneGranted = true;
+          }
+          return microphoneGranted;
+        }
+        if (name == 'ailingo_hfp_audio') {
+          hfpCalls.add(call);
+          if (call.method == 'findDevices') return hfpDevices;
+        }
         if (name == 'ailingo_aiv0_ble_control') {
           bleCalls.add(call);
           switch (call.method) {
             case 'initialize':
             case 'cancelConnectionAttempt':
               return bleStatus;
+            case 'hasPermissions':
+              return bluetoothGranted ??
+                  [
+                    'poweredOn',
+                    'poweredOff',
+                    'resetting',
+                  ].contains(adapterState);
             case 'requestPermissions':
               return await permissionRequest?.call() ?? true;
             case 'bluetoothAdapterState':
@@ -344,13 +613,15 @@ class _NativeApp {
               if (enableRequest != null) return enableRequest!();
               if (enableAccepted) adapterState = 'poweredOn';
               return enableAccepted;
+            case 'connect':
+              return await bleConnect?.call() ?? bleStatus;
             case 'requestDualModeBond':
               return true;
             case 'scan':
               if (adapterState != 'poweredOn') {
                 throw PlatformException(code: 'BLUETOOTH_DISABLED');
               }
-              return <Object?>[];
+              return scanDevices;
           }
         }
         return switch (call.method) {

@@ -646,6 +646,12 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     }
   }
 
+  /// Reads authorization only; never starts a permission request or scan.
+  Future<bool> hasPermissions() async {
+    if (!_enabled) return true;
+    return await _methodChannel.invokeMethod<bool>('hasPermissions') ?? false;
+  }
+
   /// Requests the platform Bluetooth permission used by AIV0 before the child
   /// operates the physical MAIN button.
   Future<bool> requestPermissions() async {

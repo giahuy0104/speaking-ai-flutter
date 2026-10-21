@@ -492,6 +492,8 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       // prompt at that point; the app first presents the parental disclosure.
       result(snapshot())
       emitStatus()
+    case "hasPermissions":
+      result(CBManager.authorization == .allowedAlways)
     case "requestPermissions":
       requestPermissions(result)
     case "bluetoothAdapterState":

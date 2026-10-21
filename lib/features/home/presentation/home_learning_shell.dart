@@ -443,7 +443,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     final screenSize = MediaQuery.sizeOf(context);
     final compact = screenSize.height < 900;
     final safeTop = MediaQuery.paddingOf(context).top;
-    final railTop = (screenSize.height * (compact ? 0.27 : 0.25))
+    final railTop = (screenSize.height * (compact ? 0.29 : 0.27))
         .clamp(safeTop + 148, screenSize.height - 238)
         .toDouble();
     return DisplayLanguageScope(
@@ -475,6 +475,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                     child: ConversationScreen(
                       controller: widget.controller,
                       ensureDeviceConnected: widget.ensureDeviceConnected,
+                      isDeviceConnectionReady: widget.isDeviceConnectionReady,
                       sessionActive: widget.sessionActive,
                       isStoppingSession: widget.isStoppingSession,
                       onStopSession: widget.onStopSession,

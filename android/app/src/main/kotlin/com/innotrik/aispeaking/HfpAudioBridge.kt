@@ -531,6 +531,7 @@ class HfpAudioBridge(
         }
         when (call.method) {
             "initialize" -> initialize(result)
+            "hasPermissions" -> result.success(hasConnectPermission())
             "requestPermissions" -> requestPermissions(result)
             "findDevices" -> findDevices(result)
             "connect" -> connect(call, result, connectionAttemptGeneration)

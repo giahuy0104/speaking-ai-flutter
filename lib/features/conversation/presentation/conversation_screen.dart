@@ -19,6 +19,7 @@ class ConversationScreen extends StatefulWidget {
     required this.onOpenHistory,
     required this.onOpenSettings,
     this.ensureDeviceConnected,
+    this.isDeviceConnectionReady,
     this.sessionActive = false,
     this.isStoppingSession = false,
     this.onStopSession,
@@ -33,6 +34,7 @@ class ConversationScreen extends StatefulWidget {
   final VoidCallback onOpenHistory;
   final VoidCallback onOpenSettings;
   final Future<bool> Function()? ensureDeviceConnected;
+  final bool Function()? isDeviceConnectionReady;
   final bool sessionActive;
   final bool isStoppingSession;
   final Future<void> Function()? onStopSession;
@@ -94,6 +96,10 @@ class _ConversationScreenState extends State<ConversationScreen> {
       animation: widget.controller,
       builder: (context, _) {
         final compact = MediaQuery.sizeOf(context).height < 900;
+        final needsDeviceConnection =
+            widget.ensureDeviceConnected != null &&
+            !(widget.isDeviceConnectionReady?.call() ??
+                widget.controller.isH20Ready);
         return DisplayLanguageScope(
           language: widget.controller.displayLanguage,
           child: Scaffold(
@@ -133,6 +139,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                             child: Column(
                               children: <Widget>[
                                 VoiceHero(
+                                  needsDeviceConnection: needsDeviceConnection,
                                   phase: widget.controller.phase,
                                   processingStage:
                                       widget.controller.processingStage,
@@ -203,6 +210,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                     SpeakActionBar(
                       key: widget.speakActionKey,
                       phase: widget.controller.phase,
+                      needsDeviceConnection: needsDeviceConnection,
                       processingStage: widget.controller.processingStage,
                       isPreparingMicrophone:
                           widget.controller.isPreparingMicrophone,

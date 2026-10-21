@@ -61,7 +61,11 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      final start = find.text('Bắt đầu nói');
+      final start = find.text('Kết nối HOMI');
+      expect(find.text('Bắt đầu nói'), findsNothing);
+      expect(find.text('Kết nối với HOMI để bắt đầu sử dụng'), findsOneWidget);
+      expect(find.text('Bấm nút micro bên dưới để bắt đầu'), findsNothing);
+      expect(find.byIcon(Icons.bluetooth_rounded), findsOneWidget);
       await tester.tap(start);
       await tester.tap(start);
       await tester.pump();
@@ -94,6 +98,7 @@ void main() {
     final controller = _controller();
     addTearDown(controller.dispose);
     var checks = 0;
+    var deviceReady = false;
     await tester.pumpWidget(
       _app(
         controller,
@@ -101,14 +106,40 @@ void main() {
           checks++;
           return false;
         },
-        isDeviceConnectionReady: () => false,
+        isDeviceConnectionReady: () => deviceReady,
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Bắt đầu nói'));
+    await tester.tap(find.text('Kết nối HOMI'));
     await tester.pumpAndSettle();
     expect(checks, 1);
     expect(controller.isRecording, isFalse);
+    expect(find.text('Kết nối với HOMI để bắt đầu sử dụng'), findsOneWidget);
+
+    deviceReady = true;
+    await tester.pumpWidget(
+      _app(
+        controller,
+        ensureDeviceConnected: () async => deviceReady,
+        isDeviceConnectionReady: () => deviceReady,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Bắt đầu nói'), findsOneWidget);
+    expect(find.text('Bấm nút micro bên dưới để bắt đầu'), findsOneWidget);
+    expect(find.text('Kết nối với HOMI để bắt đầu sử dụng'), findsNothing);
+
+    deviceReady = false;
+    await tester.pumpWidget(
+      _app(
+        controller,
+        ensureDeviceConnected: () async => deviceReady,
+        isDeviceConnectionReady: () => deviceReady,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Kết nối HOMI'), findsOneWidget);
+    expect(find.text('Kết nối với HOMI để bắt đầu sử dụng'), findsOneWidget);
     await tester.tap(find.byKey(const Key('topic-listening-edge-tab')));
     await tester.pumpAndSettle();
     expect(checks, 1);
@@ -365,21 +396,21 @@ void main() {
       final topicTabRect = tester.getRect(
         find.byKey(const Key('topic-listening-edge-tab')),
       );
-      expect(vocabularyTabRect.width, closeTo(52, 0.01));
-      expect(vocabularyTabRect.height, closeTo(184, 0.01));
-      expect(topicTabRect.width, closeTo(52, 0.01));
-      expect(topicTabRect.height, closeTo(184, 0.01));
+      expect(vocabularyTabRect.width, closeTo(390 * 0.22, 0.01));
+      expect(vocabularyTabRect.height, closeTo(390 * 0.22 * 1.12, 0.01));
+      expect(topicTabRect.width, closeTo(390 * 0.22, 0.01));
+      expect(topicTabRect.height, closeTo(390 * 0.22 * 1.12, 0.01));
       expect(
         find.descendant(
           of: find.byKey(const Key('vocabulary-edge-tab')),
-          matching: find.text('T\nỪ\nV\nỰ\nN\nG'),
+          matching: find.text('Từ vựng'),
         ),
         findsOneWidget,
       );
       expect(
         find.descendant(
           of: find.byKey(const Key('topic-listening-edge-tab')),
-          matching: find.text('C\nH\nỦ\nĐ\nỀ'),
+          matching: find.text('Chủ đề'),
         ),
         findsOneWidget,
       );
@@ -405,7 +436,7 @@ void main() {
         findsOneWidget,
       );
       expect(topicTabRect.top, closeTo(vocabularyTabRect.top, 0.01));
-      expect(vocabularyTabRect.top, closeTo(844 * 0.27, 0.01));
+      expect(vocabularyTabRect.top, closeTo(844 * 0.29, 0.01));
       expect(find.byKey(const Key('home-conversation-tab')), findsNothing);
       expect(find.byKey(const Key('home-main-button')), findsNothing);
       expect(find.byKey(const Key('home-history-tab')), findsNothing);

@@ -9,6 +9,7 @@ class SpeakActionBar extends StatelessWidget {
     required this.phase,
     required this.processingStage,
     this.isPreparingMicrophone = false,
+    this.needsDeviceConnection = false,
     required this.onPressed,
     super.key,
   });
@@ -16,6 +17,7 @@ class SpeakActionBar extends StatelessWidget {
   final ConversationPhase phase;
   final ConversationProcessingStage processingStage;
   final bool isPreparingMicrophone;
+  final bool needsDeviceConnection;
   final VoidCallback? onPressed;
 
   @override
@@ -76,6 +78,8 @@ class SpeakActionBar extends StatelessWidget {
                           Icon(
                             isRecording
                                 ? Icons.stop_rounded
+                                : needsDeviceConnection && !isProcessing
+                                ? Icons.bluetooth_rounded
                                 : Icons.mic_rounded,
                             color: foreground,
                             size: 31,
@@ -128,6 +132,7 @@ class SpeakActionBar extends StatelessWidget {
         '正在准备语音…',
       ),
     },
+    _ when needsDeviceConnection => context.tr('Kết nối HOMI', '连接 HOMI'),
     ConversationPhase.ready => context.tr('Nói câu mới', '说新句子'),
     ConversationPhase.error => context.tr('Thử lại', '重试'),
     ConversationPhase.idle => context.tr('Bắt đầu nói', '开始说话'),

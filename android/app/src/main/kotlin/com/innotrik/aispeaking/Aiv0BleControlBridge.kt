@@ -145,6 +145,7 @@ class Aiv0BleControlBridge(
                 result.success(null)
             }
             "initialize" -> initialize(result)
+            "hasPermissions" -> result.success(hasPermissions())
             "requestPermissions" -> requestPermissions(result)
             "bluetoothAdapterState" -> result.success(bluetoothAdapterState())
             "bluetoothPermissionRequiresSettings" -> result.success(permissionRequiresSettings())

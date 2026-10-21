@@ -197,6 +197,8 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       } catch {
         fail(result, code: "HFP_INITIALIZE_FAILED", error: error)
       }
+    case "hasPermissions":
+      result(true)
     case "requestPermissions":
       // Classic Bluetooth audio routes are managed by iOS. CoreBluetooth
       // permission is requested separately by the AIV0 BLE control bridge.

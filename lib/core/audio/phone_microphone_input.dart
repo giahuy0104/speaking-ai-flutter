@@ -89,6 +89,13 @@ class PhoneMicrophoneInput
   @override
   Stream<Uint8List> get audioChunks => _audioChunkController.stream;
 
+  /// Reads the existing grant without opening a system permission prompt.
+  Future<bool> checkPermission() async {
+    final granted = await _recorder.hasPermission(request: false);
+    _microphonePermissionGranted = granted;
+    return granted;
+  }
+
   /// Requests microphone access before the child reaches a MAIN interaction.
   ///
   /// `record` uses the native Android permission dialog and the browser media
