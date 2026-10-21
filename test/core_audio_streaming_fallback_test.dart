@@ -22,6 +22,143 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
+  for (final count in [1, 2, 3]) {
+    test(
+      'final $count sentence turn preserves API count and audio order',
+      () async {
+        final repository = _FallbackRepository(
+          streamingOutcomes: [
+            for (var i = 0; i < count; i++)
+              _result(
+                'sentence-$i',
+                audioUri: Uri.parse('asset:///sentence-$i.mp3'),
+              ),
+          ],
+        );
+        final playback = _CompletionControlledPlaybackService();
+        final controller = ConversationController(
+          audioInput: _FakeChunkedInput(
+            available: true,
+            bluetooth: false,
+            label: 'Phone',
+          ),
+          streamingSpeechInput: _FakeStreamingSpeechInput(
+            sourceText: count == 1
+                ? 'Hôm nay trời đẹp.'
+                : count == 2
+                ? 'bạn có thể xây dựng kế hoạch tăng trưởng doanh thu và tối ưu '
+                      'hóa sản phẩm kinh doanh hàng thương mại điện tử được không '
+                      'Bạn có thể đăng doanh thu trong vòng 3 tháng được không'
+                : 'Bạn có thể vận hành sàn thương mại điện tử không? '
+                      'Bạn đã từng vận hành sàn thương mại điện tử hay chưa? '
+                      'Có bao nhiêu năm kinh nghiệm làm việc rồi?',
+          ),
+          playbackService: playback,
+          repository: repository,
+          childAge: 6,
+          initialAsrMode: AsrMode.androidStreaming,
+        );
+        addTearDown(controller.dispose);
+        await controller.startRecording();
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+        final stopping = controller.stopRecording(manual: true);
+        await playback.started.future;
+        await Future<void>.delayed(Duration.zero);
+        expect(repository.streamingTextRequests, count == 1 ? 1 : 2);
+        expect(playback.played.length, 1);
+        for (var index = 0; index < count; index++) {
+          expect(
+            playback.played[index],
+            Uri.parse('asset:///sentence-$index.mp3'),
+          );
+          playback.complete();
+          await Future<void>.delayed(Duration.zero);
+        }
+        await stopping;
+        expect(repository.streamingTextRequests, count);
+        expect(controller.phase, ConversationPhase.ready);
+        expect(playback.preloaded, isEmpty);
+        expect(controller.sentenceResults.length, count == 1 ? 0 : count);
+        if (count == 2) {
+          expect(
+            repository.streamingCapture?.sourceText,
+            'Bạn có thể đăng doanh thu trong vòng 3 tháng được không',
+          );
+        }
+      },
+    );
+  }
+  test('sentence 2 failure waits for sentence 1 and keeps its text', () async {
+    final repository = _FallbackRepository(
+      streamingOutcomes: [
+        _result('first', audioUri: Uri.parse('asset:///first.mp3')),
+        StateError('translation failed'),
+      ],
+    );
+    final playback = _CompletionControlledPlaybackService();
+    final controller = ConversationController(
+      audioInput: _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Phone',
+      ),
+      streamingSpeechInput: _FakeStreamingSpeechInput(
+        sourceText: 'Câu đầu? Câu sau?',
+      ),
+      playbackService: playback,
+      repository: repository,
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+    );
+    addTearDown(controller.dispose);
+    await controller.startRecording();
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    final stopping = controller.stopRecording(manual: true);
+    await playback.started.future;
+    await Future<void>.delayed(Duration.zero);
+    expect(controller.errorMessage, isNull);
+    playback.complete();
+    await stopping;
+    expect(controller.errorMessage, contains('Câu 2/2'));
+    expect(controller.errorMessage, contains('dịch'));
+    expect(controller.sentenceResults.single.conversationId, 'first');
+    expect(playback.played.length, 1);
+  });
+  test('cancelled sentence result cannot publish into a new turn', () async {
+    final late = Completer<ConversationResult>();
+    final repository = _FallbackRepository(streamingResultCompleter: late);
+    final playback = _CompletionControlledPlaybackService();
+    final controller = ConversationController(
+      audioInput: _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Phone',
+      ),
+      streamingSpeechInput: _FakeStreamingSpeechInput(
+        sourceText: 'Câu đầu? Câu sau?',
+      ),
+      playbackService: playback,
+      repository: repository,
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+    );
+    addTearDown(controller.dispose);
+    await controller.startRecording();
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    final stopping = controller.stopRecording(manual: true);
+    while (repository.streamingTextRequests == 0) {
+      await Future<void>.delayed(Duration.zero);
+    }
+    await controller.cancelCurrentMainAction();
+    await stopping;
+    await controller.startRecording();
+    late.complete(_result('stale', audioUri: Uri.parse('asset:///stale.mp3')));
+    await Future<void>.delayed(Duration.zero);
+    expect(playback.played, isEmpty);
+    expect(controller.sentenceResults, isEmpty);
+    expect(controller.result, isNull);
+    await controller.cancelCurrentMainAction();
+  });
   test(
     'iOS parent vocabulary translates both directions without API calls',
     () async {
@@ -3813,6 +3950,8 @@ class _DirectGesturePlaybackService
 
 class _CompletionControlledPlaybackService
     implements AudioPlaybackService, CompletionAwareAudioPlaybackService {
+  final played = <Uri>[];
+  final preloaded = <Uri>[];
   final StreamController<bool> _playing = StreamController<bool>.broadcast(
     sync: true,
   );
@@ -3831,10 +3970,13 @@ class _CompletionControlledPlaybackService
   Future<void> prepare() async {}
 
   @override
-  Future<void> preload(Uri uri) async {}
+  Future<void> preload(Uri uri) async {
+    preloaded.add(uri);
+  }
 
   @override
   Future<PlaybackStartMetrics> play(Uri uri) async {
+    played.add(uri);
     if (!started.isCompleted) started.complete();
     _playing.add(true);
     return const PlaybackStartMetrics(

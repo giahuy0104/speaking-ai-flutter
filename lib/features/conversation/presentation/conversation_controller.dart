@@ -17,6 +17,7 @@ import '../../../core/audio/main_assistant_audio_state.dart';
 import '../../../core/audio/offline_intent_recognizer.dart';
 import '../../../core/audio/realtime_fallback_buffer.dart';
 import '../../../core/audio/streaming_speech_input.dart';
+import '../../../core/audio/sentence_audio_cache.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/aiv0_ble_control.dart';
 import '../../../core/device/h20_connection_state.dart';
@@ -27,6 +28,7 @@ import '../../../l10n/display_language.dart';
 import '../application/conversation_settings_port.dart';
 import '../application/conversation_recording_endpoint_policy.dart';
 import '../application/continuous_translation_session.dart';
+import '../application/sentence_queue.dart';
 import '../application/offline_language_service.dart';
 import '../application/vietnamese_transcript_corrector.dart';
 import '../domain/conversation_models.dart';
@@ -431,6 +433,25 @@ class ConversationController extends ChangeNotifier
   bool _disposed = false;
   int _previewGeneration = 0;
   int _conversationTurnGeneration = 0;
+  SentenceQueue<(ConversationResult, Uri?)>? _sentenceQueue;
+  SentenceAudioCache? _sentenceAudioCache;
+  final List<ConversationResult> _sentenceResults = [];
+  List<ConversationResult> get sentenceResults =>
+      List.unmodifiable(_sentenceResults);
+  String? sentenceProgress;
+  bool get sentenceQueueActive => _sentenceQueue != null;
+
+  void _cancelSentenceQueue() {
+    _sentenceQueue?.cancel();
+    _sentenceQueue = null;
+    sentenceProgress = null;
+    final cache = _sentenceAudioCache;
+    _sentenceAudioCache = null;
+    if (cache != null) {
+      unawaited(cache.close().catchError((Object _) {}));
+    }
+  }
+
   String? _lastPreviewText;
   ConversationPreview? _preview;
   Uri? _preferredPlaybackUri;
@@ -745,10 +766,15 @@ class ConversationController extends ChangeNotifier
     required Future<ConversationResult> backendResult,
     required StreamingSpeechCapture? capture,
     required AudioCapture? audioCapture,
+    int? expectedGeneration,
   }) async {
     try {
       return await backendResult;
     } catch (error, stackTrace) {
+      if (expectedGeneration != null &&
+          (_disposed || expectedGeneration != _conversationTurnGeneration)) {
+        Error.throwWithStackTrace(error, stackTrace);
+      }
       final isRetryable =
           error is TimeoutException ||
           error is http.ClientException ||
@@ -761,6 +787,7 @@ class ConversationController extends ChangeNotifier
         capture: capture,
         audioCapture: audioCapture,
         reason: error,
+        expectedGeneration: expectedGeneration,
       );
       if (offlineResult != null) return offlineResult;
       Error.throwWithStackTrace(error, stackTrace);
@@ -772,13 +799,19 @@ class ConversationController extends ChangeNotifier
     required AudioCapture? audioCapture,
     required Object reason,
     bool useDeviceTtsForExact = false,
+    int? expectedGeneration,
   }) async {
     try {
       final offlineCapture = await _resolveOfflineVietnameseCapture(
         capture: capture,
         audioCapture: audioCapture,
       );
-      if (offlineCapture == null) return null;
+      if (offlineCapture == null ||
+          (expectedGeneration != null &&
+              (_disposed ||
+                  expectedGeneration != _conversationTurnGeneration))) {
+        return null;
+      }
 
       final exactFallback = _localExactFallbackResult(
         offlineCapture,
@@ -795,6 +828,10 @@ class ConversationController extends ChangeNotifier
       final translator = _offlineVietnameseEnglishTranslator;
       if (translator == null) return null;
       final englishText = await translator.translate(offlineCapture.sourceText);
+      if (expectedGeneration != null &&
+          (_disposed || expectedGeneration != _conversationTurnGeneration)) {
+        return null;
+      }
       if (englishText.trim().isEmpty) return null;
       debugPrint('Using on-device conversation translation: $reason');
       transientMessage =
@@ -1776,6 +1813,7 @@ class ConversationController extends ChangeNotifier
         _stopInProgress;
 
     _conversationTurnGeneration += 1;
+    _cancelSentenceQueue();
     _streamingSpeechTurnGeneration = null;
     _nativeSpeechCompletedGeneration = null;
     _pendingStreamingPartialText = null;
@@ -2468,6 +2506,8 @@ class ConversationController extends ChangeNotifier
       return;
     }
     final turnGeneration = ++_conversationTurnGeneration;
+    _cancelSentenceQueue();
+    _sentenceResults.clear();
     _streamingSpeechTurnGeneration = null;
     _nativeSpeechCompletedGeneration = null;
     _pendingStreamingPartialText = null;
@@ -3272,7 +3312,8 @@ class ConversationController extends ChangeNotifier
   }
 
   void _onSpeculativeBatchPreview(ConversationPreview preview) {
-    if (!_isWebRuntime ||
+    if (sentenceQueueActive ||
+        !_isWebRuntime ||
         (phase != ConversationPhase.recording &&
             phase != ConversationPhase.processing) ||
         preview.englishText.trim().isEmpty) {
@@ -3657,6 +3698,39 @@ class ConversationController extends ChangeNotifier
       amplitude = 0;
       notifyListeners();
 
+      final sentences = streamingCapture == null
+          ? const <String>[]
+          : splitFinalSentences(streamingCapture.sourceText);
+      debugPrint(
+        jsonEncode({
+          'event': 'sentence_classification',
+          'splitterVersion': 3,
+          'turnGeneration': turnGeneration,
+          'asrMode': streamingCapture?.asrMode ?? asrMode.apiValue,
+          'characters': streamingCapture?.sourceText.length,
+          'sentenceCount': sentences.length,
+          'decision': streamingCapture == null
+              ? 'no_frontend_final_transcript'
+              : sentences.length > 1
+              ? 'queued'
+              : 'single_or_uncertain',
+        }),
+      );
+      if (sentences.length > 1) {
+        // Invalidate speculative partial-transcript work before queue playback.
+        _previewGeneration += 1;
+        _partialPreviewTimer?.cancel();
+        await batchUpload?.discard(reason: 'final_sentence_queue');
+        await _runSentenceTurn(
+          streamingCapture!,
+          sentences,
+          audioCapture,
+          turnGeneration,
+        );
+        publishedResultForTurn = _sentenceResults.isNotEmpty;
+        return;
+      }
+
       final useAndroidOfflineAudio =
           !_isWebRuntime && defaultTargetPlatform == TargetPlatform.android;
       // Android must know the transport state before it is allowed to start a
@@ -3877,31 +3951,33 @@ class ConversationController extends ChangeNotifier
       await _handleConversationError(error);
     } finally {
       await stoppedAdaptiveWebUpload?.finishPreviewForwarding();
-      await _batchPreviewSubscription?.cancel();
-      _batchPreviewSubscription = null;
-      final adaptiveWebUpload = _adaptiveWebUpload;
-      _adaptiveWebUpload = null;
-      if (adaptiveWebUpload != null) {
-        await adaptiveWebUpload.discard();
-      }
-      if (_usingHfpRoute && _playbackPlaying) {
-        await _waitForActivePlaybackToComplete();
-      }
-      await _stopHfpRoute();
-      _realtimeConnectionGeneration += 1;
-      _realtimeConnectionFuture = null;
-      _realtimeFallbackBuffer.clear();
-      _stopInProgress = false;
-      // A completed continuous turn publishes `ready` before entering this
-      // cleanup block. Publish once more after the old microphone/HFP route and
-      // buffers are fully released so the session coordinator can safely start
-      // the next turn without the previous turn tearing it down.
-      if (!_disposed) {
-        notifyListeners();
-      }
-      final command = handledSpeechCommand;
-      if (command != null) {
-        await _onRecognizedSpeechCommand?.call(command);
+      if (!_disposed && turnGeneration == _conversationTurnGeneration) {
+        await _batchPreviewSubscription?.cancel();
+        _batchPreviewSubscription = null;
+        final adaptiveWebUpload = _adaptiveWebUpload;
+        _adaptiveWebUpload = null;
+        if (adaptiveWebUpload != null) {
+          await adaptiveWebUpload.discard();
+        }
+        if (_usingHfpRoute && _playbackPlaying) {
+          await _waitForActivePlaybackToComplete();
+        }
+        await _stopHfpRoute();
+        _realtimeConnectionGeneration += 1;
+        _realtimeConnectionFuture = null;
+        _realtimeFallbackBuffer.clear();
+        _stopInProgress = false;
+        // A completed continuous turn publishes `ready` before entering this
+        // cleanup block. Publish once more after the old microphone/HFP route and
+        // buffers are fully released so the session coordinator can safely start
+        // the next turn without the previous turn tearing it down.
+        if (!_disposed) {
+          notifyListeners();
+        }
+        final command = handledSpeechCommand;
+        if (command != null) {
+          await _onRecognizedSpeechCommand?.call(command);
+        }
       }
     }
   }
@@ -3912,6 +3988,199 @@ class ConversationController extends ChangeNotifier
     } catch (error) {
       debugPrint('Recognized speech command matcher failed: $error');
       return false;
+    }
+  }
+
+  Future<void> _runSentenceTurn(
+    StreamingSpeechCapture capture,
+    List<String> sentences,
+    AudioCapture? recording,
+    int generation,
+  ) async {
+    final queue = SentenceQueue<(ConversationResult, Uri?)>(
+      sessionId: 'turn-$generation-${DateTime.now().microsecondsSinceEpoch}',
+    );
+    final cache = SentenceAudioCache();
+    _sentenceQueue = queue;
+    _sentenceAudioCache = cache;
+    _sentenceResults.clear();
+    final turnContext = context;
+    final turnAge = _childAge;
+    final turnSilence = vadSilenceMs;
+    bool current() =>
+        !_disposed &&
+        generation == _conversationTurnGeneration &&
+        !queue.isCancelled;
+    final clock = Stopwatch()..start();
+    int? previousEndMs;
+    try {
+      await _preparePlaybackWithTimeout();
+      if (!current()) return;
+      await queue.run(
+        count: sentences.length,
+        progress: (index, preparing) {
+          if (!current()) return;
+          sentenceProgress = preparing
+              ? 'Đang chuẩn bị câu ${index + 1}/${sentences.length}'
+              : 'Câu ${index + 1}/${sentences.length}';
+          notifyListeners();
+        },
+        prepare: (index) async {
+          final part = StreamingSpeechCapture(
+            sourceText: sentences[index],
+            duration: capture.duration,
+            inputLabel: capture.inputLabel,
+            confidence: capture.confidence,
+            firstResultMs: capture.firstResultMs,
+            finalAfterStopMs: capture.finalAfterStopMs,
+            asrMode: capture.asrMode,
+            isBluetoothInput: capture.isBluetoothInput,
+            initialNoiseRms: capture.initialNoiseRms,
+            extraBenchmark: {
+              ...?capture.extraBenchmark,
+              'sentenceSessionId': queue.sessionId,
+              'sentenceIndex': index,
+              'sentenceCount': sentences.length,
+            },
+          );
+          if (!current()) throw StateError('cancelled');
+          final online = await _hasNetworkTransport();
+          if (!current()) throw StateError('cancelled');
+          final offline = online
+              ? null
+              : await _tryOfflineConversationResult(
+                  capture: part,
+                  audioCapture: null,
+                  reason: 'network_transport_unavailable',
+                  useDeviceTtsForExact: true,
+                  expectedGeneration: generation,
+                );
+          if (!current()) throw StateError('cancelled');
+          final translated =
+              offline ??
+              await _useOfflineResultWhenBackendIsUnavailable(
+                backendResult: _repository.processStreamingText(
+                  capture: part,
+                  context: turnContext,
+                  childAge: turnAge,
+                  vadSilenceMs: turnSilence,
+                ),
+                capture: part,
+                audioCapture: null,
+                expectedGeneration: generation,
+              );
+          if (!current()) throw StateError('cancelled');
+          // The first sentence follows normal playback immediately. Only the
+          // lookahead downloads into separate storage.
+          final uri = index > 0 && translated.audioUri != null
+              ? await cache.fetch(
+                  translated.audioUri!,
+                  checksum: translated.audioSha256,
+                )
+              : translated.audioUri;
+          if (!current()) throw StateError('cancelled');
+          debugPrint(
+            jsonEncode({
+              'event': 'sentence_prepared',
+              'sessionId': queue.sessionId,
+              'sentenceIndex': index,
+              'conversationId': translated.conversationId,
+              'elapsedMs': clock.elapsedMilliseconds,
+            }),
+          );
+          return (translated, uri);
+        },
+        play: (prepared, index) async {
+          if (!current()) return;
+          final translated = prepared.$1;
+          result = translated;
+          _sentenceResults.add(translated);
+          _preferredPlaybackUri = prepared.$2;
+          _speculativePreloadUri = null;
+          _responseReceivedAt = DateTime.now();
+          _processingStageTimer?.cancel();
+          processingStage = ConversationProcessingStage.preparingAudio;
+          notifyListeners();
+          final archive = _repository;
+          if (index == 0 &&
+              recording != null &&
+              translated.conversationId.isNotEmpty &&
+              archive is UserAudioArchiveRepository) {
+            unawaited(
+              (archive as UserAudioArchiveRepository)
+                  .archiveUserAudio(result: translated, capture: recording)
+                  .catchError((Object _) {}),
+            );
+          }
+          await _playResultInternal(
+            reportLatency: index == 0,
+            propagateFailure: true,
+            sentenceSession: queue,
+            onStarted: () {
+              debugPrint(
+                jsonEncode({
+                  'event': 'sentence_playing',
+                  'sessionId': queue.sessionId,
+                  'sentenceIndex': index,
+                  'conversationId': translated.conversationId,
+                  'elapsedMs': clock.elapsedMilliseconds,
+                  if (index == 0 && _stoppedAt != null)
+                    'stopToFirstAudioMs': DateTime.now()
+                        .difference(_stoppedAt!)
+                        .inMilliseconds,
+                  if (previousEndMs != null)
+                    'gapMs': clock.elapsedMilliseconds - previousEndMs!,
+                }),
+              );
+            },
+          );
+          if (!current()) return;
+          previousEndMs = clock.elapsedMilliseconds;
+          if (prepared.$2 != null) await cache.release(prepared.$2!);
+          _preferredPlaybackUri = translated.audioUri;
+        },
+      );
+      if (!current()) return;
+      _lastTurnEndReason = ConversationTurnEndReason.completed;
+      phase = ConversationPhase.ready;
+    } on SentenceQueueFailure catch (failure) {
+      if (!current()) return;
+      final cause = failure.cause;
+      final audioFailure =
+          cause is PlaybackException ||
+          cause is SentenceAudioDownloadException ||
+          (cause is CodedConversationException &&
+              (cause.errorCode?.startsWith('TTS') == true ||
+                  cause.errorCode?.startsWith('AUDIO') == true));
+      debugPrint(
+        jsonEncode({
+          'event': 'sentence_failed',
+          'sessionId': queue.sessionId,
+          'sentenceIndex': failure.index,
+          'errorType': cause.runtimeType.toString(),
+          if (cause is ConversationFailureDiagnostics) ...{
+            'httpStatus': cause.statusCode,
+            'requestId': cause.requestId,
+          },
+          if (cause is CodedConversationException) 'code': cause.errorCode,
+          if (cause is SentenceAudioDownloadException) ...{
+            'code': cause.code,
+            'httpStatus': cause.status,
+          },
+        }),
+      );
+      _lastTurnEndReason = ConversationTurnEndReason.failed;
+      _setError(
+        'Câu ${failure.index + 1}/${sentences.length}: '
+        '${audioFailure ? "Không thể phát âm thanh" : "Không thể dịch câu"}.',
+      );
+    } finally {
+      await cache.close().catchError((Object _) {});
+      if (identical(_sentenceQueue, queue)) {
+        _sentenceQueue = null;
+        _sentenceAudioCache = null;
+        if (!_disposed) notifyListeners();
+      }
     }
   }
 
@@ -4217,14 +4486,18 @@ class ConversationController extends ChangeNotifier
   Future<void> playResult({
     bool reportLatency = false,
     bool propagateFailure = false,
-  }) => _continuousTranslationSession.playResult(
-    reportLatency: reportLatency,
-    propagateFailure: propagateFailure,
-  );
+  }) => sentenceQueueActive
+      ? Future<void>.value()
+      : _continuousTranslationSession.playResult(
+          reportLatency: reportLatency,
+          propagateFailure: propagateFailure,
+        );
 
   Future<void> _playResultInternal({
     bool reportLatency = false,
     bool propagateFailure = false,
+    SentenceQueue<(ConversationResult, Uri?)>? sentenceSession,
+    VoidCallback? onStarted,
   }) async {
     final playbackTurnGeneration = _conversationTurnGeneration;
     final mediaPlaybackToken = Object();
@@ -4234,9 +4507,14 @@ class ConversationController extends ChangeNotifier
       return;
     }
     if (audioUri == null) {
+      if (sentenceSession != null &&
+          currentResult.audioSource != 'device_tts') {
+        throw const PlaybackException('Không có âm thanh TTS.');
+      }
       await _speakOfflineTranslation(
         currentResult.englishText,
         turnGeneration: playbackTurnGeneration,
+        propagateFailure: sentenceSession != null,
       );
       return;
     }
@@ -4277,55 +4555,113 @@ class ConversationController extends ChangeNotifier
       // This wait is required for every route: returning after playback merely
       // starts lets a following prompt/content clip interrupt the assistant on
       // the phone speaker or A2DP.
-      final playbackCompletion = _waitForActivePlaybackToComplete();
-      final playbackRequestedAt = DateTime.now();
-      PlaybackStartMetrics? gestureMetrics;
-      final gesturePlayback = _playbackService;
-      if (!reportLatency &&
-          currentResult.audioSha256 == null &&
-          gesturePlayback is DirectUserGestureAudioPlaybackService) {
-        final directStart =
-            (gesturePlayback as DirectUserGestureAudioPlaybackService)
-                .playLoadedForUserGesture(audioUri);
-        final directMetrics = await directStart.timeout(
-          _audioPreparationTimeout,
-          onTimeout: () => throw const PlaybackException(
-            'Không thể chuẩn bị âm thanh trong thời gian cho phép. Bạn thử lại nhé.',
-          ),
-        );
-        gestureMetrics = directMetrics;
-      }
-      final playback = _playbackService;
-      final checksum = currentResult.audioSha256;
-      final metrics =
-          gestureMetrics ??
-          await _awaitPlaybackStartWithTimeout(
-            checksum != null && playback is IntegrityAwareAudioPlaybackService
-                ? (playback as IntegrityAwareAudioPlaybackService).playVerified(
-                    audioUri,
-                    sha256: checksum,
-                  )
-                : playback.play(audioUri),
-          );
-      if (playbackTurnGeneration != _conversationTurnGeneration) {
-        await _playbackService.stop().catchError((Object _) {});
+      if (sentenceSession != null &&
+          (sentenceSession.isCancelled ||
+              playbackTurnGeneration != _conversationTurnGeneration)) {
         return;
       }
-      if (useSelectedMediaOutput) {
-        _startIosSelectedMediaOutputMonitor(
-          playbackTurnGeneration,
-          mediaPlaybackToken,
-        );
+      final completion = Completer<void>();
+      PlaybackException? completionFailure;
+      StreamSubscription<void>? sentenceCompletionSubscription;
+      if (sentenceSession != null) {
+        final service = _playbackService;
+        if (service is! CompletionAwareAudioPlaybackService) {
+          throw const PlaybackException(
+            'Thiết bị không báo kết thúc âm thanh.',
+          );
+        }
+        sentenceCompletionSubscription =
+            (service as CompletionAwareAudioPlaybackService).completionStream
+                .listen(
+                  (_) {
+                    if (!completion.isCompleted) completion.complete();
+                  },
+                  onError: (Object error, StackTrace stack) {
+                    if (!completion.isCompleted) {
+                      completionFailure = const PlaybackException(
+                        'Lỗi luồng phát âm thanh.',
+                      );
+                      completion.complete();
+                    }
+                  },
+                );
       }
-      if (reportLatency && _stoppedAt != null) {
-        _reportPlaybackStarted(
-          currentResult: currentResult,
-          startedAt: playbackRequestedAt.add(metrics.startedAfterRequest),
-          metrics: metrics,
-        );
+      final playbackCompletion = sentenceSession == null
+          ? _waitForActivePlaybackToComplete()
+          : Future.any<void>([completion.future, sentenceSession.cancelled]);
+      try {
+        final playbackRequestedAt = DateTime.now();
+        PlaybackStartMetrics? gestureMetrics;
+        final gesturePlayback = _playbackService;
+        if (sentenceSession == null &&
+            !reportLatency &&
+            currentResult.audioSha256 == null &&
+            gesturePlayback is DirectUserGestureAudioPlaybackService) {
+          final directStart =
+              (gesturePlayback as DirectUserGestureAudioPlaybackService)
+                  .playLoadedForUserGesture(audioUri);
+          final directMetrics = await directStart.timeout(
+            _audioPreparationTimeout,
+            onTimeout: () => throw const PlaybackException(
+              'Không thể chuẩn bị âm thanh trong thời gian cho phép. Bạn thử lại nhé.',
+            ),
+          );
+          gestureMetrics = directMetrics;
+        }
+        final playback = _playbackService;
+        final checksum = currentResult.audioSha256;
+        Future<PlaybackStartMetrics> start() =>
+            checksum != null && playback is IntegrityAwareAudioPlaybackService
+            ? (playback as IntegrityAwareAudioPlaybackService).playVerified(
+                audioUri,
+                sha256: checksum,
+              )
+            : playback.play(audioUri);
+        final metrics =
+            gestureMetrics ??
+            (sentenceSession == null
+                ? await _awaitPlaybackStartWithTimeout(start())
+                : await Future.any<PlaybackStartMetrics?>([
+                    start().timeout(
+                      _audioPreparationTimeout,
+                      onTimeout: () => throw const PlaybackException(
+                        'Không thể bắt đầu phát âm thanh.',
+                      ),
+                    ),
+                    sentenceSession.cancelled.then((_) => null),
+                  ]));
+        if (metrics == null) return;
+        if (playbackTurnGeneration != _conversationTurnGeneration) {
+          if (sentenceSession == null) {
+            await _playbackService.stop().catchError((Object _) {});
+          }
+          return;
+        }
+        if (useSelectedMediaOutput) {
+          _startIosSelectedMediaOutputMonitor(
+            playbackTurnGeneration,
+            mediaPlaybackToken,
+          );
+        }
+        if (reportLatency && _stoppedAt != null) {
+          _reportPlaybackStarted(
+            currentResult: currentResult,
+            startedAt: playbackRequestedAt.add(metrics.startedAfterRequest),
+            metrics: metrics,
+          );
+        }
+        onStarted?.call();
+        await playbackCompletion;
+        if (completionFailure != null) throw completionFailure!;
+      } finally {
+        await sentenceCompletionSubscription?.cancel();
       }
-      await playbackCompletion;
     } catch (error) {
+      if (sentenceSession != null &&
+          (sentenceSession.isCancelled ||
+              playbackTurnGeneration != _conversationTurnGeneration)) {
+        return;
+      }
       await _playbackService.stop().catchError((Object _) {});
       if (playbackTurnGeneration != _conversationTurnGeneration) return;
       if (!propagateFailure &&
@@ -4355,10 +4691,14 @@ class ConversationController extends ChangeNotifier
   Future<void> _speakOfflineTranslation(
     String englishText, {
     required int turnGeneration,
+    bool propagateFailure = false,
   }) async {
     final text = englishText.trim();
     final promptService = _voicePromptService;
     if (text.isEmpty || promptService == null) {
+      if (propagateFailure) {
+        throw const PlaybackException('Thiết bị chưa có giọng đọc tiếng Anh.');
+      }
       transientMessage =
           'Đã dịch offline nhưng thiết bị chưa có giọng đọc tiếng Anh.';
       notifyListeners();
@@ -4383,6 +4723,9 @@ class ConversationController extends ChangeNotifier
       }
     } catch (error) {
       if (turnGeneration != _conversationTurnGeneration) return;
+      if (propagateFailure) {
+        throw const PlaybackException('Không phát được giọng đọc tiếng Anh.');
+      }
       transientMessage =
           'Đã dịch offline nhưng chưa phát được giọng tiếng Anh: '
           '${_friendlyError(error)}';
@@ -4678,6 +5021,8 @@ class ConversationController extends ChangeNotifier
   }
 
   bool _clearPresentationResultState() {
+    _sentenceResults.clear();
+    sentenceProgress = null;
     if (result == null) return false;
     result = null;
     qualityApproved = null;
@@ -4842,6 +5187,7 @@ class ConversationController extends ChangeNotifier
   @override
   void dispose() {
     _disposed = true;
+    _cancelSentenceQueue();
     _deviceOperationGeneration += 1;
     _activeDeviceOperation = null;
     _automaticDeviceOperation = null;

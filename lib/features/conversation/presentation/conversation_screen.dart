@@ -52,6 +52,21 @@ class _ConversationScreenState extends State<ConversationScreen> {
   bool _stoppingSession = false;
   int _actionGeneration = 0;
 
+  Future<void> _openOtherScreen(VoidCallback open) async {
+    if (widget.controller.sentenceQueueActive) {
+      await widget.controller.cancelCurrentMainAction();
+    }
+    if (mounted) open();
+  }
+
+  @override
+  void dispose() {
+    if (widget.controller.sentenceQueueActive) {
+      unawaited(widget.controller.cancelCurrentMainAction());
+    }
+    super.dispose();
+  }
+
   Future<void> _stopSession() async {
     final stop = widget.onStopSession;
     if (stop == null || _stoppingSession || widget.isStoppingSession) return;
@@ -113,8 +128,10 @@ class _ConversationScreenState extends State<ConversationScreen> {
                     ScenicAppHeader(
                       isReady: widget.controller.isH20Ready,
                       connectionState: widget.controller.h20ConnectionState(),
-                      onHistory: widget.onOpenHistory,
-                      onSettings: widget.onOpenSettings,
+                      onHistory: () =>
+                          unawaited(_openOtherScreen(widget.onOpenHistory)),
+                      onSettings: () =>
+                          unawaited(_openOtherScreen(widget.onOpenSettings)),
                       historyButtonKey: widget.historyButtonKey,
                       settingsButtonKey: widget.settingsButtonKey,
                     ),
@@ -153,6 +170,39 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                   ),
                                 ),
                                 SizedBox(height: compact ? 8 : 18),
+                                if (widget.controller.sentenceProgress != null)
+                                  Text(widget.controller.sentenceProgress!),
+                                if (widget.controller.sentenceQueueActive)
+                                  TextButton.icon(
+                                    onPressed: () => unawaited(
+                                      widget.controller
+                                          .cancelCurrentMainAction(),
+                                    ),
+                                    icon: const Icon(Icons.stop),
+                                    label: const Text('Dừng phát'),
+                                  ),
+                                for (final previous
+                                    in widget.controller.sentenceResults.where(
+                                      (item) => !identical(
+                                        item,
+                                        widget.controller.result,
+                                      ),
+                                    ))
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: Text(
+                                      '${previous.vietnameseText}\n'
+                                      '${previous.englishText}',
+                                    ),
+                                  ),
+                                if (widget
+                                    .controller
+                                    .sentenceResults
+                                    .isNotEmpty)
+                                  const Text(
+                                    'Nghe lại áp dụng cho câu đang hiển thị '
+                                    'bên dưới, sau khi hàng đợi dừng.',
+                                  ),
                                 ResultPanel(
                                   key: widget.resultPanelKey,
                                   result: widget.controller.result,
