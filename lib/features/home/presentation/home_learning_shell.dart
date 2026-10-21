@@ -732,6 +732,15 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   Future<bool> _executeVoiceNavigation(VoiceNavigationIntent intent) async {
+    AudioDiagnostics.event('screen.navigation.request', {
+      'destination': intent.destination.name,
+      'prepareOnly': intent.prepareOnly,
+      'page': _page,
+      'requestedPage': _requestedPage,
+      'lifecycle': WidgetsBinding.instance.lifecycleState?.name,
+      'activeKind': ActiveLearningModuleScope.read(context)?.activeKind?.name,
+      'hasReviewPractice': _vocabularyNavigationController.hasReviewPractice,
+    });
     if (intent.vocabularyTarget != null &&
         !_vocabularyNavigationController.isAttached) {
       return false;
@@ -806,7 +815,13 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     if (iosVocabularyPracticeTransfer) {
       final checkpoint =
           activeModule!.controller! as ActiveLearningNavigationCheckpoint;
-      if (!await checkpoint.preserveForNavigation()) {
+      AudioDiagnostics.event('screen.navigation.checkpoint.request');
+      final preserved = await checkpoint.preserveForNavigation();
+      AudioDiagnostics.event('screen.navigation.checkpoint.completed', {
+        'preserved': preserved,
+        'sameOwner': identical(activeModule.controller, checkpoint),
+      });
+      if (!preserved) {
         _showVoiceNavigationMessage(
           'Chưa lưu được vị trí học. Bạn hãy thử chuyển lại.',
         );
@@ -876,6 +891,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     switch (intent.destination) {
       case VoiceNavigationDestination.conversation:
         if (!await _showConversationAndWait(
+          animate: !iosVocabularyPracticeTransfer,
           deferNavigationExitToPracticeClose: iosReviewTranslationTransfer,
         )) {
           return false;
@@ -883,8 +899,13 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         if (!mounted) return false;
         if (iosReviewTranslationTransfer) {
           final pageGeneration = _pageNavigationGeneration;
-          if (!await _vocabularyNavigationController
-              .closeReviewPracticeForTranslation()) {
+          AudioDiagnostics.event('screen.review.close.request');
+          final closed = await _vocabularyNavigationController
+              .closeReviewPracticeForTranslation();
+          AudioDiagnostics.event('screen.review.close.completed', {
+            'closed': closed,
+          });
+          if (!closed) {
             if (mounted &&
                 _pageNavigationGeneration == pageGeneration &&
                 _requestedPage == 0 &&
@@ -902,7 +923,9 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           widget.onActiveLearningExitCommitted?.call();
         }
         if (intent.enterMainSpeakingMode) {
+          AudioDiagnostics.event('screen.translation.start.request');
           await widget.onMainSpeakingModeStarted?.call();
+          AudioDiagnostics.event('screen.translation.start.completed');
         }
       case VoiceNavigationDestination.vocabulary:
         // A Chủ đề route opened from the vocabulary tab sits above a
@@ -1281,14 +1304,21 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
   Future<bool> _showConversationAndWait({
     bool requireStoppedAudio = true,
+    bool animate = true,
     bool deferNavigationExitToPracticeClose = false,
   }) async {
     if (_page == 1) {
       // A slow native stop can outlive the vocabulary cleanup's two-second
       // bound. Keep the old page and do not open translation's microphone in
       // that case; the user can retry after the audio route settles.
+      AudioDiagnostics.event('screen.vocabulary.cleanup.request', {
+        'requireStoppedAudio': requireStoppedAudio,
+      });
       final cleanup = _vocabularyNavigationController.leaveForOtherContent();
       final settled = requireStoppedAudio ? await cleanup : true;
+      AudioDiagnostics.event('screen.vocabulary.cleanup.completed', {
+        'settled': settled,
+      });
       if (!requireStoppedAudio) unawaited(cleanup);
       if (!mounted) return false;
       if (!settled) {
@@ -1308,12 +1338,20 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       }
       unawaited(widget.voiceNavigationController?.pause());
     }
-    return _requestHomePage(0);
+    // An opaque practice route mutes the shell's tickers. Waiting for a page
+    // animation underneath it would prevent us from ever closing that route.
+    return _requestHomePage(0, animate: animate);
   }
 
   Future<bool> _requestHomePage(int page, {bool animate = true}) async {
     _requestedPage = page;
     final generation = ++_pageNavigationGeneration;
+    AudioDiagnostics.event('screen.page.request', {
+      'page': page,
+      'generation': generation,
+      'animate': animate,
+      'lifecycle': WidgetsBinding.instance.lifecycleState?.name,
+    });
     if (_page != page && mounted) {
       setState(() => _page = page);
     }
@@ -1323,6 +1361,16 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,
       generation: generation,
     );
+    AudioDiagnostics.event('screen.page.completed', {
+      'page': _page,
+      'requestedPage': _requestedPage,
+      'generation': generation,
+      'currentGeneration': _pageNavigationGeneration,
+      'mounted': mounted,
+      'visiblePage': mounted && _pageController.hasClients
+          ? _pageController.page
+          : null,
+    });
     if (!mounted ||
         generation != _pageNavigationGeneration ||
         _requestedPage != page ||

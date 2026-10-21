@@ -13,6 +13,41 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets(
+    'direct skip waits for the supplied recording and ignores repeat taps',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final playback = Completer<void>();
+      final media = _FakeLessonMediaService(playback: playback);
+      V4SongStageAction? result;
+      await tester.pumpWidget(
+        _host(
+          songTitle: 'Count with Me',
+          mediaService: media,
+          voicePromptService: _FakeVoicePromptService(),
+          onResult: (value) => result = value,
+        ),
+      );
+      await tester.tap(find.byKey(const Key('open-v4-song-stage')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('v4-song-stage-skip')));
+      await tester.pump();
+      expect(result, isNull);
+      expect(find.byKey(const Key('v4-song-stage-screen')), findsOneWidget);
+      expect(media.playedToCompletion, <Uri>[
+        Uri.parse(
+          'asset:///assets/audio/assistant-core/assistant.main.song_skipped.vi.mp3',
+        ),
+      ]);
+      await tester.tap(find.byKey(const Key('v4-song-stage-skip')));
+      await tester.pump();
+      expect(media.playedToCompletion, hasLength(1));
+      playback.complete();
+      await tester.pumpAndSettle();
+      expect(result, V4SongStageAction.skipped);
+    },
+  );
+
   testWidgets('announces SONG_START_CUE, shows the title, and can skip', (
     tester,
   ) async {

@@ -32,8 +32,9 @@ Future<void> deleteLessonRecording(String path) async {
 
 Future<String?> resolveLessonRecording(
   String? recordedPath,
-  String expectedPath,
-) async {
+  String expectedPath, {
+  bool requireNormalization = false,
+}) async {
   final path = recordedPath?.trim();
   if (path == null || path.isEmpty) {
     return null;

@@ -223,13 +223,40 @@ class _V4SongStageScreenState extends State<V4SongStageScreen>
     }
   }
 
-  Future<void> _finish(V4SongStageAction action) async {
-    if (_leaving) return;
-    _leaving = true;
+  Future<void> _finish(
+    V4SongStageAction action, {
+    bool announceSkip = false,
+  }) async {
+    if (!mounted || _leaving) return;
+    setState(() => _leaving = true);
     _pausedForMainAssistant = false;
     _request += 1;
-    unawaited(_prompt.stop());
+    await _prompt.stop().catchError((Object _) {});
     await widget.mediaService.stopPlayback().catchError((Object _) {});
+    if (!mounted) return;
+    if (announceSkip) {
+      try {
+        // MAIN already owns its acknowledgement. Only a direct button press
+        // plays this recording here, before returning to the lesson.
+        await widget.mediaService.prepareSelectedLessonOutput();
+        if (!mounted) return;
+        await widget.mediaService.playToCompletion(
+          Uri.parse(
+            'asset:///assets/audio/assistant-core/assistant.main.song_skipped.vi.mp3',
+          ),
+        );
+      } catch (_) {
+        if (mounted) {
+          setState(() {
+            _leaving = false;
+            _playing = false;
+            _announcing = false;
+            _message = 'Chưa thể phát lời bỏ qua bài hát. Bạn thử lại nhé.';
+          });
+        }
+        return;
+      }
+    }
     if (mounted) Navigator.of(context).pop(action);
   }
 
@@ -412,7 +439,12 @@ class _V4SongStageScreenState extends State<V4SongStageScreen>
                       const Spacer(),
                       TextButton.icon(
                         key: const Key('v4-song-stage-skip'),
-                        onPressed: () => _finish(V4SongStageAction.skipped),
+                        onPressed: _leaving
+                            ? null
+                            : () => _finish(
+                                V4SongStageAction.skipped,
+                                announceSkip: true,
+                              ),
                         icon: const Icon(Icons.skip_next_rounded),
                         label: const Text('Bỏ qua bài hát'),
                       ),
