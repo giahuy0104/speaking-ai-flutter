@@ -42,6 +42,115 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  testWidgets(
+    'device gate delays Home start, deduplicates taps and allows stop',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final speech = _FakeStreamingSpeechInput();
+      final controller = _ObservedPrimaryActionController(speech);
+      addTearDown(controller.dispose);
+      final gate = Completer<bool>();
+      var checks = 0;
+      await tester.pumpWidget(
+        _app(
+          controller,
+          ensureDeviceConnected: () {
+            checks++;
+            return gate.future;
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+      final start = find.text('Kết nối HOMI');
+      expect(find.text('Bắt đầu nói'), findsNothing);
+      expect(find.text('Kết nối với HOMI để bắt đầu sử dụng'), findsOneWidget);
+      expect(find.text('Bấm nút micro bên dưới để bắt đầu'), findsNothing);
+      expect(find.byIcon(Icons.bluetooth_rounded), findsOneWidget);
+      await tester.tap(start);
+      await tester.tap(start);
+      await tester.pump();
+      expect(checks, 1);
+      expect(speech.startCount, 0);
+      gate.complete(true);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(speech.startCount, 1);
+      expect(controller.isRecording, isTrue);
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+      expect(controller.isPreparingMicrophone, isFalse);
+      await tester.tap(find.text('Dừng ghi âm'));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(checks, 1);
+      expect(controller.primaryActionPhases, <ConversationPhase>[
+        ConversationPhase.idle,
+        ConversationPhase.recording,
+      ]);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 3));
+    },
+  );
+
+  testWidgets('cancelled device gate keeps Home idle and tabs browsable', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final controller = _controller();
+    addTearDown(controller.dispose);
+    var checks = 0;
+    var deviceReady = false;
+    await tester.pumpWidget(
+      _app(
+        controller,
+        ensureDeviceConnected: () async {
+          checks++;
+          return false;
+        },
+        isDeviceConnectionReady: () => deviceReady,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Kết nối HOMI'));
+    await tester.pumpAndSettle();
+    expect(checks, 1);
+    expect(controller.isRecording, isFalse);
+    expect(find.text('Kết nối với HOMI để bắt đầu sử dụng'), findsOneWidget);
+
+    deviceReady = true;
+    await tester.pumpWidget(
+      _app(
+        controller,
+        ensureDeviceConnected: () async => deviceReady,
+        isDeviceConnectionReady: () => deviceReady,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Bắt đầu nói'), findsOneWidget);
+    expect(find.text('Bấm nút micro bên dưới để bắt đầu'), findsOneWidget);
+    expect(find.text('Kết nối với HOMI để bắt đầu sử dụng'), findsNothing);
+
+    deviceReady = false;
+    await tester.pumpWidget(
+      _app(
+        controller,
+        ensureDeviceConnected: () async => deviceReady,
+        isDeviceConnectionReady: () => deviceReady,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Kết nối HOMI'), findsOneWidget);
+    expect(find.text('Kết nối với HOMI để bắt đầu sử dụng'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('topic-listening-edge-tab')));
+    await tester.pumpAndSettle();
+    expect(checks, 1);
+    expect(find.byType(TopicListeningScreen), findsOneWidget);
+    final topics = tester.widget<TopicListeningScreen>(
+      find.byType(TopicListeningScreen),
+    );
+    expect(topics.ensureDeviceConnected, isNotNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   testWidgets('Android does not launch the six-step guide after setup', (
     tester,
   ) async {
@@ -287,21 +396,21 @@ void main() {
       final topicTabRect = tester.getRect(
         find.byKey(const Key('topic-listening-edge-tab')),
       );
-      expect(vocabularyTabRect.width, closeTo(52, 0.01));
-      expect(vocabularyTabRect.height, closeTo(184, 0.01));
-      expect(topicTabRect.width, closeTo(52, 0.01));
-      expect(topicTabRect.height, closeTo(184, 0.01));
+      expect(vocabularyTabRect.width, closeTo(390 * 0.22, 0.01));
+      expect(vocabularyTabRect.height, closeTo(390 * 0.22 * 1.12, 0.01));
+      expect(topicTabRect.width, closeTo(390 * 0.22, 0.01));
+      expect(topicTabRect.height, closeTo(390 * 0.22 * 1.12, 0.01));
       expect(
         find.descendant(
           of: find.byKey(const Key('vocabulary-edge-tab')),
-          matching: find.text('T\nỪ\nV\nỰ\nN\nG'),
+          matching: find.text('Từ vựng'),
         ),
         findsOneWidget,
       );
       expect(
         find.descendant(
           of: find.byKey(const Key('topic-listening-edge-tab')),
-          matching: find.text('C\nH\nỦ\nĐ\nỀ'),
+          matching: find.text('Chủ đề'),
         ),
         findsOneWidget,
       );
@@ -327,8 +436,11 @@ void main() {
         findsOneWidget,
       );
       expect(topicTabRect.top, closeTo(vocabularyTabRect.top, 0.01));
-      expect(vocabularyTabRect.top, closeTo(844 * 0.27, 0.01));
       final iosNavigation = defaultTargetPlatform == TargetPlatform.iOS;
+      expect(
+        vocabularyTabRect.top,
+        closeTo(844 * (iosNavigation ? 0.27 : 0.29), 0.01),
+      );
       expect(
         find.byKey(const Key('home-conversation-tab')),
         iosNavigation ? findsOneWidget : findsNothing,
@@ -2374,6 +2486,8 @@ void _rebuildCountTests() {
 
 Widget _app(
   ConversationController controller, {
+  Future<bool> Function()? ensureDeviceConnected,
+  bool Function()? isDeviceConnectionReady,
   bool autoStartVoiceNavigation = false,
   int childAge = 6,
   VoiceNavigationController? voiceNavigationController,
@@ -2401,6 +2515,8 @@ Widget _app(
 }) {
   final home = HomeLearningShell(
     controller: controller,
+    ensureDeviceConnected: ensureDeviceConnected,
+    isDeviceConnectionReady: isDeviceConnectionReady,
     voiceNavigationController: voiceNavigationController,
     vocabularyAudioService: vocabularyAudioService,
     vocabularyMediaService: vocabularyMediaService,
@@ -2647,6 +2763,26 @@ class _FakeScreenAwareBackgroundLearningSession
   Future<bool?> isScreenInteractive() async {
     screenStateReadCount += 1;
     return screenInteractive;
+  }
+}
+
+class _ObservedPrimaryActionController extends ConversationController {
+  _ObservedPrimaryActionController(StreamingSpeechInput speech)
+    : super(
+        audioInput: _FakeAudioInput(),
+        streamingSpeechInput: speech,
+        playbackService: const _FakePlaybackService(),
+        repository: const DemoConversationRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+      );
+
+  final List<ConversationPhase> primaryActionPhases = <ConversationPhase>[];
+
+  @override
+  Future<void> onPrimaryAction() {
+    primaryActionPhases.add(phase);
+    return super.onPrimaryAction();
   }
 }
 

@@ -85,6 +85,7 @@ class HfpAudioBridge(
     private var eventSink: EventChannel.EventSink? = null
     private var headset: BluetoothHeadset? = null
     private var selectedDevice: BluetoothDevice? = null
+    @Volatile private var connectionAttemptGeneration = 0
     private var pendingPermissionResult: MethodChannel.Result? = null
     private var pendingAudioRouteResult: MethodChannel.Result? = null
     private var pendingAudioRouteGeneration: Int? = null
@@ -477,6 +478,12 @@ class HfpAudioBridge(
             result.error("HFP_DISPOSED", "Kết nối HFP đã đóng.", null)
             return
         }
+        if (call.method == "connect" || call.method == "disconnect" ||
+            call.method == "cancelConnectionAttempt"
+        ) {
+            connectionAttemptGeneration += 1
+        }
+        val attemptGeneration = connectionAttemptGeneration
         // Results and status events share the main queue: otherwise a worker
         // reply could overtake an older queued "connecting" status in Dart.
         val reply = object : MethodChannel.Result {
@@ -495,7 +502,11 @@ class HfpAudioBridge(
             // Flutter's MethodChannel catches synchronous handler exceptions;
             // preserve that error reply after moving the work off its thread.
             try {
-                handleRouteMethodCall(call, reply)
+                if (call.method == "connect") {
+                    connect(call, reply, attemptGeneration)
+                } else {
+                    handleRouteMethodCall(call, reply)
+                }
             } catch (error: Exception) {
                 Log.e(TAG, "HFP route operation failed: ${call.method}", error)
                 if (pendingAudioRouteResult === reply) {
@@ -520,10 +531,18 @@ class HfpAudioBridge(
         }
         when (call.method) {
             "initialize" -> initialize(result)
+            "hasPermissions" -> result.success(hasConnectPermission())
             "requestPermissions" -> requestPermissions(result)
             "findDevices" -> findDevices(result)
-            "connect" -> connect(call, result)
+            "connect" -> connect(call, result, connectionAttemptGeneration)
             "disconnect" -> disconnect(result)
+            "cancelConnectionAttempt" -> {
+                // Discovery/selection runs on this serial worker. Any connect
+                // queued before cancellation is rejected by its generation;
+                // an already verified selection remains available.
+                refreshSelectedDeviceStatus()
+                result.success(snapshot())
+            }
             "startAudioRoute" -> startAudioRoute(result)
             "stopAudioRoute" -> {
                 stopAudioRouteInternal()
@@ -651,7 +670,12 @@ class HfpAudioBridge(
     private fun connect(
         call: MethodCall,
         result: MethodChannel.Result,
+        generation: Int,
     ) {
+        if (generation != connectionAttemptGeneration) {
+            result.error("HFP_CONNECT_CANCELLED", "Đã hủy chọn mic.", null)
+            return
+        }
         if (!ensureBluetoothReady(result)) return
         val deviceId = call.argument<String>("deviceId")?.trim().orEmpty()
         if (deviceId.isEmpty()) {
@@ -671,20 +695,28 @@ class HfpAudioBridge(
                 )
                 return
             }
-            selectedDevice = device
+            if (generation != connectionAttemptGeneration) {
+                result.error("HFP_CONNECT_CANCELLED", "Đã hủy chọn mic.", null)
+                return
+            }
             if (!isHeadsetConnected(device)) {
                 phase = "idle"
                 statusMessage =
                     "Hãy kết nối thiết bị trong Cài đặt Bluetooth, rồi quay lại bấm Tìm HFP."
                 emitStatus()
                 host.runOnMain {
-                    if (!disposed) {
+                    if (!disposed && generation == connectionAttemptGeneration) {
                         host.startVisibleActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
                     }
                 }
                 result.error("HFP_NOT_CONNECTED", statusMessage, null)
                 return
             }
+            if (generation != connectionAttemptGeneration) {
+                result.error("HFP_CONNECT_CANCELLED", "Đã hủy chọn mic.", null)
+                return
+            }
+            selectedDevice = device
             phase = "ready"
             statusMessage = "HFP đã kết nối; mic Bluetooth sẵn sàng."
             Log.i(TAG, "H20 HFP profile selected and connected")
@@ -1050,11 +1082,9 @@ class HfpAudioBridge(
 
     private fun safeName(device: BluetoothDevice): String =
         try {
-            device.name?.trim().takeUnless { it.isNullOrEmpty() }
-                ?: safeAddress(device)
-                ?: "Thiết bị HFP"
+            device.name?.trim().orEmpty()
         } catch (_: SecurityException) {
-            "Thiết bị HFP"
+            ""
         }
 
     private fun safeAddress(device: BluetoothDevice): String? =
@@ -1082,9 +1112,12 @@ class HfpAudioBridge(
         if (eventDevice != null) {
             val selectedAddress = safeAddress(selected)
             val eventAddress = safeAddress(eventDevice)
-            if (addressesMatch(selectedAddress, eventAddress)) return true
-            return normalizedDeviceName(safeName(selected)) ==
-                normalizedDeviceName(safeName(eventDevice))
+            if (!selectedAddress.isNullOrBlank() && !eventAddress.isNullOrBlank()) {
+                return addressesMatch(selectedAddress, eventAddress)
+            }
+            val selectedName = normalizedDeviceName(safeName(selected))
+            return selectedName.isNotEmpty() &&
+                selectedName == normalizedDeviceName(safeName(eventDevice))
         }
         val connected = connectedHeadsets()
         return connected.size == 1 &&

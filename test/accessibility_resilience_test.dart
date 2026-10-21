@@ -81,7 +81,14 @@ void main() {
       await tester.pump();
       expect(tester.takeException(), isNull);
       expect(find.text('Ngữ cảnh'), findsNothing);
-      expect(find.text('Dữ liệu và quyền riêng tư'), findsOneWidget);
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        expect(find.text('Dữ liệu và quyền riêng tư'), findsOneWidget);
+      } else {
+        expect(
+          find.byKey(const Key('settings-privacy-policy')),
+          findsOneWidget,
+        );
+      }
       expect(find.text('Xem hoặc xóa dữ liệu'), findsNothing);
       expect(
         find.text('Xem lịch sử gần đây'),

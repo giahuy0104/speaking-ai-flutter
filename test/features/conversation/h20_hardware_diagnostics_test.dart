@@ -11,8 +11,66 @@ import 'package:ai_speaking_flutter_app/features/conversation/domain/conversatio
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUp(() => SharedPreferences.setMockInitialValues({}));
+  test(
+    'cancelled HFP discovery cannot select a late device; next round works',
+    () async {
+      final discovery = Completer<List<HfpAudioDevice>>();
+      final hfp = _FakeHfpAudioControl(
+        pendingDiscovery: discovery,
+        devices: const [
+          HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+        ],
+      );
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        hfpAudioControl: hfp,
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+      );
+      final attempt = controller.autoConnectH20Hfp();
+      controller.cancelAutomaticHfpSelection();
+      discovery.complete(hfp.devices);
+      expect(await attempt, isFalse);
+      expect(hfp.connectedDevice, isNull);
+      expect(controller.usesHfpInput, isFalse);
+      expect(await controller.autoConnectH20Hfp(), isTrue);
+      expect(controller.usesHfpInput, isTrue);
+      controller.dispose();
+    },
+  );
+
+  test(
+    'cancelled HFP connect cannot mark the microphone selected on completion',
+    () async {
+      final connection = Completer<void>();
+      final hfp = _FakeHfpAudioControl(
+        pendingConnection: connection,
+        devices: const [
+          HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+        ],
+      );
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        hfpAudioControl: hfp,
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+      );
+      final attempt = controller.autoConnectH20Hfp();
+      await _flushAsyncEvents();
+      controller.cancelAutomaticHfpSelection();
+      connection.complete();
+      expect(await attempt, isFalse);
+      expect(controller.usesHfpInput, isFalse);
+      controller.dispose();
+    },
+  );
+
   test(
     'H20 loopback records and plays locally without repository calls',
     () async {
@@ -366,6 +424,187 @@ void main() {
     },
   );
 
+  test(
+    'BLE recovery preserves active capture and the next push-to-talk turn',
+    () async {
+      final aiv0 = _FakeAiv0BleControl(protocolConfirmed: true);
+      final speech = _FakeContinuousHfpStreamingSpeechInput();
+      final phone = _FakeAudioInput();
+      final hfp = _FakeHfpAudioControl();
+      final controller = ConversationController(
+        audioInput: phone,
+        streamingSpeechInput: speech,
+        hfpAudioControl: hfp,
+        aiv0BleControl: aiv0,
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.hfpStreaming,
+      );
+      await controller.connectHfpDevice(
+        const HfpAudioDevice(
+          id: '00:11:22:33:44:55',
+          name: 'H20',
+          isConnected: true,
+        ),
+        confirmHomiAssociation: true,
+      );
+      expect(await controller.beginContinuousHfpSession(), isTrue);
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(minutes: 1),
+      );
+      final cancelBeforeLoss = speech.cancelCount;
+      for (final phase in [
+        Aiv0BlePhase.reconnecting,
+        Aiv0BlePhase.scanning,
+        Aiv0BlePhase.connecting,
+      ]) {
+        aiv0.emitStatus(Aiv0BleStatus(phase: phase, protocolConfirmed: true));
+        await _flushAsyncEvents();
+        expect(controller.isRecording, isTrue);
+        expect(controller.isContinuousHfpSessionActive, isTrue);
+        expect(controller.isHomiAudioReady, isTrue);
+        expect(controller.isH20Ready, isFalse);
+        expect(speech.cancelCount, cancelBeforeLoss);
+      }
+      await controller.cancelCurrentMainAction();
+      // A BLE-only connection transition is not an audio-resource conflict.
+      expect(controller.isBusy, isTrue);
+      await controller.startPushToTalk();
+      expect(controller.isRecording, isTrue);
+      expect(speech.startCount, 2);
+      expect(phone.startCount, 0);
+      expect(hfp.disconnectCount, 0);
+      await controller.cancelCurrentMainAction();
+      await controller.endContinuousHfpSession();
+      controller.dispose();
+    },
+  );
+
+  testWidgets(
+    'real HFP loss ends capture and session without switching to phone',
+    (tester) async {
+      final speech = _FakeContinuousHfpStreamingSpeechInput();
+      final phone = _FakeAudioInput();
+      final hfp = _FakeHfpAudioControl();
+      final controller = ConversationController(
+        audioInput: phone,
+        streamingSpeechInput: speech,
+        hfpAudioControl: hfp,
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.hfpStreaming,
+      );
+      expect(await controller.beginContinuousHfpSession(), isTrue);
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(minutes: 1),
+      );
+      expect(controller.isRecording, isTrue);
+
+      // Native can clear the selected device ID completely after a disconnect.
+      await tester.runAsync(() async {
+        await hfp.disconnect();
+        await _flushAsyncEvents();
+      });
+      await tester.pump();
+      expect(controller.isRecording, isFalse);
+      expect(controller.isContinuousHfpSessionActive, isFalse);
+      expect(controller.usesHfpInput, isTrue);
+      expect(controller.errorMessage, contains('Kết nối âm thanh HM-D001'));
+      await controller.startRecording();
+      expect(speech.startCount, 1);
+      expect(phone.startCount, 0);
+      expect(controller.errorMessage, contains('HFP'));
+      controller.dispose();
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  test('HFP start failure cannot use a batch-capable phone fallback', () async {
+    final phone = _FakeAudioInput();
+    final controller = ConversationController(
+      audioInput: phone,
+      streamingSpeechInput: _RouteFailureBatchSpeechInput(),
+      hfpAudioControl: _FakeHfpAudioControl(),
+      playbackService: _FakePlaybackService(),
+      repository: _NoNetworkRepository(),
+      childAge: 6,
+      initialAsrMode: AsrMode.hfpStreaming,
+    );
+    await controller.startRecording();
+    expect(controller.isRecording, isFalse);
+    expect(controller.phase, ConversationPhase.error);
+    expect(phone.startCount, 0);
+    controller.dispose();
+  });
+
+  test(
+    'HFP loss cleanup blocks new capture and selection until native release completes',
+    () async {
+      final previousPlatform = debugDefaultTargetPlatformOverride;
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = previousPlatform);
+      final release = Completer<void>();
+      final speech = _FakeContinuousHfpStreamingSpeechInput(
+        pendingSessionEnd: release,
+      );
+      final hfp = _FakeHfpAudioControl();
+      final phone = _FakeAudioInput();
+      final controller = ConversationController(
+        audioInput: phone,
+        streamingSpeechInput: speech,
+        hfpAudioControl: hfp,
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.hfpStreaming,
+      );
+      final notifiedStartBlocks = <bool>[];
+      controller.addListener(
+        () => notifiedStartBlocks.add(controller.isRecordingStartBlocked),
+      );
+      expect(await controller.beginContinuousHfpSession(), isTrue);
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(minutes: 1),
+      );
+      await hfp.disconnect();
+      await _flushAsyncEvents();
+      expect(controller.isRecording, isFalse);
+      expect(controller.isRecordingStartBlocked, isTrue);
+      const device = HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true);
+      expect(
+        (await controller.connectHfpDevice(device)).outcome,
+        DeviceConnectionOutcome.busy,
+      );
+      // The OS may restore HFP before the old native session finishes closing.
+      await hfp.connect(device);
+      expect(await controller.beginContinuousHfpSession(), isFalse);
+      await controller.startRecording();
+      expect(speech.beginSessionCount, 1);
+      expect(speech.startCount, 1);
+      expect(phone.startCount, 0);
+      expect(notifiedStartBlocks.last, isTrue);
+
+      release.complete();
+      await _flushAsyncEvents();
+      expect(controller.isRecordingStartBlocked, isFalse);
+      expect(notifiedStartBlocks.last, isFalse);
+      expect((await controller.connectHfpDevice(device)).succeeded, isTrue);
+      expect(await controller.beginContinuousHfpSession(), isTrue);
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(minutes: 1),
+      );
+      expect(speech.startCount, 2);
+      await controller.cancelCurrentMainAction();
+      await controller.endContinuousHfpSession();
+      controller.dispose();
+    },
+  );
+
   test('phone microphone does not race an HFP route change', () async {
     final speechInput = _FakeContinuousHfpStreamingSpeechInput();
     final controller = ConversationController(
@@ -649,6 +888,9 @@ class _FakeContinuousHfpStreamingSpeechInput
         StreamingSpeechInput,
         HfpRouteOwningStreamingSpeechInput,
         ContinuousHfpSessionStreamingSpeechInput {
+  _FakeContinuousHfpStreamingSpeechInput({this.pendingSessionEnd});
+
+  final Completer<void>? pendingSessionEnd;
   int cancelCount = 0;
   int beginSessionCount = 0;
   int startCount = 0;
@@ -701,6 +943,7 @@ class _FakeContinuousHfpStreamingSpeechInput
 
   @override
   Future<void> endContinuousHfpSession() async {
+    if (pendingSessionEnd != null) await pendingSessionEnd!.future;
     _sessionActive = false;
   }
 
@@ -710,10 +953,24 @@ class _FakeContinuousHfpStreamingSpeechInput
   }
 }
 
+class _RouteFailureBatchSpeechInput
+    extends _FakeContinuousHfpStreamingSpeechInput
+    implements BatchFallbackCapableNativeSpeechInput {
+  @override
+  Future<void> start() async {
+    throw const StreamingSpeechInputException(
+      'Selected HFP input unavailable',
+      code: 'HFP_INPUT_UNAVAILABLE',
+    );
+  }
+}
+
 class _FakeHfpAudioControl implements HfpAudioControl {
   _FakeHfpAudioControl({
     this.activateRoute = true,
     this.devices = const <HfpAudioDevice>[],
+    this.pendingDiscovery,
+    this.pendingConnection,
     BluetoothAudioStatus? initialStatus,
   }) : _status =
            initialStatus ??
@@ -726,6 +983,8 @@ class _FakeHfpAudioControl implements HfpAudioControl {
 
   final bool activateRoute;
   final List<HfpAudioDevice> devices;
+  final Completer<List<HfpAudioDevice>>? pendingDiscovery;
+  final Completer<void>? pendingConnection;
   final StreamController<BluetoothAudioStatus> _statuses =
       StreamController<BluetoothAudioStatus>.broadcast(sync: true);
   BluetoothAudioStatus _status;
@@ -772,10 +1031,12 @@ class _FakeHfpAudioControl implements HfpAudioControl {
   Future<void> initialize() async {}
 
   @override
-  Future<List<HfpAudioDevice>> findDevices() async => devices;
+  Future<List<HfpAudioDevice>> findDevices() async =>
+      pendingDiscovery == null ? devices : await pendingDiscovery!.future;
 
   @override
   Future<void> connect(HfpAudioDevice device) async {
+    if (pendingConnection != null) await pendingConnection!.future;
     connectedDevice = device;
     _status = BluetoothAudioStatus(
       phase: BluetoothAudioConnectionPhase.ready,

@@ -9,6 +9,7 @@ import 'package:ai_speaking_flutter_app/features/conversation/data/demo_conversa
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/settings/presentation/h20_control_diagnostics_screen.dart';
 import 'package:ai_speaking_flutter_app/features/settings/presentation/settings_sheet.dart';
+import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -322,6 +323,8 @@ class _Fixture {
 }
 
 class _Settings extends ChangeNotifier implements ConversationSettingsPort {
+  @override
+  DisplayLanguage get displayLanguage => DisplayLanguage.vietnamese;
   BluetoothAudioStatus audioStatus = const BluetoothAudioStatus(
     phase: BluetoothAudioConnectionPhase.ready,
   );

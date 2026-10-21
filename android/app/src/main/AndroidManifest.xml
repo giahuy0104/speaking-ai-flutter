@@ -24,9 +24,10 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <uses-permission
-        android:name="android.permission.BLUETOOTH"
-        android:maxSdkVersion="30" />
+    <!-- Some Android 12 OEM system enable dialogs (verified on vivo) still
+         guard their exported Activity with this normal legacy permission.
+         Keep it alongside the separate runtime SCAN/CONNECT permissions. -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission
         android:name="android.permission.BLUETOOTH_ADMIN"
         android:maxSdkVersion="30" />

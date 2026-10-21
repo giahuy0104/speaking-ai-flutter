@@ -47,6 +47,7 @@ class TopicListeningScreen extends StatefulWidget {
     required this.language,
     required this.childAge,
     this.controller,
+    this.ensureDeviceConnected,
     this.onMainPressed,
     this.onVocabularyRequested,
     this.onVoiceNavigationPause,
@@ -70,6 +71,7 @@ class TopicListeningScreen extends StatefulWidget {
   final DisplayLanguage language;
   final int childAge;
   final LearningAudioDependencies? controller;
+  final Future<bool> Function()? ensureDeviceConnected;
   final Future<void> Function()? onMainPressed;
   final VoidCallback? onVocabularyRequested;
   final Future<void> Function()? onVoiceNavigationPause;
@@ -96,6 +98,7 @@ class TopicListeningScreen extends StatefulWidget {
 
 class _TopicListeningScreenState extends State<TopicListeningScreen> {
   static const double _contentMaxWidth = 760;
+  bool _waitingForDevice = false;
 
   late int _selectedCatalogIndex;
   late final Future<ListeningContentCatalog> _contentFuture;
@@ -355,8 +358,10 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
                       englishTitleFor: _topicEnglishTitle,
                       progressFor: _topicProgress,
                       hasSongsFor: _topicHasSongs,
-                      onTopicPressed: _openTopic,
-                      onSongsPressed: _openTopicSongs,
+                      onTopicPressed: (topic, index) =>
+                          _runDeviceAction(() => _openTopic(topic, index)),
+                      onSongsPressed: (topic, index) =>
+                          _runDeviceAction(() => _openTopicSongs(topic, index)),
                     ),
                   ),
                 ),
@@ -817,17 +822,19 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
         ),
       );
       if (selected == null || !mounted) return;
-      _activeVoiceTopicNumbers = const <int>[];
-      _activeCourseRelearnSelection = false;
-      _activeVoiceTopicRevision = null;
-      final topicIndex = selected - 1;
-      if (topicIndex < 0 || topicIndex >= _catalog.topics.length) return;
-      await _openTopic(
-        _catalog.topics[topicIndex],
-        topicIndex,
-        requestVoiceLessonSelection: false,
-        forceRelearnTopic: courseCompleted,
-      );
+      await _runDeviceAction(() async {
+        _activeVoiceTopicNumbers = const <int>[];
+        _activeCourseRelearnSelection = false;
+        _activeVoiceTopicRevision = null;
+        final topicIndex = selected - 1;
+        if (topicIndex < 0 || topicIndex >= _catalog.topics.length) return;
+        await _openTopic(
+          _catalog.topics[topicIndex],
+          topicIndex,
+          requestVoiceLessonSelection: false,
+          forceRelearnTopic: courseCompleted,
+        );
+      });
     } finally {
       _topicChoiceSheetOpen = false;
     }
@@ -866,6 +873,19 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
     setState(() => _catalogHiddenForVoiceTarget = false);
   }
 
+  Future<void> _runDeviceAction(Future<void> Function() action) async {
+    if (_waitingForDevice) return;
+    _waitingForDevice = true;
+    try {
+      final ensureConnected = widget.ensureDeviceConnected;
+      if (ensureConnected != null && !await ensureConnected()) return;
+      if (!mounted) return;
+      await action();
+    } finally {
+      _waitingForDevice = false;
+    }
+  }
+
   Future<void> _openTopicSongs(ListeningTopic topic, int topicIndex) async {
     _activeVoiceTopicNumbers = const <int>[];
     _activeCourseRelearnSelection = false;
@@ -902,6 +922,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           contentGroup: contentGroup,
           levelContent: level,
           controller: widget.controller,
+          ensureDeviceConnected: widget.ensureDeviceConnected,
           onMainPressed: widget.onMainPressed,
           onVocabularyRequested: widget.onVocabularyRequested,
           onVoiceNavigationPause: widget.onVoiceNavigationPause,
@@ -1039,6 +1060,7 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           contentGroup: contentGroup,
           levelContent: level,
           controller: widget.controller,
+          ensureDeviceConnected: widget.ensureDeviceConnected,
           onMainPressed: widget.onMainPressed,
           onVocabularyRequested: widget.onVocabularyRequested,
           onVoiceNavigationPause: widget.onVoiceNavigationPause,

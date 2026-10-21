@@ -77,6 +77,21 @@ class Aiv0BleControlBridgeRecoveryTest {
     }
 
     @Test
+    fun firstLaunchReportsRadioTransitionsWithoutStartingReconnect() {
+        // No initialized/saved device or active reconnect intent on this bridge.
+        broadcastAdapterState(BluetoothAdapter.STATE_OFF)
+        val offCount = statuses.size
+        broadcastAdapterState(BluetoothAdapter.STATE_TURNING_ON)
+        assertEquals(offCount + 1, statuses.size)
+        broadcastAdapterState(BluetoothAdapter.STATE_ON)
+        assertEquals(offCount + 2, statuses.size)
+        assertEquals("idle", lastPhase())
+        assertEquals(null, lastMessage())
+        idleFor(Duration.ofSeconds(2))
+        assertEquals(0, gatts().size)
+    }
+
+    @Test
     fun stalledDiscoveryAfterBluetoothReturnsTakesTheNextRetry() {
         bridge.onBackgroundSessionStarted()
         idle()

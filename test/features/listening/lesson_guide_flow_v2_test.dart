@@ -7,10 +7,7 @@ void main() {
       LessonGuideFlowV2.guideToSamplePause,
       const Duration(milliseconds: 300),
     );
-    expect(
-      LessonGuideFlowV2.englishToVietnamesePause,
-      const Duration(seconds: 2),
-    );
+    expect(LessonGuideFlowV2.englishToVietnamesePause, Duration.zero);
     expect(LessonGuideFlowV2.beforeSentence.text, 'Nói theo mình nhé.');
   });
 

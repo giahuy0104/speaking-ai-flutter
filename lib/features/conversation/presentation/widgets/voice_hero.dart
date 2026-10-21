@@ -14,6 +14,7 @@ class VoiceHero extends StatelessWidget {
     required this.processingStage,
     required this.amplitude,
     this.isPreparingMicrophone = false,
+    this.needsDeviceConnection = false,
     required this.onStop,
     super.key,
   });
@@ -22,6 +23,7 @@ class VoiceHero extends StatelessWidget {
   final ConversationProcessingStage processingStage;
   final double amplitude;
   final bool isPreparingMicrophone;
+  final bool needsDeviceConnection;
   final VoidCallback onStop;
 
   @override
@@ -222,6 +224,9 @@ class VoiceHero extends StatelessWidget {
   };
 
   String _helperText(BuildContext context) => switch (phase) {
+    ConversationPhase.idle || ConversationPhase.ready || ConversationPhase.error
+        when needsDeviceConnection =>
+      context.tr('Kết nối với HOMI để bắt đầu sử dụng', '连接 HOMI 即可开始使用'),
     ConversationPhase.idle => context.tr(
       'Bấm nút micro bên dưới để bắt đầu',
       '点击下方麦克风按钮开始',

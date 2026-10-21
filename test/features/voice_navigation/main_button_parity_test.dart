@@ -95,6 +95,58 @@ void main() {
     );
   });
 
+  for (final isIos in [false, true]) {
+    test('MAIN keeps verified HFP when BLE is lost on iOS=$isIos', () {
+      for (final source in MainButtonSource.values) {
+        expect(
+          MainButtonActivationPolicy.audioRoute(
+            source: source,
+            isNativeMobile: true,
+            isIos: isIos,
+            isH20Ready: false,
+            isHomiAudioReady: true,
+            hasSelectedHfpInput: true,
+          ),
+          MainButtonAudioRoute.selectedHfp,
+        );
+      }
+      expect(
+        MainButtonActivationPolicy.followUpAudioRoute(
+          isAndroid: !isIos,
+          isH20Ready: false,
+          isHomiAudioReady: true,
+          hasSelectedHfpInput: true,
+        ),
+        MainButtonAudioRoute.selectedHfp,
+      );
+    });
+
+    test('lost or unrelated selected mic never falls back on iOS=$isIos', () {
+      for (final source in MainButtonSource.values) {
+        expect(
+          MainButtonActivationPolicy.audioRoute(
+            source: source,
+            isNativeMobile: true,
+            isIos: isIos,
+            isH20Ready: false,
+            isHomiAudioReady: false,
+            hasSelectedHfpInput: true,
+          ),
+          MainButtonAudioRoute.unavailable,
+        );
+      }
+      expect(
+        MainButtonActivationPolicy.followUpAudioRoute(
+          isAndroid: !isIos,
+          isH20Ready: false,
+          isHomiAudioReady: false,
+          hasSelectedHfpInput: true,
+        ),
+        MainButtonAudioRoute.unavailable,
+      );
+    });
+  }
+
   test(
     'connected H20 uses the same selected route for both MAIN sources',
     () async {

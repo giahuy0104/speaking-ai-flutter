@@ -5,6 +5,8 @@ import 'package:ai_speaking_flutter_app/app/app_theme_mode.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
+import 'package:ai_speaking_flutter_app/core/device/device_connection_coordinator.dart';
+import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/data/demo_conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/settings/presentation/settings_sheet.dart';
@@ -48,6 +50,111 @@ void main() {
         .setMockMethodCallHandler(offlineTranslationChannel, null);
   });
 
+  for (final variant
+      in <({Size size, double scale, ThemeMode mode, String name})>[
+        (size: Size(390, 844), scale: 1, mode: ThemeMode.light, name: 'light'),
+        (size: Size(390, 844), scale: 1, mode: ThemeMode.dark, name: 'dark'),
+        (
+          size: Size(320, 568),
+          scale: 2,
+          mode: ThemeMode.light,
+          name: 'small-large-text',
+        ),
+      ]) {
+    testWidgets('grouped Settings layout ${variant.name}', (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = variant.size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        playbackService: const _FakePlaybackService(),
+        repository: const DemoConversationRepository(),
+        childAge: 3,
+      );
+      final coordinator = DeviceConnectionCoordinator(
+        onConnect: () async => false,
+        onCancel: () async {},
+        onOpenBluetoothSettings: () async {},
+      );
+      addTearDown(controller.dispose);
+      addTearDown(coordinator.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: buildAppTheme(),
+          darkTheme: buildDarkAppTheme(),
+          themeMode: variant.mode,
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: TextScaler.linear(variant.scale),
+              disableAnimations: true,
+            ),
+            child: child!,
+          ),
+          home: Scaffold(
+            body: SettingsSheet(
+              controller: controller,
+              connectionCoordinator: coordinator,
+              themeMode: variant.mode == ThemeMode.light
+                  ? ThemeMode.system
+                  : variant.mode,
+              onThemeModeChanged: (_) {},
+              onChildAgeChanged: controller.setChildAge,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(
+        find.byKey(const Key('settings-homi-connect')).hitTestable(),
+        findsOneWidget,
+      );
+      if (variant.scale == 1) {
+        expect(
+          find.byKey(const Key('settings-privacy-policy')).hitTestable(),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(const Key('settings-terms')).hitTestable(),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(const Key('settings-support')).hitTestable(),
+          findsOneWidget,
+        );
+      }
+      await expectLater(
+        find.byType(MaterialApp),
+        matchesGoldenFile('goldens/settings-grouped-${variant.name}.png'),
+      );
+      // Both preference sheets and legal rows remain reachable on narrow/large text screens.
+      await tester.ensureVisible(
+        find.byKey(const Key('settings-language-row')),
+      );
+      await tester.tap(find.byKey(const Key('settings-language-row')));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await expectLater(
+        find.byType(MaterialApp),
+        matchesGoldenFile(
+          'goldens/settings-language-picker-${variant.name}.png',
+        ),
+      );
+      await tester.tap(find.byKey(const ValueKey('settings-language-zh-Hans')));
+      await tester.pumpAndSettle();
+      expect(controller.displayLanguage, DisplayLanguage.simplifiedChinese);
+      await tester.ensureVisible(find.byKey(const Key('settings-terms')));
+      expect(
+        find.byKey(const Key('settings-terms')).hitTestable(),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   test('theme mode is persisted and restored', () async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     const store = AppThemeModeStore();
@@ -90,6 +197,13 @@ void main() {
       ),
     );
 
+    await tester.tap(find.byKey(const Key('appearance-settings-card')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Đóng').last);
+    await tester.pumpAndSettle();
+    expect(mode.value, ThemeMode.system);
+    await tester.tap(find.byKey(const Key('appearance-settings-card')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey<String>('theme-mode-dark')));
     await tester.pumpAndSettle();
 
@@ -101,6 +215,8 @@ void main() {
       Brightness.dark,
     );
 
+    await tester.tap(find.byKey(const Key('appearance-settings-card')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey<String>('theme-mode-light')));
     await tester.pumpAndSettle();
 
@@ -113,41 +229,88 @@ void main() {
     );
   });
 
-  testWidgets('settings changes the child age group', (tester) async {
-    final controller = ConversationController(
-      audioInput: _FakeAudioInput(),
-      playbackService: const _FakePlaybackService(),
-      repository: const DemoConversationRepository(),
-      childAge: 6,
-    );
-    addTearDown(controller.dispose);
-    int? selectedAge;
+  for (final largeText in [false, true]) {
+    testWidgets('settings changes the child age group (large text: $largeText)', (
+      tester,
+    ) async {
+      tester.view.physicalSize = largeText
+          ? const Size(320, 568)
+          : const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        playbackService: const _FakePlaybackService(),
+        repository: const DemoConversationRepository(),
+        childAge: 6,
+      );
+      addTearDown(controller.dispose);
+      int? selectedAge;
 
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: buildAppTheme(),
-        home: Scaffold(
-          body: SettingsSheet(
-            controller: controller,
-            onChildAgeChanged: (age) {
-              selectedAge = age;
-              controller.setChildAge(age);
-            },
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          debugShowCheckedModeBanner: false,
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: TextScaler.linear(largeText ? 2 : 1)),
+            child: child!,
+          ),
+          home: Scaffold(
+            body: SettingsSheet(
+              controller: controller,
+              onChildAgeChanged: (age) {
+                selectedAge = age;
+                controller.setChildAge(age);
+              },
+            ),
           ),
         ),
-      ),
-    );
+      );
 
-    await tester.tap(find.byKey(const ValueKey('settings-age-8-10')));
-    await tester.pump();
+      expect(find.byType(ChoiceChip), findsNothing);
+      await tester.ensureVisible(
+        find.byKey(const Key('settings-child-age-group')),
+      );
+      await tester.tap(find.byKey(const Key('settings-child-age-group')));
+      await tester.pumpAndSettle();
+      expect(find.byType(ChoiceChip), findsNWidgets(5));
+      expect(tester.takeException(), isNull);
+      if (!largeText) {
+        expect(
+          tester.getTopLeft(find.byKey(const ValueKey('settings-age-3-5'))).dy,
+          tester.getTopLeft(find.byKey(const ValueKey('settings-age-6-7'))).dy,
+        );
+      }
+      await expectLater(
+        find.byType(MaterialApp),
+        matchesGoldenFile(
+          'goldens/settings-age-chips-${largeText ? 'large-text' : 'light'}.png',
+        ),
+      );
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('settings-age-8-10')),
+      );
+      await tester.tap(find.byKey(const ValueKey('settings-age-8-10')));
+      await tester.pumpAndSettle();
 
-    expect(selectedAge, 8);
-    expect(controller.childAge, 8);
-    final chip = tester.widget<ChoiceChip>(
-      find.byKey(const ValueKey('settings-age-8-10')),
-    );
-    expect(chip.selected, isTrue);
-  });
+      expect(find.byType(ChoiceChip), findsNothing);
+      expect(tester.takeException(), isNull);
+      expect(selectedAge, 8);
+      expect(controller.childAge, 8);
+      expect(find.text('8–10 tuổi'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('settings-child-age-group')));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<ChoiceChip>(find.byKey(const ValueKey('settings-age-8-10')))
+            .selected,
+        isTrue,
+      );
+    });
+  }
 
   testWidgets('settings hides the deferred background media control', (
     tester,
@@ -313,7 +476,7 @@ void main() {
 
     expect(find.text('Thông tin thiết bị HOMI'), findsOneWidget);
     expect(find.text('Pin thiết bị'), findsOneWidget);
-    expect(find.text('Kết nối HM-D001 (BLE)'), findsOneWidget);
+    expect(find.text('Thiết bị điều khiển (BLE)'), findsOneWidget);
     expect(find.text('Chọn mic'), findsOneWidget);
     expect(find.byKey(const Key('settings-recognition-section')), findsNothing);
     expect(
@@ -350,7 +513,7 @@ void main() {
       await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
       await tester.pump(const Duration(milliseconds: 400));
 
-      expect(find.text('Kết nối HM-D001 (BLE)'), findsOneWidget);
+      expect(find.text('Thiết bị điều khiển (BLE)'), findsOneWidget);
       expect(find.byKey(const Key('aiv0-technical-details')), findsNothing);
       expect(find.byKey(const Key('aiv0-native-diagnostics')), findsNothing);
       expect(find.byKey(const Key('aiv0-packet-details')), findsNothing);
@@ -413,7 +576,8 @@ Widget _disableAnimations(BuildContext context, Widget? child) => MediaQuery(
 
 Future<void> _loadGoldenFonts() async {
   final roboto = FontLoader('Roboto')
-    ..addFont(rootBundle.load('assets/fonts/Roboto-Regular.ttf'));
+    ..addFont(rootBundle.load('assets/fonts/Roboto-Regular.ttf'))
+    ..addFont(rootBundle.load('assets/fonts/Roboto-Bold.ttf'));
   final materialIcons = FontLoader('MaterialIcons')
     ..addFont(rootBundle.load('assets/fonts/MaterialIcons-Regular.otf'));
   await Future.wait<void>(<Future<void>>[roboto.load(), materialIcons.load()]);

@@ -2,70 +2,83 @@ import 'package:ai_speaking_flutter_app/app/h20_battery_alert_policy.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('warns once at 20 percent and once below 5 percent', () {
-    final policy = H20BatteryAlertPolicy();
+  late H20BatteryAlertPolicy policy;
+  List<H20BatteryAction> read(
+    int? percent, {
+    String? id = 'HOMI',
+    bool connected = true,
+  }) => policy.observe(
+    connected: connected,
+    deviceId: id,
+    batteryPercent: percent,
+  );
+  setUp(() => policy = H20BatteryAlertPolicy());
 
-    expect(
-      policy.observe(connected: true, deviceId: 'H20', batteryPercent: 20),
-      const [H20BatteryAction.chargeSoon],
-    );
-    expect(
-      policy.observe(connected: true, deviceId: 'H20', batteryPercent: 19),
-      isEmpty,
-    );
-    expect(
-      policy.observe(connected: true, deviceId: 'H20', batteryPercent: 4),
-      const [H20BatteryAction.chargeCritical],
-    );
-    expect(
-      policy.observe(connected: true, deviceId: 'H20', batteryPercent: 3),
-      isEmpty,
-    );
+  test('strict 20, 10, 5 boundaries and one reminder per crossing', () {
+    expect(read(20), isEmpty);
+    expect(read(19), [H20BatteryAction.chargeSoon]);
+    expect(read(18), isEmpty);
+    expect(read(10), isEmpty);
+    expect(read(9), [H20BatteryAction.chargeLow]);
+    expect(read(8), isEmpty);
+    expect(read(5), isEmpty);
+    expect(read(4), [H20BatteryAction.chargeCritical]);
+    expect(read(3), isEmpty);
   });
 
-  test('zero percent requests one disconnect without duplicate warnings', () {
-    final policy = H20BatteryAlertPolicy();
-
-    expect(
-      policy.observe(connected: true, deviceId: 'H20', batteryPercent: 0),
-      const [H20BatteryAction.disconnectDepleted],
-    );
-    expect(
-      policy.observe(connected: true, deviceId: 'H20', batteryPercent: 0),
-      isEmpty,
-    );
+  test('jump past several thresholds only emits most urgent reminder', () {
+    expect(read(4), [H20BatteryAction.chargeCritical]);
+    expect(read(9), isEmpty);
+    expect(read(19), isEmpty);
   });
 
-  test('charging hysteresis rearms the next discharge cycle', () {
-    final policy = H20BatteryAlertPolicy();
-
-    policy.observe(connected: true, deviceId: 'H20', batteryPercent: 20);
-    policy.observe(connected: true, deviceId: 'H20', batteryPercent: 4);
-    expect(
-      policy.observe(connected: true, deviceId: 'H20', batteryPercent: 10),
-      isEmpty,
-    );
-    expect(
-      policy.observe(connected: true, deviceId: 'H20', batteryPercent: 4),
-      const [H20BatteryAction.chargeCritical],
-    );
-    policy.observe(connected: true, deviceId: 'H20', batteryPercent: 30);
-    expect(
-      policy.observe(connected: true, deviceId: 'H20', batteryPercent: 20),
-      const [H20BatteryAction.chargeSoon],
-    );
+  test('threshold noise and disconnect do not repeat alerts', () {
+    read(19);
+    expect(read(20), isEmpty);
+    expect(read(19), isEmpty);
+    read(9);
+    expect(read(10), isEmpty);
+    expect(read(9), isEmpty);
+    read(4);
+    expect(read(5), isEmpty);
+    expect(read(null, id: null, connected: false), isEmpty);
+    expect(read(4), isEmpty);
   });
 
-  test('disconnected or unknown battery values never alert', () {
-    final policy = H20BatteryAlertPolicy();
+  test('each device retains its own warning history', () {
+    expect(read(9), [H20BatteryAction.chargeLow]);
+    expect(read(9, id: 'other'), [H20BatteryAction.chargeLow]);
+    expect(read(9), isEmpty);
+  });
 
-    expect(
-      policy.observe(connected: false, deviceId: 'H20', batteryPercent: 4),
-      isEmpty,
-    );
-    expect(
-      policy.observe(connected: true, deviceId: 'H20', batteryPercent: null),
-      isEmpty,
-    );
+  test('recovery margins rearm each warning', () {
+    read(4);
+    read(8);
+    expect(read(4), [H20BatteryAction.chargeCritical]);
+    read(13);
+    expect(read(9), [H20BatteryAction.chargeLow]);
+    read(25);
+    expect(read(19), [H20BatteryAction.chargeSoon]);
+  });
+
+  test('zero alerts critical and preserves one depleted disconnect', () {
+    expect(read(0), [
+      H20BatteryAction.chargeCritical,
+      H20BatteryAction.disconnectDepleted,
+    ]);
+    expect(read(0), isEmpty);
+  });
+
+  test('critical already shown does not alert again at zero', () {
+    read(4);
+    expect(read(0), [H20BatteryAction.disconnectDepleted]);
+  });
+
+  test('disconnected, missing or invalid battery never triggers', () {
+    expect(read(4, connected: false), isEmpty);
+    expect(read(null), isEmpty);
+    expect(read(-1), isEmpty);
+    expect(read(101), isEmpty);
+    expect(read(19), [H20BatteryAction.chargeSoon]);
   });
 }

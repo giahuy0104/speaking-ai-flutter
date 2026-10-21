@@ -24,6 +24,51 @@ void main() {
     debugDefaultTargetPlatformOverride = null;
   });
 
+  for (final savedName in <String?>[null, 'HM-D001', 'H20']) {
+    test('radio turns off during auto-connect with saved=$savedName', () async {
+      if (savedName != null) {
+        SharedPreferences.setMockInitialValues(<String, Object>{
+          'aiv0_ble_last_device_id': 'AA:BB:CC:DD:EE:FF',
+          'aiv0_ble_last_device_name': savedName,
+        });
+      }
+      final calls = <String>[];
+      final logs = <String?>[];
+      final previousPrint = debugPrint;
+      debugPrint = (message, {wrapWidth}) => logs.add(message);
+      addTearDown(() => debugPrint = previousPrint);
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            calls.add(call.method);
+            return switch (call.method) {
+              'initialize' => <String, Object?>{'phase': 'idle'},
+              'requestPermissions' => true,
+              'scan' ||
+              'connect' => throw PlatformException(code: 'BLUETOOTH_DISABLED'),
+              _ => null,
+            };
+          });
+      final control = MethodChannelAiv0BleControl(
+        enabled: true,
+        draftProtocolConfirmed: false,
+      );
+      addTearDown(control.dispose);
+      expect(await control.autoConnectKnownOrNearby(), isFalse);
+      expect(
+        calls.where((m) => m == 'scan').length,
+        savedName == 'HM-D001' ? 0 : 1,
+      );
+      expect(
+        calls.where((m) => m == 'connect').length,
+        savedName == 'HM-D001' ? 1 : 0,
+      );
+      expect(
+        logs.where((m) => m?.contains('BLUETOOTH_DISABLED') == true),
+        isEmpty,
+      );
+    });
+  }
+
   test(
     'auto-connect accepts native BLE success before status event arrives',
     () async {

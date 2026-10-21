@@ -25,7 +25,9 @@ key.properties
 
 # IDE / OS
 .idea/
-.vscode/
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
 *.iml
 .DS_Store
 Thumbs.db

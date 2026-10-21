@@ -1,0 +1,20 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "HOMI: Build APK Debug",
+      "type": "flutter",
+      "command": "flutter",
+      "cwd": ".",
+      "args": [
+        "build",
+        "apk",
+        "--debug",
+        "--dart-define-from-file=dart_defines.production.json"
+      ],
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": [],
+      "detail": "Debug APK with the configured real backend, BLE, HFP and voice features."
+    }
+  ]
+}

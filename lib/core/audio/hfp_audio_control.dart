@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 
 import 'audio_input.dart';
+import '../device/h20_connection_state.dart';
 
 class HfpAudioDevice {
   const HfpAudioDevice({
@@ -24,7 +25,7 @@ class HfpAudioDevice {
   final String name;
   final bool isConnected;
 
-  String get displayName => name.isEmpty ? id : name;
+  String get displayName => name.trim();
 }
 
 /// Selects only an HFP input that can be tied to the connected HOMI control
@@ -33,48 +34,54 @@ class HfpAudioDevice {
 HfpAudioDevice? selectLikelyH20HfpDevice(
   Iterable<HfpAudioDevice> devices, {
   String? bleDeviceName,
+  String? bleDeviceId,
+  String? preferredDeviceId,
   bool connectedOnly = false,
 }) {
   final normalizedBleName = _normalizeH20DeviceName(bleDeviceName ?? '');
   final candidates = devices
       .where((device) {
         if (connectedOnly && !device.isConnected) return false;
-        final normalizedName = _normalizeH20DeviceName(device.displayName);
-        if (normalizedName.isEmpty) return false;
-        final matchesBleName =
-            normalizedBleName.length >= 3 &&
-            (normalizedName.contains(normalizedBleName) ||
-                normalizedBleName.contains(normalizedName));
-        return matchesBleName ||
-            normalizedName == 'hmd001' ||
-            normalizedName.contains('h20') ||
-            normalizedName.contains('innotrik') ||
-            normalizedName.contains('ailingo') ||
-            normalizedName.contains('yinluo') ||
-            device.displayName.contains('音洛');
+        return sameConnectionDeviceId(device.id, bleDeviceId) ||
+            sameConnectionDeviceId(device.id, preferredDeviceId) ||
+            isRecognizedHomiMicrophoneName(device.name);
       })
       .toList(growable: false);
   if (candidates.isEmpty) return null;
-  candidates.sort((a, b) {
-    bool matchesBle(HfpAudioDevice device) {
-      final name = _normalizeH20DeviceName(device.displayName);
-      return normalizedBleName.length >= 3 &&
-          (name.contains(normalizedBleName) ||
-              normalizedBleName.contains(name));
-    }
+  int rank(HfpAudioDevice device) {
+    if (sameConnectionDeviceId(device.id, bleDeviceId)) return 0;
+    if (sameConnectionDeviceId(device.id, preferredDeviceId)) return 1;
+    final name = _normalizeH20DeviceName(device.name);
+    if (normalizedBleName.isNotEmpty && name == normalizedBleName) return 2;
+    if (name == 'hmd001') return 3;
+    return 4;
+  }
 
-    final aMatchesBle = matchesBle(a);
-    final bMatchesBle = matchesBle(b);
-    if (aMatchesBle != bMatchesBle) return aMatchesBle ? -1 : 1;
-    final aIsHmD001 = _normalizeH20DeviceName(a.displayName) == 'hmd001';
-    final bIsHmD001 = _normalizeH20DeviceName(b.displayName) == 'hmd001';
-    if (aIsHmD001 != bIsHmD001) return aIsHmD001 ? -1 : 1;
-    if (a.isConnected != b.isConnected) {
-      return a.isConnected ? -1 : 1;
-    }
-    return a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
-  });
-  return candidates.first;
+  candidates.sort((first, second) => rank(first).compareTo(rank(second)));
+  final best = candidates.first;
+  // Two identical advertised names do not identify one physical device. Let
+  // the parent select one rather than depending on discovery/sort order.
+  if (candidates
+      .skip(1)
+      .any(
+        (device) =>
+            rank(device) == rank(best) &&
+            !sameConnectionDeviceId(device.id, best.id),
+      )) {
+    return null;
+  }
+  return best;
+}
+
+bool isRecognizedHomiMicrophoneName(String value) {
+  final name = _normalizeH20DeviceName(value);
+  return name == 'hmd001' ||
+      name.contains('h20') ||
+      name.contains('homi') ||
+      name.contains('innotrik') ||
+      name.contains('ailingo') ||
+      name.contains('yinluo') ||
+      value.contains('音洛');
 }
 
 String _normalizeH20DeviceName(String value) => value
@@ -96,12 +103,19 @@ abstract interface class HfpAudioControl {
   Future<void> dispose();
 }
 
+/// Optional cancellation capability. Cancels only an unfinished selection;
+/// a microphone that was already selected remains available.
+abstract interface class HfpConnectionAttemptControl {
+  Future<void> cancelConnectionAttempt();
+}
+
 /// Controls the native Bluetooth HFP microphone route.
 ///
 /// Android exposes paired HFP devices and routes SCO. iOS exposes the HFP
 /// inputs already connected in Settings and lets the bridge select a preferred
 /// input through AVAudioSession. Neither platform pairs a headset in-app.
-class MethodChannelHfpAudioControl implements HfpAudioControl {
+class MethodChannelHfpAudioControl
+    implements HfpAudioControl, HfpConnectionAttemptControl {
   MethodChannelHfpAudioControl({
     required this.enabled,
     MethodChannel methodChannel = const MethodChannel('ailingo_hfp_audio'),
@@ -123,6 +137,9 @@ class MethodChannelHfpAudioControl implements HfpAudioControl {
   );
   bool _disposed = false;
   int _routeRequestGeneration = 0;
+  int _connectionRequestGeneration = 0;
+  int? _pendingNativeConnection;
+  int? _pendingNativeDiscovery;
 
   @override
   bool get usesBrowserAudioInput => false;
@@ -185,6 +202,12 @@ class MethodChannelHfpAudioControl implements HfpAudioControl {
     }
   }
 
+  /// Reads authorization only; never starts a permission request or scan.
+  Future<bool> hasPermissions() async {
+    if (!enabled) return true;
+    return await _methodChannel.invokeMethod<bool>('hasPermissions') ?? false;
+  }
+
   /// Requests the platform Bluetooth permission during app setup when needed.
   Future<bool> requestPermissions() async {
     if (!enabled) return true;
@@ -195,55 +218,96 @@ class MethodChannelHfpAudioControl implements HfpAudioControl {
 
   @override
   Future<List<HfpAudioDevice>> findDevices() async {
+    final generation = ++_connectionRequestGeneration;
     await initialize();
+    _ensureConnectionCurrent(generation);
     _requireSupport();
     final permissions = await requestPermissions();
+    _ensureConnectionCurrent(generation);
     if (!permissions) {
       throw const HfpAudioException(
         'Cần cho phép Thiết bị ở gần/Bluetooth để tìm thiết bị HFP.',
       );
     }
-    final result = await _methodChannel.invokeListMethod<dynamic>(
-      'findDevices',
-    );
-    return (result ?? const <dynamic>[])
-        .whereType<Map<dynamic, dynamic>>()
-        .map(HfpAudioDevice.fromJson)
-        .where((device) => device.id.isNotEmpty)
-        .toList(growable: false);
+    _pendingNativeDiscovery = generation;
+    try {
+      final result = await _methodChannel.invokeListMethod<dynamic>(
+        'findDevices',
+      );
+      _ensureConnectionCurrent(generation);
+      return (result ?? const <dynamic>[])
+          .whereType<Map<dynamic, dynamic>>()
+          .map(HfpAudioDevice.fromJson)
+          .where((device) => device.id.isNotEmpty)
+          .toList(growable: false);
+    } finally {
+      if (_pendingNativeDiscovery == generation) _pendingNativeDiscovery = null;
+    }
   }
 
   @override
   Future<void> connect(HfpAudioDevice device) async {
+    final generation = ++_connectionRequestGeneration;
     await initialize();
+    _ensureConnectionCurrent(generation);
     _requireSupport();
     final permissions = await requestPermissions();
+    _ensureConnectionCurrent(generation);
     if (!permissions) {
       throw const HfpAudioException(
         'Cần cho phép Thiết bị ở gần/Bluetooth để dùng HFP.',
       );
     }
-    final snapshot = await _methodChannel.invokeMapMethod<dynamic, dynamic>(
-      'connect',
-      <String, dynamic>{
-        'deviceId': device.id,
-        // iOS may republish the same physical H20 with a new transient UID
-        // after the discovery-only HFP route is released. The stable name lets
-        // the native bridge recover that input without selecting another
-        // headset.
-        'deviceName': device.name,
-      },
-    );
-    // Native returns the authoritative selected/profile-connected state.
-    // Applying it synchronously avoids reporting BLE-only success while the
-    // EventChannel update is still queued behind the setup dialog.
-    if (snapshot != null) {
-      _setStatus(_statusFromMap(snapshot));
+    _pendingNativeConnection = generation;
+    try {
+      final snapshot = await _methodChannel.invokeMapMethod<dynamic, dynamic>(
+        'connect',
+        <String, dynamic>{'deviceId': device.id, 'deviceName': device.name},
+      );
+      _ensureConnectionCurrent(generation);
+      if (snapshot != null) _setStatus(_statusFromMap(snapshot));
+    } finally {
+      if (_pendingNativeConnection == generation) {
+        _pendingNativeConnection = null;
+      }
+    }
+  }
+
+  void _ensureConnectionCurrent(int generation) {
+    if (_disposed || generation != _connectionRequestGeneration) {
+      throw const HfpAudioException('Device connection was cancelled.');
+    }
+  }
+
+  @override
+  Future<void> cancelConnectionAttempt() async {
+    final generation = ++_connectionRequestGeneration;
+    final wasPending =
+        _pendingNativeConnection != null || _pendingNativeDiscovery != null;
+    _pendingNativeConnection = null;
+    _pendingNativeDiscovery = null;
+    if (!enabled || !wasPending) return;
+    try {
+      final snapshot = await _methodChannel.invokeMapMethod<dynamic, dynamic>(
+        'cancelConnectionAttempt',
+      );
+      if (!_disposed &&
+          generation == _connectionRequestGeneration &&
+          snapshot != null) {
+        _setStatus(_statusFromMap(snapshot));
+      }
+    } on MissingPluginException {
+      // Older native bridges still need to release an unfinished selection.
+      // Dart generation guards prevent a late completion becoming selected.
+      await _methodChannel.invokeMethod<void>('disconnect');
     }
   }
 
   @override
   Future<void> disconnect() async {
+    _connectionRequestGeneration += 1;
+    _pendingNativeConnection = null;
+    _pendingNativeDiscovery = null;
     if (!enabled) {
       return;
     }
@@ -334,6 +398,15 @@ class MethodChannelHfpAudioControl implements HfpAudioControl {
     final phaseName = '${map['phase'] ?? 'idle'}';
     final hasSelectedInput = map['hasSelectedInput'];
     final clearsSelectedInput = hasSelectedInput == false;
+    final suppliedDeviceId = _nullableString(map['deviceId']);
+    final sameDevice =
+        suppliedDeviceId == null ||
+        sameConnectionDeviceId(suppliedDeviceId, _status.deviceId);
+    final deviceName = map.containsKey('deviceName')
+        ? _nullableString(map['deviceName'])
+        : sameDevice
+        ? _status.deviceName
+        : null;
     final phase = BluetoothAudioConnectionPhase.values.firstWhere(
       (item) => item.name == phaseName,
       orElse: () => BluetoothAudioConnectionPhase.error,
@@ -342,10 +415,8 @@ class MethodChannelHfpAudioControl implements HfpAudioControl {
       phase: phase,
       deviceId: clearsSelectedInput
           ? null
-          : _nullableString(map['deviceId']) ?? _status.deviceId,
-      deviceName: clearsSelectedInput
-          ? null
-          : _nullableString(map['deviceName']) ?? _status.deviceName,
+          : suppliedDeviceId ?? _status.deviceId,
+      deviceName: clearsSelectedInput ? null : deviceName,
       message: _nullableString(map['message']),
       sampleRate: 16000,
       routeActive: map['routeActive'] == true,

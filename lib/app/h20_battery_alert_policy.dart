@@ -1,53 +1,59 @@
-enum H20BatteryAction { chargeSoon, chargeCritical, disconnectDepleted }
+enum H20BatteryAction {
+  chargeSoon,
+  chargeLow,
+  chargeCritical,
+  disconnectDepleted,
+}
 
-/// Emits each low-battery transition once without coupling battery telemetry to
-/// learning, audio, or navigation state.
 class H20BatteryAlertPolicy {
-  String? _deviceId;
-  bool _chargeSoonShown = false;
-  bool _chargeCriticalShown = false;
-  bool _depletedHandled = false;
+  final Map<String, _BatteryAlerts> _devices = {};
 
   List<H20BatteryAction> observe({
     required bool connected,
     required String? deviceId,
     required int? batteryPercent,
   }) {
-    final normalizedDeviceId = deviceId?.trim().isNotEmpty == true
-        ? deviceId!.trim()
-        : 'unknown-h20';
-    if (_deviceId != normalizedDeviceId) {
-      _deviceId = normalizedDeviceId;
-      _chargeSoonShown = false;
-      _chargeCriticalShown = false;
-      _depletedHandled = false;
+    if (!connected ||
+        batteryPercent == null ||
+        batteryPercent < 0 ||
+        batteryPercent > 100) {
+      return const [];
     }
-    if (!connected || batteryPercent == null) return const [];
+    final id = deviceId?.trim();
+    final state = _devices.putIfAbsent(
+      id == null || id.isEmpty ? 'unknown-h20' : id,
+      _BatteryAlerts.new,
+    );
+    final percent = batteryPercent;
+    if (percent >= 25) state.soon = false;
+    if (percent >= 13) state.low = false;
+    if (percent >= 8) state.critical = false;
+    if (percent > 0) state.depleted = false;
 
-    final percent = batteryPercent.clamp(0, 100);
-    // Re-arm only after an actual charging recovery, with hysteresis so a
-    // noisy reading around 20% or 5% cannot repeatedly notify the child.
-    if (percent >= 25) _chargeSoonShown = false;
-    if (percent >= 8) _chargeCriticalShown = false;
-    if (percent > 0) _depletedHandled = false;
-
-    if (percent == 0) {
-      _chargeSoonShown = true;
-      _chargeCriticalShown = true;
-      if (_depletedHandled) return const [];
-      _depletedHandled = true;
-      return const [H20BatteryAction.disconnectDepleted];
-    }
+    final actions = <H20BatteryAction>[];
     if (percent < 5) {
-      _chargeSoonShown = true;
-      if (_chargeCriticalShown) return const [];
-      _chargeCriticalShown = true;
-      return const [H20BatteryAction.chargeCritical];
+      state.soon = state.low = true;
+      if (!state.critical) actions.add(H20BatteryAction.chargeCritical);
+      state.critical = true;
+    } else if (percent < 10) {
+      state.soon = true;
+      if (!state.low) actions.add(H20BatteryAction.chargeLow);
+      state.low = true;
+    } else if (percent < 20) {
+      if (!state.soon) actions.add(H20BatteryAction.chargeSoon);
+      state.soon = true;
     }
-    if (percent <= 20 && !_chargeSoonShown) {
-      _chargeSoonShown = true;
-      return const [H20BatteryAction.chargeSoon];
+    if (percent == 0 && !state.depleted) {
+      state.depleted = true;
+      actions.add(H20BatteryAction.disconnectDepleted);
     }
-    return const [];
+    return actions;
   }
+}
+
+class _BatteryAlerts {
+  bool soon = false;
+  bool low = false;
+  bool critical = false;
+  bool depleted = false;
 }

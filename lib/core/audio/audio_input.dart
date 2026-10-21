@@ -72,6 +72,11 @@ abstract interface class SelectableAudioInputControl {
   Future<void> selectAudioInputDevice(SelectableAudioInputDevice? device);
 }
 
+/// Invalidates pending selection without clearing an already selected input.
+abstract interface class AudioInputSelectionCancellation {
+  void cancelAudioInputSelection();
+}
+
 enum BluetoothAudioConnectionPhase {
   disabled,
   unsupported,

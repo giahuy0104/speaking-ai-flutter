@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../core/device/h20_connection_state.dart';
 import '../l10n/display_language.dart';
 import 'app_theme.dart';
+import 'homi_connection_presentation.dart';
 import 'mascot_assets.dart';
 
 class ScenicAppHeader extends StatelessWidget {
@@ -9,12 +11,14 @@ class ScenicAppHeader extends StatelessWidget {
     required this.isReady,
     required this.onHistory,
     required this.onSettings,
+    this.connectionState,
     this.historyButtonKey,
     this.settingsButtonKey,
     super.key,
   });
 
   final bool isReady;
+  final H20ConnectionState? connectionState;
   final VoidCallback onHistory;
   final VoidCallback onSettings;
   final Key? historyButtonKey;
@@ -25,6 +29,15 @@ class ScenicAppHeader extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final readyColor = isDark ? colorScheme.tertiary : AppColors.success;
+    final status = HomiConnectionPresentation.from(
+      connectionState,
+      isReady: isReady,
+    );
+    final statusColor = status == HomiConnectionPresentation.ready
+        ? readyColor
+        : status.isPartial
+        ? status.partialColor(context)
+        : AppColors.muted;
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 720),
@@ -87,22 +100,20 @@ class ScenicAppHeader extends StatelessWidget {
                           width: 10,
                           height: 10,
                           decoration: BoxDecoration(
-                            color: isReady ? readyColor : AppColors.muted,
+                            color: statusColor,
                             shape: BoxShape.circle,
                           ),
                         ),
                         const SizedBox(width: 7),
                         Flexible(
                           child: Text(
-                            isReady
-                                ? context.tr('Sẵn sàng', '已就绪')
-                                : context.tr('Chưa kết nối', '未连接'),
-                            maxLines: 1,
+                            status.label(context),
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
-                                  color: isReady ? readyColor : AppColors.muted,
-                                  fontSize: 15,
+                                  color: statusColor,
+                                  fontSize: status.isPartial ? 13 : 15,
                                   fontWeight: FontWeight.w700,
                                 ),
                           ),

@@ -51,8 +51,8 @@ class InnotrikBleAudioBridge(
     private val appContext = host.applicationContext
     private val mainHandler = Handler(Looper.getMainLooper())
     private val bluetoothManager =
-        appContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-    private val adapter: BluetoothAdapter? get() = bluetoothManager.adapter
+        appContext.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+    private val adapter: BluetoothAdapter? get() = bluetoothManager?.adapter
     private val serviceUuid = UUID.fromString(InnotrikProtocol.SERVICE_UUID)
     private val writeUuid = UUID.fromString(InnotrikProtocol.WRITE_CHARACTERISTIC_UUID)
     private val notifyUuid = UUID.fromString(InnotrikProtocol.NOTIFY_CHARACTERISTIC_UUID)

@@ -23,38 +23,64 @@ Yêu cầu:
 - Android SDK 36;
 - Android 7.0 (API 24) trở lên.
 
-Workspace hiện chưa có Flutter SDK. Sau khi cài Flutter:
+Trong VS Code, mở thư mục `speaking-ai-flutter` (hoặc thư mục cha `HOMI` trên
+workspace hiện tại). Cấu hình mặc định đã có:
+
+- **Run / Debug / F5**: `HOMI Debug`, chạy Flutter debug với
+  `dart_defines.production.json`, backend thật và cấu hình giọng nói đầy đủ.
+  Template áp dụng cho các nút Run/Debug của Dart/Flutter trong `lib`, không
+  thay cấu hình chạy test.
+- **Run Build Task / Cmd+Shift+B / Ctrl+Shift+B**: `HOMI: Build APK Debug`,
+  tạo `build/app/outputs/flutter-apk/app-debug.apk` với cùng file defines.
+  Build Task chỉ tạo APK; F5 chạy/cài lên thiết bị đang chọn trong VS Code.
+
+VS Code dùng Flutter SDK đã chọn bởi extension Dart/Flutter. Hai file
+`.vscode/launch.json` và `.vscode/tasks.json` được giữ trong Git; không lưu đường
+dẫn SDK cá nhân. Sau khi đổi defines, **Stop rồi Run lại**, không chỉ hot reload
+phiên đang chạy.
+
+Lệnh tương đương từ root dự án:
 
 ```powershell
-flutter create --platforms=android --org com.innotrik .
 flutter pub get
-flutter run --dart-define=BACKEND_BASE_URL=http://10.0.2.2:3000
+flutter run --debug --dart-define-from-file=dart_defines.production.json
+flutter build apk --debug --dart-define-from-file=dart_defines.production.json
 ```
 
-`10.0.2.2` là địa chỉ máy host từ Android Emulator. Khi chạy trên điện thoại
-thật, dùng domain HTTPS hoặc địa chỉ LAN của máy backend. Release build chỉ cho
-HTTPS; cleartext HTTP chỉ được bật trong debug manifest.
+Debug không tự tắt MAIN, BLE, HFP hay điều hướng giọng nói. Tuy nhiên app vẫn cần
+chấp thuận của phụ huynh, quyền Android và HOMI/mic hoạt động. Nếu đã chọn
+“không dùng giọng nói”, vào **Cài đặt → Dữ liệu và quyền riêng tư → Thiết lập
+tính năng giọng nói** và hoàn tất các bước. Quyền Android đã cấp không tự thay
+đổi lựa chọn này.
+
+Không truyền file defines sẽ thiếu các URL/thông tin cấu hình privacy và khóa
+thiết lập giọng nói. Không bật các cờ codec draft hoặc BLE audio legacy để sửa
+trường hợp này; cấu hình mặc định dùng BLE cho MAIN và HFP cho âm thanh.
 
 Chạy UI với backend demo:
 
 ```powershell
-flutter run --dart-define=USE_DEMO_BACKEND=true
+flutter run --debug --dart-define-from-file=dart_defines.production.json --dart-define=USE_DEMO_BACKEND=true
 ```
 
 Chạy bằng file cấu hình:
 
 ```powershell
-Copy-Item dart_defines.example.json dart_defines.local.json
-flutter run --dart-define-from-file=dart_defines.local.json
+Copy-Item dart_defines.production.json dart_defines.local.json
+flutter run --debug --dart-define-from-file=dart_defines.local.json
 ```
 
 Không commit `dart_defines.local.json` nếu sau này file có dữ liệu riêng.
+Đổi `BACKEND_BASE_URL` trong bản local nếu dùng backend dev. `10.0.2.2` là host
+từ Android Emulator; điện thoại thật dùng domain HTTPS hoặc IP LAN phù hợp.
+Release chỉ cho HTTPS; cleartext HTTP chỉ bật trong debug manifest.
 
-Cấu hình audio mặc định đã chuẩn bị cho BLE-first nhưng vẫn an toàn khi chưa có
-thiết bị:
+Cấu hình audio mặc định cho HOMI:
 
-- `PREFER_BLE_STREAMING=true`: ưu tiên mic BLE khi native adapter báo sẵn sàng;
-  hiện tại tự dùng micro điện thoại vì adapter INNOTRIK chưa được kích hoạt.
+- `ENABLE_AIV0_BLE_CONTROL=true`, `ENABLE_HFP_AUDIO=true`: MAIN qua BLE,
+  mic/loa qua HFP. `PREFER_BLE_STREAMING=false`, BLE audio legacy tắt.
+- Mic HOMI đã chọn bị mất không tự chuyển sang mic điện thoại. Bật tính năng
+  không đồng nghĩa thiết bị đã ghép đôi/kết nối đủ hai kênh.
 - Trên web, câu nói ngắn hơn 8 giây được gửi bằng một request multipart trực
   tiếp; câu dài hơn mới tự chuyển sang audio-session/chunk upload để tải song
   song với lúc ghi âm.
@@ -68,7 +94,7 @@ thiết bị:
 ```powershell
 flutter analyze
 flutter test
-flutter build apk --debug --dart-define-from-file=dart_defines.local.json
+flutter build apk --debug --dart-define-from-file=dart_defines.production.json
 ```
 
 ## Trạng thái tích hợp

@@ -13,11 +13,15 @@ import 'recording_storage.dart';
 import 'wav_audio.dart';
 
 class PhoneMicrophoneInput
-    implements ChunkedAudioInput, SelectableAudioInputControl {
+    implements
+        ChunkedAudioInput,
+        SelectableAudioInputControl,
+        AudioInputSelectionCancellation {
   PhoneMicrophoneInput({AudioRecorder? recorder})
     : _recorder = recorder ?? AudioRecorder();
 
   final AudioRecorder _recorder;
+  int _inputSelectionGeneration = 0;
   final StreamController<Uint8List> _audioChunkController =
       StreamController<Uint8List>.broadcast(sync: true);
   DateTime? _startedAt;
@@ -85,6 +89,13 @@ class PhoneMicrophoneInput
   @override
   Stream<Uint8List> get audioChunks => _audioChunkController.stream;
 
+  /// Reads the existing grant without opening a system permission prompt.
+  Future<bool> checkPermission() async {
+    final granted = await _recorder.hasPermission(request: false);
+    _microphonePermissionGranted = granted;
+    return granted;
+  }
+
   /// Requests microphone access before the child reaches a MAIN interaction.
   ///
   /// `record` uses the native Android permission dialog and the browser media
@@ -122,11 +133,13 @@ class PhoneMicrophoneInput
   Future<void> selectAudioInputDevice(
     SelectableAudioInputDevice? device,
   ) async {
+    final generation = ++_inputSelectionGeneration;
     if (device == null) {
       _selectedInputDevice = null;
       return;
     }
     final available = await _recorder.listInputDevices();
+    if (generation != _inputSelectionGeneration) return;
     InputDevice? selected;
     for (final item in available) {
       if (item.id == device.id) {
@@ -140,6 +153,11 @@ class PhoneMicrophoneInput
       );
     }
     _selectedInputDevice = selected;
+  }
+
+  @override
+  void cancelAudioInputSelection() {
+    _inputSelectionGeneration++;
   }
 
   Future<void> _prepareRecording() async {
