@@ -14,6 +14,14 @@ void main() {
       jsonDecode(File(homiGap66ManifestAsset).readAsStringSync()) as Map;
   final entries = (manifest['prompts'] as List).cast<Map<String, dynamic>>();
   final groups = entries.map((e) => e['group'] as String).toSet();
+  // These recordings were replaced on 2026-10-15. The September generation
+  // receipts describe the originals; the manifest verifies the shipped files.
+  const replacedReceiptHashes = <String, String>{
+    'GAP66-001':
+        '07211ef1abc302eb71681538b33c4d71746422fe78aad12cde666bc7067552bd',
+    'GAP66-003':
+        '9ea29fc5191cb509d76958e4bfd99cceb6fc8676dbbc14025163cb8be68b87a2',
+  };
 
   test(
     '66 exact reviewed texts, unique across every enabled pack, correct receipts',
@@ -62,7 +70,12 @@ void main() {
           ).readAsStringSync(),
         );
         expect(sha256.convert(bytes).toString(), e['sha256']);
-        expect(receipt['finalSha256'], e['sha256']);
+        expect(
+          receipt['finalSha256'],
+          replacedReceiptHashes[e['id']] ?? e['sha256'],
+          reason: 'The generation receipt must retain its historical hash.',
+        );
+        expect(receipt['asset'], e['asset']);
         expect(receipt['request']['text'], e['text']);
         expect(receipt['request']['model_id'], 'eleven_v3');
         expect(receipt['request']['voice_settings']['speed'], 1.0);

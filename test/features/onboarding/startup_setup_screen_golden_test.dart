@@ -167,6 +167,7 @@ void main() {
         matchesGoldenFile('goldens/startup-privacy-390x844.png'),
       );
 
+      await confirmVisibleOnboardingChoices(tester);
       await tester.tap(find.byKey(const Key('startup-next')));
       await tester.pumpAndSettle();
 
@@ -246,20 +247,33 @@ void main() {
       find.byType(StartupSetupScreen),
       matchesGoldenFile('goldens/dark-startup-privacy-390x844.png'),
     );
+    await confirmVisibleOnboardingChoices(tester);
     await tester.tap(find.byKey(const Key('startup-next')));
     await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey<String>('startup-profile-step')),
+      findsOneWidget,
+    );
     await expectLater(
       find.byType(StartupSetupScreen),
       matchesGoldenFile('goldens/dark-startup-profile-390x844.png'),
     );
     await tester.tap(find.byKey(const Key('startup-next')));
     await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey<String>('startup-permissions-step')),
+      findsOneWidget,
+    );
     await expectLater(
       find.byType(StartupSetupScreen),
       matchesGoldenFile('goldens/dark-startup-permissions-390x844.png'),
     );
     await tester.tap(find.byKey(const Key('startup-request-permissions')));
     await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey<String>('startup-device-step')),
+      findsOneWidget,
+    );
     await expectLater(
       find.byType(StartupSetupScreen),
       matchesGoldenFile('goldens/dark-startup-device-390x844.png'),

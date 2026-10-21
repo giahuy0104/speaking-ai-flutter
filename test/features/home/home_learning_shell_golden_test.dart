@@ -29,6 +29,9 @@ void main() {
     (tester) async {
       final controller = await _pumpGoldenApp(tester);
       addTearDown(controller.dispose);
+      expect(find.byKey(const Key('home-main-button')), findsOneWidget);
+      expect(find.byKey(const Key('home-conversation-tab')), findsOneWidget);
+      expect(find.byKey(const Key('home-history-tab')), findsOneWidget);
 
       await expectLater(
         find.byType(HomeLearningShell),
@@ -144,6 +147,7 @@ void main() {
         themeMode: ThemeMode.dark,
       );
       addTearDown(controller.dispose);
+      expect(find.byKey(const Key('home-main-button')), findsOneWidget);
 
       await expectLater(
         find.byType(HomeLearningShell),
