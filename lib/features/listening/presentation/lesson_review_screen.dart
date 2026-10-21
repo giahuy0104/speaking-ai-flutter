@@ -12,9 +12,11 @@ import '../../../l10n/display_language.dart';
 import '../application/lesson_media_service.dart';
 import '../domain/listening_audio_keys.dart';
 import '../domain/listening_content.dart';
-import '../../../core/navigation/active_learning_navigation.dart';
+import '../../../core/navigation/app_navigator.dart';
+import '../../../core/navigation/view_arguments/lesson_review_arguments.dart';
 
-enum LessonReviewMode { overview, learned }
+export '../../../core/navigation/view_arguments/lesson_review_arguments.dart'
+    show LessonReviewMode;
 
 enum LessonReviewAction { nextLesson, restartLesson, returnToListening }
 
@@ -614,7 +616,11 @@ class _LessonReviewScreenState extends State<LessonReviewScreen>
       Navigator.of(context).pop(-1);
       return;
     }
-    unawaited(pushReplacementForActiveLearning<void, void>(context, builder));
+    unawaited(
+      AppNavigator.of(
+        context,
+      ).replaceLearningContinuation<void, void>(context, builder),
+    );
   }
 
   Future<void> _toggleAutoReview() async {

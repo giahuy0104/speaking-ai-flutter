@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/app/praise_fireworks.dart';
 import 'package:ai_speaking_flutter_app/core/audio/adaptive_voice_activity_detector.dart';
@@ -53,6 +54,7 @@ void main() {
         ActiveLearningModuleScope(
           registry: registry,
           child: MaterialApp(
+            onGenerateRoute: createAppRouter().onGenerateRoute,
             theme: buildAppTheme(),
             home: Builder(
               builder: (context) => FilledButton(
@@ -303,6 +305,7 @@ void main() {
         addTearDown(media.close);
         await tester.pumpWidget(
           MaterialApp(
+            onGenerateRoute: createAppRouter().onGenerateRoute,
             theme: buildAppTheme(),
             home: Builder(
               builder: (context) => TextButton(
@@ -387,6 +390,7 @@ void main() {
         ActiveLearningModuleScope(
           registry: registry,
           child: MaterialApp(
+            onGenerateRoute: createAppRouter().onGenerateRoute,
             theme: buildAppTheme(),
             home: VocabularyPracticeScreen(
               language: DisplayLanguage.vietnamese,
@@ -485,6 +489,7 @@ void main() {
         ActiveLearningModuleScope(
           registry: registry,
           child: MaterialApp(
+            onGenerateRoute: createAppRouter().onGenerateRoute,
             theme: buildAppTheme(),
             home: VocabularyPracticeScreen(
               language: DisplayLanguage.vietnamese,
@@ -549,6 +554,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: VocabularyPracticeScreen(
             language: DisplayLanguage.vietnamese,
@@ -649,6 +655,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: VocabularyPracticeScreen(
             language: DisplayLanguage.vietnamese,
@@ -667,9 +674,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const Key('vocabulary-practice-main-action')));
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('vocabulary-practice-main-action')));
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
       await tester.pumpAndSettle();
       expect(evaluator.attemptNumbers, <int>[1]);
 
@@ -737,6 +748,7 @@ void main() {
         ActiveLearningModuleScope(
           registry: registry,
           child: MaterialApp(
+            onGenerateRoute: createAppRouter().onGenerateRoute,
             theme: buildAppTheme(),
             home: VocabularyPracticeScreen(
               language: DisplayLanguage.vietnamese,
@@ -1056,6 +1068,7 @@ void main() {
         ActiveLearningModuleScope(
           registry: registry,
           child: MaterialApp(
+            onGenerateRoute: createAppRouter().onGenerateRoute,
             theme: buildAppTheme(),
             home: Builder(
               builder: (context) => FilledButton(
@@ -1131,6 +1144,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: VocabularyPracticeScreen(
           language: DisplayLanguage.vietnamese,
@@ -1192,6 +1206,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: Builder(
           builder: (context) => FilledButton(
@@ -1483,6 +1498,7 @@ Future<void> _mountReview(
     ActiveLearningModuleScope(
       registry: registry,
       child: MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: VocabularyPracticeScreen(
           language: language,

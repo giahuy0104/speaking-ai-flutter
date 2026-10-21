@@ -1,3 +1,5 @@
+import 'package:ai_speaking_flutter_app/core/navigation/app_route_names.dart';
+import 'package:ai_speaking_flutter_app/core/navigation/view_arguments/topic_listening_arguments.dart';
 import 'package:ai_speaking_flutter_app/app/ai_speaking_app.dart';
 import 'package:ai_speaking_flutter_app/app/device_connection_feedback_overlay.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_screen.dart';
@@ -56,6 +58,10 @@ void main() {
 
       await tester.pumpWidget(const AiSpeakingApp());
       await tester.pumpAndSettle();
+      expect(
+        tester.widget<MaterialApp>(find.byType(MaterialApp)).onGenerateRoute,
+        isNotNull,
+      );
       expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
       final controller = tester
           .widget<ConversationScreen>(find.byType(ConversationScreen))
@@ -92,6 +98,11 @@ void main() {
         await tester.tap(topics);
         await tester.pumpAndSettle();
         expect(find.byType(TopicListeningScreen).hitTestable(), findsOneWidget);
+        final route = ModalRoute.of(
+          tester.element(find.byType(TopicListeningScreen)),
+        )!;
+        expect(route.settings.name, AppRouteNames.topicCatalog);
+        expect(route.settings.arguments, isA<TopicListeningArguments>());
         final topicBarriers = find.byType(ModalBarrier).evaluate().length;
         // A reconnect can arrive while the user is already in Topics too.
         await messenger.handlePlatformMessage(

@@ -1,3 +1,4 @@
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
@@ -30,6 +31,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           builder: (context, child) => MediaQuery(
             data: MediaQuery.of(context).copyWith(

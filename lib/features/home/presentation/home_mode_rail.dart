@@ -4,7 +4,7 @@ import '../../../app/app_theme.dart';
 
 enum HomeRailEdge { left, right }
 
-class HomeModeRail extends StatelessWidget {
+class HomeModeRail extends StatefulWidget {
   const HomeModeRail({
     required this.edge,
     required this.label,
@@ -27,16 +27,71 @@ class HomeModeRail extends StatelessWidget {
   static const double _expandedWidth = 138;
   static const double _expandedHeight = 184;
 
+  static const double collapsedWidth = 48;
+  static const double collapsedHeight = 168;
+
+  @override
+  State<HomeModeRail> createState() => _HomeModeRailState();
+}
+
+class _HomeModeRailState extends State<HomeModeRail>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _press = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 110),
+    reverseDuration: const Duration(milliseconds: 170),
+  );
+  bool _activating = false;
+
+  bool get _reduceMotion => MediaQuery.disableAnimationsOf(context);
+
+  void _pressDown(TapDownDetails _) {
+    if (!_reduceMotion && !_activating) _press.forward();
+  }
+
+  void _cancelPress() {
+    if (!_activating) _press.reverse();
+  }
+
+  Future<void> _activate() async {
+    if (_activating) return;
+    _activating = true;
+    try {
+      // A single tap briefly finishes its visual feedback before invoking the
+      // existing navigation callback. The hit target itself never moves.
+      if (!_reduceMotion) await _press.forward().orCancel;
+      if (!mounted) return;
+      widget.onPressed();
+      if (mounted) _press.reverse();
+    } on TickerCanceled {
+      // The source can disappear while a pointer interaction is in progress.
+    } finally {
+      _activating = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _press.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final textScale = MediaQuery.textScalerOf(context).scale(15) / 15;
+    final collapsedWidth = (HomeModeRail.collapsedWidth + (textScale - 1) * 8)
+        .clamp(HomeModeRail.collapsedWidth, 56.0)
+        .toDouble();
     final animationDuration = MediaQuery.disableAnimationsOf(context)
         ? Duration.zero
         : const Duration(milliseconds: 280);
 
     return Semantics(
       button: true,
-      label: badge == null ? label : '$label, $badge',
-      onTap: onPressed,
+      label: widget.badge == null
+          ? widget.label
+          : '${widget.label}, ${widget.badge}',
+      onTap: _activate,
       excludeSemantics: true,
       child: Material(
         color: Colors.transparent,
@@ -44,32 +99,172 @@ class HomeModeRail extends StatelessWidget {
           duration: animationDuration,
           switchInCurve: Curves.easeOut,
           switchOutCurve: Curves.easeIn,
-          child: expanded
+          child: widget.expanded
               ? SizedBox(
                   key: const Key('expanded-home-mode-rail'),
-                  width: _expandedWidth,
-                  height: _expandedHeight,
+                  width: HomeModeRail._expandedWidth,
+                  height: HomeModeRail._expandedHeight,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      color: color,
+                      color: widget.color,
                       borderRadius: BorderRadius.circular(22),
                     ),
                     child: InkWell(
-                      onTap: onPressed,
+                      onTap: _activate,
+                      onTapDown: _pressDown,
+                      onTapCancel: _cancelPress,
                       borderRadius: BorderRadius.circular(22),
-                      child: _ExpandedRailContent(label: label, icon: icon),
+                      child: _ExpandedRailContent(
+                        label: widget.label,
+                        icon: widget.icon,
+                      ),
                     ),
                   ),
                 )
-              : _CollapsedRailContent(
-                  edge: edge,
-                  label: label,
-                  icon: icon,
-                  badge: badge,
-                  onPressed: onPressed,
+              : SizedBox(
+                  key: const Key('collapsed-home-mode-rail'),
+                  width: collapsedWidth,
+                  height: HomeModeRail.collapsedHeight,
+                  child: InkWell(
+                    onTap: _activate,
+                    onTapDown: _pressDown,
+                    onTapCancel: _cancelPress,
+                    excludeFromSemantics: true,
+                    splashFactory: NoSplash.splashFactory,
+                    highlightColor: Colors.transparent,
+                    child: AnimatedBuilder(
+                      animation: _press,
+                      builder: (context, child) => Transform.scale(
+                        key: const Key('home-cloud-press-transform'),
+                        alignment: widget.edge == HomeRailEdge.left
+                            ? Alignment.centerLeft
+                            : Alignment.centerRight,
+                        scale: _reduceMotion
+                            ? 1
+                            : 1 +
+                                  Curves.easeOutCubic.transform(_press.value) *
+                                      0.045,
+                        transformHitTests: false,
+                        child: child,
+                      ),
+                      child: _CloudRailContent(
+                        edge: widget.edge,
+                        label: widget.label,
+                        icon: widget.icon,
+                        badge: widget.badge,
+                        contentWidth: collapsedWidth - 20,
+                      ),
+                    ),
+                  ),
                 ),
         ),
       ),
+    );
+  }
+}
+
+class _CloudRailContent extends StatelessWidget {
+  const _CloudRailContent({
+    required this.edge,
+    required this.label,
+    required this.icon,
+    required this.contentWidth,
+    this.badge,
+  });
+
+  final HomeRailEdge edge;
+  final String label;
+  final IconData icon;
+  final double contentWidth;
+  final String? badge;
+
+  @override
+  Widget build(BuildContext context) {
+    final isLeft = edge == HomeRailEdge.left;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final foreground = isDark ? AppColors.darkPrimary : AppColors.primaryNavy;
+    return Stack(
+      fit: StackFit.expand,
+      clipBehavior: Clip.none,
+      children: <Widget>[
+        ExcludeSemantics(
+          child: RepaintBoundary(
+            key: const Key('home-cloud-artwork'),
+            // The artwork includes its curved caps and a wide white face.
+            // Paint it whole: stretching a white strip creates square ledges
+            // at the top/bottom, and clipping removes the blue curved rim.
+            child: ColorFiltered(
+              colorFilter: isDark
+                  ? const ColorFilter.mode(
+                      Color(0xFF244E78),
+                      BlendMode.modulate,
+                    )
+                  : const ColorFilter.mode(
+                      Color(0x33FFFFFF),
+                      BlendMode.srcATop,
+                    ),
+              child: FractionallySizedBox(
+                // The right PNG's solid screen edge ends at column 834 of
+                // 894. Put that edge on screen; only alpha padding overflows.
+                widthFactor: isLeft ? 1 : 894 / 835,
+                alignment: Alignment.centerLeft,
+                child: Image.asset(
+                  isLeft
+                      ? 'assets/images/home-cloud-tab-left.png'
+                      : 'assets/images/home-cloud-tab-right.png',
+                  key: const Key('home-rail-silhouette'),
+                  fit: BoxFit.fill,
+                  cacheWidth: 216,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 46,
+          left: isLeft ? 0 : null,
+          right: isLeft ? null : 0,
+          width: isLeft ? contentWidth : contentWidth - 5,
+          height: 94,
+          child: Column(
+            children: <Widget>[
+              Icon(
+                icon,
+                key: const Key('home-mode-rail-icon'),
+                color: foreground,
+                size: 21,
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: RotatedBox(
+                  quarterTurns: isLeft ? 3 : 1,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      label,
+                      key: const Key('home-mode-rail-label'),
+                      maxLines: 1,
+                      softWrap: false,
+                      style: TextStyle(
+                        color: foreground,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        height: 1.2,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              if (badge != null)
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(badge!, style: const TextStyle(fontSize: 10)),
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -96,170 +291,6 @@ class _ExpandedRailContent extends StatelessWidget {
               color: Colors.white,
               fontSize: 17,
               fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CollapsedRailContent extends StatelessWidget {
-  const _CollapsedRailContent({
-    required this.edge,
-    required this.label,
-    required this.icon,
-    required this.badge,
-    required this.onPressed,
-  });
-
-  final HomeRailEdge edge;
-  final String label;
-  final IconData icon;
-  final String? badge;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final isLeft = edge == HomeRailEdge.left;
-    final width = (MediaQuery.sizeOf(context).width * 0.22).clamp(78.0, 100.0);
-    final height = width * 1.12 + (badge == null ? 0 : 22);
-    final radius = BorderRadius.horizontal(
-      left: Radius.circular(isLeft ? 12 : 28),
-      right: Radius.circular(isLeft ? 28 : 12),
-    );
-    final medallionSize = width * 0.66;
-    return SizedBox(
-      key: const Key('collapsed-home-mode-rail'),
-      width: width,
-      height: height,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: <Widget>[
-          Positioned(
-            top: width * 0.28,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: DecoratedBox(
-              key: const Key('home-rail-silhouette'),
-              decoration: BoxDecoration(
-                color: const Color(0xFF071F4A),
-                borderRadius: radius,
-                boxShadow: const <BoxShadow>[
-                  BoxShadow(
-                    color: Color(0x260B2C66),
-                    blurRadius: 10,
-                    offset: Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryNavy,
-                    borderRadius: radius,
-                    border: Border.all(color: const Color(0x334B79AE)),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: width * 0.08,
-            left: (width - medallionSize) / 2,
-            child: Container(
-              width: medallionSize,
-              height: medallionSize,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF91E5D5), width: 1.3),
-                boxShadow: const <BoxShadow>[
-                  BoxShadow(
-                    color: Color(0x22051432),
-                    blurRadius: 5,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Icon(
-                icon,
-                color: AppColors.primaryNavy,
-                size: width * 0.34,
-              ),
-            ),
-          ),
-          Positioned(
-            top: -width * 0.05,
-            left: isLeft ? width * 0.08 : null,
-            right: isLeft ? null : width * 0.08,
-            child: ExcludeSemantics(
-              child: Transform.flip(
-                flipX: !isLeft,
-                child: SizedBox(
-                  width: width * 0.24,
-                  height: width * 0.24,
-                  child: ClipRect(
-                    child: OverflowBox(
-                      maxWidth: width * 0.48,
-                      maxHeight: width * 0.48,
-                      child: Image.asset(
-                        'assets/images/home-navigation-rays.png',
-                        width: width * 0.48,
-                        height: width * 0.48,
-                        cacheWidth: 144,
-                        filterQuality: FilterQuality.high,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: width * 0.79,
-            left: 7,
-            right: 7,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    label,
-                    key: const Key('home-mode-rail-label'),
-                    maxLines: 1,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      height: 1.15,
-                    ),
-                  ),
-                ),
-                if (badge != null) ...<Widget>[
-                  const SizedBox(height: 4),
-                  Text(
-                    badge!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white, fontSize: 10),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          Positioned.fill(
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: onPressed,
-                borderRadius: radius,
-                excludeFromSemantics: true,
-              ),
             ),
           ),
         ],

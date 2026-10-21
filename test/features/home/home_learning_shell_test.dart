@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
@@ -24,6 +25,7 @@ import 'package:ai_speaking_flutter_app/features/onboarding/application/onboardi
 import 'package:ai_speaking_flutter_app/features/onboarding/presentation/user_onboarding_tour.dart';
 import 'package:ai_speaking_flutter_app/features/settings/application/parent_media_settings.dart';
 import 'package:ai_speaking_flutter_app/features/settings/presentation/history_sheet.dart';
+import 'package:ai_speaking_flutter_app/features/settings/presentation/settings_sheet.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_audio_service.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_session_store.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_store.dart';
@@ -396,10 +398,11 @@ void main() {
       final topicTabRect = tester.getRect(
         find.byKey(const Key('topic-listening-edge-tab')),
       );
-      expect(vocabularyTabRect.width, closeTo(390 * 0.22, 0.01));
-      expect(vocabularyTabRect.height, closeTo(390 * 0.22 * 1.12, 0.01));
-      expect(topicTabRect.width, closeTo(390 * 0.22, 0.01));
-      expect(topicTabRect.height, closeTo(390 * 0.22 * 1.12, 0.01));
+      expect(vocabularyTabRect.width, inInclusiveRange(48, 56));
+      expect(vocabularyTabRect.height, greaterThan(120));
+      expect(topicTabRect.size, vocabularyTabRect.size);
+      expect(vocabularyTabRect.left, 0);
+      expect(topicTabRect.right, 390);
       expect(
         find.descendant(
           of: find.byKey(const Key('vocabulary-edge-tab')),
@@ -436,7 +439,7 @@ void main() {
         findsOneWidget,
       );
       expect(topicTabRect.top, closeTo(vocabularyTabRect.top, 0.01));
-      expect(vocabularyTabRect.top, closeTo(844 * 0.29, 0.01));
+      expect(vocabularyTabRect.top, closeTo(844 * 0.195, 0.01));
       expect(find.byKey(const Key('home-conversation-tab')), findsNothing);
       expect(find.byKey(const Key('home-main-button')), findsNothing);
       expect(find.byKey(const Key('home-history-tab')), findsNothing);
@@ -483,6 +486,61 @@ void main() {
     }),
   );
 
+  testWidgets(
+    'vocabulary enters from the left and topics enter from the right',
+    (tester) async {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final controller = _controller();
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(_app(controller));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pump();
+      final vocabulary = find.byType(VocabularyHomeScreen);
+      for (var frame = 0; frame < 30; frame++) {
+        await tester.pump(const Duration(milliseconds: 16));
+        if (vocabulary.evaluate().isNotEmpty &&
+            find.byKey(const Key('vocabulary-edge-tab')).evaluate().isEmpty) {
+          break;
+        }
+      }
+      final firstX = tester.getTopLeft(vocabulary).dx;
+      expect(firstX, lessThan(0));
+      await tester.pump(const Duration(milliseconds: 60));
+      expect(tester.getTopLeft(vocabulary).dx, greaterThan(firstX));
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(vocabulary).dx, closeTo(0, 0.01));
+
+      await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 60));
+      expect(
+        tester.getTopLeft(find.byType(ConversationScreen)).dx,
+        greaterThan(0),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('topic-listening-edge-tab')));
+      await tester.pump();
+      final topics = find.byType(TopicListeningScreen);
+      for (var frame = 0; frame < 30 && topics.evaluate().isEmpty; frame++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      final topicX = tester.getTopLeft(topics).dx;
+      expect(topicX, greaterThan(0));
+      await tester.pump(const Duration(milliseconds: 60));
+      expect(tester.getTopLeft(topics).dx, lessThan(topicX));
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(topics).dx, closeTo(0, 0.01));
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
   testWidgets('system Back closes vocabulary detail before leaving the tab', (
     tester,
   ) async {
@@ -512,6 +570,68 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
+  });
+
+  testWidgets('routed settings reads live theme after changing appearance', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final controller = _controller();
+    final mode = ValueNotifier(ThemeMode.system);
+    addTearDown(controller.dispose);
+    addTearDown(mode.dispose);
+    await tester.pumpWidget(
+      ValueListenableBuilder<ThemeMode>(
+        valueListenable: mode,
+        builder: (_, themeMode, _) => MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
+          theme: buildAppTheme(),
+          darkTheme: buildDarkAppTheme(),
+          themeMode: themeMode,
+          home: HomeLearningShell(
+            controller: controller,
+            config: AppConfig(
+              backendBaseUri: Uri.parse('https://example.com'),
+              useDemoBackend: true,
+              childAge: 6,
+            ),
+            parentAccessGate: (_) async => true,
+            parentMediaSettingsStore: const _FakeParentMediaSettingsStore(true),
+            themeMode: themeMode,
+            onThemeModeChanged: (value) => mode.value = value,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.byKey(const Key('appearance-settings-card')),
+    );
+    await tester.tap(find.byKey(const Key('appearance-settings-card')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('theme-mode-dark')));
+    await tester.pumpAndSettle();
+    expect(mode.value, ThemeMode.dark);
+    expect(
+      tester.widget<SettingsSheet>(find.byType(SettingsSheet)).themeMode,
+      ThemeMode.dark,
+    );
+    await tester.tap(find.byKey(const Key('appearance-settings-card')));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<ListTile>(find.byKey(const ValueKey('theme-mode-dark')))
+          .selected,
+      isTrue,
+    );
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 
   testWidgets('protects settings with the parent access gate', (tester) async {
@@ -624,35 +744,64 @@ void main() {
     },
   );
 
-  testWidgets('reports settings modal visibility until the sheet closes', (
-    tester,
-  ) async {
-    SharedPreferences.setMockInitialValues(<String, Object>{});
-    tester.view.physicalSize = const Size(390, 844);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  for (final systemBack in [false, true]) {
+    testWidgets(
+      'Settings opens as a full page and restores Home (system Back: $systemBack)',
+      (tester) async {
+        SharedPreferences.setMockInitialValues(<String, Object>{});
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final controller = _controller();
+        addTearDown(controller.dispose);
+        final visibilityChanges = <bool>[];
 
-    final controller = _controller();
-    addTearDown(controller.dispose);
-    final visibilityChanges = <bool>[];
+        await tester.pumpWidget(
+          _app(controller, onModalVisibilityChanged: visibilityChanges.add),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.settings_outlined));
+        await tester.pumpAndSettle();
 
-    await tester.pumpWidget(
-      _app(controller, onModalVisibilityChanged: visibilityChanges.add),
+        final page = find.byKey(const Key('settings-page'));
+        final route = ModalRoute.of(
+          tester.element(find.byType(SettingsSheet)),
+        )!;
+        expect(route, isA<MaterialPageRoute<void>>());
+        expect(route.settings.name, '/settings');
+        expect(route.opaque, isTrue);
+        expect(tester.getRect(page), const Rect.fromLTWH(0, 0, 390, 844));
+        expect(find.byType(BottomSheet), findsNothing);
+        expect(visibilityChanges, <bool>[true]);
+
+        // The in-page chooser retains its old sheet behavior; closing it must
+        // not dismiss the Settings page or resume Home prematurely.
+        await tester.ensureVisible(
+          find.byKey(const Key('settings-language-row')),
+        );
+        await tester.tap(find.byKey(const Key('settings-language-row')));
+        await tester.pumpAndSettle();
+        expect(find.byType(BottomSheet), findsOneWidget);
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        expect(page, findsOneWidget);
+        expect(visibilityChanges, <bool>[true]);
+
+        if (systemBack) {
+          await tester.binding.handlePopRoute();
+        } else {
+          await tester.ensureVisible(find.byTooltip('Đóng'));
+          await tester.tap(find.byTooltip('Đóng'));
+        }
+        await tester.pumpAndSettle();
+        expect(page, findsNothing);
+        expect(find.byType(ConversationScreen), findsOneWidget);
+        expect(visibilityChanges, <bool>[true, false]);
+        expect(tester.takeException(), isNull);
+      },
     );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byIcon(Icons.settings_outlined));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Thiết lập phụ huynh'), findsOneWidget);
-    expect(visibilityChanges, <bool>[true]);
-
-    Navigator.of(tester.element(find.text('Thiết lập phụ huynh'))).pop();
-    await tester.pumpAndSettle();
-
-    expect(visibilityChanges, <bool>[true, false]);
-  });
+  }
 
   testWidgets('iOS keeps physical MAIN active without the bottom navigation', (
     tester,
@@ -2177,6 +2326,7 @@ Widget _app(
     ),
   );
   return MaterialApp(
+    onGenerateRoute: createAppRouter().onGenerateRoute,
     debugShowCheckedModeBanner: false,
     theme: buildAppTheme(),
     navigatorObservers: routeObserver == null

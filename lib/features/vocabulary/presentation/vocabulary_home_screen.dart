@@ -14,7 +14,9 @@ import '../../../core/audio/learning_audio_dependencies.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/active_learning_module.dart';
 import '../../../core/device/h20_connection_state.dart';
-import '../../../core/navigation/active_learning_navigation.dart';
+import '../../../core/navigation/app_navigator.dart';
+import '../../../presentation/navigation/view_bindings.dart';
+import '../../../core/navigation/view_arguments/vocabulary_practice_arguments.dart';
 import '../../../l10n/display_language.dart';
 import '../../listening/application/lesson_media_service.dart';
 import '../../listening/domain/lesson_guide_flow.dart';
@@ -1768,25 +1770,31 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       while (true) {
         if (!mounted) return;
         final language = DisplayLanguageScope.of(context);
-        final result = await pushForActiveLearning<VocabularyPracticeResult>(
-          context,
-          (_) => VocabularyPracticeScreen(
-            key: _practiceScreenKey,
-            language: language,
-            childAge: widget.childAge,
-            session: session,
-            store: widget.store,
-            sessionStore: widget.sessionStore,
-            mediaService: _mediaService,
-            audioDependencies: widget.audioDependencies,
-            voicePromptService: _voicePromptService,
-            vocabularyAudioService: _vocabularyAudioService,
-            fixedPromptAudioService: _fixedPromptAudioService,
-            onRequestVoiceChoice: widget.onRequestVoiceChoice,
-            announceIntro: announceIntro,
-            announceResume: announceResume,
-          ),
-        );
+        final result = await AppNavigator.of(context)
+            .push<VocabularyPracticeResult>(
+              context,
+              AppRoute<VocabularyPracticeArguments>(
+                name: AppRouteNames.vocabularyPractice,
+                arguments: VocabularyPracticeArguments(
+                  language: language,
+                  childAge: widget.childAge,
+                  session: session,
+                  announceIntro: announceIntro,
+                  announceResume: announceResume,
+                ),
+                bindings: () => VocabularyPracticeBindings(
+                  key: _practiceScreenKey,
+                  store: widget.store,
+                  sessionStore: widget.sessionStore,
+                  mediaService: _mediaService,
+                  audioDependencies: widget.audioDependencies,
+                  voicePromptService: _voicePromptService,
+                  vocabularyAudioService: _vocabularyAudioService,
+                  fixedPromptAudioService: _fixedPromptAudioService,
+                  onRequestVoiceChoice: widget.onRequestVoiceChoice,
+                ),
+              ),
+            );
         if (!mounted) return;
         await _load();
         if (result == null) {

@@ -1,3 +1,4 @@
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
@@ -31,6 +32,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: Scaffold(body: HistorySheet(controller: controller)),
         ),
@@ -80,6 +82,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
         home: Scaffold(body: HistorySheet(controller: controller)),

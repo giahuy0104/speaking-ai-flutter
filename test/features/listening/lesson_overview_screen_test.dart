@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_guide_audio_library.dart';
@@ -20,6 +21,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: LessonIntroScreen(
           language: DisplayLanguage.vietnamese,
@@ -52,6 +54,7 @@ void main() {
     final voicePrompt = _TransitionVoicePromptService();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: LessonIntroScreen(
           language: DisplayLanguage.vietnamese,
@@ -86,6 +89,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: LessonIntroScreen(
           language: DisplayLanguage.vietnamese,
@@ -118,6 +122,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: LessonIntroScreen(
           language: DisplayLanguage.vietnamese,
@@ -150,6 +155,7 @@ void main() {
     final mediaService = _OverviewMediaService();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: LessonIntroScreen(
           language: DisplayLanguage.vietnamese,
@@ -191,6 +197,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: LessonIntroScreen(
           language: DisplayLanguage.vietnamese,
@@ -224,6 +231,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: LessonIntroScreen(
           language: DisplayLanguage.vietnamese,
@@ -264,6 +272,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: LessonIntroScreen(
           language: DisplayLanguage.vietnamese,
@@ -316,6 +325,7 @@ void main() {
       MediaQuery(
         data: const MediaQueryData(textScaler: TextScaler.linear(1.3)),
         child: MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: LessonOverviewScreen(
             language: DisplayLanguage.vietnamese,

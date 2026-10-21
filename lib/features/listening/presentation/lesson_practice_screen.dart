@@ -37,9 +37,12 @@ import '../domain/listening_curriculum_flow.dart';
 import '../domain/authored_question_selector.dart';
 import '../domain/lesson_guide_flow.dart';
 import '../domain/v4_completion_flow.dart';
-import '../../../core/navigation/active_learning_navigation.dart';
-import 'lesson_challenge_screen.dart';
-import 'lesson_intro_screen.dart';
+import '../../../core/navigation/app_navigator.dart';
+import '../../../presentation/navigation/view_bindings.dart';
+import '../../../core/navigation/view_arguments/song_stage_arguments.dart';
+import '../../../core/navigation/view_arguments/lesson_review_arguments.dart';
+import '../../../core/navigation/view_arguments/lesson_intro_arguments.dart';
+import '../../../core/navigation/view_arguments/lesson_challenge_arguments.dart';
 import 'lesson_recording_history_sheet.dart';
 import 'lesson_review_screen.dart';
 import 'listening_navigation_bar.dart';
@@ -2561,23 +2564,28 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         if (!mounted || !mayOpenChallenge()) return;
         _challengeEntryPending = false;
         bool? challengeCorrect;
-        final completed = await pushForActiveLearning<bool>(
+        final completed = await AppNavigator.of(context).push<bool>(
           context,
-          (_) => LessonChallengeScreen(
-            language: widget.language,
-            startAge: widget.startAge,
-            lesson: widget.lesson,
-            challenges: <ListeningChallengeContent>[selection.$2],
-            mediaService: widget.mediaService,
-            startPaused: _pausedForMainAssistant,
-            attemptEvaluator: _attemptEvaluator,
-            voicePromptService: _voicePromptService,
-            onChallengeResolved: (_, correct) async {
-              challengeCorrect = correct;
-            },
-            iosSpeechInput: _usesIosNativeLessonRecognition
-                ? _iosLessonSpeechInput
-                : null,
+          AppRoute<LessonChallengeArguments>(
+            name: AppRouteNames.lessonChallenge,
+            arguments: LessonChallengeArguments(
+              language: widget.language,
+              startAge: widget.startAge,
+              lesson: widget.lesson,
+              challenges: <ListeningChallengeContent>[selection.$2],
+            ),
+            bindings: () => LessonChallengeBindings(
+              mediaService: widget.mediaService,
+              startPaused: _pausedForMainAssistant,
+              attemptEvaluator: _attemptEvaluator,
+              voicePromptService: _voicePromptService,
+              onChallengeResolved: (_, correct) async {
+                challengeCorrect = correct;
+              },
+              iosSpeechInput: _usesIosNativeLessonRecognition
+                  ? _iosLessonSpeechInput
+                  : null,
+            ),
           ),
         );
         if (!mounted || completed != true || challengeCorrect == null) return;
@@ -2627,16 +2635,21 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       return;
     }
     final nextLesson = _nextLessonInTopic;
-    final result = await pushForActiveLearning<LessonReviewAction>(
+    final result = await AppNavigator.of(context).push<LessonReviewAction>(
       context,
-      (_) => LessonReviewScreen(
-        language: widget.language,
-        lesson: widget.lesson,
-        mediaService: widget.mediaService,
-        voicePromptService: _voicePromptService,
-        unrecordedSentenceIndexes: unrecordedSentenceIndexes,
-        mode: LessonReviewMode.learned,
-        hasNextLesson: nextLesson != null,
+      AppRoute<LessonReviewArguments>(
+        name: AppRouteNames.lessonReview,
+        arguments: LessonReviewArguments(
+          language: widget.language,
+          lesson: widget.lesson,
+          unrecordedSentenceIndexes: unrecordedSentenceIndexes,
+          mode: LessonReviewMode.learned,
+          hasNextLesson: nextLesson != null,
+        ),
+        bindings: () => LessonReviewBindings(
+          mediaService: widget.mediaService,
+          voicePromptService: _voicePromptService,
+        ),
       ),
     );
     if (!mounted || result == null) {
@@ -3042,28 +3055,33 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     await _releaseOwnedVoicePromptService().catchError((Object _) {});
     if (!mounted) return;
     _handingOffMediaPlayback = true;
-    await pushReplacementForActiveLearning<void, void>(
+    await AppNavigator.of(context).replace<void, void>(
       context,
-      (_) => LessonIntroScreen(
-        language: widget.language,
-        startAge: widget.startAge,
-        endAge: widget.endAge,
-        topic: ageCatalog.topics[topicIndex],
-        lesson: selectedLesson,
-        controller: widget.controller,
-        topicContent: topic,
-        contentGroup: widget.contentGroup,
-        levelContent: widget.contentGroup?.level(topic.levelNumber),
-        progressStore: widget.progressStore,
-        mediaService: widget.mediaService,
-        guideAudioLibrary: _guideAudioLibrary,
-        voicePromptService: _ownsVoicePromptService
-            ? null
-            : _voicePromptService,
-        relearnFromBeginning: relearn,
-        relearnTopicSequence: relearn,
-        onTopicCompleted: widget.onTopicCompleted,
-        onCommunicationRequested: widget.onCommunicationRequested,
+      AppRoute<LessonIntroArguments>(
+        name: AppRouteNames.lessonIntro,
+        arguments: LessonIntroArguments(
+          language: widget.language,
+          startAge: widget.startAge,
+          endAge: widget.endAge,
+          topic: ageCatalog.topics[topicIndex],
+          lesson: selectedLesson,
+          topicContent: topic,
+          contentGroup: widget.contentGroup,
+          levelContent: widget.contentGroup?.level(topic.levelNumber),
+          relearnFromBeginning: relearn,
+          relearnTopicSequence: relearn,
+        ),
+        bindings: () => LessonIntroBindings(
+          controller: widget.controller,
+          progressStore: widget.progressStore,
+          mediaService: widget.mediaService,
+          guideAudioLibrary: _guideAudioLibrary,
+          voicePromptService: _ownsVoicePromptService
+              ? null
+              : _voicePromptService,
+          onTopicCompleted: widget.onTopicCompleted,
+          onCommunicationRequested: widget.onCommunicationRequested,
+        ),
       ),
     );
   }
@@ -3073,17 +3091,22 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       return true;
     }
     final songTitle = widget.lesson.songTitle!.trim();
-    final action = await pushForActiveLearning<V4SongStageAction>(
+    final action = await AppNavigator.of(context).push<V4SongStageAction>(
       context,
-      (_) => V4SongStageScreen(
-        language: widget.language,
-        songTitle: songTitle,
-        songAudioId: widget.lesson.songAudioId,
-        songAudioUri:
-            MediaAudioKeys.bundledSongUri(widget.lesson.songAudioId) ??
-            widget.lesson.songAudioUri,
-        mediaService: widget.mediaService,
-        voicePromptService: _voicePromptService,
+      AppRoute<SongStageArguments>(
+        name: AppRouteNames.songStage,
+        arguments: SongStageArguments(
+          language: widget.language,
+          songTitle: songTitle,
+          songAudioId: widget.lesson.songAudioId,
+          songAudioUri:
+              MediaAudioKeys.bundledSongUri(widget.lesson.songAudioId) ??
+              widget.lesson.songAudioUri,
+        ),
+        bindings: () => V4SongStageBindings(
+          mediaService: widget.mediaService,
+          voicePromptService: _voicePromptService,
+        ),
       ),
     );
     return mounted && action != null;
@@ -3214,24 +3237,29 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     // disposes the replaced practice route. Do not let the old route's
     // dispose() stop the new route's intro audio.
     _handingOffMediaPlayback = true;
-    await pushReplacementForActiveLearning<void, void>(
+    await AppNavigator.of(context).replace<void, void>(
       context,
-      (_) => LessonIntroScreen(
-        language: widget.language,
-        startAge: widget.startAge,
-        endAge: widget.endAge,
-        topic: widget.topic,
-        lesson: lesson,
-        controller: widget.controller,
-        topicContent: widget.topicContent,
-        contentGroup: widget.contentGroup,
-        levelContent: widget.levelContent,
-        progressStore: widget.progressStore,
-        mediaService: widget.mediaService,
-        relearnFromBeginning: continueRelearn,
-        relearnTopicSequence: continueRelearn,
-        onTopicCompleted: widget.onTopicCompleted,
-        onCommunicationRequested: widget.onCommunicationRequested,
+      AppRoute<LessonIntroArguments>(
+        name: AppRouteNames.lessonIntro,
+        arguments: LessonIntroArguments(
+          language: widget.language,
+          startAge: widget.startAge,
+          endAge: widget.endAge,
+          topic: widget.topic,
+          lesson: lesson,
+          topicContent: widget.topicContent,
+          contentGroup: widget.contentGroup,
+          levelContent: widget.levelContent,
+          relearnFromBeginning: continueRelearn,
+          relearnTopicSequence: continueRelearn,
+        ),
+        bindings: () => LessonIntroBindings(
+          controller: widget.controller,
+          progressStore: widget.progressStore,
+          mediaService: widget.mediaService,
+          onTopicCompleted: widget.onTopicCompleted,
+          onCommunicationRequested: widget.onCommunicationRequested,
+        ),
       ),
     );
   }
@@ -3286,24 +3314,29 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     await widget.mediaService.stopPlayback();
     if (!mounted) return;
     _handingOffMediaPlayback = true;
-    await pushReplacementForActiveLearning<void, void>(
+    await AppNavigator.of(context).replace<void, void>(
       context,
-      (_) => LessonIntroScreen(
-        language: widget.language,
-        startAge: widget.startAge,
-        endAge: widget.endAge,
-        topic: widget.topic,
-        lesson: widget.lesson,
-        controller: widget.controller,
-        topicContent: widget.topicContent,
-        contentGroup: widget.contentGroup,
-        levelContent: widget.levelContent,
-        progressStore: widget.progressStore,
-        mediaService: widget.mediaService,
-        relearnFromBeginning: true,
-        relearnTopicSequence: widget.relearnTopicSequence,
-        onTopicCompleted: widget.onTopicCompleted,
-        onCommunicationRequested: widget.onCommunicationRequested,
+      AppRoute<LessonIntroArguments>(
+        name: AppRouteNames.lessonIntro,
+        arguments: LessonIntroArguments(
+          language: widget.language,
+          startAge: widget.startAge,
+          endAge: widget.endAge,
+          topic: widget.topic,
+          lesson: widget.lesson,
+          topicContent: widget.topicContent,
+          contentGroup: widget.contentGroup,
+          levelContent: widget.levelContent,
+          relearnFromBeginning: true,
+          relearnTopicSequence: widget.relearnTopicSequence,
+        ),
+        bindings: () => LessonIntroBindings(
+          controller: widget.controller,
+          progressStore: widget.progressStore,
+          mediaService: widget.mediaService,
+          onTopicCompleted: widget.onTopicCompleted,
+          onCommunicationRequested: widget.onCommunicationRequested,
+        ),
       ),
     );
   }

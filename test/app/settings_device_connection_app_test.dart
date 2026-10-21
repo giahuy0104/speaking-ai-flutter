@@ -9,6 +9,7 @@ import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:ai_speaking_flutter_app/features/settings/presentation/settings_sheet.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_screen.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/presentation/main_voice_assistant_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -100,6 +101,9 @@ void main() {
           .onOpenSettings();
       await tester.pumpAndSettle();
       expect(find.byType(SettingsSheet), findsOneWidget);
+      expect(find.byKey(const Key('settings-page')), findsOneWidget);
+      expect(find.byType(BottomSheet), findsNothing);
+      expect(find.byType(MainVoiceAssistantButton), findsNothing);
       await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Bỏ chọn'));

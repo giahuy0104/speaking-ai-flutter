@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/app/scenic_app_header.dart';
 import 'package:ai_speaking_flutter_app/config/app_config.dart';
@@ -46,6 +47,7 @@ void main() {
         addTearDown(controller.dispose);
         await tester.pumpWidget(
           MaterialApp(
+            onGenerateRoute: createAppRouter().onGenerateRoute,
             theme: _testTheme(),
             home: HomeLearningShell(
               controller: controller,
@@ -131,6 +133,7 @@ void main() {
             RepaintBoundary(
               key: const Key('partial-connection-ui-capture'),
               child: MaterialApp(
+                onGenerateRoute: createAppRouter().onGenerateRoute,
                 debugShowCheckedModeBanner: false,
                 theme: _testTheme(),
                 home: ConversationScreen(

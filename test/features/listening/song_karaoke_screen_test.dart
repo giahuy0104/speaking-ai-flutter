@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
@@ -440,6 +441,7 @@ class _TestApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      onGenerateRoute: createAppRouter().onGenerateRoute,
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       home: child,

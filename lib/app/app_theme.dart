@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/navigation/app_page_transitions.dart';
+
 abstract final class AppColors {
   /// HOMI option 2 palette.
   ///
@@ -92,6 +94,12 @@ ThemeData _buildAppTheme(Brightness brightness) {
 
   return ThemeData(
     useMaterial3: true,
+    pageTransitionsTheme: PageTransitionsTheme(
+      builders: {
+        for (final platform in TargetPlatform.values)
+          platform: const AppPageTransitionsBuilder(),
+      },
+    ),
     brightness: brightness,
     colorScheme: colorScheme,
     scaffoldBackgroundColor: isDark ? AppColors.darkCanvas : AppColors.mintWash,

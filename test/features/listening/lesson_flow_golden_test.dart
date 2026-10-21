@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/app/homi_ui.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
@@ -582,6 +583,7 @@ class _GoldenApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      onGenerateRoute: createAppRouter().onGenerateRoute,
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       darkTheme: buildDarkAppTheme(),

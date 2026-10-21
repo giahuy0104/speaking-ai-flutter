@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../config/app_config.dart';
+import '../presentation/navigation/app_view_registry.dart';
 import '../core/auth/installation_auth_session.dart';
 import '../core/audio/audio_playback_service.dart';
 import '../core/audio/audio_turn_coordinator.dart';
@@ -3482,11 +3483,14 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     super.dispose();
   }
 
+  late final _appRouter = createAppRouter();
+
   @override
   Widget build(BuildContext context) {
     final controller = _controller!;
 
     return MaterialApp(
+      onGenerateRoute: _appRouter.onGenerateRoute,
       navigatorKey: _navigatorKey,
       scaffoldMessengerKey: _scaffoldMessengerKey,
       navigatorObservers: <NavigatorObserver>[_mainOverlayNavigatorObserver],

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
@@ -41,6 +42,7 @@ void main() {
     VoicePromptService? voicePromptService,
   }) {
     return MaterialApp(
+      onGenerateRoute: createAppRouter().onGenerateRoute,
       theme: buildAppTheme(),
       darkTheme: buildDarkAppTheme(),
       themeMode: themeMode,
@@ -172,6 +174,7 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: TopicLessonListScreen(
             language: DisplayLanguage.vietnamese,
@@ -473,6 +476,9 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
 
+    // Finish the route's overlay update after the slide completes.
+    await tester.pump();
+
     expect(find.byKey(const Key('topic-lesson-list-screen')), findsOneWidget);
     expect(find.byKey(const Key('listening-bottom-navigation')), findsNothing);
     expect(find.byKey(const Key('topic-header-english-title')), findsOneWidget);
@@ -752,6 +758,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         home: TopicLessonListScreen(
           language: DisplayLanguage.vietnamese,
           startAge: 3,

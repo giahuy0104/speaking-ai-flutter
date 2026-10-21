@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme_mode.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
@@ -82,6 +83,7 @@ void main() {
       addTearDown(coordinator.dispose);
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           debugShowCheckedModeBanner: false,
           theme: buildAppTheme(),
           darkTheme: buildDarkAppTheme(),
@@ -183,6 +185,7 @@ void main() {
       ValueListenableBuilder<ThemeMode>(
         valueListenable: mode,
         builder: (context, value, _) => MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           darkTheme: buildDarkAppTheme(),
           themeMode: value,
@@ -250,6 +253,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           debugShowCheckedModeBanner: false,
           builder: (context, child) => MediaQuery(
@@ -324,6 +328,7 @@ void main() {
     addTearDown(controller.dispose);
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: Scaffold(
           body: SettingsSheet(
@@ -356,6 +361,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
         builder: _disableAnimations,
@@ -388,6 +394,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
         darkTheme: buildDarkAppTheme(),
@@ -424,6 +431,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
         builder: _disableAnimations,
@@ -467,6 +475,7 @@ void main() {
     addTearDown(controller.dispose);
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: Scaffold(body: SettingsSheet(controller: controller)),
       ),
@@ -506,6 +515,7 @@ void main() {
     addTearDown(controller.dispose);
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: Scaffold(body: SettingsSheet(controller: controller)),
       ),
@@ -533,6 +543,7 @@ void main() {
     addTearDown(controller.dispose);
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: Scaffold(
           body: SettingsSheet(

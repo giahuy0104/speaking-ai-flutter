@@ -1,3 +1,4 @@
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
@@ -35,6 +36,7 @@ void main() {
         AivoControlScope(
           controller: fixture.controls,
           child: MaterialApp(
+            onGenerateRoute: createAppRouter().onGenerateRoute,
             home: Scaffold(body: SettingsSheet(controller: controller)),
           ),
         ),
@@ -245,6 +247,7 @@ void main() {
     addTearDown(fixture.dispose);
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         builder: (context, child) => MediaQuery(
           data: MediaQuery.of(
             context,
@@ -297,6 +300,7 @@ class _Fixture {
   Future<void> mount(WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         home: H20ControlDiagnosticsScreen(
           controller: settings,
           controls: controls,

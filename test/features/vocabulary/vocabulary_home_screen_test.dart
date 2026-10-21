@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
 import 'dart:convert';
 
@@ -36,6 +37,7 @@ void main() {
       var checks = 0;
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: VocabularyHomeScreen(
             isReady: false,
@@ -79,6 +81,7 @@ void main() {
       final prompts = _RecordingVoicePromptService();
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: VocabularyHomeScreen(
             isReady: false,
@@ -117,6 +120,7 @@ void main() {
     final prompts = _RecordingVoicePromptService();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: VocabularyHomeScreen(
           isReady: true,
@@ -196,6 +200,7 @@ void main() {
           ]);
           await tester.pumpWidget(
             MaterialApp(
+              onGenerateRoute: createAppRouter().onGenerateRoute,
               theme: buildAppTheme(),
               home: ActiveLearningModuleScope(
                 registry: registry,
@@ -280,6 +285,7 @@ void main() {
         ActiveLearningModuleScope(
           registry: registry,
           child: MaterialApp(
+            onGenerateRoute: createAppRouter().onGenerateRoute,
             theme: buildAppTheme(),
             home: DisplayLanguageScope(
               language: DisplayLanguage.vietnamese,
@@ -336,6 +342,7 @@ void main() {
     final navigation = VocabularyHomeNavigationController();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: DisplayLanguageScope(
           language: DisplayLanguage.vietnamese,
@@ -388,6 +395,7 @@ void main() {
         ActiveLearningModuleScope(
           registry: registry,
           child: MaterialApp(
+            onGenerateRoute: createAppRouter().onGenerateRoute,
             theme: buildAppTheme(),
             home: DisplayLanguageScope(
               language: DisplayLanguage.vietnamese,
@@ -458,6 +466,7 @@ void main() {
         ActiveLearningModuleScope(
           registry: registry,
           child: MaterialApp(
+            onGenerateRoute: createAppRouter().onGenerateRoute,
             theme: buildAppTheme(),
             home: DisplayLanguageScope(
               language: DisplayLanguage.vietnamese,
@@ -533,6 +542,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: ValueListenableBuilder<bool>(
           valueListenable: active,
@@ -585,6 +595,7 @@ void main() {
       final store = _MemoryVocabularyStore();
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: DisplayLanguageScope(
             language: DisplayLanguage.vietnamese,
@@ -712,6 +723,7 @@ void main() {
       ]);
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: DisplayLanguageScope(
             language: DisplayLanguage.vietnamese,
@@ -822,6 +834,7 @@ void main() {
     final audioService = _RecordingVocabularyAudioService();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: DisplayLanguageScope(
           language: DisplayLanguage.vietnamese,
@@ -874,6 +887,7 @@ void main() {
     final store = _MemoryVocabularyStore();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: DisplayLanguageScope(
           language: DisplayLanguage.vietnamese,
@@ -927,6 +941,7 @@ void main() {
     final store = _MemoryVocabularyStore();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: DisplayLanguageScope(
           language: DisplayLanguage.vietnamese,
@@ -1049,6 +1064,7 @@ void main() {
     final audioService = _RecordingVocabularyAudioService();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: DisplayLanguageScope(
           language: DisplayLanguage.vietnamese,
@@ -1186,6 +1202,7 @@ void main() {
     ]);
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: DisplayLanguageScope(
           language: DisplayLanguage.vietnamese,
@@ -1244,6 +1261,7 @@ void main() {
     const store = VocabularyStore();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: DisplayLanguageScope(
           language: DisplayLanguage.vietnamese,
@@ -1299,6 +1317,7 @@ void main() {
     ]);
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: DisplayLanguageScope(
           language: DisplayLanguage.vietnamese,
@@ -1375,6 +1394,7 @@ void main() {
     ]);
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: DisplayLanguageScope(
           language: DisplayLanguage.vietnamese,
@@ -1457,6 +1477,7 @@ void main() {
     );
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: ActiveLearningModuleScope(
           registry: registry,
@@ -1524,6 +1545,7 @@ void main() {
       ]);
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: DisplayLanguageScope(
             language: DisplayLanguage.vietnamese,
@@ -1579,6 +1601,7 @@ void main() {
     ]);
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: DisplayLanguageScope(
           language: DisplayLanguage.vietnamese,
@@ -1630,6 +1653,7 @@ void main() {
     ]);
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: DisplayLanguageScope(
           language: DisplayLanguage.vietnamese,
@@ -1695,6 +1719,7 @@ void main() {
       ActiveLearningModuleScope(
         registry: registry,
         child: MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: DisplayLanguageScope(
             language: DisplayLanguage.vietnamese,
@@ -1777,6 +1802,7 @@ void main() {
       ActiveLearningModuleScope(
         registry: registry,
         child: MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: DisplayLanguageScope(
             language: DisplayLanguage.vietnamese,
@@ -1846,6 +1872,7 @@ void main() {
       ActiveLearningModuleScope(
         registry: registry,
         child: MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: DisplayLanguageScope(
             language: DisplayLanguage.vietnamese,
@@ -1914,6 +1941,7 @@ void main() {
         ActiveLearningModuleScope(
           registry: registry,
           child: MaterialApp(
+            onGenerateRoute: createAppRouter().onGenerateRoute,
             theme: buildAppTheme(),
             home: DisplayLanguageScope(
               language: DisplayLanguage.vietnamese,
@@ -1963,6 +1991,7 @@ void main() {
       final voice = _RecordingVoicePromptService();
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: DisplayLanguageScope(
             language: DisplayLanguage.vietnamese,
@@ -2044,6 +2073,7 @@ void main() {
     addTearDown(registry.dispose);
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: ActiveLearningModuleScope(
           registry: registry,
@@ -2091,6 +2121,7 @@ void main() {
     var navigationExits = 0;
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: ActiveLearningModuleScope(
           registry: registry,
@@ -2154,6 +2185,7 @@ void main() {
       addTearDown(prompt.complete);
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: ActiveLearningModuleScope(
             registry: registry,
@@ -2208,6 +2240,7 @@ void main() {
     final prompt = _FailingJourneyVoicePromptService();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: ActiveLearningModuleScope(
           registry: registry,
@@ -2256,6 +2289,7 @@ void main() {
       addTearDown(activationController.dispose);
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: ActiveLearningModuleScope(
             registry: registry,
@@ -2461,6 +2495,7 @@ Future<void> _requestMenuPromptWithRoute(
     ActiveLearningModuleScope(
       registry: registry,
       child: MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: DisplayLanguageScope(
           language: DisplayLanguage.vietnamese,

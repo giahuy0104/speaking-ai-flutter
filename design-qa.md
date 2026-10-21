@@ -139,3 +139,92 @@ final result: passed
 ### Age popup follow-up — 2026-10-21
 
 Restored the previous wrapped ChoiceChip layout inside the age picker only. Main Settings remains compact. Inspected rendered goldens at390×844 and320×568/text200%: chips wrap3+2 at normal size and one per row at large text; no overflow. Selected mint/check treatment follows the existing theme.14 Settings flow tests pass; analyzer clean. No device installation or APK rebuild in this follow-up.
+
+---
+
+# Home cloud tabs and conversation bubbles - 2026-10-21
+
+final result: passed
+
+## Scope and visual truth
+
+Native Flutter production UI, implemented in the existing project rather than a separate web prototype. This section is the latest Home review; earlier onboarding and Settings reports above are preserved. No device installation or physical HOMI verification is claimed.
+
+Source visual truth: `/Users/quangonfire/Desktop/Projects/main/HOMI/docs/session-artifacts/2026-10-21-home-speaking-focus/08-cloud-edge-tabs-sky-blue-highlight.png` (870 x 1808 px). The user's sketch establishes narrow edge tabs with whole-word labels rotated 90 degrees; the latest approved image establishes white faces and slightly stronger sky-blue highlights, plus separate white Vietnamese and mint English conversation bubbles.
+
+Implementation capture: `/Users/quangonfire/Desktop/Projects/main/HOMI/docs/session-artifacts/2026-10-21-home-cloud-implementation/implementation-final-458x954.png` (458 x 954 px, 458 x 954 Flutter logical pixels, DPR 1). State: light theme, Vietnamese, disconnected, empty transcript, idle. There is no CSS viewport because these are native Flutter captures.
+
+Density normalization: source scaled proportionally and padded to 458 x 954, without changing the app capture. Full comparison sheet: `/Users/quangonfire/Desktop/Projects/main/HOMI/docs/session-artifacts/2026-10-21-home-cloud-implementation/comparison-final.png` (936 x 984 px including gutters/captions). Both original design and actual Flutter capture were opened together in this image. Focused comparisons were also opened: `comparison-tabs.png` (936 x 190 px) and `comparison-bubbles.png` (936 x 300 px), in the same evidence folder.
+
+Additional actual captures in that folder: `implementation-320x568-large-text.png`, `implementation-dark-390x844.png`, `implementation-recording-390x844.png`, `implementation-processing-390x844.png`, and `implementation-ready-450x1025.png`. Dark/ready controller fixtures are presentation fixtures, not proof of real hardware readiness. Original app scenery and mascot assets are intentionally retained instead of replacing them with the regenerated character in the mock.
+
+## Findings and comparison history
+
+- [Resolved P2] First pass over-indented transcript placeholders under the icon/label row. Evidence: `comparison-first-pass.png`. Reduced body indentation to match the approved reading treatment; retained common bubble padding for both languages. Post-fix evidence: `comparison-bubbles.png` and `comparison-final.png`.
+- [Resolved P2] The main content was too high on the tall target viewport. Increased only the scroll-content top padding, leaving header, fixed primary action and controller flow intact. The final comparison shows the reading area at the intended vertical region.
+- [Resolved P2] Generated tab undersides were more saturated than the approved restrained highlights. Added a light white blend to the raster artwork. The final focused tab comparison retains the white face, blue accent and narrow geometry.
+- [Resolved P2] White tabs attracted too much attention in dark mode. Adapted the cloud surface tint and label/icon foreground to the existing dark palette. The final dark capture was opened and reviewed: the mascot and primary action remain dominant.
+- [Resolved behavior] New press feedback requires a short visual completion before navigation, so old transition tests assumed the wrong starting frame. Tests now wait for actual entry before checking direction. Existing destination callbacks, microphone ownership and background-learning logic are unchanged.
+- No remaining actionable P0/P1/P2 finding in the changed Home components.
+
+## Five fidelity surfaces
+
+- Fonts/typography: existing Roboto and app type scale retained. Labels are a single unbroken string rotated counterclockwise on the left and clockwise on the right; semantic labels remain normally ordered. Vietnamese diacritics are readable. Large text is constrained by the narrow tab's available space instead of wrapping characters vertically. Test-font/native font contours can differ from the generated mock; no pixel-identical typeface claim.
+- Spacing/layout: each stable tab target is 48 x 168 logical pixels, anchored to its screen edge. Only the visual grows inward by up to 4.5 percent. Icons stay upright above the whole-word rotated label. The result bubbles grow with content and text scale; the fixed speaking/connection action remains outside the scroll region. Body padding was checked against the source.
+- Colors/tokens: original navy/mint theme and original sky/hills retained; navigation accents are sky-blue, not the rejected mint glow. Vietnamese surface is white, English surface is mint. Dark mode uses subdued blue cloud faces and light labels, plus dark white/mint-equivalent reading surfaces.
+- Image quality/asset fidelity: supplied mascot and scenery remain real app assets. Two distinct transparent raster cloud tabs were generated from the approved target and inspected; both PNGs are RGBA 724 x 2172 with genuine alpha. Their transparent padding is handled in the image slot, and decoding is capped with cacheWidth 216. No substitute painted cloud geometry or baked UI text/icons is used. Speech-bubble tails are standard UI ShapeBorder geometry, not replacement illustration assets. Standard Material icons retain the app's icon system.
+- Copy/content: Vietnamese/English labels, result text and replay behavior are preserved. Empty English copy now reads the approved "Bản dịch sẽ hiện ở đây" in Vietnamese and has a Chinese translation. Connection/start/recording/processing/stop labels and error handling remain under existing controllers. Offline translation attribution remains visible when required.
+
+## Interaction and regression evidence
+
+- Single tap: subtle press growth, then the existing callback. No extra tap to reveal a name.
+- Feedback: 110 ms forward and 170 ms return; anchor on the outer edge, unchanged hit target. Cancelled presses do not navigate. Rapid taps coalesce while feedback is active; disposal cancels stale activation. Reduced motion skips growth and activates immediately.
+- Native navigation directions, parental settings flow, MAIN ownership, automatic connection, device-action gate, processing states, long results, replay and offline attribution are covered by the selected tests.
+- 126 selected widget/unit regressions passed. Eight changed visual golden checks passed again without --update-goldens after inspecting their captures. Unrelated known baseline failures from the earlier test audit were not regenerated or represented as fixed.
+- Full Flutter analyzer: no issues. Final Android debug APK build passed in 36.0 seconds with the existing production define file; see the build log in the evidence folder. These tests mock hardware and do not verify radio/firmware behavior.
+
+## Follow-up polish / limits
+
+- P3: generated mock fonts, avatar pose, exact cloud billow contours and landscape saturation differ slightly because the existing app mascot/scenery and native theme were deliberately preserved.
+- P3, existing: at 320 x 568 and 200 percent text, the compact header still ellipsizes the brand/status. Both edge controls and the primary action remain accessible, and the reading region scrolls. Full Home accessibility compliance is not claimed by this scoped change.
+- Chinese semantics and layout were tested; golden tests do not claim OS CJK fallback font fidelity.
+- No physical Android/iOS/HOMI test or installation was performed for this UI-only change.
+
+## Implementation checklist
+
+- [x] Approved narrow white/blue cloud tabs with rotated complete labels.
+- [x] Gentle inward press feedback; stable targets and cancellation/reduced-motion handling.
+- [x] White/mint reading bubbles; result, replay and attribution logic retained.
+- [x] Existing navigation, retry cadence and microphone ownership retained.
+- [x] Native light/dark/large-text captures, direct comparisons and relevant regressions reviewed.
+- [x] Analyzer clean; source and session evidence retained.
+
+final result: passed
+
+## Follow-up: Android cloud label alignment (2026-10-21)
+
+The user's physical screenshot revealed a gap in the previous review: rectangular widget bounds do not establish that the content stays on an irregular cloud's white face. The icon/label group overlapped blue pinches and was spread too far vertically. The user confirmed these are the two affected controls.
+
+Resolution: stretch the flat white image strip using centerSlice, keep the blue inward billows, and align the complete rotated label and upright icon inside the white body. Width responds to text scale (48–56dp); both tabs retain equal height and a stable hit target during the original press animation. Navigation and device behavior are untouched.
+
+Reviewed native Flutter captures at 360×800dp/DPR3/insets36–42, 411.43×914.29dp/DPR2.625/insets40–24, 458×954, dark390×844 and 320×568 at200% text. These profiles cover Android density/insets but are not claimed to be the exact unknown metrics of the submitted screenshot. The golden harness now includes the app's Roboto-Medium font. New assertions inspect painted white pixels around both icons and labels; this caught the large-text edge collision before the final fix. Visual comparisons and final captures are saved in ../docs/session-artifacts/2026-10-21-home-cloud-responsive/.
+
+88 relevant regression tests and 6 golden/profile tests passed; analyzer clean. The existing large-text header truncation remains outside this two-control fix. No physical device installation/runtime result is claimed. The previous source and generated captures remain preserved for comparison.
+
+final result: passed (scoped Flutter render verification; physical device confirmation pending)
+
+Debug APK build completed successfully (assembleDebug51.7s); dart format and git diff --check passed. Artifact: build/app/outputs/flutter-apk/app-debug.apk.
+
+## Follow-up: natural cloud ends (2026-10-21)
+
+User reported that the stretched cloud strip terminated in square horizontal ledges. The previous round-rectangle clip did not preserve the raster's curved blue rim. Reproduced the defect with an alpha-based assertion against the actual rendered artwork: the old code paints a broad flat tip (50px at DPR3, above the40.32px limit).
+
+Replaced both raster assets using built-in ImageGen, with a broad white core, shallow varied billows and naturally tapered curved ends. Removed centerSlice and cap clipping. Right-side transparent padding is placed outside the screen edge using its measured content width, and the right content group is inset into the white face. Preserved the responsive tab target, full rotated labels, upright icons, press feedback and navigation behavior.
+
+Inspected comparison-caps.png plus final light458×954, dark390×844, Android360×800/DPR3/insets36–42, Android411.43×914.29/DPR2.625/insets40–24, and320×568/chữ200% captures. Caps now curve into the edge without a horizontal ledge; both labels/icons remain on the white face. Verified actual alpha taper and painted white pixels in addition to bounds. Evidence, selected PNG paths and full prompts: ../docs/session-artifacts/2026-10-21-home-cloud-natural-caps/.
+
+88 regression tests and6 golden/profile tests passed; analyzer, format and diff checks clean. Physical device installation/runtime verification is not claimed. The earlier out-of-scope header truncation at200% text remains documented.
+
+final result: passed (scoped Flutter render verification)
+
+Debug build passed (assembleDebug33.4s); APK: build/app/outputs/flutter-apk/app-debug.apk. No install was performed.

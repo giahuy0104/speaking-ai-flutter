@@ -87,6 +87,8 @@ flutter:
     - assets/images/home-hero-blob-option2.png
     - assets/images/home-waveform.png
     - assets/images/home-navigation-rays.png
+    - assets/images/home-cloud-tab-left.png
+    - assets/images/home-cloud-tab-right.png
     - assets/images/mascot/
     - assets/images/topics/
     - assets/images/vocabulary/

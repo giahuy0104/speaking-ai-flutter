@@ -1,3 +1,4 @@
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/core/navigation/active_learning_navigation.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:flutter/foundation.dart';
@@ -16,6 +17,7 @@ void main() {
         registry: registry,
         onNavigationExit: () => exits++,
         child: MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           home: Builder(
             builder: (context) => TextButton(
               onPressed: () => pushForActiveLearning<void>(
@@ -45,6 +47,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         navigatorObservers: <NavigatorObserver>[observer],
         home: Builder(
           builder: (context) {
@@ -76,6 +79,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         navigatorObservers: <NavigatorObserver>[observer],
         home: Builder(
           builder: (context) {
@@ -113,6 +117,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         navigatorObservers: <NavigatorObserver>[observer],
         home: Builder(
           builder: (context) {
@@ -150,6 +155,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         navigatorObservers: <NavigatorObserver>[observer],
         home: Builder(
           builder: (context) {
@@ -182,6 +188,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         navigatorObservers: <NavigatorObserver>[observer],
         home: Builder(
           builder: (context) {
