@@ -105,7 +105,10 @@ class RunnerTests: XCTestCase {
     let turnId = coordinator.beginMainTurn(
       source: "RunnerTests", audioInputTarget: .builtInMic, forceNewTurn: true
     )
-    coordinator.requestBackgroundCaptureArm(caller: "RunnerTests")
+    // The coordinator defers an arm requested from outside its work queue.
+    IOSNativeWork.sync {
+      coordinator.requestBackgroundCaptureArm(caller: "RunnerTests")
+    }
     XCTAssertEqual(handoff.targets.compactMap { $0 }.last, .builtInMic)
     coordinator.endMainTurn(
       reason: "obsolete_reply", caller: "RunnerTests", expectedTurnId: "obsolete"
@@ -116,6 +119,18 @@ class RunnerTests: XCTestCase {
     )
     XCTAssertNil(coordinator.mainAudioInputTarget)
     coordinator.dispose()
+  }
+
+  func testIOSNativeWorkActorKeepsAsyncBridgeCodeOnTheNativeWorkQueue() {
+    let finished = expectation(description: "actor job finished")
+    Task { @IOSNativeWorkActor in
+      XCTAssertTrue(IOSNativeWork.isCurrent)
+      try? await Task.sleep(nanoseconds: 1_000_000)
+      XCTAssertTrue(IOSNativeWork.isCurrent)
+      XCTAssertFalse(Thread.isMainThread)
+      finished.fulfill()
+    }
+    wait(for: [finished], timeout: 2)
   }
 
   func testIOSVirtualMainActivationsGetFreshIdsBeforeAnOldBeginReplyCompletes() {
@@ -393,7 +408,7 @@ class RunnerTests: XCTestCase {
     }
     let meanSquare = activeSamples.reduce(0.0) { $0 + $1 * $1 }
       / Double(activeSamples.count)
-    XCTAssertEqual(20.0 * log10(sqrt(meanSquare)), -21.0, accuracy: 0.25)
+    XCTAssertEqual(20.0 * log10(sqrt(meanSquare)), -33.0, accuracy: 0.25)
   }
 
   func testIOSSpeechRouteMatchesOnlyTheSelectedHfpInput() {
@@ -1854,6 +1869,39 @@ class RunnerTests: XCTestCase {
       power += Double(samples[frame]) * Double(samples[frame])
     }
     return 10 * log10(power / Double(range.count))
+  }
+
+  func testIOSSpeechTurnStampOverridesTheAudioSessionStringTurnId() {
+    var stamp = IOSSpeechTurnStamp()
+    stamp.beginTurn(7)
+
+    // metadata() merges the audio session's own string turn id first.
+    let stamped = stamp.stamp([
+      "type": "speech.ready",
+      "turnId": "ios-main-1790653450000-a3f9c1",
+    ])
+
+    XCTAssertEqual(stamped["turnId"] as? Int, 7)
+    XCTAssertNil(stamped["turnId"] as? String)
+  }
+
+  func testIOSSpeechTurnStampKeepsTheReplacedTurnIdUntilTheNextStart() {
+    var stamp = IOSSpeechTurnStamp()
+    stamp.beginTurn(7)
+    XCTAssertEqual(stamp.turnId, 7)
+
+    // A replace-active cancel must not clear the id: a late event still
+    // belongs to turn 7 and Dart drops it by number.
+    XCTAssertEqual(stamp.stamp([:])["turnId"] as? Int, 7)
+
+    stamp.beginTurn(8)
+    XCTAssertEqual(stamp.stamp([:])["turnId"] as? Int, 8)
+  }
+
+  func testIOSSpeechTurnStampLeavesPayloadUntouchedBeforeAnyTurn() {
+    let stamp = IOSSpeechTurnStamp()
+    let payload = stamp.stamp(["turnId": "ios-main-1-abc"])
+    XCTAssertEqual(payload["turnId"] as? String, "ios-main-1-abc")
   }
 
   func testIOSBuiltInMicPolicyExcludesBluetoothOptions() {

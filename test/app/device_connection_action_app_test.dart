@@ -6,6 +6,7 @@ import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_screen.dart';
+import 'package:ai_speaking_flutter_app/features/conversation/presentation/widgets/speak_action_bar.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_lesson_list_screen.dart';
 import 'package:flutter/material.dart';
@@ -119,7 +120,7 @@ void main() {
       await _pumpAsync(tester);
       expect(app.scans, hasLength(1));
 
-      await tester.pump(const Duration(seconds: 45));
+      await tester.pump(const Duration(seconds: 75));
       await _pumpAsync(tester);
 
       expect(find.text('Cần kết nối thiết bị'), findsOneWidget);
@@ -251,7 +252,12 @@ void main() {
 }
 
 Future<void> _tapSpeak(WidgetTester tester) async {
-  await tester.tap(find.text('Bắt đầu nói').hitTestable());
+  await tester.tap(
+    find.descendant(
+      of: find.byType(SpeakActionBar),
+      matching: find.byType(InkWell),
+    ),
+  );
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 300));
 }
@@ -398,9 +404,20 @@ class _NativeAppHarness {
     }
     await tester.pump(const Duration(seconds: 15));
     await tester.pumpAndSettle();
-    clearChannels();
-    if (supportDirectory.existsSync()) {
-      supportDirectory.deleteSync(recursive: true);
+    for (var attempt = 0; attempt < 10; attempt++) {
+      try {
+        if (supportDirectory.existsSync()) {
+          supportDirectory.deleteSync(recursive: true);
+        }
+        break;
+      } on FileSystemException {
+        if (attempt == 9) rethrow;
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 200)),
+        );
+        await tester.pump();
+      }
     }
+    clearChannels();
   }
 }

@@ -1,4 +1,5 @@
 import AVFoundation
+import Flutter
 import Foundation
 import UIKit
 
@@ -70,6 +71,178 @@ struct IOSPreferredHfpInputPolicy {
       selectedUID: selectedUID,
       selectedName: selectedName
     )
+  }
+}
+
+/// The serial executor of the native audio and device bridges.
+///
+/// AVAudioSession, AVAudioPlayer and AVAudioEngine calls block their caller
+/// until the audio hardware has answered, and Flutter draws its frames on the
+/// main thread. The bridges and the coordinator therefore keep their state on
+/// this queue. Only Flutter channel replies, event sinks and UIKit calls go
+/// back to the main thread.
+enum IOSNativeWork {
+  private static let queueKey = DispatchSpecificKey<Bool>()
+  private static let stateLock = NSLock()
+  private static var applicationActive = false
+  private static var applicationStateTokens: [NSObjectProtocol] = []
+
+  static let queue: DispatchQueue = {
+    let queue = DispatchQueue(label: "ailingo.native-work", qos: .userInitiated)
+    queue.setSpecific(key: queueKey, value: true)
+    return queue
+  }()
+
+  static let operationQueue: OperationQueue = {
+    let operationQueue = OperationQueue()
+    operationQueue.underlyingQueue = queue
+    operationQueue.maxConcurrentOperationCount = 1
+    return operationQueue
+  }()
+
+  static var isCurrent: Bool { DispatchQueue.getSpecific(key: queueKey) == true }
+
+  /// Runs `work` on the queue and waits for it. The queue never waits for the
+  /// main thread, so the main thread may use this for an application
+  /// lifecycle step that must finish before iOS moves the app on.
+  static func sync<T>(_ work: () throws -> T) rethrows -> T {
+    if isCurrent { return try work() }
+    return try queue.sync(execute: work)
+  }
+
+  static func onMain(_ work: @escaping () -> Void) {
+    if Thread.isMainThread {
+      work()
+    } else {
+      DispatchQueue.main.async(execute: work)
+    }
+  }
+
+  /// `UIApplication.applicationState` as last seen on the main thread.
+  static var applicationIsActive: Bool {
+    stateLock.lock()
+    defer { stateLock.unlock() }
+    return applicationActive
+  }
+
+  /// Call on the main thread.
+  static func refreshApplicationState() {
+    let active = UIApplication.shared.applicationState == .active
+    stateLock.lock()
+    applicationActive = active
+    stateLock.unlock()
+  }
+
+  /// Call once on the main thread, before any bridge observes the lifecycle.
+  static func observeApplicationState() {
+    guard applicationStateTokens.isEmpty else { return }
+    refreshApplicationState()
+    let names: [Notification.Name] = [
+      UIApplication.didBecomeActiveNotification,
+      UIApplication.willResignActiveNotification,
+      UIApplication.didEnterBackgroundNotification,
+      UIApplication.willEnterForegroundNotification,
+    ]
+    applicationStateTokens = names.map { name in
+      NotificationCenter.default.addObserver(forName: name, object: nil, queue: nil) { _ in
+        refreshApplicationState()
+        // The state leaves `.active` only after willResignActive has returned.
+        DispatchQueue.main.async { refreshApplicationState() }
+      }
+    }
+  }
+
+  /// A method-call handler that runs on the queue and replies on the main thread.
+  static func handler(
+    _ handle: @escaping (FlutterMethodCall, @escaping FlutterResult) -> Void
+  ) -> FlutterMethodCallHandler {
+    { call, result in
+      queue.async {
+        handle(call) { value in
+          DispatchQueue.main.async { result(value) }
+        }
+      }
+    }
+  }
+
+  /// An event sink that may be called from the queue.
+  static func mainSink(_ sink: @escaping FlutterEventSink) -> FlutterEventSink {
+    { event in
+      DispatchQueue.main.async { sink(event) }
+    }
+  }
+}
+
+/// Runs Swift concurrency jobs on `IOSNativeWork.queue`, so an `async`
+/// function of a bridge keeps touching bridge state on that queue.
+final class IOSNativeWorkExecutor: SerialExecutor {
+  func enqueue(_ job: UnownedJob) {
+    IOSNativeWork.queue.async {
+      job.runSynchronously(on: self.asUnownedSerialExecutor())
+    }
+  }
+
+  func asUnownedSerialExecutor() -> UnownedSerialExecutor {
+    UnownedSerialExecutor(ordinary: self)
+  }
+}
+
+@globalActor
+actor IOSNativeWorkActor {
+  static let shared = IOSNativeWorkActor()
+  private static let executor = IOSNativeWorkExecutor()
+
+  nonisolated var unownedExecutor: UnownedSerialExecutor {
+    Self.executor.asUnownedSerialExecutor()
+  }
+}
+
+/// Ends a background task once, from whichever thread gets there first. iOS
+/// calls the expiration handler on the main thread and ends the process when
+/// the task is still open after the handler returns.
+final class IOSBackgroundTaskEnder {
+  private let lock = NSLock()
+  private var identifier = UIBackgroundTaskIdentifier.invalid
+  private var ended = false
+
+  func set(_ identifier: UIBackgroundTaskIdentifier) {
+    lock.lock()
+    let endNow = ended
+    if !endNow { self.identifier = identifier }
+    lock.unlock()
+    if endNow, identifier != .invalid {
+      UIApplication.shared.endBackgroundTask(identifier)
+    }
+  }
+
+  func end() {
+    lock.lock()
+    ended = true
+    let identifier = identifier
+    self.identifier = .invalid
+    lock.unlock()
+    if identifier != .invalid {
+      UIApplication.shared.endBackgroundTask(identifier)
+    }
+  }
+}
+
+/// A flag written on the native work queue and read on the main thread.
+final class IOSNativeWorkFlag {
+  private let lock = NSLock()
+  private var stored = false
+
+  var value: Bool {
+    get {
+      lock.lock()
+      defer { lock.unlock() }
+      return stored
+    }
+    set {
+      lock.lock()
+      stored = newValue
+      lock.unlock()
+    }
   }
 }
 
@@ -153,6 +326,7 @@ final class IOSAudioSessionCoordinator: NSObject {
   private var sequence = 0
   private var turnTimeout: DispatchWorkItem?
   private var backgroundTurnTask = UIBackgroundTaskIdentifier.invalid
+  private var backgroundTurnTaskEnder: IOSBackgroundTaskEnder?
   private var backgroundTurnTaskGeneration = 0
   private var ownership = IOSAudioSessionOwnershipState()
   private var preferredHfpInputUID: String?
@@ -187,14 +361,14 @@ final class IOSAudioSessionCoordinator: NSObject {
     routeChangeToken = NotificationCenter.default.addObserver(
       forName: AVAudioSession.routeChangeNotification,
       object: session,
-      queue: .main
+      queue: IOSNativeWork.operationQueue
     ) { [weak self] notification in
       self?.recordRouteChange(notification)
     }
     interruptionToken = NotificationCenter.default.addObserver(
       forName: AVAudioSession.interruptionNotification,
       object: session,
-      queue: .main
+      queue: IOSNativeWork.operationQueue
     ) { [weak self] notification in
       self?.recordInterruption(notification)
     }
@@ -214,7 +388,7 @@ final class IOSAudioSessionCoordinator: NSObject {
   }
 
   func applicationDidEnterBackground() {
-    let applicationIsActive = UIApplication.shared.applicationState == .active
+    let applicationIsActive = IOSNativeWork.applicationIsActive
     if IOSBackgroundTurnExecutionPolicy.shouldDeferToActiveAudio(
       applicationIsActive: applicationIsActive,
       promptActive: isPromptActive,
@@ -246,8 +420,8 @@ final class IOSAudioSessionCoordinator: NSObject {
     caller: String,
     completion: @escaping () -> Void = {}
   ) {
-    guard Thread.isMainThread else {
-      DispatchQueue.main.async { [weak self] in
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
         guard let self else {
           completion()
           return
@@ -274,8 +448,8 @@ final class IOSAudioSessionCoordinator: NSObject {
   }
 
   func requestBackgroundCaptureDisarm(caller: String) {
-    guard Thread.isMainThread else {
-      DispatchQueue.main.async { [weak self] in
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
         self?.requestBackgroundCaptureDisarm(caller: caller)
       }
       return
@@ -439,7 +613,7 @@ final class IOSAudioSessionCoordinator: NSObject {
     // when the final owner releases it; otherwise iOS renegotiates HFP mid-flow.
     releaseAudioSessionIfIdle(caller: "IOSAudioSessionCoordinator.endMainTurn")
     endBackgroundTurnExecutionIfIdle(caller: caller)
-    if UIApplication.shared.applicationState == .active {
+    if IOSNativeWork.applicationIsActive {
       requestBackgroundCaptureDisarm(caller: "IOSAudioSessionCoordinator.endMainTurn")
     }
     onMainTurnEnded?()
@@ -951,13 +1125,13 @@ final class IOSAudioSessionCoordinator: NSObject {
   /// Prompt playback and live capture are then kept alive by the declared audio
   /// background mode; their completion paths create a new bounded hand-off.
   func backgroundAudioActivityDidStart(caller: String) {
-    guard Thread.isMainThread else {
-      DispatchQueue.main.async { [weak self] in
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
         self?.backgroundAudioActivityDidStart(caller: caller)
       }
       return
     }
-    guard UIApplication.shared.applicationState != .active else { return }
+    guard !IOSNativeWork.applicationIsActive else { return }
     guard isPromptActive || isSpeechCaptureActive || isBackgroundCaptureEngineRunning else { return }
     trace(
       stage: "background_turn_execution_yielded_to_active_audio",
@@ -975,15 +1149,15 @@ final class IOSAudioSessionCoordinator: NSObject {
   }
 
   private func retainBackgroundTurnExecutionIfNeeded(caller: String) {
-    guard Thread.isMainThread else {
-      DispatchQueue.main.async { [weak self] in
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
         self?.retainBackgroundTurnExecutionIfNeeded(caller: caller)
       }
       return
     }
     let shouldRetain = IOSBackgroundTurnExecutionPolicy.shouldRetain(
       backgroundLearningEnabled: isBackgroundLearningEnabled,
-      applicationIsActive: UIApplication.shared.applicationState == .active,
+      applicationIsActive: IOSNativeWork.applicationIsActive,
       interactionPendingOrActive: pendingTurnId != nil
         || isMainTurnActive
         || isBackgroundTransitionLeaseActive
@@ -993,12 +1167,16 @@ final class IOSAudioSessionCoordinator: NSObject {
 
     backgroundTurnTaskGeneration += 1
     let taskGeneration = backgroundTurnTaskGeneration
+    let ender = IOSBackgroundTaskEnder()
     let identifier = UIApplication.shared.beginBackgroundTask(
       withName: "HOMI MAIN prompt-to-microphone"
     ) { [weak self] in
+      ender.end()
       guard let self else { return }
       self.expireBackgroundTurnExecution(taskGeneration: taskGeneration)
     }
+    ender.set(identifier)
+    backgroundTurnTaskEnder = ender
     backgroundTurnTask = identifier
     trace(
       stage: identifier == .invalid
@@ -1009,15 +1187,15 @@ final class IOSAudioSessionCoordinator: NSObject {
   }
 
   private func refreshBackgroundTurnExecutionForHandoff(caller: String) {
-    guard Thread.isMainThread else {
-      DispatchQueue.main.async { [weak self] in
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
         self?.refreshBackgroundTurnExecutionForHandoff(caller: caller)
       }
       return
     }
     let shouldRetain = IOSBackgroundTurnExecutionPolicy.shouldRetain(
       backgroundLearningEnabled: isBackgroundLearningEnabled,
-      applicationIsActive: UIApplication.shared.applicationState == .active,
+      applicationIsActive: IOSNativeWork.applicationIsActive,
       interactionPendingOrActive: pendingTurnId != nil
         || isMainTurnActive
         || isBackgroundTransitionLeaseActive
@@ -1039,23 +1217,23 @@ final class IOSAudioSessionCoordinator: NSObject {
   }
 
   private func endBackgroundTurnExecution(caller: String) {
-    guard Thread.isMainThread else {
-      DispatchQueue.main.async { [weak self] in
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
         self?.endBackgroundTurnExecution(caller: caller)
       }
       return
     }
     guard backgroundTurnTask != .invalid else { return }
-    let identifier = backgroundTurnTask
     backgroundTurnTask = .invalid
     backgroundTurnTaskGeneration += 1
     trace(stage: "background_turn_execution_ended", caller: caller)
-    UIApplication.shared.endBackgroundTask(identifier)
+    backgroundTurnTaskEnder?.end()
+    backgroundTurnTaskEnder = nil
   }
 
   private func expireBackgroundTurnExecution(taskGeneration: Int) {
-    guard Thread.isMainThread else {
-      DispatchQueue.main.async { [weak self] in
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
         self?.expireBackgroundTurnExecution(taskGeneration: taskGeneration)
       }
       return
@@ -1242,7 +1420,7 @@ final class IOSAudioSessionCoordinator: NSObject {
       )
     }
     turnTimeout = item
-    DispatchQueue.main.asyncAfter(deadline: .now() + 45, execute: item)
+    IOSNativeWork.queue.asyncAfter(deadline: .now() + 45, execute: item)
   }
 }
 

@@ -24,6 +24,7 @@ class VoiceNavigationIntent {
     this.relearnTopic = false,
     this.relearnLesson = false,
     this.enterMainSpeakingMode = false,
+    this.prepareOnly = false,
     this.vocabularyTarget,
   });
 
@@ -37,6 +38,9 @@ class VoiceNavigationIntent {
   final bool relearnTopic;
   final bool relearnLesson;
   final bool enterMainSpeakingMode;
+
+  /// Shows the destination before its acknowledgement, without starting its mic.
+  final bool prepareOnly;
   final VoiceVocabularyTarget? vocabularyTarget;
 }
 
@@ -97,6 +101,18 @@ class VoiceNavigationIntentResolver {
       r'(?: nhe| nha| a| di| please)?$',
     ).firstMatch(normalized);
     return match == null ? null : parseSpokenNumber(match.group(1)!);
+  }
+
+  /// Whole commands only; a sentence mentioning a section remains content.
+  static VoiceVocabularyTarget? directVocabularyTarget(String text) {
+    for (final entry in const <String, VoiceVocabularyTarget>{
+      'OPEN_PARENT': VoiceVocabularyTarget.parent,
+      'OPEN_STAR': VoiceVocabularyTarget.star,
+      'OPEN_REVIEW': VoiceVocabularyTarget.review,
+    }.entries) {
+      if (MasterNavigationContract.matches(entry.key, text)) return entry.value;
+    }
+    return null;
   }
 
   /// HOMI wake aliases approved in the fallback workbook. "Bạn ơi" is
@@ -240,6 +256,17 @@ class VoiceNavigationIntentResolver {
     final normalized = _normalize(recognizedText);
     if (normalized.isEmpty) {
       return null;
+    }
+
+    final vocabularyTarget = directVocabularyTarget(normalized);
+    if (vocabularyTarget != null &&
+        (allowShortDirectCommand || _hasCommandCue(normalized))) {
+      return VoiceNavigationIntent(
+        destination: VoiceNavigationDestination.vocabulary,
+        recognizedText: recognizedText.trim(),
+        matchedPhrase: normalized,
+        vocabularyTarget: vocabularyTarget,
+      );
     }
 
     final directTopic = directTopicNumber(normalized);

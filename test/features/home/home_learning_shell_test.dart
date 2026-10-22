@@ -371,6 +371,7 @@ void main() {
   testWidgets(
     'opens vocabulary, returns to communication, and opens topics',
     (tester) async {
+      final iosNavigation = defaultTargetPlatform == TargetPlatform.iOS;
       SharedPreferences.setMockInitialValues(<String, Object>{});
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1;
@@ -440,9 +441,18 @@ void main() {
       );
       expect(topicTabRect.top, closeTo(vocabularyTabRect.top, 0.01));
       expect(vocabularyTabRect.top, closeTo(844 * 0.195, 0.01));
-      expect(find.byKey(const Key('home-conversation-tab')), findsNothing);
-      expect(find.byKey(const Key('home-main-button')), findsNothing);
-      expect(find.byKey(const Key('home-history-tab')), findsNothing);
+      expect(
+        find.byKey(const Key('home-conversation-tab')),
+        iosNavigation ? findsOneWidget : findsNothing,
+      );
+      expect(
+        find.byKey(const Key('home-main-button')),
+        iosNavigation ? findsOneWidget : findsNothing,
+      );
+      expect(
+        find.byKey(const Key('home-history-tab')),
+        iosNavigation ? findsOneWidget : findsNothing,
+      );
       expect(
         find.byKey(const Key('main-voice-assistant-button')),
         findsNothing,
@@ -458,8 +468,14 @@ void main() {
       await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
       await tester.pumpAndSettle();
       expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
-      expect(find.byKey(const Key('home-main-button')), findsNothing);
-      expect(find.byKey(const Key('home-vocabulary-tab')), findsNothing);
+      expect(
+        find.byKey(const Key('home-main-button')),
+        iosNavigation ? findsOneWidget : findsNothing,
+      );
+      expect(
+        find.byKey(const Key('home-vocabulary-tab')),
+        iosNavigation ? findsOneWidget : findsNothing,
+      );
       expect(
         find.byKey(const Key('vocabulary-home-back-button')),
         findsOneWidget,
@@ -803,7 +819,7 @@ void main() {
     );
   }
 
-  testWidgets('iOS keeps physical MAIN active without the bottom navigation', (
+  testWidgets('iOS keeps physical MAIN active with on-screen navigation', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -847,14 +863,17 @@ void main() {
     await tester.tap(find.byTooltip('Cài đặt'));
     await tester.pumpAndSettle();
     expect(find.text('Thiết lập phụ huynh'), findsOneWidget);
-    expect(find.byKey(const Key('settings-recognition-section')), findsNothing);
+    expect(
+      find.byKey(const Key('settings-recognition-section')),
+      findsOneWidget,
+    );
     Navigator.of(tester.element(find.text('Thiết lập phụ huynh'))).pop();
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
     await tester.pumpAndSettle();
     expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
-    expect(find.byKey(const Key('home-main-button')), findsNothing);
+    expect(find.byKey(const Key('home-main-button')), findsOneWidget);
     expect(await voiceNavigationController.activateFromMainButton(), isTrue);
     await tester.pump(const Duration(milliseconds: 700));
     expect(speechInput.startCount, 1);
@@ -871,7 +890,7 @@ void main() {
     expect(speechInput.startCount, 2);
     expect(voiceNavigationController.isMainButtonSessionActive, isTrue);
     expect(voiceNavigationController.isListening, isTrue);
-    expect(find.byKey(const Key('home-main-button')), findsNothing);
+    expect(find.byKey(const Key('home-main-button')), findsOneWidget);
 
     // BLE/HFP status and diagnostics are surfaced through ConversationController
     // notifications. On iOS they must not cancel the explicit MAIN recognizer;
@@ -883,7 +902,7 @@ void main() {
     expect(voiceNavigationController.isMainButtonSessionActive, isTrue);
     expect(voiceNavigationController.isListening, isTrue);
     expect(speechInput.cancelCount, cancelCountBeforeAgeChange);
-    expect(find.byKey(const Key('home-main-button')), findsNothing);
+    expect(find.byKey(const Key('home-main-button')), findsOneWidget);
 
     await voiceNavigationController.pause();
     await tester.pump();
@@ -2013,6 +2032,349 @@ void main() {
   );
 
   testWidgets(
+    'iOS closes Review before translation starts and keeps its checkpoint',
+    (tester) async {
+      // Exercise foreground navigation: a detached binding skips animations
+      // and hides the deadlock caused by the covered shell's muted tickers.
+      final previousLifecycleState = tester.binding.lifecycleState;
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      addTearDown(() {
+        tester.binding.handleAppLifecycleStateChanged(
+          previousLifecycleState ?? AppLifecycleState.detached,
+        );
+      });
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      const entryId = 'review-translation-handoff';
+      await const VocabularyStore().write(<VocabularyEntry>[
+        VocabularyEntry(
+          id: entryId,
+          word: 'After school.',
+          meaning: 'Sau giờ học.',
+          addedAt: DateTime(2026, 10, 12),
+          collection: VocabularyCollection.review,
+          status: VocabularyLearningStatus.needsPractice,
+          source: VocabularySource.topicCore,
+        ),
+      ]);
+
+      final registry = ActiveLearningModuleRegistry();
+      final speechInput = _FakeStreamingSpeechInput();
+      final prompt = _GatedTranslationPromptService()..release();
+      final voiceNavigationController = VoiceNavigationController(
+        speechInput: speechInput,
+        ownsSpeechInput: true,
+        voicePromptService: prompt,
+      );
+      final controller = _controller();
+      var navigationExits = 0;
+      var translationStarted = false;
+      var practiceVisibleWhenStarted = true;
+      double? pageWhenTranslationStarted;
+      late PageController pageController;
+
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          onNavigationExit: () {
+            navigationExits += 1;
+            unawaited(voiceNavigationController.pause());
+          },
+          child: _app(
+            controller,
+            voiceNavigationController: voiceNavigationController,
+            vocabularyAudioService: _DelayedVocabularyAudioService(),
+            vocabularyMediaService: _ImmediateVocabularyMediaService(),
+            vocabularyVoicePromptService: prompt,
+            onMainSpeakingModeStarted: () async {
+              practiceVisibleWhenStarted = find
+                  .byType(VocabularyPracticeScreen, skipOffstage: false)
+                  .evaluate()
+                  .isNotEmpty;
+              pageWhenTranslationStarted = pageController.page;
+              translationStarted = true;
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      pageController = tester
+          .widget<PageView>(find.byKey(const Key('home-learning-page-view')))
+          .controller!;
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-review-card')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-review-action')));
+      await _pumpFrames(tester);
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      expect(registry.controller, isA<VocabularyPracticeScreenState>());
+      expect(
+        (registry.controller as VocabularyPracticeScreenState).isReviewPractice,
+        isTrue,
+      );
+      expect(
+        (await const VocabularySessionStore().readActive())?.entryIds,
+        contains(entryId),
+      );
+      final exitsBeforeTransfer = navigationExits;
+
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect(
+        await voiceNavigationController.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: registry.activeKind,
+          activeVoiceContext: registry.controller as ActiveLearningVoiceContext,
+        ),
+        isTrue,
+      );
+      final navigation = voiceNavigationController.dispatchRecognizedText(
+        'Dịch sang tiếng Anh',
+      );
+      for (var attempt = 0; attempt < 30 && !translationStarted; attempt++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(translationStarted, isTrue);
+      expect(await navigation, isTrue);
+      expect(practiceVisibleWhenStarted, isFalse);
+      expect(pageWhenTranslationStarted, closeTo(0, 0.001));
+      expect(navigationExits, exitsBeforeTransfer + 1);
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+      expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
+      expect(
+        (await const VocabularySessionStore().readActive())?.entryIds,
+        contains(entryId),
+      );
+
+      controller.dispose();
+      voiceNavigationController.dispose();
+      registry.dispose();
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'iOS keeps Review visible when translation audio cleanup times out',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await const VocabularyStore().write(<VocabularyEntry>[
+        VocabularyEntry(
+          id: 'review-word',
+          word: 'Banana',
+          meaning: 'Chuối',
+          addedAt: DateTime(2026, 9, 15),
+          status: VocabularyLearningStatus.needsPractice,
+          source: VocabularySource.topicCore,
+        ),
+      ]);
+
+      final registry = ActiveLearningModuleRegistry();
+      final speechInput = _FakeStreamingSpeechInput();
+      final voiceNavigationController = VoiceNavigationController(
+        speechInput: speechInput,
+        ownsSpeechInput: true,
+      );
+      final blockedAudio = _DelayedVocabularyAudioService();
+      final controller = _controller();
+      var translationStarted = false;
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          onNavigationExit: () => unawaited(voiceNavigationController.pause()),
+          child: _app(
+            controller,
+            voiceNavigationController: voiceNavigationController,
+            vocabularyAudioService: blockedAudio,
+            onMainSpeakingModeStarted: () async => translationStarted = true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-review-card')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-review-action')));
+      await _pumpFrames(tester);
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+
+      expect(
+        await voiceNavigationController.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: registry.activeKind,
+          activeVoiceContext: registry.controller as ActiveLearningVoiceContext,
+        ),
+        isTrue,
+      );
+      blockedAudio.blockStops = true;
+      final navigation = voiceNavigationController.dispatchRecognizedText(
+        'Dịch tiếng Anh',
+      );
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(await navigation, isFalse);
+      expect(translationStarted, isFalse);
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      expect(find.byType(ConversationScreen).hitTestable(), findsNothing);
+      blockedAudio.release();
+
+      controller.dispose();
+      voiceNavigationController.dispose();
+      registry.dispose();
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+    variant: TargetPlatformVariant({TargetPlatform.iOS}),
+  );
+
+  testWidgets(
+    'iOS replaces Review only after Topics opens',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await const VocabularyStore().write(<VocabularyEntry>[
+        VocabularyEntry(
+          id: 'review-word',
+          word: 'Banana',
+          meaning: 'Chuối',
+          addedAt: DateTime(2026, 9, 15),
+          status: VocabularyLearningStatus.needsPractice,
+          source: VocabularySource.topicCore,
+        ),
+      ]);
+
+      final registry = ActiveLearningModuleRegistry();
+      final speechInput = _FakeStreamingSpeechInput();
+      final voiceNavigationController = VoiceNavigationController(
+        speechInput: speechInput,
+        ownsSpeechInput: true,
+      );
+      final controller = _controller();
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          onNavigationExit: () => unawaited(voiceNavigationController.pause()),
+          child: _app(
+            controller,
+            voiceNavigationController: voiceNavigationController,
+            vocabularyAudioService: _DelayedVocabularyAudioService(),
+            listeningContentFuture: AssetListeningContentRepository(
+              bundle: rootBundle,
+            ).load(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-review-card')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-review-action')));
+      await _pumpFrames(tester);
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+
+      expect(
+        await voiceNavigationController.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: registry.activeKind,
+          activeVoiceContext: registry.controller as ActiveLearningVoiceContext,
+        ),
+        isTrue,
+      );
+      unawaited(voiceNavigationController.dispatchRecognizedText('Học Chủ đề'));
+      await _pumpFrames(tester);
+
+      expect(find.byType(TopicListeningScreen), findsOneWidget);
+      expect(
+        find.byType(VocabularyPracticeScreen, skipOffstage: false),
+        findsNothing,
+      );
+      expect(
+        (await const VocabularySessionStore().readActive())?.currentIndex,
+        0,
+      );
+
+      controller.dispose();
+      voiceNavigationController.dispose();
+      registry.dispose();
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+    variant: TargetPlatformVariant({TargetPlatform.iOS}),
+  );
+
+  testWidgets(
+    'a vocabulary section opened from a lesson does not hold the MAIN turn',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await const VocabularyStore().write(<VocabularyEntry>[
+        VocabularyEntry(
+          id: 'review-word',
+          word: 'Banana',
+          meaning: 'Chuối',
+          addedAt: DateTime(2026, 9, 15),
+          status: VocabularyLearningStatus.needsPractice,
+          source: VocabularySource.topicCore,
+        ),
+      ]);
+
+      final speechInput = _FakeStreamingSpeechInput();
+      final voiceNavigationController = VoiceNavigationController(
+        speechInput: speechInput,
+        ownsSpeechInput: true,
+      );
+      final controller = _controller();
+      await tester.pumpWidget(
+        _app(
+          controller,
+          voiceNavigationController: voiceNavigationController,
+          vocabularyAudioService: _DelayedVocabularyAudioService(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        await voiceNavigationController.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: ActiveLearningModuleKind.listeningLesson,
+        ),
+        isTrue,
+      );
+      var turnCompleted = false;
+      unawaited(
+        voiceNavigationController
+            .dispatchRecognizedText('Luyện lại')
+            .then((_) => turnCompleted = true),
+      );
+      await _pumpFrames(tester);
+
+      // Review stays open until the child leaves it; MAIN is already free.
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      expect(turnCompleted, isTrue);
+
+      controller.dispose();
+      voiceNavigationController.dispose();
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
     'a voice return to vocabulary asks its menu again after opening Chủ đề',
     (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -2232,6 +2594,12 @@ void main() {
   );
 }
 
+Future<void> _pumpFrames(WidgetTester tester) async {
+  for (var frame = 0; frame < 20; frame++) {
+    await tester.pump(const Duration(milliseconds: 200));
+  }
+}
+
 void _rebuildCountTests() {
   testWidgets(
     'controller notifications that change nothing the shell reads do not '
@@ -2343,6 +2711,42 @@ class _RecordingRouteObserver extends NavigatorObserver {
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
     pushedRouteNames.add(route.settings.name);
   }
+}
+
+class _GatedTranslationPromptService implements VoicePromptService {
+  final List<String> spokenTexts = <String>[];
+  final Completer<void> _transition = Completer<void>();
+  final Completer<void> _intro = Completer<void>();
+
+  void completeTransition() {
+    if (!_transition.isCompleted) _transition.complete();
+  }
+
+  void completeIntro() {
+    if (!_intro.isCompleted) _intro.complete();
+  }
+
+  void release() {
+    completeTransition();
+    completeIntro();
+  }
+
+  @override
+  Future<void> speak(String text, {String locale = 'vi-VN'}) =>
+      speakAndWait(text, locale: locale);
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    spokenTexts.add(text);
+    if (spokenTexts.length == 1) await _transition.future;
+    if (spokenTexts.length == 2) await _intro.future;
+  }
+
+  @override
+  Future<void> stop() async => release();
+
+  @override
+  Future<void> dispose() async => release();
 }
 
 class _FakeParentMediaSettingsStore implements ParentMediaSettingsStore {
@@ -2571,6 +2975,9 @@ class _SilentVoicePromptService implements VoicePromptService {
 
 class _ImmediateVocabularyMediaService extends LessonMediaService {
   @override
+  Stream<double> get recordingAmplitudeDbfs => const Stream<double>.empty();
+
+  @override
   Future<void> prepareSelectedLessonOutput() async {}
 
   @override
@@ -2584,6 +2991,20 @@ class _ImmediateVocabularyMediaService extends LessonMediaService {
 
   @override
   Future<void> stopPlayback() async {}
+
+  @override
+  Future<void> startRecording({
+    required String lessonId,
+    required int sentenceNumber,
+    String? lessonTitle,
+    String? sentenceId,
+    String? english,
+    String? vietnamese,
+    bool saveToHistory = true,
+  }) async {}
+
+  @override
+  Future<void> cancelRecording() async {}
 }
 
 class _ChallengeVoiceModule

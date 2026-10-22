@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n/display_language.dart';
@@ -43,8 +44,16 @@ class HomiBottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isIos = defaultTargetPlatform == TargetPlatform.iOS;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surface = isDark
+        ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.98)
+        : Colors.white.withValues(alpha: 0.98);
     return Material(
-      type: MaterialType.transparency,
+      type: isIos ? MaterialType.canvas : MaterialType.transparency,
+      color: isIos ? surface : null,
+      elevation: isIos ? 8 : 0,
+      shadowColor: isIos ? AppColors.primaryNavy.withValues(alpha: 0.12) : null,
       child: SafeArea(
         top: false,
         child: SizedBox(

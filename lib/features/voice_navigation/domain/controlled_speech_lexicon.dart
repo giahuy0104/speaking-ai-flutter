@@ -1,4 +1,5 @@
 import 'homi_fallback_catalog.dart';
+import 'master_navigation_contract.dart';
 
 enum ControlledSpeechState {
   root,
@@ -292,6 +293,39 @@ class ControlledSpeechLexicon {
         'Quay lại bài cũ',
         'Bài lúc nãy',
       ]),
+    ),
+    ControlledSpeechRule(
+      intent: ControlledSpeechIntent.vocabularyParentAdded,
+      states: <ControlledSpeechState>{
+        ControlledSpeechState.root,
+        ControlledSpeechState.translateMenu,
+        ControlledSpeechState.translationResult,
+        ControlledSpeechState.course,
+      },
+      priority: 1,
+      phrases: MasterNavigationContract.phrases['OPEN_PARENT']!,
+    ),
+    ControlledSpeechRule(
+      intent: ControlledSpeechIntent.vocabularyStars,
+      states: <ControlledSpeechState>{
+        ControlledSpeechState.root,
+        ControlledSpeechState.translateMenu,
+        ControlledSpeechState.translationResult,
+        ControlledSpeechState.course,
+      },
+      priority: 1,
+      phrases: MasterNavigationContract.phrases['OPEN_STAR']!,
+    ),
+    ControlledSpeechRule(
+      intent: ControlledSpeechIntent.vocabularyPracticeAgain,
+      states: <ControlledSpeechState>{
+        ControlledSpeechState.root,
+        ControlledSpeechState.translateMenu,
+        ControlledSpeechState.translationResult,
+        ControlledSpeechState.course,
+      },
+      priority: 1,
+      phrases: MasterNavigationContract.phrases['OPEN_REVIEW']!,
     ),
     ControlledSpeechRule(
       intent: ControlledSpeechIntent.vocabularyParentAdded,

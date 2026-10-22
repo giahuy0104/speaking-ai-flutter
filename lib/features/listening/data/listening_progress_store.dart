@@ -637,6 +637,10 @@ class ListeningProgressStore {
   }) async {
     final progress = await _readRaw();
     progress['$courseId$_topicSelectionPendingSuffix'] = 1;
+    if (levelNumber == null) {
+      progress.remove('$courseId$_topicSelectionLevelSuffix');
+      progress.remove('$courseId$_topicSelectionAnnounceSuffix');
+    }
     if (levelNumber != null) {
       progress['$courseId$_topicSelectionLevelSuffix'] = levelNumber;
     }

@@ -8,7 +8,6 @@ import '../../../app/homi_ui.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
 import '../../../core/audio/streaming_speech_input.dart';
-import '../../../core/audio/audio_gain.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/active_learning_module.dart';
 import '../../../l10n/display_language.dart';
@@ -830,7 +829,10 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
           _recording = false;
           _recordingUsesIosSpeech = false;
         });
-        await _playAttemptRecordingToCompletion(completedRecording);
+        final replayRecording = await widget.mediaService
+            .prepareExternalRecordingForPlayback(completedRecording);
+        if (!mounted || _pausedForMainAssistant || request != _request) return;
+        await _playAttemptRecordingToCompletion(replayRecording);
         if (!mounted || _pausedForMainAssistant || request != _request) return;
       }
       if (outcome != LessonAttemptOutcome.unclear &&
@@ -869,25 +871,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   Future<void> _playAttemptRecordingToCompletion(
     LessonRecording recording,
   ) async {
-    final parsed = Uri.tryParse(recording.filePath);
-    final uri = parsed != null && parsed.hasScheme
-        ? parsed
-        : Uri.file(recording.filePath);
-    final requestedTimeout = recording.duration + const Duration(seconds: 5);
-    final timeout = requestedTimeout < const Duration(seconds: 10)
-        ? const Duration(seconds: 10)
-        : requestedTimeout;
-    try {
-      await widget.mediaService.playToCompletion(
-        uri,
-        timeout: timeout,
-        playbackGainDb: lessonRecordingPlaybackGainDb,
-        fixedPlaybackGain: true,
-      );
-    } catch (error) {
-      // A playback problem must not discard the answer or prevent scoring.
-      debugPrint('HOMI challenge attempt playback failed: $error');
-    }
+    await widget.mediaService.playRecordingToCompletion(recording);
   }
 
   Future<(LessonAttemptOutcome, LessonRecording?)> _stopAndScoreIosOnDevice(
@@ -1125,6 +1109,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   int get _recordingNumber => 100 + _challengeIndex + 1;
 
   String _friendlyError(Object error) {
+    if (error is LessonMediaException) return error.toString();
     if (error is StreamingSpeechInputException) {
       return error.message;
     }

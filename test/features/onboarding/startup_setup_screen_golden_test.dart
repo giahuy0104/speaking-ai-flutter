@@ -111,97 +111,92 @@ void main() {
     });
   }
 
-  testWidgets('all three setup steps share the approved HOMI form', (
-    tester,
-  ) async {
-    await _loadGoldenFonts();
-    tester.view.physicalSize = const Size(390, 844);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets(
+    'all three setup steps share the approved HOMI form',
+    (tester) async {
+      await _loadGoldenFonts();
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    var selectedAge = 6;
-    var permissionsGranted = false;
-    await tester.pumpWidget(
-      StatefulBuilder(
-        builder: (context, setState) => MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: buildAppTheme(),
-          home: StartupSetupScreen(
-            profileLoading: false,
-            permissionRequestInProgress: false,
-            privacyConfigurationComplete: true,
-            privacyConsentGranted: true,
-            limitedModeSelected: false,
-            microphoneGranted: permissionsGranted,
-            bluetoothRequired: true,
-            bluetoothGranted: permissionsGranted,
-            h20BleConnected: false,
-            h20HfpConfigured: false,
-            selectedAge: selectedAge,
-            aiSubprocessors: 'HOMI AI',
-            dataRetentionSummary: 'Lưu theo chính sách HOMI.',
-            onGrantPrivacyConsent: () async {},
-            onContinueWithoutVoice: () async {},
-            onRetryPermissions: () => setState(() => permissionsGranted = true),
-            onSetupH20: () async => false,
-            onAgeSelected: (age) => setState(() => selectedAge = age),
-            onCompleteSetup: () async {},
+      var selectedAge = 6;
+      var permissionsGranted = false;
+      await tester.pumpWidget(
+        StatefulBuilder(
+          builder: (context, setState) => MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: buildAppTheme(),
+            home: StartupSetupScreen(
+              profileLoading: false,
+              permissionRequestInProgress: false,
+              privacyConfigurationComplete: true,
+              privacyConsentGranted: true,
+              limitedModeSelected: false,
+              microphoneGranted: permissionsGranted,
+              bluetoothRequired: true,
+              bluetoothGranted: permissionsGranted,
+              h20BleConnected: false,
+              h20HfpConfigured: false,
+              selectedAge: selectedAge,
+              aiSubprocessors: 'HOMI AI',
+              dataRetentionSummary: 'Lưu theo chính sách HOMI.',
+              onGrantPrivacyConsent: () async {},
+              onContinueWithoutVoice: () async {},
+              onRetryPermissions: () =>
+                  setState(() => permissionsGranted = true),
+              onSetupH20: () async => false,
+              onAgeSelected: (age) => setState(() => selectedAge = age),
+              onCompleteSetup: () async {},
+            ),
           ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.runAsync(() async {
-      final context = tester.element(find.byType(StartupSetupScreen));
-      await Future.wait<void>(
-        const <AssetImage>[
-          AssetImage(
-            'assets/images/learning-minimal-sky-background-option2.png',
-          ),
-          AssetImage('assets/images/mascot/penguin-avatar.png'),
-          AssetImage('assets/images/mascot/penguin-wave.png'),
-        ].map((provider) => precacheImage(provider, context)),
       );
-    });
-    await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
+      await tester.runAsync(() async {
+        final context = tester.element(find.byType(StartupSetupScreen));
+        await Future.wait<void>(
+          const <AssetImage>[
+            AssetImage('assets/images/mascot/penguin-avatar.png'),
+            AssetImage('assets/images/mascot/penguin-wave.png'),
+          ].map((provider) => precacheImage(provider, context)),
+        );
+      });
+      await tester.pumpAndSettle();
 
-    await expectLater(
-      find.byType(StartupSetupScreen),
-      matchesGoldenFile('goldens/startup-privacy-390x844.png'),
-    );
+      await expectLater(
+        find.byType(StartupSetupScreen),
+        matchesGoldenFile('goldens/startup-privacy-390x844.png'),
+      );
 
-    await confirmVisibleOnboardingChoices(tester);
-    await tester.tap(find.byKey(const Key('startup-next')));
-    await tester.pumpAndSettle();
+      await confirmVisibleOnboardingChoices(tester);
+      await tester.tap(find.byKey(const Key('startup-next')));
+      await tester.pumpAndSettle();
 
-    await expectLater(
-      find.byType(StartupSetupScreen),
-      matchesGoldenFile('goldens/startup-profile-390x844.png'),
-    );
+      await expectLater(
+        find.byType(StartupSetupScreen),
+        matchesGoldenFile('goldens/startup-profile-390x844.png'),
+      );
 
-    await confirmVisibleOnboardingChoices(tester);
-    await tester.tap(find.byKey(const Key('startup-next')));
-    await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('startup-next')));
+      await tester.pumpAndSettle();
 
-    await expectLater(
-      find.byType(StartupSetupScreen),
-      matchesGoldenFile('goldens/startup-permissions-390x844.png'),
-    );
-    await tester.tap(find.byKey(const Key('startup-request-permissions')));
-    await tester.pumpAndSettle();
-    await expectLater(
-      find.byType(StartupSetupScreen),
-      matchesGoldenFile('goldens/startup-device-390x844.png'),
-    );
-  });
+      await expectLater(
+        find.byType(StartupSetupScreen),
+        matchesGoldenFile('goldens/startup-permissions-390x844.png'),
+      );
+      await tester.tap(find.byKey(const Key('startup-request-permissions')));
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(StartupSetupScreen),
+        matchesGoldenFile('goldens/startup-device-390x844.png'),
+      );
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
 
   testWidgets('all three setup steps share one dark HOMI form', (tester) async {
     await _loadGoldenFonts();
-    tester.view.physicalSize = const Size(390, 844);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
 
     var selectedAge = 6;
     var permissionsGranted = false;
@@ -241,9 +236,6 @@ void main() {
       final context = tester.element(find.byType(StartupSetupScreen));
       await Future.wait<void>(
         const <AssetImage>[
-          AssetImage(
-            'assets/images/learning-minimal-sky-background-option2.png',
-          ),
           AssetImage('assets/images/mascot/penguin-avatar.png'),
           AssetImage('assets/images/mascot/penguin-wave.png'),
         ].map((provider) => precacheImage(provider, context)),
@@ -258,19 +250,30 @@ void main() {
     await confirmVisibleOnboardingChoices(tester);
     await tester.tap(find.byKey(const Key('startup-next')));
     await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey<String>('startup-profile-step')),
+      findsOneWidget,
+    );
     await expectLater(
       find.byType(StartupSetupScreen),
       matchesGoldenFile('goldens/dark-startup-profile-390x844.png'),
     );
-    await confirmVisibleOnboardingChoices(tester);
     await tester.tap(find.byKey(const Key('startup-next')));
     await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey<String>('startup-permissions-step')),
+      findsOneWidget,
+    );
     await expectLater(
       find.byType(StartupSetupScreen),
       matchesGoldenFile('goldens/dark-startup-permissions-390x844.png'),
     );
     await tester.tap(find.byKey(const Key('startup-request-permissions')));
     await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey<String>('startup-device-step')),
+      findsOneWidget,
+    );
     await expectLater(
       find.byType(StartupSetupScreen),
       matchesGoldenFile('goldens/dark-startup-device-390x844.png'),

@@ -503,8 +503,27 @@ void main() {
             .onPressed,
         isNull,
       );
-      expect(find.byKey(const Key('previous-lesson-sentence')), findsNothing);
-      expect(find.byKey(const Key('continue-lesson-sentence')), findsNothing);
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        expect(
+          tester
+              .widget<OutlinedButton>(
+                find.byKey(const Key('previous-lesson-sentence')),
+              )
+              .onPressed,
+          isNull,
+        );
+        expect(
+          tester
+              .widget<FilledButton>(
+                find.byKey(const Key('continue-lesson-sentence')),
+              )
+              .onPressed,
+          isNull,
+        );
+      } else {
+        expect(find.byKey(const Key('previous-lesson-sentence')), findsNothing);
+        expect(find.byKey(const Key('continue-lesson-sentence')), findsNothing);
+      }
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump();
     },
@@ -882,6 +901,7 @@ void main() {
         await _pumpGuidedSpeechTurn(tester);
 
         expect(voicePrompts.spoken, <String>[
+          'vi-VN|Cùng học tiếp nhé',
           'en-US|Sentence ${sentenceIndex + 1}',
           'vi-VN|Câu ${sentenceIndex + 1}',
           sentenceIndex == 0 ? 'vi-VN|Bạn nói lại nhé.' : 'vi-VN|Đến lượt bạn.',
@@ -1133,6 +1153,76 @@ void main() {
     expect(progressStore.sessionResults, isEmpty);
   });
 
+  testWidgets(
+    'V4 reports a replay failure consistently after a route blip',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final mediaService = _RouteBlipAttemptPlaybackMediaService(
+        routeReturns: true,
+      );
+      await tester.pumpWidget(
+        _subject(
+          _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+          mediaService,
+          guideAudioLibrary: _silentGuideAudioLibrary(),
+          attemptEvaluator: _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
+            LessonAttemptOutcome.good,
+          ]),
+          voicePromptService: _FakeVoicePromptService(),
+        ),
+      );
+      await _pumpGuidedSpeechTurn(tester);
+      await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+      await _pumpGuidedSpeechTurn(tester);
+
+      expect(mediaService.routeWaits, 0);
+      expect(mediaService.takeReplays, 1);
+      expect(
+        find.text('Chưa phát lại được bản ghi. Con hãy ghi âm lại nhé.'),
+        findsOneWidget,
+      );
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'V4 asks for a new take when the HM-D001 route stays lost',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final mediaService = _RouteBlipAttemptPlaybackMediaService(
+        routeReturns: false,
+      );
+      await tester.pumpWidget(
+        _subject(
+          _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+          mediaService,
+          guideAudioLibrary: _silentGuideAudioLibrary(),
+          attemptEvaluator: _ScriptedAttemptEvaluator(<LessonAttemptOutcome>[
+            LessonAttemptOutcome.good,
+          ]),
+          voicePromptService: _FakeVoicePromptService(),
+        ),
+      );
+      await _pumpGuidedSpeechTurn(tester);
+      await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+      await _pumpGuidedSpeechTurn(tester);
+
+      expect(
+        mediaService.routeWaits,
+        defaultTargetPlatform == TargetPlatform.iOS ? 0 : 1,
+      );
+      expect(mediaService.takeReplays, 1);
+      expect(
+        find.text('Chưa phát lại được bản ghi. Con hãy ghi âm lại nhé.'),
+        findsOneWidget,
+      );
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
   testWidgets('V2 keeps scoring a valid attempt if replay fails', (
     tester,
   ) async {
@@ -1327,6 +1417,62 @@ void main() {
         await tester.pump();
       },
       variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    );
+  }
+
+  for (final preparationFails in [false, true]) {
+    testWidgets(
+      'iOS replay is independent of history (preparationFails=$preparationFails)',
+      (tester) async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        await _usePhoneSurface(tester);
+        final media = _IosLessonMediaService()
+          ..preparationFails = preparationFails
+          ..historyFails = true
+          ..normalizedPath = '/recordings/take.normalized.wav';
+        final speech = _MissingRecordingIosSpeechInput(
+          recordedAudio: const AudioCapture(
+            filePath: '/recordings/take.wav',
+            mimeType: 'audio/wav',
+            duration: Duration(seconds: 2),
+            inputLabel: 'Apple Native Speech',
+            isBluetoothInput: false,
+            initialNoiseRms: null,
+          ),
+        );
+        await tester.pumpWidget(
+          _subject(
+            _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+            media,
+            controller: _IosLearningAudioDependencies(speech),
+            useOwnedEvaluator: true,
+            guideAudioLibrary: _silentGuideAudioLibrary(),
+            voicePromptService: _FakeVoicePromptService(),
+          ),
+        );
+        await _pumpGuidedSpeechTurn(tester);
+        await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+        await _pumpGuidedSpeechTurn(tester);
+        expect(
+          media.playedUris.where((uri) => uri.path.endsWith('take.wav')),
+          isEmpty,
+        );
+        expect(
+          media.playedUris.where(
+            (uri) => uri.path.endsWith('take.normalized.wav'),
+          ),
+          preparationFails ? isEmpty : hasLength(1),
+        );
+        if (preparationFails) {
+          expect(
+            find.text('Chưa phát lại được bản ghi. Con hãy ghi âm lại nhé.'),
+            findsOneWidget,
+          );
+        }
+        await tester.pumpWidget(const SizedBox.shrink());
+        debugDefaultTargetPlatformOverride = null;
+      },
     );
   }
 
@@ -2077,12 +2223,6 @@ void main() {
       intro: 'Mở đầu bài hai.',
       introAudioUri: nextIntroUri,
     );
-    const levelContent = ListeningLevelContent(
-      id: 'v4-level-1',
-      number: 1,
-      titleVi: 'Level 1',
-      topicNumbers: <int>[1, 2, 3],
-    );
     final mediaService = _ControlledNextIntroMediaService(nextIntroUri);
     await tester.pumpWidget(
       _subject(
@@ -2092,7 +2232,6 @@ void main() {
           firstLesson,
           nextLesson,
         ]),
-        levelContent: levelContent,
         guideAudioLibrary: _silentGuideAudioLibrary(),
         voicePromptService: _FakeVoicePromptService(),
         completionChoiceRecognizer: _FakeCompletionChoiceRecognizer(
@@ -2119,12 +2258,6 @@ void main() {
           .lesson
           .id,
       nextLesson.id,
-    );
-    expect(
-      tester
-          .widget<LessonIntroScreen>(find.byType(LessonIntroScreen))
-          .levelContent,
-      same(levelContent),
     );
 
     await tester.pumpWidget(const SizedBox.shrink());
@@ -3949,7 +4082,6 @@ Widget _subject(
   bool useOwnedEvaluator = false,
   LessonGuideAudioLibrary? guideAudioLibrary,
   ListeningTopicContent? topicContent,
-  ListeningLevelContent? levelContent,
   ListeningProgressStore? progressStore,
   LessonAttemptEvaluator? attemptEvaluator,
   VoicePromptService? voicePromptService,
@@ -3976,7 +4108,6 @@ Widget _subject(
       lesson: lesson,
       controller: controller,
       topicContent: topicContent,
-      levelContent: levelContent,
       progressStore: progressStore ?? _MemoryProgressStore(),
       mediaService: mediaService,
       vocabularyStore: vocabularyStore ?? _MemoryVocabularyStore(),
@@ -4657,6 +4788,22 @@ class _GuidedMediaService extends LessonMediaService {
 
 class _IosLessonMediaService extends _GuidedMediaService {
   _IosLessonMediaService({super.events});
+  bool preparationFails = false;
+  bool historyFails = false;
+  String? normalizedPath;
+
+  @override
+  Future<LessonRecording> prepareExternalRecordingForPlayback(
+    LessonRecording recording,
+  ) async {
+    if (preparationFails) {
+      throw const LessonMediaException('Preparation failed');
+    }
+    return LessonRecording(
+      filePath: normalizedPath ?? recording.filePath,
+      duration: recording.duration,
+    );
+  }
 
   int nativeHandoffCount = 0;
 
@@ -4681,7 +4828,10 @@ class _IosLessonMediaService extends _GuidedMediaService {
     required int sentenceNumber,
     required String english,
     required String vietnamese,
-  }) async => recording;
+  }) async {
+    if (historyFails) throw StateError('History unavailable');
+    return recording;
+  }
 }
 
 class _FailingAttemptPlaybackMediaService extends _GuidedMediaService {
@@ -4703,6 +4853,44 @@ class _FailingAttemptPlaybackMediaService extends _GuidedMediaService {
       playbackGainDb: playbackGainDb,
       fixedPlaybackGain: fixedPlaybackGain,
     );
+  }
+}
+
+class _RouteBlipAttemptPlaybackMediaService extends _GuidedMediaService {
+  _RouteBlipAttemptPlaybackMediaService({required this.routeReturns});
+
+  final bool routeReturns;
+  int takeReplays = 0;
+  int routeWaits = 0;
+
+  @override
+  Future<void> playToCompletion(
+    Uri uri, {
+    Duration timeout = const Duration(seconds: 15),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
+  }) async {
+    if (uri.toString().contains('latest.m4a') && ++takeReplays == 1) {
+      throw const HfpAudioException(
+        'Kết nối âm thanh HM-D001 bị gián đoạn. Bạn bấm nghe lại nhé.',
+      );
+    }
+    await super.playToCompletion(
+      uri,
+      timeout: timeout,
+      route: route,
+      playbackGainDb: playbackGainDb,
+      fixedPlaybackGain: fixedPlaybackGain,
+    );
+  }
+
+  @override
+  Future<bool> waitForSelectedHfpRoute({
+    Duration timeout = const Duration(milliseconds: 1500),
+  }) async {
+    routeWaits += 1;
+    return routeReturns;
   }
 }
 

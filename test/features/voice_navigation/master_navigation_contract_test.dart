@@ -535,7 +535,7 @@ void main() {
       expect(flow.silenceExitPrompt, 'Mình tạm dừng nhé.');
       flow.pauseChoice();
       expect(flow.begin(), prompt);
-      final invalid = await flow.handle('Chủ đề 1');
+      final invalid = await flow.handle('Chủ đề 11');
       expect(invalid.navigationBeforePrompt, isNull);
       expect(
         invalid.promptText,
@@ -714,7 +714,7 @@ void main() {
     );
     final turn = await flow.handle('Tiếp tục');
     expect(turn.activeLearningCommand, ActiveLearningCommand.resume);
-    expect(turn.promptText, isEmpty);
+    expect(turn.promptText, 'Cùng học tiếp nhé');
     expect(turn.continueListening, isFalse);
   });
 

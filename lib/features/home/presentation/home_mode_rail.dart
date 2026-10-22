@@ -235,7 +235,6 @@ class _CloudRailContent extends StatelessWidget {
                 color: foreground,
                 size: 21,
               ),
-              const SizedBox(height: 8),
               Expanded(
                 child: RotatedBox(
                   quarterTurns: isLeft ? 3 : 1,

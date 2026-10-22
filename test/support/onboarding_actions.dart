@@ -5,12 +5,24 @@ import 'package:flutter_test/flutter_test.dart';
 Future<void> confirmVisibleOnboardingChoices(WidgetTester tester) async {
   for (final key in ['startup-confirm-adult-role', 'startup-accept-legal']) {
     final checkbox = find.byKey(Key(key));
-    if (checkbox.evaluate().isNotEmpty &&
-        tester.widget<Checkbox>(checkbox).value != true) {
+    if (checkbox.evaluate().isEmpty) continue;
+    final widget = tester.widget<Widget>(checkbox);
+    final checked = switch (widget) {
+      Checkbox(value: final value) => value == true,
+      CheckboxListTile(value: final value) => value == true,
+      _ => throw StateError(
+        'Unexpected onboarding checkbox: ${widget.runtimeType}',
+      ),
+    };
+    if (!checked) {
       await tester.ensureVisible(checkbox);
       await tester.tap(checkbox);
       await tester.pumpAndSettle();
-      if (key == 'startup-accept-legal') {
+      if (key == 'startup-accept-legal' &&
+          find
+              .byKey(const Key('startup-legal-reviewed'))
+              .evaluate()
+              .isNotEmpty) {
         await acknowledgeVisibleLegalReview(tester);
       }
     }

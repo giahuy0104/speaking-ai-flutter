@@ -18,6 +18,57 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('iOS waits for a quiet unfinished MAIN answer', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final speech = _FakeNavigationSpeechInput(stopText: 'Bộ từ vựng');
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: _FakeVoicePromptService(),
+      mainAssistantFlow: MainVoiceAssistantFlow(
+        contentLoader: _loadMainAssistantContent,
+      ),
+      commandSilenceEndpoint: const Duration(milliseconds: 60),
+    );
+    final intents = <VoiceNavigationIntent>[];
+    controller.setIntentResultHandler((intent) {
+      intents.add(intent);
+      return true;
+    });
+    await controller.activateFromMainButton();
+    await _waitUntil(() => controller.isListening);
+    speech.emitPartial('Bộ từ');
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    expect(speech.stopCalls, 0);
+    await _waitUntil(() => intents.isNotEmpty);
+    expect(intents.single.destination, VoiceNavigationDestination.vocabulary);
+    await controller.pause();
+    controller.dispose();
+    await speech.dispose();
+  });
+
+  test('iOS opens the MAIN microphone before the ready cue', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final speech = _FakeNavigationSpeechInput();
+    final prompt = _BlockedReadyCueVoicePromptService();
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: prompt,
+    );
+    final activation = controller.activateFromMainButton();
+    await prompt.cueStarted.future;
+    expect(speech.events.where((event) => event == 'start'), hasLength(1));
+    expect(controller.isListening, isFalse);
+    prompt.releaseCue();
+    expect(await activation, isTrue);
+    expect(prompt.readyCueCount, 1);
+    expect(controller.isListening, isTrue);
+    await controller.pause();
+    controller.dispose();
+    await speech.dispose();
+  });
+
   test(
     'iOS retains numbered Topic choice until route installation succeeds',
     () async {

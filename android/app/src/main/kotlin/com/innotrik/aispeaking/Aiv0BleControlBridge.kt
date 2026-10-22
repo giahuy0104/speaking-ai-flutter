@@ -13,6 +13,7 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
+import android.bluetooth.le.ScanSettings
 import android.content.BroadcastReceiver
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -64,6 +65,7 @@ class Aiv0BleControlBridge(
         appContext.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
     private val adapter: BluetoothAdapter? get() = bluetoothManager?.adapter
     private val scanDevices = linkedMapOf<String, ScannedDevice>()
+    private val classicDiscovery = HomiClassicDiscovery(appContext)
     private val runtimePreferences =
         appContext.getSharedPreferences(RUNTIME_PREFERENCES, Context.MODE_PRIVATE)
     private val bufferedButtonEvents = ArrayDeque<Map<String, Any?>>()
@@ -153,6 +155,11 @@ class Aiv0BleControlBridge(
             "openBluetoothSettings" -> openBluetoothSettings(result)
             "openPermissionSettings" -> openPermissionSettings(result)
             "scan" -> scan(call, result)
+            "scanClassic" -> {
+                if (ensureBluetoothReady(result)) {
+                    classicDiscovery.start(result, call.argument<Number>("timeoutMs")?.toLong() ?: 15_000L)
+                }
+            }
             "connect" -> connect(call, result)
             "requestDualModeBond" -> requestDualModeBond(call, result)
             "disconnect" -> disconnect(result)
@@ -433,7 +440,7 @@ class Aiv0BleControlBridge(
     }
 
     private fun scan(call: MethodCall, result: MethodChannel.Result) {
-        BleDiagnostics.event(appContext, "scan.request", mapOf("timeoutMs" to call.argument<Number>("timeoutMs"), "permissions" to hasPermissions(), "adapter" to bluetoothAdapterState()))
+        BleDiagnostics.event(appContext, "scan.request", mapOf("timeoutMs" to call.argument<Number>("timeoutMs"), "foreground" to (call.argument<Boolean>("foreground") == true), "permissions" to hasPermissions(), "adapter" to bluetoothAdapterState()))
         if (!ensureBluetoothReady(result)) return
         if (scanResult != null) {
             result.error("SCAN_IN_PROGRESS", "Đang quét thiết bị Bluetooth.", null)
@@ -472,7 +479,15 @@ class Aiv0BleControlBridge(
         message = null
         emitStatus()
         try {
-            adapter!!.bluetoothLeScanner.startScan(callback)
+            if (call.argument<Boolean>("foreground") == true) {
+                val settings = ScanSettings.Builder()
+                    .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                    .setReportDelay(0L)
+                    .build()
+                adapter!!.bluetoothLeScanner.startScan(null, settings, callback)
+            } else {
+                adapter!!.bluetoothLeScanner.startScan(callback)
+            }
         } catch (error: Throwable) {
             scanResult = null
             scanCallback = null
@@ -506,18 +521,19 @@ class Aiv0BleControlBridge(
             normalizedName.contains("innotrik") ||
             normalizedName == "hm-d001"
         val previous = scanDevices[id]
-        if (previous == null || previous.name != name) {
+        if (previous == null || (name.isNotEmpty() && previous.name != name) ||
+            (advertisesControlService && !previous.advertisesControlService)) {
             BleDiagnostics.event(appContext, "scan.device", mapOf("id" to id, "name" to name, "advertisedName" to advertisedName, "rssi" to result.rssi, "uuids" to result.scanRecord?.serviceUuids?.map { it.toString() }, "connectable" to if (Build.VERSION.SDK_INT >= 26) result.isConnectable else null, "likely" to likely, "controlService" to advertisesControlService))
         }
-        if (previous == null || result.rssi > previous.rssi) {
-            scanDevices[id] = ScannedDevice(
-                id = id,
-                name = name.trim(),
-                rssi = result.rssi,
-                likely = likely,
-                advertisesControlService = advertisesControlService,
-            )
-        }
+        // Name/service can arrive in a weaker scan-response packet. Retain
+        // identity metadata across packets independently of the best RSSI.
+        scanDevices[id] = ScannedDevice(
+            id = id,
+            name = name.takeIf { it.isNotEmpty() } ?: previous?.name.orEmpty(),
+            rssi = maxOf(result.rssi, previous?.rssi ?: Int.MIN_VALUE),
+            likely = likely || previous?.likely == true,
+            advertisesControlService = advertisesControlService || previous?.advertisesControlService == true,
+        )
     }
 
     private fun stopScan(complete: Boolean) {
@@ -578,6 +594,8 @@ class Aiv0BleControlBridge(
 
     private fun requestDualModeBond(call: MethodCall, result: MethodChannel.Result) {
         if (!ensureBluetoothReady(result)) return
+        // Discovery must have stopped before bonding/connecting the radio.
+        runCatching { adapter?.cancelDiscovery() }
         if (bondResult != null) {
             result.error("BOND_IN_PROGRESS", "Đang chờ ghép đôi H20.", null)
             return
@@ -589,12 +607,15 @@ class Aiv0BleControlBridge(
             return
         }
         val initialState = runCatching { device.bondState }.getOrNull()
+        BleDiagnostics.event(appContext, "bond.request", mapOf("id" to id, "type" to device.type, "state" to initialState))
         if (initialState == BluetoothDevice.BOND_BONDED) {
+            BleDiagnostics.event(appContext, "bond.complete", mapOf("id" to id, "bonded" to true, "alreadyPaired" to true))
             result.success(true)
             return
         }
         val started = initialState == BluetoothDevice.BOND_BONDING ||
             runCatching { device.createBond() }.getOrDefault(false)
+        BleDiagnostics.event(appContext, "bond.started", mapOf("id" to id, "started" to started))
         if (!started) {
             result.success(false)
             return
@@ -627,6 +648,7 @@ class Aiv0BleControlBridge(
         bondPoll = null
         val pending = bondResult
         bondResult = null
+        if (pending != null) BleDiagnostics.event(appContext, "bond.complete", mapOf("bonded" to bonded))
         pending?.success(bonded)
     }
 
@@ -973,6 +995,7 @@ class Aiv0BleControlBridge(
         val keepLink = preserveConnected && bluetoothGatt != null &&
             buttonCharacteristic != null && stateCharacteristic != null && connectResult == null
         stopScan(complete = true)
+        classicDiscovery.cancel()
         finishBond(false)
         if (keepLink) {
             phase = "connected"
@@ -1060,6 +1083,7 @@ class Aiv0BleControlBridge(
         mainHandler.removeCallbacks(connectionTimeout)
         cancelPendingReconnect()
         stopScan(complete = true)
+        classicDiscovery.cancel()
         connectResult?.error("BLUETOOTH_DISABLED", "Bluetooth đang tắt.", null)
         connectResult = null
         pendingWriteResult?.error("BLUETOOTH_DISABLED", "Bluetooth đang tắt.", null)
@@ -1108,18 +1132,18 @@ class Aiv0BleControlBridge(
             closeGatt()
             continueAfterLinkLoss(status)
         } else {
-            failConnection(reason)
+            failConnection(reason, if (status == GATT_CONNECTION_TIMEOUT) "BLE_CONNECTION_TIMEOUT" else "AIV0_PROTOCOL_MISMATCH")
         }
     }
 
-    private fun failConnection(reason: String) {
-        BleDiagnostics.event(appContext, "gatt.failure", mapOf("reason" to reason))
+    private fun failConnection(reason: String, code: String = "AIV0_PROTOCOL_MISMATCH") {
+        BleDiagnostics.event(appContext, "gatt.failure", mapOf("reason" to reason, "code" to code, "id" to deviceId))
         mainHandler.removeCallbacks(connectionTimeout)
         shouldReconnect = false
         cancelPendingReconnect()
         phase = "error"
         message = reason
-        connectResult?.error("AIV0_PROTOCOL_MISMATCH", reason, snapshot())
+        connectResult?.error(code, reason, snapshot())
         connectResult = null
         emitStatus()
         closeGatt()
@@ -1227,6 +1251,7 @@ class Aiv0BleControlBridge(
     fun dispose() {
         if (disposed) return
         disposed = true
+        classicDiscovery.cancel()
         finishBond(false)
         runCatching { appContext.unregisterReceiver(adapterStateReceiver) }
         mediaKeyObserver.dispose()

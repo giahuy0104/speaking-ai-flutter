@@ -13,6 +13,7 @@ class TopicLessonsArguments {
     this.contentGroup,
     this.levelContent,
     this.initialLessonNumber,
+    this.coverUntilInitialLessonReturns = false,
     this.relearnInitialLesson = false,
     this.relearnTopicSequence = false,
     this.songsOnly = false,
@@ -26,6 +27,7 @@ class TopicLessonsArguments {
   final ListeningContentAgeGroup? contentGroup;
   final ListeningLevelContent? levelContent;
   final int? initialLessonNumber;
+  final bool coverUntilInitialLessonReturns;
   final bool relearnInitialLesson;
   final bool relearnTopicSequence;
   final bool songsOnly;

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
+import '../../../app/homi_bottom_navigation.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
@@ -18,6 +19,7 @@ import '../domain/listening_catalog.dart';
 import '../domain/listening_audio_keys.dart';
 import '../domain/listening_content.dart';
 import '../domain/listening_curriculum_flow.dart';
+import 'lesson_recording_history_sheet.dart';
 import 'song_karaoke_screen.dart';
 
 class TopicLessonListScreen extends StatefulWidget {
@@ -40,6 +42,8 @@ class TopicLessonListScreen extends StatefulWidget {
     this.voicePromptService,
     this.initialLessonNumber,
     this.initialLessonLeadPrompt,
+    this.initialLessonMainReply,
+    this.coverUntilInitialLessonReturns = false,
     this.relearnInitialLesson = false,
     this.relearnTopicSequence = false,
     this.songsOnly = false,
@@ -69,6 +73,8 @@ class TopicLessonListScreen extends StatefulWidget {
   /// A prompt still playing when the initial lesson opens; its intro waits
   /// for it instead of the navigation.
   final Future<void>? initialLessonLeadPrompt;
+  final Future<void>? initialLessonMainReply;
+  final bool coverUntilInitialLessonReturns;
   final bool relearnInitialLesson;
   final bool relearnTopicSequence;
   final bool songsOnly;
@@ -97,6 +103,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
   late final VoicePromptService _voicePromptService;
   late final bool _ownsVoicePromptService;
   bool _initialLessonOpened = false;
+  bool _coveredForInitialLesson = false;
   bool _waitingForDevice = false;
 
   @override
@@ -117,6 +124,9 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
           owner: AudioTurnOwner.listeningLesson,
         );
     _progressFuture = _loadProgress();
+    _coveredForInitialLesson =
+        widget.coverUntilInitialLessonReturns &&
+        widget.initialLessonNumber != null;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_openInitialLesson());
     });
@@ -468,14 +478,65 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
                   },
                 ),
               ),
+              if (_coveredForInitialLesson)
+                const Positioned.fill(
+                  key: Key('topic-lesson-list-cover'),
+                  child: LearningScenery(
+                    overlayOpacity: 0.36,
+                    child: SizedBox.expand(),
+                  ),
+                ),
             ],
           ),
         ),
+        bottomNavigationBar:
+            !kIsWeb &&
+                defaultTargetPlatform == TargetPlatform.iOS &&
+                !_coveredForInitialLesson
+            ? HomiBottomNavigation(
+                selectedIndex: 1,
+                onConversation: () =>
+                    Navigator.of(context).popUntil((route) => route.isFirst),
+                onTopics: _goBack,
+                onMain: widget.onMainPressed == null
+                    ? null
+                    : () => unawaited(widget.onMainPressed!()),
+                onVocabulary: _openVocabulary,
+                onHistory: () => unawaited(_openHistory()),
+                conversationKey: const Key('listening-conversation-tab'),
+                topicsKey: const Key('listening-topics-tab'),
+                mainKey: const Key('listening-main-button'),
+                vocabularyKey: const Key('listening-vocabulary-tab'),
+                historyKey: const Key('listening-history-tab'),
+              )
+            : null,
       ),
     );
   }
 
   void _goBack() => Navigator.of(context).pop();
+
+  void _openVocabulary() {
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    widget.onVocabularyRequested?.call();
+  }
+
+  Future<void> _openHistory() async {
+    await widget.onVoiceNavigationPause?.call();
+    try {
+      if (!mounted) return;
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        showDragHandle: true,
+        builder: (_) =>
+            LessonRecordingHistorySheet(mediaService: _mediaService),
+      );
+    } finally {
+      if (mounted) widget.onVoiceNavigationResume?.call();
+    }
+  }
 
   Future<void> _openInitialLesson() async {
     final lessonNumber = widget.initialLessonNumber;
@@ -484,6 +545,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
     }
     _initialLessonOpened = true;
     if (widget.content.lessons.isEmpty) {
+      _revealLessonList();
       return;
     }
     ListeningLessonContent? lesson;
@@ -504,13 +566,24 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
           ),
         ),
       );
+      _revealLessonList();
       return;
     }
-    await _startLesson(
-      lesson,
-      reviewFromBeginning: widget.relearnInitialLesson,
-      leadPrompt: widget.initialLessonLeadPrompt,
-    );
+    try {
+      await _startLesson(
+        lesson,
+        reviewFromBeginning: widget.relearnInitialLesson,
+        leadPrompt: widget.initialLessonLeadPrompt,
+        mainReply: widget.initialLessonMainReply,
+      );
+    } finally {
+      _revealLessonList();
+    }
+  }
+
+  void _revealLessonList() {
+    if (!mounted || !_coveredForInitialLesson) return;
+    setState(() => _coveredForInitialLesson = false);
   }
 
   Future<void> _startLessonFromTouch(
@@ -533,6 +606,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
     ListeningLessonContent lesson, {
     required bool reviewFromBeginning,
     Future<void>? leadPrompt,
+    Future<void>? mainReply,
   }) async {
     final pendingRelearn = await widget.progressStore.hasLessonPendingRelearn(
       lesson.id,
@@ -550,6 +624,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
         progress.completedV4LessonActivities,
       );
       if (!unlocked) {
+        await mainReply;
         final previous = widget.content.lessons[lessonIndex - 1];
         final message = 'Bạn cần học xong Bài ${previous.number} trước nhé.';
         if (mounted) {
@@ -586,7 +661,16 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
     if (!mounted) {
       return;
     }
-    await widget.onVoiceNavigationPause?.call();
+    var lessonClosed = false;
+    if (mainReply == null) {
+      await widget.onVoiceNavigationPause?.call();
+    } else {
+      final earlierPrompt = leadPrompt;
+      leadPrompt = mainReply.then((_) async {
+        if (!lessonClosed) await widget.onVoiceNavigationPause?.call();
+        await earlierPrompt;
+      });
+    }
     try {
       if (!mounted) {
         return;
@@ -619,6 +703,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
         ),
       );
     } finally {
+      lessonClosed = true;
       if (mounted) {
         widget.onVoiceNavigationResume?.call();
       }

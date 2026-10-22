@@ -30,6 +30,7 @@ class TopicListeningBindings {
     this.onVocabularyRequested,
     this.onVoiceNavigationPause,
     this.onVoiceNavigationResume,
+    this.initialVoiceActivationGate,
     this.onTopicSelected,
     this.onLessonSelectionRequested,
     this.onTopicSelectionRequested,
@@ -50,6 +51,7 @@ class TopicListeningBindings {
   final VoidCallback? onVocabularyRequested;
   final Future<void> Function()? onVoiceNavigationPause;
   final VoidCallback? onVoiceNavigationResume;
+  final Future<void>? initialVoiceActivationGate;
   final ValueChanged<int>? onTopicSelected;
   final TopicLessonSelectionPrompt? onLessonSelectionRequested;
   final TopicSelectionPrompt? onTopicSelectionRequested;
@@ -77,6 +79,7 @@ class TopicLessonListBindings {
     this.mediaService,
     this.voicePromptService,
     this.initialLessonLeadPrompt,
+    this.initialLessonMainReply,
     this.onTopicCompleted,
     this.onCommunicationRequested,
     this.key,
@@ -92,6 +95,7 @@ class TopicLessonListBindings {
   final LessonMediaService? mediaService;
   final VoicePromptService? voicePromptService;
   final Future<void>? initialLessonLeadPrompt;
+  final Future<void>? initialLessonMainReply;
   final VoidCallback? onTopicCompleted;
   final VoidCallback? onCommunicationRequested;
   final Key? key;

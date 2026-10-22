@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-30T15:53:06.131772Z",
+  "generatedAt": "2026-10-19T04:34:53.144762Z",
   "minimumAppVersion": "1.0.8",
   "packs": [
     {
       "pack": "assistant-core",
-      "version": "v2",
+      "version": "v3",
       "minimumAppVersion": "1.0.8",
       "manifest": "assets/data/assistant_core_audio.json",
-      "manifestSha256": "1245d4e694ae2c5b9400670dc83b81523298b9b21dfa7ef1584725d966b1e4be",
-      "audioCount": 81,
-      "sizeBytes": 2921884,
+      "manifestSha256": "7c78c05ca380fea17031fbd1bd1cfe4cf4e3ac19aa63da307378cc4240cd13de",
+      "audioCount": 82,
+      "sizeBytes": 2961390,
       "preloadGroup": "shared"
     },
     {
@@ -18,7 +18,7 @@
       "version": "v1",
       "minimumAppVersion": "1.0.8",
       "manifest": "assets/data/listening_common_audio.json",
-      "manifestSha256": "cace78d24ecc2459d193e407edaf022c46d3f229a9de45824616198819b90402",
+      "manifestSha256": "2d0b2acf291bd89d61b1f18dfcdb44c03141dfb4c38d78a6eb8716e176016037",
       "audioCount": 455,
       "sizeBytes": 27284260,
       "preloadGroup": "shared"

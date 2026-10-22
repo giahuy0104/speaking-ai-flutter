@@ -19,6 +19,7 @@ import '../../../core/privacy/parental_gate.dart';
 import '../../../l10n/display_language.dart';
 import '../../conversation/application/conversation_settings_port.dart';
 import '../../listening/domain/listening_catalog.dart';
+import 'ios_settings_sheet.dart';
 
 class SettingsSheet extends StatefulWidget {
   const SettingsSheet({
@@ -87,6 +88,24 @@ class _SettingsSheetState extends State<SettingsSheet> {
 
   @override
   Widget build(BuildContext context) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      return IosSettingsSheet(
+        controller: controller,
+        themeMode: widget.themeMode,
+        onThemeModeChanged: widget.onThemeModeChanged,
+        onChildAgeChanged: widget.onChildAgeChanged,
+        onStartTutorial: widget.onStartTutorial,
+        config: widget.config,
+        privacyConsentGranted: widget.privacyConsentGranted,
+        voiceAccessEnabled: widget.voiceAccessEnabled,
+        onRequestVoiceAccess: widget.onRequestVoiceAccess,
+        onManagePrivacyConsent: widget.onManagePrivacyConsent,
+        onRevokePrivacyConsent: widget.onRevokePrivacyConsent,
+        stopMediaWhenBackgrounded: widget.stopMediaWhenBackgrounded,
+        onStopMediaWhenBackgroundedChanged:
+            widget.onStopMediaWhenBackgroundedChanged,
+      );
+    }
     return AnimatedBuilder(
       animation: Listenable.merge(<Listenable>[
         controller,

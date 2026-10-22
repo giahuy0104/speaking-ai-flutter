@@ -39,6 +39,7 @@ AppRouter createAppRouter() => AppRouter({
           onVoiceNavigationPause: bindings.onVoiceNavigationPause,
           onVoiceNavigationResume: bindings.onVoiceNavigationResume,
           initialVoiceTarget: arguments.initialVoiceTarget,
+          initialVoiceActivationGate: bindings.initialVoiceActivationGate,
           onTopicSelected: bindings.onTopicSelected,
           onLessonSelectionRequested: bindings.onLessonSelectionRequested,
           onTopicSelectionRequested: bindings.onTopicSelectionRequested,
@@ -75,6 +76,9 @@ AppRouter createAppRouter() => AppRouter({
           voicePromptService: bindings.voicePromptService,
           initialLessonNumber: arguments.initialLessonNumber,
           initialLessonLeadPrompt: bindings.initialLessonLeadPrompt,
+          initialLessonMainReply: bindings.initialLessonMainReply,
+          coverUntilInitialLessonReturns:
+              arguments.coverUntilInitialLessonReturns,
           relearnInitialLesson: arguments.relearnInitialLesson,
           relearnTopicSequence: arguments.relearnTopicSequence,
           songsOnly: arguments.songsOnly,

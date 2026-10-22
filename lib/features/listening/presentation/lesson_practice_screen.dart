@@ -11,7 +11,6 @@ import '../../../app/mascot_assets.dart';
 import '../../../app/praise_fireworks.dart';
 import '../../../core/audio/streaming_speech_input.dart';
 import '../../../core/audio/catalog/media_audio_keys.dart';
-import '../../../core/audio/audio_gain.dart';
 import '../../../core/audio/hfp_audio_control.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
 import '../../../core/audio/voice_prompt_service.dart';
@@ -185,6 +184,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   StreamSubscription<void>? _completionChoiceCompletedSubscription;
   StreamSubscription<String>? _completionChoicePartialSubscription;
   bool _pausedForMainAssistant = false;
+  bool _pausedByStop = false;
   bool _challengeEntryPending = false;
   int _challengeEntryRequest = 0;
   bool _exiting = false;
@@ -231,7 +231,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       ActiveLearningModuleKind.listeningLesson;
 
   @override
-  bool get isPausedForMain => _pausedForMainAssistant;
+  bool get isPausedForMain => _pausedForMainAssistant || _pausedByStop;
 
   @override
   void initState() {
@@ -555,6 +555,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   @override
   Future<void> pauseForMainAssistant({bool waitForCleanup = true}) async {
     _pausedForMainAssistant = true;
+    _pausedByStop = false;
     _lessonSession.invalidateMainPause();
     _lessonSession.invalidateActiveTurn();
     _cancelPendingLessonDelays();
@@ -680,6 +681,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             _pausedForMainAssistant &&
             _lessonSession.isCurrentMainPause(stopTicket)) {
           setState(() {
+            _pausedByStop = true;
             _message = 'Đã dừng. Nhấn MAIN để tiếp tục.';
             if (_v4CompletionChoiceVisible) {
               _completionChoiceStatus.value =
@@ -691,11 +693,17 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           spokenReply: 'Đã dừng.',
         );
       case ActiveLearningCommand.resume:
+        final wasPausedByStop = _pausedByStop;
         _pausedForMainAssistant = false;
+        _pausedByStop = false;
         // The full EN -> VI -> cue sequence can exceed the registry's command
         // timeout. Hand ownership back immediately and let the screen finish
         // its guarded sequence under the lesson lifecycle ticket.
-        unawaited(_runNavigationSequence(_resumeCoreAfterMain));
+        unawaited(
+          _runNavigationSequence(
+            () => _resumeCoreAfterMain(wasPausedByStop: wasPausedByStop),
+          ),
+        );
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.replayCurrent:
         _pausedForMainAssistant = false;
@@ -801,12 +809,29 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
   }
 
-  Future<void> _resumeCoreAfterMain() async {
+  Future<void> _resumeCoreAfterMain({bool wasPausedByStop = false}) async {
+    _pausedByStop = false;
     if (_challengeEntryPending) {
+      if (wasPausedByStop) {
+        await _navigateWithLead(
+          'Cùng học tiếp nhé',
+          () => _openReview(resumeStage: ListeningResumeStage.challenge),
+          audioKey: MainAssistantAudioKeys.resumeLearning,
+        );
+        return;
+      }
       await _openReview(resumeStage: ListeningResumeStage.challenge);
       return;
     }
     if (!_usesGuideV2) {
+      if (wasPausedByStop) {
+        await _navigateWithLead(
+          'Cùng học tiếp nhé',
+          _startRecording,
+          audioKey: MainAssistantAudioKeys.resumeLearning,
+        );
+        return;
+      }
       await _startRecording();
       return;
     }
@@ -816,6 +841,17 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
     // A resumed Core turn is a new attempt and must always replay the complete
     // EN -> VI -> cue sequence before opening the microphone.
+    if (wasPausedByStop) {
+      await _navigateWithLead(
+        'Cùng học tiếp nhé',
+        () => _activateCurrentSentence(
+          autoPlay: true,
+          restoreExistingRecording: false,
+        ),
+        audioKey: MainAssistantAudioKeys.resumeLearning,
+      );
+      return;
+    }
     await _activateCurrentSentence(
       autoPlay: true,
       restoreExistingRecording: false,
@@ -1012,6 +1048,21 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
                                         canGoPrevious: _sentenceIndex > 0,
                                         finalSentence:
                                             _sentenceIndex == total - 1,
+                                      )
+                                    else if (defaultTargetPlatform !=
+                                        TargetPlatform.android)
+                                      _LessonNavigationActions(
+                                        current: _sentenceIndex,
+                                        total: total,
+                                        busy: interactionBusy,
+                                        allowPrevious:
+                                            widget.lesson.usesV4Flow ||
+                                            _sentenceIndex > 0,
+                                        allowNext:
+                                            !widget.lesson.usesV4Flow ||
+                                            _sentenceIndex < total - 1,
+                                        onPrevious: _previous,
+                                        onContinue: _continue,
                                       ),
                                     if (_showSkip &&
                                         _recordingPath == null) ...<Widget>[
@@ -1186,13 +1237,12 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     if (path == null) {
       return;
     }
-    final parsed = Uri.tryParse(path);
-    final uri = parsed != null && parsed.hasScheme ? parsed : Uri.file(path);
     await _runMediaAction(
-      () => widget.mediaService.play(
-        uri,
-        playbackGainDb: lessonRecordingPlaybackGainDb,
-        fixedPlaybackGain: true,
+      () => widget.mediaService.playRecordingToCompletion(
+        LessonRecording(
+          filePath: path,
+          duration: _recordingDuration ?? Duration.zero,
+        ),
       ),
     );
   }
@@ -1200,21 +1250,31 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   Future<bool> _playAttemptRecordingToCompletion(
     LessonRecording recording,
   ) async {
-    final parsed = Uri.tryParse(recording.filePath);
-    final uri = parsed != null && parsed.hasScheme
-        ? parsed
-        : Uri.file(recording.filePath);
-    final requestedTimeout = recording.duration + const Duration(seconds: 5);
-    final timeout = requestedTimeout < const Duration(seconds: 10)
-        ? const Duration(seconds: 10)
-        : requestedTimeout;
+    final sentenceIndex = _sentenceIndex;
+    final sentenceId = _sentence.id;
+    final pauseTicket = _lessonSession.mainPauseTicket;
+    Future<void> replay() =>
+        widget.mediaService.playRecordingToCompletion(recording);
     try {
-      await widget.mediaService.playToCompletion(
-        uri,
-        timeout: timeout,
-        playbackGainDb: lessonRecordingPlaybackGainDb,
-        fixedPlaybackGain: true,
-      );
+      await replay();
+      return true;
+    } on HfpAudioException catch (error) {
+      debugPrint('HOMI lesson attempt playback lost the HFP route: $error');
+      if ((!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) ||
+          !await widget.mediaService.waitForSelectedHfpRoute() ||
+          !mounted ||
+          _pausedForMainAssistant ||
+          !_lessonSession.isCurrentMainPause(pauseTicket) ||
+          sentenceIndex != _sentenceIndex ||
+          sentenceId != _sentence.id) {
+        return false;
+      }
+    } catch (error) {
+      debugPrint('HOMI lesson attempt playback failed: $error');
+      return false;
+    }
+    try {
+      await replay();
       return true;
     } catch (error) {
       debugPrint('HOMI lesson attempt playback failed: $error');
@@ -1655,25 +1715,38 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     });
     final completedRecording = recording;
     if (completedRecording != null) {
-      var finalizedRecording = completedRecording;
+      final LessonRecording finalizedRecording;
       try {
         finalizedRecording = await widget.mediaService
-            .registerExternalRecording(
-              recording: completedRecording,
-              lessonId: widget.lesson.id,
-              lessonTitle: widget.lesson.titleVi,
-              sentenceId: evaluatedSentence.id,
-              sentenceNumber: evaluatedSentence.number,
-              english: evaluatedSentence.english,
-              vietnamese: evaluatedSentence.vietnamese,
-            );
+            .prepareExternalRecordingForPlayback(completedRecording);
+      } catch (error) {
         if (_isCurrentEvaluation(
           evaluationRequest,
           evaluatedSentenceIndex,
           evaluatedSentence.id,
         )) {
-          setState(() => _recordingPath = finalizedRecording.filePath);
+          _showAttemptReplayFailure();
         }
+        return;
+      }
+      if (!_isCurrentEvaluation(
+        evaluationRequest,
+        evaluatedSentenceIndex,
+        evaluatedSentence.id,
+      )) {
+        return;
+      }
+      setState(() => _recordingPath = finalizedRecording.filePath);
+      try {
+        await widget.mediaService.registerExternalRecording(
+          recording: finalizedRecording,
+          lessonId: widget.lesson.id,
+          lessonTitle: widget.lesson.titleVi,
+          sentenceId: evaluatedSentence.id,
+          sentenceNumber: evaluatedSentence.number,
+          english: evaluatedSentence.english,
+          vietnamese: evaluatedSentence.vietnamese,
+        );
       } catch (error) {
         debugPrint(
           'HOMI could not archive the Apple Speech lesson WAV: $error',
@@ -1697,6 +1770,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         return;
       }
       if (widget.lesson.usesV4Flow && !replayedRecording) {
+        debugPrint('HOMI iOS lesson recording replay failed; outcome=$outcome');
         _showAttemptReplayFailure();
         return;
       }
@@ -2686,11 +2760,35 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     ListeningPendingChoiceStage? resumePendingStage,
   }) async {
     if (!mounted || _v4CompletionChoiceVisible) return;
-    if (resumePendingStage == ListeningPendingChoiceStage.nextLevel) {
-      // Older builds persisted index 3 while waiting to start another Level.
-      // Drop that obsolete choice and recompute completion across all topics.
+    final isIos = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    if (isIos && await _allTopicsInCourseCompleted()) {
+      final courseId = '${widget.startAge}-${widget.endAge}';
+      await widget.progressStore.markCourseCompleted(courseId);
+      if (!await widget.progressStore.hasCourseCompletionEventCreated(
+        courseId,
+      )) {
+        await _speakLessonPrompt('Bạn đã hoàn thành khóa học rồi!');
+        await widget.progressStore.markCourseCompletionEventCreated(courseId);
+      }
       await widget.progressStore.clearPendingCompletionChoice(widget.lesson.id);
-      resumePendingStage = null;
+      widget.onTopicCompleted?.call();
+      await _returnToTopicSelection();
+      return;
+    }
+    if (resumePendingStage == ListeningPendingChoiceStage.nextLevel) {
+      if (isIos) {
+        final remaining = await _incompleteTopicsInCourse();
+        resumePendingStage = remaining.length == 1
+            ? ListeningPendingChoiceStage.topicEndOneRemaining
+            : ListeningPendingChoiceStage.topicEnd;
+      } else {
+        // Older builds persisted index 3 while waiting to start another Level.
+        // Drop that obsolete choice and recompute completion across all topics.
+        await widget.progressStore.clearPendingCompletionChoice(
+          widget.lesson.id,
+        );
+        resumePendingStage = null;
+      }
     }
     if (resumePendingStage != null) {
       final pendingStage = resumePendingStage;
@@ -3127,6 +3225,11 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   Future<bool> _allTopicsInCourseCompleted() async {
     final group = widget.contentGroup;
     if (group == null || !_isLastLessonInTopic) return false;
+    if (!kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.iOS &&
+        group.topics.length != 10) {
+      return false;
+    }
     final progress = await widget.progressStore.readAll();
     final activities = await widget.progressStore
         .readCompletedV4LessonActivities();
@@ -5310,6 +5413,86 @@ class _CompactAction extends StatelessWidget {
           width: 1.2,
         ),
       ),
+    );
+  }
+}
+
+class _LessonNavigationActions extends StatelessWidget {
+  const _LessonNavigationActions({
+    required this.current,
+    required this.total,
+    required this.busy,
+    required this.allowPrevious,
+    required this.allowNext,
+    required this.onPrevious,
+    required this.onContinue,
+  });
+
+  final int current;
+  final int total;
+  final bool busy;
+  final bool allowPrevious;
+  final bool allowNext;
+  final VoidCallback onPrevious;
+  final VoidCallback onContinue;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: OutlinedButton.icon(
+            key: const Key('previous-lesson-sentence'),
+            onPressed: busy || !allowPrevious ? null : onPrevious,
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(62),
+              foregroundColor: isDark ? colorScheme.primary : AppColors.indigo,
+              backgroundColor: isDark
+                  ? colorScheme.surfaceContainer
+                  : Colors.white,
+              disabledBackgroundColor: isDark
+                  ? colorScheme.surfaceContainer.withValues(alpha: 0.72)
+                  : Colors.white.withValues(alpha: 0.72),
+              side: BorderSide(
+                color: isDark ? colorScheme.outline : AppColors.lavenderBorder,
+              ),
+              textStyle: const TextStyle(
+                fontFamily: 'Roboto',
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            icon: const Icon(Icons.arrow_back_rounded),
+            label: Text(context.tr('Câu trước', '上一句'), maxLines: 1),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: FilledButton.icon(
+            key: const Key('continue-lesson-sentence'),
+            onPressed: busy || !allowNext ? null : onContinue,
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(62),
+              textStyle: const TextStyle(
+                fontFamily: 'Roboto',
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            iconAlignment: IconAlignment.end,
+            icon: const Icon(Icons.arrow_forward_rounded),
+            label: Text(
+              context.tr(
+                current == total - 1 ? 'Hoàn thành câu này' : 'Tiếp tục',
+                current == total - 1 ? '请完成本句' : '继续',
+              ),
+              maxLines: 1,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -93,7 +93,7 @@ Cấu hình audio mặc định cho HOMI:
 
 ```powershell
 flutter analyze
-flutter test
+flutter test --dart-define-from-file=dart_defines.production.json
 flutter build apk --debug --dart-define-from-file=dart_defines.production.json
 ```
 

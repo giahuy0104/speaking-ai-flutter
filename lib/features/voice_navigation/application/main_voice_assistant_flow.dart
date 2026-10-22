@@ -13,6 +13,7 @@ import '../domain/master_navigation_contract.dart';
 import '../domain/main_assistant_audio_keys.dart';
 import 'active_learning_command_resolver.dart';
 import 'voice_navigation_intent_resolver.dart';
+import 'package:flutter/foundation.dart';
 
 enum MainVoiceAssistantStage {
   idle,
@@ -323,7 +324,13 @@ class MainVoiceAssistantFlow {
     }
     _selectedAge = childAge;
     _selectedCatalog = catalog;
-    _allowedTopicNumbers = topicNumbers.toSet();
+    _allowedTopicNumbers =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+        ? {
+            for (var number = 1; number <= catalog.topics.length; number++)
+              number,
+          }
+        : topicNumbers.toSet();
     _completedTopicNumbers = completedTopicNumbers.toSet();
     _courseCompletedTopicSelection = courseCompleted;
     _stage = MainVoiceAssistantStage.chooseTopicAfterCompletion;
@@ -441,7 +448,8 @@ class MainVoiceAssistantFlow {
     if (_isStopChoice(normalized)) {
       return _stage != MainVoiceAssistantStage.idle;
     }
-    return _selectionModuleDestination(normalized) != null ||
+    return _directVocabularyTarget(normalized) != null ||
+        _selectionModuleDestination(normalized) != null ||
         stageCanHandle ||
         (_stage != MainVoiceAssistantStage.idle && _isHelpChoice(normalized));
   }
@@ -480,6 +488,14 @@ class MainVoiceAssistantFlow {
         _hasStageSpecificIntent(normalized);
   }
 
+  /// Keep an unfinished iOS Home answer open when a Topic number may follow.
+  bool canEndUnfinishedAnswerEarly(String recognizedText) {
+    if (_stage != MainVoiceAssistantStage.chooseFeature) return false;
+    final normalized = _normalize(recognizedText);
+    return !_containsPhrase(normalized, 'chu de') &&
+        !_containsPhrase(normalized, 'topic');
+  }
+
   /// Returns true only for a complete, unambiguous local command. The 500
   /// fallback phrases are resolved on-device once Android produces a stable
   /// partial transcript; number choices and broad phrases still wait for the
@@ -502,6 +518,7 @@ class MainVoiceAssistantFlow {
       // normal final-result path, just like a choice within the topic catalog.
       return false;
     }
+    if (_directVocabularyTarget(normalized) != null) return true;
     final selectionDestination = _selectionModuleDestination(normalized);
     if (selectionDestination != null) {
       return true;
@@ -528,6 +545,10 @@ class MainVoiceAssistantFlow {
             _isStarVocabularyChoice(normalized),
       MainVoiceAssistantStage.activeLearning =>
         _resolveActiveCommand(normalized) != null ||
+            (!kIsWeb &&
+                defaultTargetPlatform == TargetPlatform.iOS &&
+                _activeLearningKind != ActiveLearningModuleKind.vocabulary &&
+                _vocabularyTarget(normalized) != null) ||
             MasterNavigationContract.matches('CONTINUE_GLOBAL', normalized) ||
             (_activeLearningKind == ActiveLearningModuleKind.listeningLesson &&
                 MasterNavigationContract.matches(
@@ -618,6 +639,25 @@ class MainVoiceAssistantFlow {
     MainVoiceAssistantStage.idle => false,
   };
 
+  VoiceVocabularyTarget? _directVocabularyTarget(String normalized) {
+    if (!const <MainVoiceAssistantStage>{
+      MainVoiceAssistantStage.chooseFeature,
+      MainVoiceAssistantStage.chooseOtherLearning,
+      MainVoiceAssistantStage.chooseAfterTranslationStop,
+      MainVoiceAssistantStage.chooseModuleSwitch,
+      MainVoiceAssistantStage.chooseAlternativeAfterLearning,
+      MainVoiceAssistantStage.askAge,
+      MainVoiceAssistantStage.chooseTopic,
+      MainVoiceAssistantStage.chooseTopicAfterCompletion,
+      MainVoiceAssistantStage.confirmReplayTopic,
+      MainVoiceAssistantStage.chooseLesson,
+      MainVoiceAssistantStage.confirmReplayLesson,
+    }.contains(_stage)) {
+      return null;
+    }
+    return _vocabularyTarget(normalized);
+  }
+
   Future<MainVoiceAssistantTurn> handle(String recognizedText) async {
     final normalized = _normalize(recognizedText);
     final isPromptEcho = _looksLikePromptEcho(normalized);
@@ -634,6 +674,17 @@ class MainVoiceAssistantFlow {
     }
     if (_isHelpChoice(normalized)) {
       return _helpTurn();
+    }
+    final vocabularyTarget = isPromptEcho
+        ? null
+        : _directVocabularyTarget(normalized);
+    if (vocabularyTarget != null) {
+      return _moduleNavigationTurn(
+        recognizedText: recognizedText,
+        destination: VoiceNavigationDestination.vocabulary,
+        promptText: '',
+        vocabularyTarget: vocabularyTarget,
+      );
     }
     final selectionDestination = _selectionModuleDestination(normalized);
     if (selectionDestination != null) {
@@ -1336,9 +1387,7 @@ class MainVoiceAssistantFlow {
         _activeLearningKind == ActiveLearningModuleKind.vocabulary;
     final promptText = switch (command) {
       ActiveLearningCommand.resume =>
-        isVocabulary ||
-                _activeVoiceNode == ActiveLearningVoiceNode.intro ||
-                _activeVoiceNode == ActiveLearningVoiceNode.challenge
+        isVocabulary || _activeVoiceNode == ActiveLearningVoiceNode.intro
             ? ''
             : _activeVoiceNode == ActiveLearningVoiceNode.core
             ? MasterNavigationContract.continueSubject
@@ -1920,7 +1969,31 @@ class MainVoiceAssistantFlow {
         nearestIntent = intent;
       }
     }
-    return nearestPhrase;
+    return nearestPhrase ??
+        (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+            ? _truncatedFeaturePhrase(words)
+            : null);
+  }
+
+  static String? _truncatedFeaturePhrase(List<String> words) {
+    String? truncatedPhrase;
+    String? truncatedIntent;
+    for (final intent in _featurePhraseIntents) {
+      for (final phrase
+          in MasterNavigationContract.phrases[intent] ?? const <String>[]) {
+        final approved = _normalize(phrase).split(' ');
+        if (approved.length <= words.length) continue;
+        var matches = true;
+        for (var index = 0; index < words.length && matches; index += 1) {
+          matches = words[index] == approved[index];
+        }
+        if (!matches) continue;
+        if (truncatedIntent != null && truncatedIntent != intent) return null;
+        truncatedPhrase ??= phrase;
+        truncatedIntent = intent;
+      }
+    }
+    return truncatedPhrase;
   }
 
   static bool _isNearSyllable(String heard, String approved) {
@@ -2016,6 +2089,9 @@ class MainVoiceAssistantFlow {
       _containsPhrase(normalized, 'yeu thich');
 
   static VoiceVocabularyTarget? _vocabularyTarget(String normalized) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      return VoiceNavigationIntentResolver.directVocabularyTarget(normalized);
+    }
     if (MasterNavigationContract.matches('OPEN_PARENT', normalized)) {
       return VoiceVocabularyTarget.parent;
     }

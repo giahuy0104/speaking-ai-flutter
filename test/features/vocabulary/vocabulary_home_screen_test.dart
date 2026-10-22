@@ -12,6 +12,7 @@ import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_intent_resolver.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_audio_service.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_fixed_prompt_audio_service.dart';
@@ -171,6 +172,72 @@ void main() {
     expect(audio.spoken, isEmpty);
     expect(prompts.spokenTexts, isEmpty);
   });
+
+  test(
+    'unattached vocabulary navigation reports a missing destination',
+    () async {
+      final navigation = VocabularyHomeNavigationController();
+      expect(navigation.isAttached, isFalse);
+      await expectLater(
+        navigation.openVoiceTarget(VoiceVocabularyTarget.star),
+        throwsStateError,
+      );
+    },
+  );
+
+  testWidgets(
+    'MAIN does not resume an idle vocabulary menu after Stop',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: MaterialApp(
+            theme: buildAppTheme(),
+            home: DisplayLanguageScope(
+              language: DisplayLanguage.vietnamese,
+              child: VocabularyHomeScreen(
+                isReady: true,
+                isActive: true,
+                store: _MemoryVocabularyStore(),
+                mediaService: _ImmediateLessonMediaService(),
+                voicePromptService: _RecordingVoicePromptService(),
+                fixedPromptAudioService:
+                    const _UnavailableFixedPromptAudioService(),
+                onReturnToConversation: () {},
+                onHistory: () {},
+                onSettings: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect(
+        (await registry.execute(ActiveLearningCommand.stop)).wasHandled,
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+      expect(registry.isActiveModulePaused, isFalse);
+
+      expect(
+        (await registry.execute(
+          ActiveLearningCommand.vocabularyStars,
+        )).wasHandled,
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect(registry.isActiveModulePaused, isTrue);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
 
   for (final command in <ActiveLearningCommand>[
     ActiveLearningCommand.vocabularyParentAdded,
@@ -2096,7 +2163,7 @@ void main() {
 
     expect(registry.activeKind, ActiveLearningModuleKind.vocabulary);
     await registry.pauseForMainAssistant();
-    expect(registry.isActiveModulePaused, isTrue);
+    expect(registry.isActiveModulePaused, isFalse);
 
     final review = await registry.execute(
       ActiveLearningCommand.vocabularyPracticeAgain,
@@ -2110,6 +2177,66 @@ void main() {
     expect(stars.wasHandled, isTrue);
     expect(find.text('Ngôi sao của bạn'), findsOneWidget);
   });
+
+  testWidgets(
+    'iOS MAIN Review acknowledges navigation before practice closes',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final store = _MemoryVocabularyStore([
+        VocabularyEntry(
+          id: 'merge-review-word',
+          word: 'Banana',
+          meaning: 'Chuối',
+          addedAt: DateTime(2026, 10, 22),
+          status: VocabularyLearningStatus.needsPractice,
+          source: VocabularySource.topicCore,
+        ),
+      ]);
+      await tester.pumpWidget(
+        MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
+          theme: buildAppTheme(),
+          home: ActiveLearningModuleScope(
+            registry: registry,
+            child: DisplayLanguageScope(
+              language: DisplayLanguage.vietnamese,
+              child: VocabularyHomeScreen(
+                isReady: true,
+                isActive: true,
+                store: store,
+                mediaService: _ImmediateLessonMediaService(),
+                voicePromptService: const _FakeVoicePromptService(),
+                onReturnToConversation: () {},
+                onHistory: () {},
+                onSettings: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      bool? handled;
+      unawaited(
+        registry
+            .execute(ActiveLearningCommand.vocabularyPracticeAgain)
+            .then((result) => handled = result.wasHandled),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      expect(
+        handled,
+        isTrue,
+        reason: 'MAIN must be released while the practice route remains open',
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      // Let the in-progress sample pause observe that the route was disposed.
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
 
   testWidgets('touch playback ends a pending MAIN voice choice', (
     tester,

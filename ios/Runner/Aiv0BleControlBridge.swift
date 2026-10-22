@@ -388,6 +388,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   private var scanTimeoutWorkItem: DispatchWorkItem?
   private var connectTimeoutWorkItem: DispatchWorkItem?
   private var reconnectWorkItem: DispatchWorkItem?
+  private var systemReconnectWatchdogWorkItem: DispatchWorkItem?
   private var deferredRecoveryWorkItem: DispatchWorkItem?
   private var notificationRefreshWorkItem: DispatchWorkItem?
   private var notificationRefreshTimeoutWorkItem: DispatchWorkItem?
@@ -407,6 +408,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   private var invalidPacketCount = 0
   private var remoteControlObservationCount = 0
   private var remoteMainCommandsEnabled = false
+  private let remoteMainListening = IOSNativeWorkFlag()
   private var remoteCommandRegistrations: [RemoteCommandRegistration] = []
   private var controlLearningActive = false
   private var controlDiagnosticsActive = false
@@ -423,6 +425,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   private var manualDisconnect = UserDefaults.standard.bool(
     forKey: Aiv0BleControlBridge.manualDisconnectPreference
   )
+  private var transportBridgingEnabled = false
   private var disposed = false
 
   init(
@@ -439,9 +442,9 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       binaryMessenger: messenger
     )
     super.init()
-    methodChannel.setMethodCallHandler { [weak self] call, result in
+    methodChannel.setMethodCallHandler(IOSNativeWork.handler { [weak self] call, result in
       self?.handle(call, result: result)
-    }
+    })
     eventChannel.setStreamHandler(self)
     // Creating the manager with the same restoration identifier lets iOS
     // return a previously connected H20 after a system-initiated relaunch.
@@ -488,6 +491,8 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     }
     switch call.method {
     case "initialize":
+      let arguments = call.arguments as? [String: Any]
+      transportBridgingEnabled = arguments?["enableTransportBridging"] as? Bool ?? false
       // Do not instantiate CBCentralManager here. iOS may show its Bluetooth
       // prompt at that point; the app first presents the parental disclosure.
       result(snapshot())
@@ -579,7 +584,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     if let central { return central }
     let manager = CBCentralManager(
       delegate: self,
-      queue: .main,
+      queue: IOSNativeWork.queue,
       options: [
         CBCentralManagerOptionShowPowerAlertKey: true,
         CBCentralManagerOptionRestoreIdentifierKey:
@@ -623,8 +628,10 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       result(false)
       return
     }
-    UIApplication.shared.open(url, options: [:]) { opened in
-      result(opened)
+    DispatchQueue.main.async {
+      UIApplication.shared.open(url, options: [:]) { opened in
+        result(opened)
+      }
     }
   }
 
@@ -667,7 +674,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     )
     let workItem = DispatchWorkItem { [weak self] in self?.finishScan() }
     scanTimeoutWorkItem = workItem
-    DispatchQueue.main.asyncAfter(
+    IOSNativeWork.queue.asyncAfter(
       deadline: .now() + .milliseconds(timeoutMilliseconds),
       execute: workItem
     )
@@ -907,7 +914,9 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     connectTimeoutWorkItem?.cancel()
     let item = DispatchWorkItem { [weak self] in
       guard let self, self.pendingConnectResult != nil else { return }
-      if let peripheral = self.connectedPeripheral {
+      // A still-pending connect request has no CoreBluetooth timeout and may
+      // legitimately wait for the headset; only report this attempt as failed.
+      if let peripheral = self.connectedPeripheral, peripheral.state != .connecting {
         self.requestPeripheralDisconnect(
           peripheral,
           caller: "Aiv0BleControlBridge.connectTimeout",
@@ -920,7 +929,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       self.failPendingConnect(code: "CONNECT_TIMEOUT", message: self.message!)
     }
     connectTimeoutWorkItem = item
-    DispatchQueue.main.asyncAfter(deadline: .now() + 15, execute: item)
+    IOSNativeWork.queue.asyncAfter(deadline: .now() + 15, execute: item)
   }
 
   private func completeConnection() {
@@ -942,20 +951,75 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     result?(FlutterError(code: code, message: message, details: nil))
   }
 
+  /// CoreBluetooth drops every connection and pending request when the adapter
+  /// leaves poweredOn and does not promise a disconnect callback. Clear all
+  /// per-link state, keeping only the saved peripheral for the poweredOn retry.
+  private func resetForUnavailableAdapter() {
+    connectTimeoutWorkItem?.cancel()
+    connectTimeoutWorkItem = nil
+    cancelReconnectTasks()
+    reconnectAttempt = 0
+    failPendingConnect(code: "BLUETOOTH_DISABLED", message: "Bluetooth đang tắt.")
+    pendingWriteResult?(FlutterError(code: "BLUETOOTH_DISABLED", message: "Bluetooth đang tắt.", details: nil))
+    pendingWriteResult = nil
+    resetCharacteristics()
+  }
+
   private func connectPeripheral(_ peripheral: CBPeripheral, using manager: CBCentralManager) {
+    var options: [String: Any] = [:]
+    if transportBridgingEnabled {
+      options[CBConnectPeripheralOptionEnableTransportBridgingKey] = true
+    }
     if #available(iOS 17.0, *) {
       // H20 can drop BLE GATT while Classic Bluetooth HFP renegotiates. Keep
       // recovery owned by CoreBluetooth instead of a Flutter screen lifecycle.
-      manager.connect(
-        peripheral,
-        options: [CBConnectPeripheralOptionEnableAutoReconnect: true]
-      )
-      return
+      options[CBConnectPeripheralOptionEnableAutoReconnect] = true
     }
-    manager.connect(peripheral, options: nil)
+    manager.connect(peripheral, options: options.isEmpty ? nil : options)
+  }
+
+  private func scheduleSystemReconnectWatchdog(_ peripheral: CBPeripheral) {
+    systemReconnectWatchdogWorkItem?.cancel()
+    let item = DispatchWorkItem { [weak self, weak peripheral] in
+      guard let self, let peripheral,
+        !self.manualDisconnect, !self.disposed,
+        self.connectedPeripheral?.identifier == peripheral.identifier,
+        !(self.phase == "connected" && peripheral.state == .connected)
+      else { return }
+      self.systemReconnectWatchdogWorkItem = nil
+      self.audioSessionCoordinator.trace(
+        stage: "ble_system_reconnect_stalled",
+        caller: "Aiv0BleControlBridge",
+        values: ["peripheralState": String(describing: peripheral.state)]
+      )
+      if peripheral.state == .connected {
+        self.deferredReconnectPeripheral = peripheral
+        self.resumeDeferredBluetoothRecovery()
+        return
+      }
+      // Stop the system-owned pending request before starting the app's
+      // bounded reconnect. CoreBluetooth may report its cancellation later.
+      self.requestPeripheralDisconnect(
+        peripheral,
+        caller: "Aiv0BleControlBridge.systemReconnectWatchdog",
+        code: "system_reconnect_stalled"
+      )
+      IOSNativeWork.queue.asyncAfter(deadline: .now() + 0.5) { [weak self, weak peripheral] in
+        guard let self, let peripheral,
+          !self.manualDisconnect, !self.disposed,
+          self.connectedPeripheral?.identifier == peripheral.identifier,
+          peripheral.state != .connected
+        else { return }
+        self.scheduleReconnect(peripheral)
+      }
+    }
+    systemReconnectWatchdogWorkItem = item
+    IOSNativeWork.queue.asyncAfter(deadline: .now() + 20, execute: item)
   }
 
   private func scheduleReconnect(_ peripheral: CBPeripheral) {
+    systemReconnectWatchdogWorkItem?.cancel()
+    systemReconnectWatchdogWorkItem = nil
     if shouldDeferBluetoothReconnect() {
       deferredReconnectPeripheral = peripheral
       phase = "reconnecting"
@@ -1039,12 +1103,14 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       // waiting for H20 instead of giving up until Parent settings is opened.
     }
     reconnectWorkItem = item
-    DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: item)
+    IOSNativeWork.queue.asyncAfter(deadline: .now() + delay, execute: item)
   }
 
   private func cancelReconnectTasks() {
     reconnectWorkItem?.cancel()
     reconnectWorkItem = nil
+    systemReconnectWatchdogWorkItem?.cancel()
+    systemReconnectWatchdogWorkItem = nil
     deferredRecoveryWorkItem?.cancel()
     deferredRecoveryWorkItem = nil
     deferredReconnectPeripheral = nil
@@ -1082,7 +1148,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       self.resumeDeferredBluetoothRecovery()
     }
     deferredRecoveryWorkItem = item
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: item)
+    IOSNativeWork.queue.asyncAfter(deadline: .now() + 0.25, execute: item)
   }
 
   private func resumeDeferredBluetoothRecovery() {
@@ -1166,7 +1232,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     notificationRefreshWorkItem = item
     // Coalesce repeated CoreBluetooth recovery callbacks. This delay is not
     // coupled to AVAudioSession and never toggles a healthy subscription.
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: item)
+    IOSNativeWork.queue.asyncAfter(deadline: .now() + 0.5, execute: item)
   }
 
   private func scheduleMainNotificationRefreshTimeout(_ peripheral: CBPeripheral) {
@@ -1201,7 +1267,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       }
     }
     notificationRefreshTimeoutWorkItem = item
-    DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: item)
+    IOSNativeWork.queue.asyncAfter(deadline: .now() + 2, execute: item)
   }
 
   private func refreshMainNotificationSubscription() {
@@ -1362,7 +1428,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       let token = NotificationCenter.default.addObserver(
         forName: name,
         object: nil,
-        queue: .main
+        queue: IOSNativeWork.operationQueue
       ) { [weak self] notification in
         guard let self, !self.disposed else { return }
         if notification.name == AVAudioSession.interruptionNotification,
@@ -1377,7 +1443,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     let token = NotificationCenter.default.addObserver(
       forName: UIApplication.willResignActiveNotification,
       object: nil,
-      queue: .main
+      queue: IOSNativeWork.operationQueue
     ) { [weak self] _ in
       self?.setRemoteMainCommandsEnabled(false, reason: "application_inactive")
     }
@@ -1393,7 +1459,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
 
   private func shouldReceiveRemoteControls() -> Bool {
     !disposed && !controlAudioInterrupted && eventSink != nil && H20RemoteControlPolicy.shouldListen(
-      applicationIsActive: UIApplication.shared.applicationState == .active,
+      applicationIsActive: IOSNativeWork.applicationIsActive,
       learningActive: controlLearningActive,
       diagnosticsActive: controlDiagnosticsActive,
       bluetoothPortNames: currentH20BluetoothPortNames()
@@ -1401,20 +1467,25 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   }
 
   private func unregisterRemoteMainCommands() {
-    if remoteMainCommandsEnabled {
-      UIApplication.shared.endReceivingRemoteControlEvents()
-    }
-    for registration in remoteCommandRegistrations {
-      registration.command.isEnabled = false
-      registration.command.removeTarget(registration.target)
+    let wasEnabled = remoteMainCommandsEnabled
+    let registrations = remoteCommandRegistrations
+    IOSNativeWork.onMain {
+      if wasEnabled {
+        UIApplication.shared.endReceivingRemoteControlEvents()
+      }
+      for registration in registrations {
+        registration.command.isEnabled = false
+        registration.command.removeTarget(registration.target)
+      }
     }
     remoteCommandRegistrations.removeAll()
     remoteMainCommandsEnabled = false
+    remoteMainListening.value = false
   }
 
   private func updateRemoteMainCommandAvailability(reason: String) {
-    guard Thread.isMainThread else {
-      DispatchQueue.main.async { [weak self] in
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
         self?.updateRemoteMainCommandAvailability(reason: reason)
       }
       return
@@ -1423,21 +1494,25 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   }
 
   private func setRemoteMainCommandsEnabled(_ enabled: Bool, reason: String) {
-    guard Thread.isMainThread else {
-      DispatchQueue.main.async { [weak self] in
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
         self?.setRemoteMainCommandsEnabled(enabled, reason: reason)
       }
       return
     }
     guard remoteMainCommandsEnabled != enabled else { return }
     remoteMainCommandsEnabled = enabled
-    for registration in remoteCommandRegistrations {
-      registration.command.isEnabled = enabled
-    }
-    if enabled {
-      UIApplication.shared.beginReceivingRemoteControlEvents()
-    } else {
-      UIApplication.shared.endReceivingRemoteControlEvents()
+    remoteMainListening.value = enabled
+    let registrations = remoteCommandRegistrations
+    DispatchQueue.main.async {
+      for registration in registrations {
+        registration.command.isEnabled = enabled
+      }
+      if enabled {
+        UIApplication.shared.beginReceivingRemoteControlEvents()
+      } else {
+        UIApplication.shared.endReceivingRemoteControlEvents()
+      }
     }
     audioSessionCoordinator.trace(
       stage: enabled ? "MAIN_REMOTE_LISTENING_ENABLED" : "MAIN_REMOTE_LISTENING_DISABLED",
@@ -1453,14 +1528,12 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   }
 
   private func handleRemoteMainCommand(name: String) -> MPRemoteCommandHandlerStatus {
-    if Thread.isMainThread {
-      return deliverRemoteMainCommand(name: name) ? .success : .commandFailed
+    // MediaPlayer calls this on the main thread and wants its answer at
+    // once, so the answer comes from the last published listening state.
+    IOSNativeWork.queue.async { [weak self] in
+      _ = self?.deliverRemoteMainCommand(name: name)
     }
-    var delivered = false
-    DispatchQueue.main.sync {
-      delivered = deliverRemoteMainCommand(name: name)
-    }
-    return delivered ? .success : .commandFailed
+    return remoteMainListening.value ? .success : .commandFailed
   }
 
   private func deliverRemoteMainCommand(name: String) -> Bool {
@@ -1549,18 +1622,25 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   }
 
   func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
-    eventSink = events
-    updateRemoteMainCommandAvailability(reason: "event_listener_attached")
-    events(snapshot())
-    for event in pendingButtonEvents.drain() {
-      events(event)
+    let events = IOSNativeWork.mainSink(events)
+    IOSNativeWork.queue.async { [weak self] in
+      guard let self else { return }
+      self.eventSink = events
+      self.updateRemoteMainCommandAvailability(reason: "event_listener_attached")
+      events(self.snapshot())
+      for event in self.pendingButtonEvents.drain() {
+        events(event)
+      }
     }
     return nil
   }
 
   func onCancel(withArguments arguments: Any?) -> FlutterError? {
-    eventSink = nil
-    setRemoteMainCommandsEnabled(false, reason: "event_listener_detached")
+    IOSNativeWork.queue.async { [weak self] in
+      guard let self else { return }
+      self.eventSink = nil
+      self.setRemoteMainCommandsEnabled(false, reason: "event_listener_detached")
+    }
     return nil
   }
 
@@ -1607,8 +1687,12 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     }
     controlNotificationTokens.removeAll()
     unregisterRemoteMainCommands()
-    methodChannel.setMethodCallHandler(nil)
-    eventChannel.setStreamHandler(nil)
+    let methodChannel = methodChannel
+    let eventChannel = eventChannel
+    IOSNativeWork.onMain {
+      methodChannel.setMethodCallHandler(nil)
+      eventChannel.setStreamHandler(nil)
+    }
     central?.delegate = nil
     central = nil
   }
@@ -1682,8 +1766,20 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
   }
 
   func centralManagerDidUpdateState(_ central: CBCentralManager) {
+    audioSessionCoordinator.trace(
+      stage: "ble_central_state",
+      caller: "Aiv0BleControlBridge.centralManagerDidUpdateState",
+      message: String(describing: central.state),
+      values: ["peripheralState": connectedPeripheral.map { String(describing: $0.state) } ?? "unavailable"]
+    )
     switch central.state {
     case .poweredOn:
+      // Peripheral objects from before a Bluetooth off/on are not guaranteed valid.
+      if let saved = connectedPeripheral,
+         let fresh = central.retrievePeripherals(withIdentifiers: [saved.identifier]).first {
+        connectedPeripheral = fresh
+        fresh.delegate = self
+      }
       if let restoredPeripheral = connectedPeripheral,
          stateCharacteristic == nil,
          restoredPeripheral.state == .disconnected {
@@ -1708,6 +1804,7 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
         message = nil
       }
     case .poweredOff:
+      resetForUnavailableAdapter()
       phase = "error"
       message = "Bluetooth đang tắt."
     case .unauthorized:
@@ -1717,6 +1814,7 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
       phase = "disabled"
       message = "Thiết bị iOS không hỗ trợ BLE."
     case .resetting:
+      resetForUnavailableAdapter()
       phase = "idle"
       message = "Bluetooth đang khởi động lại…"
     case .unknown:
@@ -1769,6 +1867,8 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
       return
     }
     peripheral.delegate = self
+    systemReconnectWatchdogWorkItem?.cancel()
+    systemReconnectWatchdogWorkItem = nil
     phase = "connecting"
     message = "Đang xác minh dịch vụ BLE Control…"
     lastNotificationRecovery = "connected • peripheral=\(peripheral.state) • notify=discovering"
@@ -1890,6 +1990,12 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
         caller: "Aiv0BleControlBridge"
       )
       emitStatus()
+      if peripheral.state == .connected {
+        deferredReconnectPeripheral = peripheral
+        resumeDeferredBluetoothRecovery()
+      } else {
+        scheduleSystemReconnectWatchdog(peripheral)
+      }
     case .scheduleManualReconnect:
       scheduleReconnect(peripheral)
     }

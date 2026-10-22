@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ai_speaking_flutter_app/presentation/device/device_bloc.dart';
+import 'package:ai_speaking_flutter_app/domain/device/device_connection.dart';
 
 import 'package:ai_speaking_flutter_app/app/ai_speaking_app.dart';
 import 'package:ai_speaking_flutter_app/core/device/device_connection_coordinator.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_screen.dart';
 import 'package:ai_speaking_flutter_app/features/onboarding/presentation/startup_setup_screen.dart';
 import 'package:ai_speaking_flutter_app/features/settings/presentation/settings_sheet.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -17,6 +21,90 @@ import '../support/onboarding_actions.dart';
 void main() {
   final android = TargetPlatformVariant({TargetPlatform.android});
 
+  for (final useService in [true, false]) {
+    testWidgets(
+      'onboarding connection succeeds with verified MAIN and HFP; service=$useService',
+      (tester) async {
+        final app = await _pumpApp(
+          tester,
+          setupCompleted: false,
+          useService: useService,
+        );
+        app.scanDevices = [
+          {
+            'id': _NativeApp.deviceId,
+            'name': 'HM-D001',
+            'rssi': -30,
+            'advertisesControlService': true,
+          },
+        ];
+        app.bleConnect = () async {
+          app.bleConnected = true;
+          return app.bleStatus;
+        };
+        app.hfpDevices = [
+          {'id': _NativeApp.deviceId, 'name': 'HM-D001', 'isConnected': true},
+        ];
+        app.hfpConnectSucceeds = true;
+        expect(
+          find.byType(BlocConsumer<DeviceBloc, DeviceState>),
+          useService ? findsOneWidget : findsNothing,
+        );
+        final result = tester
+            .widget<StartupSetupScreen>(find.byType(StartupSetupScreen))
+            .onSetupH20();
+        await _drainConnectionRound(tester);
+        expect(await result, isTrue);
+        final screen = tester.widget<StartupSetupScreen>(
+          find.byType(StartupSetupScreen),
+        );
+        expect(screen.h20BleConnected, isTrue);
+        expect(screen.h20HfpConfigured, isTrue);
+        expect(
+          app.hfpCalls.where((c) => c.method == 'startAudioRoute'),
+          isEmpty,
+        );
+        if (useService) {
+          final bloc = BlocProvider.of<DeviceBloc>(
+            tester.element(find.byType(StartupSetupScreen)),
+          );
+          expect(bloc.state.stage, DeviceStage.ready);
+          expect(bloc.state.snapshot.routeActive, isFalse);
+        }
+        expect(tester.takeException(), isNull);
+      },
+      variant: TargetPlatformVariant({
+        TargetPlatform.android,
+        TargetPlatform.iOS,
+      }),
+    );
+  }
+
+  testWidgets(
+    'new onboarding cancellation during audio inventory cannot start late BLE scan',
+    (tester) async {
+      final app = await _pumpApp(tester, setupCompleted: false);
+      final inventory = Completer<List<Map<String, Object?>>>();
+      app.hfpFind = () => inventory.future;
+      final screen = tester.widget<StartupSetupScreen>(
+        find.byType(StartupSetupScreen),
+      );
+      final pending = screen.onSetupH20();
+      for (var i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      final cancellation = screen.onCancelH20Setup!();
+      await tester.pump();
+      await cancellation;
+      inventory.complete([]);
+      await _drainConnectionRound(tester);
+      expect(await pending, isFalse);
+      expect(app.count('scan'), 0);
+      expect(app.hfpCalls.where((c) => c.method == 'connect'), isEmpty);
+    },
+    variant: android,
+  );
+
   testWidgets(
     'failed MAIN connection never opens or connects a microphone',
     (tester) async {
@@ -25,12 +113,18 @@ void main() {
         {'id': 'headset-1', 'name': 'HM-D001', 'isConnected': true},
       ];
       await _openPermissionStep(tester);
-      await tester.tap(find.byKey(const Key('startup-setup-h20')));
+      await _tapConnectHomi(tester);
       await _drainConnectionRound(tester);
       expect(app.count('scan'), greaterThan(0));
       expect(find.text('Chọn micro HOMI'), findsNothing);
       expect(app.hfpCalls.where((call) => call.method == 'connect'), isEmpty);
-      expect(find.text('Chưa tìm thấy HOMI'), findsOneWidget);
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        expect(find.text('Còn một bước kết nối'), findsOneWidget);
+        expect(find.text('Ghép đôi Bluetooth'), findsOneWidget);
+        expect(find.text('Tiếp tục kết nối'), findsOneWidget);
+      } else {
+        expect(find.textContaining('Chưa kết nối'), findsWidgets);
+      }
       expect(tester.takeException(), isNull);
     },
     variant: TargetPlatformVariant({
@@ -61,8 +155,8 @@ void main() {
         {'id': 'other-mic', 'name': 'Tai nghe Bluetooth', 'isConnected': false},
       ];
       await _openPermissionStep(tester);
-      await tester.tap(find.byKey(const Key('startup-setup-h20')));
-      for (var i = 0; i < 8; i++) {
+      await _tapConnectHomi(tester);
+      for (var i = 0; i < 30; i++) {
         await tester.pump(const Duration(milliseconds: 200));
       }
       expect(app.count('connect'), 1);
@@ -433,6 +527,94 @@ void main() {
   );
 
   testWidgets(
+    'Settings can discover and pair a new Classic HOMI through the shared retry action',
+    (tester) async {
+      final app = await _pumpApp(tester);
+      app.classicDevices = [
+        {'id': _NativeApp.deviceId, 'name': 'HM-D001', 'rssi': -35},
+      ];
+      app.scanDevicesAfterBond = app.classicDevices;
+      app.bleConnect = () async {
+        app.bleConnected = true;
+        return app.bleStatus;
+      };
+      await app.openSettings();
+      app.bleCalls.clear();
+      final connect = find.byKey(const Key('settings-homi-connect'));
+      await tester.ensureVisible(connect);
+      await tester.tap(connect);
+      await _drainConnectionRound(tester);
+
+      expect(app.count('scanClassic'), 1);
+      expect(app.count('requestDualModeBond'), 1);
+      expect(app.count('connect'), 1);
+      final sheet = tester.widget<SettingsSheet>(find.byType(SettingsSheet));
+      expect(sheet.controller.aiv0BleStatus.isConnected, isTrue);
+      expect(sheet.connectionCoordinator!.phase, DeviceConnectionPhase.failed);
+      expect(sheet.controller.h20ConnectionState().isH20Ready, isFalse);
+    },
+    variant: android,
+  );
+
+  testWidgets(
+    'first setup guides system pairing and connects MAIN after returning',
+    (tester) async {
+      final app = await _pumpApp(tester, setupCompleted: false);
+      app.classicDevices = [
+        {'id': _NativeApp.deviceId, 'name': 'HM-D001', 'rssi': -35},
+      ];
+      app.bleConnect = () async {
+        app.bleConnected = true;
+        return app.bleStatus;
+      };
+      await _openPermissionStep(tester);
+      final setupH20 = find.byKey(const Key('startup-setup-h20'));
+      await tester.ensureVisible(setupH20);
+      await tester.tap(setupH20);
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('homi-pairing-guide')), findsOneWidget);
+      expect(find.text('HM-D001'), findsWidgets);
+      expect(app.count('scan'), 0);
+      final openSettings = find.byKey(const Key('homi-pairing-open-settings'));
+      await tester.ensureVisible(openSettings);
+      await tester.tap(openSettings);
+      await tester.pumpAndSettle();
+      expect(app.count('openBluetoothSettings'), 1);
+      expect(find.byKey(const Key('homi-pairing-guide')), findsNothing);
+
+      // The parent pairs HM-D001 in system settings, then returns.
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      app.hfpDevices = [
+        {'id': _NativeApp.deviceId, 'name': 'HM-D001', 'isConnected': true},
+      ];
+      app.scanDevices = [
+        {
+          'id': _NativeApp.deviceId,
+          'name': 'HM-D001',
+          'rssi': -35,
+          'advertisesControlService': true,
+        },
+      ];
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await _drainConnectionRound(tester);
+
+      final screen = tester.widget<StartupSetupScreen>(
+        find.byType(StartupSetupScreen),
+      );
+      expect(screen.h20BleConnected, isTrue);
+      expect(app.count('connect'), 1);
+      expect(app.count('scanClassic'), 0);
+      expect(app.count('requestDualModeBond'), 0);
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
     'real first-setup callback rejects MAIN-only readiness without a blocking guidance popup',
     (tester) async {
       final app = await _pumpApp(
@@ -473,18 +655,34 @@ void main() {
 }
 
 Future<void> _openPermissionStep(WidgetTester tester) async {
-  await confirmVisibleOnboardingChoices(tester);
   for (var i = 0; i < 2; i++) {
-    await tester.tap(find.byKey(const Key('startup-next')));
+    await confirmVisibleOnboardingChoices(tester);
+    final next = find.byKey(const Key('startup-next'));
+    await tester.ensureVisible(next);
+    await tester.tap(next);
     await tester.pumpAndSettle();
   }
 }
 
+/// Taps "Kết nối HOMI". When HOMI is not paired yet the system pairing guide
+/// opens first; these tests continue as a parent who already paired.
+Future<void> _tapConnectHomi(WidgetTester tester) async {
+  final setupH20 = find.byKey(const Key('startup-setup-h20'));
+  await tester.ensureVisible(setupH20);
+  await tester.tap(setupH20);
+  await tester.pumpAndSettle();
+  final alreadyPaired = find.byKey(const Key('homi-pairing-already-paired'));
+  if (alreadyPaired.evaluate().isNotEmpty) {
+    await tester.ensureVisible(alreadyPaired);
+    await tester.tap(alreadyPaired);
+  }
+}
+
 Future<void> _drainConnectionRound(WidgetTester tester) async {
-  for (var i = 0; i < 14; i++) {
+  for (var i = 0; i < 26; i++) {
     await tester.pump(const Duration(milliseconds: 500));
   }
-  await tester.pumpAndSettle();
+  await tester.pump();
 }
 
 Future<_NativeApp> _pumpApp(
@@ -492,6 +690,7 @@ Future<_NativeApp> _pumpApp(
   String adapterState = 'poweredOn',
   bool bleConnected = false,
   bool setupCompleted = true,
+  bool useService = true,
 }) async {
   tester.view.physicalSize = const Size(390, 844);
   tester.view.devicePixelRatio = 1;
@@ -510,7 +709,9 @@ Future<_NativeApp> _pumpApp(
   );
   app.installChannels();
   addTearDown(app.close);
-  await tester.pumpWidget(const AiSpeakingApp());
+  await tester.pumpWidget(
+    AiSpeakingApp(useDeviceConnectionService: useService),
+  );
   await tester.pumpAndSettle();
   await tester.pump(const Duration(seconds: 15));
   await tester.pumpAndSettle();
@@ -549,15 +750,21 @@ class _NativeApp {
   final hfpCalls = <MethodCall>[];
   List<Map<String, Object?>> hfpDevices = [];
   List<Map<String, Object?>> scanDevices = [];
+  List<Map<String, Object?>> classicDevices = [];
+  List<Map<String, Object?>>? scanDevicesAfterBond;
   Future<Map<String, Object?>> Function()? bleConnect;
+  Future<List<Map<String, Object?>>> Function()? bleScan;
   String adapterState;
   bool bleConnected;
+  bool hfpConnectSucceeds = false;
+  Future<List<Map<String, Object?>>> Function()? hfpFind;
   bool enableAccepted = false;
   bool microphoneGranted = true;
   bool? bluetoothGranted;
   final microphoneCalls = <MethodCall>[];
   Future<bool> Function()? enableRequest;
   Future<bool> Function()? permissionRequest;
+  Future<bool> Function()? bondRequest;
   bool _closed = false;
 
   int count(String method) =>
@@ -590,7 +797,17 @@ class _NativeApp {
         }
         if (name == 'ailingo_hfp_audio') {
           hfpCalls.add(call);
-          if (call.method == 'findDevices') return hfpDevices;
+          if (call.method == 'findDevices') {
+            return hfpFind == null ? hfpDevices : await hfpFind!();
+          }
+          if (call.method == 'connect' && hfpConnectSucceeds) {
+            return {
+              'phase': 'ready',
+              'deviceId': deviceId,
+              'deviceName': 'HM-D001',
+              'routeActive': false,
+            };
+          }
         }
         if (name == 'ailingo_aiv0_ble_control') {
           bleCalls.add(call);
@@ -616,12 +833,17 @@ class _NativeApp {
             case 'connect':
               return await bleConnect?.call() ?? bleStatus;
             case 'requestDualModeBond':
-              return true;
+              return await bondRequest?.call() ?? true;
+            case 'scanClassic':
+              return classicDevices;
             case 'scan':
               if (adapterState != 'poweredOn') {
                 throw PlatformException(code: 'BLUETOOTH_DISABLED');
               }
-              return scanDevices;
+              if (bleScan != null) return await bleScan!();
+              return count('requestDualModeBond') > 0
+                  ? scanDevicesAfterBond ?? scanDevices
+                  : scanDevices;
           }
         }
         return switch (call.method) {

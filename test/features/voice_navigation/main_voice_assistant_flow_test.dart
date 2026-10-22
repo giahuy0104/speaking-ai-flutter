@@ -7,6 +7,7 @@ import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart'
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_voice_assistant_flow.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_intent_resolver.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
+import 'package:flutter/foundation.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/main_assistant_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_entry.dart';
@@ -1302,10 +1303,7 @@ void main() {
       );
 
       final invalid = await flow.handle('Chủ đề 11');
-      expect(
-        invalid.promptText,
-        'Bạn chọn Chủ đề từ số 1 đến số 10 nhé.',
-      );
+      expect(invalid.promptText, 'Bạn chọn Chủ đề từ số 1 đến số 10 nhé.');
       expect(invalid.continueListening, isTrue);
 
       final selected = await flow.handle('Học lại Chủ đề 2');
@@ -1589,6 +1587,61 @@ void main() {
     expect(replay.navigationAfterPrompt?.lessonNumber, 1);
     expect(replay.navigationAfterPrompt?.relearnLesson, isTrue);
   });
+
+  test(
+    'iOS keeps the full ten-topic choice after a limited topic handoff',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      try {
+        final flow = MainVoiceAssistantFlow(
+          contentLoader: _loadTenTopicContent,
+        );
+        final prompt = flow.beginTopicSelection(
+          childAge: 6,
+          topicNumbers: const <int>[1, 2, 3],
+          completedTopicNumbers: const <int>[],
+          courseCompleted: false,
+        );
+        expect(prompt, 'Có 10 Chủ đề. Bạn muốn chọn Chủ đề số mấy?');
+        final turn = await flow.handle('Topic number four');
+        expect(turn.navigationBeforePrompt?.topicNumber, 4);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    },
+  );
+
+  test(
+    'iOS accepts a partial Home answer and Review during lesson completion',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      try {
+        final home = MainVoiceAssistantFlow()..begin();
+        final partial = await home.handle('Bộ từ');
+        expect(
+          partial.navigationBeforePrompt?.destination ??
+              partial.navigationAfterPrompt?.destination,
+          VoiceNavigationDestination.vocabulary,
+        );
+
+        final lesson = MainVoiceAssistantFlow()
+          ..beginActiveLearning(
+            kind: ActiveLearningModuleKind.listeningLesson,
+            voiceContext: const _CompletionVoiceContext(
+              V4CompletionStage.lessonEnd,
+            ),
+          );
+        expect(lesson.canHandlePartial('Ba mẹ đã thêm'), isTrue);
+        final review = await lesson.handle('Ba mẹ đã thêm');
+        expect(
+          review.navigationAfterPrompt?.vocabularyTarget,
+          VoiceVocabularyTarget.parent,
+        );
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    },
+  );
 }
 
 class _TranslationSourceVoiceContext implements ActiveLearningVoiceContext {

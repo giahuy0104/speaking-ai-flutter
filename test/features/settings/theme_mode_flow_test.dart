@@ -418,7 +418,7 @@ void main() {
 
   testWidgets('H20 settings use one compact shared surface', (tester) async {
     await _usePhoneSurface(tester);
-    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     final controller = ConversationController(
       audioInput: _FakeAudioInput(),
@@ -503,7 +503,7 @@ void main() {
   testWidgets('device settings keep diagnostics out of the parent view', (
     tester,
   ) async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     final controller = ConversationController(
       audioInput: _FakeAudioInput(),

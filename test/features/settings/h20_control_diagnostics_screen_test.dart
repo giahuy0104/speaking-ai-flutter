@@ -52,7 +52,10 @@ void main() {
       await tester.tap(section);
       await tester.pumpAndSettle();
       final button = find.byKey(const Key('open-h20-control-diagnostics'));
-      expect(button, findsNothing);
+      expect(
+        button,
+        platform == TargetPlatform.iOS ? findsOneWidget : findsNothing,
+      );
       expect(find.byType(H20ControlDiagnosticsScreen), findsNothing);
       expect(fixture.controls.diagnosticsActive, isFalse);
       expect(fixture.controls.executeTests, isFalse);

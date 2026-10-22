@@ -7,6 +7,16 @@ const aiv0ControlServiceUuid = '9E3B0001-4A7C-4D6F-8B21-5C17A2D94010';
 const aiv0ButtonEventUuid = '9E3B0002-4A7C-4D6F-8B21-5C17A2D94010';
 const aiv0AppStateUuid = '9E3B0003-4A7C-4D6F-8B21-5C17A2D94010';
 
+/// Optional onboarding hook. Bonding does not imply that an audio profile is
+/// connected. Returns only identities verified by a fresh profile inventory.
+/// Legacy callers keep their existing behavior when this hook is absent.
+typedef Aiv0PairingVerifier =
+    Future<List<String>> Function(
+      String deviceId,
+      bool bonded, {
+      required bool waitForProfile,
+    });
+
 enum Aiv0BlePhase {
   disabled,
   idle,
@@ -625,6 +635,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     );
     final map = await _methodChannel.invokeMapMethod<Object?, Object?>(
       'initialize',
+      <String, Object?>{'enableTransportBridging': _dualModePairingEnabled},
     );
     if (map != null && generation == _connectionGeneration) _updateStatus(map);
   }
@@ -795,9 +806,17 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
   @override
   Future<List<Aiv0BleDevice>> scan({
     Duration timeout = const Duration(seconds: 8),
-  }) => _scan(timeout, _connectionGeneration);
+  }) => _scan(
+    timeout,
+    _connectionGeneration,
+    foreground: defaultTargetPlatform == TargetPlatform.android,
+  );
 
-  Future<List<Aiv0BleDevice>> _scan(Duration timeout, int generation) async {
+  Future<List<Aiv0BleDevice>> _scan(
+    Duration timeout,
+    int generation, {
+    bool foreground = false,
+  }) async {
     if (!_enabled) return const [];
     await _connectionStep(generation, initialize);
     final permissionGranted = await _connectionStep(
@@ -814,6 +833,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
       generation,
       () => _methodChannel.invokeListMethod<Object?>('scan', <String, Object?>{
         'timeoutMs': timeout.inMilliseconds,
+        if (foreground) 'foreground': true,
       }),
     );
     return (devices ?? const [])
@@ -849,8 +869,14 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
       ),
     );
     // Android returns the verified GATT/MAIN Notify snapshot with the connect
-    // result. Its EventChannel update may arrive after setup checks BLE state.
-    if (connectedStatus != null) _updateStatus(connectedStatus);
+    // result. iOS returns null, so read its current snapshot explicitly.
+    final statusSnapshot =
+        connectedStatus ??
+        await _connectionStep(
+          generation,
+          () => _methodChannel.invokeMapMethod<Object?, Object?>('status'),
+        );
+    if (statusSnapshot != null) _updateStatus(statusSnapshot);
     final preferences = await _connectionStep(
       generation,
       SharedPreferences.getInstance,
@@ -878,6 +904,8 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     bool requestBond = false,
     Iterable<String> connectedHfpDeviceIds = const <String>[],
     bool forceScan = false,
+    bool userInitiated = false,
+    Aiv0PairingVerifier? verifyPairing,
     String? onlyDeviceId,
   }) {
     if (!_enabled || _manualDisconnectRequested) {
@@ -890,8 +918,12 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
           scanTimeout,
           generation: _connectionGeneration,
           requestBond: requestBond && _dualModePairingEnabled,
+          verifyPairing: verifyPairing,
           connectedHfpDeviceIds: connectedHfpDeviceIds.toList(growable: false),
           forceScan: forceScan,
+          foreground:
+              defaultTargetPlatform == TargetPlatform.android &&
+              (userInitiated || requestBond || forceScan),
           onlyDeviceId: onlyDeviceId,
         ).catchError((Object error) {
           if (error is PlatformException &&
@@ -915,13 +947,16 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     required bool requestBond,
     required List<String> connectedHfpDeviceIds,
     required bool forceScan,
+    required bool foreground,
+    Aiv0PairingVerifier? verifyPairing,
     String? onlyDeviceId,
   }) async {
     await _connectionStep(generation, initialize);
     if (_status.isConnected) return true;
     if (_status.phase == Aiv0BlePhase.scanning ||
         _status.phase == Aiv0BlePhase.connecting ||
-        _status.phase == Aiv0BlePhase.reconnecting) {
+        (_status.phase == Aiv0BlePhase.reconnecting &&
+            defaultTargetPlatform != TargetPlatform.iOS)) {
       return false;
     }
 
@@ -968,6 +1003,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
         await _connectCandidate(
           savedDeviceId.trim(),
           requestBond: requestBond,
+          verifyPairing: verifyPairing,
           generation: generation,
         );
         return true;
@@ -983,7 +1019,13 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
 
     List<Aiv0BleDevice> devices = const [];
     try {
-      devices = await _scan(scanTimeout, generation);
+      devices = await _scan(
+        foreground && scanTimeout < const Duration(seconds: 8)
+            ? const Duration(seconds: 8)
+            : scanTimeout,
+        generation,
+        foreground: foreground,
+      );
     } catch (error) {
       // Radio state can change after the caller's readiness check. End this
       // round quietly; do not try another address while Bluetooth is off.
@@ -994,12 +1036,88 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     }
     _ensureConnectionCurrent(generation);
 
-    final candidate = selectAiv0AutoConnectCandidate(
+    var candidate = selectAiv0AutoConnectCandidate(
       devices,
       savedDeviceId: savedDeviceId,
       savedDeviceName: savedDeviceName,
       connectedHfpDeviceIds: connectedHfpDeviceIds,
     );
+    var pairingAlreadyRequested = false;
+    if (candidate == null &&
+        requestBond &&
+        defaultTargetPlatform == TargetPlatform.android &&
+        connectedHfpDeviceIds.isEmpty) {
+      // First-use HM-D001 can be discoverable over Classic without a usable
+      // BLE name/service. Only a user-requested pairing may run this heavier
+      // search. Background retry cadence and known-device recovery stay BLE-only.
+      try {
+        final classicDevices = await _connectionStep(
+          generation,
+          () => _methodChannel.invokeListMethod<Object?>(
+            'scanClassic',
+            <String, Object?>{'timeoutMs': 15000},
+          ),
+        );
+        final audioCandidate = selectAiv0AutoConnectCandidate(
+          classicDevices
+                  ?.whereType<Map<Object?, Object?>>()
+                  .map(Aiv0BleDevice.fromMap)
+                  .toList() ??
+              const [],
+        );
+        if (audioCandidate != null) {
+          pairingAlreadyRequested = true;
+          final bonded = await _requestSystemPairing(
+            audioCandidate.id,
+            generation,
+          );
+          if (verifyPairing != null) {
+            connectedHfpDeviceIds = await _connectionStep(
+              generation,
+              () => verifyPairing(
+                audioCandidate.id,
+                bonded,
+                waitForProfile: true,
+              ),
+            );
+          }
+          // Classic pairing identifies the audio radio, not the BLE control
+          // address. Rescan after bonding; never open GATT on an address that
+          // has only been observed through Classic discovery.
+          devices = await _scan(
+            const Duration(seconds: 8),
+            generation,
+            foreground: true,
+          );
+          // Profile state can change while Android is scanning. Refresh it
+          // before matching an anonymous BLE advert to the audio identity.
+          if (verifyPairing != null) {
+            connectedHfpDeviceIds = await _connectionStep(
+              generation,
+              () => verifyPairing(
+                audioCandidate.id,
+                bonded,
+                waitForProfile: false,
+              ),
+            );
+          }
+          candidate = selectAiv0AutoConnectCandidate(
+            devices,
+            savedDeviceId: savedDeviceId,
+            savedDeviceName: savedDeviceName,
+            connectedHfpDeviceIds: verifyPairing == null
+                ? [audioCandidate.id]
+                : connectedHfpDeviceIds,
+          );
+        }
+      } catch (error) {
+        _ensureConnectionCurrent(generation);
+        if (error is PlatformException && error.code == 'BLUETOOTH_DISABLED') {
+          rethrow;
+        }
+        debugPrint('First-use HOMI Classic discovery did not complete: $error');
+      }
+    }
     final targetId = candidate?.id;
     if (const bool.fromEnvironment('HOMI_BLE_DIAGNOSTICS') &&
         !kIsWeb &&
@@ -1038,6 +1156,13 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
       }
     }
     if (targetId == null || targetId.isEmpty) {
+      if (pairingAlreadyRequested || connectedHfpDeviceIds.isNotEmpty) {
+        _updateStatus({
+          'phase': 'error',
+          'message':
+              'Đã tìm thấy phần âm thanh HM-D001 nhưng chưa tìm thấy kết nối MAIN qua BLE.',
+        });
+      }
       if (!forceScan &&
           migratingFromH20 &&
           savedDeviceId != null &&
@@ -1046,6 +1171,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
           await _connectCandidate(
             savedDeviceId.trim(),
             requestBond: requestBond,
+            verifyPairing: verifyPairing,
             generation: generation,
           );
           return true;
@@ -1059,16 +1185,15 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     try {
       await _connectCandidate(
         targetId,
-        requestBond: requestBond,
+        requestBond: requestBond && !pairingAlreadyRequested,
+        verifyPairing: verifyPairing,
         generation: generation,
       );
-      if (candidate != null && candidate.name.trim().isNotEmpty) {
+      final candidateName = candidate?.name.trim();
+      if (candidateName != null && candidateName.isNotEmpty) {
         await _connectionStep(
           generation,
-          () => preferences.setString(
-            _lastDeviceNamePreference,
-            candidate.name.trim(),
-          ),
+          () => preferences.setString(_lastDeviceNamePreference, candidateName),
         );
       }
       // Native completes `connect` only after service 9E3B0001 is verified and
@@ -1085,13 +1210,20 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     String deviceId, {
     required bool requestBond,
     required int generation,
+    Aiv0PairingVerifier? verifyPairing,
   }) async {
     _ensureConnectionCurrent(generation);
     if (requestBond && defaultTargetPlatform == TargetPlatform.android) {
       try {
         // A declined bond may still permit the independent MAIN connection.
         // The caller must verify HFP separately before reporting HOMI ready.
-        await _requestSystemPairing(deviceId, generation);
+        final bonded = await _requestSystemPairing(deviceId, generation);
+        if (verifyPairing != null) {
+          await _connectionStep(
+            generation,
+            () => verifyPairing(deviceId, bonded, waitForProfile: true),
+          );
+        }
       } catch (error) {
         debugPrint('H20 system pairing was unavailable: $error');
       }

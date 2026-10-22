@@ -281,46 +281,48 @@ void main() {
     );
   });
 
-  testWidgets('sentence practice matches the approved direction', (
-    tester,
-  ) async {
-    await _usePhoneSurface(tester);
-    mediaService.showExistingRecording = true;
-    await tester.pumpWidget(
-      _GoldenApp(
-        child: LessonPracticeScreen(
-          language: DisplayLanguage.vietnamese,
-          startAge: 3,
-          endAge: 5,
-          topic: listeningCatalogs.first.topics.first,
-          lesson: topicContent.lessons.first,
-          progressStore: progressStore,
-          mediaService: mediaService,
-          guideAudioLibrary: _silentGuideAudioLibrary(),
-          voicePromptService: const _GoldenVoicePromptService(),
+  testWidgets(
+    'sentence practice matches the approved direction',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      mediaService.showExistingRecording = true;
+      await tester.pumpWidget(
+        _GoldenApp(
+          child: LessonPracticeScreen(
+            language: DisplayLanguage.vietnamese,
+            startAge: 3,
+            endAge: 5,
+            topic: listeningCatalogs.first.topics.first,
+            lesson: topicContent.lessons.first,
+            progressStore: progressStore,
+            mediaService: mediaService,
+            guideAudioLibrary: _silentGuideAudioLibrary(),
+            voicePromptService: const _GoldenVoicePromptService(),
+          ),
         ),
-      ),
-    );
-    await _precache(
-      tester,
-      find.byType(LessonPracticeScreen),
-      const <AssetImage>[
-        AssetImage('assets/images/learning-minimal-sky-background.png'),
-        AssetImage('assets/images/mascot/penguin-speak.png'),
-      ],
-    );
-    await tester.pumpAndSettle();
+      );
+      await _precache(
+        tester,
+        find.byType(LessonPracticeScreen),
+        const <AssetImage>[
+          AssetImage('assets/images/learning-minimal-sky-background.png'),
+          AssetImage('assets/images/mascot/penguin-speak.png'),
+        ],
+      );
+      await tester.pumpAndSettle();
 
-    final sampleWaveform = tester.widget<HomiWaveform>(
-      find.byKey(const Key('lesson-sample-waveform')),
-    );
-    expect(sampleWaveform.active, isTrue);
+      final sampleWaveform = tester.widget<HomiWaveform>(
+        find.byKey(const Key('lesson-sample-waveform')),
+      );
+      expect(sampleWaveform.active, isTrue);
 
-    await expectLater(
-      find.byType(LessonPracticeScreen),
-      matchesGoldenFile('goldens/lesson-practice-390x844.png'),
-    );
-  });
+      await expectLater(
+        find.byType(LessonPracticeScreen),
+        matchesGoldenFile('goldens/lesson-practice-390x844.png'),
+      );
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
 
   testWidgets('friendly reminder popup matches the approved direction', (
     tester,

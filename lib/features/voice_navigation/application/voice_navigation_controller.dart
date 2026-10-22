@@ -149,6 +149,9 @@ class VoiceNavigationController extends ChangeNotifier {
   bool _commandSilenceElapsed = false;
   bool _commandAnswerComplete = false;
   bool _commandTranscriptSeen = false;
+  bool _commandAnswerHeard = false;
+  bool _commandAnswerEndsEarly = false;
+  bool _commandLongSilenceElapsed = false;
   VoiceNavigationIntentHandler? _intentHandler;
   VoiceNavigationIntentResultHandler? _intentResultHandler;
   final ValueNotifier<int> _iosTopicRecognitionFailureRevision =
@@ -169,6 +172,7 @@ class VoiceNavigationController extends ChangeNotifier {
   bool _awaitingCommand = false;
   bool _acknowledgingWakeWord = false;
   bool _buttonCommandSession = false;
+  ActiveLearningModuleKind? _mainButtonActiveLearningKind;
   bool _mainButtonActivationInProgress = false;
   bool _disposed = false;
   int _generation = 0;
@@ -274,6 +278,9 @@ class VoiceNavigationController extends ChangeNotifier {
       () {
         // Only an explicit MAIN activation releases the stopped-session gate.
         _translationStoppedAwaitingMain = false;
+        _mainButtonActiveLearningKind = activeLearning
+            ? activeLearningKind
+            : null;
         if (activeLearning) {
           return _mainAssistantFlow.beginActiveLearning(
             kind: activeLearningKind,
@@ -565,7 +572,34 @@ class VoiceNavigationController extends ChangeNotifier {
     // A valid transcript starts a new response window at the resulting node.
     _mainNoSpeechRetryCount = 0;
 
-    final navigationBeforePrompt = turn.navigationBeforePrompt;
+    final navigationAfterPrompt = turn.navigationAfterPrompt;
+    final prepareModuleBeforePrompt =
+        iosNavigation &&
+        choiceStage == MainVoiceAssistantStage.activeLearning &&
+        _mainButtonActiveLearningKind == ActiveLearningModuleKind.vocabulary &&
+        turn.navigationBeforePrompt == null &&
+        ((navigationAfterPrompt?.destination ==
+                    VoiceNavigationDestination.conversation &&
+                navigationAfterPrompt?.enterMainSpeakingMode == true &&
+                turn.promptSequence.isNotEmpty) ||
+            (navigationAfterPrompt?.destination ==
+                    VoiceNavigationDestination.topics &&
+                turn.promptText.trim().isNotEmpty));
+    final navigationBeforePrompt = prepareModuleBeforePrompt
+        ? VoiceNavigationIntent(
+            destination: navigationAfterPrompt!.destination,
+            recognizedText: navigationAfterPrompt.recognizedText,
+            matchedPhrase: navigationAfterPrompt.matchedPhrase,
+            topicNumber: navigationAfterPrompt.topicNumber,
+            lessonNumber: navigationAfterPrompt.lessonNumber,
+            childAge: navigationAfterPrompt.childAge,
+            openLesson: navigationAfterPrompt.openLesson,
+            relearnTopic: navigationAfterPrompt.relearnTopic,
+            relearnLesson: navigationAfterPrompt.relearnLesson,
+            prepareOnly: true,
+            vocabularyTarget: navigationAfterPrompt.vocabularyTarget,
+          )
+        : turn.navigationBeforePrompt;
     if (navigationBeforePrompt != null) {
       final dispatched = await _dispatchIntent(navigationBeforePrompt);
       if (!dispatched &&
@@ -584,7 +618,9 @@ class VoiceNavigationController extends ChangeNotifier {
       if (_disposed || generation != _generation || !_buttonCommandSession) {
         return false;
       }
-      if (iosNavigation && _mainAssistantFlow.stage == choiceStage) {
+      if (iosNavigation &&
+          turn.navigationAfterPrompt == null &&
+          _mainAssistantFlow.stage == choiceStage) {
         _mainAssistantFlow.reset();
       }
     }
@@ -718,12 +754,10 @@ class VoiceNavigationController extends ChangeNotifier {
         return false;
       }
     }
-    final navigationAfterPrompt = turn.navigationAfterPrompt;
     if (navigationAfterPrompt != null) {
       final dispatched = await _dispatchIntent(navigationAfterPrompt);
       if (!dispatched &&
-          !kIsWeb &&
-          defaultTargetPlatform == TargetPlatform.iOS) {
+          (iosNavigation || navigationAfterPrompt.vocabularyTarget != null)) {
         notifyListeners();
         return false;
       }
@@ -903,32 +937,8 @@ class VoiceNavigationController extends ChangeNotifier {
       notifyListeners();
       return true;
     }
-    try {
-      final readyCuePlayer = _voicePromptService;
-      // Android owns the cue only in _startSession, after speech.ready.
-      // Playing here as well can double the cue in a continuous wake turn.
-      if (defaultTargetPlatform != TargetPlatform.android &&
-          readyCuePlayer is SpeechReadyCuePlayer) {
-        AudioDiagnostics.event('main.cue.request', {
-          'generation': generation,
-          'caller': 'acknowledge',
-          'buttonSession': _buttonCommandSession,
-        });
-        // AudioServices completion is not guaranteed to arrive promptly while
-        // iOS is switching a Bluetooth HFP route after prompt playback. Never
-        // let a missing ready-cue callback prevent Apple Speech from opening.
-        await (readyCuePlayer as SpeechReadyCuePlayer)
-            .playSpeechReadyCue()
-            .timeout(_speechReadyCueTimeout);
-      }
-    } catch (error) {
-      if (!_disposed && generation == _generation) {
-        _lastError = error;
-      }
-    }
-    if (_disposed || generation != _generation) {
-      return false;
-    }
+    // The cue plays after speech.ready in _startSession, so iOS does not
+    // invite the child to answer before Apple Speech opens its microphone.
     // Keep the visible prompt state through the ready cue. The previous gap
     // showed an idle "Main" button between the beep and microphone startup,
     // even though the same activation was still in progress.
@@ -1066,10 +1076,18 @@ class VoiceNavigationController extends ChangeNotifier {
 
   Future<bool> _dispatchIntent(VoiceNavigationIntent intent) async {
     final handler = _intentHandler;
-    final resultHandler = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+    final resultHandler =
+        ((!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) ||
+            intent.vocabularyTarget != null)
         ? _intentResultHandler
         : null;
     if ((handler == null && resultHandler == null) || _disposed) {
+      if (!_disposed && intent.vocabularyTarget != null) {
+        _lastError = const StreamingSpeechInputException(
+          'Chưa mở được nội dung Từ vựng. Bạn hãy thử lại.',
+          code: 'NAVIGATION_DESTINATION_UNAVAILABLE',
+        );
+      }
       return false;
     }
     AudioDiagnostics.event('navigation.dispatch', {
@@ -1079,6 +1097,12 @@ class VoiceNavigationController extends ChangeNotifier {
     if (resultHandler != null) {
       try {
         final installed = await resultHandler(intent);
+        if (!installed && intent.vocabularyTarget != null) {
+          _lastError = const StreamingSpeechInputException(
+            'Chưa mở được nội dung Từ vựng. Bạn hãy thử lại.',
+            code: 'NAVIGATION_DESTINATION_UNAVAILABLE',
+          );
+        }
         AudioDiagnostics.event('navigation.handler.completed', {
           'generation': _generation,
           'destination': intent.destination.name,
@@ -1182,9 +1206,7 @@ class VoiceNavigationController extends ChangeNotifier {
         }
         return;
       }
-      if (defaultTargetPlatform == TargetPlatform.android &&
-          _awaitingCommand &&
-          _voicePromptService is SpeechReadyCuePlayer) {
+      if (_awaitingCommand && _voicePromptService is SpeechReadyCuePlayer) {
         try {
           AudioDiagnostics.event('main.cue.request', {
             'generation': generation,
@@ -1491,6 +1513,7 @@ class VoiceNavigationController extends ChangeNotifier {
     if (activity.voiceActive) {
       _commandVoiceSeen = true;
       _commandSilenceElapsed = false;
+      _commandLongSilenceElapsed = false;
       _commandSilenceTimer?.cancel();
       _commandSilenceTimer = null;
       _commandPhraseSilenceTimer?.cancel();
@@ -1513,10 +1536,17 @@ class VoiceNavigationController extends ChangeNotifier {
       _startCommandPhraseSilenceTimer();
     }
     _commandAnswerComplete = _mainAssistantFlow.canEndOnSilence(text);
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      _commandAnswerEndsEarly = _mainAssistantFlow.canEndUnfinishedAnswerEarly(
+        text,
+      );
+      _commandAnswerHeard = true;
+    }
     if (_commandVoiceSeen) {
       // The level already marks the end of speech. Partials trail the audio,
       // so a late one must not restart the quiet window.
-      if (_commandAnswerComplete && _commandSilenceElapsed) {
+      if ((_commandAnswerComplete && _commandSilenceElapsed) ||
+          _commandLongSilenceElapsed) {
         unawaited(_finishSession(_generation));
       }
       return;
@@ -1525,8 +1555,14 @@ class VoiceNavigationController extends ChangeNotifier {
     _commandSilenceTimer?.cancel();
     _commandSilenceTimer = null;
     _commandSilenceElapsed = false;
-    if (_commandAnswerComplete) _startCommandSilenceTimer();
+    _commandLongSilenceElapsed = false;
+    if (_commandAnswerComplete || _endsUnfinishedAnswerOnSilence) {
+      _startCommandSilenceTimer();
+    }
   }
+
+  bool get _endsUnfinishedAnswerOnSilence =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
   void _startCommandSilenceTimer() {
     final generation = _generation;
@@ -1536,6 +1572,16 @@ class VoiceNavigationController extends ChangeNotifier {
       _commandSilenceElapsed = true;
       if (_commandAnswerComplete) {
         unawaited(_finishSession(generation));
+      } else if (_endsUnfinishedAnswerOnSilence) {
+        _commandSilenceTimer = Timer(
+          _commandSilenceEndpoint * (_commandAnswerEndsEarly ? 1 : 2),
+          () {
+            _commandSilenceTimer = null;
+            if (_disposed || generation != _generation || !_listening) return;
+            _commandLongSilenceElapsed = true;
+            if (_commandAnswerHeard) unawaited(_finishSession(generation));
+          },
+        );
       }
     });
   }
@@ -1566,6 +1612,9 @@ class VoiceNavigationController extends ChangeNotifier {
     _commandVoiceSeen = false;
     _commandSilenceElapsed = false;
     _commandAnswerComplete = false;
+    _commandAnswerHeard = false;
+    _commandAnswerEndsEarly = false;
+    _commandLongSilenceElapsed = false;
   }
 
   void _markSpeechActivity() {

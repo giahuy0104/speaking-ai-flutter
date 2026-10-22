@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "pack": "assistant-core",
-  "version": "v2",
+  "version": "v3",
   "enabled": true,
   "prompts": [
     {
@@ -482,7 +482,7 @@
     },
     {
       "key": "assistant.topic.choose_3.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
       "asset": "assets/audio/assistant-core/assistant.topic.choose_3.vi.mp3",
@@ -496,7 +496,7 @@
     },
     {
       "key": "assistant.topic.invalid_3.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Level này có 3 Chủ đề. Bạn chọn lại nhé.",
       "asset": "assets/audio/assistant-core/assistant.topic.invalid_3.vi.mp3",
@@ -510,7 +510,7 @@
     },
     {
       "key": "assistant.topic.choose_4.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Có 4 Chủ đề. Bạn chọn Chủ đề số mấy?",
       "asset": "assets/audio/assistant-core/assistant.topic.choose_4.vi.mp3",
@@ -524,7 +524,7 @@
     },
     {
       "key": "assistant.topic.invalid_4.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Level này có 4 Chủ đề. Bạn chọn lại nhé.",
       "asset": "assets/audio/assistant-core/assistant.topic.invalid_4.vi.mp3",
@@ -580,7 +580,7 @@
     },
     {
       "key": "assistant.level.choose_relearn.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Bạn chọn Level 1, 2, 3 nhé.",
       "asset": "assets/audio/assistant-core/assistant.level.choose_relearn.vi.mp3",
@@ -822,7 +822,7 @@
       "locale": "vi-VN",
       "text": "Được rồi. HOMI nói mẫu nhé.",
       "asset": "assets/audio/assistant-core/listening.feedback.age.homi_model_after_skip.vi.mp3",
-      "durationSeconds": 2.0,
+      "durationSeconds": 2,
       "sha256": "bd60ee48d1f1c7e8bff03c468c199eb9c86799b6d7f830edf8eb819171802878",
       "sizeBytes": 33062,
       "textHash": "c88f32cfbd842e87a4c633eb5a802a78560bd16807693a36e3006559262ec933",
@@ -1098,7 +1098,7 @@
     },
     {
       "key": "assistant.level.choose_course_relearn.vi",
-      "enabled": true,
+      "enabled": false,
       "locale": "vi-VN",
       "text": "Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?",
       "asset": "assets/audio/assistant-core/assistant.level.choose_course_relearn.vi.mp3",

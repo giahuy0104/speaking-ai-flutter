@@ -27,12 +27,19 @@ import UserNotifications
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
 
     let messenger = engineBridge.applicationRegistrar.messenger()
-    aiv0BleControlBridge?.dispose()
-    hfpAudioBridge?.dispose()
-    voicePromptBridge?.dispose()
-    speechRecognizerBridge?.dispose()
-    backgroundLearningBridge?.dispose()
-    audioSessionCoordinator?.dispose()
+    IOSNativeWork.observeApplicationState()
+    IOSNativeWork.sync {
+      aiv0BleControlBridge?.dispose()
+      hfpAudioBridge?.dispose()
+      voicePromptBridge?.dispose()
+      speechRecognizerBridge?.dispose()
+      backgroundLearningBridge?.dispose()
+      audioSessionCoordinator?.dispose()
+    }
+    // Flutter channels are registered on the main thread. Nothing may run on
+    // the work queue until the bridges below are wired to each other.
+    IOSNativeWork.queue.suspend()
+    defer { IOSNativeWork.queue.resume() }
     let coordinator = IOSAudioSessionCoordinator()
     audioSessionCoordinator = coordinator
     aiv0BleControlBridge = Aiv0BleControlBridge(
@@ -60,7 +67,7 @@ import UserNotifications
       name: "ailingo_platform",
       binaryMessenger: messenger
     )
-    channel.setMethodCallHandler { [clientIdentityStore, installationCredentialStore] call, result in
+    channel.setMethodCallHandler(IOSNativeWork.handler { [clientIdentityStore, installationCredentialStore] call, result in
       switch call.method {
       case "device.clientId":
         result(clientIdentityStore.getOrCreate())
@@ -100,7 +107,7 @@ import UserNotifications
       default:
         result(FlutterMethodNotImplemented)
       }
-    }
+    })
     platformChannel = channel
   }
 }
