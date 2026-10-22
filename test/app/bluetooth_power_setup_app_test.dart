@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ai_speaking_flutter_app/presentation/device/device_bloc.dart';
+import 'package:ai_speaking_flutter_app/presentation/device/bloc/device_bloc.dart';
 import 'package:ai_speaking_flutter_app/domain/device/device_connection.dart';
 
 import 'package:ai_speaking_flutter_app/app/ai_speaking_app.dart';
@@ -152,7 +152,7 @@ void main() {
         return app.bleStatus;
       };
       app.hfpDevices = [
-        {'id': 'other-mic', 'name': 'Tai nghe Bluetooth', 'isConnected': false},
+        {'id': 'other-mic', 'name': 'Tai nghe Bluetooth', 'isConnected': true},
       ];
       await _openPermissionStep(tester);
       await _tapConnectHomi(tester);
@@ -198,7 +198,7 @@ void main() {
           (index) => {
             'id': 'headset-$index',
             'name': 'Tai nghe Bluetooth $index',
-            'isConnected': false,
+            'isConnected': true,
           },
         );
         await _openPermissionStep(tester);
@@ -557,36 +557,35 @@ void main() {
   );
 
   testWidgets(
-    'first setup guides system pairing and connects MAIN after returning',
+    'first setup connects MAIN before HOMI audio and guides each settings step',
     (tester) async {
       final app = await _pumpApp(tester, setupCompleted: false);
-      app.classicDevices = [
-        {'id': _NativeApp.deviceId, 'name': 'HM-D001', 'rssi': -35},
+      // HOMI audio is already connected, which hides its BLE MAIN advert.
+      app.hfpDevices = [
+        {'id': _NativeApp.deviceId, 'name': 'HM-D001', 'isConnected': true},
       ];
       app.bleConnect = () async {
         app.bleConnected = true;
         return app.bleStatus;
       };
       await _openPermissionStep(tester);
-      final setupH20 = find.byKey(const Key('startup-setup-h20'));
-      await tester.ensureVisible(setupH20);
-      await tester.tap(setupH20);
+      await _tapConnectHomi(tester);
+      await _drainConnectionRound(tester);
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('homi-pairing-guide')), findsOneWidget);
-      expect(find.text('HM-D001'), findsWidgets);
-      expect(app.count('scan'), 0);
-      final openSettings = find.byKey(const Key('homi-pairing-open-settings'));
+      expect(app.count('scan'), greaterThan(0));
+      expect(app.count('connect'), 0);
+      expect(find.byKey(const Key('homi-guide-pause-audio')), findsOneWidget);
+      final openSettings = find.byKey(const Key('homi-guide-open-settings'));
       await tester.ensureVisible(openSettings);
       await tester.tap(openSettings);
       await tester.pumpAndSettle();
       expect(app.count('openBluetoothSettings'), 1);
-      expect(find.byKey(const Key('homi-pairing-guide')), findsNothing);
 
-      // The parent pairs HM-D001 in system settings, then returns.
+      // Parent turns HOMI audio off; MAIN advertises again.
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
       app.hfpDevices = [
-        {'id': _NativeApp.deviceId, 'name': 'HM-D001', 'isConnected': true},
+        {'id': _NativeApp.deviceId, 'name': 'HM-D001', 'isConnected': false},
       ];
       app.scanDevices = [
         {
@@ -598,20 +597,42 @@ void main() {
       ];
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
       await _drainConnectionRound(tester);
+      await tester.pumpAndSettle();
 
-      final screen = tester.widget<StartupSetupScreen>(
+      var screen = tester.widget<StartupSetupScreen>(
         find.byType(StartupSetupScreen),
       );
       expect(screen.h20BleConnected, isTrue);
+      expect(screen.h20HfpConfigured, isFalse);
       expect(app.count('connect'), 1);
+      expect(find.byKey(const Key('homi-guide-enable-audio')), findsOneWidget);
+      final enableAudioSettings = find.byKey(
+        const Key('homi-guide-open-settings'),
+      );
+      await tester.ensureVisible(enableAudioSettings);
+      await tester.tap(enableAudioSettings);
+      await tester.pumpAndSettle();
+      expect(app.count('openBluetoothSettings'), 2);
+
+      // Parent turns HOMI audio back on while MAIN stays connected.
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      app.hfpDevices = [
+        {'id': _NativeApp.deviceId, 'name': 'HM-D001', 'isConnected': true},
+      ];
+      app.hfpConnectSucceeds = true;
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await _drainConnectionRound(tester);
+      await tester.pumpAndSettle();
+
+      screen = tester.widget<StartupSetupScreen>(
+        find.byType(StartupSetupScreen),
+      );
+      expect(screen.h20BleConnected, isTrue);
+      expect(screen.h20HfpConfigured, isTrue);
       expect(app.count('scanClassic'), 0);
-      expect(app.count('requestDualModeBond'), 0);
       expect(tester.takeException(), isNull);
     },
-    variant: TargetPlatformVariant({
-      TargetPlatform.android,
-      TargetPlatform.iOS,
-    }),
+    variant: android,
   );
 
   testWidgets(
@@ -664,18 +685,11 @@ Future<void> _openPermissionStep(WidgetTester tester) async {
   }
 }
 
-/// Taps "Kết nối HOMI". When HOMI is not paired yet the system pairing guide
-/// opens first; these tests continue as a parent who already paired.
+/// Taps "Kết nối HOMI". MAIN connects first; audio guides open afterwards.
 Future<void> _tapConnectHomi(WidgetTester tester) async {
   final setupH20 = find.byKey(const Key('startup-setup-h20'));
   await tester.ensureVisible(setupH20);
   await tester.tap(setupH20);
-  await tester.pumpAndSettle();
-  final alreadyPaired = find.byKey(const Key('homi-pairing-already-paired'));
-  if (alreadyPaired.evaluate().isNotEmpty) {
-    await tester.ensureVisible(alreadyPaired);
-    await tester.tap(alreadyPaired);
-  }
 }
 
 Future<void> _drainConnectionRound(WidgetTester tester) async {

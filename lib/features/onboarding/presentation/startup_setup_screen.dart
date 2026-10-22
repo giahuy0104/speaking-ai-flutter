@@ -33,6 +33,7 @@ class StartupSetupScreen extends StatefulWidget {
     required this.h20HfpConfigured,
     this.h20AudioPaired = false,
     this.onOpenBluetoothSettings,
+    this.h20AudioBlocksMain = false,
     required this.selectedAge,
     required this.aiSubprocessors,
     required this.dataRetentionSummary,
@@ -75,11 +76,15 @@ class StartupSetupScreen extends StatefulWidget {
   /// Android system pairing is separate from a verified MAIN and selected mic.
   final bool h20AudioPaired;
 
-  /// Opens system Bluetooth settings for the pairing guide. Without it the
-  /// connect action skips the guide and connects directly.
+  /// Opens system Bluetooth settings for the audio guides. Without it the
+  /// connect action only connects.
   final Future<void> Function()? onOpenBluetoothSettings;
+
+  /// The last round found HOMI audio connected but no BLE MAIN.
+  final bool h20AudioBlocksMain;
   final bool allowPhoneMicFallback;
   final bool allowBleOnlySetup;
+
   final int? selectedAge;
   final String aiSubprocessors;
   final String dataRetentionSummary;
@@ -176,7 +181,7 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
       // Resuming also refreshes the adapter state, which briefly blocks
       // connecting; continue once that check settles.
       if (_canUseBluetooth) {
-        unawaited(_setupH20());
+        unawaited(_connectHomi());
       } else {
         _connectWhenBluetoothReady = true;
       }
@@ -215,7 +220,7 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
     setState(() {});
     if (_connectWhenBluetoothReady && _canUseBluetooth) {
       _connectWhenBluetoothReady = false;
-      unawaited(_setupH20());
+      unawaited(_connectHomi());
     }
   }
 
@@ -866,24 +871,34 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
     }
   }
 
-  /// First connection pairs HM-D001 in system settings via the guide. A HOMI
-  /// that is already paired (or partly connected) connects directly.
+  /// MAIN connects over BLE first; HOMI audio comes after. HM-D001 hides
+  /// BLE MAIN while its Classic audio is connected, so a failed round with
+  /// audio up guides pausing audio, and a MAIN-only round guides turning
+  /// audio on. Returning from settings repeats this without another tap.
   Future<void> _connectHomi() async {
     if (!_canUseBluetooth || _choiceInProgress) return;
-    final openSettings = widget.onOpenBluetoothSettings;
-    final paired =
-        widget.h20AudioPaired ||
-        widget.h20HfpConfigured ||
-        widget.h20BleConnected;
-    if (paired || openSettings == null) return _setupH20();
-    final action = await showHomiPairingGuide(context);
+    await _setupH20();
+    if (!mounted || widget.onOpenBluetoothSettings == null) return;
+    // Device state arrives through the Bloc; read it after the rebuild.
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted || _connectionInProgress) return;
+    final guide = widget.h20AudioBlocksMain
+        ? HomiAudioGuide.pauseAudio
+        : widget.h20BleConnected && !widget.h20HfpConfigured
+        ? HomiAudioGuide.enableAudio
+        : null;
+    if (guide != null) await _showAudioGuide(guide);
+  }
+
+  Future<void> _showAudioGuide(HomiAudioGuide guide) async {
+    final action = await showHomiAudioGuide(context, guide);
     if (!mounted) return;
     switch (action) {
-      case HomiPairingGuideAction.openSettings:
+      case HomiGuideAction.openSettings:
         _awaitingPairingReturn = true;
-        await openSettings();
-      case HomiPairingGuideAction.alreadyPaired:
-        await _setupH20();
+        await widget.onOpenBluetoothSettings!();
+      case HomiGuideAction.checkAgain:
+        await _connectHomi();
       case null:
         break;
     }

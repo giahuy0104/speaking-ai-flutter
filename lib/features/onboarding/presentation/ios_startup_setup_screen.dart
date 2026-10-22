@@ -62,6 +62,7 @@ class IosStartupSetupScreen extends StatefulWidget {
   final bool h20HfpConfigured;
   final bool allowPhoneMicFallback;
   final bool allowBleOnlySetup;
+
   final int? selectedAge;
   final String aiSubprocessors;
   final String dataRetentionSummary;
@@ -75,8 +76,8 @@ class IosStartupSetupScreen extends StatefulWidget {
   final Future<bool> Function() onSetupH20;
   final Future<bool> Function()? onChooseH20Microphone;
 
-  /// Opens Settings for the pairing guide; without it the connect action
-  /// connects directly.
+  /// Opens Settings for the audio guide; without it the connect action only
+  /// connects.
   final Future<void> Function()? onOpenBluetoothSettings;
   final ValueChanged<int> onAgeSelected;
   final Future<void> Function() onCompleteSetup;
@@ -637,27 +638,29 @@ class _IosStartupSetupScreenState extends State<IosStartupSetupScreen>
     if (state != AppLifecycleState.resumed || !_awaitingPairingReturn) return;
     // Back from Settings: check the connection without another tap.
     _awaitingPairingReturn = false;
-    if (!_choiceInProgress) unawaited(_setupH20());
+    if (!_choiceInProgress) unawaited(_connectHomi());
   }
 
-  /// iOS pairs HM-D001 only in Settings. Show the guide unless HOMI is
-  /// already (partly) connected.
+  /// MAIN connects over BLE first; once MAIN is up without HOMI audio, the
+  /// guide shows how to connect audio in Settings.
   Future<void> _connectHomi() async {
     if (_choiceInProgress) return;
-    final openSettings = widget.onOpenBluetoothSettings;
-    if (widget.h20BleConnected ||
-        widget.h20HfpConfigured ||
-        openSettings == null) {
-      return _setupH20();
-    }
-    final action = await showHomiPairingGuide(context);
+    await _setupH20();
+    if (!mounted || widget.onOpenBluetoothSettings == null) return;
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted || _choiceInProgress) return;
+    if (!widget.h20BleConnected || widget.h20HfpConfigured) return;
+    final action = await showHomiAudioGuide(
+      context,
+      HomiAudioGuide.enableAudio,
+    );
     if (!mounted) return;
     switch (action) {
-      case HomiPairingGuideAction.openSettings:
+      case HomiGuideAction.openSettings:
         _awaitingPairingReturn = true;
-        await openSettings();
-      case HomiPairingGuideAction.alreadyPaired:
-        await _setupH20();
+        await widget.onOpenBluetoothSettings!();
+      case HomiGuideAction.checkAgain:
+        await _connectHomi();
       case null:
         break;
     }

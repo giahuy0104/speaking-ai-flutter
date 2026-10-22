@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/device/device_display_name.dart';
 import '../../domain/device/device_connection.dart';
 import '../../l10n/display_language.dart';
-import 'device_bloc.dart';
+import 'bloc/device_bloc.dart';
 
 class DeviceMicrophoneSheet extends StatelessWidget {
   const DeviceMicrophoneSheet({

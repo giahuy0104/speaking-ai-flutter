@@ -1,6 +1,6 @@
 import '../../core/device/device_connection_service.dart';
 import '../../domain/device/device_connection.dart';
-import '../../presentation/device/device_bloc.dart';
+import '../../presentation/device/bloc/device_bloc.dart';
 
 /// Explicit scoped DI. No global singleton: only onboarding receives this Bloc.
 /// Tests inject a fake port without MethodChannels or a physical device.

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../domain/device/device_connection.dart';
-import '../presentation/device/device_bloc.dart';
+import '../presentation/device/bloc/device_bloc.dart';
 import '../presentation/device/device_microphone_sheet.dart';
 import 'di/device_dependencies.dart';
 import 'device/legacy_device_connection_port.dart';
@@ -216,6 +216,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   );
   late final DeviceConnectionActionGate _deviceActionGate;
   DeviceDependencies? _onboardingDevice;
+
   bool get _usesOnboardingDeviceService =>
       widget.useDeviceConnectionService &&
       !_startupReady &&
@@ -1280,6 +1281,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         'Chưa kết nối được MAIN. Hãy bật HOMI, đặt gần điện thoại rồi thử lại.',
         '尚未连接 MAIN。请开启 HOMI，靠近手机后重试。',
       ),
+      DeviceIssue.audioBlocksMain => language.choose(
+        'Âm thanh HOMI đang bật nên chưa kết nối được nút MAIN. Tạm tắt âm thanh HOMI, kết nối MAIN rồi bật lại âm thanh.',
+        'HOMI 音频已开启，暂时无法连接 MAIN 按钮。请先暂时关闭 HOMI 音频，连接 MAIN 后再重新开启音频。',
+      ),
       DeviceIssue.audioUnavailable => language.choose(
         'MAIN đã kết nối nhưng micro HOMI chưa sẵn sàng. Hãy kiểm tra kết nối âm thanh rồi thử lại.',
         'MAIN 已连接，但 HOMI 麦克风尚未就绪。请检查音频连接后重试。',
@@ -1388,8 +1393,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     return _runParentH20Setup(interactive: true, forceMicrophonePicker: true);
   }
 
-  /// Pairing guide action. The setup screen checks the connection itself
-  /// when the app resumes, so no app-level resume retry is armed here.
+  /// Audio guide action. The setup screen checks the connection itself when
+  /// the app resumes, so no app-level resume retry is armed here.
   Future<void> _openBluetoothSettingsForOnboarding() async {
     await _aiv0BleControl?.openBluetoothSettings();
   }
@@ -4003,6 +4008,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                       deviceState?.snapshot.audioPaired ??
                       _startupHomiAudioPaired,
                   onOpenBluetoothSettings: _openBluetoothSettingsForOnboarding,
+                  h20AudioBlocksMain:
+                      deviceState?.issue == DeviceIssue.audioBlocksMain,
                   bluetoothPower: _bluetoothPermissionRequired
                       ? _bluetoothPower
                       : null,

@@ -4,26 +4,37 @@ import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
 import '../../../l10n/display_language.dart';
 
-/// What the parent chose in the pairing guide.
-enum HomiPairingGuideAction { openSettings, alreadyPaired }
-
-/// System Bluetooth pairing guide shown before the first connection.
+/// Which system Bluetooth step the parent must do in settings.
 ///
-/// Both platforms pair HM-D001 in system settings: iOS apps cannot pair a
-/// Classic device, and an in-app Android bond left BLE MAIN undiscoverable
-/// until the Bluetooth stack restarted. The caller opens settings and checks
-/// the connection again when the app resumes.
-Future<HomiPairingGuideAction?> showHomiPairingGuide(BuildContext context) =>
-    showModalBottomSheet<HomiPairingGuideAction>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
-      builder: (context) => const HomiPairingGuide(),
-    );
+/// HM-D001 stops advertising BLE MAIN while its Classic audio (HFP/A2DP) is
+/// connected, so setup runs in this order: connect MAIN over BLE first, then
+/// turn HOMI audio on.
+enum HomiAudioGuide {
+  /// Audio is connected before MAIN: pause it so MAIN can be found.
+  pauseAudio,
 
-class HomiPairingGuide extends StatelessWidget {
-  const HomiPairingGuide({super.key});
+  /// MAIN is connected: pair HOMI or turn its audio back on.
+  enableAudio,
+}
+
+/// What the parent chose in the guide.
+enum HomiGuideAction { openSettings, checkAgain }
+
+Future<HomiGuideAction?> showHomiAudioGuide(
+  BuildContext context,
+  HomiAudioGuide guide,
+) => showModalBottomSheet<HomiGuideAction>(
+  context: context,
+  isScrollControlled: true,
+  useSafeArea: true,
+  showDragHandle: true,
+  builder: (context) => HomiAudioGuideSheet(guide: guide),
+);
+
+class HomiAudioGuideSheet extends StatelessWidget {
+  const HomiAudioGuideSheet({required this.guide, super.key});
+
+  final HomiAudioGuide guide;
 
   static const deviceName = 'HM-D001';
 
@@ -31,80 +42,121 @@ class HomiPairingGuide extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final ios = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
-    final steps = ios
-        ? <_GuideStep>[
-            _GuideStep(
-              context.tr('Bật HOMI và đặt gần điện thoại.', '开启 HOMI 并放在手机附近。'),
-            ),
-            _GuideStep(
-              context.tr(
-                'Mở app Cài đặt của iPhone, chọn Bluetooth.',
-                '打开 iPhone 的“设置”，选择“蓝牙”。',
-              ),
-            ),
-            _GuideStep(
-              context.tr(
-                'Trong "Thiết bị khác", chọn $deviceName.',
-                '在“其他设备”中选择 $deviceName。',
-              ),
-              preview: _SettingsPreview(
-                ios: true,
-                sectionLabel: context.tr('THIẾT BỊ KHÁC', '其他设备'),
-              ),
-            ),
-            _GuideStep(
-              context.tr(
-                'Khi $deviceName hiện "Đã kết nối", quay lại HOMI. App sẽ tự kết nối.',
-                '当 $deviceName 显示“已连接”后返回 HOMI，应用会自动连接。',
-              ),
-            ),
-          ]
-        : <_GuideStep>[
-            _GuideStep(
-              context.tr('Bật HOMI và đặt gần điện thoại.', '开启 HOMI 并放在手机附近。'),
-            ),
-            _GuideStep(
-              context.tr(
-                'Bấm "Mở Cài đặt Bluetooth", rồi chọn "Ghép nối thiết bị mới".',
-                '点击“打开蓝牙设置”，然后选择“配对新设备”。',
-              ),
-            ),
-            _GuideStep(
-              context.tr(
-                'Chọn $deviceName. Nếu được hỏi, bấm "Ghép nối".',
-                '选择 $deviceName。如有提示，请点击“配对”。',
-              ),
-              preview: _SettingsPreview(
-                ios: false,
-                sectionLabel: context.tr('Thiết bị khả dụng', '可用设备'),
-              ),
-            ),
-            _GuideStep(
-              context.tr(
-                'Bấm Quay lại để về HOMI. App sẽ tự kết nối.',
-                '点击返回回到 HOMI，应用会自动连接。',
-              ),
-            ),
-          ];
+    final pause = guide == HomiAudioGuide.pauseAudio;
+    final title = pause
+        ? context.tr('Tạm tắt âm thanh HOMI', '暂时关闭 HOMI 音频')
+        : context.tr('Bật âm thanh HOMI', '开启 HOMI 音频');
+    final subtitle = pause
+        ? context.tr(
+            'Nút MAIN chỉ kết nối được khi âm thanh HOMI chưa bật. Tạm tắt âm thanh, kết nối MAIN xong app sẽ hướng dẫn bật lại.',
+            '只有在 HOMI 音频未开启时才能连接 MAIN 按钮。请暂时关闭音频，连接 MAIN 后应用会引导您重新开启。',
+          )
+        : context.tr(
+            'Nút MAIN đã kết nối. Bật âm thanh để dùng micro và loa HOMI.',
+            'MAIN 按钮已连接。开启音频即可使用 HOMI 的麦克风和扬声器。',
+          );
+    final steps = switch ((pause, ios)) {
+      (true, false) => <_GuideStep>[
+        _GuideStep(context.tr('Bấm "Mở Cài đặt Bluetooth".', '点击“打开蓝牙设置”。')),
+        _GuideStep(
+          context.tr(
+            'Bấm biểu tượng bánh răng cạnh $deviceName.',
+            '点击 $deviceName 旁边的齿轮图标。',
+          ),
+        ),
+        _GuideStep(
+          context.tr(
+            'Tắt "Cuộc gọi điện thoại" và "Âm thanh đa phương tiện". Vẫn giữ ghép đôi.',
+            '关闭“通话音频”和“媒体音频”，保留配对。',
+          ),
+          preview: const _ProfileTogglesPreview(enabled: false),
+        ),
+        _GuideStep(
+          context.tr(
+            'Quay lại HOMI. App sẽ tự kết nối nút MAIN.',
+            '返回 HOMI，应用会自动连接 MAIN 按钮。',
+          ),
+        ),
+      ],
+      (true, true) => <_GuideStep>[
+        _GuideStep(
+          context.tr(
+            'Mở app Cài đặt của iPhone, chọn Bluetooth.',
+            '打开 iPhone 的“设置”，选择“蓝牙”。',
+          ),
+        ),
+        _GuideStep(
+          context.tr(
+            'Bấm (i) cạnh $deviceName, chọn "Ngắt kết nối".',
+            '点击 $deviceName 旁边的 (i)，选择“断开连接”。',
+          ),
+        ),
+        _GuideStep(
+          context.tr(
+            'Quay lại HOMI. App sẽ tự kết nối nút MAIN.',
+            '返回 HOMI，应用会自动连接 MAIN 按钮。',
+          ),
+        ),
+      ],
+      (false, false) => <_GuideStep>[
+        _GuideStep(context.tr('Bấm "Mở Cài đặt Bluetooth".', '点击“打开蓝牙设置”。')),
+        _GuideStep(
+          context.tr(
+            'Đã có $deviceName trong danh sách đã ghép nối: bấm bánh răng, bật lại "Cuộc gọi điện thoại" và "Âm thanh đa phương tiện".',
+            '已配对列表中有 $deviceName：点击齿轮，重新开启“通话音频”和“媒体音频”。',
+          ),
+          preview: const _ProfileTogglesPreview(enabled: true),
+        ),
+        _GuideStep(
+          context.tr(
+            'Chưa có: bấm "Ghép nối thiết bị mới", chọn $deviceName.',
+            '如果没有：点击“配对新设备”，选择 $deviceName。',
+          ),
+        ),
+        _GuideStep(
+          context.tr(
+            'Quay lại HOMI. App sẽ tự chọn micro HOMI.',
+            '返回 HOMI，应用会自动选择 HOMI 麦克风。',
+          ),
+        ),
+      ],
+      (false, true) => <_GuideStep>[
+        _GuideStep(
+          context.tr(
+            'Mở app Cài đặt của iPhone, chọn Bluetooth.',
+            '打开 iPhone 的“设置”，选择“蓝牙”。',
+          ),
+        ),
+        _GuideStep(
+          context.tr(
+            'Bấm $deviceName để kết nối (trong "Thiết bị khác" nếu chưa ghép đôi).',
+            '点击 $deviceName 进行连接（如未配对，在“其他设备”中）。',
+          ),
+        ),
+        _GuideStep(
+          context.tr(
+            'Quay lại HOMI. App sẽ tự chọn micro HOMI.',
+            '返回 HOMI，应用会自动选择 HOMI 麦克风。',
+          ),
+        ),
+      ],
+    };
 
     return SingleChildScrollView(
-      key: const Key('homi-pairing-guide'),
+      key: Key(pause ? 'homi-guide-pause-audio' : 'homi-guide-enable-audio'),
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Text(
-            context.tr('Ghép đôi HOMI', '配对 HOMI'),
+            title,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            context.tr(
-              'Làm một lần trong Cài đặt Bluetooth, khoảng 1 phút.',
-              '只需在蓝牙设置中操作一次，约 1 分钟。',
-            ),
+            subtitle,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -112,12 +164,11 @@ class HomiPairingGuide extends StatelessWidget {
           const SizedBox(height: 16),
           for (var i = 0; i < steps.length; i++)
             _StepRow(number: i + 1, step: steps[i]),
-          const _TroubleshootingTile(),
-          const SizedBox(height: 12),
+          const SizedBox(height: 4),
           FilledButton.icon(
-            key: const Key('homi-pairing-open-settings'),
+            key: const Key('homi-guide-open-settings'),
             onPressed: () =>
-                Navigator.of(context).pop(HomiPairingGuideAction.openSettings),
+                Navigator.of(context).pop(HomiGuideAction.openSettings),
             icon: const Icon(Icons.settings_bluetooth_rounded),
             label: Text(
               ios
@@ -140,11 +191,11 @@ class HomiPairingGuide extends StatelessWidget {
           ],
           const SizedBox(height: 4),
           TextButton(
-            key: const Key('homi-pairing-already-paired'),
+            key: const Key('homi-guide-check-again'),
             onPressed: () =>
-                Navigator.of(context).pop(HomiPairingGuideAction.alreadyPaired),
+                Navigator.of(context).pop(HomiGuideAction.checkAgain),
             child: Text(
-              context.tr('Tôi đã ghép đôi, kết nối ngay', '我已配对，立即连接'),
+              context.tr('Tôi đã làm xong, kiểm tra lại', '我已完成，重新检查'),
             ),
           ),
         ],
@@ -209,128 +260,58 @@ class _StepRow extends StatelessWidget {
   }
 }
 
-/// A small, platform-neutral sketch of the system device list that points
-/// at HM-D001. Labels differ between phone makers, so only the target name
-/// is emphasised.
-class _SettingsPreview extends StatelessWidget {
-  const _SettingsPreview({required this.ios, required this.sectionLabel});
-  final bool ios;
-  final String sectionLabel;
+/// Sketch of the Android device-details screen with the two audio profile
+/// switches. Labels vary between phone makers; the switches are the point.
+class _ProfileTogglesPreview extends StatelessWidget {
+  const _ProfileTogglesPreview({required this.enabled});
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final highlight = isDark ? AppColors.darkSurfaceStrong : AppColors.mintSoft;
-    final border = isDark ? AppColors.darkMint : AppColors.mint;
-    Widget row(String name, {bool target = false}) => Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: target
-          ? BoxDecoration(
-              color: highlight,
-              border: Border.all(color: border, width: 1.5),
-              borderRadius: BorderRadius.circular(8),
-            )
-          : null,
+    final accent = isDark ? AppColors.darkMint : AppColors.mint;
+    Widget row(String label) => Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       child: Row(
         children: <Widget>[
-          if (!ios) ...<Widget>[
-            Icon(
-              Icons.headphones_rounded,
-              size: 16,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 8),
-          ],
-          Expanded(
-            child: Text(
-              name,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: target ? FontWeight.w800 : FontWeight.w400,
-                color: target ? null : theme.colorScheme.onSurfaceVariant,
-              ),
+          Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
+          IgnorePointer(
+            child: Switch(
+              value: enabled,
+              onChanged: (_) {},
+              activeThumbColor: Colors.white,
+              activeTrackColor: accent,
             ),
           ),
-          if (target) Icon(Icons.touch_app_rounded, size: 18, color: border),
         ],
       ),
     );
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
         color: isDark
             ? AppColors.darkSurfaceRaised
             : theme.colorScheme.surfaceContainerHighest,
+        border: Border.all(color: accent, width: 1.5),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.fromLTRB(10, 2, 10, 4),
+            padding: const EdgeInsets.fromLTRB(10, 2, 10, 2),
             child: Text(
-              sectionLabel,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+              HomiAudioGuideSheet.deviceName,
+              style: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
-          row(context.tr('Laptop', '笔记本电脑')),
-          row(HomiPairingGuide.deviceName, target: true),
-          row(context.tr('Loa Bluetooth', '蓝牙音箱')),
+          row(context.tr('Cuộc gọi điện thoại', '通话音频')),
+          row(context.tr('Âm thanh đa phương tiện', '媒体音频')),
         ],
       ),
     );
   }
-}
-
-class _TroubleshootingTile extends StatelessWidget {
-  const _TroubleshootingTile();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final tips = <String>[
-      context.tr(
-        'Kiểm tra HOMI đã bật và ở trong khoảng 1 mét.',
-        '确认 HOMI 已开启并在 1 米范围内。',
-      ),
-      context.tr(
-        'Ngắt HOMI khỏi điện thoại hoặc máy tính khác.',
-        '断开 HOMI 与其他手机或电脑的连接。',
-      ),
-      context.tr(
-        'Đã ghép đôi trước đó mà không kết nối được: chọn "Quên thiết bị" $_name rồi ghép đôi lại.',
-        '之前已配对但无法连接：选择“忘记此设备” $_name 后重新配对。',
-      ),
-    ];
-    return Theme(
-      data: theme.copyWith(dividerColor: Colors.transparent),
-      child: ExpansionTile(
-        key: const Key('homi-pairing-troubleshooting'),
-        tilePadding: EdgeInsets.zero,
-        childrenPadding: const EdgeInsets.only(bottom: 8),
-        leading: const Icon(Icons.help_outline_rounded),
-        title: Text(
-          context.tr('Không thấy $_name?', '找不到 $_name？'),
-          style: theme.textTheme.titleSmall,
-        ),
-        children: <Widget>[
-          for (final tip in tips)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  const Text('•  '),
-                  Expanded(child: Text(tip, style: theme.textTheme.bodyMedium)),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  static const _name = HomiPairingGuide.deviceName;
 }

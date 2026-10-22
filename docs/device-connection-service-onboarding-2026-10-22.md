@@ -22,7 +22,7 @@ Các bản Word được đọc trực tiếp OOXML; trích xuất phục vụ �
 
 - `lib/domain/device/device_connection.dart`: snapshot, trạng thái, lỗi có kiểu, lựa chọn micro, interface `DeviceConnectionPort`.
 - `lib/core/device/device_connection_service.dart`: sở hữu một lượt kết nối, chờ lựa chọn, hủy/timeout, bỏ kết quả cũ, kết hợp MAIN + audio. Không import Flutter hoặc feature.
-- `lib/presentation/device/device_bloc.dart`: Bloc event/state thật từ `flutter_bloc`; nhận service qua constructor. Connect không chặn event Cancel/Selection.
+- `lib/presentation/device/bloc/`: tách `device_bloc.dart`, `device_event.dart`, `device_state.dart` bằng `part`/`part of`; Bloc nhận service qua constructor. `DeviceState` ở presentation ánh xạ từ `DeviceConnectionState` của domain, core không import presentation. Connect không chặn event Cancel/Selection.
 - `lib/presentation/device/device_microphone_sheet.dart`: picker chỉ hiển thị và trả lựa chọn; cuộn ở màn hình nhỏ/chữ lớn, khóa lựa chọn khi MAIN mất.
 - `lib/app/device/legacy_device_connection_port.dart`: adapter chuyển tiếp sang BLE bridge và ConversationController hiện có để giữ association, device history, chọn đúng mic và native cancellation. Adapter nằm ở composition layer, không kéo feature vào core/domain.
 - `lib/app/di/device_dependencies.dart`: tạo/inject service → Bloc, quản lý dispose; không global singleton. `BlocProvider.value` chỉ bọc nhánh onboarding và không tự dispose instance do composition sở hữu.

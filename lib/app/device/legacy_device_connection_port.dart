@@ -27,6 +27,7 @@ class LegacyDeviceConnectionPort implements DeviceConnectionPort {
   final _changes = StreamController<void>.broadcast();
   late final StreamSubscription<Aiv0BleStatus> _bleSubscription;
   bool _audioPaired = false;
+  bool _audioConnected = false;
   int _generation = 0;
   void Function()? _cancelPairVerification;
   void _changed() {
@@ -44,6 +45,7 @@ class LegacyDeviceConnectionPort implements DeviceConnectionPort {
     firmwareRevision: ble.status.firmwareRevision,
     audioReady: controller.isHomiAudioReady,
     audioPaired: _audioPaired || controller.isHomiAudioReady,
+    audioConnected: _audioConnected || controller.isHomiAudioReady,
     routeActive: controller.hfpAudioStatus.routeActive,
     name: ble.status.deviceName ?? controller.hfpAudioStatus.deviceName,
   );
@@ -60,7 +62,9 @@ class LegacyDeviceConnectionPort implements DeviceConnectionPort {
     try {
       final devices = await audio?.findDevices() ?? const <HfpAudioDevice>[];
       if (generation != _generation) return;
-      _audioPaired = devices.any((d) => isRecognizedHomiMicrophoneName(d.name));
+      final homi = devices.where((d) => isRecognizedHomiMicrophoneName(d.name));
+      _audioPaired = homi.isNotEmpty;
+      _audioConnected = homi.any((d) => d.isConnected);
       _changed();
     } catch (_) {
       /* Pairing inspection must not invalidate verified MAIN. */
@@ -86,6 +90,7 @@ class LegacyDeviceConnectionPort implements DeviceConnectionPort {
       }
     }
     if (generation != _generation) return false;
+    if (android) _audioConnected = connectedIds.isNotEmpty;
     // Pairing happens in system Bluetooth settings (onboarding guide), as on
     // iOS. An in-app Classic bond left HM-D001's BLE MAIN undiscoverable on
     // real Android phones until the Bluetooth stack restarted.

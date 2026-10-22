@@ -13,15 +13,15 @@ class DeviceConnectionService {
   }) : _port = port,
        _delay = delay ?? Future<void>.delayed,
        _timeout = timeout ?? Duration(seconds: port.android ? 75 : 45) {
-    _state = DeviceState(snapshot: port.snapshot);
+    _state = DeviceConnectionState(snapshot: port.snapshot);
     _subscription = port.changes.listen((_) => refresh());
   }
   final DeviceConnectionPort _port;
   final Future<void> Function(Duration) _delay;
   final Duration _timeout;
-  final _states = StreamController<DeviceState>.broadcast();
+  final _states = StreamController<DeviceConnectionState>.broadcast();
   late final StreamSubscription<void> _subscription;
-  late DeviceState _state;
+  late DeviceConnectionState _state;
   Future<bool>? _pending;
   Future<void>? _cancelling;
   Completer<void>? _cancelled;
@@ -29,8 +29,8 @@ class DeviceConnectionService {
   String? _selectionMainId;
   int _generation = 0;
   bool _disposed = false;
-  DeviceState get state => _state;
-  Stream<DeviceState> get states => _states.stream;
+  DeviceConnectionState get state => _state;
+  Stream<DeviceConnectionState> get states => _states.stream;
 
   void _publish(
     DeviceStage stage, {
@@ -38,7 +38,7 @@ class DeviceConnectionService {
     List<DeviceMicrophone> microphones = const [],
   }) {
     if (_disposed) return;
-    _state = DeviceState(
+    _state = DeviceConnectionState(
       stage: stage,
       snapshot: _port.snapshot,
       issue: issue,
@@ -178,7 +178,14 @@ class DeviceConnectionService {
     }
     await _step(token, _port.refreshAudioPairing);
     if (!_port.snapshot.mainReady) {
-      _publish(DeviceStage.incomplete, issue: DeviceIssue.mainUnavailable);
+      // HM-D001 hides BLE MAIN while its Classic audio is connected; the
+      // parent must pause audio, connect MAIN, then turn audio back on.
+      _publish(
+        DeviceStage.incomplete,
+        issue: _port.snapshot.audioConnected
+            ? DeviceIssue.audioBlocksMain
+            : DeviceIssue.mainUnavailable,
+      );
       return false;
     }
     if (_port.snapshot.ready && !chooseMicrophone) {
@@ -219,7 +226,11 @@ class DeviceConnectionService {
         _publish(DeviceStage.incomplete, issue: DeviceIssue.mainUnavailable);
         return false;
       }
-      if (devices.isNotEmpty) {
+      // Android can only route a connected microphone. Without one, end as
+      // audioUnavailable so onboarding guides turning HOMI audio on.
+      if (_port.android
+          ? devices.any((d) => d.connected)
+          : devices.isNotEmpty) {
         final selection = Completer<DeviceSelection?>();
         _selection = selection;
         _selectionMainId = mainId;

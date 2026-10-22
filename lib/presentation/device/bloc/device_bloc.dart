@@ -1,46 +1,20 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../core/device/device_connection_service.dart';
-import '../../domain/device/device_connection.dart';
+import '../../../core/device/device_connection_service.dart';
+import '../../../domain/device/device_connection.dart';
 
-sealed class DeviceEvent {
-  const DeviceEvent();
-}
-
-class DeviceConnectRequested extends DeviceEvent {
-  DeviceConnectRequested({
-    this.interactive = true,
-    this.chooseMicrophone = false,
-    Completer<bool>? result,
-  }) : result = result ?? Completer<bool>();
-  final bool interactive;
-  final bool chooseMicrophone;
-  final Completer<bool> result;
-}
-
-class DeviceCancelRequested extends DeviceEvent {
-  DeviceCancelRequested() : result = Completer<void>();
-  final Completer<void> result;
-}
-
-class DeviceMicrophoneSelected extends DeviceEvent {
-  const DeviceMicrophoneSelected(this.attempt, this.selection);
-  final int attempt;
-  final DeviceSelection? selection;
-}
-
-class _DeviceStateChanged extends DeviceEvent {
-  const _DeviceStateChanged(this.value);
-  final DeviceState value;
-}
+part 'device_event.dart';
+part 'device_state.dart';
 
 /// Constructor injection keeps Bluetooth operations out of presentation.
 /// Events remain concurrent so Cancel/Selection can finish a pending Connect.
 class DeviceBloc extends Bloc<DeviceEvent, DeviceState> {
   DeviceBloc({required DeviceConnectionService service})
     : _service = service,
-      super(service.state) {
-    on<_DeviceStateChanged>((event, emit) => emit(event.value));
+      super(DeviceState.fromConnectionState(service.state)) {
+    on<_DeviceStateChanged>(
+      (event, emit) => emit(DeviceState.fromConnectionState(event.value)),
+    );
     on<DeviceConnectRequested>((event, emit) async {
       if (_closing) {
         event.result.complete(false);
@@ -74,7 +48,7 @@ class DeviceBloc extends Bloc<DeviceEvent, DeviceState> {
   }
   final DeviceConnectionService _service;
   bool _closing = false;
-  late final StreamSubscription<DeviceState> _subscription;
+  late final StreamSubscription<DeviceConnectionState> _subscription;
 
   Future<bool> connect({
     bool interactive = true,

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ai_speaking_flutter_app/core/device/device_connection_service.dart';
 import 'package:ai_speaking_flutter_app/domain/device/device_connection.dart';
-import 'package:ai_speaking_flutter_app/presentation/device/device_bloc.dart';
+import 'package:ai_speaking_flutter_app/presentation/device/bloc/device_bloc.dart';
 
 class FakePort implements DeviceConnectionPort {
   @override

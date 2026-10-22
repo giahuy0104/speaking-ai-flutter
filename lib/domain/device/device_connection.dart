@@ -18,6 +18,10 @@ enum DeviceIssue {
   bluetoothOff,
   unsupported,
   mainUnavailable,
+
+  /// HOMI audio (HFP/A2DP) connected before MAIN. HM-D001 stops advertising
+  /// BLE MAIN while Classic audio is up, so audio must be paused first.
+  audioBlocksMain,
   audioUnavailable,
   selectionRequired,
   timedOut,
@@ -29,6 +33,7 @@ class DeviceSnapshot {
     this.mainReady = false,
     this.audioReady = false,
     this.audioPaired = false,
+    this.audioConnected = false,
     this.routeActive = false,
     this.mainId,
     this.audioId,
@@ -39,6 +44,10 @@ class DeviceSnapshot {
   final bool mainReady;
   final bool audioReady;
   final bool audioPaired;
+
+  /// A HOMI HFP device is connected at system level (not necessarily
+  /// selected as the app microphone).
+  final bool audioConnected;
   final bool routeActive;
   final String? mainId;
   final String? audioId;
@@ -67,8 +76,8 @@ class DeviceSelection {
   final bool confirmAssociation;
 }
 
-class DeviceState {
-  const DeviceState({
+class DeviceConnectionState {
+  const DeviceConnectionState({
     this.stage = DeviceStage.idle,
     this.snapshot = const DeviceSnapshot(),
     this.issue,
