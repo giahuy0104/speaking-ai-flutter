@@ -206,7 +206,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                   phase: widget.controller.phase,
                                   processingStage:
                                       widget.controller.processingStage,
-                                  amplitude: widget.controller.amplitude,
+                                  amplitude:
+                                      widget.controller.amplitudeListenable,
                                   isPreparingMicrophone:
                                       widget.controller.isPreparingMicrophone,
                                   onStop: () => unawaited(

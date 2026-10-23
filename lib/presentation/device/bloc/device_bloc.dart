@@ -12,9 +12,10 @@ class DeviceBloc extends Bloc<DeviceEvent, DeviceState> {
   DeviceBloc({required DeviceConnectionService service})
     : _service = service,
       super(DeviceState.fromConnectionState(service.state)) {
-    on<_DeviceStateChanged>(
-      (event, emit) => emit(DeviceState.fromConnectionState(event.value)),
-    );
+    on<_DeviceStateChanged>((event, emit) {
+      _service.diagnostics.state('bloc', event.value);
+      emit(DeviceState.fromConnectionState(event.value));
+    });
     on<DeviceConnectRequested>((event, emit) async {
       if (_closing) {
         event.result.complete(false);

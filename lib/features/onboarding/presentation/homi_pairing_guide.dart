@@ -6,11 +6,10 @@ import '../../../l10n/display_language.dart';
 
 /// Which system Bluetooth step the parent must do in settings.
 ///
-/// HM-D001 stops advertising BLE MAIN while its Classic audio (HFP/A2DP) is
-/// connected, so setup runs in this order: connect MAIN over BLE first, then
-/// turn HOMI audio on.
+/// Saved failures show missing MAIN alongside connected audio. BLE-first is a
+/// recovery strategy to verify, not proof that HFP always blocks advertising.
 enum HomiAudioGuide {
-  /// Audio is connected before MAIN: pause it so MAIN can be found.
+  /// Audio is connected without MAIN: suggest pausing it, then retry MAIN.
   pauseAudio,
 
   /// MAIN is connected: pair HOMI or turn its audio back on.
@@ -48,8 +47,8 @@ class HomiAudioGuideSheet extends StatelessWidget {
         : context.tr('Bật âm thanh HOMI', '开启 HOMI 音频');
     final subtitle = pause
         ? context.tr(
-            'Nút MAIN chỉ kết nối được khi âm thanh HOMI chưa bật. Tạm tắt âm thanh, kết nối MAIN xong app sẽ hướng dẫn bật lại.',
-            '只有在 HOMI 音频未开启时才能连接 MAIN 按钮。请暂时关闭音频，连接 MAIN 后应用会引导您重新开启。',
+            'Âm thanh HOMI đã kết nối, nhưng chưa tìm thấy nút MAIN. Hãy thử tạm tắt âm thanh; khi MAIN kết nối được, app sẽ hướng dẫn bật lại.',
+            'HOMI 音频已连接，但尚未找到 MAIN 按钮。请尝试暂时关闭音频；MAIN 连接成功后，应用会引导您重新开启。',
           )
         : context.tr(
             'Nút MAIN đã kết nối. Bật âm thanh để dùng micro và loa HOMI.',

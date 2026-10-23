@@ -4,6 +4,7 @@ import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
+import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
@@ -19,6 +20,8 @@ import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import java.io.File
+import org.json.JSONObject
 import java.nio.ByteBuffer
 import java.time.Duration
 import java.util.UUID
@@ -241,6 +244,75 @@ class Aiv0ConnectionCancellationTest {
         assertEquals(0, next.completions)
         assertEquals(2, gatts().size)
     }
+
+    @Test
+    fun cccdFailureNeverPublishesMainReady() {
+        call("connect", mapOf("deviceId" to address, "attemptId" to "cccd-failure"))
+        val gatt = gatts().last()
+        val descriptor = mainDescriptor()
+        (field("gattCallback") as BluetoothGattCallback).onDescriptorWrite(
+            gatt, descriptor, BluetoothGatt.GATT_FAILURE,
+        )
+        idle()
+        assertFalse(statuses.any { it["phase"] == "connected" })
+        val records = diagnosticRecords("cccd-failure")
+        assertTrue(records.any { it.optString("event") == "gatt.cccd.result" && it.getInt("status") == BluetoothGatt.GATT_FAILURE })
+        assertFalse(records.any { it.optString("event") == "main.ready" })
+    }
+
+    @Test
+    fun cccdSuccessPublishesReadyOnlyForCurrentGattAndKeepsOldAttemptId() {
+        val first = call("connect", mapOf("deviceId" to address, "attemptId" to "cccd-old"))
+        val oldGatt = gatts().last()
+        call("cancelConnectionAttempt")
+        val retry = call("connect", mapOf("deviceId" to address, "attemptId" to "cccd-new"))
+        val descriptor = mainDescriptor()
+        val callback = field("gattCallback") as BluetoothGattCallback
+        callback.onDescriptorWrite(oldGatt, descriptor, BluetoothGatt.GATT_SUCCESS)
+        idle()
+        assertEquals("CONNECT_CANCELLED", first.errorCode)
+        assertEquals(0, retry.completions)
+        assertFalse(statuses.any { it["phase"] == "connected" })
+        val oldRecords = diagnosticRecords("cccd-old")
+        assertTrue(oldRecords.any { it.optString("event") == "gatt.cccd.result" && !it.getBoolean("currentGatt") })
+        assertFalse(oldRecords.any { it.optString("event") == "main.ready" })
+        callback.onDescriptorWrite(gatts().last(), descriptor, BluetoothGatt.GATT_SUCCESS)
+        idle()
+        assertEquals(1, retry.completions)
+        assertEquals("connected", (retry.value as Map<*, *>)["phase"])
+        assertEquals("connected", statuses.last()["phase"])
+        assertTrue(diagnosticRecords("cccd-new").any { it.optString("event") == "main.ready" && it.getBoolean("cccdConfirmed") })
+    }
+
+    @Test
+    fun cancelledScanCannotTagNewScanWithItsAttemptOrFailure() {
+        call("scan", mapOf("timeoutMs" to 2_000, "attemptId" to "scan-old"))
+        val oldCallback = field("scanCallback") as ScanCallback
+        call("cancelConnectionAttempt")
+        val retry = call("scan", mapOf("timeoutMs" to 2_000, "attemptId" to "scan-new"))
+        oldCallback.onScanFailed(ScanCallback.SCAN_FAILED_INTERNAL_ERROR)
+        idleFor(2_000)
+        assertEquals(1, retry.completions)
+        val records = diagnosticRecords("scan-new")
+        assertTrue(records.any { it.optString("event") == "scan.complete" })
+        assertFalse(records.any { it.optString("event") == "scan.failed" })
+    }
+
+    private fun mainDescriptor(): BluetoothGattDescriptor {
+        val button = characteristic("9E3B0002-4A7C-4D6F-8B21-5C17A2D94010")
+        val descriptor = BluetoothGattDescriptor(
+            UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"),
+            BluetoothGattDescriptor.PERMISSION_WRITE,
+        )
+        button.addDescriptor(descriptor)
+        setField("buttonCharacteristic", button)
+        setField("stateCharacteristic", characteristic("9E3B0003-4A7C-4D6F-8B21-5C17A2D94010"))
+        return descriptor
+    }
+
+    private fun diagnosticRecords(attempt: String): List<JSONObject> =
+        File(context.getExternalFilesDir(null), "ble-diagnostic.jsonl")
+            .readLines().map(::JSONObject).filter { it.optString("attemptId") == attempt }
 
     private fun characteristic(id: String) = BluetoothGattCharacteristic(UUID.fromString(id), 0, 0)
     private fun field(name: String): Any? = Aiv0BleControlBridge::class.java.getDeclaredField(name).run {

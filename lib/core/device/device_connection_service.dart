@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../../domain/device/device_connection.dart';
+import 'device_connection_diagnostics.dart';
 
 /// Owns one connection round. The onboarding pilot has no new background
 /// timer: existing native recovery and the app's 15s/60s policy are preserved.
@@ -10,12 +11,15 @@ class DeviceConnectionService {
     required DeviceConnectionPort port,
     Future<void> Function(Duration)? delay,
     Duration? timeout,
-  }) : _port = port,
+    DeviceConnectionDiagnostics? diagnostics,
+  }) : diagnostics = diagnostics ?? DeviceConnectionDiagnostics(),
+       _port = port,
        _delay = delay ?? Future<void>.delayed,
        _timeout = timeout ?? Duration(seconds: port.android ? 75 : 45) {
     _state = DeviceConnectionState(snapshot: port.snapshot);
     _subscription = port.changes.listen((_) => refresh());
   }
+  final DeviceConnectionDiagnostics diagnostics;
   final DeviceConnectionPort _port;
   final Future<void> Function(Duration) _delay;
   final Duration _timeout;
@@ -38,13 +42,18 @@ class DeviceConnectionService {
     List<DeviceMicrophone> microphones = const [],
   }) {
     if (_disposed) return;
-    _state = DeviceConnectionState(
+    final next = DeviceConnectionState(
       stage: stage,
       snapshot: _port.snapshot,
       issue: issue,
       attempt: _generation,
       microphones: List.unmodifiable(microphones),
     );
+    // refresh() runs on every port change; skip republishing an unchanged
+    // state so listeners only hear about real transitions.
+    if (next == _state) return;
+    _state = next;
+    diagnostics.state('service', next);
     _states.add(_state);
   }
 
@@ -98,7 +107,16 @@ class DeviceConnectionService {
     final token = ++_generation;
     final cancelled = Completer<void>();
     _cancelled = cancelled;
-    final operation = _run(token, cancelled, interactive, chooseMicrophone);
+    diagnostics.event(token, 'attempt.start', {
+      'interactive': interactive,
+      'chooseMicrophone': chooseMicrophone,
+      'timeoutMs': _timeout.inMilliseconds,
+      'platform': _port.android ? 'android' : 'ios',
+    });
+    final operation = diagnostics.run(
+      token,
+      () => _run(token, cancelled, interactive, chooseMicrophone),
+    );
     _pending = operation;
     return operation.whenComplete(() {
       if (identical(_pending, operation)) _pending = null;
@@ -127,13 +145,17 @@ class DeviceConnectionService {
     try {
       await _cancelling;
       _check(token);
-      return await Future.any<bool>([
+      final ready = await Future.any<bool>([
         _connect(token, interactive, chooseMicrophone),
         cancelled.future.then((_) => false),
       ]).timeout(_timeout);
+      diagnostics.event(token, 'attempt.complete', {'ready': ready});
+      return ready;
     } on _Cancelled {
+      diagnostics.event(token, 'attempt.stale');
       return false;
     } on TimeoutException {
+      diagnostics.event(token, 'attempt.timeout');
       if (_current(token)) {
         final cancellation = cancel();
         final cancelledGeneration = _generation;
@@ -143,7 +165,10 @@ class DeviceConnectionService {
         }
       }
       return false;
-    } catch (_) {
+    } catch (error) {
+      diagnostics.event(token, 'attempt.error', {
+        'type': error.runtimeType.toString(),
+      });
       if (_current(token)) {
         final cancellation = cancel();
         final cancelledGeneration = _generation;
@@ -178,8 +203,8 @@ class DeviceConnectionService {
     }
     await _step(token, _port.refreshAudioPairing);
     if (!_port.snapshot.mainReady) {
-      // HM-D001 hides BLE MAIN while its Classic audio is connected; the
-      // parent must pause audio, connect MAIN, then turn audio back on.
+      // Audio is present but MAIN is missing. This identifies a partial
+      // connection, not proof that HFP caused the BLE discovery failure.
       _publish(
         DeviceStage.incomplete,
         issue: _port.snapshot.audioConnected
@@ -287,6 +312,8 @@ class DeviceConnectionService {
 
   Future<void> cancel() {
     if (_disposed) return Future.value();
+    diagnostics.event(_generation, 'attempt.cancel');
+    diagnostics.inherit(_generation + 1, _generation);
     ++_generation;
     _cancelled?.complete();
     _cancelled = null;

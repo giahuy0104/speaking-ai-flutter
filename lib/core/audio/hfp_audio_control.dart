@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 
 import 'audio_input.dart';
+import '../device/device_connection_diagnostics.dart';
 import '../device/homi_connection_state.dart';
 
 class HfpAudioDevice {
@@ -232,6 +233,9 @@ class MethodChannelHfpAudioControl
     try {
       final result = await _methodChannel.invokeListMethod<dynamic>(
         'findDevices',
+        DeviceConnectionDiagnostics.channelFields.isEmpty
+            ? null
+            : DeviceConnectionDiagnostics.channelFields,
       );
       _ensureConnectionCurrent(generation);
       return (result ?? const <dynamic>[])

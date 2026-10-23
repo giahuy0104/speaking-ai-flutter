@@ -46,7 +46,7 @@ void main() {
                     needsDeviceConnection: true,
                     phase: ConversationPhase.processing,
                     processingStage: testCase.stage,
-                    amplitude: 0,
+                    amplitude: const AlwaysStoppedAnimation<double>(0),
                     onStop: () {},
                   ),
                 ),
@@ -85,7 +85,7 @@ void main() {
         home: VoiceHero(
           phase: ConversationPhase.processing,
           processingStage: ConversationProcessingStage.recognizing,
-          amplitude: 0,
+          amplitude: const AlwaysStoppedAnimation<double>(0),
           onStop: () {},
         ),
       ),

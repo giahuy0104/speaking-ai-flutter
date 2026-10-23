@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../app/app_theme.dart';
@@ -21,7 +22,10 @@ class VoiceHero extends StatelessWidget {
 
   final ConversationPhase phase;
   final ConversationProcessingStage processingStage;
-  final double amplitude;
+
+  /// Microphone level (0..1). Only the mascot scale and the waveform listen
+  /// to it, so per-sample updates do not rebuild the rest of the hero.
+  final ValueListenable<double> amplitude;
   final bool isPreparingMicrophone;
   final bool needsDeviceConnection;
   final VoidCallback onStop;
@@ -60,9 +64,13 @@ class VoiceHero extends StatelessWidget {
                     ),
                   ),
                 ),
-                AnimatedScale(
-                  duration: motionDuration,
-                  scale: isRecording ? 0.96 + (amplitude * 0.08) : 1,
+                ValueListenableBuilder<double>(
+                  valueListenable: amplitude,
+                  builder: (context, level, mascot) => AnimatedScale(
+                    duration: motionDuration,
+                    scale: isRecording ? 0.96 + (level * 0.08) : 1,
+                    child: mascot,
+                  ),
                   child: Transform.scale(
                     scale: 1.12,
                     child: Padding(
@@ -128,22 +136,25 @@ class VoiceHero extends StatelessWidget {
           SizedBox(
             height: compact ? 52 : 58,
             child: Center(
-              child: HomiWaveform(
-                key: Key(
-                  isRecording ||
-                          phase == ConversationPhase.processing ||
-                          isPreparingMicrophone
-                      ? 'conversation-animated-waveform'
-                      : 'conversation-static-waveform',
-                ),
-                active:
+              child: ValueListenableBuilder<double>(
+                valueListenable: amplitude,
+                builder: (context, level, _) => HomiWaveform(
+                  key: Key(
                     isRecording ||
-                    phase == ConversationPhase.processing ||
-                    isPreparingMicrophone,
-                amplitude: amplitude,
-                width: compact ? 228 : 254,
-                height: compact ? 44 : 50,
-                semanticLabel: context.tr('Mức âm thanh', '音量'),
+                            phase == ConversationPhase.processing ||
+                            isPreparingMicrophone
+                        ? 'conversation-animated-waveform'
+                        : 'conversation-static-waveform',
+                  ),
+                  active:
+                      isRecording ||
+                      phase == ConversationPhase.processing ||
+                      isPreparingMicrophone,
+                  amplitude: level,
+                  width: compact ? 228 : 254,
+                  height: compact ? 44 : 50,
+                  semanticLabel: context.tr('Mức âm thanh', '音量'),
+                ),
               ),
             ),
           ),

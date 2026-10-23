@@ -17,6 +17,7 @@ if (hasReleaseSigning) {
 
 android {
     namespace = "com.innotrik.aispeaking"
+    buildFeatures { buildConfig = true }
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

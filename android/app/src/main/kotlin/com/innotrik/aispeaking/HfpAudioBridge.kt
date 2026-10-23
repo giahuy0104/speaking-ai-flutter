@@ -1,6 +1,7 @@
 package com.innotrik.aispeaking
 
 import android.Manifest
+import android.bluetooth.BluetoothA2dp
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothHeadset
@@ -125,6 +126,10 @@ class HfpAudioBridge(
             emitStatus()
         }
 
+    // Observer correlation only: a system broadcast does not identify which
+    // app/request caused a profile transition. Never use this for routing.
+    private var diagnosticObservationAttemptId: String? = null
+
     private val bluetoothReceiver =
         object : BroadcastReceiver() {
             override fun onReceive(
@@ -136,6 +141,16 @@ class HfpAudioBridge(
                     return
                 }
                 if (disposed) return
+                if (intent != null) {
+                    BleDiagnostics.event(appContext, "audio.profile.observed", mapOf(
+                        "observerAttemptId" to diagnosticObservationAttemptId,
+                        "attribution" to "observation_not_origin",
+                        "action" to intent.action,
+                        "id" to runCatching { bluetoothDeviceExtra(intent)?.address }.getOrNull(),
+                        "state" to intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1),
+                        "previousState" to intent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, -1),
+                    ))
+                }
                 when (intent?.action) {
                     BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED -> {
                         if (!isSelectedDeviceEvent(intent)) {
@@ -454,6 +469,7 @@ class HfpAudioBridge(
             IntentFilter().apply {
                 addAction(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED)
                 addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED)
+                addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED)
             }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             appContext.registerReceiver(
@@ -533,7 +549,7 @@ class HfpAudioBridge(
             "initialize" -> initialize(result)
             "hasPermissions" -> result.success(hasConnectPermission())
             "requestPermissions" -> requestPermissions(result)
-            "findDevices" -> findDevices(result)
+            "findDevices" -> findDevices(call, result)
             "connect" -> connect(call, result, connectionAttemptGeneration)
             "disconnect" -> disconnect(result)
             "cancelConnectionAttempt" -> {
@@ -632,7 +648,8 @@ class HfpAudioBridge(
         return true
     }
 
-    private fun findDevices(result: MethodChannel.Result) {
+    private fun findDevices(call: MethodCall, result: MethodChannel.Result) {
+        call.argument<String>("attemptId")?.let { diagnosticObservationAttemptId = it }
         if (!ensureBluetoothReady(result)) return
         phase = "scanning"
         statusMessage = "Đang tìm thiết bị HFP đã ghép đôi…"
@@ -661,6 +678,16 @@ class HfpAudioBridge(
                         )
                     }
             refreshSelectedDeviceStatus()
+            BleDiagnostics.event(appContext, "hfp.inventory", mapOf(
+                "attemptId" to call.argument<String>("attemptId"),
+                "devices" to devices,
+                "inventorySource" to "bondedDevices+headsetProfile",
+                "scoRouteActive" to routeActive,
+                // Adapter-wide state, NOT proof that this specific HOMI has A2DP.
+                "a2dpAdapterState" to runCatching {
+                    adapter?.getProfileConnectionState(BluetoothProfile.A2DP)
+                }.getOrNull(),
+            ))
             result.success(devices)
         } catch (error: SecurityException) {
             fail(result, "BLUETOOTH_PERMISSION", "Chưa cấp quyền Bluetooth.")

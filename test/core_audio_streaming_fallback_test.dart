@@ -606,6 +606,50 @@ void main() {
   );
 
   test(
+    'microphone level updates its own listenable, not the whole controller',
+    () async {
+      final input = _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Phone',
+        emitOnStart: <int>[1, 2, 3, 4],
+      );
+      final controller = ConversationController(
+        audioInput: input,
+        playbackService: const _FakePlaybackService(),
+        repository: _FallbackRepository(),
+        childAge: 6,
+      );
+      await controller.startRecording();
+      expect(controller.phase, ConversationPhase.recording);
+
+      var controllerNotifications = 0;
+      final levels = <double>[];
+      controller.addListener(() => controllerNotifications++);
+      controller.amplitudeListenable.addListener(
+        () => levels.add(controller.amplitudeListenable.value),
+      );
+
+      // About 90 ms apart on a real device: four samples used to mean four
+      // full controller notifications (screen rebuild + every listener).
+      for (final dbfs in <double>[-50, -40, -30, -20]) {
+        input.emitAmplitude(dbfs);
+      }
+
+      expect(levels, hasLength(4));
+      expect(levels.last, closeTo((-20 + 60) / 48, 1e-9));
+      expect(controller.amplitude, levels.last);
+      expect(controllerNotifications, 0);
+
+      // Real state changes still notify.
+      await controller.stopRecording(manual: true);
+      expect(controllerNotifications, greaterThan(0));
+      expect(controller.phase, isNot(ConversationPhase.recording));
+      controller.dispose();
+    },
+  );
+
+  test(
     'defaults to Cloudflare Batch Chunks without Android streaming',
     () async {
       final input = _FakeChunkedInput(

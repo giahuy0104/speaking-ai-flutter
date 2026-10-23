@@ -19,8 +19,8 @@ enum DeviceIssue {
   unsupported,
   mainUnavailable,
 
-  /// HOMI audio (HFP/A2DP) connected before MAIN. HM-D001 stops advertising
-  /// BLE MAIN while Classic audio is up, so audio must be paused first.
+  /// Observed HOMI audio connected while MAIN is unavailable. The legacy name
+  /// is retained; this state alone does not prove HFP/A2DP caused BLE failure.
   audioBlocksMain,
   audioUnavailable,
   selectionRequired,
@@ -55,6 +55,34 @@ class DeviceSnapshot {
   final String? firmwareRevision;
   final String? name;
   bool get ready => mainReady && audioReady;
+
+  @override
+  bool operator ==(Object other) =>
+      other is DeviceSnapshot &&
+      other.mainReady == mainReady &&
+      other.audioReady == audioReady &&
+      other.audioPaired == audioPaired &&
+      other.audioConnected == audioConnected &&
+      other.routeActive == routeActive &&
+      other.mainId == mainId &&
+      other.audioId == audioId &&
+      other.batteryPercent == batteryPercent &&
+      other.firmwareRevision == firmwareRevision &&
+      other.name == name;
+
+  @override
+  int get hashCode => Object.hash(
+    mainReady,
+    audioReady,
+    audioPaired,
+    audioConnected,
+    routeActive,
+    mainId,
+    audioId,
+    batteryPercent,
+    firmwareRevision,
+    name,
+  );
 }
 
 class DeviceMicrophone {
@@ -68,6 +96,17 @@ class DeviceMicrophone {
   final String name;
   final bool connected;
   final bool needsConfirmation;
+
+  @override
+  bool operator ==(Object other) =>
+      other is DeviceMicrophone &&
+      other.id == id &&
+      other.name == name &&
+      other.connected == connected &&
+      other.needsConfirmation == needsConfirmation;
+
+  @override
+  int get hashCode => Object.hash(id, name, connected, needsConfirmation);
 }
 
 class DeviceSelection {
@@ -96,6 +135,35 @@ class DeviceConnectionState {
     DeviceStage.choosingMicrophone => true,
     _ => false,
   };
+
+  /// Value equality lets the service and DeviceBloc drop repeated identical
+  /// states (the port reports a change on every ConversationController
+  /// notification, most of which leave the device untouched).
+  @override
+  bool operator ==(Object other) =>
+      other.runtimeType == runtimeType &&
+      other is DeviceConnectionState &&
+      other.stage == stage &&
+      other.snapshot == snapshot &&
+      other.issue == issue &&
+      other.attempt == attempt &&
+      _sameMicrophones(other.microphones, microphones);
+
+  @override
+  int get hashCode =>
+      Object.hash(stage, snapshot, issue, attempt, Object.hashAll(microphones));
+
+  static bool _sameMicrophones(
+    List<DeviceMicrophone> a,
+    List<DeviceMicrophone> b,
+  ) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
 }
 
 /// Migration boundary. Native BLE/HFP and persisted identity remain in their

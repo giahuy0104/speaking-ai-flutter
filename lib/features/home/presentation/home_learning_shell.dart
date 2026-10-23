@@ -447,7 +447,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     _builtChildAge = widget.controller.childAge;
     final screenSize = MediaQuery.sizeOf(context);
     final safeTop = MediaQuery.paddingOf(context).top;
-    final railTop = (screenSize.height * 0.33)
+    final railTop = (screenSize.height * 0.38)
         .clamp(safeTop + 148, screenSize.height - 238)
         .toDouble();
     return DisplayLanguageScope(
