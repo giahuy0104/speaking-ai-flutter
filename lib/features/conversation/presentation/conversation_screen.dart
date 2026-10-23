@@ -3,26 +3,26 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
-import '../../../app/homi_connection_presentation.dart';
 import '../../../app/learning_scenery.dart';
-import '../../../app/scenic_app_header.dart';
+import '../../../config/app_config.dart';
 import '../../../l10n/display_language.dart';
-import '../domain/conversation_models.dart';
+import '../../home/presentation/scenic_app_header.dart';
+import '../../settings/presentation/history_sheet.dart';
+import '../../settings/presentation/settings_sheet.dart';
 import 'conversation_controller.dart';
 import 'widgets/result_panel.dart';
 import 'widgets/speak_action_bar.dart';
 import 'widgets/voice_hero.dart';
 
-class ConversationScreen extends StatefulWidget {
+class ConversationScreen extends StatelessWidget {
   const ConversationScreen({
     required this.controller,
-    required this.onOpenHistory,
-    required this.onOpenSettings,
-    this.ensureDeviceConnected,
-    this.isDeviceConnectionReady,
-    this.sessionActive = false,
-    this.isStoppingSession = false,
-    this.onStopSession,
+    required this.config,
+    this.themeMode = ThemeMode.system,
+    this.onThemeModeChanged,
+    this.onChildAgeChanged,
+    this.onStartTutorial,
+    this.onModalVisibilityChanged,
     this.speakActionKey,
     this.resultPanelKey,
     this.historyButtonKey,
@@ -31,115 +31,38 @@ class ConversationScreen extends StatefulWidget {
   });
 
   final ConversationController controller;
-  final VoidCallback onOpenHistory;
-  final VoidCallback onOpenSettings;
-  final Future<bool> Function()? ensureDeviceConnected;
-  final bool Function()? isDeviceConnectionReady;
-  final bool sessionActive;
-  final bool isStoppingSession;
-  final Future<void> Function()? onStopSession;
+  final AppConfig config;
+  final ThemeMode themeMode;
+  final ValueChanged<ThemeMode>? onThemeModeChanged;
+  final ValueChanged<int>? onChildAgeChanged;
+  final VoidCallback? onStartTutorial;
+  final ValueChanged<bool>? onModalVisibilityChanged;
   final Key? speakActionKey;
   final Key? resultPanelKey;
   final Key? historyButtonKey;
   final Key? settingsButtonKey;
 
   @override
-  State<ConversationScreen> createState() => _ConversationScreenState();
-}
-
-class _ConversationScreenState extends State<ConversationScreen> {
-  bool _waitingForDevice = false;
-  bool _stoppingSession = false;
-  int _actionGeneration = 0;
-
-  Future<void> _openOtherScreen(VoidCallback open) async {
-    if (widget.controller.sentenceQueueActive) {
-      await widget.controller.cancelCurrentMainAction();
-    }
-    if (mounted) open();
-  }
-
-  @override
-  void dispose() {
-    if (widget.controller.sentenceQueueActive) {
-      unawaited(widget.controller.cancelCurrentMainAction());
-    }
-    super.dispose();
-  }
-
-  Future<void> _stopSession() async {
-    final stop = widget.onStopSession;
-    if (stop == null || _stoppingSession || widget.isStoppingSession) return;
-    _actionGeneration++;
-    setState(() => _stoppingSession = true);
-    try {
-      await stop();
-    } finally {
-      if (mounted) setState(() => _stoppingSession = false);
-    }
-  }
-
-  Future<void> _onPrimaryAction() async {
-    if (_stoppingSession || widget.isStoppingSession) return;
-    final controller = widget.controller;
-    if (controller.phase == ConversationPhase.recording) {
-      await controller.onPrimaryAction();
-      return;
-    }
-    if (_waitingForDevice) return;
-    final generation = _actionGeneration;
-    _waitingForDevice = true;
-    try {
-      final ensureConnected = widget.ensureDeviceConnected;
-      if (ensureConnected != null && !await ensureConnected()) return;
-      if (!mounted ||
-          generation != _actionGeneration ||
-          !identical(controller, widget.controller) ||
-          controller.phase == ConversationPhase.recording ||
-          controller.phase == ConversationPhase.processing) {
-        return;
-      }
-      await controller.onPrimaryAction();
-    } finally {
-      _waitingForDevice = false;
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: widget.controller,
+      animation: controller,
       builder: (context, _) {
         final compact = MediaQuery.sizeOf(context).height < 900;
-        final needsDeviceConnection =
-            widget.ensureDeviceConnected != null &&
-            !(widget.isDeviceConnectionReady?.call() ??
-                widget.controller.isH20Ready);
         return DisplayLanguageScope(
-          language: widget.controller.displayLanguage,
+          language: controller.displayLanguage,
           child: Scaffold(
             backgroundColor: Colors.transparent,
             body: LearningScenery(
-              overlayOpacity: 0.025,
               child: SafeArea(
-                bottom: true,
+                bottom: false,
                 child: Column(
                   children: <Widget>[
                     ScenicAppHeader(
-                      isReady: widget.controller.isH20Ready,
-                      connectionState: widget.controller.h20ConnectionState(),
-                      onHistory: () =>
-                          unawaited(_openOtherScreen(widget.onOpenHistory)),
-                      onSettings: () =>
-                          unawaited(_openOtherScreen(widget.onOpenSettings)),
-                      historyButtonKey: widget.historyButtonKey,
-                      settingsButtonKey: widget.settingsButtonKey,
-                    ),
-                    HomiConnectionNotice(
-                      status: HomiConnectionPresentation.from(
-                        widget.controller.h20ConnectionState(),
-                        isReady: widget.controller.isH20Ready,
-                      ),
+                      isReady: controller.isInputAvailable,
+                      onHistory: () => _showHistory(context),
+                      onSettings: () => _showSettings(context),
+                      historyButtonKey: historyButtonKey,
+                      settingsButtonKey: settingsButtonKey,
                     ),
                     Expanded(
                       child: Center(
@@ -148,130 +71,40 @@ class _ConversationScreenState extends State<ConversationScreen> {
                           child: SingleChildScrollView(
                             key: const Key('conversation-home-scroll'),
                             padding: EdgeInsets.fromLTRB(
-                              24,
-                              compact ? 24 : 64,
-                              24,
-                              10,
+                              28,
+                              compact ? 44 : 70,
+                              28,
+                              18,
                             ),
                             child: Column(
                               children: <Widget>[
-                                if (widget
-                                    .controller
-                                    .supportsTranslationTargets)
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 16),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: <Widget>[
-                                        Text(context.tr('Dịch sang', '翻译成')),
-                                        const SizedBox(width: 12),
-                                        DropdownButton<
-                                          TranslationOutputLanguage
-                                        >(
-                                          key: const Key(
-                                            'translation-output-language',
-                                          ),
-                                          value:
-                                              widget.controller.outputLanguage,
-                                          onChanged:
-                                              widget.controller.isBusy ||
-                                                  widget
-                                                      .controller
-                                                      .sentenceQueueActive
-                                              ? null
-                                              : (language) {
-                                                  if (language != null) {
-                                                    widget.controller
-                                                        .setOutputLanguage(
-                                                          language,
-                                                        );
-                                                  }
-                                                },
-                                          items: [
-                                            for (final language
-                                                in TranslationOutputLanguage
-                                                    .values)
-                                              DropdownMenuItem(
-                                                value: language,
-                                                child: Text(language.label),
-                                              ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
                                 VoiceHero(
-                                  needsDeviceConnection: needsDeviceConnection,
-                                  phase: widget.controller.phase,
-                                  processingStage:
-                                      widget.controller.processingStage,
-                                  amplitude: widget.controller.amplitude,
+                                  phase: controller.phase,
+                                  processingStage: controller.processingStage,
+                                  amplitude: controller.amplitude,
                                   isPreparingMicrophone:
-                                      widget.controller.isPreparingMicrophone,
+                                      controller.isPreparingMicrophone,
                                   onStop: () => unawaited(
-                                    widget.controller.stopRecording(
-                                      manual: true,
-                                    ),
+                                    controller.stopRecording(manual: true),
                                   ),
                                 ),
-                                SizedBox(height: compact ? 8 : 18),
-                                if (widget.controller.sentenceProgress != null)
-                                  Text(widget.controller.sentenceProgress!),
-                                if (widget.controller.sentenceQueueActive)
-                                  TextButton.icon(
-                                    onPressed: () => unawaited(
-                                      widget.controller
-                                          .cancelCurrentMainAction(),
-                                    ),
-                                    icon: const Icon(Icons.stop),
-                                    label: const Text('Dừng phát'),
-                                  ),
-                                for (final previous
-                                    in widget.controller.sentenceResults.where(
-                                      (item) => !identical(
-                                        item,
-                                        widget.controller.result,
-                                      ),
-                                    ))
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
-                                    child: Text(
-                                      '${previous.vietnameseText}\n'
-                                      '${previous.displayedTranslation}',
-                                    ),
-                                  ),
-                                if (widget
-                                    .controller
-                                    .sentenceResults
-                                    .isNotEmpty)
-                                  const Text(
-                                    'Nghe lại áp dụng cho câu đang hiển thị '
-                                    'bên dưới, sau khi hàng đợi dừng.',
-                                  ),
+                                SizedBox(height: compact ? 24 : 28),
                                 ResultPanel(
-                                  key: widget.resultPanelKey,
-                                  result: widget.controller.result,
-                                  outputLanguage:
-                                      widget.controller.outputLanguage,
+                                  key: resultPanelKey,
+                                  result: controller.result,
                                   onPlay: () =>
-                                      unawaited(widget.controller.playResult()),
+                                      unawaited(controller.playResult()),
                                 ),
-                                if (widget.controller.errorMessage != null ||
-                                    widget.controller.transientMessage !=
+                                if (controller.errorMessage != null ||
+                                    controller.transientMessage !=
                                         null) ...<Widget>[
                                   const SizedBox(height: 12),
                                   _InlineMessage(
-                                    isError:
-                                        widget.controller.errorMessage != null,
-                                    isConnectionReady:
-                                        widget.controller.transientMessage ==
-                                        ConversationController
-                                            .connectionReadyMessage,
+                                    isError: controller.errorMessage != null,
                                     message:
-                                        widget.controller.errorMessage ??
-                                        widget.controller.transientMessage!,
-                                    onDismiss: widget.controller.clearMessage,
+                                        controller.errorMessage ??
+                                        controller.transientMessage!,
+                                    onDismiss: controller.clearMessage,
                                   ),
                                 ],
                               ],
@@ -280,39 +113,12 @@ class _ConversationScreenState extends State<ConversationScreen> {
                         ),
                       ),
                     ),
-                    if ((widget.sessionActive ||
-                            widget.isStoppingSession ||
-                            _stoppingSession) &&
-                        widget.onStopSession != null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Builder(
-                          builder: (context) {
-                            final stopping =
-                                _stoppingSession || widget.isStoppingSession;
-                            return OutlinedButton.icon(
-                              key: const Key('conversation-stop-session'),
-                              onPressed: stopping
-                                  ? null
-                                  : () => unawaited(_stopSession()),
-                              icon: const Icon(Icons.stop_circle_outlined),
-                              label: Text(
-                                stopping
-                                    ? context.tr('Đang dừng phiên…', '正在结束对话…')
-                                    : context.tr('Dừng phiên', '结束对话'),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
                     SpeakActionBar(
-                      key: widget.speakActionKey,
-                      phase: widget.controller.phase,
-                      needsDeviceConnection: needsDeviceConnection,
-                      processingStage: widget.controller.processingStage,
-                      isPreparingMicrophone:
-                          widget.controller.isPreparingMicrophone,
-                      onPressed: () => unawaited(_onPrimaryAction()),
+                      key: speakActionKey,
+                      phase: controller.phase,
+                      processingStage: controller.processingStage,
+                      isPreparingMicrophone: controller.isPreparingMicrophone,
+                      onPressed: () => unawaited(controller.onPrimaryAction()),
                     ),
                   ],
                 ),
@@ -323,49 +129,66 @@ class _ConversationScreenState extends State<ConversationScreen> {
       },
     );
   }
+
+  Future<void> _showSettings(BuildContext context) async {
+    onModalVisibilityChanged?.call(true);
+    try {
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        showDragHandle: true,
+        builder: (_) => SettingsSheet(
+          controller: controller,
+          themeMode: themeMode,
+          onThemeModeChanged: onThemeModeChanged,
+          onChildAgeChanged: onChildAgeChanged,
+          onStartTutorial: onStartTutorial,
+        ),
+      );
+    } finally {
+      onModalVisibilityChanged?.call(false);
+    }
+  }
+
+  Future<void> _showHistory(BuildContext context) async {
+    onModalVisibilityChanged?.call(true);
+    try {
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        showDragHandle: true,
+        builder: (_) => HistorySheet(controller: controller),
+      );
+    } finally {
+      onModalVisibilityChanged?.call(false);
+    }
+  }
 }
 
 class _InlineMessage extends StatelessWidget {
   const _InlineMessage({
     required this.isError,
-    required this.isConnectionReady,
     required this.message,
     required this.onDismiss,
   });
 
   final bool isError;
-  final bool isConnectionReady;
   final String message;
   final VoidCallback onDismiss;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final color = isError
-        ? theme.colorScheme.error
-        : (isDark
-              ? theme.colorScheme.onTertiaryContainer
-              : AppColors.primaryNavy);
-    final localizedMessage = isConnectionReady
-        ? context.tr(
-            ConversationController.connectionReadyMessage,
-            'HOMI 设备已连接，准备好一起学习啦！',
-          )
-        : context.trKnown(message);
+    final color = isError ? Theme.of(context).colorScheme.error : AppColors.ink;
+    final localizedMessage = context.trKnown(message);
     return Semantics(
       liveRegion: true,
       label: localizedMessage,
       child: Container(
         padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
         decoration: BoxDecoration(
-          color: isError
-              ? theme.colorScheme.errorContainer
-              : (isDark
-                    ? theme.colorScheme.tertiaryContainer
-                    : isConnectionReady
-                    ? AppColors.mintSoft
-                    : AppColors.lavender),
+          color: isError ? const Color(0xFFFFF1F0) : AppColors.lavender,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
@@ -373,8 +196,6 @@ class _InlineMessage extends StatelessWidget {
             Icon(
               isError
                   ? Icons.error_outline_rounded
-                  : isConnectionReady
-                  ? Icons.check_circle_rounded
                   : Icons.info_outline_rounded,
               color: color,
               size: 21,
@@ -386,12 +207,11 @@ class _InlineMessage extends StatelessWidget {
                 style: TextStyle(color: color, fontSize: 13),
               ),
             ),
-            if (!isConnectionReady)
-              IconButton(
-                onPressed: onDismiss,
-                icon: const Icon(Icons.close_rounded),
-                tooltip: context.tr('Ẩn thông báo', '隐藏通知'),
-              ),
+            IconButton(
+              onPressed: onDismiss,
+              icon: const Icon(Icons.close_rounded),
+              tooltip: context.tr('Ẩn thông báo', '隐藏通知'),
+            ),
           ],
         ),
       ),

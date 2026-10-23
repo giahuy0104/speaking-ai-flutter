@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:flutter/services.dart';
+
 enum LessonGuideCue {
   record('GUIDE_RECORD'),
   praise('GUIDE_PRAISE'),
@@ -15,13 +17,15 @@ enum LessonGuideCue {
 }
 
 class LessonGuideAudioLibrary {
-  LessonGuideAudioLibrary({Random? random, List<String>? assetPaths})
-    : _random = random ?? Random(),
-      _providedAssetPaths = assetPaths == null
-          ? null
-          : List<String>.unmodifiable(
-              assetPaths.map(_normalizePath).toList(growable: false)..sort(),
-            );
+  LessonGuideAudioLibrary({
+    AssetBundle? bundle,
+    Random? random,
+    List<String>? assetPaths,
+  }) : _bundle = bundle ?? rootBundle,
+       _random = random ?? Random(),
+       _providedAssetPaths = assetPaths == null
+           ? null
+           : List<String>.unmodifiable(assetPaths);
 
   static const Set<String> _supportedExtensions = <String>{
     '.aac',
@@ -31,16 +35,17 @@ class LessonGuideAudioLibrary {
     '.wav',
   };
 
+  final AssetBundle _bundle;
   final Random _random;
   final List<String>? _providedAssetPaths;
+  Future<List<String>>? _assetPathsFuture;
 
   Future<Uri?> randomUri(
     LessonGuideCue cue, {
     required int startAge,
     required int endAge,
   }) async {
-    final assets = _providedAssetPaths;
-    if (assets == null) return null;
+    final assets = await (_assetPathsFuture ??= _loadAssetPaths());
     final assetPrefix =
         'assets/audio/A-$startAge-$endAge/${cue.directoryName}/';
     final candidates = assets
@@ -62,8 +67,7 @@ class LessonGuideAudioLibrary {
     if (normalizedCode.isEmpty) {
       return null;
     }
-    final assets = _providedAssetPaths;
-    if (assets == null) return null;
+    final assets = await (_assetPathsFuture ??= _loadAssetPaths());
     for (final asset in assets) {
       if (!_isSupportedAudio(asset)) {
         continue;
@@ -80,6 +84,16 @@ class LessonGuideAudioLibrary {
       }
     }
     return null;
+  }
+
+  Future<List<String>> _loadAssetPaths() async {
+    final provided = _providedAssetPaths;
+    if (provided != null) {
+      return provided.map(_normalizePath).toList(growable: false)..sort();
+    }
+    final manifest = await AssetManifest.loadFromAssetBundle(_bundle);
+    return manifest.listAssets().map(_normalizePath).toList(growable: false)
+      ..sort();
   }
 
   static bool _isSupportedAudio(String assetPath) {

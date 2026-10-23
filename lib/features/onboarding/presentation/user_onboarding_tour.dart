@@ -266,14 +266,14 @@ class _TourCard extends StatelessWidget {
             : const Color(0xFFFFFDF9),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: isDark ? colorScheme.outline : AppColors.mintBorder,
+          color: isDark ? colorScheme.outline : const Color(0xFFDDE3FF),
           width: 1.4,
         ),
-        boxShadow: <BoxShadow>[
+        boxShadow: const <BoxShadow>[
           BoxShadow(
-            color: AppColors.primaryNavy.withValues(alpha: 0.16),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
+            color: Color(0x52081235),
+            blurRadius: 30,
+            offset: Offset(0, 14),
           ),
         ],
       ),

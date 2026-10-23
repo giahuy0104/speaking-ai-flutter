@@ -9,7 +9,6 @@ class SpeakActionBar extends StatelessWidget {
     required this.phase,
     required this.processingStage,
     this.isPreparingMicrophone = false,
-    this.needsDeviceConnection = false,
     required this.onPressed,
     super.key,
   });
@@ -17,29 +16,23 @@ class SpeakActionBar extends StatelessWidget {
   final ConversationPhase phase;
   final ConversationProcessingStage processingStage;
   final bool isPreparingMicrophone;
-  final bool needsDeviceConnection;
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final isRecording = phase == ConversationPhase.recording;
     final isProcessing =
         phase == ConversationPhase.processing || isPreparingMicrophone;
-    final primary = isRecording
-        ? (isDark ? theme.colorScheme.secondary : AppColors.accentPink)
-        : (isDark ? theme.colorScheme.primary : AppColors.primaryNavy);
-    final foreground = isDark && !isRecording
-        ? theme.colorScheme.onPrimary
-        : Colors.white;
+    final primary = isRecording ? AppColors.coral : AppColors.indigo;
+    final secondary = isRecording
+        ? const Color(0xFFE9524A)
+        : AppColors.indigoDark;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 13, 20, 24),
+      padding: const EdgeInsets.fromLTRB(20, 13, 20, 12),
       decoration: const BoxDecoration(color: Colors.transparent),
       child: SafeArea(
         top: false,
-        bottom: true,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 680),
@@ -51,11 +44,16 @@ class SpeakActionBar extends StatelessWidget {
                   : _label(context),
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: isProcessing
-                      ? (isDark
-                            ? theme.colorScheme.surfaceContainerHighest
-                            : AppColors.softNavy.withValues(alpha: 0.72))
-                      : primary,
+                  gradient: LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: isProcessing
+                        ? <Color>[
+                            AppColors.indigo.withValues(alpha: 0.38),
+                            AppColors.indigoDark.withValues(alpha: 0.38),
+                          ]
+                        : <Color>[primary, secondary],
+                  ),
                   borderRadius: BorderRadius.circular(34),
                   boxShadow: <BoxShadow>[
                     BoxShadow(
@@ -78,10 +76,8 @@ class SpeakActionBar extends StatelessWidget {
                           Icon(
                             isRecording
                                 ? Icons.stop_rounded
-                                : needsDeviceConnection && !isProcessing
-                                ? Icons.bluetooth_rounded
                                 : Icons.mic_rounded,
-                            color: foreground,
+                            color: Colors.white,
                             size: 31,
                           ),
                           const SizedBox(width: 12),
@@ -96,10 +92,11 @@ class SpeakActionBar extends StatelessWidget {
                                       )
                                     : _label(context),
                                 textAlign: TextAlign.center,
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  color: foreground,
-                                  fontSize: 20,
-                                ),
+                                style: Theme.of(context).textTheme.titleLarge
+                                    ?.copyWith(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                    ),
                               ),
                             ),
                           ),
@@ -132,7 +129,6 @@ class SpeakActionBar extends StatelessWidget {
         '正在准备语音…',
       ),
     },
-    _ when needsDeviceConnection => context.tr('Kết nối HOMI', '连接 HOMI'),
     ConversationPhase.ready => context.tr('Nói câu mới', '说新句子'),
     ConversationPhase.error => context.tr('Thử lại', '重试'),
     ConversationPhase.idle => context.tr('Bắt đầu nói', '开始说话'),

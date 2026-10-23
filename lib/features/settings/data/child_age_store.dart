@@ -22,9 +22,4 @@ class ChildAgeStore {
     final preferences = await SharedPreferences.getInstance();
     await preferences.setInt(_childAgeKey, age);
   }
-
-  Future<void> clear() async {
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.remove(_childAgeKey);
-  }
 }

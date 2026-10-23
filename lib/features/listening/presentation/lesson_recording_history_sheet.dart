@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
-import '../../../core/audio/audio_gain.dart';
 import '../../../l10n/display_language.dart';
 import '../application/lesson_media_service.dart';
 import '../data/lesson_recording_history_store.dart';
@@ -123,18 +122,14 @@ class _LessonRecordingHistorySheetState
         ? parsed
         : Uri.file(entry.filePath);
     try {
-      await widget.mediaService.play(
-        uri,
-        playbackGainDb: lessonRecordingPlaybackGainDb,
-        fixedPlaybackGain: true,
-      );
+      await widget.mediaService.play(uri);
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               context.tr(
-                'Không thể phát bản ghi này. Bạn có thể ghi lại câu mới.',
+                'Không thể phát bản ghi này. Con có thể ghi lại câu mới.',
                 '无法播放这条录音，可以重新录制。',
               ),
             ),

@@ -3,11 +3,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../config/app_config.dart';
-import '../auth/installation_authenticated_client.dart';
 import 'android_device_hardware.dart';
 
 typedef ClientIdProvider = Future<String> Function();
-typedef ClientIdResetter = Future<void> Function();
 typedef AndroidHardwareProvider = Future<AndroidDeviceHardware> Function();
 
 class DeviceRegistrationService {
@@ -15,18 +13,11 @@ class DeviceRegistrationService {
     required AppConfig config,
     required ClientIdProvider clientIdProvider,
     required AndroidHardwareProvider hardwareProvider,
-    ClientIdResetter? clientIdResetter,
     http.Client? client,
   }) : _config = config,
        _clientIdProvider = clientIdProvider,
        _hardwareProvider = hardwareProvider,
-       _client =
-           client ??
-           InstallationAuthenticatedClient(
-             config: config,
-             clientIdProvider: clientIdProvider,
-             clientIdResetter: clientIdResetter,
-           ),
+       _client = client ?? http.Client(),
        _ownsClient = client == null;
 
   final AppConfig _config;
@@ -36,10 +27,6 @@ class DeviceRegistrationService {
   final bool _ownsClient;
 
   Future<void> register() async {
-    final client = _client;
-    if (client is InstallationAuthenticatedClient) {
-      await client.ensureAuthenticated();
-    }
     final clientId = await _clientIdProvider();
     final hardware = await _hardwareProvider();
     final response = await _client

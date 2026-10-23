@@ -1,99 +1,21 @@
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_intent_resolver.dart';
-import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   const resolver = VoiceNavigationIntentResolver();
 
   group('VoiceNavigationIntentResolver', () {
-    test(
-      'recognizes complete numbered topic commands without an action verb',
-      () {
-        for (final entry in <String, int>{
-          'Chủ đề số 1': 1,
-          'Chủ đề số 2': 2,
-          'Chủ đề số 3': 3,
-          'chủ đề số một': 1,
-          'chu de so hai': 2,
-          'Chủ đề ba nhé': 3,
-          'Con muốn học chủ đề số ba': 3,
-          'Mở chủ đề mười một': 11,
-          'Topic number one': 1,
-          'Topic two': 2,
-          'Open topic number three please': 3,
-        }.entries) {
-          final intent = resolver.resolve(entry.key);
-          expect(
-            intent?.destination,
-            VoiceNavigationDestination.topics,
-            reason: entry.key,
-          );
-          expect(intent?.topicNumber, entry.value, reason: entry.key);
-          expect(intent?.openLesson, isFalse, reason: entry.key);
-        }
-      },
-    );
-
-    test('numbered topic recognition waits for a complete final utterance', () {
-      for (final phrase in <String>[
-        'Chủ đề số',
-        'Bạn chọn chủ đề số mấy',
-        'Chủ đề số hai rất hay',
-        'Hôm nay cô kể chuyện về chủ đề số ba',
-      ]) {
-        expect(
-          VoiceNavigationIntentResolver.directTopicNumber(phrase),
-          isNull,
-          reason: phrase,
-        );
-      }
-      expect(resolver.resolve('Chủ đề số'), isNull);
-      expect(resolver.resolve('Chủ đề số hai rất hay'), isNull);
-      expect(
-        resolver.resolve('Chủ đề số hai', allowShortDirectCommand: false),
-        isNull,
-      );
-    });
-
-    test(
-      'continuous numbered topic navigation still requires a command cue',
-      () {
-        for (final command in <String>[
-          'Mở chủ đề số hai',
-          'Con muốn học chủ đề số hai',
-        ]) {
-          final intent = resolver.resolve(
-            command,
-            allowShortDirectCommand: false,
-          );
-          expect(intent?.destination, VoiceNavigationDestination.topics);
-          expect(intent?.topicNumber, 2);
-        }
-        expect(
-          resolver.resolve(
-            'Hôm nay cô kể chuyện về chủ đề số hai',
-            allowShortDirectCommand: false,
-          ),
-          isNull,
-        );
-      },
-    );
-
-    test('recognizes approved INT-022 HOMI wake phrases and ASR variants', () {
-      for (final phrase in MasterNavigationContract.phrases['WAKE_WORD']!) {
-        expect(resolver.containsWakeWord(phrase), isTrue, reason: phrase);
-      }
-      expect(resolver.containsWakeWord('Hey HOMI'), isTrue);
-      expect(resolver.containsWakeWord('Hay HOMIE'), isTrue);
-      expect(resolver.containsWakeWord('Hey HAMI'), isTrue);
-      expect(resolver.containsWakeWord('Ê HOMPI'), isTrue);
-      expect(resolver.containsWakeWord('Hôm-mi ơi'), isTrue);
-      expect(resolver.containsWakeWord('HOMI nghe mình nói không?'), isTrue);
-      expect(resolver.containsWakeWord('HOMI'), isFalse);
+    test('recognizes the Hey Pico wake phrase and common ASR variants', () {
+      expect(resolver.containsWakeWord('Hey Pico'), isTrue);
+      expect(resolver.containsWakeWord('hay pico'), isTrue);
+      expect(resolver.containsWakeWord('Hey Piko'), isTrue);
+      expect(resolver.containsWakeWord('Hey Pi Cô'), isTrue);
+      expect(resolver.containsWakeWord('Hay Bi Cô'), isTrue);
+      expect(resolver.containsWakeWord('Ê Pi Cô'), isTrue);
+      expect(resolver.containsWakeWord('Hey Bigo'), isTrue);
       expect(resolver.containsWakeWord('Pico'), isFalse);
-      expect(resolver.containsWakeWord('Bạn ơi'), isFalse);
-      expect(resolver.containsWakeWord('Mình thích HOMI'), isFalse);
       expect(resolver.containsWakeWord('Hãy đi coi bài tập'), isFalse);
+      expect(resolver.containsWakeWord('Em biết cô giáo'), isFalse);
     });
 
     test('recognizes vocabulary commands with and without accents', () {
@@ -177,20 +99,11 @@ void main() {
       );
     });
 
-    test('routes an approved workbook phrase in a longer utterance', () {
-      expect(
-        resolver
-            .resolve('Bài học hôm nay có phần từ vựng rất khó')
-            ?.destination,
-        VoiceNavigationDestination.vocabulary,
-      );
-    });
-
     test(
-      'does not redirect a normal sentence without an approved command phrase',
+      'does not redirect a normal sentence that only mentions a feature',
       () {
         expect(
-          resolver.resolve('Bài học hôm nay có phần bài tập rất khó'),
+          resolver.resolve('Bài học hôm nay có phần từ vựng rất khó'),
           isNull,
         );
         expect(

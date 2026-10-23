@@ -13,15 +13,11 @@ import 'recording_storage.dart';
 import 'wav_audio.dart';
 
 class PhoneMicrophoneInput
-    implements
-        ChunkedAudioInput,
-        SelectableAudioInputControl,
-        AudioInputSelectionCancellation {
+    implements ChunkedAudioInput, SelectableAudioInputControl {
   PhoneMicrophoneInput({AudioRecorder? recorder})
     : _recorder = recorder ?? AudioRecorder();
 
   final AudioRecorder _recorder;
-  int _inputSelectionGeneration = 0;
   final StreamController<Uint8List> _audioChunkController =
       StreamController<Uint8List>.broadcast(sync: true);
   DateTime? _startedAt;
@@ -52,18 +48,6 @@ class PhoneMicrophoneInput
   int get _chunkByteLength =>
       pcm16ChunkByteLength(sampleRate: _effectiveSampleRate);
 
-  Duration get _pcmDrainTimeout {
-    if (kIsWeb) return const Duration(milliseconds: 250);
-    // record_av_foundation normally closes its stream immediately after stop.
-    // A bounded iOS wait keeps MAIN responsive if a route change prevents the
-    // terminal stream event while still leaving enough time for the last PCM
-    // buffer to arrive.
-    if (defaultTargetPlatform == TargetPlatform.iOS) {
-      return const Duration(milliseconds: 750);
-    }
-    return const Duration(seconds: 2);
-  }
-
   @override
   String get label {
     final selected = _selectedInputDevice;
@@ -88,13 +72,6 @@ class PhoneMicrophoneInput
 
   @override
   Stream<Uint8List> get audioChunks => _audioChunkController.stream;
-
-  /// Reads the existing grant without opening a system permission prompt.
-  Future<bool> checkPermission() async {
-    final granted = await _recorder.hasPermission(request: false);
-    _microphonePermissionGranted = granted;
-    return granted;
-  }
 
   /// Requests microphone access before the child reaches a MAIN interaction.
   ///
@@ -133,13 +110,11 @@ class PhoneMicrophoneInput
   Future<void> selectAudioInputDevice(
     SelectableAudioInputDevice? device,
   ) async {
-    final generation = ++_inputSelectionGeneration;
     if (device == null) {
       _selectedInputDevice = null;
       return;
     }
     final available = await _recorder.listInputDevices();
-    if (generation != _inputSelectionGeneration) return;
     InputDevice? selected;
     for (final item in available) {
       if (item.id == device.id) {
@@ -155,16 +130,11 @@ class PhoneMicrophoneInput
     _selectedInputDevice = selected;
   }
 
-  @override
-  void cancelAudioInputSelection() {
-    _inputSelectionGeneration++;
-  }
-
   Future<void> _prepareRecording() async {
     if (!_microphonePermissionGranted) {
       if (!await requestPermission()) {
         throw const AudioInputException(
-          'Ứng dụng cần quyền micro để nghe bạn nói.',
+          'Ứng dụng cần quyền micro để nghe con nói.',
         );
       }
       _microphonePermissionGranted = true;
@@ -336,16 +306,15 @@ class PhoneMicrophoneInput
     final recorderPath = await _recorder.stop();
     if (_chunked) {
       var streamDrainTimedOut = false;
-      final drainTimeout = _pcmDrainTimeout;
       await _pcmStreamDone?.future.timeout(
-        drainTimeout,
+        kIsWeb ? const Duration(milliseconds: 250) : const Duration(seconds: 2),
         onTimeout: () {
           streamDrainTimedOut = true;
         },
       );
       if (streamDrainTimedOut) {
         debugPrint(
-          'PCM stream drain timed out after ${drainTimeout.inMilliseconds} ms; '
+          'PCM stream drain timed out after ${kIsWeb ? 250 : 2000} ms; '
           'flushing the buffered tail.',
         );
       }

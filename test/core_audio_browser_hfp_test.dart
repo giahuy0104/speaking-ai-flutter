@@ -1,6 +1,5 @@
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/browser_hfp_audio_control.dart';
-import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -13,103 +12,6 @@ void main() {
     );
     expect(isLikelyBrowserHfpLabel('iPhone Microphone'), isFalse);
     expect(isLikelyBrowserHfpLabel('Default - Microphone Array'), isFalse);
-  });
-
-  test('automatic H20 selection ignores an unrelated connected headset', () {
-    const devices = <HfpAudioDevice>[
-      HfpAudioDevice(id: 'airpods', name: 'AirPods Pro', isConnected: true),
-      HfpAudioDevice(id: 'h20', name: 'H20', isConnected: false),
-    ];
-
-    expect(selectLikelyH20HfpDevice(devices, bleDeviceName: 'H20')?.id, 'h20');
-    expect(
-      selectLikelyH20HfpDevice(const <HfpAudioDevice>[
-        HfpAudioDevice(id: 'airpods', name: 'AirPods Pro', isConnected: true),
-      ], bleDeviceName: 'H20'),
-      isNull,
-    );
-  });
-
-  test('connected-only selection waits for the matching HFP profile', () {
-    const devices = <HfpAudioDevice>[
-      HfpAudioDevice(id: 'paired', name: 'HM-D001', isConnected: false),
-      HfpAudioDevice(id: 'live', name: 'HM-D001', isConnected: true),
-    ];
-
-    expect(selectLikelyH20HfpDevice(devices, connectedOnly: true)?.id, 'live');
-    expect(
-      selectLikelyH20HfpDevice(devices.take(1), connectedOnly: true),
-      isNull,
-    );
-  });
-
-  test('automatic H20 selection accepts known ODM device names', () {
-    const devices = <HfpAudioDevice>[
-      HfpAudioDevice(id: 'odm', name: 'INNOTRIK HFP', isConnected: true),
-    ];
-
-    expect(selectLikelyH20HfpDevice(devices)?.id, 'odm');
-  });
-
-  test('automatic HFP selection accepts HM-D001 without a BLE name', () {
-    const devices = <HfpAudioDevice>[
-      HfpAudioDevice(id: 'airpods', name: 'AirPods Pro', isConnected: true),
-      HfpAudioDevice(id: 'hm', name: 'HM-D001', isConnected: true),
-    ];
-
-    expect(selectLikelyH20HfpDevice(devices)?.id, 'hm');
-    expect(
-      selectLikelyH20HfpDevice(const <HfpAudioDevice>[
-        HfpAudioDevice(id: 'other', name: 'HM-D001-OTHER', isConnected: true),
-      ]),
-      isNull,
-    );
-  });
-
-  test(
-    'ambiguous same-name microphones require selection or saved identity',
-    () {
-      const devices = [
-        HfpAudioDevice(id: 'first', name: 'HM-D001', isConnected: true),
-        HfpAudioDevice(id: 'second', name: 'HM-D001', isConnected: true),
-      ];
-      expect(selectLikelyH20HfpDevice(devices), isNull);
-      expect(
-        selectLikelyH20HfpDevice(devices, preferredDeviceId: 'second')?.id,
-        'second',
-      );
-      expect(
-        selectLikelyH20HfpDevice(
-          devices,
-          bleDeviceId: 'first',
-          preferredDeviceId: 'second',
-        )?.id,
-        'first',
-      );
-    },
-  );
-
-  test(
-    'an unnamed microphone never borrows its identifier as a device name',
-    () {
-      const device = HfpAudioDevice(
-        id: 'H20-looking-id',
-        name: '',
-        isConnected: true,
-      );
-      expect(device.displayName, isEmpty);
-      expect(selectLikelyH20HfpDevice([device]), isNull);
-    },
-  );
-
-  test('automatic HFP selection prefers HM-D001 over legacy H20', () {
-    const devices = <HfpAudioDevice>[
-      HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
-      HfpAudioDevice(id: 'hm', name: 'HM-D001', isConnected: false),
-    ];
-
-    expect(selectLikelyH20HfpDevice(devices)?.id, 'hm');
-    expect(selectLikelyH20HfpDevice(devices, bleDeviceName: 'H20')?.id, 'h20');
   });
 
   test(
