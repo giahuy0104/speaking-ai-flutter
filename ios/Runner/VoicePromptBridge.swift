@@ -821,9 +821,9 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       )
       return nil
     }
-    // A selected H20 must keep assistant speech on its HFP route. Media
+    // A selected HM-D001 must keep assistant speech on its HFP route. Media
     // playback is only used if that route is genuinely unavailable, such as
-    // after the H20 has been disconnected.
+    // after the HM-D001 has been disconnected.
     if forceMediaPlayback, preferredHfpInput == nil {
       do {
         try audioSessionCoordinator.prepareMediaPlayback(
@@ -1053,7 +1053,7 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     result?(error)
   }
 
-  /// A live H20 prompt must never continue on the handset after iOS drops its
+  /// A live HM-D001 prompt must never continue on the handset after iOS drops its
   /// two-way Bluetooth route. Synthesis also aborts once its prepared HFP route
   /// is lost; a finished file cannot silently pick a different output later.
   private func stopPlaybackIfSelectedHfpRouteWasLost() {

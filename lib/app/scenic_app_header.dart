@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../core/device/h20_connection_state.dart';
+import '../core/device/homi_connection_state.dart';
 import '../l10n/display_language.dart';
 import 'app_theme.dart';
 import 'homi_connection_presentation.dart';
@@ -18,7 +18,7 @@ class ScenicAppHeader extends StatelessWidget {
   });
 
   final bool isReady;
-  final H20ConnectionState? connectionState;
+  final HomiConnectionState? connectionState;
   final VoidCallback onHistory;
   final VoidCallback onSettings;
   final Key? historyButtonKey;

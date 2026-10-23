@@ -412,10 +412,10 @@ class RunnerTests: XCTestCase {
   }
 
   func testIOSSpeechRouteMatchesOnlyTheSelectedHfpInput() {
-    let selected = IOSHfpInputIdentity(uid: "h20-1", name: "HOMI H20")
+    let selected = IOSHfpInputIdentity(uid: "hm-d001-1", name: "HOMI HM-D001")
     XCTAssertTrue(IOSSelectedHfpRoutePolicy.matches(active: selected, selected: selected))
     XCTAssertTrue(IOSSelectedHfpRoutePolicy.matches(
-      active: IOSHfpInputIdentity(uid: "h20-2", name: "HOMI H20"),
+      active: IOSHfpInputIdentity(uid: "hm-d001-2", name: "HOMI HM-D001"),
       selected: selected
     ))
     XCTAssertFalse(IOSSelectedHfpRoutePolicy.matches(
@@ -425,24 +425,23 @@ class RunnerTests: XCTestCase {
     XCTAssertFalse(IOSSelectedHfpRoutePolicy.matches(active: selected, selected: nil))
   }
 
-  func testHmD001ObservedButtonsDoNotChangeLegacyH20Mapping() {
+  func testHmD001ObservedButtonsUseConfirmedMapping() {
     let mainShort: [UInt8] = [1, 1, 1, 0, 0x1C, 0, 79, 0, 0, 0, 0, 0]
     let mainLong: [UInt8] = [1, 1, 2, 0, 0x1D, 0, 79, 0, 0, 0, 0, 0]
     let downLong: [UInt8] = [1, 4, 2, 0, 0x1E, 0, 79, 0, 0, 0, 0, 0]
     let upLong: [UInt8] = [1, 3, 2, 0, 0x1F, 0, 79, 0, 0, 0, 0, 0]
     let powerShort: [UInt8] = [1, 2, 1, 0, 0x29, 0, 0x47, 0, 0xF1, 0x60, 0x36, 0]
-    XCTAssertEqual(H20BleControlObservation.fields(for: mainShort)["gesture"] as? String, "shortPress")
-    XCTAssertEqual(H20BleControlObservation.fields(for: mainLong)["gesture"] as? String, "longPress")
-    XCTAssertEqual(H20BleControlObservation.fields(for: downLong)["button"] as? String, "volumeDown")
-    XCTAssertEqual(H20BleControlObservation.fields(for: upLong)["button"] as? String, "volumeUp")
-    XCTAssertEqual(H20BleControlObservation.fields(for: powerShort)["button"] as? String, "power")
-    XCTAssertEqual(H20BleControlObservation.fields(for: powerShort)["gesture"] as? String, "shortPress")
-    XCTAssertFalse(H20BleControlObservation.isHmD001Packet(
+    XCTAssertEqual(HomiBleControlObservation.fields(for: mainShort)["gesture"] as? String, "shortPress")
+    XCTAssertEqual(HomiBleControlObservation.fields(for: mainLong)["gesture"] as? String, "longPress")
+    XCTAssertEqual(HomiBleControlObservation.fields(for: downLong)["button"] as? String, "volumeDown")
+    XCTAssertEqual(HomiBleControlObservation.fields(for: upLong)["button"] as? String, "volumeUp")
+    XCTAssertEqual(HomiBleControlObservation.fields(for: powerShort)["button"] as? String, "power")
+    XCTAssertEqual(HomiBleControlObservation.fields(for: powerShort)["gesture"] as? String, "shortPress")
+    XCTAssertFalse(HomiBleControlObservation.isHmD001Packet(
       [1, 2, 2, 0, 0x29, 0, 0x47, 0, 0, 0, 0, 0]
     ))
-    XCTAssertEqual(H20BleControlObservation.batteryPercent(mainLong), 79)
-    XCTAssertFalse(H20BleControlObservation.isObservedMainShort(mainLong))
-    XCTAssertTrue(H20BleControlObservation.isObservedMainShort(
+    XCTAssertEqual(HomiBleControlObservation.batteryPercent(mainLong), 79)
+    XCTAssertFalse(HomiBleControlObservation.isHmD001Packet(
       [1, 1, 0x10, 1, 0, 0, 79, 0, 0, 0, 0, 0]
     ))
   }
@@ -597,34 +596,30 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(filter.duplicateCount, 1)
   }
 
-  func testAiv0DuplicatePacketFilterCollapsesObservedH20MainBurst() {
+  func testAiv0DuplicatePacketFilterCollapsesRepeatedHmD001MainPacket() {
     var filter = Aiv0DuplicatePacketFilter()
-    let packets: [[UInt8]] = [
-      [0x01, 0x01, 0x06, 0x01, 0x01, 0x00, 0x39, 0x00, 0x83, 0x8C, 0x03, 0x00],
-      [0x01, 0x01, 0x07, 0x01, 0x01, 0x00, 0x39, 0x00, 0x2B, 0x8F, 0x03, 0x00],
-      [0x01, 0x01, 0x08, 0x01, 0x01, 0x00, 0x39, 0x00, 0xF3, 0x8F, 0x03, 0x00],
-      [0x01, 0x01, 0x09, 0x01, 0x01, 0x00, 0x39, 0x00, 0xBB, 0x90, 0x03, 0x00],
-      [0x01, 0x01, 0x0A, 0x01, 0x01, 0x00, 0x39, 0x00, 0x4B, 0x92, 0x03, 0x00],
+    let mainPacket: [UInt8] = [
+      0x01, 0x01, 0x01, 0x00, 0x06, 0x00, 0x39, 0x00, 0x83, 0x8C, 0x03, 0x00,
     ]
 
-    XCTAssertFalse(filter.register(bytes: packets[0], uptimeMilliseconds: 1_000))
-    for (index, packet) in packets.dropFirst().enumerated() {
+    XCTAssertFalse(filter.register(bytes: mainPacket, uptimeMilliseconds: 1_000))
+    for index in 0..<4 {
       XCTAssertTrue(
         filter.register(
-          bytes: packet,
+          bytes: mainPacket,
           uptimeMilliseconds: 1_200 + TimeInterval(index * 200)
         )
       )
     }
     XCTAssertEqual(filter.duplicateCount, 4)
 
-    XCTAssertFalse(filter.register(bytes: packets[0], uptimeMilliseconds: 2_751))
+    XCTAssertFalse(filter.register(bytes: mainPacket, uptimeMilliseconds: 2_751))
   }
 
   func testAiv0DuplicatePacketFilterAcceptsANewMainAfterTheQuietWindow() {
     var filter = Aiv0DuplicatePacketFilter()
     let mainPacket: [UInt8] = [
-      0x01, 0x01, 0x10, 0x01, 0x01, 0x00, 0x39, 0x00, 0x00, 0x10, 0x00, 0x00,
+      0x01, 0x01, 0x01, 0x00, 0x10, 0x00, 0x39, 0x00, 0x00, 0x10, 0x00, 0x00,
     ]
 
     XCTAssertFalse(filter.register(bytes: mainPacket, uptimeMilliseconds: 1_000))
@@ -633,9 +628,9 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(filter.duplicateCount, 1)
   }
 
-  func testH20RemoteControlsRequireForegroundH20AndAnExplicitContext() {
+  func testHomiRemoteControlsRequireForegroundHomiAndAnExplicitContext() {
     XCTAssertTrue(
-      H20RemoteControlPolicy.shouldListen(
+      HomiRemoteControlPolicy.shouldListen(
         applicationIsActive: true,
         learningActive: true,
         diagnosticsActive: false,
@@ -643,31 +638,31 @@ class RunnerTests: XCTestCase {
       )
     )
     XCTAssertTrue(
-      H20RemoteControlPolicy.shouldListen(
+      HomiRemoteControlPolicy.shouldListen(
         applicationIsActive: true,
         learningActive: true,
         diagnosticsActive: false,
-        bluetoothPortNames: ["H20"]
+        bluetoothPortNames: ["HM-D001"]
       )
     )
     XCTAssertFalse(
-      H20RemoteControlPolicy.shouldListen(
+      HomiRemoteControlPolicy.shouldListen(
         applicationIsActive: false,
         learningActive: true,
         diagnosticsActive: true,
-        bluetoothPortNames: ["H20 Hands-Free"]
+        bluetoothPortNames: ["HM-D001 Hands-Free"]
       )
     )
     XCTAssertFalse(
-      H20RemoteControlPolicy.shouldListen(
+      HomiRemoteControlPolicy.shouldListen(
         applicationIsActive: true,
         learningActive: false,
         diagnosticsActive: false,
-        bluetoothPortNames: ["H20"]
+        bluetoothPortNames: ["HM-D001"]
       )
     )
     XCTAssertFalse(
-      H20RemoteControlPolicy.shouldListen(
+      HomiRemoteControlPolicy.shouldListen(
         applicationIsActive: true,
         learningActive: true,
         diagnosticsActive: true,
@@ -675,18 +670,18 @@ class RunnerTests: XCTestCase {
       )
     )
     XCTAssertTrue(
-      H20RemoteControlPolicy.shouldListen(
+      HomiRemoteControlPolicy.shouldListen(
         applicationIsActive: true,
         learningActive: false,
         diagnosticsActive: true,
-        bluetoothPortNames: ["H20 Stereo"]
+        bluetoothPortNames: ["HM-D001 Stereo"]
       )
     )
   }
 
-  func testH20RemoteControlsNeverInventAPhysicalButtonOrBLEPacket() {
+  func testHomiRemoteControlsNeverInventAPhysicalButtonOrBLEPacket() {
     for command in ["play", "pause", "togglePlayPause", "nextTrack", "previousTrack"] {
-      let event = H20RemoteControlPolicy.observation(
+      let event = HomiRemoteControlPolicy.observation(
         command: command,
         receivedAtEpochMs: 123
       )
@@ -703,20 +698,20 @@ class RunnerTests: XCTestCase {
     }
   }
 
-  func testH20BLEDiagnosticsDescribeOnlyObservedMainShort() {
+  func testHomiBLEDiagnosticsDescribeObservedHmD001MainShort() {
     let blePacket: [UInt8] = [
-      0x01, 0x01, 0x19, 0x01, 0x01, 0x00, 0x37, 0x00, 0x10, 0x04, 0x00, 0x00,
+      0x01, 0x01, 0x01, 0x00, 0x19, 0x00, 0x37, 0x00, 0x10, 0x04, 0x00, 0x00,
     ]
-    let event = H20BleControlObservation.fields(for: blePacket)
+    let event = HomiBleControlObservation.fields(for: blePacket)
     XCTAssertEqual(event["button"] as? String, "main")
     XCTAssertEqual(event["gesture"] as? String, "shortPress")
-    XCTAssertEqual(event["protocol"] as? String, "observedV1")
+    XCTAssertEqual(event["protocol"] as? String, "observedHmD001")
     XCTAssertEqual(event["sequence"] as? Int, 0x19)
-    XCTAssertEqual(H20BleControlObservation.batteryPercent(blePacket), 55)
-    XCTAssertEqual(event["rawPayload"] as? String, "01 01 19 01 01 00 37 00 10 04 00 00")
+    XCTAssertEqual(HomiBleControlObservation.batteryPercent(blePacket), 55)
+    XCTAssertEqual(event["rawPayload"] as? String, "01 01 01 00 19 00 37 00 10 04 00 00")
   }
 
-  func testH20BLEDiagnosticsKeepDraftAndMalformedPacketsUnknown() {
+  func testHomiBLEDiagnosticsKeepDraftAndMalformedPacketsUnknown() {
     let packets: [[UInt8]] = [
       [],
       [0x01, 0x01],
@@ -725,7 +720,7 @@ class RunnerTests: XCTestCase {
       [0xA5, 0x01, 0x01, 0x01, 0x01, 0x00, 0x37, 0x00, 0x10, 0x04, 0x00, 0x00],
     ]
     for packet in packets {
-      let event = H20BleControlObservation.fields(for: packet)
+      let event = HomiBleControlObservation.fields(for: packet)
       XCTAssertEqual(event["button"] as? String, "unknown")
       XCTAssertEqual(event["gesture"] as? String, "unknown")
       XCTAssertEqual(event["protocol"] as? String, "unknown")
@@ -1081,54 +1076,54 @@ class RunnerTests: XCTestCase {
     )
   }
 
-  func testIOSHfpInputSelectionRecoversTheSameH20AfterUIDChanges() {
+  func testIOSHfpInputSelectionRecoversTheSameHomiAfterUIDChanges() {
     let selected = IOSHfpInputSelectionPolicy.select(
       from: [
-        IOSHfpInputIdentity(uid: "new-h20-uid", name: "H20"),
+        IOSHfpInputIdentity(uid: "new-hm-d001-uid", name: "HM-D001"),
         IOSHfpInputIdentity(uid: "airpods", name: "AirPods Pro")
       ],
-      selectedUID: "old-h20-uid",
-      selectedName: "H20"
+      selectedUID: "old-hm-d001-uid",
+      selectedName: "HM-D001"
     )
 
-    XCTAssertEqual(selected?.uid, "new-h20-uid")
+    XCTAssertEqual(selected?.uid, "new-hm-d001-uid")
   }
 
   func testIOSHfpInputSelectionNeverSubstitutesAnUnrelatedHeadset() {
     let selected = IOSHfpInputSelectionPolicy.select(
       from: [IOSHfpInputIdentity(uid: "airpods", name: "AirPods Pro")],
-      selectedUID: "old-h20-uid",
-      selectedName: "H20"
+      selectedUID: "old-hm-d001-uid",
+      selectedName: "HM-D001"
     )
 
     XCTAssertNil(selected)
   }
 
-  func testIOSPromptAndSpeechResolveRepublishedSelectedH20ByNormalizedName() {
+  func testIOSPromptAndSpeechResolveRepublishedSelectedHomiByNormalizedName() {
     let inputs = [
       IOSHfpInputIdentity(uid: "airpods", name: "AirPods Pro"),
-      IOSHfpInputIdentity(uid: "new-h20-uid", name: "HOMI H20")
+      IOSHfpInputIdentity(uid: "new-hm-d001-uid", name: "HOMI HM-D001")
     ]
     XCTAssertEqual(
       IOSPreferredHfpInputPolicy.select(
         from: inputs,
-        selectedUID: "old-h20-uid",
-        selectedName: "HOMI-H20"
+        selectedUID: "old-hm-d001-uid",
+        selectedName: "HOMI-HM-D001"
       )?.uid,
-      "new-h20-uid"
+      "new-hm-d001-uid"
     )
     XCTAssertEqual(
       IOSPreferredHfpInputPolicy.select(
-        from: inputs + [IOSHfpInputIdentity(uid: "old-h20-uid", name: "Other")],
-        selectedUID: "old-h20-uid",
-        selectedName: "HOMI-H20"
+        from: inputs + [IOSHfpInputIdentity(uid: "old-hm-d001-uid", name: "Other")],
+        selectedUID: "old-hm-d001-uid",
+        selectedName: "HOMI-HM-D001"
       )?.uid,
-      "old-h20-uid"
+      "old-hm-d001-uid"
     )
     XCTAssertNil(IOSPreferredHfpInputPolicy.select(
       from: [inputs[0]],
-      selectedUID: "old-h20-uid",
-      selectedName: "HOMI-H20"
+      selectedUID: "old-hm-d001-uid",
+      selectedName: "HOMI-HM-D001"
     ))
     XCTAssertEqual(
       IOSPreferredHfpInputPolicy.select(

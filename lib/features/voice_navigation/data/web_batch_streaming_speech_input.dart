@@ -164,7 +164,7 @@ class WebBatchStreamingSpeechInput
           await routeControl.startAudioRoute();
           _audioRouteStarted = true;
         } catch (error) {
-          // Batch must remain usable when iOS cannot activate H20 HFP. Clear
+          // Batch must remain usable when iOS cannot activate HM-D001 HFP. Clear
           // the stale preferred route and let the recorder use the phone mic.
           debugPrint(
             'HOMI Batch HFP route failed; falling back to phone mic: $error',

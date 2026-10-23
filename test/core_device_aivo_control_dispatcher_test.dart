@@ -345,7 +345,7 @@ void main() {
     expect(mainCalls, 0);
   });
   test(
-    'observed H20 item packets cannot play lesson audio while MAIN owns speech',
+    'observed HM-D001 item packets cannot play lesson audio while MAIN owns speech',
     () async {
       registry.register(module);
       module.paused = true;
@@ -428,7 +428,7 @@ void main() {
       expect(handledCalls, 0);
     },
   );
-  test('H20 STOP remains available while MAIN owns a paused lesson', () async {
+  test('HM-D001 STOP remains available while MAIN owns a paused lesson', () async {
     registry.register(module);
     module.paused = true;
     canResume = false;

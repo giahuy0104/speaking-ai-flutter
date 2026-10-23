@@ -5,7 +5,7 @@ import '../../../core/audio/hfp_audio_control.dart';
 import '../../../core/audio/streaming_speech_input.dart';
 import '../../../core/device/aiv0_ble_control.dart';
 import '../../../core/device/device_connection_history.dart';
-import '../../../core/device/h20_connection_state.dart';
+import '../../../core/device/homi_connection_state.dart';
 import '../../../l10n/display_language.dart';
 import '../domain/conversation_models.dart';
 
@@ -26,7 +26,7 @@ final class DeviceConnectionBusyException implements Exception {
   String toString() => 'A device or audio operation is already in progress.';
 }
 
-enum H20HardwareTestPhase {
+enum HomiHardwareTestPhase {
   idle,
   openingRoute,
   recording,
@@ -35,8 +35,8 @@ enum H20HardwareTestPhase {
   error,
 }
 
-final class H20HardwareTestResult {
-  const H20HardwareTestResult({
+final class HomiHardwareTestResult {
+  const HomiHardwareTestResult({
     required this.completedAt,
     required this.inputRouteVerified,
     required this.outputRouteVerified,
@@ -54,8 +54,8 @@ final class H20HardwareTestResult {
   final String? outputDeviceName;
   final bool? playbackAudible;
 
-  H20HardwareTestResult copyWith({bool? playbackAudible}) {
-    return H20HardwareTestResult(
+  HomiHardwareTestResult copyWith({bool? playbackAudible}) {
+    return HomiHardwareTestResult(
       completedAt: completedAt,
       inputRouteVerified: inputRouteVerified,
       outputRouteVerified: outputRouteVerified,
@@ -109,20 +109,20 @@ abstract interface class ConversationSettingsPort
   DateTime? get aiv0MainDispatchAt;
   BluetoothAudioStatus get hfpAudioStatus;
   bool get canUseAiv0Ble;
-  bool get h20HardwareTestModeEnabled;
-  H20HardwareTestPhase get h20HardwareTestPhase;
-  H20HardwareTestResult? get h20HardwareTestResult;
-  String? get h20HardwareTestMessage;
+  bool get homiHardwareTestModeEnabled;
+  HomiHardwareTestPhase get homiHardwareTestPhase;
+  HomiHardwareTestResult? get homiHardwareTestResult;
+  String? get homiHardwareTestMessage;
 
-  H20ConnectionState h20ConnectionState({bool mainTurnActive = false});
+  HomiConnectionState homiConnectionState({bool mainTurnActive = false});
 
   void setDisplayLanguage(DisplayLanguage language);
   void setVadSilence(int milliseconds);
-  void confirmH20PlaybackAudible(bool audible);
+  void confirmHomiPlaybackAudible(bool audible);
 
-  Future<void> setH20HardwareTestMode(bool enabled);
-  Future<void> toggleH20OfflineRecordingTest();
-  Future<void> playH20BundledSpeakerTest();
+  Future<void> setHomiHardwareTestMode(bool enabled);
+  Future<void> toggleHomiOfflineRecordingTest();
+  Future<void> playHomiBundledSpeakerTest();
   Future<void> testInnotrikMicrophone();
   Future<List<Aiv0BleDevice>> scanAiv0Devices();
   Future<DeviceConnectionResult> connectAiv0Device(Aiv0BleDevice device);

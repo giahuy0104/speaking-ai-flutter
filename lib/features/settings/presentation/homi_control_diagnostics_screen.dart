@@ -11,8 +11,8 @@ import '../../../core/device/device_display_name.dart';
 import '../../conversation/application/conversation_settings_port.dart';
 
 /// Button diagnostics only: never exports voice, ASR or API diagnostics.
-class H20ControlDiagnosticsScreen extends StatefulWidget {
-  const H20ControlDiagnosticsScreen({
+class HomiControlDiagnosticsScreen extends StatefulWidget {
+  const HomiControlDiagnosticsScreen({
     required this.controller,
     required this.controls,
     super.key,
@@ -22,12 +22,12 @@ class H20ControlDiagnosticsScreen extends StatefulWidget {
   final AivoControlDispatcher controls;
 
   @override
-  State<H20ControlDiagnosticsScreen> createState() =>
-      _H20ControlDiagnosticsScreenState();
+  State<HomiControlDiagnosticsScreen> createState() =>
+      _HomiControlDiagnosticsScreenState();
 }
 
-class _H20ControlDiagnosticsScreenState
-    extends State<H20ControlDiagnosticsScreen> {
+class _HomiControlDiagnosticsScreenState
+    extends State<HomiControlDiagnosticsScreen> {
   static const _checks = <(Aiv0Button, Aiv0ButtonGesture, String)>[
     (Aiv0Button.main, Aiv0ButtonGesture.shortPress, 'MAIN SHORT'),
     (Aiv0Button.main, Aiv0ButtonGesture.longPress, 'MAIN LONG'),
@@ -66,7 +66,7 @@ class _H20ControlDiagnosticsScreenState
           title: const Text('Điều khiển thiết bị HM-D001'),
           actions: [
             IconButton(
-              key: const Key('h20-copy-log'),
+              key: const Key('hm-d001-copy-log'),
               tooltip: 'Sao chép log',
               onPressed: () async {
                 await Clipboard.setData(
@@ -80,7 +80,7 @@ class _H20ControlDiagnosticsScreenState
               icon: const Icon(Icons.copy_outlined),
             ),
             IconButton(
-              key: const Key('h20-clear-log'),
+              key: const Key('hm-d001-clear-log'),
               tooltip: 'Xóa log',
               onPressed: controls.clearLog,
               icon: const Icon(Icons.delete_outline),
@@ -128,12 +128,12 @@ class _H20ControlDiagnosticsScreenState
                 ]),
                 _section(context, 'Sự kiện cuối cùng', [
                   if (last == null)
-                    const Text('Chưa có sự kiện.', key: Key('h20-no-events'))
+                    const Text('Chưa có sự kiện.', key: Key('hm-d001-no-events'))
                   else ...[
                     _field(
                       'Nút',
                       _button(last.input.button),
-                      key: const Key('h20-last-button'),
+                      key: const Key('hm-d001-last-button'),
                     ),
                     _field('Gesture', _gesture(last.input.gesture)),
                     _field(
@@ -144,7 +144,7 @@ class _H20ControlDiagnosticsScreenState
                     _field(
                       'Raw Hex / Key',
                       last.safeRawPayload.isEmpty ? '—' : last.safeRawPayload,
-                      key: const Key('h20-last-raw'),
+                      key: const Key('hm-d001-last-raw'),
                     ),
                     _field('Intent', last.intent.name),
                     _field('Kết quả', last.status.name),
@@ -167,7 +167,7 @@ class _H20ControlDiagnosticsScreenState
                 ]),
                 _section(context, 'Mô phỏng luồng dùng chung', [
                   SwitchListTile.adaptive(
-                    key: const Key('h20-execute-tests'),
+                    key: const Key('hm-d001-execute-tests'),
                     contentPadding: EdgeInsets.zero,
                     title: const Text('Chạy lệnh thử vào bài đang mở'),
                     subtitle: const Text(
@@ -188,7 +188,7 @@ class _H20ControlDiagnosticsScreenState
                       for (final (button, gesture, label) in _checks)
                         OutlinedButton(
                           key: Key(
-                            'h20-simulate-${button.name}-${gesture.name}',
+                            'hm-d001-simulate-${button.name}-${gesture.name}',
                           ),
                           onPressed: () =>
                               unawaited(controls.simulate(button, gesture)),
@@ -208,7 +208,7 @@ class _H20ControlDiagnosticsScreenState
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       child: SelectableText(
                         history[index].logLine,
-                        key: Key('h20-history-$index'),
+                        key: Key('hm-d001-history-$index'),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           fontFamily: 'monospace',
                         ),
@@ -255,11 +255,11 @@ class _H20ControlDiagnosticsScreenState
               Expanded(
                 child: Text(
                   'Android: ${onPlatform('android')}\niOS: ${onPlatform('ios')}',
-                  key: Key('h20-capability-${button.name}-${gesture.name}'),
+                  key: Key('hm-d001-capability-${button.name}-${gesture.name}'),
                 ),
               ),
               TextButton(
-                key: Key('h20-probe-${button.name}-${gesture.name}'),
+                key: Key('hm-d001-probe-${button.name}-${gesture.name}'),
                 onPressed: () => controls.beginProbe(button, gesture),
                 child: const Text('Thử 8 giây'),
               ),
@@ -345,7 +345,6 @@ class _H20ControlDiagnosticsScreenState
     AivoControlSource.simulation => 'Mô phỏng',
   };
   static String _protocol(String protocol) => switch (protocol) {
-    'observedV1' => 'Observed V1',
     'draft' => 'Draft',
     'simulation' => 'Mô phỏng (không phải firmware)',
     _ => 'Unknown',

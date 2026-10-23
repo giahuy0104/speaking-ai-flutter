@@ -54,14 +54,14 @@ class AndroidPlaybackLoudnessTest {
     }
 
     @Test
-    fun veryQuietSpeechCanUseTheH20RecordingGainRange() {
+    fun veryQuietSpeechCanUseTheHomiRecordingGainRange() {
         val result = sineMeter(-45.0).result()!!
         assertEquals(24.0, result.gainDb, 0.001)
         assertEquals(-21.0, result.measuredDb + result.gainDb, 0.001)
     }
 
     @Test
-    fun h20RecordingGainNeverExceedsTwentyEightDb() {
+    fun homiRecordingGainNeverExceedsTwentyEightDb() {
         // The level has to stay above the absolute -50 dBFS gate, or the clip
         // is classed as noise and measured at all: this asserted 28 dB against
         // a -55 dBFS signal and was really reading the no-gain path.
@@ -73,7 +73,7 @@ class AndroidPlaybackLoudnessTest {
 
     @Test
     fun aClipBelowTheAbsoluteGateIsLeftAloneRatherThanBoosted() {
-        // The boundary the test above tripped over. An H20 capture sits at most
+        // The boundary the test above tripped over. An HM-D001 capture sits at most
         // about 28 dB under the target, near -49 dBFS; anything quieter end to
         // end is an empty room, and 28 dB of boost would put hiss in a child's
         // ear rather than recovering a quiet voice.

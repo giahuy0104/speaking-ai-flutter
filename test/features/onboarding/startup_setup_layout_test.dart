@@ -48,7 +48,7 @@ void main() {
           expect(tester.getRect(panel), panelRect);
         }
 
-        await tester.tap(find.byKey(const Key('startup-setup-h20')));
+        await tester.tap(find.byKey(const Key('startup-setup-hm-d001')));
         await tester.pump();
         expectStable();
         model.requestingPermissions = true;
@@ -62,7 +62,7 @@ void main() {
         expectStable();
         expect(find.text('Chưa tìm thấy HOMI'), findsOneWidget);
         attempt = Completer<bool>();
-        await tester.tap(find.byKey(const Key('startup-setup-h20')));
+        await tester.tap(find.byKey(const Key('startup-setup-hm-d001')));
         await tester.pump();
         expect(tester.getRect(footer), footerRect);
         await tester.tap(find.byKey(const Key('startup-cancel-connection')));
@@ -72,7 +72,7 @@ void main() {
         await tester.pumpAndSettle();
         expectStable();
         attempt = Completer<bool>();
-        await tester.tap(find.byKey(const Key('startup-setup-h20')));
+        await tester.tap(find.byKey(const Key('startup-setup-hm-d001')));
         await tester.pump();
         model.ble = true;
         model.rebuild();
@@ -116,7 +116,7 @@ void main() {
       final hero = find.byKey(const Key('startup-device-hero'));
       final footerRect = tester.getRect(footer);
       final heroRect = tester.getRect(hero);
-      final connect = find.byKey(const Key('startup-setup-h20'));
+      final connect = find.byKey(const Key('startup-setup-hm-d001'));
       radioRead = Completer<Aiv0BluetoothAdapterState>();
       final refresh = power.refresh();
       await tester.pump();
@@ -203,14 +203,14 @@ void main() {
         find.byKey(const Key('startup-request-permissions')),
         findsNothing,
       );
-      expect(find.byKey(const Key('startup-setup-h20')), findsNothing);
+      expect(find.byKey(const Key('startup-setup-hm-d001')), findsNothing);
       pending.complete();
       await tester.pumpAndSettle();
       expect(
         find.byKey(const Key('startup-request-permissions')),
         findsNothing,
       );
-      expect(find.byKey(const Key('startup-setup-h20')), findsOneWidget);
+      expect(find.byKey(const Key('startup-setup-hm-d001')), findsOneWidget);
     },
   );
 
@@ -346,7 +346,7 @@ void main() {
       final footer = tester.getBottomRight(
         find.byKey(const Key('startup-action-footer')),
       );
-      await tester.tap(find.byKey(const Key('startup-setup-h20')));
+      await tester.tap(find.byKey(const Key('startup-setup-hm-d001')));
       await tester.pumpAndSettle();
       expect(find.text('Tiếp tục kết nối'), findsOneWidget);
       expect(find.text('HOMI đã sẵn sàng!'), findsNothing);
@@ -372,7 +372,7 @@ void main() {
       };
       await _pump(tester, model);
       await _toDevice(tester);
-      await tester.tap(find.byKey(const Key('startup-setup-h20')));
+      await tester.tap(find.byKey(const Key('startup-setup-hm-d001')));
       await tester.pump();
       await tester.pump(const Duration(seconds: 46));
       expect(cancelled, 0);
@@ -413,7 +413,7 @@ void main() {
       };
       await _pump(tester, model);
       await _toDevice(tester);
-      await tester.tap(find.byKey(const Key('startup-setup-h20')));
+      await tester.tap(find.byKey(const Key('startup-setup-hm-d001')));
       await tester.pump();
       expect(
         find.byKey(const Key('startup-connection-progress')),
@@ -427,7 +427,7 @@ void main() {
         find.byKey(const Key('startup-connection-progress')),
         findsNothing,
       );
-      await tester.tap(find.byKey(const Key('startup-setup-h20')));
+      await tester.tap(find.byKey(const Key('startup-setup-hm-d001')));
       await tester.pump();
       first.complete(false);
       await tester.pump();
@@ -484,7 +484,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('HOMI đã sẵn sàng!'), findsNothing);
       expect(find.byKey(const Key('startup-confirm-age')), findsNothing);
-      expect(find.byKey(const Key('startup-setup-h20')), findsNothing);
+      expect(find.byKey(const Key('startup-setup-hm-d001')), findsNothing);
       expect(
         tester
             .widget<Switch>(find.byKey(const Key('bluetooth-enable-switch')))
@@ -505,7 +505,7 @@ void main() {
     expect(find.text('Đã cấp quyền'), findsOneWidget);
     expect(find.text('Chưa cấp quyền'), findsOneWidget);
     expect(find.text('Cấp quyền còn thiếu'), findsOneWidget);
-    expect(find.byKey(const Key('startup-setup-h20')), findsNothing);
+    expect(find.byKey(const Key('startup-setup-hm-d001')), findsNothing);
     expect(find.byKey(const Key('bluetooth-enable-switch')), findsNothing);
   });
 }
@@ -554,9 +554,9 @@ Future<void> _pump(
                   model.permissions || model.microphonePermission,
               bluetoothRequired: true,
               bluetoothGranted: model.permissions,
-              h20BleConnected: model.ble,
-              h20HfpConfigured: model.mic,
-              h20AudioPaired: model.paired,
+              homiBleConnected: model.ble,
+              homiHfpConfigured: model.mic,
+              homiAudioPaired: model.paired,
               selectedAge: 6,
               aiSubprocessors: 'HOMI',
               dataRetentionSummary: 'Test',
@@ -566,8 +566,8 @@ Future<void> _pump(
               onContinueWithoutVoice: () async {},
               onRetryPermissions: () {},
               onCheckPermissions: model.checkPermissions,
-              onSetupH20: model.connect,
-              onCancelH20Setup: model.cancel,
+              onSetupHomi: model.connect,
+              onCancelHomiSetup: model.cancel,
               onAgeSelected: (_) {},
               onCompleteSetup: () async {
                 model.completed++;

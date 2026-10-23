@@ -52,8 +52,8 @@ void main() {
                     microphoneGranted: true,
                     bluetoothRequired: true,
                     bluetoothGranted: !unsupported,
-                    h20BleConnected: !unsupported,
-                    h20HfpConfigured: false,
+                    homiBleConnected: !unsupported,
+                    homiHfpConfigured: false,
                     selectedAge: 8,
                     aiSubprocessors: 'HOMI',
                     dataRetentionSummary: 'Test',
@@ -64,7 +64,7 @@ void main() {
                       setState(() => limited = true);
                     },
                     onRetryPermissions: () {},
-                    onSetupH20: () async {
+                    onSetupHomi: () async {
                       connectCalls++;
                       return false;
                     },
@@ -97,7 +97,7 @@ void main() {
           );
           expect(find.byKey(const Key('startup-confirm-age')), findsNothing);
           if (unsupported) {
-            expect(find.byKey(const Key('startup-setup-h20')), findsNothing);
+            expect(find.byKey(const Key('startup-setup-hm-d001')), findsNothing);
           } else {
             expect(
               find.text(
@@ -180,15 +180,15 @@ void main() {
                 microphoneGranted: true,
                 bluetoothRequired: true,
                 bluetoothGranted: false,
-                h20BleConnected: false,
-                h20HfpConfigured: false,
+                homiBleConnected: false,
+                homiHfpConfigured: false,
                 selectedAge: 8,
                 aiSubprocessors: 'HOMI',
                 dataRetentionSummary: 'Test',
                 onGrantPrivacyConsent: () async {},
                 onContinueWithoutVoice: () async {},
                 onRetryPermissions: () => unawaited(power.authorize()),
-                onSetupH20: () async => false,
+                onSetupHomi: () async => false,
                 onAgeSelected: (_) {},
                 onCompleteSetup: () async {},
               ),
@@ -208,7 +208,7 @@ void main() {
           find.byKey(const ValueKey<String>('startup-permissions-step')),
           findsOneWidget,
         );
-        expect(find.byKey(const Key('startup-setup-h20')), findsNothing);
+        expect(find.byKey(const Key('startup-setup-hm-d001')), findsNothing);
         expect(
           find.byKey(const Key('bluetooth-open-permission-settings')),
           findsOneWidget,
@@ -225,7 +225,7 @@ void main() {
         await tester.tap(settings);
         await tester.pumpAndSettle();
         expect(settingsCalls, 1);
-        expect(find.byKey(const Key('startup-setup-h20')), findsNothing);
+        expect(find.byKey(const Key('startup-setup-hm-d001')), findsNothing);
       },
     );
 
@@ -265,15 +265,15 @@ void main() {
                   microphoneGranted: true,
                   bluetoothRequired: true,
                   bluetoothGranted: true,
-                  h20BleConnected: ble,
-                  h20HfpConfigured: hfp,
+                  homiBleConnected: ble,
+                  homiHfpConfigured: hfp,
                   selectedAge: 8,
                   aiSubprocessors: 'HOMI',
                   dataRetentionSummary: 'Test',
                   onGrantPrivacyConsent: () async {},
                   onContinueWithoutVoice: () async {},
                   onRetryPermissions: () {},
-                  onSetupH20: () async {
+                  onSetupHomi: () async {
                     attempts++;
                     setState(() {
                       ble = true;
@@ -296,7 +296,7 @@ void main() {
           await tester.tap(find.byKey(const Key('startup-next')));
           await tester.pumpAndSettle();
         }
-        final connect = find.byKey(const Key('startup-setup-h20'));
+        final connect = find.byKey(const Key('startup-setup-hm-d001'));
         expect(connect, findsNothing);
         expect(find.byKey(const Key('startup-confirm-age')), findsNothing);
         final toggle = find.byKey(const Key('bluetooth-enable-switch'));
@@ -338,7 +338,7 @@ void main() {
   }
 
   testWidgets(
-    'requires both BLE MAIN control and H20 microphone before setup can finish',
+    'requires both BLE MAIN control and HM-D001 microphone before setup can finish',
     (tester) async {
       await tester.binding.setSurfaceSize(const Size(390, 844));
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -363,8 +363,8 @@ void main() {
               microphoneGranted: permissionsGranted,
               bluetoothRequired: true,
               bluetoothGranted: permissionsGranted,
-              h20BleConnected: bleConnected,
-              h20HfpConfigured: hfpConfigured,
+              homiBleConnected: bleConnected,
+              homiHfpConfigured: hfpConfigured,
               selectedAge: selectedAge,
               aiSubprocessors: 'HOMI backend trên Railway và Cloudflare',
               dataRetentionSummary: 'Audio được xóa sau 24 giờ.',
@@ -381,7 +381,7 @@ void main() {
               onRetryPermissions: () {
                 setState(() => permissionsGranted = true);
               },
-              onSetupH20: () async {
+              onSetupHomi: () async {
                 setState(() {
                   bleConnected = true;
                   hfpConfigured = true;
@@ -424,8 +424,8 @@ void main() {
 
       expect(find.text('Cấp quyền cho HOMI'), findsOneWidget);
       expect(find.text('Bước 3/3 • Dành cho phụ huynh'), findsOneWidget);
-      expect(find.byKey(const Key('startup-setup-h20')), findsNothing);
-      expect(find.textContaining('H20'), findsNothing);
+      expect(find.byKey(const Key('startup-setup-hm-d001')), findsNothing);
+      expect(find.textContaining('HM-D001'), findsNothing);
       expect(find.textContaining('HFP'), findsNothing);
       await tester.ensureVisible(
         find.byKey(const Key('startup-request-permissions')),
@@ -434,7 +434,7 @@ void main() {
       await tester.tap(find.byKey(const Key('startup-request-permissions')));
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('startup-setup-h20')), findsOneWidget);
+      expect(find.byKey(const Key('startup-setup-hm-d001')), findsOneWidget);
       expect(find.text('Kết nối HOMI'), findsNWidgets(2));
       expect(find.text('Cấp quyền cho HOMI'), findsNothing);
       expect(
@@ -450,13 +450,13 @@ void main() {
       expect(completeButton, findsNothing);
       expect(find.byKey(const Key('startup-use-phone-mic')), findsNothing);
       expect(
-        find.byKey(const Key('startup-choose-h20-microphone')),
+        find.byKey(const Key('startup-choose-hm-d001-microphone')),
         findsNothing,
       );
       expect(find.text('Chưa kết nối'), findsOneWidget);
 
-      await tester.ensureVisible(find.byKey(const Key('startup-setup-h20')));
-      await tester.tap(find.byKey(const Key('startup-setup-h20')));
+      await tester.ensureVisible(find.byKey(const Key('startup-setup-hm-d001')));
+      await tester.tap(find.byKey(const Key('startup-setup-hm-d001')));
       await tester.pumpAndSettle();
       expect(find.text('HOMI đã sẵn sàng!'), findsOneWidget);
       expect(completed, isFalse);
@@ -469,7 +469,7 @@ void main() {
     },
   );
 
-  testWidgets('limited mode can finish without microphone or H20', (
+  testWidgets('limited mode can finish without microphone or HM-D001', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
@@ -491,8 +491,8 @@ void main() {
             microphoneGranted: false,
             bluetoothRequired: true,
             bluetoothGranted: false,
-            h20BleConnected: false,
-            h20HfpConfigured: false,
+            homiBleConnected: false,
+            homiHfpConfigured: false,
             selectedAge: age,
             aiSubprocessors: 'Railway và Cloudflare',
             dataRetentionSummary: 'Theo chính sách công khai.',
@@ -501,7 +501,7 @@ void main() {
               setState(() => limited = true);
             },
             onRetryPermissions: () {},
-            onSetupH20: () async => false,
+            onSetupHomi: () async => false,
             onAgeSelected: (value) => setState(() => age = value),
             onCompleteSetup: () async {
               setState(() => completed = true);
@@ -534,7 +534,7 @@ void main() {
     expect(completed, isTrue);
   });
 
-  testWidgets('iOS phone microphone fallback can finish without H20', (
+  testWidgets('iOS phone microphone fallback can finish without HM-D001', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
@@ -554,8 +554,8 @@ void main() {
           microphoneGranted: true,
           bluetoothRequired: true,
           bluetoothGranted: true,
-          h20BleConnected: false,
-          h20HfpConfigured: false,
+          homiBleConnected: false,
+          homiHfpConfigured: false,
           allowPhoneMicFallback: true,
           selectedAge: 8,
           aiSubprocessors: 'Railway và Cloudflare',
@@ -563,8 +563,8 @@ void main() {
           onGrantPrivacyConsent: () async {},
           onContinueWithoutVoice: () async {},
           onRetryPermissions: () {},
-          onSetupH20: () async => false,
-          onChooseH20Microphone: () async {
+          onSetupHomi: () async => false,
+          onChooseHomiMicrophone: () async {
             microphonePickerOpened = true;
             return false;
           },
@@ -589,7 +589,7 @@ void main() {
       findsOneWidget,
     );
     final microphonePicker = find.byKey(
-      const Key('startup-choose-h20-microphone'),
+      const Key('startup-choose-hm-d001-microphone'),
     );
     await tester.ensureVisible(microphonePicker);
     expect(microphonePicker, findsOneWidget);
@@ -624,8 +624,8 @@ void main() {
             microphoneGranted: true,
             bluetoothRequired: true,
             bluetoothGranted: true,
-            h20BleConnected: bleConnected,
-            h20HfpConfigured: false,
+            homiBleConnected: bleConnected,
+            homiHfpConfigured: false,
             allowPhoneMicFallback: true,
             selectedAge: 8,
             aiSubprocessors: 'Railway và Cloudflare',
@@ -633,11 +633,11 @@ void main() {
             onGrantPrivacyConsent: () async {},
             onContinueWithoutVoice: () async {},
             onRetryPermissions: () {},
-            onSetupH20: () async {
+            onSetupHomi: () async {
               setState(() => bleConnected = true);
               return true;
             },
-            onChooseH20Microphone: () async => false,
+            onChooseHomiMicrophone: () async => false,
             onAgeSelected: (_) {},
             onCompleteSetup: () async {},
           ),
@@ -652,7 +652,7 @@ void main() {
       await tester.tap(nextButton);
       await tester.pumpAndSettle();
     }
-    final connectButton = find.byKey(const Key('startup-setup-h20'));
+    final connectButton = find.byKey(const Key('startup-setup-hm-d001'));
     await tester.ensureVisible(connectButton);
     await tester.tap(connectButton);
     await tester.pumpAndSettle();
@@ -663,7 +663,7 @@ void main() {
       isNotNull,
     );
     expect(
-      find.byKey(const Key('startup-choose-h20-microphone')),
+      find.byKey(const Key('startup-choose-hm-d001-microphone')),
       findsOneWidget,
     );
     final completeButton = find.byKey(const Key('startup-confirm-age'));
@@ -696,8 +696,8 @@ void main() {
               microphoneGranted: true,
               bluetoothRequired: true,
               bluetoothGranted: true,
-              h20BleConnected: bleConnected,
-              h20HfpConfigured: false,
+              homiBleConnected: bleConnected,
+              homiHfpConfigured: false,
               allowBleOnlySetup: true,
               selectedAge: 8,
               aiSubprocessors: 'Railway và Cloudflare',
@@ -705,7 +705,7 @@ void main() {
               onGrantPrivacyConsent: () async {},
               onContinueWithoutVoice: () async {},
               onRetryPermissions: () {},
-              onSetupH20: () => connection.future,
+              onSetupHomi: () => connection.future,
               onAgeSelected: (_) {},
               onCompleteSetup: () async => completed = true,
             );
@@ -724,7 +724,7 @@ void main() {
     final completeButton = find.byKey(const Key('startup-confirm-age'));
     expect(completeButton, findsNothing);
 
-    final connectButton = find.byKey(const Key('startup-setup-h20'));
+    final connectButton = find.byKey(const Key('startup-setup-hm-d001'));
     await tester.ensureVisible(connectButton);
     await tester.tap(connectButton);
     await tester.pump();
@@ -746,7 +746,7 @@ void main() {
       isNotNull,
     );
     expect(
-      find.byKey(const Key('startup-choose-h20-microphone')),
+      find.byKey(const Key('startup-choose-hm-d001-microphone')),
       findsNothing,
     );
     await tester.ensureVisible(completeButton);
@@ -774,15 +774,15 @@ void main() {
             microphoneGranted: true,
             bluetoothRequired: true,
             bluetoothGranted: true,
-            h20BleConnected: connected,
-            h20HfpConfigured: connected,
+            homiBleConnected: connected,
+            homiHfpConfigured: connected,
             selectedAge: 8,
             aiSubprocessors: 'Railway và Cloudflare',
             dataRetentionSummary: 'Theo chính sách công khai.',
             onGrantPrivacyConsent: () async {},
             onContinueWithoutVoice: () async {},
             onRetryPermissions: () {},
-            onSetupH20: () async {
+            onSetupHomi: () async {
               attempts += 1;
               if (attempts == 1) throw StateError('Temporary connection issue');
               setState(() => connected = true);
@@ -802,7 +802,7 @@ void main() {
       await tester.tap(nextButton);
       await tester.pumpAndSettle();
     }
-    final connectButton = find.byKey(const Key('startup-setup-h20'));
+    final connectButton = find.byKey(const Key('startup-setup-hm-d001'));
     await tester.ensureVisible(connectButton);
     await tester.tap(connectButton);
     await tester.pumpAndSettle();
@@ -810,7 +810,7 @@ void main() {
     expect(find.text('Chưa tìm thấy HOMI'), findsOneWidget);
     expect(find.byType(BottomSheet), findsNothing);
     expect(find.text('Đã hiểu'), findsNothing);
-    await tester.tap(find.byKey(const Key('startup-setup-h20')));
+    await tester.tap(find.byKey(const Key('startup-setup-hm-d001')));
     await tester.pumpAndSettle();
 
     expect(attempts, 2);
@@ -835,8 +835,8 @@ void main() {
           microphoneGranted: false,
           bluetoothRequired: true,
           bluetoothGranted: false,
-          h20BleConnected: false,
-          h20HfpConfigured: false,
+          homiBleConnected: false,
+          homiHfpConfigured: false,
           selectedAge: null,
           aiSubprocessors: 'Railway và Cloudflare',
           dataRetentionSummary: 'Theo chính sách công khai.',
@@ -846,7 +846,7 @@ void main() {
           onGrantPrivacyConsent: () async {},
           onContinueWithoutVoice: () async {},
           onRetryPermissions: () {},
-          onSetupH20: () async => false,
+          onSetupHomi: () async => false,
           onAgeSelected: (_) {},
           onCompleteSetup: () async {},
         ),

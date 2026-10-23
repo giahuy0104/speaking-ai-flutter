@@ -419,7 +419,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
           (defaultTargetPlatform == TargetPlatform.android ||
               defaultTargetPlatform == TargetPlatform.iOS);
       if (cueBeforeStart) {
-        // Keep the H20 output selected while the cue (and its acoustic tail)
+        // Keep the HM-D001 output selected while the cue (and its acoustic tail)
         // finishes. Opening capture first records the cue as the child's voice.
         await widget.mediaService.prepareSelectedLessonOutput();
         if (!_isCurrent(generation, entry.id)) return;

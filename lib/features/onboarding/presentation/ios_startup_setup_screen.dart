@@ -24,15 +24,15 @@ class IosStartupSetupScreen extends StatefulWidget {
     required this.microphoneGranted,
     required this.bluetoothRequired,
     required this.bluetoothGranted,
-    required this.h20BleConnected,
-    required this.h20HfpConfigured,
+    required this.homiBleConnected,
+    required this.homiHfpConfigured,
     required this.selectedAge,
     required this.aiSubprocessors,
     required this.dataRetentionSummary,
     required this.onGrantPrivacyConsent,
     required this.onContinueWithoutVoice,
     required this.onRetryPermissions,
-    required this.onSetupH20,
+    required this.onSetupHomi,
     required this.onAgeSelected,
     required this.onCompleteSetup,
     this.allowPhoneMicFallback = false,
@@ -40,9 +40,9 @@ class IosStartupSetupScreen extends StatefulWidget {
     this.androidOfflineEnglishModelOptionAvailable = false,
     this.androidOfflineEnglishModelDownloadAllowed = false,
     this.onAndroidOfflineEnglishModelDownloadChanged,
-    this.onChooseH20Microphone,
+    this.onChooseHomiMicrophone,
     this.onOpenBluetoothSettings,
-    this.h20DeviceName,
+    this.homiDeviceName,
     this.privacyPolicyUri,
     this.termsUri,
     this.supportUri,
@@ -58,23 +58,23 @@ class IosStartupSetupScreen extends StatefulWidget {
   final bool microphoneGranted;
   final bool bluetoothRequired;
   final bool bluetoothGranted;
-  final bool h20BleConnected;
-  final bool h20HfpConfigured;
+  final bool homiBleConnected;
+  final bool homiHfpConfigured;
   final bool allowPhoneMicFallback;
   final bool allowBleOnlySetup;
 
   final int? selectedAge;
   final String aiSubprocessors;
   final String dataRetentionSummary;
-  final String? h20DeviceName;
+  final String? homiDeviceName;
   final Uri? privacyPolicyUri;
   final Uri? termsUri;
   final Uri? supportUri;
   final Future<void> Function() onGrantPrivacyConsent;
   final Future<void> Function() onContinueWithoutVoice;
   final VoidCallback onRetryPermissions;
-  final Future<bool> Function() onSetupH20;
-  final Future<bool> Function()? onChooseH20Microphone;
+  final Future<bool> Function() onSetupHomi;
+  final Future<bool> Function()? onChooseHomiMicrophone;
 
   /// Opens Settings for the audio guide; without it the connect action only
   /// connects.
@@ -97,7 +97,7 @@ class _IosStartupSetupScreenState extends State<IosStartupSetupScreen>
   late bool _adultRoleConfirmed;
   late bool _legalReviewCompleted;
   late bool _voiceDataAccepted;
-  bool _h20SetupRequested = false;
+  bool _homiSetupRequested = false;
   bool _choiceInProgress = false;
   bool _awaitingPairingReturn = false;
   DeviceConnectionFeedbackStage? _deviceConnectionFeedbackStage;
@@ -105,22 +105,22 @@ class _IosStartupSetupScreenState extends State<IosStartupSetupScreen>
   bool get _privacyChoiceMade =>
       widget.privacyConsentGranted || widget.limitedModeSelected;
 
-  bool get _h20Ready => widget.h20BleConnected && widget.h20HfpConfigured;
+  bool get _homiReady => widget.homiBleConnected && widget.homiHfpConfigured;
 
   bool get _bleOnlySetupAccepted =>
-      widget.allowBleOnlySetup && widget.h20BleConnected;
+      widget.allowBleOnlySetup && widget.homiBleConnected;
 
   bool get _deviceConnectionAccepted =>
-      _h20Ready ||
+      _homiReady ||
       _bleOnlySetupAccepted ||
-      (widget.allowPhoneMicFallback && widget.h20BleConnected);
+      (widget.allowPhoneMicFallback && widget.homiBleConnected);
 
   bool get _canComplete =>
       widget.limitedModeSelected ||
       (widget.microphoneGranted &&
           (!widget.bluetoothRequired ||
               (widget.bluetoothGranted &&
-                  (_h20Ready ||
+                  (_homiReady ||
                       widget.allowPhoneMicFallback ||
                       _bleOnlySetupAccepted))));
 
@@ -199,8 +199,8 @@ class _IosStartupSetupScreenState extends State<IosStartupSetupScreen>
             stage: _deviceConnectionFeedbackStage!,
             connectedDetail:
                 (widget.allowPhoneMicFallback || widget.allowBleOnlySetup) &&
-                    widget.h20BleConnected &&
-                    !widget.h20HfpConfigured
+                    widget.homiBleConnected &&
+                    !widget.homiHfpConfigured
                 ? 'Nút MAIN đã kết nối. HOMI sẽ tự tìm micro HM-D001 sau thiết lập.'
                 : null,
           ),
@@ -521,24 +521,24 @@ class _IosStartupSetupScreenState extends State<IosStartupSetupScreen>
             ],
             const SizedBox(height: 16),
             _DeviceChoiceCard(
-              key: const Key('startup-h20-choice'),
+              key: const Key('startup-hm-d001-choice'),
               icon: Icons.bluetooth_audio_rounded,
               title: 'Kết nối thiết bị',
               description:
                   'Bật thiết bị và Bluetooth trên điện thoại, sau đó nhấn nút bên dưới. HOMI sẽ tự kiểm tra kết nối.',
               selected: _deviceConnectionAccepted,
-              status: _h20Ready
+              status: _homiReady
                   ? 'Đã kết nối nút MAIN và micro HOMI'
                   : (widget.allowPhoneMicFallback ||
                             widget.allowBleOnlySetup) &&
-                        widget.h20BleConnected
+                        widget.homiBleConnected
                   ? 'Nút MAIN đã kết nối • micro HOMI chưa sẵn sàng'
-                  : widget.h20BleConnected || widget.h20HfpConfigured
+                  : widget.homiBleConnected || widget.homiHfpConfigured
                   ? 'Đang hoàn tất kết nối còn lại…'
-                  : _h20SetupRequested
+                  : _homiSetupRequested
                   ? 'Chưa kết nối • kiểm tra thiết bị đã bật và ở gần'
                   : 'Chưa kết nối • có thể thực hiện ngay hoặc để sau',
-              actionKey: const Key('startup-setup-h20'),
+              actionKey: const Key('startup-setup-hm-d001'),
               actionLabel: _deviceConnectionAccepted
                   ? 'Đã kết nối'
                   : 'Kết nối thiết bị',
@@ -548,26 +548,26 @@ class _IosStartupSetupScreenState extends State<IosStartupSetupScreen>
                   : _connectHomi,
             ),
             if (widget.allowPhoneMicFallback &&
-                !widget.h20HfpConfigured &&
-                widget.onChooseH20Microphone != null) ...<Widget>[
+                !widget.homiHfpConfigured &&
+                widget.onChooseHomiMicrophone != null) ...<Widget>[
               const SizedBox(height: 8),
               OutlinedButton.icon(
-                key: const Key('startup-choose-h20-microphone'),
-                onPressed: _choiceInProgress ? null : _chooseH20Microphone,
+                key: const Key('startup-choose-hm-d001-microphone'),
+                onPressed: _choiceInProgress ? null : _chooseHomiMicrophone,
                 icon: const Icon(Icons.headset_mic_rounded),
                 label: const Text('Chọn micro HOMI'),
               ),
             ],
-            if (widget.microphoneGranted && !_h20Ready) ...<Widget>[
+            if (widget.microphoneGranted && !_homiReady) ...<Widget>[
               const SizedBox(height: 12),
               _InfoBox(
                 icon: Icons.phone_iphone_rounded,
                 text: widget.allowBleOnlySetup
-                    ? widget.h20BleConnected
+                    ? widget.homiBleConnected
                           ? 'Nút MAIN đã kết nối. HOMI sẽ tiếp tục tìm micro HM-D001 đã kết nối Bluetooth. Trong lúc chờ, dùng nút micro trên màn hình với mic điện thoại.'
                           : 'Hãy kết nối nút MAIN qua BLE. HOMI sẽ tự tìm micro HM-D001 sau khi bạn bắt đầu.'
                     : widget.allowPhoneMicFallback
-                    ? widget.h20BleConnected
+                    ? widget.homiBleConnected
                           ? 'Nút MAIN đã kết nối. HOMI sẽ thử chọn micro HM-D001 sau thiết lập. Trong lúc chờ, dùng nút micro trên màn hình với mic iPhone.'
                           : 'Bạn có thể bắt đầu bằng mic iPhone. Thiết bị HOMI sẽ tiếp tục kết nối nền và có thể thiết lập lại sau trong Cài đặt.'
                     : 'Cần kết nối cả nút MAIN qua BLE và micro HOMI trước khi bắt đầu phiên học.',
@@ -645,11 +645,11 @@ class _IosStartupSetupScreenState extends State<IosStartupSetupScreen>
   /// guide shows how to connect audio in Settings.
   Future<void> _connectHomi() async {
     if (_choiceInProgress) return;
-    await _setupH20();
+    await _setupHomi();
     if (!mounted || widget.onOpenBluetoothSettings == null) return;
     await WidgetsBinding.instance.endOfFrame;
     if (!mounted || _choiceInProgress) return;
-    if (!widget.h20BleConnected || widget.h20HfpConfigured) return;
+    if (!widget.homiBleConnected || widget.homiHfpConfigured) return;
     final action = await showHomiAudioGuide(
       context,
       HomiAudioGuide.enableAudio,
@@ -666,16 +666,16 @@ class _IosStartupSetupScreenState extends State<IosStartupSetupScreen>
     }
   }
 
-  Future<void> _setupH20() async {
+  Future<void> _setupHomi() async {
     setState(() {
       _choiceInProgress = true;
-      _h20SetupRequested = true;
+      _homiSetupRequested = true;
       _deviceConnectionFeedbackStage = DeviceConnectionFeedbackStage.connecting;
     });
     try {
       // Native BLE connection has its own timeout. Parent permission and
       // guidance dialogs can take longer than twelve seconds to complete.
-      final connected = await widget.onSetupH20();
+      final connected = await widget.onSetupHomi();
       if (!mounted) return;
       if (connected) {
         setState(() {
@@ -694,12 +694,12 @@ class _IosStartupSetupScreenState extends State<IosStartupSetupScreen>
     }
   }
 
-  Future<void> _chooseH20Microphone() async {
-    final choose = widget.onChooseH20Microphone;
+  Future<void> _chooseHomiMicrophone() async {
+    final choose = widget.onChooseHomiMicrophone;
     if (choose == null) return;
     setState(() {
       _choiceInProgress = true;
-      _h20SetupRequested = true;
+      _homiSetupRequested = true;
     });
     try {
       await choose().timeout(

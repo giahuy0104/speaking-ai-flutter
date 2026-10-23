@@ -13,22 +13,22 @@ abstract final class MainButtonActivationPolicy {
     required MainButtonSource source,
     required bool isNativeMobile,
     required bool isIos,
-    required bool isH20Ready,
+    required bool isHomiReady,
     bool? isHomiAudioReady,
     bool hasSelectedHfpInput = false,
   }) {
     // MAIN is an independent control link. Losing it must never change the
     // selected microphone while its verified HFP connection is still alive.
-    if (isHomiAudioReady ?? isH20Ready) {
+    if (isHomiAudioReady ?? isHomiReady) {
       return MainButtonAudioRoute.selectedHfp;
     }
     // Keep a lost/unverified selected headset explicit instead of silently
     // recording from the handset. Phone-only use still works without one.
     if (hasSelectedHfpInput) return MainButtonAudioRoute.unavailable;
-    if (source == MainButtonSource.ble && isIos && !isH20Ready) {
+    if (source == MainButtonSource.ble && isIos && !isHomiReady) {
       return MainButtonAudioRoute.unavailable;
     }
-    if (source == MainButtonSource.screen && isNativeMobile && !isH20Ready) {
+    if (source == MainButtonSource.screen && isNativeMobile && !isHomiReady) {
       return MainButtonAudioRoute.phoneMicrophone;
     }
     return MainButtonAudioRoute.selectedHfp;
@@ -40,11 +40,11 @@ abstract final class MainButtonActivationPolicy {
   /// device. An unavailable selected headset requires reconnection.
   static MainButtonAudioRoute followUpAudioRoute({
     required bool isAndroid,
-    required bool isH20Ready,
+    required bool isHomiReady,
     bool? isHomiAudioReady,
     bool hasSelectedHfpInput = false,
   }) {
-    if (isHomiAudioReady ?? isH20Ready) {
+    if (isHomiAudioReady ?? isHomiReady) {
       return MainButtonAudioRoute.selectedHfp;
     }
     if (hasSelectedHfpInput) return MainButtonAudioRoute.unavailable;

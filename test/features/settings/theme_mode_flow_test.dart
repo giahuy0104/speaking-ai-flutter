@@ -416,7 +416,7 @@ void main() {
     debugDefaultTargetPlatformOverride = null;
   });
 
-  testWidgets('H20 settings use one compact shared surface', (tester) async {
+  testWidgets('HM-D001 settings use one compact shared surface', (tester) async {
     await _usePhoneSurface(tester);
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
@@ -441,7 +441,7 @@ void main() {
     await tester.pump(const Duration(seconds: 5));
     await tester.pumpAndSettle();
     final settingsScroll = _settingsScrollable();
-    final audioSection = find.byKey(const Key('settings-audio-h20-section'));
+    final audioSection = find.byKey(const Key('settings-audio-hm-d001-section'));
     await tester.scrollUntilVisible(
       audioSection,
       260,
@@ -450,7 +450,7 @@ void main() {
     await tester.tap(audioSection);
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.byKey(const Key('settings-h20-group')),
+      find.byKey(const Key('settings-hm-d001-group')),
       320,
       scrollable: settingsScroll,
     );
@@ -458,7 +458,7 @@ void main() {
 
     await expectLater(
       find.byType(MaterialApp),
-      matchesGoldenFile('goldens/settings-h20-390x844.png'),
+      matchesGoldenFile('goldens/settings-homi-390x844.png'),
     );
     debugDefaultTargetPlatformOverride = null;
   });
@@ -480,7 +480,7 @@ void main() {
         home: Scaffold(body: SettingsSheet(controller: controller)),
       ),
     );
-    await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
+    await tester.tap(find.byKey(const Key('settings-audio-hm-d001-section')));
     await tester.pumpAndSettle();
 
     expect(find.text('Thông tin thiết bị HOMI'), findsOneWidget);
@@ -520,7 +520,7 @@ void main() {
         home: Scaffold(body: SettingsSheet(controller: controller)),
       ),
     );
-    await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
+    await tester.tap(find.byKey(const Key('settings-audio-hm-d001-section')));
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('Thiết bị điều khiển (BLE)'), findsOneWidget);
@@ -602,8 +602,8 @@ class _DiagnosticAiv0BleControl implements Aiv0BleControl {
   @override
   Aiv0BleStatus get status => Aiv0BleStatus.fromMap(<Object?, Object?>{
     'phase': 'connected',
-    'deviceId': 'H20-BLE',
-    'deviceName': 'H20',
+    'deviceId': 'HM-D001-BLE',
+    'deviceName': 'HM-D001',
     'peripheralState': 'disconnected',
     'mainNotificationState': 'unavailable',
     'lastDisconnectCode': 'CBErrorDomain:7',

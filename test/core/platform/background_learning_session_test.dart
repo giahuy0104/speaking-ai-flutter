@@ -94,7 +94,7 @@ void main() {
   });
 
   test(
-    'requests parent-visible H20 companion association on Android',
+    'requests parent-visible HM-D001 companion association on Android',
     () async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
       const channel = MethodChannel('test_background_companion');
@@ -116,7 +116,7 @@ void main() {
 
       final associated = await MethodChannelBackgroundLearningSession(
         methodChannel: channel,
-      ).associateH20Companion('AA:BB:CC:DD:EE:FF');
+      ).associateHomiCompanion('AA:BB:CC:DD:EE:FF');
 
       expect(associated, isTrue);
       expect(captured?.method, 'companion.associate');

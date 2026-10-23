@@ -5,7 +5,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PromptScoWaitTest {
-    @Test fun ownedH20RouteWaitsForScoInsteadOfFallingBackToMedia() {
+    @Test fun ownedHomiRouteWaitsForScoInsteadOfFallingBackToMedia() {
         assertTrue(PromptScoWait.shouldWait(false, true, false, 0))
         assertTrue(PromptScoWait.shouldWait(false, true, false, 900))
     }

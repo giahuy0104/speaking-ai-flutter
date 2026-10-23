@@ -29,18 +29,7 @@ struct Aiv0DuplicatePacketFilter {
     return isDuplicate
   }
 
-  /// H20 firmware 1.0.0 can emit a burst for one physical MAIN press while
-  /// incrementing sequence and uptime in every packet. Those transport fields
-  /// must not turn the burst into multiple app actions. The current firmware
-  /// exposes only one MAIN action (byte 3 == 0x01), without long-press/release.
   private static func identity(for bytes: [UInt8]) -> String {
-    if bytes.count == 12,
-      bytes[0] == 0x01,
-      bytes[1] == 0x01,
-      bytes[3] == 0x01
-    {
-      return String(format: "H20:%02X:%02X", bytes[0], bytes[1])
-    }
     return bytes.map { String(format: "%02X", $0) }.joined(separator: " ")
   }
 
@@ -49,7 +38,7 @@ struct Aiv0DuplicatePacketFilter {
   }
 }
 
-/// Keeps physical H20 button presses that arrive while the Flutter event
+/// Keeps physical HM-D001 button presses that arrive while the Flutter event
 /// channel is temporarily detached. iOS can restore CoreBluetooth before the
 /// Flutter scene has finished attaching its listener, so dropping these
 /// events would force the parent to press MAIN a second time.
@@ -82,7 +71,7 @@ struct Aiv0PendingButtonEventBuffer {
 }
 
 struct Aiv0ReconnectPolicy {
-  // Match Android's recovery budget. H20 can briefly drop its BLE GATT link
+  // Match Android's recovery budget. HM-D001 can briefly drop its BLE GATT link
   // while iOS brings up the two-way HFP route, but MAIN must recover without
   // waiting for the user to open Parent settings.
   static let maxAttempts = 5
@@ -107,7 +96,7 @@ struct Aiv0ReconnectPolicy {
     speechCaptureActive: Bool,
     hfpRouteActive: Bool
   ) -> Bool {
-    // BLE GATT carries only H20 control packets. Reconnecting this link must
+    // BLE GATT carries only HM-D001 control packets. Reconnecting this link must
     // stay independent from the HFP audio route so a later MAIN press remains
     // available while a lesson prompt or speech capture is active.
     false
@@ -124,9 +113,9 @@ struct Aiv0ReconnectPolicy {
   }
 }
 
-/// Remote commands describe a media action, not the physical H20 button or
+/// Remote commands describe a media action, not the physical HM-D001 button or
 /// gesture which generated it. Never manufacture an observed BLE MAIN packet.
-struct H20RemoteControlPolicy {
+struct HomiRemoteControlPolicy {
   static func shouldListen(
     applicationIsActive: Bool,
     learningActive: Bool,
@@ -137,7 +126,6 @@ struct H20RemoteControlPolicy {
       && (learningActive || diagnosticsActive)
       && bluetoothPortNames.contains {
         $0.localizedCaseInsensitiveContains("HM-D001")
-          || $0.localizedCaseInsensitiveContains("H20")
       }
   }
 
@@ -158,7 +146,7 @@ struct H20RemoteControlPolicy {
   }
 }
 
-struct H20BleControlObservation {
+struct HomiBleControlObservation {
   static func isHmD001Packet(_ bytes: [UInt8]) -> Bool {
     bytes.count == 12 && bytes[0] == 0x01
       && [UInt8(0x01), 0x02, 0x03, 0x04].contains(bytes[1])
@@ -167,31 +155,25 @@ struct H20BleControlObservation {
       && bytes[3] == 0x00 && bytes[7] == 0x00 && bytes[6] <= 100
   }
 
-  static func isObservedMainShort(_ bytes: [UInt8]) -> Bool {
-    bytes.count == 12 && bytes[0] == 0x01 && bytes[1] == 0x01 && bytes[3] == 0x01
-  }
-
   static func batteryPercent(_ bytes: [UInt8]) -> Int? {
-    guard isObservedMainShort(bytes) || isHmD001Packet(bytes) else { return nil }
-    return min(max(Int(bytes[6]) | (Int(bytes[7]) << 8), 0), 100)
+    guard isHmD001Packet(bytes) else { return nil }
+    return Int(bytes[6])
   }
 
   static func fields(for bytes: [UInt8]) -> [String: Any] {
-    let observedMain = isObservedMainShort(bytes)
     let hmD001 = isHmD001Packet(bytes)
     let button = hmD001
       ? (bytes[1] == 0x01 ? "main" : bytes[1] == 0x02 ? "power"
         : bytes[1] == 0x03 ? "volumeUp" : "volumeDown")
-      : (observedMain ? "main" : "unknown")
+      : "unknown"
     var fields: [String: Any] = [
       "source": "ble",
       "button": button,
       "gesture": hmD001 ? (bytes[2] == 0x01 ? "shortPress" : "longPress")
-        : (observedMain ? "shortPress" : "unknown"),
-      "protocol": hmD001 ? "observedHmD001" : (observedMain ? "observedV1" : "unknown"),
+        : "unknown",
+      "protocol": hmD001 ? "observedHmD001" : "unknown",
       "rawPayload": bytes.map { String(format: "%02X", $0) }.joined(separator: " "),
     ]
-    if observedMain { fields["sequence"] = Int(bytes[2]) }
     if hmD001 { fields["sequence"] = Int(bytes[4]) | (Int(bytes[5]) << 8) }
     return fields
   }
@@ -221,7 +203,7 @@ enum Aiv0MainNotificationRefreshStep: Equatable {
   case complete
 }
 
-/// Keep the H20 CCCD subscription stable across HFP/SCO activity. This mirrors
+/// Keep the HM-D001 CCCD subscription stable across HFP/SCO activity. This mirrors
 /// Android: a healthy notification is preserved and only a missing one is
 /// enabled again after CoreBluetooth reports an actual link problem.
 struct Aiv0MainNotificationRefreshPolicy {
@@ -298,7 +280,7 @@ enum Aiv0ConnectStartStep: Equatable {
   case complete
 }
 
-/// CoreBluetooth may return an H20 peripheral whose GATT link is already
+/// CoreBluetooth may return an HM-D001 peripheral whose GATT link is already
 /// attached to this process. Calling `connect` again in that state is not an
 /// idempotent operation: iOS is not required to emit another `didConnect`, so
 /// the app's connect timeout can end up cancelling a healthy link.
@@ -329,10 +311,10 @@ struct Aiv0InitialNotificationSetupPolicy {
   }
 }
 
-/// iOS implementation of the same AIV0/H20 BLE control contract used by the
+/// iOS implementation of the same AIV0/HM-D001 BLE control contract used by the
 /// Android bridge. Audio remains on HFP; BLE normally carries MAIN button
 /// notifications, battery/firmware diagnostics, and optional APP State. A
-/// narrowly-scoped iOS headset fallback covers MAIN while H20 GATT is absent.
+/// narrowly-scoped iOS headset fallback covers MAIN while HM-D001 GATT is absent.
 final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   private struct RemoteCommandRegistration {
     let command: MPRemoteCommand
@@ -350,7 +332,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   }
 
   private static let centralRestorationIdentifier =
-    "com.innotrik.aispeaking.h20-central"
+    "com.innotrik.aispeaking.hm-d001-central"
 
   private struct DiscoveredDevice {
     let peripheral: CBPeripheral
@@ -447,7 +429,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     })
     eventChannel.setStreamHandler(self)
     // Creating the manager with the same restoration identifier lets iOS
-    // return a previously connected H20 after a system-initiated relaunch.
+    // return a previously connected HM-D001 after a system-initiated relaunch.
     // Do not instantiate it before the parent has answered the Bluetooth
     // permission prompt.
     if CBManager.authorization == .allowedAlways {
@@ -474,7 +456,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     }
     audioSessionCoordinator.onPromptEnded = { [weak self] in
       // Prompt playback and speech capture are equally unsafe windows for a
-      // CoreBluetooth reconnect on H20. Resume the exact deferred operation
+      // CoreBluetooth reconnect on HM-D001. Resume the exact deferred operation
       // only after the prompt owner has released the shared audio session.
       self?.resumeDeferredBluetoothRecovery()
     }
@@ -971,7 +953,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       options[CBConnectPeripheralOptionEnableTransportBridgingKey] = true
     }
     if #available(iOS 17.0, *) {
-      // H20 can drop BLE GATT while Classic Bluetooth HFP renegotiates. Keep
+      // HM-D001 can drop BLE GATT while Classic Bluetooth HFP renegotiates. Keep
       // recovery owned by CoreBluetooth instead of a Flutter screen lifecycle.
       options[CBConnectPeripheralOptionEnableAutoReconnect] = true
     }
@@ -1100,7 +1082,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
       }
       // CoreBluetooth connection requests intentionally have no application
       // timeout. On iOS 15–16 this pending request is the fallback that keeps
-      // waiting for H20 instead of giving up until Parent settings is opened.
+      // waiting for HM-D001 instead of giving up until Parent settings is opened.
     }
     reconnectWorkItem = item
     IOSNativeWork.queue.asyncAfter(deadline: .now() + delay, execute: item)
@@ -1450,7 +1432,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     controlNotificationTokens.append(token)
   }
 
-  private func currentH20BluetoothPortNames() -> [String] {
+  private func currentHomiBluetoothPortNames() -> [String] {
     let route = audioSessionCoordinator.session.currentRoute
     return (route.inputs + route.outputs)
       .filter { $0.portType == .bluetoothHFP || $0.portType == .bluetoothA2DP }
@@ -1458,11 +1440,11 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
   }
 
   private func shouldReceiveRemoteControls() -> Bool {
-    !disposed && !controlAudioInterrupted && eventSink != nil && H20RemoteControlPolicy.shouldListen(
+    !disposed && !controlAudioInterrupted && eventSink != nil && HomiRemoteControlPolicy.shouldListen(
       applicationIsActive: IOSNativeWork.applicationIsActive,
       learningActive: controlLearningActive,
       diagnosticsActive: controlDiagnosticsActive,
-      bluetoothPortNames: currentH20BluetoothPortNames()
+      bluetoothPortNames: currentHomiBluetoothPortNames()
     )
   }
 
@@ -1516,7 +1498,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     }
     audioSessionCoordinator.trace(
       stage: enabled ? "MAIN_REMOTE_LISTENING_ENABLED" : "MAIN_REMOTE_LISTENING_DISABLED",
-      caller: "H20RemoteMainBridge",
+      caller: "HomiRemoteMainBridge",
       message: reason,
       values: [
         "speechCaptureActive": audioSessionCoordinator.isSpeechCaptureActive,
@@ -1541,7 +1523,7 @@ final class Aiv0BleControlBridge: NSObject, FlutterStreamHandler {
     // These are observations until real-device evidence establishes a mapping.
     // Keep them out of the BLE duplicate window: a remote Next must not suppress
     // a genuine MAIN notification, or vice versa.
-    var observation = H20RemoteControlPolicy.observation(
+    var observation = HomiRemoteControlPolicy.observation(
       command: name,
       receivedAtEpochMs: Int(Date().timeIntervalSince1970 * 1_000)
     )
@@ -1845,7 +1827,7 @@ extension Aiv0BleControlBridge: CBCentralManagerDelegate {
     let services = advertisementData[CBAdvertisementDataServiceUUIDsKey] as? [CBUUID] ?? []
     let advertisesControl = services.contains(ProtocolUUID.controlService)
     let lowerName = name.lowercased()
-    let likely = advertisesControl || lowerName.contains("h20")
+    let likely = advertisesControl || lowerName.contains("hm-d001")
       || lowerName.contains("aiv0") || lowerName.contains("innotrik")
       || lowerName == "hm-d001"
     let current = discoveredDevices[peripheral.identifier]
@@ -2157,14 +2139,12 @@ extension Aiv0BleControlBridge: CBPeripheralDelegate {
       )
       lastRawHex = rawHex
       lastMainTransportSource = "ble"
-      if let observedBattery = H20BleControlObservation.batteryPercent(bytes) {
+      if let observedBattery = HomiBleControlObservation.batteryPercent(bytes) {
         batteryPercent = observedBattery
       }
-      if !duplicate && (H20BleControlObservation.isObservedMainShort(bytes)
-        || (H20BleControlObservation.isHmD001Packet(bytes) && bytes[1] == 0x01)) {
+      if !duplicate && HomiBleControlObservation.isHmD001Packet(bytes) && bytes[1] == 0x01 {
         audioSessionCoordinator.notePhysicalMain(rawHex: rawHex, source: "ble")
-        let packetSequence = H20BleControlObservation.isHmD001Packet(bytes)
-          ? Int(bytes[4]) | (Int(bytes[5]) << 8) : Int(bytes[2])
+        let packetSequence = Int(bytes[4]) | (Int(bytes[5]) << 8)
         audioSessionCoordinator.trace(
           stage: "MAIN_EVENT_DELIVERY_ATTEMPT",
           caller: "Aiv0BleControlBridge.eventChannel",
@@ -2184,7 +2164,7 @@ extension Aiv0BleControlBridge: CBPeripheralDelegate {
         "transportSource": "ble",
         "receivedAtEpochMs": Int(Date().timeIntervalSince1970 * 1_000),
       ]
-      H20BleControlObservation.fields(for: bytes).forEach { event[$0.key] = $0.value }
+      HomiBleControlObservation.fields(for: bytes).forEach { event[$0.key] = $0.value }
       emitButtonEvent(event)
       emitStatus()
     } else if characteristic.uuid == ProtocolUUID.batteryLevel, let first = data.first {

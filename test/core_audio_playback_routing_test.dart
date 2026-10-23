@@ -33,7 +33,7 @@ void main() {
   });
 
   test(
-    'stop removes a queued play before its H20 route can be released',
+    'stop removes a queued play before its HM-D001 route can be released',
     () async {
       final coordinator = AudioTurnCoordinator();
       final prompt = await coordinator.acquire(
@@ -180,26 +180,26 @@ void main() {
   test(
     'each Android player keeps its selected output when another session prepares media',
     () async {
-      final h20Player = ControlledPlayer();
+      final homiPlayer = ControlledPlayer();
       final phonePlayer = ControlledPlayer();
       final cache = ControlledCache();
-      final h20 = JustAudioPlaybackService(player: h20Player, cache: cache);
+      final homi = JustAudioPlaybackService(player: homiPlayer, cache: cache);
       final phone = JustAudioPlaybackService(player: phonePlayer, cache: cache);
       addTearDown(() async {
-        await h20.dispose();
+        await homi.dispose();
         await phone.dispose();
         cache.dispose();
       });
-      h20.setCommunicationRouteActive(true);
-      await h20.prepare();
+      homi.setCommunicationRouteActive(true);
+      await homi.prepare();
       await phone.prepare();
-      await h20.play(firstUri);
+      await homi.play(firstUri);
       expect(
-        h20Player.attributesAtPlay.single.usage,
+        homiPlayer.attributesAtPlay.single.usage,
         AndroidAudioUsage.voiceCommunication,
       );
       expect(
-        h20Player.attributesAtPlay.single.contentType,
+        homiPlayer.attributesAtPlay.single.contentType,
         AndroidAudioContentType.speech,
       );
       await phone.play(secondUri);
@@ -207,11 +207,11 @@ void main() {
         phonePlayer.attributesAtPlay.single.usage,
         AndroidAudioUsage.media,
       );
-      expect(h20Player.attributes!.usage, AndroidAudioUsage.voiceCommunication);
+      expect(homiPlayer.attributes!.usage, AndroidAudioUsage.voiceCommunication);
 
-      h20.setCommunicationRouteActive(false);
-      await h20.play(secondUri);
-      expect(h20Player.attributesAtPlay.last.usage, AndroidAudioUsage.media);
+      homi.setCommunicationRouteActive(false);
+      await homi.play(secondUri);
+      expect(homiPlayer.attributesAtPlay.last.usage, AndroidAudioUsage.media);
     },
   );
 

@@ -116,7 +116,7 @@ void main() {
     expect(find.byKey(const Key('v4-song-stage-screen')), findsNothing);
   });
 
-  testWidgets('song does not start on phone after H20 cue route fails', (
+  testWidgets('song does not start on phone after HM-D001 cue route fails', (
     tester,
   ) async {
     await _usePhoneSurface(tester);
@@ -301,7 +301,7 @@ class _FakeVoicePromptService implements VoicePromptService {
 class _RouteFailureVoicePromptService extends _FakeVoicePromptService {
   @override
   Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
-    throw const HfpAudioException('H20 route unavailable');
+    throw const HfpAudioException('HM-D001 route unavailable');
   }
 }
 

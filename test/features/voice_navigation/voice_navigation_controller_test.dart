@@ -1491,7 +1491,7 @@ void main() {
         prompt.transition.complete();
         await _waitUntil(() => prompt.spokenTexts.length == 2);
         if (failIntro) {
-          prompt.intro.completeError(StateError('H20 intro playback failed'));
+          prompt.intro.completeError(StateError('HM-D001 intro playback failed'));
         } else {
           await controller.pause();
           prompt.intro.complete();
@@ -1544,7 +1544,7 @@ void main() {
     },
   );
 
-  test('iOS MAIN prompts use the selected H20 media output', () async {
+  test('iOS MAIN prompts use the selected HM-D001 media output', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     final speechInput = _FakeNavigationSpeechInput();
@@ -1590,7 +1590,7 @@ void main() {
     },
   );
 
-  test('Android MAIN prompts use the selected H20 HFP output', () async {
+  test('Android MAIN prompts use the selected HM-D001 HFP output', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     final speechInput = _FakeNavigationSpeechInput();
@@ -3394,7 +3394,7 @@ class _FailingMainTurnPromptService extends _FakeMainTurnVoicePromptService {
   Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
     if (failNext) {
       failNext = false;
-      throw StateError('H20 prompt route lost');
+      throw StateError('HM-D001 prompt route lost');
     }
     await super.speakAndWait(text, locale: locale);
   }

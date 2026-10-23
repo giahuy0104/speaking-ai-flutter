@@ -94,7 +94,7 @@ void main() {
       ];
       await app.emitBle('connected');
       await _pumpAsync(tester);
-      expect(app.controller.isH20Ready, isTrue);
+      expect(app.controller.isHomiReady, isTrue);
       _expectHomiHeaders(tester, ready: true);
       tester
           .widget<ConversationScreen>(find.byType(ConversationScreen))
@@ -104,7 +104,7 @@ void main() {
       expect(find.byKey(const Key('settings-page')), findsOneWidget);
       expect(find.byType(BottomSheet), findsNothing);
       expect(find.byType(MainVoiceAssistantButton), findsNothing);
-      await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
+      await tester.tap(find.byKey(const Key('settings-audio-hm-d001-section')));
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Bỏ chọn'));
       await tester.tap(find.text('Bỏ chọn'));
@@ -123,13 +123,13 @@ void main() {
       await _pumpAsync(tester);
       expect(app.hfpConnectCalls, connectsAfterDeselect);
       expect(app.controller.usesHfpInput, isFalse);
-      expect(app.controller.isH20Ready, isFalse);
+      expect(app.controller.isHomiReady, isFalse);
       _expectHomiHeaders(tester, ready: false, status: 'Mic chưa kết nối');
       tester
           .widget<ConversationScreen>(find.byType(ConversationScreen))
           .onOpenSettings();
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
+      await tester.tap(find.byKey(const Key('settings-audio-hm-d001-section')));
       await tester.pumpAndSettle();
       final connectButton = find.byKey(const Key('settings-homi-connect'));
       await tester.ensureVisible(connectButton);
@@ -139,7 +139,7 @@ void main() {
       await _pumpAsync(tester);
       expect(app.hfpConnectCalls, greaterThan(connectsAfterDeselect));
       expect(app.controller.usesHfpInput, isTrue);
-      expect(app.controller.isH20Ready, isTrue);
+      expect(app.controller.isHomiReady, isTrue);
       _expectHomiHeaders(tester, ready: true);
       await app.close();
     },
