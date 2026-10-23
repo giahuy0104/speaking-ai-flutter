@@ -47,7 +47,7 @@ internal class HomiClassicDiscovery(private val context: Context) {
                             ?.trim()?.takeIf { it.isNotEmpty() }
                             ?: runCatching { device.name?.trim() }.getOrNull().orEmpty()
                         val normalized = name.lowercase(Locale.ROOT)
-                        val likely = normalized == "hm-d001" || normalized.contains("h20") ||
+                        val likely = normalized == "hm-d001" || normalized.contains("hm-d001") ||
                             normalized.contains("aiv0") || normalized.contains("innotrik")
                         // Never offer an unnamed nearby radio as a HOMI candidate.
                         if (!likely) return

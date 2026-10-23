@@ -48,9 +48,9 @@ struct IOSHfpRouteReusePolicy {
 
 /// Owns the live HFP/SCO lease for one utterance.
 ///
-/// The selected H20 input UID survives between utterances, but the live voice
+/// The selected HM-D001 input UID survives between utterances, but the live voice
 /// route must not. Keeping this lease after capture ends prevents
-/// `AVAudioSession` from deactivating and makes the H20 firmware drop/reconnect
+/// `AVAudioSession` from deactivating and makes the HM-D001 firmware drop/reconnect
 /// its independent BLE control link, so later physical MAIN presses disappear.
 struct IOSHfpRouteLeaseState {
   private(set) var activeGeneration: Int?
@@ -89,7 +89,7 @@ enum IOSHfpIdleRouteReleaseStep: Equatable {
 
 /// `setActive(false)` completes before `currentRoute` necessarily leaves HFP.
 /// BLE must use the authoritative route state rather than a fixed delay, or a
-/// slow H20/iPhone handoff starts GATT while SCO still owns the radio.
+/// slow HM-D001/iPhone handoff starts GATT while SCO still owns the radio.
 struct IOSHfpIdleRouteReleasePolicy {
   static func nextStep(
     hasTwoWayHfpRoute: Bool,
@@ -113,7 +113,7 @@ struct IOSHfpInputIdentity: Equatable {
   let name: String
 }
 
-/// Restores a remembered H20 selection after iOS tears down A2DP/HFP and
+/// Restores a remembered HM-D001 selection after iOS tears down A2DP/HFP and
 /// publishes the same physical input with a different transient UID.
 struct IOSHfpInputSelectionPolicy {
   static func select(
@@ -327,7 +327,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       }
       // Discovery temporarily activates a record-capable HFP session because
       // iOS otherwise hides availableInputs. Do not leave that session active
-      // while Flutter waits for the parent to choose a device: H20 firmware
+      // while Flutter waits for the parent to choose a device: HM-D001 firmware
       // 1.0.0 drops its independent BLE MAIN link while SCO owns the radio.
       audioSessionCoordinator.releaseAudioSessionIfIdle(
         caller: "HfpAudioBridge.findDevices.completed"
@@ -386,7 +386,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       message = "Đang xác nhận mic và loa HOMI trên route bluetoothHFP…"
       emitStatus()
       // Releasing the discovery route lets BLE recover, but iOS can then
-      // republish the same H20 input with a new UID. Wait for the input and
+      // republish the same HM-D001 input with a new UID. Wait for the input and
       // match by its remembered name instead of failing immediately.
       waitForSelectedInputThenActivate(
         generation: activationGeneration,
@@ -485,10 +485,10 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       caller: "HfpAudioBridge.startAudioRoute",
       generation: activationGeneration
     )
-    // H20 can already own a confirmed two-way HFP route after Settings or a
+    // HM-D001 can already own a confirmed two-way HFP route after Settings or a
     // previous MAIN turn. Re-applying the category, active flag and preferred
     // input here makes iOS renegotiate the Classic Bluetooth profile. On the
-    // combined H20 firmware that renegotiation also interrupts the BLE control
+    // combined HM-D001 firmware that renegotiation also interrupts the BLE control
     // link, so the physical MAIN packet is followed by an unnecessary reconnect.
     let reusableInput = selectedOrUnclaimedActiveTwoWayHfpInput()
     if IOSHfpRouteReusePolicy.canReuse(
@@ -726,7 +726,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
         self.emitStatus()
         if !recording {
           // `connect` only verifies and remembers the paired HFP input. Do not
-          // leave SCO active while idle: H20 exposes BLE and Classic Bluetooth
+          // leave SCO active while idle: HM-D001 exposes BLE and Classic Bluetooth
           // on the same firmware and an always-open voice profile makes its
           // GATT control link disconnect/reconnect continuously on iOS.
           self.audioSessionCoordinator.releaseAudioSessionIfIdle(
@@ -780,7 +780,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
 
   private func stopAudioRoute() {
     routeActivationGeneration += 1
-    // Preserve only the selected H20 identity. The live HFP/SCO session is an
+    // Preserve only the selected HM-D001 identity. The live HFP/SCO session is an
     // utterance-scoped resource and must be released so BLE GATT can remain
     // connected and keep receiving physical MAIN notifications while idle.
     if let activeInput = selectedOrUnclaimedActiveTwoWayHfpInput() {
@@ -914,9 +914,9 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
     return activeHfpInput()
   }
 
-  /// Accepts the live route only when it is the remembered H20 (exact UID or
+  /// Accepts the live route only when it is the remembered HM-D001 (exact UID or
   /// the same normalized name after iOS republishes a transient UID). An
-  /// unrelated active headset must never replace the user's H20 selection.
+  /// unrelated active headset must never replace the user's HM-D001 selection.
   private func selectedOrUnclaimedActiveTwoWayHfpInput()
     -> AVAudioSessionPortDescription?
   {

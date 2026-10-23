@@ -51,8 +51,8 @@ void main() {
             microphoneGranted: true,
             bluetoothRequired: true,
             bluetoothGranted: state != 'partial-permission',
-            h20BleConnected: state == 'partial' || state == 'ready',
-            h20HfpConfigured: state == 'ready',
+            homiBleConnected: state == 'partial' || state == 'ready',
+            homiHfpConfigured: state == 'ready',
             bluetoothPower: power,
             selectedAge: 6,
             aiSubprocessors: 'HOMI',
@@ -60,10 +60,10 @@ void main() {
             onGrantPrivacyConsent: () async {},
             onContinueWithoutVoice: () async {},
             onRetryPermissions: () {},
-            onSetupH20: () => state == 'searching'
+            onSetupHomi: () => state == 'searching'
                 ? pendingConnection.future
                 : Future.value(false),
-            onCancelH20Setup: () async {},
+            onCancelHomiSetup: () async {},
             onAgeSelected: (_) {},
             onCompleteSetup: () async {},
           ),
@@ -89,7 +89,7 @@ void main() {
         }
       }
       if (state == 'failed' || state == 'searching') {
-        await tester.tap(find.byKey(const Key('startup-setup-h20')));
+        await tester.tap(find.byKey(const Key('startup-setup-hm-d001')));
         if (state == 'searching') {
           await tester.pump(const Duration(milliseconds: 200));
           expect(
@@ -134,8 +134,8 @@ void main() {
               microphoneGranted: permissionsGranted,
               bluetoothRequired: true,
               bluetoothGranted: permissionsGranted,
-              h20BleConnected: false,
-              h20HfpConfigured: false,
+              homiBleConnected: false,
+              homiHfpConfigured: false,
               selectedAge: selectedAge,
               aiSubprocessors: 'HOMI AI',
               dataRetentionSummary: 'Lưu theo chính sách HOMI.',
@@ -143,7 +143,7 @@ void main() {
               onContinueWithoutVoice: () async {},
               onRetryPermissions: () =>
                   setState(() => permissionsGranted = true),
-              onSetupH20: () async => false,
+              onSetupHomi: () async => false,
               onAgeSelected: (age) => setState(() => selectedAge = age),
               onCompleteSetup: () async {},
             ),
@@ -216,15 +216,15 @@ void main() {
             microphoneGranted: permissionsGranted,
             bluetoothRequired: true,
             bluetoothGranted: permissionsGranted,
-            h20BleConnected: false,
-            h20HfpConfigured: false,
+            homiBleConnected: false,
+            homiHfpConfigured: false,
             selectedAge: selectedAge,
             aiSubprocessors: 'HOMI AI',
             dataRetentionSummary: 'Lưu theo chính sách HOMI.',
             onGrantPrivacyConsent: () async {},
             onContinueWithoutVoice: () async {},
             onRetryPermissions: () => setState(() => permissionsGranted = true),
-            onSetupH20: () async => false,
+            onSetupHomi: () async => false,
             onAgeSelected: (age) => setState(() => selectedAge = age),
             onCompleteSetup: () async {},
           ),

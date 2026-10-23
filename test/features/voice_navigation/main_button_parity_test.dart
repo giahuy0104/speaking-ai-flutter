@@ -50,7 +50,7 @@ void main() {
   test(
     'BLE-ready iOS MAIN rejects missing HFP while screen uses phone',
     () async {
-      final harness = _MainHarness(withModule: true)..h20Ready = false;
+      final harness = _MainHarness(withModule: true)..homiReady = false;
       addTearDown(harness.dispose);
       expect(
         await harness.press(AivoControlSource.ble),
@@ -71,25 +71,25 @@ void main() {
     },
   );
 
-  test('an Android follow-up question without H20 keeps the handset route', () {
+  test('an Android follow-up question without HM-D001 keeps the handset route', () {
     expect(
       MainButtonActivationPolicy.followUpAudioRoute(
         isAndroid: true,
-        isH20Ready: false,
+        isHomiReady: false,
       ),
       MainButtonAudioRoute.phoneMicrophone,
     );
     expect(
       MainButtonActivationPolicy.followUpAudioRoute(
         isAndroid: true,
-        isH20Ready: true,
+        isHomiReady: true,
       ),
       MainButtonAudioRoute.selectedHfp,
     );
     expect(
       MainButtonActivationPolicy.followUpAudioRoute(
         isAndroid: false,
-        isH20Ready: false,
+        isHomiReady: false,
       ),
       MainButtonAudioRoute.selectedHfp,
     );
@@ -103,7 +103,7 @@ void main() {
             source: source,
             isNativeMobile: true,
             isIos: isIos,
-            isH20Ready: false,
+            isHomiReady: false,
             isHomiAudioReady: true,
             hasSelectedHfpInput: true,
           ),
@@ -113,7 +113,7 @@ void main() {
       expect(
         MainButtonActivationPolicy.followUpAudioRoute(
           isAndroid: !isIos,
-          isH20Ready: false,
+          isHomiReady: false,
           isHomiAudioReady: true,
           hasSelectedHfpInput: true,
         ),
@@ -128,7 +128,7 @@ void main() {
             source: source,
             isNativeMobile: true,
             isIos: isIos,
-            isH20Ready: false,
+            isHomiReady: false,
             isHomiAudioReady: false,
             hasSelectedHfpInput: true,
           ),
@@ -138,7 +138,7 @@ void main() {
       expect(
         MainButtonActivationPolicy.followUpAudioRoute(
           isAndroid: !isIos,
-          isH20Ready: false,
+          isHomiReady: false,
           isHomiAudioReady: false,
           hasSelectedHfpInput: true,
         ),
@@ -148,7 +148,7 @@ void main() {
   }
 
   test(
-    'connected H20 uses the same selected route for both MAIN sources',
+    'connected HM-D001 uses the same selected route for both MAIN sources',
     () async {
       for (final source in [
         AivoControlSource.virtualButton,
@@ -159,7 +159,7 @@ void main() {
         expect(await harness.press(source), AivoControlStatus.accepted);
         expect(harness.selectedRoute, MainButtonAudioRoute.selectedHfp);
         // A later transport status change cannot change the source of this turn.
-        harness.h20Ready = false;
+        harness.homiReady = false;
         expect(await harness.press(source), AivoControlStatus.busy);
         expect(harness.selectedRoute, MainButtonAudioRoute.selectedHfp);
         expect(harness.voiceStarts, 1);
@@ -170,7 +170,7 @@ void main() {
   test(
     'Android physical MAIN still takes over a continuous wake listener',
     () async {
-      final harness = _MainHarness(isIos: false)..h20Ready = false;
+      final harness = _MainHarness(isIos: false)..homiReady = false;
       addTearDown(harness.dispose);
       // Only explicit MAIN ownership blocks another MAIN. The Android wake
       // listener may be active without owning a MAIN command session.
@@ -288,7 +288,7 @@ class _MainHarness {
   late final MainAssistantSession session;
   late final MainButtonCoordinator coordinator;
   late final AivoControlDispatcher dispatcher;
-  bool h20Ready = true;
+  bool homiReady = true;
   bool mainActive = false;
   int voiceStarts = 0;
   int pauseCalls = 0;
@@ -307,7 +307,7 @@ class _MainHarness {
       source: event.source,
       isNativeMobile: true,
       isIos: isIos,
-      isH20Ready: h20Ready,
+      isHomiReady: homiReady,
     );
     if (route == MainButtonAudioRoute.unavailable) {
       connectionMessages++;
@@ -351,7 +351,7 @@ class _MainHarness {
       gesture: gesture,
       occurredAt: DateTime.now(),
       actionable: true,
-      deviceId: 'H20',
+      deviceId: 'HM-D001',
       sequence: sequence,
       uptimeMilliseconds: ++_packetUptime,
     ),
@@ -418,7 +418,7 @@ class _VoiceState extends ChangeNotifier implements VoiceNavigationController {
   @override
   bool get isAwaitingCommand => mainActive;
   @override
-  String get activeInputLabel => 'H20';
+  String get activeInputLabel => 'HM-D001';
   @override
   String? get lastErrorMessage => null;
   @override

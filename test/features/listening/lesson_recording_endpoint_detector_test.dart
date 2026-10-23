@@ -187,7 +187,7 @@ void main() {
     expect(reasons, isEmpty);
   });
 
-  testWidgets('quiet H20 speech below -46 dBFS ends after its quiet tail', (
+  testWidgets('quiet HM-D001 speech below -46 dBFS ends after its quiet tail', (
     tester,
   ) async {
     final amplitudes = StreamController<double>.broadcast(sync: true);
@@ -410,7 +410,7 @@ void main() {
   });
 
   testWidgets(
-    'quiet iOS H20 speech ends after its quiet tail instead of six seconds',
+    'quiet iOS HM-D001 speech ends after its quiet tail instead of six seconds',
     (tester) async {
       final amplitudes = StreamController<double>.broadcast(sync: true);
       addTearDown(amplitudes.close);

@@ -71,13 +71,13 @@ import 'app_theme.dart';
 import 'app_theme_mode.dart';
 import 'device_connection_action_gate.dart';
 import 'device_connection_feedback_overlay.dart';
-import 'h20_battery_alert_policy.dart';
-import 'h20_battery_notifications.dart';
+import 'homi_battery_alert_policy.dart';
+import 'homi_battery_notifications.dart';
 import 'mascot_assets.dart';
 
-enum _H20AutoConnectReason { background, parentSetup, periodicRetry }
+enum _HomiAutoConnectReason { background, parentSetup, periodicRetry }
 
-enum _ParentH20GuidanceAction { cancel, primary }
+enum _ParentHomiGuidanceAction { cancel, primary }
 
 enum _ParentHfpSelectionResult {
   selected,
@@ -143,9 +143,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey =
       GlobalKey<ScaffoldMessengerState>();
-  final H20BatteryNotifications _h20BatteryNotifications =
-      H20BatteryNotifications();
-  final H20BatteryAlertPolicy _h20BatteryAlertPolicy = H20BatteryAlertPolicy();
+  final HomiBatteryNotifications _homiBatteryNotifications =
+      HomiBatteryNotifications();
+  final HomiBatteryAlertPolicy _homiBatteryAlertPolicy = HomiBatteryAlertPolicy();
   late final _MainOverlayNavigatorObserver _mainOverlayNavigatorObserver;
   final ActiveLearningModuleRegistry _activeLearningModules =
       ActiveLearningModuleRegistry();
@@ -170,8 +170,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   bool _isGlobalModalOpen = false;
   bool _showFloatingMainButton = false;
   bool _backgroundWorkStarted = false;
-  bool _retryParentH20SetupOnResume = false;
-  bool _parentH20ResumeRetryInProgress = false;
+  bool _retryParentHomiSetupOnResume = false;
+  bool _parentHomiResumeRetryInProgress = false;
   bool _startupProfileLoading = true;
   bool _startupPermissionRequestInProgress = false;
   int _startupPermissionGeneration = 0;
@@ -187,12 +187,12 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   DateTime? _lastAiv0AutoConnectAttempt;
   DateTime? _lastIosHfpAutoSelectionAttempt;
   String? _lastIosHfpAutoSelectionBleDeviceId;
-  DateTime? _suppressH20AutoConnectUntil;
+  DateTime? _suppressHomiAutoConnectUntil;
   bool _restoreHfpAfterPhysicalMain = false;
   bool _isRestoringHfpAfterPhysicalMain = false;
   bool _offlineSpeechModelPreparationRunning = false;
   bool _offlineSpeechModelPreparationFinished = false;
-  bool _disconnectingDepletedH20 = false;
+  bool _disconnectingDepletedHomi = false;
   StreamSubscription<Aiv0BleStatus>? _aiv0BleStatusSubscription;
   StreamSubscription<AudioTurnDiagnostic>? _audioTurnDiagnosticSubscription;
   Timer? _iosBleReconnectNoticeTimer;
@@ -249,7 +249,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       ((!_bluetoothPower.hasChecked ||
               _bluetoothPower.state == Aiv0BluetoothAdapterState.poweredOn) &&
           _controller?.canUseAiv0Ble == true &&
-          (!_config.enableHfpAudio || _controller?.isH20Ready == true));
+          (!_config.enableHfpAudio || _controller?.isHomiReady == true));
 
   void _synchronizeBluetoothPower() {
     if (!mounted) return;
@@ -391,7 +391,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
               .where(
                 (device) =>
                     device.isConnected &&
-                    selectLikelyH20HfpDevice(<HfpAudioDevice>[device]) != null,
+                    selectLikelyHomiHfpDevice(<HfpAudioDevice>[device]) != null,
               )
               .map((device) => device.id),
         );
@@ -547,9 +547,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (bleStatus != null) _updateIosBleReconnectNotice(bleStatus);
     if (_bluetoothPower.hasChecked) unawaited(_bluetoothPower.refresh());
     unawaited(_prepareOfflineLanguageModels());
-    if (_retryParentH20SetupOnResume && _privacyConsentGranted) {
-      _retryParentH20SetupOnResume = false;
-      unawaited(_retryParentH20SetupAfterSettings());
+    if (_retryParentHomiSetupOnResume && _privacyConsentGranted) {
+      _retryParentHomiSetupOnResume = false;
+      unawaited(_retryParentHomiSetupAfterSettings());
       return;
     }
     // Flutter state is recreated after a cold launch/TestFlight update, while
@@ -561,7 +561,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (_privacyConsentGranted && _parentSetupCompleted) {
       unawaited(_requestStartupPermissions());
     } else if (_parentSetupCompleted && _bluetoothPermissionGranted) {
-      unawaited(_autoConnectH20Ble());
+      unawaited(_autoConnectHomiBle());
     }
   }
 
@@ -779,7 +779,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
     if (!_limitedModeSelected &&
         _requiresLearningDevice &&
-        _controller?.isH20Ready != true) {
+        _controller?.isHomiReady != true) {
       return;
     }
     _setChildAge(age);
@@ -794,7 +794,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       if (defaultTargetPlatform == TargetPlatform.android) {
         _syncAndroidHfpAutoSelectionRetry();
         if (_controller?.canUseAiv0Ble == true &&
-            _controller?.isH20Ready != true) {
+            _controller?.isHomiReady != true) {
           unawaited(_autoSelectConnectedAndroidHfp());
         }
       }
@@ -909,7 +909,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           !_privacyConsentGranted) {
         return;
       }
-      final paired = selectLikelyH20HfpDevice(devices) != null;
+      final paired = selectLikelyHomiHfpDevice(devices) != null;
       if (_startupHomiAudioPaired != paired) {
         setState(() => _startupHomiAudioPaired = paired);
       }
@@ -920,7 +920,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
 
   Future<void> _requestStartupPermissions({
     bool parentInitiated = false,
-    bool autoConnectH20 = true,
+    bool autoConnectHomi = true,
   }) async {
     if (_startupPermissionRequestInProgress || !_privacyConsentGranted) {
       return;
@@ -976,8 +976,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       }
     }
 
-    if (parentInitiated && _h20BatteryNotifications.isSupported) {
-      final notificationGranted = await _h20BatteryNotifications
+    if (parentInitiated && _homiBatteryNotifications.isSupported) {
+      final notificationGranted = await _homiBatteryNotifications
           .requestPermission();
       if (!notificationGranted) {
         errors.add(
@@ -995,8 +995,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       _startupPermissionRequestInProgress = false;
       _startupPermissionError = errors.isEmpty ? null : errors.join('\n');
     });
-    if (autoConnectH20 && bluetoothGranted && _config.enableAiv0BleControl) {
-      unawaited(_autoConnectH20Ble());
+    if (autoConnectHomi && bluetoothGranted && _config.enableAiv0BleControl) {
+      unawaited(_autoConnectHomiBle());
     }
   }
 
@@ -1051,8 +1051,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     _syncIosUnifiedConnectionRetry();
   }
 
-  Future<void> _autoConnectH20Ble({
-    _H20AutoConnectReason reason = _H20AutoConnectReason.background,
+  Future<void> _autoConnectHomiBle({
+    _HomiAutoConnectReason reason = _HomiAutoConnectReason.background,
   }) {
     if (_usesOnboardingDeviceService) return Future<void>.value();
     if (_deviceAttemptCancellation != null ||
@@ -1063,7 +1063,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
     final pending = _bleAutoConnectFuture;
     if (pending != null) return pending;
-    final operation = _runAutoConnectH20Ble(
+    final operation = _runAutoConnectHomiBle(
       reason: reason,
       generation: _deviceAttemptGeneration,
     );
@@ -1077,16 +1077,16 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     });
   }
 
-  Future<void> _runAutoConnectH20Ble({
+  Future<void> _runAutoConnectHomiBle({
     required int generation,
-    required _H20AutoConnectReason reason,
+    required _HomiAutoConnectReason reason,
   }) async {
     final control = _aiv0BleControl;
     final controller = _controller;
     final voiceController = _voiceNavigationController;
     final now = _deviceConnectionNow;
     final controlOnly =
-        reason != _H20AutoConnectReason.parentSetup &&
+        reason != _HomiAutoConnectReason.parentSetup &&
         controller?.canUseAiv0Ble == false &&
         controller?.isHomiAudioReady == true;
     if (control == null ||
@@ -1099,7 +1099,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                 _mainSpeakingSessionController.isActive ||
                 (voiceController?.isMainButtonSessionActive ?? false) ||
                 (voiceController?.isActive ?? false))) ||
-        (_suppressH20AutoConnectUntil?.isAfter(now) ?? false)) {
+        (_suppressHomiAutoConnectUntil?.isAfter(now) ?? false)) {
       return;
     }
     final lastAttempt = _lastAiv0AutoConnectAttempt;
@@ -1146,7 +1146,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
               .where(
                 (device) =>
                     device.isConnected &&
-                    selectLikelyH20HfpDevice(<HfpAudioDevice>[device]) != null,
+                    selectLikelyHomiHfpDevice(<HfpAudioDevice>[device]) != null,
               )
               .map((device) => device.id),
         );
@@ -1160,14 +1160,14 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       bleConnected =
           bleAlreadyConnected ||
           await control.autoConnectKnownOrNearby(
-            userInitiated: reason == _H20AutoConnectReason.parentSetup,
+            userInitiated: reason == _HomiAutoConnectReason.parentSetup,
             requestBond:
-                reason == _H20AutoConnectReason.parentSetup &&
+                reason == _HomiAutoConnectReason.parentSetup &&
                 connectedHfpDeviceIds.isEmpty,
             connectedHfpDeviceIds: connectedHfpDeviceIds,
           );
     } catch (error) {
-      debugPrint('Automatic H20 BLE connection was skipped: $error');
+      debugPrint('Automatic HM-D001 BLE connection was skipped: $error');
     }
     if (generation != _deviceAttemptGeneration) return;
     if (!bleConnected) {
@@ -1180,8 +1180,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       }
       return;
     }
-    debugPrint('H20 BLE Control connected automatically.');
-    if (_usesIosHfpLifecycle && reason == _H20AutoConnectReason.parentSetup) {
+    debugPrint('HM-D001 BLE Control connected automatically.');
+    if (_usesIosHfpLifecycle && reason == _HomiAutoConnectReason.parentSetup) {
       // Establish MAIN first. HFP may renegotiate the radio and briefly drop
       // GATT; readiness still requires both links, and a later retry restores
       // MAIN rather than opening a microphone picker without it.
@@ -1192,11 +1192,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         if (!mounted ||
             generation != _deviceAttemptGeneration ||
             !controller.canUseAiv0Ble ||
-            (_suppressH20AutoConnectUntil?.isAfter(DateTime.now()) ?? false) ||
+            (_suppressHomiAutoConnectUntil?.isAfter(DateTime.now()) ?? false) ||
             !_canRestoreHfpAfterMainFlow) {
           return;
         }
-        final selected = await controller.autoConnectH20Hfp(
+        final selected = await controller.autoConnectHomiHfp(
           bleDeviceName: control.status.deviceName,
         );
         if (generation != _deviceAttemptGeneration) return;
@@ -1204,7 +1204,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       }
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
-      if (reason == _H20AutoConnectReason.parentSetup) {
+      if (reason == _HomiAutoConnectReason.parentSetup) {
         // Launch HFP separately from the BLE operation. Parent setup awaits
         // this selection and verifies both links before reporting success.
         unawaited(_autoSelectConnectedAndroidHfp());
@@ -1212,7 +1212,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         await _autoSelectConnectedAndroidHfp();
       }
     } else if (_usesIosHfpLifecycle &&
-        reason == _H20AutoConnectReason.background &&
+        reason == _HomiAutoConnectReason.background &&
         (!bleAlreadyConnected || _iosHfpAutoSelectionPending)) {
       _iosHfpAutoSelectionPending = true;
       unawaited(_autoSelectAvailableIosHfp());
@@ -1235,7 +1235,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (interactive) {
       await _requestStartupPermissions(
         parentInitiated: true,
-        autoConnectH20: false,
+        autoConnectHomi: false,
       );
     } else {
       await _checkStartupPermissions();
@@ -1271,7 +1271,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (!mounted || !connected || !device.service.state.snapshot.ready) {
       return false;
     }
-    return _finishParentH20SetupSuccess();
+    return _finishParentHomiSetupSuccess();
   }
 
   String _deviceIssueMessage(DeviceIssue issue) {
@@ -1345,7 +1345,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (selected != null) {
       if (defaultTargetPlatform == TargetPlatform.android &&
           !selected.connected) {
-        final open = await _showParentH20GuidanceDialog(
+        final open = await _showParentHomiGuidanceDialog(
           title: language.choose('Kết nối âm thanh HOMI', '连接 HOMI 音频'),
           message: language.choose(
             'Micro đã ghép đôi nhưng chưa kết nối âm thanh. Hãy kết nối trong Cài đặt Bluetooth.',
@@ -1354,7 +1354,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           primaryLabel: language.choose('Mở Cài đặt', '打开设置'),
         );
         if (open && current()) {
-          _retryParentH20SetupOnResume = true;
+          _retryParentHomiSetupOnResume = true;
           await _aiv0BleControl?.openBluetoothSettings();
         }
       } else {
@@ -1381,16 +1381,16 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
   }
 
-  Future<bool> _configureH20ForParentSetup() async {
+  Future<bool> _configureHomiForParentSetup() async {
     if (_usesOnboardingDeviceService) return _connectOnboardingDevice();
-    return _runParentH20Setup(interactive: true, inlineFeedback: true);
+    return _runParentHomiSetup(interactive: true, inlineFeedback: true);
   }
 
-  Future<bool> _chooseH20MicrophoneForParentSetup() async {
+  Future<bool> _chooseHomiMicrophoneForParentSetup() async {
     if (_usesOnboardingDeviceService) {
       return _connectOnboardingDevice(chooseMicrophone: true);
     }
-    return _runParentH20Setup(interactive: true, forceMicrophonePicker: true);
+    return _runParentHomiSetup(interactive: true, forceMicrophonePicker: true);
   }
 
   /// Audio guide action. The setup screen checks the connection itself when
@@ -1399,21 +1399,21 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     await _aiv0BleControl?.openBluetoothSettings();
   }
 
-  Future<void> _retryParentH20SetupAfterSettings() async {
+  Future<void> _retryParentHomiSetupAfterSettings() async {
     if (_usesOnboardingDeviceService) {
       await _connectOnboardingDevice(interactive: false);
       return;
     }
-    if (_parentH20ResumeRetryInProgress) return;
-    _parentH20ResumeRetryInProgress = true;
+    if (_parentHomiResumeRetryInProgress) return;
+    _parentHomiResumeRetryInProgress = true;
     try {
-      await _runParentH20Setup(interactive: false);
+      await _runParentHomiSetup(interactive: false);
     } finally {
-      _parentH20ResumeRetryInProgress = false;
+      _parentHomiResumeRetryInProgress = false;
     }
   }
 
-  Future<bool> _runParentH20Setup({
+  Future<bool> _runParentHomiSetup({
     required bool interactive,
     bool forceMicrophonePicker = false,
     bool inlineFeedback = false,
@@ -1425,7 +1425,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
     await _requestStartupPermissions(
       parentInitiated: true,
-      autoConnectH20: false,
+      autoConnectHomi: false,
     );
     if (!isCurrent()) return false;
     if (!_microphonePermissionGranted ||
@@ -1443,7 +1443,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
 
     final bleWasAlreadyConnected = controller.canUseAiv0Ble;
     _lastAiv0AutoConnectAttempt = null;
-    await _autoConnectH20Ble(reason: _H20AutoConnectReason.parentSetup);
+    await _autoConnectHomiBle(reason: _HomiAutoConnectReason.parentSetup);
     if (!isCurrent()) return false;
     await _androidHfpAutoSelectionFuture;
     if (!isCurrent()) return false;
@@ -1457,8 +1457,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       });
       return false;
     }
-    if (controller.isH20Ready && !forceMicrophonePicker) {
-      return await _finishParentH20SetupSuccess();
+    if (controller.isHomiReady && !forceMicrophonePicker) {
+      return await _finishParentHomiSetupSuccess();
     }
     if (interactive &&
         bleWasAlreadyConnected &&
@@ -1480,7 +1480,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       if (!isCurrent()) return false;
       if (selected == _ParentHfpSelectionResult.selected) {
         _lastAiv0AutoConnectAttempt = null;
-        await _autoConnectH20Ble(reason: _H20AutoConnectReason.parentSetup);
+        await _autoConnectHomiBle(reason: _HomiAutoConnectReason.parentSetup);
       } else if (selected == _ParentHfpSelectionResult.dismissed ||
           selected == _ParentHfpSelectionResult.guidanceShown) {
         return false;
@@ -1491,7 +1491,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (interactive &&
         controller.canUseAiv0Ble &&
         controller.usesHfpInput &&
-        !controller.isH20Ready) {
+        !controller.isHomiReady) {
       final status = controller.hfpAudioStatus;
       final selected = HfpAudioDevice(
         id: status.deviceId ?? '',
@@ -1511,12 +1511,12 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       }
     }
     if (!isCurrent()) return false;
-    if (controller.isH20Ready) {
-      return await _finishParentH20SetupSuccess();
+    if (controller.isHomiReady) {
+      return await _finishParentHomiSetupSuccess();
     }
 
     if (interactive && !inlineFeedback) {
-      await _showIncompleteParentH20Guidance(controller);
+      await _showIncompleteParentHomiGuidance(controller);
     } else if (mounted) {
       setState(() {
         _startupPermissionError = controller.canUseAiv0Ble
@@ -1527,19 +1527,19 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       });
     }
     if (!isCurrent()) return false;
-    if (controller.isH20Ready) {
-      return _finishParentH20SetupSuccess();
+    if (controller.isHomiReady) {
+      return _finishParentHomiSetupSuccess();
     }
     return false;
   }
 
-  Future<bool> _finishParentH20SetupSuccess() async {
-    if (_controller?.isH20Ready != true) return false;
+  Future<bool> _finishParentHomiSetupSuccess() async {
+    if (_controller?.isHomiReady != true) return false;
     if (defaultTargetPlatform == TargetPlatform.android) {
       final deviceId = _aiv0BleControl?.status.deviceId?.trim();
       if (deviceId != null && deviceId.isNotEmpty) {
         final associated = await MethodChannelBackgroundLearningSession()
-            .associateH20Companion(deviceId);
+            .associateHomiCompanion(deviceId);
         if (!associated && mounted) {
           setState(() {
             _startupPermissionError =
@@ -1603,7 +1603,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
 
     if (defaultTargetPlatform == TargetPlatform.iOS &&
         state == Aiv0BluetoothAdapterState.poweredOff) {
-      final checkAgain = await _showParentH20GuidanceDialog(
+      final checkAgain = await _showParentHomiGuidanceDialog(
         title: 'Bật Bluetooth trên iPhone',
         message:
             'iOS không cho phép HOMI tự bật Bluetooth. Hãy bật Bluetooth trong Trung tâm điều khiển; nếu đã tắt hoàn toàn, bật trong Cài đặt Bluetooth rồi quay lại HOMI.',
@@ -1620,7 +1620,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (needsPermission && !_bluetoothPower.needsPermissionSettings) {
       return false;
     }
-    final retry = await _showParentH20GuidanceDialog(
+    final retry = await _showParentHomiGuidanceDialog(
       title: needsPermission ? 'Cho phép Bluetooth' : 'Bluetooth chưa sẵn sàng',
       message: defaultTargetPlatform == TargetPlatform.iOS
           ? '$message\n\nSau khi bật hoặc cho phép Bluetooth, hãy quay lại HOMI. Ứng dụng sẽ tự kiểm tra lại.'
@@ -1628,7 +1628,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       primaryLabel: needsPermission ? 'Mở cài đặt quyền HOMI' : 'Kiểm tra lại',
     );
     if (retry && needsPermission) {
-      _retryParentH20SetupOnResume = true;
+      _retryParentHomiSetupOnResume = true;
       await _bluetoothPower.openPermissionSettings();
     } else if (retry) {
       await _bluetoothPower.refresh();
@@ -1669,13 +1669,13 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           'Chưa tìm thấy micro HM-D001. Hãy kết nối thiết bị trong Cài đặt Bluetooth rồi quay lại HOMI.';
       if (mounted) setState(() => _startupPermissionError = message);
       if (interactive && showUnavailableGuidance) {
-        final openSettings = await _showParentH20GuidanceDialog(
+        final openSettings = await _showParentHomiGuidanceDialog(
           title: 'Chưa tìm thấy micro HOMI',
           message: message,
           primaryLabel: 'Mở Cài đặt',
         );
         if (openSettings && isCurrent()) {
-          _retryParentH20SetupOnResume = true;
+          _retryParentHomiSetupOnResume = true;
           await _aiv0BleControl?.openBluetoothSettings();
         }
       }
@@ -1684,7 +1684,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           : _ParentHfpSelectionResult.unavailable;
     }
     if (!interactive) {
-      final automatic = selectLikelyH20HfpDevice(
+      final automatic = selectLikelyHomiHfpDevice(
         devices,
         bleDeviceName:
             _aiv0BleControl?.status.deviceName ??
@@ -1807,14 +1807,14 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
 
     if (defaultTargetPlatform == TargetPlatform.android &&
         !selected.isConnected) {
-      final openSettings = await _showParentH20GuidanceDialog(
+      final openSettings = await _showParentHomiGuidanceDialog(
         title: 'Kết nối HM-D001',
         message:
             'HM-D001 đã được ghép đôi nhưng chưa kết nối âm thanh. Hãy kết nối thiết bị trong Cài đặt Bluetooth rồi quay lại.',
         primaryLabel: 'Mở Cài đặt Bluetooth',
       );
       if (openSettings && isCurrent()) {
-        _retryParentH20SetupOnResume = true;
+        _retryParentHomiSetupOnResume = true;
         await _aiv0BleControl?.openBluetoothSettings();
       }
       return _ParentHfpSelectionResult.guidanceShown;
@@ -1872,7 +1872,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       language,
       deviceId: controller.aiv0BleStatus.deviceId,
     );
-    final confirmed = await _showParentH20GuidanceDialog(
+    final confirmed = await _showParentHomiGuidanceDialog(
       title: language.choose('Xác nhận micro của HOMI', '确认 HOMI 麦克风'),
       message: language.choose(
         'Micro $microphone (${device.id}) và thiết bị $ble (${controller.aiv0BleStatus.deviceId}) có mã định danh khác nhau. Chỉ xác nhận nếu đây là micro của chính thiết bị HOMI bạn đang sử dụng.',
@@ -1887,12 +1887,12 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         controller.aiv0BleStatus.deviceId == bleId;
   }
 
-  Future<void> _showIncompleteParentH20Guidance(
+  Future<void> _showIncompleteParentHomiGuidance(
     ConversationController controller,
   ) async {
-    final h20State = controller.h20ConnectionState();
-    final bleReady = h20State.bleReady;
-    final hfpReady = h20State.hfpReady;
+    final homiState = controller.homiConnectionState();
+    final bleReady = homiState.bleReady;
+    final hfpReady = homiState.hfpReady;
     final bleRequiredForSetup =
         !bleReady &&
         (_usesIosHfpLifecycle ||
@@ -1906,7 +1906,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         : 'Chưa kết nối được HM-D001. Hãy bật HM-D001, bật Bluetooth và kết nối thiết bị trong Cài đặt Bluetooth.';
     if (mounted) setState(() => _startupPermissionError = message);
     final shouldOpenSettings = !bleRequiredForSetup && !hfpReady;
-    final accepted = await _showParentH20GuidanceDialog(
+    final accepted = await _showParentHomiGuidanceDialog(
       title: bleRequiredForSetup
           ? 'Chưa kết nối nút MAIN'
           : bleReady || hfpReady
@@ -1921,26 +1921,26 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     );
     if (!accepted) return;
     if (shouldOpenSettings) {
-      _retryParentH20SetupOnResume = true;
+      _retryParentHomiSetupOnResume = true;
       await _aiv0BleControl?.openBluetoothSettings();
       return;
     }
     _lastAiv0AutoConnectAttempt = null;
-    await _autoConnectH20Ble(
+    await _autoConnectHomiBle(
       reason: _usesIosHfpLifecycle
-          ? _H20AutoConnectReason.background
-          : _H20AutoConnectReason.parentSetup,
+          ? _HomiAutoConnectReason.background
+          : _HomiAutoConnectReason.parentSetup,
     );
   }
 
-  Future<bool> _showParentH20GuidanceDialog({
+  Future<bool> _showParentHomiGuidanceDialog({
     required String title,
     required String message,
     required String primaryLabel,
   }) async {
     final navigatorContext = _navigatorKey.currentContext;
     if (!mounted || navigatorContext == null) return false;
-    final action = await showDialog<_ParentH20GuidanceAction>(
+    final action = await showDialog<_ParentHomiGuidanceAction>(
       context: navigatorContext,
       builder: (dialogContext) => AlertDialog(
         title: Text(title),
@@ -1949,19 +1949,19 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           TextButton(
             onPressed: () => Navigator.of(
               dialogContext,
-            ).pop(_ParentH20GuidanceAction.cancel),
+            ).pop(_ParentHomiGuidanceAction.cancel),
             child: const Text('Để sau'),
           ),
           FilledButton(
             onPressed: () => Navigator.of(
               dialogContext,
-            ).pop(_ParentH20GuidanceAction.primary),
+            ).pop(_ParentHomiGuidanceAction.primary),
             child: Text(primaryLabel),
           ),
         ],
       ),
     );
-    return action == _ParentH20GuidanceAction.primary;
+    return action == _ParentHomiGuidanceAction.primary;
   }
 
   void _handleAiv0BleStatus(Aiv0BleStatus status) {
@@ -1971,7 +1971,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       if (_bluetoothPower.hasChecked) unawaited(_bluetoothPower.refresh());
     }
     _refreshDeviceActionState();
-    _handleH20BatteryStatus(status);
+    _handleHomiBatteryStatus(status);
     if (_usesOnboardingDeviceService) return;
     if (defaultTargetPlatform == TargetPlatform.android) {
       _syncAndroidHfpAutoSelectionRetry();
@@ -1998,43 +1998,43 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
     if (status.isConnected &&
         defaultTargetPlatform == TargetPlatform.android &&
-        _controller?.isH20Ready != true) {
+        _controller?.isHomiReady != true) {
       unawaited(_autoSelectConnectedAndroidHfp());
     }
   }
 
-  void _handleH20BatteryStatus(Aiv0BleStatus status) {
-    final actions = _h20BatteryAlertPolicy.observe(
+  void _handleHomiBatteryStatus(Aiv0BleStatus status) {
+    final actions = _homiBatteryAlertPolicy.observe(
       connected: status.isConnected,
       deviceId: status.deviceId,
       batteryPercent: status.batteryPercent,
     );
     for (final action in actions) {
       switch (action) {
-        case H20BatteryAction.chargeSoon:
-        case H20BatteryAction.chargeLow:
-        case H20BatteryAction.chargeCritical:
+        case HomiBatteryAction.chargeSoon:
+        case HomiBatteryAction.chargeLow:
+        case HomiBatteryAction.chargeCritical:
           final language =
               _controller?.displayLanguage ?? DisplayLanguage.vietnamese;
           final percent = status.batteryPercent!;
-          _showH20BatteryNotice(
-            H20BatteryNotifications.message(percent, language),
-            critical: action == H20BatteryAction.chargeCritical,
+          _showHomiBatteryNotice(
+            HomiBatteryNotifications.message(percent, language),
+            critical: action == HomiBatteryAction.chargeCritical,
           );
           unawaited(
-            _h20BatteryNotifications.show(percent: percent, language: language),
+            _homiBatteryNotifications.show(percent: percent, language: language),
           );
-        case H20BatteryAction.disconnectDepleted:
-          _showH20BatteryNotice(
+        case HomiBatteryAction.disconnectDepleted:
+          _showHomiBatteryNotice(
             'Pin HOMI đã hết. Ứng dụng đang ngắt kết nối với HOMI.',
             critical: true,
           );
-          unawaited(_disconnectDepletedH20());
+          unawaited(_disconnectDepletedHomi());
       }
     }
   }
 
-  void _showH20BatteryNotice(String message, {bool critical = false}) {
+  void _showHomiBatteryNotice(String message, {bool critical = false}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final messenger = _scaffoldMessengerKey.currentState;
@@ -2050,17 +2050,17 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     });
   }
 
-  Future<void> _disconnectDepletedH20() async {
-    if (_disconnectingDepletedH20) return;
+  Future<void> _disconnectDepletedHomi() async {
+    if (_disconnectingDepletedHomi) return;
     final control = _aiv0BleControl;
     if (control == null || !control.status.isConnected) return;
-    _disconnectingDepletedH20 = true;
+    _disconnectingDepletedHomi = true;
     try {
       await control.disconnect();
     } catch (error) {
-      debugPrint('Could not disconnect depleted H20 BLE: $error');
+      debugPrint('Could not disconnect depleted HM-D001 BLE: $error');
     } finally {
-      _disconnectingDepletedH20 = false;
+      _disconnectingDepletedHomi = false;
     }
   }
 
@@ -2142,13 +2142,13 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
     final status = _aiv0BleControl?.status;
     final controller = _controller;
-    final h20Ready = controller?.isH20Ready == true;
+    final homiReady = controller?.isHomiReady == true;
     final hfpRecoveryPending =
         status?.isConnected == true &&
-        !h20Ready &&
+        !homiReady &&
         (_androidHfpAutoSelectionFuture != null ||
             (controller?.hfpAudioStatus.isBusy ?? false));
-    if (!h20Ready &&
+    if (!homiReady &&
         defaultTargetPlatform == TargetPlatform.android &&
         status?.isConnected == true &&
         (controller?.usesHfpInput ?? false) &&
@@ -2184,7 +2184,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     final pending = _iosHfpAutoSelectionFuture;
     if (pending != null) return pending;
     final now = DateTime.now();
-    if ((_suppressH20AutoConnectUntil?.isAfter(now) ?? false) ||
+    if ((_suppressHomiAutoConnectUntil?.isAfter(now) ?? false) ||
         (_lastIosHfpAutoSelectionAttempt != null &&
             _lastIosHfpAutoSelectionBleDeviceId == ble.status.deviceId &&
             now.difference(_lastIosHfpAutoSelectionAttempt!) <
@@ -2236,12 +2236,12 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     _iosHfpAutoSelectionPending = false;
     _lastIosHfpAutoSelectionAttempt = DateTime.now();
     _lastIosHfpAutoSelectionBleDeviceId = ble.status.deviceId;
-    final selected = await controller.autoConnectH20Hfp(
+    final selected = await controller.autoConnectHomiHfp(
       bleDeviceName:
           ble.status.deviceName ?? controller.aiv0BleStatus.deviceName,
     );
     if (selected) {
-      debugPrint('Connected iOS H20 HFP microphone selected automatically.');
+      debugPrint('Connected iOS HM-D001 HFP microphone selected automatically.');
     }
     return selected;
   }
@@ -2261,7 +2261,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (controller == null || ble == null || !controller.canUseAiv0Ble) {
       return Future<bool>.value(false);
     }
-    if (controller.isH20Ready) {
+    if (controller.isHomiReady) {
       return Future<bool>.value(true);
     }
     final pending = _androidHfpAutoSelectionFuture;
@@ -2321,7 +2321,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           return;
         }
         unawaited(
-          _autoConnectH20Ble(reason: _H20AutoConnectReason.periodicRetry),
+          _autoConnectHomiBle(reason: _HomiAutoConnectReason.periodicRetry),
         );
       },
     );
@@ -2332,7 +2332,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         defaultTargetPlatform != TargetPlatform.android ||
         !_privacyConsentGranted ||
         !_parentSetupCompleted ||
-        _controller?.isH20Ready == true ||
+        _controller?.isHomiReady == true ||
         _controller?.automaticBleConnectionAllowed != true ||
         (_controller?.canUseAiv0Ble == true &&
             _controller?.automaticHfpSelectionAllowed != true)) {
@@ -2345,7 +2345,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     _androidHfpAutoSelectionTimer ??= Timer.periodic(
       const Duration(seconds: 15),
       (_) {
-        if (!mounted || _controller?.isH20Ready == true) {
+        if (!mounted || _controller?.isHomiReady == true) {
           _syncAndroidHfpAutoSelectionRetry();
           return;
         }
@@ -2379,7 +2379,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
             return;
           }
           unawaited(
-            _autoConnectH20Ble(reason: _H20AutoConnectReason.periodicRetry),
+            _autoConnectHomiBle(reason: _HomiAutoConnectReason.periodicRetry),
           );
           return;
         }
@@ -2415,26 +2415,26 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
             !_canRestoreHfpAfterMainFlow) {
           return false;
         }
-        if (controller.isH20Ready) return true;
-        final selected = await controller.autoConnectH20Hfp(
+        if (controller.isHomiReady) return true;
+        final selected = await controller.autoConnectHomiHfp(
           bleDeviceName:
               ble.status.deviceName ?? controller.aiv0BleStatus.deviceName,
           requireConnected: true,
         );
         if (generation != _deviceAttemptGeneration) return false;
-        if (selected && controller.isH20Ready) {
+        if (selected && controller.isHomiReady) {
           debugPrint(
-            'Connected Android H20 HFP microphone selected automatically.',
+            'Connected Android HM-D001 HFP microphone selected automatically.',
           );
           return true;
         }
       }
       debugPrint(
-        'Android BLE is ready but the paired H20 HFP microphone is not connected; H20 remains unavailable.',
+        'Android BLE is ready but the paired HM-D001 HFP microphone is not connected; HM-D001 remains unavailable.',
       );
       return false;
     } catch (error) {
-      debugPrint('Android H20 HFP recovery failed: $error');
+      debugPrint('Android HM-D001 HFP recovery failed: $error');
       return false;
     }
   }
@@ -2697,7 +2697,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
               ? 'parental_consent_missing'
               : 'microphone_permission_missing';
           debugPrint(
-            'H20 CONTROL BLOCKED: reason=$reason '
+            'HM-D001 CONTROL BLOCKED: reason=$reason '
             'startupReady=$_startupReady '
             'privacyConsent=$_privacyConsentGranted '
             'limitedMode=$_limitedModeSelected '
@@ -2726,7 +2726,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       // The legacy MAIN result collapses unavailable/duplicate into ignored.
       // Preserve the real dispatcher result before mapping it for APP State.
       debugPrint(
-        'H20 CONTROL: source=${input.source.name} '
+        'HM-D001 CONTROL: source=${input.source.name} '
         'button=${input.button.name} gesture=${input.gesture.name} '
         'protocol=${input.protocol} seq=${input.sequence ?? "-"} '
         'actionable=${input.actionable} duplicate=${input.duplicate} '
@@ -2856,7 +2856,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     final activated = await _mainAssistantSession.activate(
       startupReady: _startupReady,
       voiceAccessEnabled: _voiceAccessEnabled,
-      // isBusy also covers the H20 scan/connect phases, which own no audio.
+      // isBusy also covers the HM-D001 scan/connect phases, which own no audio.
       // A MAIN press during that search starts the assistant on the phone
       // microphone instead of being dropped without feedback.
       conversationBusy:
@@ -2868,7 +2868,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       prepareActivation: () async {
         final ready = await _prepareAndroidMainHfpRoute();
         if (!ready && mounted && _mainAssistantSession.isActivationPending) {
-          conversationController.showH20ConnectionMessage(
+          conversationController.showHomiConnectionMessage(
             'Chưa kết nối đủ nút MAIN và micro HM-D001. Hãy bật HM-D001 rồi thử lại.',
           );
         }
@@ -2899,12 +2899,12 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   /// (Topic, lesson or vocabulary choice) starts after the MAIN turn that
   /// opened the module has ended and released its route, so the on-screen
   /// handset fallback is gone by then. Choose the follow-up route again;
-  /// otherwise Android refuses the prompt without a ready H20 and the child
+  /// otherwise Android refuses the prompt without a ready HM-D001 and the child
   /// gets no microphone.
   Future<bool> _prepareAndroidMainPromptRoute() {
     final route = MainButtonActivationPolicy.followUpAudioRoute(
       isAndroid: !kIsWeb && defaultTargetPlatform == TargetPlatform.android,
-      isH20Ready: _controller?.isH20Ready == true,
+      isHomiReady: _controller?.isHomiReady == true,
       isHomiAudioReady: _controller?.isHomiAudioReady == true,
       hasSelectedHfpInput:
           _controller?.hasSelectedHfpInput == true ||
@@ -2929,13 +2929,13 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
       return Future<bool>.value(true);
     }
-    // A build with both H20 transports disabled has no route to prepare; MAIN
+    // A build with both HM-D001 transports disabled has no route to prepare; MAIN
     // (including the on-screen button) then uses the phone speaker and mic.
     if (!_config.enableAiv0BleControl && !_config.enableHfpAudio) {
       return Future<bool>.value(true);
     }
     // Temporary tester path: an on-screen MAIN turn may use the handset when
-    // H20 is absent. Physical MAIN and connected H20 keep their existing route.
+    // HM-D001 is absent. Physical MAIN and connected HM-D001 keep their existing route.
     if (_virtualMainPhoneFallback) {
       return Future<bool>.value(true);
     }
@@ -2961,7 +2961,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
 
     if (!controller.isHomiAudioReady && !controller.canUseAiv0Ble) {
       _lastAiv0AutoConnectAttempt = null;
-      await _autoConnectH20Ble();
+      await _autoConnectHomiBle();
     } else if (!controller.isHomiAudioReady) {
       await _autoSelectConnectedAndroidHfp();
     }
@@ -2982,7 +2982,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     } catch (error) {
       _androidMainHfpRouteHeld = false;
       await route.stopAudioRoute().catchError((Object _) {});
-      debugPrint('MAIN did not start because H20 HFP was unavailable: $error');
+      debugPrint('MAIN did not start because HM-D001 HFP was unavailable: $error');
       return false;
     }
   }
@@ -3000,7 +3000,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     await _mainAssistantHfpAudioControl?.stopAudioRoute().catchError((
       Object error,
     ) {
-      debugPrint('Cannot release MAIN H20 route: $error');
+      debugPrint('Cannot release MAIN HM-D001 route: $error');
     });
   }
 
@@ -3046,7 +3046,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           (defaultTargetPlatform == TargetPlatform.android ||
               defaultTargetPlatform == TargetPlatform.iOS),
       isIos: _usesIosHfpLifecycle,
-      isH20Ready: controller?.isH20Ready == true,
+      isHomiReady: controller?.isHomiReady == true,
       isHomiAudioReady: controller?.isHomiAudioReady == true,
       hasSelectedHfpInput:
           controller?.hasSelectedHfpInput == true ||
@@ -3055,9 +3055,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (route == MainButtonAudioRoute.unavailable) {
       controller?.recordAiv0MainDiagnostic(
         'MAIN_APP_HANDLER_REJECTED',
-        message: 'selected_h20_microphone_not_ready',
+        message: 'selected_homi_microphone_not_ready',
       );
-      controller?.showH20ConnectionMessage(
+      controller?.showHomiConnectionMessage(
         'Chưa kết nối đủ nút MAIN và micro HM-D001. Hãy bật HM-D001 rồi thử lại.',
       );
       return MainButtonActionResult.busy;
@@ -3071,7 +3071,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
               : NativeSpeechAudioSource.hfp
         : null;
     // Both buttons share the assistant lifecycle. Only the temporary tester
-    // fallback changes the route for on-screen MAIN without H20.
+    // fallback changes the route for on-screen MAIN without HM-D001.
     controller?.recordAiv0MainDiagnostic(
       'MAIN_APP_PATH_SELECTED',
       message: _mainSpeakingSessionController.isActive
@@ -3154,7 +3154,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
             return false;
           }
           if (!routeReady) {
-            controller.showH20ConnectionMessage(
+            controller.showHomiConnectionMessage(
               'Micro HM-D001 chưa sẵn sàng. Hãy kết nối lại thiết bị rồi nhấn MAIN.',
             );
             return false;
@@ -3211,10 +3211,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   }
 
   void _releasePhysicalMainBleSuppression({bool reconnect = true}) {
-    if (_suppressH20AutoConnectUntil == null) {
+    if (_suppressHomiAutoConnectUntil == null) {
       return;
     }
-    _suppressH20AutoConnectUntil = null;
+    _suppressHomiAutoConnectUntil = null;
     _lastAiv0AutoConnectAttempt = null;
     if (!reconnect ||
         !mounted ||
@@ -3228,7 +3228,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           (_voiceNavigationController?.isMainButtonSessionActive ?? false)) {
         return;
       }
-      unawaited(_autoConnectH20Ble());
+      unawaited(_autoConnectHomiBle());
     });
   }
 
@@ -3260,7 +3260,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         if (!_canRestoreHfpAfterMainFlow) {
           return;
         }
-        final restored = await controller.autoConnectH20Hfp(
+        final restored = await controller.autoConnectHomiHfp(
           bleDeviceName:
               ble.status.deviceName ?? controller.aiv0BleStatus.deviceName,
         );
@@ -3425,10 +3425,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   }) async {
     // The MAIN turn that opened the vocabulary has already ended, which
     // cleared its handset fallback. Choose the route again for this follow-up
-    // question so a phone without a ready H20 still opens a microphone.
+    // question so a phone without a ready HM-D001 still opens a microphone.
     final route = MainButtonActivationPolicy.followUpAudioRoute(
       isAndroid: !kIsWeb && defaultTargetPlatform == TargetPlatform.android,
-      isH20Ready: _controller?.isH20Ready == true,
+      isHomiReady: _controller?.isHomiReady == true,
       isHomiAudioReady: _controller?.isHomiAudioReady == true,
       hasSelectedHfpInput:
           _controller?.hasSelectedHfpInput == true ||
@@ -3999,21 +3999,21 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                   microphoneGranted: _microphonePermissionGranted,
                   bluetoothRequired: _bluetoothPermissionRequired,
                   bluetoothGranted: _bluetoothPermissionGranted,
-                  h20BleConnected:
+                  homiBleConnected:
                       deviceState?.snapshot.mainReady ?? bleStatus.isConnected,
-                  h20HfpConfigured:
+                  homiHfpConfigured:
                       deviceState?.snapshot.audioReady ??
                       controller.isHomiAudioReady,
-                  h20AudioPaired:
+                  homiAudioPaired:
                       deviceState?.snapshot.audioPaired ??
                       _startupHomiAudioPaired,
                   onOpenBluetoothSettings: _openBluetoothSettingsForOnboarding,
-                  h20AudioBlocksMain:
+                  homiAudioBlocksMain:
                       deviceState?.issue == DeviceIssue.audioBlocksMain,
                   bluetoothPower: _bluetoothPermissionRequired
                       ? _bluetoothPower
                       : null,
-                  h20DeviceName: hfpStatus.deviceName ?? bleStatus.deviceName,
+                  homiDeviceName: hfpStatus.deviceName ?? bleStatus.deviceName,
                   selectedAge: _pendingStartupAge,
                   aiSubprocessors: _config.disclosedAiSubprocessors,
                   dataRetentionSummary: _config.disclosedDataRetention,
@@ -4038,17 +4038,17 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                   onRetryPermissions: () => unawaited(
                     _requestStartupPermissions(
                       parentInitiated: true,
-                      autoConnectH20:
+                      autoConnectHomi:
                           !kIsWeb &&
                           defaultTargetPlatform == TargetPlatform.iOS,
                     ),
                   ),
-                  onSetupH20: _configureH20ForParentSetup,
-                  onCancelH20Setup: _usesOnboardingDeviceService
+                  onSetupHomi: _configureHomiForParentSetup,
+                  onCancelHomiSetup: _usesOnboardingDeviceService
                       ? () => _onboardingDevice!.bloc.cancelAttempt()
                       : _cancelDeviceConnectionAttempt,
-                  onChooseH20Microphone: _usesIosHfpLifecycle
-                      ? _chooseH20MicrophoneForParentSetup
+                  onChooseHomiMicrophone: _usesIosHfpLifecycle
+                      ? _chooseHomiMicrophoneForParentSetup
                       : null,
                   onAgeSelected: (age) =>
                       setState(() => _pendingStartupAge = age),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_speaking_session_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -131,6 +133,56 @@ void main() {
     expect(controller.isActive, isTrue);
     controller.dispose();
   });
+
+  test(
+    'inactive speaking mode ignores a MAIN assistant interruption',
+    () async {
+      final controller = MainSpeakingSessionController();
+      addTearDown(controller.dispose);
+      var cancellationCalls = 0;
+      var assistantCalls = 0;
+
+      final activated = await controller.interruptForMainAssistant(
+        cancelCurrentAction: () async {
+          cancellationCalls++;
+          return true;
+        },
+        activateAssistant: () async {
+          assistantCalls++;
+          return true;
+        },
+      );
+
+      expect(activated, isFalse);
+      expect(cancellationCalls, 0);
+      expect(assistantCalls, 0);
+      expect(controller.state, MainSpeakingSessionState.inactive);
+    },
+  );
+
+  test(
+    'closing a session during cancellation does not open assistant',
+    () async {
+      final controller = MainSpeakingSessionController();
+      final cancellation = Completer<bool>();
+      var assistantCalls = 0;
+      controller.enter();
+
+      final pending = controller.interruptForMainAssistant(
+        cancelCurrentAction: () => cancellation.future,
+        activateAssistant: () async {
+          assistantCalls++;
+          return true;
+        },
+      );
+
+      controller.dispose();
+      cancellation.complete(true);
+
+      expect(await pending, isFalse);
+      expect(assistantCalls, 0);
+    },
+  );
 
   test('MAIN interrupts recording, processing, and playback states', () async {
     final states = <MainSpeakingSessionState>[

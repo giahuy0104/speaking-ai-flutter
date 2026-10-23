@@ -50,7 +50,7 @@ class VoicePromptBridge(
     private var readyCuePlayer: MediaPlayer? = null
     private var readyCueCompletion: Runnable? = null
     private val readyCueResults = mutableListOf<MethodChannel.Result>()
-    var isH20RouteOwned: () -> Boolean = { false }
+    var isHomiRouteOwned: () -> Boolean = { false }
     private val levelWorker = Executors.newSingleThreadExecutor()
     // Builds and releases prompt players in order, so a new player is never
     // created in the media server while the previous one is being torn down,
@@ -99,7 +99,7 @@ class VoicePromptBridge(
             setSpeechRate(0.92f)
             // Keep the direct TextToSpeech fallback on the same communication
             // stream as synthesized-file playback. Otherwise an OEM TTS engine
-            // that rejects file synthesis can jump from H20 to the phone.
+            // that rejects file synthesis can jump from HM-D001 to the phone.
             setAudioAttributes(voicePromptAudioAttributes())
             setOnUtteranceProgressListener(
                 object : UtteranceProgressListener() {
@@ -335,7 +335,7 @@ class VoicePromptBridge(
                 PromptAudioUsage.usesCallStream(
                     forcePhoneSpeaker,
                     forceMediaPlayback,
-                    isH20RouteOwned(),
+                    isHomiRouteOwned(),
                     isScoRouteActive(),
                 )
             ) {
@@ -356,7 +356,7 @@ class VoicePromptBridge(
             return
         }
         // Reuse the local communication-route player and completion/cancellation
-        // lifecycle so authored MP3 and TTS preserve the same H20 ownership.
+        // lifecycle so authored MP3 and TTS preserve the same HM-D001 ownership.
         completePendingPrompt()
         completeActiveAwaited()
         completeReadyCue()
@@ -431,7 +431,7 @@ class VoicePromptBridge(
         if (
             PromptScoWait.shouldWait(
                 synthesizedPromptForcePhoneSpeaker,
-                isH20RouteOwned(),
+                isHomiRouteOwned(),
                 isScoRouteActive(),
                 scoWaitedMs,
             )
@@ -716,7 +716,7 @@ class VoicePromptBridge(
 
     private fun prepareSpeechReadyCue(player: MediaPlayer, cueId: Long, scoWaitedMs: Long = 0L) {
         if (readyCuePlayer !== player) return
-        if (PromptScoWait.shouldWait(false, isH20RouteOwned(), isScoRouteActive(), scoWaitedMs)) {
+        if (PromptScoWait.shouldWait(false, isHomiRouteOwned(), isScoRouteActive(), scoWaitedMs)) {
             mainHandler.postDelayed(
                 { prepareSpeechReadyCue(player, cueId, scoWaitedMs + PromptScoWait.POLL_MS) },
                 PromptScoWait.POLL_MS,

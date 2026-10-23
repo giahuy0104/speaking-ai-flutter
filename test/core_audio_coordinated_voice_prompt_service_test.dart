@@ -123,7 +123,7 @@ void main() {
   );
 
   test(
-    'virtual MAIN phone fallback does not start a stale H20 route',
+    'virtual MAIN phone fallback does not start a stale HM-D001 route',
     () async {
       final coordinator = AudioTurnCoordinator();
       addTearDown(coordinator.dispose);
@@ -260,7 +260,7 @@ class _PromptRoute implements HfpAudioControl {
     phase: selected
         ? BluetoothAudioConnectionPhase.ready
         : BluetoothAudioConnectionPhase.idle,
-    deviceId: selected ? 'h20' : null,
+    deviceId: selected ? 'hm-d001' : null,
     routeActive: active,
   );
   @override
@@ -278,7 +278,7 @@ class _PromptRoute implements HfpAudioControl {
   Future<void> startAudioRoute() async {
     startCalls++;
     if (!startRequested.isCompleted) startRequested.complete();
-    if (failStart) throw const HfpAudioException('H20 unavailable');
+    if (failStart) throw const HfpAudioException('HM-D001 unavailable');
     await confirmation?.future;
     active = true;
   }

@@ -73,7 +73,7 @@ class LessonMediaService {
           );
         }
         // Stop the current clip before either phone can continue it on the
-        // built-in speaker after losing the selected H20 route.
+        // built-in speaker after losing the selected HM-D001 route.
         unawaited(_playbackService?.stop().catchError((Object _) {}));
         if (_recordingStartedAt != null) {
           const failure = LessonMediaException(
@@ -502,7 +502,7 @@ class LessonMediaService {
   Future<void> stopPlayback() async {
     _playbackRequestGeneration += 1;
     // A playback-only stop must not switch a live Android microphone away
-    // from H20. During navigation, cancelRecording releases the route after
+    // from HM-D001. During navigation, cancelRecording releases the route after
     // the recorder has restored its own AudioManager state.
     final androidCaptureActive =
         !kIsWeb &&
@@ -515,8 +515,8 @@ class LessonMediaService {
   Future<void> preparePhoneSpeakerOutput() =>
       _preparePlaybackRoute(LessonPlaybackRoute.phoneSpeaker);
 
-  /// Prepares and verifies the selected H20 output before native TTS supplies
-  /// lesson guidance. When H20 is selected this is deliberately fail-closed:
+  /// Prepares and verifies the selected HM-D001 output before native TTS supplies
+  /// lesson guidance. When HM-D001 is selected this is deliberately fail-closed:
   /// a route negotiation error must stay visible to the caller instead of
   /// silently moving child-facing speech to the phone speaker.
   Future<void> prepareSelectedLessonOutput() =>
@@ -617,7 +617,7 @@ class LessonMediaService {
       if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
         // AudioSession/HfpAudioControl already selected and verified the input.
         // Letting record_ios configure AVAudioSession again at recorder.start()
-        // can replace the confirmed H20 route and produce a silent M4A even
+        // can replace the confirmed HM-D001 route and produce a silent M4A even
         // though the UI still reports HFP as active. Restore plugin ownership
         // for phone-mic recordings, where there is no HFP route owner.
         await recorder.ios?.manageAudioSession(!useSelectedHfp);
@@ -671,7 +671,7 @@ class LessonMediaService {
     }
     final devices = await recorder.listInputDevices();
     // Android's default-input probe can select the built-in stereo mic even
-    // while communication audio is routed to H20. Pinning this device also
+    // while communication audio is routed to HM-D001. Pinning this device also
     // makes record_android inspect the selected input's actual capabilities.
     final selected = selectLessonRecordingInput(
       devices,
@@ -697,8 +697,8 @@ class LessonMediaService {
     final selectedHfp =
         route == LessonPlaybackRoute.selectedLessonDevice &&
         _shouldUseSelectedHfp;
-    // Keep both the lesson audio and assistant speech on the H20 selected for
-    // the lesson. Relying on iOS to pick an A2DP route is unreliable for H20:
+    // Keep both the lesson audio and assistant speech on the HM-D001 selected for
+    // the lesson. Relying on iOS to pick an A2DP route is unreliable for HM-D001:
     // when its media profile is not active, iOS silently falls back to the
     // phone speaker. Holding the selected HFP/SCO route prevents that split
     // until the lesson explicitly releases the route.
@@ -709,7 +709,7 @@ class LessonMediaService {
     }
     if (!useSelectedHfp) {
       // Clear SCO before configuring ordinary playback. This prevents a coach
-      // prompt from inheriting the preceding H20 communication route.
+      // prompt from inheriting the preceding HM-D001 communication route.
       await _releaseHfpRoute(immediately: true);
       await playback.prepare();
       return;
@@ -733,7 +733,7 @@ class LessonMediaService {
   Future<void> _activateSelectedHfpRoute({bool force = false}) async {
     final control = _hfpAudioControl;
     // A Bluetooth audio-state broadcast can report that SCO dropped while the
-    // Dart lease is still valid. Re-open the selected H20 in that case instead
+    // Dart lease is still valid. Re-open the selected HM-D001 in that case instead
     // of trusting a stale ownership token and playing on a different stream.
     if (_activeHfpRouteToken != null &&
         !force &&
@@ -795,7 +795,7 @@ class LessonMediaService {
         ? AudioInterruptionMode.none
         : AudioInterruptionMode.pause,
     device: inputDevice,
-    // HfpAudioControl already owns the exact selected H20 route. Letting the
+    // HfpAudioControl already owns the exact selected HM-D001 route. Letting the
     // record plugin manage Bluetooth too makes it select the first SCO device
     // and clear that route on stop.
     androidConfig: AndroidRecordConfig(
@@ -869,7 +869,7 @@ class LessonMediaService {
               await deleteLessonRecording(path);
             }
           }
-          // Keep the selected H20 output through scoring and feedback on both
+          // Keep the selected HM-D001 output through scoring and feedback on both
           // phones. Dropping the route here can finish its teardown after the
           // next prompt starts, moving that prompt to the phone speaker.
           if (kIsWeb ||

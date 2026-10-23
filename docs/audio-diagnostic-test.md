@@ -50,22 +50,22 @@ bytes; existing Flutter/system logs may contain their normal diagnostics.
 
 ## Manual scenarios
 
-1. With H20 connected, navigate to Topics and Vocabulary using MAIN voice commands.
+1. With HM-D001 connected, navigate to Topics and Vocabulary using MAIN voice commands.
 2. Repeat each transition at least three times, noting waits after spoken confirmation.
 3. Trigger prompts, lesson audio, recording playback and ready cues; note volume changes.
 4. Note the exact step and actual speaker whenever a duplicate or misplaced cue is heard.
 5. Within Topics, say a topic number, including 1 and 10. Within Vocabulary,
    select Stars, Parent-added and Review; compare both UI response and the wait
    until the next spoken prompt/microphone is ready.
-6. Repeat with H20 and phone output separately, including cancel/restart and
-   a disconnected H20. Do not judge loudness across routes with different
+6. Repeat with HM-D001 and phone output separately, including cancel/restart and
+   a disconnected HM-D001. Do not judge loudness across routes with different
    system volume settings.
 
 The source-level target is gated RMS −21 dBFS with sample peaks no higher
 than −1 dBFS after linear gain, not certified −21 LUFS/true-peak normalization.
 Complete local clips up to 30 seconds use a bounded native meter; unsupported,
 long or slow-to-decode clips use a common bounded fallback. Recordings used
-for scoring are not modified. Real-device loudness and any recognizer/H20
+for scoring are not modified. Real-device loudness and any recognizer/HM-D001
 system beep still require listening checks.
 
 Follow-up automated validation: 187 focused Flutter speech/audio/navigation

@@ -454,7 +454,7 @@ const _recordedCapture = AudioCapture(
   filePath: 'test-recording.wav',
   mimeType: 'audio/wav',
   duration: Duration(seconds: 1),
-  inputLabel: 'H20',
+  inputLabel: 'HM-D001',
   isBluetoothInput: true,
   initialNoiseRms: null,
   recordingSampleRate: 16000,

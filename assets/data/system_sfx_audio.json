@@ -7,7 +7,7 @@
   "allowTtsFallback": false,
   "prompts": [
     {
-      "key": "system.h20.speaker_test",
+      "key": "system.hm-d001.speaker_test",
       "enabled": true,
       "locale": "vi-VN",
       "asset": "assets/audio/A-3-5/GUIDE_RECORD/A035_GUIDE_RECORD_01.mp3",

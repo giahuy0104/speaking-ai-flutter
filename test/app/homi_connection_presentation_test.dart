@@ -8,7 +8,7 @@ import 'package:ai_speaking_flutter_app/app/scenic_app_header.dart';
 import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
-import 'package:ai_speaking_flutter_app/core/device/h20_connection_state.dart';
+import 'package:ai_speaking_flutter_app/core/device/homi_connection_state.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/data/demo_conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
@@ -82,7 +82,7 @@ void main() {
             ),
             findsOneWidget,
           );
-          // All three partial states have isH20Ready=false. The shell must
+          // All three partial states have isHomiReady=false. The shell must
           // still rebuild its adjacent vocabulary page when the link changes.
           final vocabulary = find.byType(
             VocabularyHomeScreen,
@@ -242,18 +242,18 @@ void _mobileSurface(WidgetTester tester) {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
-H20ConnectionState _state({
+HomiConnectionState _state({
   required bool hfp,
   required bool ble,
   required bool matches,
-}) => H20ConnectionState(
+}) => HomiConnectionState(
   phase: hfp && ble && matches
-      ? H20ConnectionPhase.h20Ready
+      ? HomiConnectionPhase.homiReady
       : hfp
-      ? H20ConnectionPhase.hfpReady
+      ? HomiConnectionPhase.hfpReady
       : ble
-      ? H20ConnectionPhase.bleReady
-      : H20ConnectionPhase.disconnected,
+      ? HomiConnectionPhase.bleReady
+      : HomiConnectionPhase.disconnected,
   hfpSelected: hfp,
   hfpReady: hfp,
   routeActive: false,
@@ -270,7 +270,7 @@ class _UiController extends ConversationController {
         childAge: 6,
       );
 
-  H20ConnectionState connection = _state(
+  HomiConnectionState connection = _state(
     hfp: false,
     ble: false,
     matches: false,
@@ -279,13 +279,13 @@ class _UiController extends ConversationController {
   int ordinaryStopCalls = 0;
 
   @override
-  H20ConnectionState h20ConnectionState({bool mainTurnActive = false}) =>
+  HomiConnectionState homiConnectionState({bool mainTurnActive = false}) =>
       connection;
 
   @override
   bool get isPlaybackPlaying => playing;
 
-  void updateConnection(H20ConnectionState state) {
+  void updateConnection(HomiConnectionState state) {
     connection = state;
     notifyListeners();
   }

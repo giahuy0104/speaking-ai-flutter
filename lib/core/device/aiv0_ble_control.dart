@@ -107,10 +107,6 @@ Aiv0BleDevice? selectAiv0AutoConnectCandidate(
           .where((device) => device.name.trim().toLowerCase() == 'hm-d001')
           .toList(growable: false)
         ..sort((a, b) => b.rssi.compareTo(a.rssi));
-  if ((savedDeviceName?.toLowerCase().contains('h20') ?? false) &&
-      hmD001Devices.isNotEmpty) {
-    return hmD001Devices.first;
-  }
   final normalizedSavedId = savedDeviceId?.trim().toUpperCase();
   if (normalizedSavedId != null && normalizedSavedId.isNotEmpty) {
     for (final device in devices) {
@@ -119,14 +115,14 @@ Aiv0BleDevice? selectAiv0AutoConnectCandidate(
       }
     }
   }
-  if (hmD001Devices.isNotEmpty) return hmD001Devices.first;
-
   final serviceMatches =
       devices
           .where((device) => device.advertisesControlService)
           .toList(growable: false)
         ..sort((a, b) => b.rssi.compareTo(a.rssi));
   if (serviceMatches.isNotEmpty) return serviceMatches.first;
+
+  if (hmD001Devices.isNotEmpty) return hmD001Devices.first;
 
   final likelyMatches =
       devices.where((device) => device.isLikelyAiv0).toList(growable: false)
@@ -146,7 +142,6 @@ class Aiv0ButtonEvent {
     this.flags,
     this.batteryPercent,
     this.uptimeMilliseconds,
-    this.isObservedH20Packet = false,
     this.isObservedHmD001Packet = false,
     this.isDraftPacket = false,
     this.isDuplicate = false,
@@ -163,17 +158,14 @@ class Aiv0ButtonEvent {
   final int? flags;
   final int? batteryPercent;
   final int? uptimeMilliseconds;
-  final bool isObservedH20Packet;
   final bool isObservedHmD001Packet;
   final bool isDraftPacket;
   final bool isDuplicate;
   final String? rawDescription;
 
-  /// Whether this notification has enough information to enter the unified
-  /// MAIN handler. Observed H20 packets are actionable even while the separate
-  /// APP State write packet remains unconfirmed.
-  bool get isActionable =>
-      isObservedH20Packet || isObservedHmD001Packet || isDraftPacket;
+  /// Whether the unified MAIN handler can use this notification. Observed
+  /// HM-D001 packets are actionable before APP State writes are confirmed.
+  bool get isActionable => isObservedHmD001Packet || isDraftPacket;
 
   String get rawHex => rawBytes
       .map((byte) => byte.toRadixString(16).padLeft(2, '0').toUpperCase())
@@ -196,36 +188,6 @@ class Aiv0DraftProtocolCodec {
     String? deviceId,
     DateTime? receivedAt,
   }) {
-    // Real H20 firmware 1.0.0 packet observed on 9E3B0002:
-    //   01 BB SS 01 FF FF PP 00 UU UU UU UU
-    // BB is MAIN (01), SS is a transport sequence, PP is the battery
-    // percentage and UU is uptime in milliseconds (LE). The current firmware
-    // exposes one MAIN action only; it does not expose long-press or release.
-    //
-    // Decode this independently from [confirmed]. That flag still protects
-    // the unconfirmed 8-byte APP State writer; receiving MAIN must not require
-    // sending that draft packet back to the device.
-    final isObservedH20Packet =
-        bytes.length == buttonPacketLength &&
-        bytes[0] == protocolVersion &&
-        bytes[1] == 0x01 &&
-        bytes[3] == 0x01;
-    if (isObservedH20Packet) {
-      final data = ByteData.sublistView(bytes);
-      return Aiv0ButtonEvent(
-        rawBytes: bytes,
-        deviceId: deviceId,
-        receivedAt: receivedAt ?? DateTime.now(),
-        button: Aiv0Button.main,
-        gesture: Aiv0ButtonGesture.shortPress,
-        sequence: bytes[2],
-        flags: data.getUint16(4, Endian.little),
-        batteryPercent: data.getUint16(6, Endian.little).clamp(0, 100),
-        uptimeMilliseconds: data.getUint32(8, Endian.little),
-        isObservedH20Packet: true,
-      );
-    }
-
     // HM-D001 uses the same GATT service but the confirmed button/gesture
     // layout below, independently of the unconfirmed APP State writer.
     final isObservedHmD001Packet =
@@ -718,7 +680,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
       _ensureConnectionCurrent(generation);
       return paired && _isConnectedDevice(deviceId);
     } catch (error) {
-      debugPrint('H20 system pairing did not complete: $error');
+      debugPrint('HM-D001 system pairing did not complete: $error');
       return false;
     }
   }
@@ -893,12 +855,12 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     );
   }
 
-  /// Reconnects BLE Control without requiring a second user action after H20
+  /// Reconnects BLE Control without requiring a second user action after HM-D001
   /// has already been paired through the system Bluetooth/HFP settings.
   ///
   /// The previously verified BLE address is preferred. On first use (or when
   /// the saved native identifier changes), advertised 9E3B0001 service is the
-  /// strongest signal; the H20/AIV0 device name is only a safe fallback.
+  /// strongest signal; the HM-D001/AIV0 device name is only a safe fallback.
   Future<bool> autoConnectKnownOrNearby({
     Duration scanTimeout = const Duration(seconds: 4),
     bool requestBond = false,
@@ -987,12 +949,9 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     );
     final savedDeviceId = preferences.getString(_lastDeviceIdPreference);
     final savedDeviceName = preferences.getString(_lastDeviceNamePreference);
-    final migratingFromH20 =
-        savedDeviceName?.toLowerCase().contains('h20') ?? false;
     if (!forceScan &&
         savedDeviceId != null &&
         savedDeviceId.trim().isNotEmpty &&
-        !migratingFromH20 &&
         (connectedHfpDeviceIds.isEmpty ||
             connectedHfpDeviceIds.any(
               (id) => id.toUpperCase() == savedDeviceId.trim().toUpperCase(),
@@ -1012,7 +971,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
           rethrow;
         }
         debugPrint(
-          'Saved H20 BLE address was unavailable; scanning nearby: $error',
+          'Saved HM-D001 BLE address was unavailable; scanning nearby: $error',
         );
       }
     }
@@ -1032,7 +991,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
       if (error is PlatformException && error.code == 'BLUETOOTH_DISABLED') {
         rethrow;
       }
-      debugPrint('Automatic H20 BLE scan was skipped: $error');
+      debugPrint('Automatic HM-D001 BLE scan was skipped: $error');
     }
     _ensureConnectionCurrent(generation);
 
@@ -1163,22 +1122,6 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
               'Đã tìm thấy phần âm thanh HM-D001 nhưng chưa tìm thấy kết nối MAIN qua BLE.',
         });
       }
-      if (!forceScan &&
-          migratingFromH20 &&
-          savedDeviceId != null &&
-          connectedHfpDeviceIds.isEmpty) {
-        try {
-          await _connectCandidate(
-            savedDeviceId.trim(),
-            requestBond: requestBond,
-            verifyPairing: verifyPairing,
-            generation: generation,
-          );
-          return true;
-        } catch (_) {
-          return false;
-        }
-      }
       return false;
     }
 
@@ -1201,7 +1144,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
       // microtask later, so the completed method call itself is authoritative.
       return true;
     } catch (error) {
-      debugPrint('Automatic H20 BLE connection failed: $error');
+      debugPrint('Automatic HM-D001 BLE connection failed: $error');
       return false;
     }
   }
@@ -1225,11 +1168,11 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
           );
         }
       } catch (error) {
-        debugPrint('H20 system pairing was unavailable: $error');
+        debugPrint('HM-D001 system pairing was unavailable: $error');
       }
     }
     if (_manualDisconnectRequested) {
-      throw StateError('H20 connection was cancelled.');
+      throw StateError('HM-D001 connection was cancelled.');
     }
     _ensureConnectionCurrent(generation);
     await _connect(deviceId, generation);
@@ -1464,7 +1407,6 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
           flags: buttonEvent.flags,
           batteryPercent: buttonEvent.batteryPercent,
           uptimeMilliseconds: buttonEvent.uptimeMilliseconds,
-          isObservedH20Packet: buttonEvent.isObservedH20Packet,
           isObservedHmD001Packet: buttonEvent.isObservedHmD001Packet,
           isDraftPacket: buttonEvent.isDraftPacket,
           isDuplicate: event['duplicate'] == true,
@@ -1512,7 +1454,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
     } on MissingPluginException {
       // Older app binaries keep their one-time battery reading.
     } on PlatformException catch (error) {
-      debugPrint('H20 battery refresh skipped: ${error.code}');
+      debugPrint('HM-D001 battery refresh skipped: ${error.code}');
     } finally {
       _batteryRefreshInFlight = false;
     }

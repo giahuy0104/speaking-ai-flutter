@@ -1,13 +1,7 @@
 package com.innotrik.aispeaking
 
 /** Observations, not a firmware decoder or a lesson-command mapper. */
-internal object H20ControlObservation {
-    private fun isLegacyMainPacket(bytes: ByteArray): Boolean =
-        bytes.size == 12 &&
-            (bytes[0].toInt() and 0xff) == 1 &&
-            (bytes[1].toInt() and 0xff) == 1 &&
-            (bytes[3].toInt() and 0xff) == 1
-
+internal object HomiControlObservation {
     private fun isHmD001Packet(bytes: ByteArray): Boolean =
         bytes.size == 12 &&
             (bytes[0].toInt() and 0xff) == 1 &&
@@ -19,33 +13,30 @@ internal object H20ControlObservation {
             (bytes[6].toInt() and 0xff) <= 100
 
     fun isObservedMainPacket(bytes: ByteArray): Boolean =
-        isLegacyMainPacket(bytes) ||
-            (isHmD001Packet(bytes) && (bytes[1].toInt() and 0xff) == 1)
+        isHmD001Packet(bytes) && (bytes[1].toInt() and 0xff) == 1
 
     fun batteryPercent(bytes: ByteArray): Int? {
         // HM-D001 reports its battery in every button packet, not only MAIN.
-        if (!isLegacyMainPacket(bytes) && !isHmD001Packet(bytes)) return null
-        val raw = (bytes[6].toInt() and 0xff) or ((bytes[7].toInt() and 0xff) shl 8)
-        return raw.coerceIn(0, 100)
+        if (!isHmD001Packet(bytes)) return null
+        return bytes[6].toInt() and 0xff
     }
 
     fun bleMetadata(bytes: ByteArray): Map<String, Any> {
-        val legacy = isLegacyMainPacket(bytes)
         val hmD001 = isHmD001Packet(bytes)
         val button = if (hmD001) when (bytes[1].toInt() and 0xff) {
             1 -> "main"
             2 -> "power"
             3 -> "volumeUp"
             else -> "volumeDown"
-        } else if (legacy) "main" else "unknown"
+        } else "unknown"
         return mapOf(
             "source" to "ble",
             "platform" to "android",
             "button" to button,
             "gesture" to if (hmD001) {
                 if (bytes[2].toInt() == 1) "shortPress" else "longPress"
-            } else if (legacy) "shortPress" else "unknown",
-            "protocol" to if (hmD001) "observedHmD001" else if (legacy) "observedV1" else "unknown",
+            } else "unknown",
+            "protocol" to if (hmD001) "observedHmD001" else "unknown",
             "rawPayload" to bytes.joinToString(" ") {
                 (it.toInt() and 0xff).toString(16).padStart(2, '0').uppercase()
             },
@@ -81,7 +72,7 @@ internal object H20ControlObservation {
     }
 }
 
-internal class H20ControlContext {
+internal class HomiControlContext {
     var learningActive = false
     var diagnosticsActive = false
     var foreground = false
@@ -90,7 +81,7 @@ internal class H20ControlContext {
 }
 
 /** The same native KeyEvent can arrive at Activity and MediaSession. */
-internal class H20ControlKeyDuplicates(private val capacity: Int = 64) {
+internal class HomiControlKeyDuplicates(private val capacity: Int = 64) {
     private val seen = linkedSetOf<String>()
 
     fun isDuplicate(fingerprint: String): Boolean {

@@ -35,7 +35,7 @@ trước analyzer trên Codemagic:
 - Settings/History chỉ nhận port hẹp, không nhận biết implementation UI của
   `ConversationController`.
 
-Các native compatibility path hiện hành vẫn được giữ để kiểm thử thiết bị H20
+Các native compatibility path hiện hành vẫn được giữ để kiểm thử thiết bị HM-D001
 thật. Giai đoạn tái cấu trúc này không đổi backend, quyền hệ điều hành, giao thức
 BLE, nội dung bài học hoặc chính sách online/offline.
 

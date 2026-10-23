@@ -255,7 +255,7 @@ void main() {
     expect(find.byTooltip('Quay lại'), findsOneWidget);
   });
 
-  testWidgets('topic prompts prepare and use the selected H20 output', (
+  testWidgets('topic prompts prepare and use the selected HM-D001 output', (
     tester,
   ) async {
     final media = _SelectedOutputMediaService();

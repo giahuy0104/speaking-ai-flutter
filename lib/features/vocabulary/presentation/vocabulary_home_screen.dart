@@ -13,7 +13,7 @@ import '../../../core/audio/audio_gain.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/active_learning_module.dart';
-import '../../../core/device/h20_connection_state.dart';
+import '../../../core/device/homi_connection_state.dart';
 import '../../../core/navigation/app_navigator.dart';
 import '../../../presentation/navigation/view_bindings.dart';
 import '../../../core/navigation/view_arguments/vocabulary_practice_arguments.dart';
@@ -165,7 +165,7 @@ class VocabularyHomeScreen extends StatefulWidget {
   });
 
   final bool isReady;
-  final H20ConnectionState? connectionState;
+  final HomiConnectionState? connectionState;
   final Future<bool> Function()? ensureDeviceConnected;
   final bool Function()? isDeviceConnectionReady;
   final VoidCallback onReturnToConversation;
@@ -3189,7 +3189,7 @@ class _VocabularyHeader extends StatelessWidget {
   });
 
   final bool isReady;
-  final H20ConnectionState? connectionState;
+  final HomiConnectionState? connectionState;
   final VoidCallback onBrandPressed;
   final String backTooltip;
   final VoidCallback? onAddPressed;

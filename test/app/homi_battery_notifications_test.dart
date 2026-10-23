@@ -1,5 +1,5 @@
-import 'package:ai_speaking_flutter_app/app/h20_battery_alert_policy.dart';
-import 'package:ai_speaking_flutter_app/app/h20_battery_notifications.dart';
+import 'package:ai_speaking_flutter_app/app/homi_battery_alert_policy.dart';
+import 'package:ai_speaking_flutter_app/app/homi_battery_notifications.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -44,15 +44,15 @@ void main() {
   test(
     'battery sequence posts three reminders with a single tray ID',
     () async {
-      final notifications = H20BatteryNotifications();
-      final policy = H20BatteryAlertPolicy();
+      final notifications = HomiBatteryNotifications();
+      final policy = HomiBatteryAlertPolicy();
       for (final percent in [25, 20, 19, 19, 10, 9, 9, 5, 4, 4]) {
         for (final action in policy.observe(
           connected: true,
           deviceId: 'HOMI',
           batteryPercent: percent,
         )) {
-          if (action != H20BatteryAction.disconnectDepleted) {
+          if (action != HomiBatteryAction.disconnectDepleted) {
             await notifications.show(
               percent: percent,
               language: DisplayLanguage.vietnamese,
@@ -79,13 +79,13 @@ void main() {
 
   test('permission denial is returned without throwing', () async {
     permission = false;
-    expect(await H20BatteryNotifications().requestPermission(), isFalse);
+    expect(await HomiBatteryNotifications().requestPermission(), isFalse);
     expect(calls.last.method, 'requestNotificationsPermission');
   });
 
   test('posting failure does not propagate into BLE event handling', () async {
     failShow = true;
-    await H20BatteryNotifications().show(
+    await HomiBatteryNotifications().show(
       percent: 4,
       language: DisplayLanguage.vietnamese,
     );
@@ -97,7 +97,7 @@ void main() {
     () async {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
       IOSFlutterLocalNotificationsPlugin.registerWith();
-      final notifications = H20BatteryNotifications();
+      final notifications = HomiBatteryNotifications();
       await notifications.show(
         percent: 9,
         language: DisplayLanguage.simplifiedChinese,
@@ -114,7 +114,7 @@ void main() {
 
   test('unsupported desktop makes no platform calls', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.linux;
-    final notifications = H20BatteryNotifications();
+    final notifications = HomiBatteryNotifications();
     await notifications.show(percent: 4, language: DisplayLanguage.vietnamese);
     expect(await notifications.requestPermission(), isTrue);
     expect(calls, isEmpty);

@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 
 import 'audio_input.dart';
-import '../device/h20_connection_state.dart';
+import '../device/homi_connection_state.dart';
 
 class HfpAudioDevice {
   const HfpAudioDevice({
@@ -31,14 +31,14 @@ class HfpAudioDevice {
 /// Selects only an HFP input that can be tied to the connected HOMI control
 /// device. iOS may expose unrelated headsets (for example AirPods) at the same
 /// time, so automatic startup must never pick an arbitrary Bluetooth mic.
-HfpAudioDevice? selectLikelyH20HfpDevice(
+HfpAudioDevice? selectLikelyHomiHfpDevice(
   Iterable<HfpAudioDevice> devices, {
   String? bleDeviceName,
   String? bleDeviceId,
   String? preferredDeviceId,
   bool connectedOnly = false,
 }) {
-  final normalizedBleName = _normalizeH20DeviceName(bleDeviceName ?? '');
+  final normalizedBleName = _normalizeHomiDeviceName(bleDeviceName ?? '');
   final candidates = devices
       .where((device) {
         if (connectedOnly && !device.isConnected) return false;
@@ -51,7 +51,7 @@ HfpAudioDevice? selectLikelyH20HfpDevice(
   int rank(HfpAudioDevice device) {
     if (sameConnectionDeviceId(device.id, bleDeviceId)) return 0;
     if (sameConnectionDeviceId(device.id, preferredDeviceId)) return 1;
-    final name = _normalizeH20DeviceName(device.name);
+    final name = _normalizeHomiDeviceName(device.name);
     if (normalizedBleName.isNotEmpty && name == normalizedBleName) return 2;
     if (name == 'hmd001') return 3;
     return 4;
@@ -74,9 +74,8 @@ HfpAudioDevice? selectLikelyH20HfpDevice(
 }
 
 bool isRecognizedHomiMicrophoneName(String value) {
-  final name = _normalizeH20DeviceName(value);
+  final name = _normalizeHomiDeviceName(value);
   return name == 'hmd001' ||
-      name.contains('h20') ||
       name.contains('homi') ||
       name.contains('innotrik') ||
       name.contains('ailingo') ||
@@ -84,7 +83,7 @@ bool isRecognizedHomiMicrophoneName(String value) {
       value.contains('音洛');
 }
 
-String _normalizeH20DeviceName(String value) => value
+String _normalizeHomiDeviceName(String value) => value
     .trim()
     .toLowerCase()
     .replaceAll(RegExp(r'[^a-z0-9\u4e00-\u9fff]+'), '');

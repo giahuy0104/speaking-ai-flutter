@@ -71,6 +71,10 @@ abstract interface class ConversationRepository {
   Future<void> dispose();
 }
 
+abstract interface class TranslationTargetRepository {
+  void setTranslationTarget(TranslationOutputLanguage language);
+}
+
 /// Optional capability for conversation paths that produce a transcript first
 /// and therefore cannot attach the original recording to `/api/conversation`.
 ///

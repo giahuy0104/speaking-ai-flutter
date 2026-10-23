@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
-import 'package:ai_speaking_flutter_app/core/device/h20_connection_state.dart';
+import 'package:ai_speaking_flutter_app/core/device/homi_connection_state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,7 +29,7 @@ void main() {
       expect(bridge.control.status.isConnected, isTrue);
       // The native boundary reports GATT readiness only. A UI must not convert
       // this success to complete HOMI readiness or promise a paired HFP device.
-      final state = H20ConnectionState.from(
+      final state = HomiConnectionState.from(
         bleStatus: bridge.control.status,
         hfpStatus: const BluetoothAudioStatus(
           phase: BluetoothAudioConnectionPhase.idle,
@@ -38,7 +38,7 @@ void main() {
       );
       expect(state.bleReady, isTrue);
       expect(state.isHomiAudioReady, isFalse);
-      expect(state.isH20Ready, isFalse);
+      expect(state.isHomiReady, isFalse);
       expect(state.canStartStrictHfpTurn, isFalse);
     },
   );

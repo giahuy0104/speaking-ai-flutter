@@ -2943,7 +2943,7 @@ void main() {
     await tester.pump();
   });
 
-  testWidgets('learned review announces the next H20 action', (tester) async {
+  testWidgets('learned review announces the next HM-D001 action', (tester) async {
     await _usePhoneSurface(tester);
     final mediaService = _GuidedMediaService();
     final voicePrompt = _FakeVoicePromptService();
@@ -3193,7 +3193,7 @@ void main() {
     await tester.pump();
   });
 
-  testWidgets('review route loss does not fall back from H20 to TTS', (
+  testWidgets('review route loss does not fall back from HM-D001 to TTS', (
     tester,
   ) async {
     await _usePhoneSurface(tester);
@@ -3221,7 +3221,7 @@ void main() {
 
     expect(voicePrompt.spoken, isEmpty);
     expect(mediaService.selectedOutputPreparationCount, 0);
-    expect(find.textContaining('H20 route unavailable'), findsOneWidget);
+    expect(find.textContaining('HM-D001 route unavailable'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
@@ -4963,7 +4963,7 @@ class _HfpFailingReviewMediaService extends _GuidedMediaService {
     bool fixedPlaybackGain = false,
   }) async {
     playedUris.add(uri);
-    throw const HfpAudioException('H20 route unavailable');
+    throw const HfpAudioException('HM-D001 route unavailable');
   }
 }
 

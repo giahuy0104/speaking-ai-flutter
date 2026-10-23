@@ -51,9 +51,13 @@ class Aiv0BleControlBridge(
         private const val DUPLICATE_WINDOW_MS = 750L
         private const val TAG = "Aiv0BleControl"
         private const val RUNTIME_PREFERENCES = "homi_android_runtime"
-        private const val LAST_DEVICE_ID = "h20_ble_device_id"
-        private const val LAST_DEVICE_NAME = "h20_ble_device_name"
-        private const val MANUAL_DISCONNECT = "h20_ble_manual_disconnect"
+        private const val LAST_DEVICE_ID = "homi_ble_device_id"
+        private const val LAST_DEVICE_NAME = "homi_ble_device_name"
+        private const val MANUAL_DISCONNECT = "homi_ble_manual_disconnect"
+        // Existing HM-D001 installations saved these values under the former key names.
+        private const val PREVIOUS_DEVICE_ID = "h20_ble_device_id"
+        private const val PREVIOUS_DEVICE_NAME = "h20_ble_device_name"
+        private const val PREVIOUS_MANUAL_DISCONNECT = "h20_ble_manual_disconnect"
         private const val MAX_BUFFERED_BUTTON_EVENTS = 32
     }
 
@@ -69,7 +73,7 @@ class Aiv0BleControlBridge(
     private val runtimePreferences =
         appContext.getSharedPreferences(RUNTIME_PREFERENCES, Context.MODE_PRIVATE)
     private val bufferedButtonEvents = ArrayDeque<Map<String, Any?>>()
-    private val mediaKeyObserver = H20MediaKeyObserver(appContext, ::emitButtonEvent)
+    private val mediaKeyObserver = HomiMediaKeyObserver(appContext, ::emitButtonEvent)
 
     private var eventSink: EventChannel.EventSink? = null
     private var enableBluetoothResult: MethodChannel.Result? = null
@@ -127,6 +131,7 @@ class Aiv0BleControlBridge(
     }
 
     init {
+        migrateStoredConnectionPreferences()
         methodChannel.setMethodCallHandler(this)
         eventChannel.setStreamHandler(this)
         val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
@@ -138,6 +143,36 @@ class Aiv0BleControlBridge(
             @Suppress("DEPRECATION")
             appContext.registerReceiver(adapterStateReceiver, filter)
         }
+    }
+
+    private fun migrateStoredConnectionPreferences() {
+        if (!runtimePreferences.contains(PREVIOUS_DEVICE_ID) &&
+            !runtimePreferences.contains(PREVIOUS_DEVICE_NAME) &&
+            !runtimePreferences.contains(PREVIOUS_MANUAL_DISCONNECT)
+        ) return
+        val edit = runtimePreferences.edit()
+        if (!runtimePreferences.contains(LAST_DEVICE_ID)) {
+            runtimePreferences.getString(PREVIOUS_DEVICE_ID, null)?.let {
+                edit.putString(LAST_DEVICE_ID, it)
+            }
+        }
+        if (!runtimePreferences.contains(LAST_DEVICE_NAME)) {
+            runtimePreferences.getString(PREVIOUS_DEVICE_NAME, null)?.let {
+                edit.putString(LAST_DEVICE_NAME, it)
+            }
+        }
+        if (!runtimePreferences.contains(MANUAL_DISCONNECT) &&
+            runtimePreferences.contains(PREVIOUS_MANUAL_DISCONNECT)
+        ) {
+            edit.putBoolean(
+                MANUAL_DISCONNECT,
+                runtimePreferences.getBoolean(PREVIOUS_MANUAL_DISCONNECT, false),
+            )
+        }
+        edit.remove(PREVIOUS_DEVICE_ID)
+            .remove(PREVIOUS_DEVICE_NAME)
+            .remove(PREVIOUS_MANUAL_DISCONNECT)
+            .apply()
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -181,7 +216,7 @@ class Aiv0BleControlBridge(
             "dispose" -> {
                 // The native bridge belongs to the process-scoped HOMI runtime,
                 // not to an individual Dart controller. A screen/controller may
-                // be disposed while the foreground service must keep H20 alive.
+                // be disposed while the foreground service must keep HM-D001 alive.
                 // EventChannel.onCancel detaches the old Dart listener; a later
                 // controller can subscribe again and receive the current state.
                 eventSink = null
@@ -516,7 +551,7 @@ class Aiv0BleControlBridge(
         } == true
         val normalizedName = name.lowercase(Locale.ROOT)
         val likely = advertisesControlService ||
-            normalizedName.contains("h20") ||
+            normalizedName.contains("hm-d001") ||
             normalizedName.contains("aiv0") ||
             normalizedName.contains("innotrik") ||
             normalizedName == "hm-d001"
@@ -597,13 +632,13 @@ class Aiv0BleControlBridge(
         // Discovery must have stopped before bonding/connecting the radio.
         runCatching { adapter?.cancelDiscovery() }
         if (bondResult != null) {
-            result.error("BOND_IN_PROGRESS", "Đang chờ ghép đôi H20.", null)
+            result.error("BOND_IN_PROGRESS", "Đang chờ ghép đôi HM-D001.", null)
             return
         }
         val id = call.argument<String>("deviceId")?.trim().orEmpty()
         val device = runCatching { adapter?.getRemoteDevice(id) }.getOrNull()
         if (device == null) {
-            result.error("DEVICE_NOT_FOUND", "Không tìm thấy thiết bị H20 để ghép đôi.", null)
+            result.error("DEVICE_NOT_FOUND", "Không tìm thấy thiết bị HM-D001 để ghép đôi.", null)
             return
         }
         val initialState = runCatching { device.bondState }.getOrNull()
@@ -878,17 +913,17 @@ class Aiv0BleControlBridge(
             if (value.size != 12) invalidPacketCount += 1
             lastRawHex = hex
             lastPacketAt = now
-            H20ControlObservation.batteryPercent(value)?.let { batteryPercent = it }
+            HomiControlObservation.batteryPercent(value)?.let { batteryPercent = it }
             Log.i(
                 TAG,
                 "Button Event device=$deviceId len=${value.size} duplicate=$duplicate raw=$hex",
             )
-            if (!duplicate && isObservedH20MainPacket(value)) {
+            if (!duplicate && isObservedHomiMainPacket(value)) {
                 BackgroundLearningService.notePhysicalMain()
             }
             emitStatus()
             emitButtonEvent(
-                H20ControlObservation.bleMetadata(value) + mapOf(
+                HomiControlObservation.bleMetadata(value) + mapOf(
                     "type" to "button",
                     "deviceId" to deviceId,
                     "bytes" to value.map { it.toInt() and 0xFF },
@@ -1208,7 +1243,7 @@ class Aiv0BleControlBridge(
         bufferedButtonEvents.addLast(event)
     }
 
-    /** Reopens the last verified H20 GATT link after service/process recovery. */
+    /** Reopens the last verified HM-D001 GATT link after service/process recovery. */
     fun onBackgroundSessionStarted() {
         mainHandler.post {
             if (disposed || bluetoothGatt != null ||
@@ -1238,7 +1273,7 @@ class Aiv0BleControlBridge(
         }
     }
 
-    /** Stops service-owned BLE without forgetting the parent's verified H20. */
+    /** Stops service-owned BLE without forgetting the parent's verified HM-D001. */
     fun onBackgroundSessionStopped() {
         mainHandler.post {
             if (disposed) return@post
@@ -1289,8 +1324,8 @@ class Aiv0BleControlBridge(
         )
     }
 
-    private fun isObservedH20MainPacket(value: ByteArray): Boolean =
-        H20ControlObservation.isObservedMainPacket(value)
+    private fun isObservedHomiMainPacket(value: ByteArray): Boolean =
+        HomiControlObservation.isObservedMainPacket(value)
 
     private fun ByteArray.toHex(): String = joinToString(" ") {
         (it.toInt() and 0xFF).toString(16).padStart(2, '0').uppercase(Locale.ROOT)

@@ -5,7 +5,7 @@ import android.companion.CompanionDeviceService
 import android.os.Build
 import androidx.annotation.RequiresApi
 
-/** Lets Android raise HOMI's process priority while the associated H20 is near. */
+/** Lets Android raise HOMI's process priority while the associated HM-D001 is near. */
 @SuppressLint("MissingPermission")
 @RequiresApi(Build.VERSION_CODES.S)
 class HomiCompanionDeviceService : CompanionDeviceService() {

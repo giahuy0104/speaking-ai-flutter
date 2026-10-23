@@ -58,7 +58,7 @@ void main() {
       await _flush();
       await control.cancelConnectionAttempt();
       discovery.complete([
-        {'id': 'new', 'name': 'H20', 'isConnected': true},
+        {'id': 'new', 'name': 'HM-D001', 'isConnected': true},
       ]);
       await expectation;
       expect(calls, contains('cancelConnectionAttempt'));
@@ -91,7 +91,7 @@ void main() {
       connection.complete({
         'phase': 'ready',
         'deviceId': 'new',
-        'deviceName': 'H20',
+        'deviceName': 'HM-D001',
       });
       await expectation;
       expect(control.status.deviceId, 'old');

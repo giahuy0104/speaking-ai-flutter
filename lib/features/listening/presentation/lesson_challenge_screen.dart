@@ -384,7 +384,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       _message = null;
     });
     try {
-      // Own the selected H20 route before TTS starts and keep it through the
+      // Own the selected HM-D001 route before TTS starts and keep it through the
       // transition to recording. On iOS, allowing the prompt lease to be the
       // only owner makes AVAudioSession deactivate at didFinish, so the
       // automatic microphone opening can be lost during route renegotiation.
@@ -426,7 +426,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
           () => _message = 'Chưa phát được câu hỏi. Bạn bấm nghe lại nhé.',
         );
       }
-      // A failed H20/TTS turn must not jump straight into capture.
+      // A failed HM-D001/TTS turn must not jump straight into capture.
       return false;
     } finally {
       if (mounted && request == _request) {
@@ -557,7 +557,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         timedOut = true;
         try {
           // A small number of iOS AVSpeechSynthesizer route transitions do not
-          // deliver didFinish. Stop the stale utterance so the H20 mic can
+          // deliver didFinish. Stop the stale utterance so the HM-D001 mic can
           // still open instead of leaving the child on a frozen screen.
           await _prompt.stop();
         } catch (_) {
@@ -690,7 +690,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
                 _activeAttemptAudioPath!,
               )
               // Apple Speech allows nine seconds for its ready event, after
-              // the selected H20 route opens. Leave room for both boundaries.
+              // the selected HM-D001 route opens. Leave room for both boundaries.
               .timeout(const Duration(seconds: 12));
         } else {
           await iosSpeechInput.startLessonEnglishRecognition().timeout(
@@ -857,7 +857,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       }
     }
     // `_advance` has already finished the next coach prompt by this point.
-    // Wait until the scoring state is released before claiming the H20 route;
+    // Wait until the scoring state is released before claiming the HM-D001 route;
     // otherwise the second challenge silently leaves its microphone closed.
     if (shouldOpenMicrophoneAgain &&
         mounted &&

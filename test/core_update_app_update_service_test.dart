@@ -57,6 +57,37 @@ void main() {
       expect(decision.requiresUpdate, isTrue);
       expect(decision.source, AppUpdatePolicySource.cache);
     });
+
+    test('uses a live mandatory policy when caching fails', () async {
+      final service = AppUpdateService(
+        fetchPolicy: () async => _policy(minimum: 3, latest: 4),
+        loadCurrentBuild: () async => 2,
+        store: _FailingWritePolicyStore(),
+      );
+
+      final decision = await service.check();
+
+      expect(decision.requiresUpdate, isTrue);
+      expect(decision.source, AppUpdatePolicySource.network);
+    });
+
+    test('does not fetch policy when the current build is unknown', () async {
+      var fetches = 0;
+      final service = AppUpdateService(
+        fetchPolicy: () async {
+          fetches++;
+          return _policy(minimum: 3, latest: 4);
+        },
+        loadCurrentBuild: () async => null,
+        store: _MemoryPolicyStore(),
+      );
+
+      final decision = await service.check();
+
+      expect(decision.source, AppUpdatePolicySource.unavailable);
+      expect(decision.requiresUpdate, isFalse);
+      expect(fetches, 0);
+    });
   });
 
   test('rejects malformed or insecure policies', () {
@@ -94,5 +125,15 @@ class _MemoryPolicyStore implements AppUpdatePolicyStore {
   @override
   Future<void> write(AppUpdatePolicy policy) async {
     value = policy;
+  }
+}
+
+class _FailingWritePolicyStore implements AppUpdatePolicyStore {
+  @override
+  Future<AppUpdatePolicy?> read() async => null;
+
+  @override
+  Future<void> write(AppUpdatePolicy policy) async {
+    throw StateError('storage unavailable');
   }
 }

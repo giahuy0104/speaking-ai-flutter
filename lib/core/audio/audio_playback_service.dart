@@ -236,7 +236,7 @@ class JustAudioPlaybackService
             kIsWeb ||
             defaultTargetPlatform != TargetPlatform.iOS,
         // Android attributes belong to this player. Another idle feature may
-        // configure the process-wide session for media while H20 is playing.
+        // configure the process-wide session for media while HM-D001 is playing.
         androidApplyAudioAttributes:
             kIsWeb || defaultTargetPlatform != TargetPlatform.android,
         audioPipeline: AudioPipeline(androidAudioEffects: androidEffects),
