@@ -5,6 +5,31 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test(
+    'Home asset warm-up uses permission-free topic channel with English only',
+    () async {
+      const channel = MethodChannel('test_apple_topic_assets');
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            calls.add(call);
+            return 'waitingForWifi';
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null),
+      );
+      expect(
+        await const AppleOfflineSpeechAssetService(
+          channel: channel,
+        ).prepareTopicInBackground(),
+        'waitingForWifi',
+      );
+      expect(calls.single.method, 'speech.prepareTopicAssets');
+      expect(calls.single.arguments, {'locale': 'en-US'});
+    },
+  );
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('ML Kit offline Vietnamese-English translator', () {

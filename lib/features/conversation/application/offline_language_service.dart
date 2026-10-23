@@ -329,6 +329,16 @@ class AppleOfflineSpeechAssetService {
 
   final MethodChannel _channel;
 
+  /// Asset-only preparation: no permission prompt or audio session mutation.
+  /// Native checks installed assets first and only starts downloads on Wi-Fi.
+  Future<String> prepareTopicInBackground() async {
+    return await _channel.invokeMethod<String>(
+          'speech.prepareTopicAssets',
+          const <String, dynamic>{'locale': 'en-US'},
+        ) ??
+        'unavailable';
+  }
+
   Future<bool> prepareLocale(String locale) async {
     try {
       return await _channel.invokeMethod<bool>(

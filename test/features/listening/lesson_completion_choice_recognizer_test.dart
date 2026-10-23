@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -9,6 +10,31 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
+  test('choice recognition is bounded when response body stalls', () async {
+    final body = StreamController<List<int>>();
+    final client = MockClient.streaming((request, _) async {
+      if (request.method == 'GET') {
+        return http.StreamedResponse(Stream.value([1, 2, 3]), 200);
+      }
+      return http.StreamedResponse(body.stream, 200);
+    });
+    final recognizer = BackendLessonCompletionChoiceRecognizer(
+      client: client,
+      requestTimeout: const Duration(milliseconds: 30),
+    );
+    await expectLater(
+      recognizer.transcribe(
+        const LessonRecording(
+          filePath: 'blob:https://example.test/choice',
+          duration: Duration(seconds: 2),
+        ),
+      ),
+      throwsA(isA<LessonCompletionRecognitionException>()),
+    );
+    await body.close();
+    recognizer.dispose();
+  });
+
   const resolver = LessonCompletionChoiceResolver();
 
   test('recognizes restart lesson variants', () {

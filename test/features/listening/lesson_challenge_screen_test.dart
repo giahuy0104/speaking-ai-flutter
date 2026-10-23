@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:ai_speaking_flutter_app/features/listening/application/lesson_attempt_evaluator.dart';
+
 import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
@@ -17,6 +19,94 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets(
+    'MAIN ignores a late successful retry after an offline Challenge failure',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final result = Completer<LessonAttemptOutcome>();
+      final resolved = <bool>[];
+      final evaluator = _QueuedAttemptEvaluator([
+        const LessonAttemptEvaluationException(
+          'offline',
+          backendUnavailable: true,
+        ),
+        result.future,
+      ]);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _subject(
+            startAge: 7,
+            attemptEvaluator: evaluator,
+            onChallengeResolved: (_, correct) async {
+              resolved.add(correct);
+            },
+          ),
+        ),
+      );
+      await _pumpChallengeTransition(tester);
+      await tester.tap(find.byKey(const Key('lesson-challenge-record-button')));
+      await _pumpChallengeTransition(tester);
+      await tester.tap(find.byKey(const Key('retry-challenge-evaluation')));
+      await tester.pump();
+      expect(evaluator.evaluationCalls, 2);
+      await registry.pauseForMainAssistant();
+      result.complete(LessonAttemptOutcome.good);
+      await _pumpChallengeTransition(tester);
+      expect(resolved, isEmpty);
+      expect(find.text('Câu 1/1'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+  );
+
+  testWidgets(
+    'Challenge offline retries reuse audio and never resolve an incorrect answer',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final media = _FakeLessonMediaService();
+      final resolved = <bool>[];
+      final evaluator = _QueuedAttemptEvaluator([
+        const LessonAttemptEvaluationException(
+          'offline',
+          backendUnavailable: true,
+        ),
+        const LessonAttemptEvaluationException(
+          'offline',
+          backendUnavailable: true,
+        ),
+        LessonAttemptOutcome.good,
+      ]);
+      await tester.pumpWidget(
+        _subject(
+          startAge: 7,
+          mediaService: media,
+          attemptEvaluator: evaluator,
+          onChallengeResolved: (_, correct) async {
+            resolved.add(correct);
+          },
+        ),
+      );
+      await _pumpChallengeTransition(tester);
+      await tester.tap(find.byKey(const Key('lesson-challenge-record-button')));
+      await _pumpChallengeTransition(tester);
+      for (var retry = 0; retry < 2; retry++) {
+        expect(resolved, isEmpty);
+        expect(media.recordingStarts, 1);
+        expect(find.text('Mình tạm dừng nhé.'), findsNothing);
+        await tester.tap(find.byKey(const Key('retry-challenge-evaluation')));
+        await _pumpChallengeTransition(tester);
+      }
+      expect(evaluator.attemptNumbers, [1, 1, 1]);
+      expect(evaluator.recordingPaths.toSet(), hasLength(1));
+      expect(resolved, [true]);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+  );
+
   testWidgets('Challenge replay repeats question without the introduction', (
     tester,
   ) async {
@@ -1492,6 +1582,7 @@ Widget _subject({
   LessonEnglishSpeechInput? iosSpeechInput,
   Future<void> Function(String, String, String)? onStarEarned,
   Future<void> Function(String, String, String)? onNeedsPractice,
+  Future<void> Function(ListeningChallengeContent, bool)? onChallengeResolved,
 }) {
   return MaterialApp(
     onGenerateRoute: createAppRouter().onGenerateRoute,
@@ -1521,6 +1612,7 @@ Widget _subject({
       iosSpeechInput: iosSpeechInput,
       onStarEarned: onStarEarned,
       onNeedsPractice: onNeedsPractice,
+      onChallengeResolved: onChallengeResolved,
     ),
   );
 }
@@ -1680,7 +1772,8 @@ class _ControlledAttemptEvaluator implements LessonAttemptEvaluator {
 class _QueuedAttemptEvaluator implements LessonAttemptEvaluator {
   _QueuedAttemptEvaluator(this.outcomes);
 
-  final List<LessonAttemptOutcome> outcomes;
+  final List<Object> outcomes;
+  final List<String> recordingPaths = [];
   int evaluationCalls = 0;
   final List<int> attemptNumbers = <int>[];
 
@@ -1699,6 +1792,9 @@ class _QueuedAttemptEvaluator implements LessonAttemptEvaluator {
     final outcome = outcomes[evaluationCalls];
     attemptNumbers.add(attemptNumber);
     evaluationCalls += 1;
+    recordingPaths.add(recordingPath);
+    if (outcome is Future<LessonAttemptOutcome>) return await outcome;
+    if (outcome is! LessonAttemptOutcome) throw outcome;
     return outcome;
   }
 }

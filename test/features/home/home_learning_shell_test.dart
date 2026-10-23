@@ -45,6 +45,32 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   testWidgets(
+    'Home starts background preparation after rendering and not on rebuild',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final controller = _controller();
+      addTearDown(controller.dispose);
+      var starts = 0;
+      void ready() {
+        expect(find.byType(HomeLearningShell), findsOneWidget);
+        starts++;
+      }
+
+      await tester.pumpWidget(_app(controller, onReady: ready));
+      await tester.pumpAndSettle();
+      expect(starts, 1);
+      await tester.pumpWidget(_app(controller, onReady: ready));
+      await tester.pumpAndSettle();
+      expect(starts, 1);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(_app(controller, onReady: ready));
+      await tester.pumpAndSettle();
+      expect(starts, 2);
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets(
     'device gate delays Home start, deduplicates taps and allows stop',
     (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -2658,8 +2684,10 @@ Widget _app(
   ParentMediaSettingsStore parentMediaSettingsStore =
       const _FakeParentMediaSettingsStore(true),
   OnboardingProgressStore? onboardingStore,
+  VoidCallback? onReady,
 }) {
   final home = HomeLearningShell(
+    onReady: onReady,
     controller: controller,
     ensureDeviceConnected: ensureDeviceConnected,
     isDeviceConnectionReady: isDeviceConnectionReady,

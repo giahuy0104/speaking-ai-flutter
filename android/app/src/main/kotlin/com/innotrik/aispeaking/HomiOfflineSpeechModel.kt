@@ -149,7 +149,11 @@ object HomiOfflineSpeechModel {
             return status(context, spec)
         }
         preferences(context, spec).edit().putBoolean(downloadEnabledKey, true).apply()
-        setState(context, spec, "pending", progress = 0)
+        // Repeated Home/Settings preparation must not erase active progress.
+        val state = preferences(context, spec).getString(stateKey, null)
+        if (state != "pending" && state != "downloading") {
+            setState(context, spec, "pending", progress = 0)
+        }
         val constraints =
             Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.UNMETERED)
@@ -166,7 +170,7 @@ object HomiOfflineSpeechModel {
                 .build()
         WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(
             spec.workName,
-            ExistingWorkPolicy.REPLACE,
+            ExistingWorkPolicy.KEEP,
             request,
         )
         return status(context, spec) + ("scheduled" to true)
@@ -352,6 +356,7 @@ class HomiOfflineSpeechModelDownloadWorker(
                     while (true) {
                         if (
                             isStopped ||
+                            !HomiOfflineSpeechModel.hasValidatedWifi(applicationContext) ||
                             !HomiOfflineSpeechModel.isDownloadEnabled(applicationContext, target)
                         ) {
                             throw DownloadPausedException("Model download stopped")

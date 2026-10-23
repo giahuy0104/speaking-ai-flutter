@@ -49,6 +49,7 @@ import '../features/conversation/domain/conversation_repository.dart';
 import '../features/conversation/presentation/conversation_controller.dart';
 import '../features/home/presentation/home_learning_shell.dart';
 import '../features/listening/application/android_offline_speech_model_service.dart';
+import '../features/listening/application/topic_offline_model_preparation_service.dart';
 import '../features/listening/application/android_runtime_platform.dart';
 import '../features/listening/domain/listening_catalog.dart';
 import '../features/listening/domain/listening_content.dart';
@@ -134,6 +135,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   _offlineSpeechModelCoordinator = AndroidOfflineSpeechModelCoordinator(
     consentStore: _offlineSpeechModelConsentStore,
   );
+  final TopicOfflineModelPreparationService _topicOfflineModelPreparation =
+      TopicOfflineModelPreparationService(
+        isIos: !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS,
+      );
+  bool _homeOfflinePreparationStarted = false;
   final OfflineVietnameseEnglishTranslator _offlineTranslator =
       MlKitOfflineVietnameseEnglishTranslator();
   final OfflineEnglishVietnameseTranslator _offlineVocabularyTranslator =
@@ -547,6 +553,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (bleStatus != null) _updateIosBleReconnectNotice(bleStatus);
     if (_bluetoothPower.hasChecked) unawaited(_bluetoothPower.refresh());
     unawaited(_prepareOfflineLanguageModels());
+    if (_homeOfflinePreparationStarted &&
+        (isAndroidRuntime ||
+            (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS))) {
+      unawaited(_topicOfflineModelPreparation.prepare());
+    }
     if (_retryParentH20SetupOnResume && _privacyConsentGranted) {
       _retryParentH20SetupOnResume = false;
       unawaited(_retryParentH20SetupAfterSettings());
@@ -563,6 +574,15 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     } else if (_parentSetupCompleted && _bluetoothPermissionGranted) {
       unawaited(_autoConnectH20Ble());
     }
+  }
+
+  void _onHomeReady() {
+    if (!isAndroidRuntime &&
+        (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS)) {
+      return;
+    }
+    _homeOfflinePreparationStarted = true;
+    unawaited(_topicOfflineModelPreparation.prepare());
   }
 
   Future<void> _prepareOfflineLanguageModels() async {
@@ -3829,6 +3849,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
 
   @override
   void dispose() {
+    _topicOfflineModelPreparation.dispose();
     unawaited(_onboardingDevice?.dispose());
     _deviceAttemptGeneration += 1;
     _deviceAttemptCancelled.complete();
@@ -3943,6 +3964,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
               config: _config,
               child: PwaInstallGate(
                 child: HomeLearningShell(
+                  onReady: _onHomeReady,
                   controller: controller,
                   config: _config,
                   connectionCoordinator: _requiresLearningDevice
