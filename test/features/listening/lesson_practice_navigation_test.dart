@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
 import 'package:ai_speaking_flutter_app/core/audio/learning_audio_dependencies.dart';
@@ -682,6 +683,7 @@ void main() {
           ActiveLearningModuleScope(
             registry: registry,
             child: MaterialApp(
+              onGenerateRoute: createAppRouter().onGenerateRoute,
               theme: buildAppTheme(),
               home: Builder(
                 builder: (context) => TextButton(
@@ -1808,6 +1810,7 @@ void main() {
       ActiveLearningModuleScope(
         registry: registry,
         child: MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: Builder(
             builder: (context) => Scaffold(
@@ -1930,6 +1933,7 @@ Widget _subject(
   VoidCallback? onCommunicationRequested,
 }) {
   return MaterialApp(
+    onGenerateRoute: createAppRouter().onGenerateRoute,
     debugShowCheckedModeBanner: false,
     theme: buildAppTheme(),
     builder: (context, child) {

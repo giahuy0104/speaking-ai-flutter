@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -23,6 +25,164 @@ void main() {
         .setMockMethodCallHandler(events, null);
     debugDefaultTargetPlatformOverride = null;
   });
+
+  test('paired Classic address is never assumed to expose BLE MAIN', () async {
+    final calls = <String>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          calls.add(call.method);
+          return switch (call.method) {
+            'initialize' => {'phase': 'idle'},
+            'requestPermissions' || 'requestDualModeBond' => true,
+            'scan' => <Object?>[],
+            'scanClassic' => [
+              {'id': 'AA:BB:CC:DD:EE:FF', 'name': 'HM-D001', 'rssi': -40},
+            ],
+            'connect' => {
+              'phase': 'connected',
+              'deviceId': 'AA:BB:CC:DD:EE:FF',
+            },
+            _ => null,
+          };
+        });
+    final control = MethodChannelAiv0BleControl(
+      enabled: true,
+      draftProtocolConfirmed: false,
+    );
+    addTearDown(control.dispose);
+    expect(await control.autoConnectKnownOrNearby(requestBond: true), isFalse);
+    expect(calls.where((m) => m == 'scan'), hasLength(2));
+    expect(calls, isNot(contains('connect')));
+    expect(control.status.isConnected, isFalse);
+    expect(control.status.message, contains('MAIN'));
+    expect(
+      (await SharedPreferences.getInstance()).getString(
+        'aiv0_ble_last_device_id',
+      ),
+      isNull,
+    );
+  });
+
+  for (final explicit in [true, false]) {
+    test(
+      'Classic-only first discovery is used only by explicit pairing=$explicit',
+      () async {
+        final calls = <String>[];
+        final connectedIds = <String>[];
+        var paired = false;
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (call) async {
+              calls.add(call.method);
+              if (call.method == 'requestDualModeBond') {
+                paired = true;
+                return true;
+              }
+              if (call.method == 'connect') {
+                connectedIds.add((call.arguments as Map)['deviceId'] as String);
+              }
+              return switch (call.method) {
+                'initialize' => {'phase': 'idle'},
+                'requestPermissions' => true,
+                'scan' when paired => [
+                  {
+                    'id': 'BB:CC:DD:EE:FF:01',
+                    'name': '',
+                    'rssi': -35,
+                    'advertisesControlService': true,
+                  },
+                ],
+                'scan' => [
+                  {'id': '11:22:33:44:55:66', 'name': '', 'rssi': -20},
+                ],
+                'scanClassic' => [
+                  {'id': 'AA:BB:CC:DD:EE:FF', 'name': 'HM-D001', 'rssi': -40},
+                ],
+                'connect' => {
+                  'phase': 'connected',
+                  'deviceId': 'BB:CC:DD:EE:FF:01',
+                  'deviceName': 'HM-D001',
+                },
+                _ => null,
+              };
+            });
+        final control = MethodChannelAiv0BleControl(
+          enabled: true,
+          draftProtocolConfirmed: false,
+        );
+        addTearDown(control.dispose);
+
+        expect(
+          await control.autoConnectKnownOrNearby(requestBond: explicit),
+          explicit,
+        );
+        if (explicit) {
+          expect(
+            calls,
+            containsAllInOrder([
+              'scan',
+              'scanClassic',
+              'requestDualModeBond',
+              'scan',
+              'connect',
+            ]),
+          );
+          expect(control.status.isConnected, isTrue);
+          expect(connectedIds, ['BB:CC:DD:EE:FF:01']);
+          expect(
+            (await SharedPreferences.getInstance()).getString(
+              'aiv0_ble_last_device_id',
+            ),
+            'BB:CC:DD:EE:FF:01',
+          );
+        } else {
+          expect(calls, isNot(contains('scanClassic')));
+          expect(calls, isNot(contains('requestDualModeBond')));
+        }
+      },
+    );
+  }
+
+  test(
+    'cancelled Classic discovery cannot pair or connect after its late result',
+    () async {
+      final discovery = Completer<List<Map<String, Object?>>>();
+      final started = Completer<void>();
+      final calls = <String>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            calls.add(call.method);
+            switch (call.method) {
+              case 'initialize':
+              case 'cancelConnectionAttempt':
+                return {'phase': 'idle'};
+              case 'requestPermissions':
+                return true;
+              case 'scan':
+                return <Object?>[];
+              case 'scanClassic':
+                started.complete();
+                return discovery.future;
+              default:
+                return null;
+            }
+          });
+      final control = MethodChannelAiv0BleControl(
+        enabled: true,
+        draftProtocolConfirmed: false,
+      );
+      addTearDown(control.dispose);
+      final connection = control.autoConnectKnownOrNearby(requestBond: true);
+      await started.future;
+      await control.cancelConnectionAttempt();
+      expect(await connection, isFalse);
+      discovery.complete([
+        {'id': 'AA:BB:CC:DD:EE:FF', 'name': 'HM-D001', 'rssi': -40},
+      ]);
+      await Future<void>.delayed(Duration.zero);
+      expect(calls, isNot(contains('requestDualModeBond')));
+      expect(calls, isNot(contains('connect')));
+    },
+  );
 
   for (final savedName in <String?>[null, 'HM-D001', 'H20']) {
     test('radio turns off during auto-connect with saved=$savedName', () async {

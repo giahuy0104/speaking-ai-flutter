@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
@@ -43,6 +44,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
         home: VocabularyPracticeScreen(
@@ -121,6 +123,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
         home: DisplayLanguageScope(
@@ -246,6 +249,7 @@ Future<void> _pumpJourney(
 
   await tester.pumpWidget(
     MaterialApp(
+      onGenerateRoute: createAppRouter().onGenerateRoute,
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       home: DisplayLanguageScope(

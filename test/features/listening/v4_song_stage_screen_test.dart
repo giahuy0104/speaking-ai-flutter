@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
@@ -165,6 +166,9 @@ void main() {
     expect(media.playedToCompletion, <Uri>[songUri]);
     expect(find.byKey(const Key('v4-song-stage-screen')), findsOneWidget);
 
+    // The page is built before its slide finishes; wait until Skip is on screen.
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump();
     await tester.tap(find.byKey(const Key('v4-song-stage-skip')));
     await tester.pump();
     playback.complete();
@@ -241,6 +245,7 @@ Widget _host({
   ActiveLearningModuleRegistry? registry,
 }) {
   final app = MaterialApp(
+    onGenerateRoute: createAppRouter().onGenerateRoute,
     theme: buildAppTheme(),
     home: Builder(
       builder: (context) => Scaffold(

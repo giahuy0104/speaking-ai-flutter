@@ -7,6 +7,11 @@ import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
+import android.bluetooth.le.ScanSettings
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanRecord
+import android.bluetooth.le.ScanResult
+import android.content.Intent
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Looper
@@ -55,6 +60,97 @@ class Aiv0ConnectionCancellationTest {
 
     @After
     fun tearDown() { bridge.dispose() }
+
+    @Test
+    @Config(sdk = [31, 34])
+    fun radioCycleDuringScanReleasesPendingScanAndAllowsFreshUnfilteredRetry() {
+        val first = call("scan", mapOf("foreground" to true, "timeoutMs" to 8_000))
+        val oldCallback = field("scanCallback") as ScanCallback
+        idleFor(500)
+        shadowOf(adapter()).setEnabled(false)
+        for (state in listOf(BluetoothAdapter.STATE_TURNING_OFF, BluetoothAdapter.STATE_OFF)) {
+            context.sendBroadcast(Intent(BluetoothAdapter.ACTION_STATE_CHANGED).apply {
+                putExtra(BluetoothAdapter.EXTRA_STATE, state)
+            })
+            idle()
+        }
+        assertEquals(1, first.completions)
+        assertEquals("idle", statuses.last()["phase"])
+        assertNull(field("scanCallback"))
+        shadowOf(adapter()).setEnabled(true)
+        context.sendBroadcast(Intent(BluetoothAdapter.ACTION_STATE_CHANGED).apply {
+            putExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_ON)
+        })
+        idle()
+        assertEquals("idle", statuses.last()["phase"])
+        val retry = call("scan", mapOf("foreground" to true, "timeoutMs" to 8_000))
+        val scanner = shadowOf(adapter().bluetoothLeScanner)
+        assertTrue(scanner.activeScans.single().scanFilters().isNullOrEmpty())
+        assertTrue(gatts().isEmpty())
+        // A callback from the pre-toggle scan must not complete the new attempt.
+        oldCallback.onScanFailed(ScanCallback.SCAN_FAILED_INTERNAL_ERROR)
+        assertEquals(0, retry.completions)
+        assertEquals("scanning", statuses.last()["phase"])
+        val name = "HM-D001".toByteArray()
+        val bytes = byteArrayOf((name.size + 1).toByte(), 9) + name + byteArrayOf(0)
+        val record = ScanRecord::class.java.getDeclaredMethod("parseFromBytes", ByteArray::class.java)
+            .invoke(null, bytes) as ScanRecord
+        (field("scanCallback") as ScanCallback).onScanResult(
+            ScanSettings.CALLBACK_TYPE_ALL_MATCHES,
+            ScanResult(adapter().getRemoteDevice(address), record, -40, 0L),
+        )
+        idleFor(7_600)
+        assertEquals(0, retry.completions)
+        idleFor(400)
+        assertEquals(1, retry.completions)
+        val device = (retry.value as List<*>).single() as Map<*, *>
+        assertEquals("HM-D001", device["name"])
+        assertEquals(true, device["isLikelyAiv0"])
+        assertTrue(scanner.activeScans.isEmpty())
+    }
+
+    @Test
+    fun weakerScanResponseRetainsHomiNameAndServiceAcrossLaterPackets() {
+        val reply = call("scan", mapOf("timeoutMs" to 2_000))
+        val callback = field("scanCallback") as ScanCallback
+        val device = adapter().getRemoteDevice(address)
+        fun packet(bytes: ByteArray, rssi: Int) {
+            val record = ScanRecord::class.java.getDeclaredMethod("parseFromBytes", ByteArray::class.java)
+                .invoke(null, bytes) as ScanRecord
+            callback.onScanResult(ScanSettings.CALLBACK_TYPE_ALL_MATCHES, ScanResult(device, record, rssi, 0L))
+        }
+        packet(byteArrayOf(2, 1, 6, 0), -30)
+        val uuid = "9e3b00014a7c4d6f8b215c17a2d94010".chunked(2).map { it.toInt(16).toByte() }.reversed().toByteArray()
+        val name = "HM-D001".toByteArray()
+        packet(byteArrayOf(17, 7) + uuid + byteArrayOf((name.size + 1).toByte(), 9) + name + byteArrayOf(0), -60)
+        packet(byteArrayOf(2, 1, 6, 0), -25)
+        idleFor(2_000)
+        val result = (reply.value as List<*>).single() as Map<*, *>
+        assertEquals("HM-D001", result["name"])
+        assertEquals(true, result["advertisesControlService"])
+        assertEquals(true, result["isLikelyAiv0"])
+        assertEquals(-25, result["rssi"])
+    }
+
+    @Test
+    fun foregroundScanUsesLowLatencyAndBackgroundRetainsDefaultMode() {
+        val scanner = shadowOf(adapter().bluetoothLeScanner)
+        call("scan", mapOf("timeoutMs" to 8_000, "foreground" to true))
+        assertEquals(ScanSettings.SCAN_MODE_LOW_LATENCY, scanner.activeScans.single().scanSettings()!!.scanMode)
+        assertEquals(0L, scanner.activeScans.single().scanSettings()!!.reportDelayMillis)
+        call("cancelConnectionAttempt")
+        assertTrue(scanner.activeScans.isEmpty())
+        call("scan", mapOf("timeoutMs" to 4_000))
+        assertEquals(ScanSettings.SCAN_MODE_LOW_POWER, scanner.activeScans.single().scanSettings()!!.scanMode)
+    }
+
+    @Test
+    fun connectionTimeoutDoesNotClaimProtocolMismatch() {
+        val reply = call("connect", mapOf("deviceId" to address))
+        idleFor(15_000)
+        assertEquals("BLE_CONNECTION_TIMEOUT", reply.errorCode)
+        assertEquals(1, reply.completions)
+    }
 
     @Test
     fun cancelledScanTimeoutCannotStopImmediateRetryScan() {

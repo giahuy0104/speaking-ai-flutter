@@ -9,7 +9,9 @@ import '../../../app/learning_scenery.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
 import '../../../l10n/display_language.dart';
-import '../../../core/navigation/active_learning_navigation.dart';
+import '../../../core/navigation/app_navigator.dart';
+import '../../../presentation/navigation/view_bindings.dart';
+import '../../../core/navigation/view_arguments/lesson_intro_arguments.dart';
 import '../application/lesson_media_service.dart';
 import '../data/listening_progress_store.dart';
 import '../data/active_listening_session_store.dart';
@@ -17,7 +19,6 @@ import '../domain/listening_catalog.dart';
 import '../domain/listening_audio_keys.dart';
 import '../domain/listening_content.dart';
 import '../domain/listening_curriculum_flow.dart';
-import 'lesson_intro_screen.dart';
 import 'lesson_recording_history_sheet.dart';
 import 'song_karaoke_screen.dart';
 
@@ -674,26 +675,31 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
       if (!mounted) {
         return;
       }
-      await pushForActiveLearning<void>(
+      await AppNavigator.of(context).push<void>(
         context,
-        (_) => LessonIntroScreen(
-          language: widget.language,
-          startAge: widget.startAge,
-          endAge: widget.endAge,
-          topic: widget.topic,
-          lesson: lesson,
-          controller: widget.controller,
-          topicContent: widget.content,
-          contentGroup: widget.contentGroup,
-          levelContent: widget.levelContent,
-          progressStore: widget.progressStore,
-          mediaService: _mediaService,
-          voicePromptService: _voicePromptService,
-          leadPrompt: leadPrompt,
-          relearnFromBeginning: startFromBeginning,
-          relearnTopicSequence: widget.relearnTopicSequence || pendingRelearn,
-          onTopicCompleted: widget.onTopicCompleted,
-          onCommunicationRequested: widget.onCommunicationRequested,
+        AppRoute<LessonIntroArguments>(
+          name: AppRouteNames.lessonIntro,
+          arguments: LessonIntroArguments(
+            language: widget.language,
+            startAge: widget.startAge,
+            endAge: widget.endAge,
+            topic: widget.topic,
+            lesson: lesson,
+            topicContent: widget.content,
+            contentGroup: widget.contentGroup,
+            levelContent: widget.levelContent,
+            relearnFromBeginning: startFromBeginning,
+            relearnTopicSequence: widget.relearnTopicSequence || pendingRelearn,
+          ),
+          bindings: () => LessonIntroBindings(
+            controller: widget.controller,
+            progressStore: widget.progressStore,
+            mediaService: _mediaService,
+            voicePromptService: _voicePromptService,
+            leadPrompt: leadPrompt,
+            onTopicCompleted: widget.onTopicCompleted,
+            onCommunicationRequested: widget.onCommunicationRequested,
+          ),
         ),
       );
     } finally {

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme_mode.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
@@ -82,6 +83,7 @@ void main() {
       addTearDown(coordinator.dispose);
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           debugShowCheckedModeBanner: false,
           theme: buildAppTheme(),
           darkTheme: buildDarkAppTheme(),
@@ -183,6 +185,7 @@ void main() {
       ValueListenableBuilder<ThemeMode>(
         valueListenable: mode,
         builder: (context, value, _) => MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           darkTheme: buildDarkAppTheme(),
           themeMode: value,
@@ -250,6 +253,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           debugShowCheckedModeBanner: false,
           builder: (context, child) => MediaQuery(
@@ -324,6 +328,7 @@ void main() {
     addTearDown(controller.dispose);
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: Scaffold(
           body: SettingsSheet(
@@ -356,6 +361,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
         builder: _disableAnimations,
@@ -388,6 +394,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
         darkTheme: buildDarkAppTheme(),
@@ -424,6 +431,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
         builder: _disableAnimations,
@@ -467,6 +475,7 @@ void main() {
     addTearDown(controller.dispose);
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: Scaffold(body: SettingsSheet(controller: controller)),
       ),
@@ -491,36 +500,36 @@ void main() {
     expect(find.text('Kiểm tra phần cứng HOMI offline'), findsNothing);
   });
 
-  testWidgets(
-    'Android device settings keep diagnostics out of the parent view',
-    (tester) async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.android;
-      addTearDown(() => debugDefaultTargetPlatformOverride = null);
-      final controller = ConversationController(
-        audioInput: _FakeAudioInput(),
-        aiv0BleControl: _DiagnosticAiv0BleControl(),
-        playbackService: const _FakePlaybackService(),
-        repository: const DemoConversationRepository(),
-        childAge: 6,
-      );
-      addTearDown(controller.dispose);
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: buildAppTheme(),
-          home: Scaffold(body: SettingsSheet(controller: controller)),
-        ),
-      );
-      await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
-      await tester.pump(const Duration(milliseconds: 400));
+  testWidgets('device settings keep diagnostics out of the parent view', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      aiv0BleControl: _DiagnosticAiv0BleControl(),
+      playbackService: const _FakePlaybackService(),
+      repository: const DemoConversationRepository(),
+      childAge: 6,
+    );
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
+        theme: buildAppTheme(),
+        home: Scaffold(body: SettingsSheet(controller: controller)),
+      ),
+    );
+    await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
+    await tester.pump(const Duration(milliseconds: 400));
 
-      expect(find.text('Thiết bị điều khiển (BLE)'), findsOneWidget);
-      expect(find.byKey(const Key('aiv0-technical-details')), findsNothing);
-      expect(find.byKey(const Key('aiv0-native-diagnostics')), findsNothing);
-      expect(find.byKey(const Key('aiv0-packet-details')), findsNothing);
-      expect(find.textContaining('CBErrorDomain:7'), findsNothing);
-      debugDefaultTargetPlatformOverride = null;
-    },
-  );
+    expect(find.text('Thiết bị điều khiển (BLE)'), findsOneWidget);
+    expect(find.byKey(const Key('aiv0-technical-details')), findsNothing);
+    expect(find.byKey(const Key('aiv0-native-diagnostics')), findsNothing);
+    expect(find.byKey(const Key('aiv0-packet-details')), findsNothing);
+    expect(find.textContaining('CBErrorDomain:7'), findsNothing);
+    debugDefaultTargetPlatformOverride = null;
+  });
 
   testWidgets('settings hides removed privacy and guide shortcuts', (
     tester,
@@ -534,6 +543,7 @@ void main() {
     addTearDown(controller.dispose);
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: Scaffold(
           body: SettingsSheet(

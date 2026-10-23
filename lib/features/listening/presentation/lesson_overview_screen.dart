@@ -10,9 +10,9 @@ import '../application/lesson_media_service.dart';
 import '../data/listening_progress_store.dart';
 import '../domain/listening_catalog.dart';
 import '../domain/listening_content.dart';
-import '../../../core/navigation/active_learning_navigation.dart';
-import 'lesson_practice_screen.dart';
-import 'listening_route_names.dart';
+import '../../../core/navigation/app_navigator.dart';
+import '../../../presentation/navigation/view_bindings.dart';
+import '../../../core/navigation/view_arguments/lesson_practice_arguments.dart';
 
 /// Compatibility route for old deep links. New navigation no longer opens this
 /// route; an old link is forwarded directly into the lesson.
@@ -28,6 +28,7 @@ class LessonOverviewScreen extends StatefulWidget {
     this.controller,
     this.topicContent,
     this.contentGroup,
+    this.levelContent,
     this.guideAudioLibrary,
     this.voicePromptService,
     this.englishSentencePause,
@@ -44,6 +45,7 @@ class LessonOverviewScreen extends StatefulWidget {
   final LearningAudioDependencies? controller;
   final ListeningTopicContent? topicContent;
   final ListeningContentAgeGroup? contentGroup;
+  final ListeningLevelContent? levelContent;
   final ListeningProgressStore progressStore;
   final LessonMediaService mediaService;
   final LessonGuideAudioLibrary? guideAudioLibrary;
@@ -65,25 +67,30 @@ class _LessonOverviewScreenState extends State<LessonOverviewScreen> {
 
   Future<void> _forward() async {
     if (!mounted) return;
-    await pushReplacementForActiveLearning<void, void>(
+    await AppNavigator.of(context).replace<void, void>(
       context,
-      (_) => LessonPracticeScreen(
-        language: widget.language,
-        startAge: widget.startAge,
-        endAge: widget.endAge,
-        topic: widget.topic,
-        lesson: widget.lesson,
-        controller: widget.controller,
-        topicContent: widget.topicContent,
-        contentGroup: widget.contentGroup,
-        progressStore: widget.progressStore,
-        mediaService: widget.mediaService,
-        guideAudioLibrary: widget.guideAudioLibrary,
-        voicePromptService: widget.voicePromptService,
-        isRelearn: widget.isRelearn,
-        onTopicCompleted: widget.onTopicCompleted,
+      AppRoute<LessonPracticeArguments>(
+        name: AppRouteNames.lessonPractice,
+        arguments: LessonPracticeArguments(
+          language: widget.language,
+          startAge: widget.startAge,
+          endAge: widget.endAge,
+          topic: widget.topic,
+          lesson: widget.lesson,
+          topicContent: widget.topicContent,
+          contentGroup: widget.contentGroup,
+          levelContent: widget.levelContent,
+          isRelearn: widget.isRelearn,
+        ),
+        bindings: () => LessonPracticeBindings(
+          controller: widget.controller,
+          progressStore: widget.progressStore,
+          mediaService: widget.mediaService,
+          guideAudioLibrary: widget.guideAudioLibrary,
+          voicePromptService: widget.voicePromptService,
+          onTopicCompleted: widget.onTopicCompleted,
+        ),
       ),
-      settings: const RouteSettings(name: ListeningRouteNames.lessonPractice),
     );
   }
 

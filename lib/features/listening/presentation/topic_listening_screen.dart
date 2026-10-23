@@ -11,7 +11,9 @@ import '../../../app/mascot_assets.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
 import '../../../l10n/display_language.dart';
-import '../../../core/navigation/active_learning_navigation.dart';
+import '../../../core/navigation/app_navigator.dart';
+import '../../../presentation/navigation/view_bindings.dart';
+import '../../../core/navigation/view_arguments/topic_lessons_arguments.dart';
 import '../application/lesson_media_service.dart';
 import '../application/listening_voice_navigation_target.dart';
 import '../data/listening_progress_store.dart';
@@ -21,9 +23,7 @@ import '../domain/listening_audio_keys.dart';
 import '../domain/listening_curriculum_flow.dart';
 import '../../voice_navigation/application/main_voice_assistant_flow.dart';
 import '../../voice_navigation/domain/main_assistant_audio_keys.dart';
-import 'listening_route_names.dart';
 import 'lesson_recording_history_sheet.dart';
-import 'topic_lesson_list_screen.dart';
 
 typedef TopicLessonSelectionPrompt =
     Future<void> Function({
@@ -911,29 +911,33 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
       if (!mounted) return;
       widget.onTopicSelected?.call(topicIndex);
       var topicCompletedDuringVisit = false;
-      await pushForActiveLearning<void>(
+      await AppNavigator.of(context).push<void>(
         context,
-        (_) => TopicLessonListScreen(
-          language: widget.language,
-          startAge: selectedAgeCatalog.startAge,
-          endAge: selectedAgeCatalog.endAge,
-          topic: topic,
-          content: content,
-          contentGroup: contentGroup,
-          levelContent: level,
-          controller: widget.controller,
-          ensureDeviceConnected: widget.ensureDeviceConnected,
-          onMainPressed: widget.onMainPressed,
-          onVocabularyRequested: widget.onVocabularyRequested,
-          onVoiceNavigationPause: widget.onVoiceNavigationPause,
-          onVoiceNavigationResume: widget.onVoiceNavigationResume,
-          progressStore: widget.progressStore,
-          voicePromptService: _voicePromptService,
-          songsOnly: true,
-          onTopicCompleted: () => topicCompletedDuringVisit = true,
-          onCommunicationRequested: widget.onCommunicationRequested,
+        AppRoute<TopicLessonsArguments>(
+          name: AppRouteNames.topicLessons,
+          arguments: TopicLessonsArguments(
+            language: widget.language,
+            startAge: selectedAgeCatalog.startAge,
+            endAge: selectedAgeCatalog.endAge,
+            topic: topic,
+            content: content,
+            contentGroup: contentGroup,
+            levelContent: level,
+            songsOnly: true,
+          ),
+          bindings: () => TopicLessonListBindings(
+            controller: widget.controller,
+            ensureDeviceConnected: widget.ensureDeviceConnected,
+            onMainPressed: widget.onMainPressed,
+            onVocabularyRequested: widget.onVocabularyRequested,
+            onVoiceNavigationPause: widget.onVoiceNavigationPause,
+            onVoiceNavigationResume: widget.onVoiceNavigationResume,
+            progressStore: widget.progressStore,
+            voicePromptService: _voicePromptService,
+            onTopicCompleted: () => topicCompletedDuringVisit = true,
+            onCommunicationRequested: widget.onCommunicationRequested,
+          ),
         ),
-        settings: const RouteSettings(name: ListeningRouteNames.topicLessons),
       );
       await _reloadProgress();
       if (topicCompletedDuringVisit && mounted) {
@@ -1049,34 +1053,38 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
       );
       if (!mounted) return;
       var topicCompletedDuringVisit = false;
-      final route = pushForActiveLearning<void>(
+      final route = AppNavigator.of(context).push<void>(
         context,
-        (_) => TopicLessonListScreen(
-          language: widget.language,
-          startAge: selectedAgeCatalog.startAge,
-          endAge: selectedAgeCatalog.endAge,
-          topic: topic,
-          content: content,
-          contentGroup: contentGroup,
-          levelContent: level,
-          controller: widget.controller,
-          ensureDeviceConnected: widget.ensureDeviceConnected,
-          onMainPressed: widget.onMainPressed,
-          onVocabularyRequested: widget.onVocabularyRequested,
-          onVoiceNavigationPause: widget.onVoiceNavigationPause,
-          onVoiceNavigationResume: widget.onVoiceNavigationResume,
-          progressStore: widget.progressStore,
-          voicePromptService: _voicePromptService,
-          initialLessonNumber: lessonNumber,
-          initialLessonLeadPrompt: resumePrompt,
-          initialLessonMainReply: mainReply,
-          coverUntilInitialLessonReturns: coverLessonList,
-          relearnInitialLesson: forceRelearnLesson || relearnTopicSequence,
-          relearnTopicSequence: relearnTopicSequence,
-          onTopicCompleted: () => topicCompletedDuringVisit = true,
-          onCommunicationRequested: widget.onCommunicationRequested,
+        AppRoute<TopicLessonsArguments>(
+          name: AppRouteNames.topicLessons,
+          arguments: TopicLessonsArguments(
+            language: widget.language,
+            startAge: selectedAgeCatalog.startAge,
+            endAge: selectedAgeCatalog.endAge,
+            topic: topic,
+            content: content,
+            contentGroup: contentGroup,
+            levelContent: level,
+            initialLessonNumber: lessonNumber,
+            coverUntilInitialLessonReturns: coverLessonList,
+            relearnInitialLesson: forceRelearnLesson || relearnTopicSequence,
+            relearnTopicSequence: relearnTopicSequence,
+          ),
+          bindings: () => TopicLessonListBindings(
+            controller: widget.controller,
+            ensureDeviceConnected: widget.ensureDeviceConnected,
+            onMainPressed: widget.onMainPressed,
+            onVocabularyRequested: widget.onVocabularyRequested,
+            onVoiceNavigationPause: widget.onVoiceNavigationPause,
+            onVoiceNavigationResume: widget.onVoiceNavigationResume,
+            progressStore: widget.progressStore,
+            voicePromptService: _voicePromptService,
+            initialLessonLeadPrompt: resumePrompt,
+            initialLessonMainReply: mainReply,
+            onTopicCompleted: () => topicCompletedDuringVisit = true,
+            onCommunicationRequested: widget.onCommunicationRequested,
+          ),
         ),
-        settings: const RouteSettings(name: ListeningRouteNames.topicLessons),
       );
       await route;
       _revealCatalog();

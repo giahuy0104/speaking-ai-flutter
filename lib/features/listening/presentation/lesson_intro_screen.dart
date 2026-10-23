@@ -19,10 +19,12 @@ import '../domain/listening_content.dart';
 import '../domain/lesson_star_flow.dart';
 import '../domain/lesson_guide_flow.dart';
 import '../domain/listening_audio_keys.dart';
-import '../../../core/navigation/active_learning_navigation.dart';
+import '../../../core/navigation/app_navigator.dart';
+import '../../../presentation/navigation/view_bindings.dart';
+import '../../../core/navigation/view_arguments/song_karaoke_arguments.dart';
+import '../../../core/navigation/view_arguments/lesson_practice_arguments.dart';
 import '../../voice_navigation/domain/master_navigation_contract.dart';
 import 'lesson_practice_screen.dart';
-import 'listening_route_names.dart';
 import 'song_karaoke_screen.dart';
 
 class LessonIntroScreen extends StatefulWidget {
@@ -817,25 +819,29 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
       _movingForward = false;
       return;
     }
-    await pushReplacementForActiveLearning<void, void>(
+    await AppNavigator.of(context).replace<void, void>(
       context,
-      (_) => LessonPracticeScreen(
-        language: widget.language,
-        startAge: widget.startAge,
-        endAge: widget.endAge,
-        topic: widget.topic,
-        lesson: widget.lesson,
-        controller: widget.controller,
-        topicContent: widget.topicContent,
-        contentGroup: widget.contentGroup,
-        levelContent: widget.levelContent,
-        progressStore: widget.progressStore,
-        mediaService: widget.mediaService,
-        guideAudioLibrary: _guideAudioLibrary,
-        onTopicCompleted: widget.onTopicCompleted,
-        onCommunicationRequested: widget.onCommunicationRequested,
+      AppRoute<LessonPracticeArguments>(
+        name: AppRouteNames.lessonPractice,
+        arguments: LessonPracticeArguments(
+          language: widget.language,
+          startAge: widget.startAge,
+          endAge: widget.endAge,
+          topic: widget.topic,
+          lesson: widget.lesson,
+          topicContent: widget.topicContent,
+          contentGroup: widget.contentGroup,
+          levelContent: widget.levelContent,
+        ),
+        bindings: () => LessonPracticeBindings(
+          controller: widget.controller,
+          progressStore: widget.progressStore,
+          mediaService: widget.mediaService,
+          guideAudioLibrary: _guideAudioLibrary,
+          onTopicCompleted: widget.onTopicCompleted,
+          onCommunicationRequested: widget.onCommunicationRequested,
+        ),
       ),
-      settings: const RouteSettings(name: ListeningRouteNames.lessonPractice),
     );
   }
 
@@ -851,29 +857,33 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
       _movingForward = false;
       return;
     }
-    await pushReplacementForActiveLearning<void, void>(
+    await AppNavigator.of(context).replace<void, void>(
       context,
-      (_) => LessonPracticeScreen(
-        language: widget.language,
-        startAge: widget.startAge,
-        endAge: widget.endAge,
-        topic: widget.topic,
-        lesson: widget.lesson,
-        controller: widget.controller,
-        topicContent: widget.topicContent,
-        contentGroup: widget.contentGroup,
-        levelContent: widget.levelContent,
-        progressStore: widget.progressStore,
-        mediaService: widget.mediaService,
-        guideAudioLibrary: _guideAudioLibrary,
-        voicePromptService: _voicePromptService,
-        initialResumeStage: _resumeStage,
-        isRelearn: widget.relearnFromBeginning,
-        relearnTopicSequence: widget.relearnTopicSequence,
-        onTopicCompleted: widget.onTopicCompleted,
-        onCommunicationRequested: widget.onCommunicationRequested,
+      AppRoute<LessonPracticeArguments>(
+        name: AppRouteNames.lessonPractice,
+        arguments: LessonPracticeArguments(
+          language: widget.language,
+          startAge: widget.startAge,
+          endAge: widget.endAge,
+          topic: widget.topic,
+          lesson: widget.lesson,
+          topicContent: widget.topicContent,
+          contentGroup: widget.contentGroup,
+          levelContent: widget.levelContent,
+          initialResumeStage: _resumeStage,
+          isRelearn: widget.relearnFromBeginning,
+          relearnTopicSequence: widget.relearnTopicSequence,
+        ),
+        bindings: () => LessonPracticeBindings(
+          controller: widget.controller,
+          progressStore: widget.progressStore,
+          mediaService: widget.mediaService,
+          guideAudioLibrary: _guideAudioLibrary,
+          voicePromptService: _voicePromptService,
+          onTopicCompleted: widget.onTopicCompleted,
+          onCommunicationRequested: widget.onCommunicationRequested,
+        ),
       ),
-      settings: const RouteSettings(name: ListeningRouteNames.lessonPractice),
     );
   }
 
@@ -887,18 +897,25 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
       _movingForward = false;
       return;
     }
-    await pushReplacementForActiveLearning<void, void>(
+    await AppNavigator.of(context).replace<void, void>(
       context,
-      (_) => SongKaraokeScreen(
-        language: widget.language,
-        lesson: widget.lesson,
-        mediaService: widget.mediaService,
-        topicTitle:
-            widget.topicContent?.titleEn ??
-            widget.language.choose(widget.topic.titleVi, widget.topic.titleZh),
-        practiceBuilder: _buildPracticeScreen,
+      AppRoute<SongKaraokeArguments>(
+        name: AppRouteNames.songKaraoke,
+        arguments: SongKaraokeArguments(
+          language: widget.language,
+          lesson: widget.lesson,
+          topicTitle:
+              widget.topicContent?.titleEn ??
+              widget.language.choose(
+                widget.topic.titleVi,
+                widget.topic.titleZh,
+              ),
+        ),
+        bindings: () => SongKaraokeBindings(
+          mediaService: widget.mediaService,
+          practiceBuilder: _buildPracticeScreen,
+        ),
       ),
-      settings: const RouteSettings(name: ListeningRouteNames.lessonPractice),
     );
   }
 

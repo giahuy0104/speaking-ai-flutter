@@ -327,6 +327,79 @@ void main() {
   }
 
   testWidgets(
+    'system pairing is retained without claiming MAIN or microphone readiness',
+    (tester) async {
+      final model = _SetupModel()
+        ..permissions = true
+        ..paired = true;
+      await _pump(tester, model);
+      await _toDevice(tester);
+      expect(find.text('Còn một bước kết nối'), findsOneWidget);
+      expect(
+        find.text('Bluetooth đã ghép đôi. Còn kết nối MAIN.'),
+        findsOneWidget,
+      );
+      expect(find.text('Ghép đôi Bluetooth'), findsOneWidget);
+      expect(find.text('Tiếp tục kết nối'), findsOneWidget);
+      expect(find.text('Chưa tìm thấy HOMI'), findsNothing);
+      expect(find.byKey(const Key('startup-confirm-age')), findsNothing);
+      final footer = tester.getBottomRight(
+        find.byKey(const Key('startup-action-footer')),
+      );
+      await tester.tap(find.byKey(const Key('startup-setup-h20')));
+      await tester.pumpAndSettle();
+      expect(find.text('Tiếp tục kết nối'), findsOneWidget);
+      expect(find.text('HOMI đã sẵn sàng!'), findsNothing);
+      expect(find.byKey(const Key('startup-confirm-age')), findsNothing);
+      expect(
+        tester.getBottomRight(find.byKey(const Key('startup-action-footer'))),
+        footer,
+      );
+      expect(model.completed, 0);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'first pairing may outlast 45 seconds but stays cancellable and bounded',
+    (tester) async {
+      final pending = Completer<bool>();
+      final model = _SetupModel()..permissions = true;
+      var cancelled = 0;
+      model.connect = () => pending.future;
+      model.cancel = () async {
+        cancelled++;
+      };
+      await _pump(tester, model);
+      await _toDevice(tester);
+      await tester.tap(find.byKey(const Key('startup-setup-h20')));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 46));
+      expect(cancelled, 0);
+      expect(
+        find.byKey(const Key('startup-cancel-connection')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('startup-connection-progress')),
+        findsOneWidget,
+      );
+      await tester.pump(const Duration(seconds: 30));
+      await tester.pumpAndSettle();
+      expect(cancelled, 1);
+      expect(
+        find.byKey(const Key('startup-connection-progress')),
+        findsNothing,
+      );
+      expect(find.text('Thử lại'), findsOneWidget);
+      pending.complete(false);
+      await tester.pumpAndSettle();
+      expect(cancelled, 1);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
     'cancelling a round leaves retry available and ignores its late completion',
     (tester) async {
       final first = Completer<bool>();
@@ -444,6 +517,7 @@ class _SetupModel {
   bool microphonePermission = false;
   bool ble = false;
   bool mic = false;
+  bool paired = false;
   int completed = 0;
   String? permissionError;
   BluetoothPowerController? power;
@@ -482,6 +556,7 @@ Future<void> _pump(
               bluetoothGranted: model.permissions,
               h20BleConnected: model.ble,
               h20HfpConfigured: model.mic,
+              h20AudioPaired: model.paired,
               selectedAge: 6,
               aiSubprocessors: 'HOMI',
               dataRetentionSummary: 'Test',

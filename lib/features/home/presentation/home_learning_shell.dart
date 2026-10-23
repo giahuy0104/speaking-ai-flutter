@@ -12,7 +12,10 @@ import '../../../app/homi_bottom_navigation.dart';
 import '../../../app/homi_connection_presentation.dart';
 import '../../../config/app_config.dart';
 import '../../../l10n/display_language.dart';
-import '../../../core/navigation/active_learning_navigation.dart';
+import '../../../core/navigation/app_navigator.dart';
+import '../../../core/navigation/app_page_transitions.dart';
+import '../../../presentation/navigation/view_bindings.dart';
+import '../../../core/navigation/view_arguments/topic_listening_arguments.dart';
 import '../../../core/device/active_learning_module.dart';
 import '../../../core/platform/background_learning_session.dart';
 import '../../../core/platform/platform_access_policy.dart';
@@ -23,13 +26,9 @@ import '../../listening/data/active_listening_session_store.dart';
 import '../../listening/data/listening_progress_store.dart';
 import '../../listening/domain/listening_content.dart';
 import '../../listening/application/lesson_media_service.dart';
-import '../../listening/presentation/listening_route_names.dart';
-import '../../listening/presentation/topic_listening_screen.dart';
 import '../../onboarding/application/onboarding_progress_store.dart';
 import '../../onboarding/presentation/user_onboarding_tour.dart';
 import '../../../core/privacy/parental_gate.dart';
-import '../../settings/presentation/history_sheet.dart';
-import '../../settings/presentation/settings_sheet.dart';
 import '../../settings/application/parent_media_settings.dart';
 import '../../vocabulary/data/minhqnd_dictionary_provider.dart';
 import '../../vocabulary/application/vocabulary_audio_service.dart';
@@ -447,17 +446,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     );
     _builtChildAge = widget.controller.childAge;
     final screenSize = MediaQuery.sizeOf(context);
-    final compact = screenSize.height < 900;
     final safeTop = MediaQuery.paddingOf(context).top;
-    final railTop =
-        (screenSize.height *
-                (_isIos
-                    ? 0.27
-                    : compact
-                    ? 0.29
-                    : 0.27))
-            .clamp(safeTop + 148, screenSize.height - 238)
-            .toDouble();
+    final railTop = (screenSize.height * 0.195)
+        .clamp(safeTop + 132, screenSize.height - 238)
+        .toDouble();
     return DisplayLanguageScope(
       language: widget.controller.displayLanguage,
       child: PopScope<void>(
@@ -475,6 +467,9 @@ class _HomeLearningShellState extends State<HomeLearningShell>
               PageView(
                 key: const Key('home-learning-page-view'),
                 controller: _pageController,
+                // Keep logical indices and mounted state; vocabulary enters
+                // from the left, matching the shortcut on Home's left edge.
+                reverse: true,
                 physics: const NeverScrollableScrollPhysics(),
                 // Keep the adjacent vocabulary state mounted so a spoken
                 // navigation command can activate its non-visual workflow
@@ -549,7 +544,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                       key: const Key('vocabulary-edge-tab'),
                       edge: HomeRailEdge.left,
                       label: context.tr('Từ vựng', '词汇'),
-                      icon: Icons.menu_book_rounded,
+                      icon: Icons.menu_book_outlined,
                       color: AppColors.primaryNavy,
                       onPressed: _showVocabulary,
                     ),
@@ -564,7 +559,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                       key: const Key('topic-listening-edge-tab'),
                       edge: HomeRailEdge.right,
                       label: context.tr('Chủ đề', '主题'),
-                      icon: Icons.grid_view_rounded,
+                      icon: Icons.grid_view_outlined,
                       color: AppColors.primaryNavy,
                       onPressed: _openTopicListening,
                     ),
@@ -1515,83 +1510,73 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           ? Duration.zero
           : const Duration(milliseconds: 260);
       Route<void>? topicRoute;
-      final routeClosed = pushForActiveLearning<void>(
+      final routeClosed = AppNavigator.of(context).push<void>(
         context,
-        (_) => TopicListeningScreen(
-          language: widget.controller.displayLanguage,
-          childAge: widget.controller.childAge,
-          controller: widget.controller,
-          ensureDeviceConnected: widget.ensureDeviceConnected,
-          onMainPressed: widget.onScreenMainPressed,
-          onVocabularyRequested: _showVocabulary,
-          onVoiceNavigationPause: () =>
-              _pauseVoiceNavigation('listening_media_opened'),
-          onVoiceNavigationResume: _resumeVoiceNavigation,
-          initialVoiceTarget: initialVoiceTarget,
-          initialVoiceActivationGate: initialVoiceActivationGate,
-          onTopicSelected: (index) => _activeVoiceTopicIndex = index,
-          onChildAgeChanged: widget.onChildAgeChanged,
-          iosTopicRecognitionFailureRevision: widget
-              .voiceNavigationController
-              ?.iosTopicRecognitionFailureRevision,
-          onRequestParentAccess: _requestTopicAgeAccess,
-          onCommunicationRequested: widget.controller.clearPresentationResult,
-          onLessonSelectionRequested:
-              ({
-                required childAge,
-                required topicNumber,
-                required topicContent,
-                required completedLessonNumbers,
-              }) async {
-                await widget.voiceNavigationController
-                    ?.activateLessonSelectionForTopic(
-                      childAge: childAge,
-                      topicNumber: topicNumber,
-                      topicContent: topicContent,
-                      completedLessonNumbers: completedLessonNumbers,
-                    );
-              },
-          onTopicSelectionRequested:
-              ({
-                required childAge,
-                required topicNumbers,
-                required completedTopicNumbers,
-                required courseCompleted,
-              }) async {
-                return await widget.voiceNavigationController
-                        ?.activateTopicSelection(
-                          childAge: childAge,
-                          topicNumbers: topicNumbers,
-                          completedTopicNumbers: completedTopicNumbers,
-                          courseCompleted: courseCompleted,
-                        ) ??
-                    false;
-              },
-          contentFuture: widget.listeningContentFuture,
-          progressStore: widget.listeningProgressStore,
+        AppRoute<TopicListeningArguments>(
+          name: AppRouteNames.topicCatalog,
+          arguments: TopicListeningArguments(
+            language: widget.controller.displayLanguage,
+            childAge: widget.controller.childAge,
+            initialVoiceTarget: initialVoiceTarget,
+          ),
+          bindings: () => TopicListeningBindings(
+            controller: widget.controller,
+            ensureDeviceConnected: widget.ensureDeviceConnected,
+            onMainPressed: widget.onScreenMainPressed,
+            onVocabularyRequested: _showVocabulary,
+            initialVoiceActivationGate: initialVoiceActivationGate,
+            onVoiceNavigationPause: () =>
+                _pauseVoiceNavigation('listening_media_opened'),
+            onVoiceNavigationResume: _resumeVoiceNavigation,
+            onTopicSelected: (index) => _activeVoiceTopicIndex = index,
+            onChildAgeChanged: widget.onChildAgeChanged,
+            iosTopicRecognitionFailureRevision: widget
+                .voiceNavigationController
+                ?.iosTopicRecognitionFailureRevision,
+            onRequestParentAccess: _requestTopicAgeAccess,
+            onCommunicationRequested: widget.controller.clearPresentationResult,
+            onLessonSelectionRequested:
+                ({
+                  required childAge,
+                  required topicNumber,
+                  required topicContent,
+                  required completedLessonNumbers,
+                }) async {
+                  await widget.voiceNavigationController
+                      ?.activateLessonSelectionForTopic(
+                        childAge: childAge,
+                        topicNumber: topicNumber,
+                        topicContent: topicContent,
+                        completedLessonNumbers: completedLessonNumbers,
+                      );
+                },
+            onTopicSelectionRequested:
+                ({
+                  required childAge,
+                  required topicNumbers,
+                  required completedTopicNumbers,
+                  required courseCompleted,
+                }) async {
+                  return await widget.voiceNavigationController
+                          ?.activateTopicSelection(
+                            childAge: childAge,
+                            topicNumbers: topicNumbers,
+                            completedTopicNumbers: completedTopicNumbers,
+                            courseCompleted: courseCompleted,
+                          ) ??
+                      false;
+                },
+            contentFuture: widget.listeningContentFuture,
+            progressStore: widget.listeningProgressStore,
+          ),
         ),
-        settings: const RouteSettings(name: ListeningRouteNames.topicCatalog),
         onRouteCreated: (route) {
           topicRoute = route;
           onRouteCreated?.call(route);
         },
         foregroundTransitionDuration: routeDuration,
         foregroundReverseTransitionDuration: routeDuration,
-        foregroundTransitionsBuilder:
-            (_, animation, secondaryAnimation, child) {
-              final curved = CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeOutCubic,
-                reverseCurve: Curves.easeInCubic,
-              );
-              return SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0.08, 0),
-                  end: Offset.zero,
-                ).animate(curved),
-                child: FadeTransition(opacity: curved, child: child),
-              );
-            },
+        foregroundTransitionsBuilder: slidePageFromRight,
       );
       if (routePushed != null && !routePushed.isCompleted) {
         routePushed.complete(true);
@@ -1681,7 +1666,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       return;
     }
     await _pauseVoiceNavigation('settings_opened');
-    await _openSettingsSheet();
+    await _openSettingsPage();
   }
 
   Future<bool> _requestSettingsAccess() {
@@ -1698,30 +1683,31 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     return showParentalGate(context);
   }
 
-  Future<void> _openSettingsSheet() async {
+  Future<void> _openSettingsPage() async {
     await widget.controller.markParentDiagnosticsOpened();
     if (!mounted) return;
     widget.onModalVisibilityChanged?.call(true);
     try {
-      await showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        showDragHandle: true,
-        builder: (_) => SettingsSheet(
-          controller: widget.controller,
-          connectionCoordinator: widget.connectionCoordinator,
-          themeMode: widget.themeMode,
-          onThemeModeChanged: widget.onThemeModeChanged,
-          onChildAgeChanged: widget.onChildAgeChanged,
-          config: widget.config,
-          privacyConsentGranted: widget.privacyConsentGranted,
-          voiceAccessEnabled: widget.voiceAccessEnabled,
-          onRequestVoiceAccess: widget.onRequestVoiceAccess,
-          onManagePrivacyConsent: widget.onManagePrivacyConsent,
-          onRevokePrivacyConsent: widget.onRevokePrivacyConsent,
-          stopMediaWhenBackgrounded: _stopMediaWhenBackgrounded,
-          onStopMediaWhenBackgroundedChanged: _setStopMediaWhenBackgrounded,
+      await AppNavigator.of(context).pushPage<void>(
+        context,
+        AppRoute<void>(
+          name: AppRouteNames.settings,
+          arguments: null,
+          bindings: () => SettingsBindings(
+            controller: widget.controller,
+            connectionCoordinator: widget.connectionCoordinator,
+            themeMode: widget.themeMode,
+            onThemeModeChanged: widget.onThemeModeChanged,
+            onChildAgeChanged: widget.onChildAgeChanged,
+            config: widget.config,
+            privacyConsentGranted: widget.privacyConsentGranted,
+            voiceAccessEnabled: widget.voiceAccessEnabled,
+            onRequestVoiceAccess: widget.onRequestVoiceAccess,
+            onManagePrivacyConsent: widget.onManagePrivacyConsent,
+            onRevokePrivacyConsent: widget.onRevokePrivacyConsent,
+            stopMediaWhenBackgrounded: _stopMediaWhenBackgrounded,
+            onStopMediaWhenBackgroundedChanged: _setStopMediaWhenBackgrounded,
+          ),
         ),
       );
     } finally {
@@ -1766,12 +1752,13 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   Future<void> _openHistorySheet() async {
     widget.onModalVisibilityChanged?.call(true);
     try {
-      await showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        showDragHandle: true,
-        builder: (_) => HistorySheet(controller: widget.controller),
+      await AppNavigator.of(context).showSheet<void>(
+        context,
+        AppRoute<void>(
+          name: AppRouteNames.history,
+          arguments: null,
+          bindings: () => HistoryBindings(controller: widget.controller),
+        ),
       );
     } finally {
       widget.onModalVisibilityChanged?.call(false);

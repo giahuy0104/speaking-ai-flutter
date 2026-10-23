@@ -120,7 +120,7 @@ void main() {
       await _pumpAsync(tester);
       expect(app.scans, hasLength(1));
 
-      await tester.pump(const Duration(seconds: 45));
+      await tester.pump(const Duration(seconds: 75));
       await _pumpAsync(tester);
 
       expect(find.text('Cần kết nối thiết bị'), findsOneWidget);

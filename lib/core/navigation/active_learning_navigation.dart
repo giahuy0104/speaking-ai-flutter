@@ -13,7 +13,8 @@ bool isActiveLearningAppBackground() {
           lifecycle == AppLifecycleState.paused);
 }
 
-Route<T> _activeLearningRoute<T extends Object?>(
+/// Shared route construction for direct helpers and MaterialApp.onGenerateRoute.
+Route<T> createActiveLearningRoute<T extends Object?>(
   WidgetBuilder builder, {
   required bool mobileBackground,
   RouteSettings? settings,
@@ -75,7 +76,7 @@ Future<T?> pushForActiveLearning<T extends Object?>(
 }) {
   final binding = WidgetsBinding.instance;
   final mobileBackground = isActiveLearningAppBackground();
-  final route = _activeLearningRoute<T>(
+  final route = createActiveLearningRoute<T>(
     builder,
     mobileBackground: mobileBackground,
     settings: settings,
@@ -103,7 +104,7 @@ pushReplacementForActiveLearning<T extends Object?, TO extends Object?>(
   final binding = WidgetsBinding.instance;
   final mobileBackground = isActiveLearningAppBackground();
   final navigation = Navigator.of(context).pushReplacement<T, TO>(
-    _activeLearningRoute<T>(
+    createActiveLearningRoute<T>(
       builder,
       mobileBackground: mobileBackground,
       settings: settings,

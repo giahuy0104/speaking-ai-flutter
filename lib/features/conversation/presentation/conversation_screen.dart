@@ -149,7 +149,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                             key: const Key('conversation-home-scroll'),
                             padding: EdgeInsets.fromLTRB(
                               24,
-                              compact ? 8 : 28,
+                              compact ? 24 : 64,
                               24,
                               10,
                             ),

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
@@ -54,6 +55,7 @@ void main() {
       RepaintBoundary(
         key: captureKey,
         child: MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           debugShowCheckedModeBanner: false,
           theme: buildAppTheme(),
           home: Scaffold(
@@ -439,6 +441,7 @@ void main() {
         RepaintBoundary(
           key: captureKey,
           child: MaterialApp(
+            onGenerateRoute: createAppRouter().onGenerateRoute,
             debugShowCheckedModeBanner: false,
             theme: buildAppTheme(),
             home: Scaffold(
@@ -585,7 +588,10 @@ void main() {
       await _tapVisible(tester, find.byTooltip('Quét và kết nối'));
       await tester.pump();
       await tester.pumpWidget(
-        const MaterialApp(home: Scaffold(body: Text('Closed'))),
+        MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
+          home: Scaffold(body: Text('Closed')),
+        ),
       );
       expect(controller.cancelCalls, 1);
       pending.complete(const <Aiv0BleDevice>[
@@ -678,6 +684,7 @@ Future<void> _openSettings(
 }) async {
   await tester.pumpWidget(
     MaterialApp(
+      onGenerateRoute: createAppRouter().onGenerateRoute,
       theme: buildAppTheme(),
       home: Scaffold(
         body: SettingsSheet(

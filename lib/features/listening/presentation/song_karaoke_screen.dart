@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
 import '../../../app/mascot_assets.dart';
 import '../../../core/device/active_learning_module.dart';
-import '../../../core/navigation/active_learning_navigation.dart';
+import '../../../core/navigation/app_navigator.dart';
 import '../../../l10n/display_language.dart';
 import '../../voice_navigation/domain/master_navigation_contract.dart';
 import '../application/lesson_media_service.dart';
@@ -568,10 +568,9 @@ class _SongKaraokeScreenState extends State<SongKaraokeScreen>
     if (!mounted) {
       return;
     }
-    await pushReplacementForActiveLearning<void, void>(
+    await AppNavigator.of(
       context,
-      widget.practiceBuilder,
-    );
+    ).replaceLearningContinuation<void, void>(context, widget.practiceBuilder);
   }
 
   @override
@@ -650,7 +649,7 @@ class _SongKaraokeScreenState extends State<SongKaraokeScreen>
       return;
     }
     if (action == _SongEndAction.practice) {
-      await pushReplacementForActiveLearning<void, void>(
+      await AppNavigator.of(context).replaceLearningContinuation<void, void>(
         context,
         widget.practiceBuilder,
       );

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
@@ -1493,6 +1494,7 @@ Widget _subject({
   Future<void> Function(String, String, String)? onNeedsPractice,
 }) {
   return MaterialApp(
+    onGenerateRoute: createAppRouter().onGenerateRoute,
     debugShowCheckedModeBanner: false,
     theme: buildAppTheme(),
     home: LessonChallengeScreen(

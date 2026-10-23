@@ -9,6 +9,7 @@ import '../../../app/device_connection_feedback_overlay.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
 import '../../listening/domain/listening_catalog.dart';
+import 'homi_pairing_guide.dart';
 
 enum _ParentSetupStep { privacy, profile, permissions }
 
@@ -40,6 +41,7 @@ class IosStartupSetupScreen extends StatefulWidget {
     this.androidOfflineEnglishModelDownloadAllowed = false,
     this.onAndroidOfflineEnglishModelDownloadChanged,
     this.onChooseH20Microphone,
+    this.onOpenBluetoothSettings,
     this.h20DeviceName,
     this.privacyPolicyUri,
     this.termsUri,
@@ -60,6 +62,7 @@ class IosStartupSetupScreen extends StatefulWidget {
   final bool h20HfpConfigured;
   final bool allowPhoneMicFallback;
   final bool allowBleOnlySetup;
+
   final int? selectedAge;
   final String aiSubprocessors;
   final String dataRetentionSummary;
@@ -72,6 +75,10 @@ class IosStartupSetupScreen extends StatefulWidget {
   final VoidCallback onRetryPermissions;
   final Future<bool> Function() onSetupH20;
   final Future<bool> Function()? onChooseH20Microphone;
+
+  /// Opens Settings for the audio guide; without it the connect action only
+  /// connects.
+  final Future<void> Function()? onOpenBluetoothSettings;
   final ValueChanged<int> onAgeSelected;
   final Future<void> Function() onCompleteSetup;
   final bool androidOfflineEnglishModelOptionAvailable;
@@ -84,13 +91,15 @@ class IosStartupSetupScreen extends StatefulWidget {
   State<IosStartupSetupScreen> createState() => _IosStartupSetupScreenState();
 }
 
-class _IosStartupSetupScreenState extends State<IosStartupSetupScreen> {
+class _IosStartupSetupScreenState extends State<IosStartupSetupScreen>
+    with WidgetsBindingObserver {
   _ParentSetupStep _step = _ParentSetupStep.privacy;
   late bool _adultRoleConfirmed;
   late bool _legalReviewCompleted;
   late bool _voiceDataAccepted;
   bool _h20SetupRequested = false;
   bool _choiceInProgress = false;
+  bool _awaitingPairingReturn = false;
   DeviceConnectionFeedbackStage? _deviceConnectionFeedbackStage;
 
   bool get _privacyChoiceMade =>
@@ -118,6 +127,7 @@ class _IosStartupSetupScreenState extends State<IosStartupSetupScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _adultRoleConfirmed = widget.privacyConsentGranted;
     _legalReviewCompleted = widget.privacyConsentGranted;
     _voiceDataAccepted = widget.privacyConsentGranted;
@@ -535,7 +545,7 @@ class _IosStartupSetupScreenState extends State<IosStartupSetupScreen> {
               busy: _choiceInProgress,
               onPressed: _choiceInProgress || _deviceConnectionAccepted
                   ? null
-                  : _setupH20,
+                  : _connectHomi,
             ),
             if (widget.allowPhoneMicFallback &&
                 !widget.h20HfpConfigured &&
@@ -614,6 +624,45 @@ class _IosStartupSetupScreenState extends State<IosStartupSetupScreen> {
     await widget.onContinueWithoutVoice();
     if (mounted) {
       setState(() => _step = _ParentSetupStep.profile);
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed || !_awaitingPairingReturn) return;
+    // Back from Settings: check the connection without another tap.
+    _awaitingPairingReturn = false;
+    if (!_choiceInProgress) unawaited(_connectHomi());
+  }
+
+  /// MAIN connects over BLE first; once MAIN is up without HOMI audio, the
+  /// guide shows how to connect audio in Settings.
+  Future<void> _connectHomi() async {
+    if (_choiceInProgress) return;
+    await _setupH20();
+    if (!mounted || widget.onOpenBluetoothSettings == null) return;
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted || _choiceInProgress) return;
+    if (!widget.h20BleConnected || widget.h20HfpConfigured) return;
+    final action = await showHomiAudioGuide(
+      context,
+      HomiAudioGuide.enableAudio,
+    );
+    if (!mounted) return;
+    switch (action) {
+      case HomiGuideAction.openSettings:
+        _awaitingPairingReturn = true;
+        await widget.onOpenBluetoothSettings!();
+      case HomiGuideAction.checkAgain:
+        await _connectHomi();
+      case null:
+        break;
     }
   }
 

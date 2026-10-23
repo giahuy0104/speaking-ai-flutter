@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
@@ -214,6 +215,7 @@ void main() {
     final prompts = _KeyedVoicePromptService();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: LessonReviewScreen(
           language: DisplayLanguage.vietnamese,
@@ -2716,6 +2718,7 @@ void main() {
     final progressStore = _MemoryProgressStore();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: Builder(
           builder: (context) => Scaffold(
@@ -2749,6 +2752,9 @@ void main() {
     await tester.pump();
     await tester.pump();
     await _recordAndContinue(tester);
+    // Wait for review to slide in before pressing its primary action.
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump();
 
     expect(
       find.descendant(
@@ -2760,6 +2766,7 @@ void main() {
     await tester.tap(find.byKey(const Key('post-lesson-primary-action')));
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump();
 
     expect(find.byKey(const Key('selected-listening-topic')), findsOneWidget);
     expect(find.byType(LessonPracticeScreen), findsNothing);
@@ -2777,6 +2784,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         initialRoute: ListeningRouteNames.topicCatalog,
         routes: <String, WidgetBuilder>{
@@ -2820,13 +2828,20 @@ void main() {
     await tester.tap(find.byKey(const Key('open-topic-detail')));
     await tester.pump();
     await tester.pump();
+    // The topic detail must finish entering before its button can be tapped.
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump();
     await tester.tap(find.byKey(const Key('open-catalog-return-lesson')));
     await tester.pump();
     await tester.pump();
     await _recordAndContinue(tester);
+    // Wait for review to slide in before pressing its primary action.
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump();
     await tester.tap(find.byKey(const Key('post-lesson-primary-action')));
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump();
 
     expect(find.byKey(const Key('selected-age-topic-catalog')), findsOneWidget);
     expect(find.byKey(const Key('topic-detail')), findsNothing);
@@ -2868,6 +2883,7 @@ void main() {
     final mediaService = _GuidedMediaService();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: LessonReviewScreen(
           language: DisplayLanguage.vietnamese,
@@ -2933,6 +2949,7 @@ void main() {
     final voicePrompt = _FakeVoicePromptService();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: LessonReviewScreen(
           language: DisplayLanguage.vietnamese,
@@ -2971,6 +2988,7 @@ void main() {
       ActiveLearningModuleScope(
         registry: registry,
         child: MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: LessonReviewScreen(
             language: DisplayLanguage.vietnamese,
@@ -3007,6 +3025,7 @@ void main() {
     final mediaService = _ControlledLessonAudioMediaService();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: LessonReviewScreen(
           language: DisplayLanguage.vietnamese,
@@ -3083,6 +3102,7 @@ void main() {
       final voicePrompt = _FakeVoicePromptService();
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: LessonReviewScreen(
             language: DisplayLanguage.vietnamese,
@@ -3116,6 +3136,7 @@ void main() {
     final voicePrompt = _FakeVoicePromptService();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: LessonReviewScreen(
           language: DisplayLanguage.vietnamese,
@@ -3148,6 +3169,7 @@ void main() {
     final voicePrompt = _FakeVoicePromptService();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: LessonReviewScreen(
           language: DisplayLanguage.vietnamese,
@@ -3179,6 +3201,7 @@ void main() {
     final voicePrompt = _FakeVoicePromptService();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: LessonReviewScreen(
           language: DisplayLanguage.vietnamese,
@@ -3214,6 +3237,7 @@ void main() {
       ActiveLearningModuleScope(
         registry: registry,
         child: MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: LessonReviewScreen(
             language: DisplayLanguage.vietnamese,
@@ -3315,6 +3339,7 @@ void main() {
         );
         await tester.pumpWidget(
           MaterialApp(
+            onGenerateRoute: createAppRouter().onGenerateRoute,
             theme: buildAppTheme(),
             home: LessonIntroScreen(
               language: DisplayLanguage.vietnamese,
@@ -3360,6 +3385,7 @@ void main() {
     final introUri = Uri.parse('https://example.test/intro.mp3');
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: LessonIntroScreen(
           language: DisplayLanguage.vietnamese,
@@ -3406,6 +3432,7 @@ void main() {
       final lesson = _lesson(v4: true, combinedHookAudioUri: hookUri);
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: LessonIntroScreen(
             language: DisplayLanguage.vietnamese,
@@ -3525,6 +3552,7 @@ void main() {
       final prompts = _AuthoredIntroVoicePromptService();
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: LessonIntroScreen(
             language: DisplayLanguage.vietnamese,
@@ -3587,6 +3615,7 @@ void main() {
             final prompts = _AuthoredIntroVoicePromptService();
             await tester.pumpWidget(
               MaterialApp(
+                onGenerateRoute: createAppRouter().onGenerateRoute,
                 theme: buildAppTheme(),
                 home: LessonIntroScreen(
                   language: DisplayLanguage.vietnamese,
@@ -3637,6 +3666,7 @@ void main() {
       final lesson = _lesson(v4: true, combinedHookAudioUri: hookUri);
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: LessonIntroScreen(
             language: DisplayLanguage.vietnamese,
@@ -3702,6 +3732,7 @@ void main() {
       await prompts.repository.ensureLoaded();
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: LessonIntroScreen(
             language: DisplayLanguage.vietnamese,
@@ -3759,6 +3790,7 @@ void main() {
     );
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: LessonIntroScreen(
           language: DisplayLanguage.vietnamese,
@@ -3792,6 +3824,7 @@ void main() {
       final voicePrompt = _FakeVoicePromptService();
       await tester.pumpWidget(
         MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: LessonIntroScreen(
             language: DisplayLanguage.vietnamese,
@@ -3834,6 +3867,7 @@ void main() {
       ActiveLearningModuleScope(
         registry: registry,
         child: MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: LessonReviewScreen(
             language: DisplayLanguage.vietnamese,
@@ -3889,6 +3923,7 @@ void main() {
       ActiveLearningModuleScope(
         registry: registry,
         child: MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: LessonIntroScreen(
             language: DisplayLanguage.vietnamese,
@@ -3941,6 +3976,7 @@ void main() {
       ActiveLearningModuleScope(
         registry: registry,
         child: MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
           home: LessonIntroScreen(
             language: DisplayLanguage.vietnamese,
@@ -3981,6 +4017,7 @@ void main() {
     await _usePhoneSurface(tester);
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: LessonIntroScreen(
           language: DisplayLanguage.vietnamese,
@@ -4053,6 +4090,7 @@ Widget _subject(
   VoidCallback? onTopicCompleted,
 }) {
   return MaterialApp(
+    onGenerateRoute: createAppRouter().onGenerateRoute,
     debugShowCheckedModeBanner: false,
     theme: buildAppTheme(),
     builder: (context, child) {

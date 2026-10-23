@@ -1,3 +1,4 @@
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_gain.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/data/lesson_recording_history_store.dart';
@@ -12,6 +13,7 @@ void main() {
     final media = _RecordingMediaService();
     await tester.pumpWidget(
       MaterialApp(
+        onGenerateRoute: createAppRouter().onGenerateRoute,
         home: Scaffold(body: LessonRecordingHistorySheet(mediaService: media)),
       ),
     );

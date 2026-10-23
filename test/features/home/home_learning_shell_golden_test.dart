@@ -1,3 +1,6 @@
+import 'dart:ui' as ui;
+
+import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
@@ -5,8 +8,10 @@ import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/data/demo_conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart';
+import 'package:ai_speaking_flutter_app/features/home/presentation/home_mode_rail.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_listening_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,7 +46,7 @@ void main() {
     variant: TargetPlatformVariant.only(TargetPlatform.iOS),
   );
 
-  testWidgets('disconnected home matches the approved navy tabs', (
+  testWidgets('disconnected home matches the approved cloud tabs', (
     tester,
   ) async {
     final controller = await _pumpGoldenApp(
@@ -54,9 +59,70 @@ void main() {
     expect(find.text('Kết nối với HOMI để bắt đầu sử dụng'), findsOneWidget);
     await expectLater(
       find.byType(HomeLearningShell),
-      matchesGoldenFile('goldens/home-disconnected-navy-tabs-458x954.png'),
+      matchesGoldenFile('goldens/home-disconnected-cloud-tabs-458x954.png'),
     );
   });
+
+  for (final device
+      in <({String name, Size size, double dpr, EdgeInsets insets})>[
+        (
+          name: 'android-1080x2400',
+          size: const Size(360, 800),
+          dpr: 3,
+          insets: const EdgeInsets.only(top: 36, bottom: 42),
+        ),
+        (
+          name: 'android-1080x2400-411dp',
+          size: const Size(1080 / 2.625, 2400 / 2.625),
+          dpr: 2.625,
+          insets: const EdgeInsets.only(top: 40, bottom: 24),
+        ),
+      ]) {
+    testWidgets('cloud labels stay inside the face on ${device.name}', (
+      tester,
+    ) async {
+      final controller = await _pumpGoldenApp(
+        tester,
+        surfaceSize: device.size,
+        devicePixelRatio: device.dpr,
+        safeInsets: device.insets,
+        deviceReady: false,
+      );
+      addTearDown(controller.dispose);
+      final tabs = find.byType(HomeModeRail);
+      expect(tabs, findsNWidgets(2));
+      final left = tester.getRect(tabs.at(0));
+      final right = tester.getRect(tabs.at(1));
+      expect(left.top, right.top);
+      expect(left.left, 0);
+      expect(right.right, closeTo(device.size.width, 0.01));
+      for (final tab in [tabs.at(0), tabs.at(1)]) {
+        final icon = tester.getRect(
+          find.descendant(
+            of: tab,
+            matching: find.byKey(const Key('home-mode-rail-icon')),
+          ),
+        );
+        final label = tester.getRect(
+          find.descendant(
+            of: tab,
+            matching: find.byKey(const Key('home-mode-rail-label')),
+          ),
+        );
+        expect(icon.center.dx, closeTo(label.center.dx, 0.01));
+        expect(label.top - icon.bottom, inInclusiveRange(8, 30));
+        expect(tester.getRect(tab).contains(label.topLeft), isTrue);
+        expect(tester.getRect(tab).contains(label.bottomRight), isTrue);
+      }
+      expect(tester.takeException(), isNull);
+      await _expectCloudContentOnWhiteFace(tester, device.dpr);
+      await _expectRoundedCloudCaps(tester, device.dpr);
+      await expectLater(
+        find.byType(HomeLearningShell),
+        matchesGoldenFile('goldens/home-cloud-responsive-${device.name}.png'),
+      );
+    });
+  }
 
   testWidgets(
     'small disconnected home keeps both tabs readable with large text',
@@ -84,10 +150,12 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Kết nối HOMI').hitTestable(), findsOneWidget);
+      await _expectCloudContentOnWhiteFace(tester, 1);
+      await _expectRoundedCloudCaps(tester, 1);
       await expectLater(
         find.byType(HomeLearningShell),
         matchesGoldenFile(
-          'goldens/home-disconnected-navy-tabs-320x568-large-text.png',
+          'goldens/home-disconnected-cloud-tabs-320x568-large-text.png',
         ),
       );
     },
@@ -195,15 +263,24 @@ Future<ConversationController> _pumpGoldenApp(
   WidgetTester tester, {
   ThemeMode themeMode = ThemeMode.light,
   Size surfaceSize = const Size(390, 844),
+  double devicePixelRatio = 1,
+  EdgeInsets safeInsets = EdgeInsets.zero,
   bool? deviceReady,
   double textScale = 1,
 }) async {
   SharedPreferences.setMockInitialValues(<String, Object>{});
   await _loadGoldenFonts();
-  tester.view.physicalSize = surfaceSize;
-  tester.view.devicePixelRatio = 1;
+  tester.view.physicalSize = surfaceSize * devicePixelRatio;
+  tester.view.devicePixelRatio = devicePixelRatio;
+  tester.view.padding = FakeViewPadding(
+    top: safeInsets.top * devicePixelRatio,
+    bottom: safeInsets.bottom * devicePixelRatio,
+  );
+  tester.view.viewPadding = tester.view.padding;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
+  addTearDown(tester.view.resetPadding);
+  addTearDown(tester.view.resetViewPadding);
   await tester.binding.setSurfaceSize(surfaceSize);
   addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -215,6 +292,7 @@ Future<ConversationController> _pumpGoldenApp(
   );
   await tester.pumpWidget(
     MaterialApp(
+      onGenerateRoute: createAppRouter().onGenerateRoute,
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       darkTheme: buildDarkAppTheme(),
@@ -225,17 +303,22 @@ Future<ConversationController> _pumpGoldenApp(
         ).copyWith(textScaler: TextScaler.linear(textScale)),
         child: child!,
       ),
-      home: HomeLearningShell(
-        controller: controller,
-        ensureDeviceConnected: deviceReady == null
-            ? null
-            : () async => deviceReady,
-        isDeviceConnectionReady: deviceReady == null ? null : () => deviceReady,
-        onScreenMainPressed: () async {},
-        config: AppConfig(
-          backendBaseUri: Uri.parse('https://example.com'),
-          useDemoBackend: true,
-          childAge: 6,
+      home: RepaintBoundary(
+        key: const Key('responsive-home-capture'),
+        child: HomeLearningShell(
+          controller: controller,
+          ensureDeviceConnected: deviceReady == null
+              ? null
+              : () async => deviceReady,
+          isDeviceConnectionReady: deviceReady == null
+              ? null
+              : () => deviceReady,
+          onScreenMainPressed: () async {},
+          config: AppConfig(
+            backendBaseUri: Uri.parse('https://example.com'),
+            useDemoBackend: true,
+            childAge: 6,
+          ),
         ),
       ),
     ),
@@ -248,6 +331,8 @@ Future<ConversationController> _pumpGoldenApp(
         AssetImage('assets/images/home-hero-blob.png'),
         AssetImage('assets/images/home-hero-blob-option2.png'),
         AssetImage('assets/images/home-navigation-rays.png'),
+        AssetImage('assets/images/home-cloud-tab-left.png'),
+        AssetImage('assets/images/home-cloud-tab-right.png'),
         AssetImage('assets/images/mascot/penguin-avatar.png'),
         AssetImage('assets/images/mascot/penguin-listen.png'),
         AssetImage('assets/images/mascot/penguin-wave.png'),
@@ -265,9 +350,97 @@ Future<ConversationController> _pumpGoldenApp(
   return controller;
 }
 
+Future<void> _expectCloudContentOnWhiteFace(
+  WidgetTester tester,
+  double dpr,
+) async {
+  final capture = find.byKey(const Key('responsive-home-capture'));
+  final boundary = tester.renderObject<RenderRepaintBoundary>(capture);
+  final origin = tester.getTopLeft(capture);
+  await tester.runAsync(() async {
+    final image = await boundary.toImage(pixelRatio: dpr);
+    try {
+      final bytes = (await image.toByteData(
+        format: ui.ImageByteFormat.rawRgba,
+      ))!;
+      // Check painted pixels around the content, rather than only verifying
+      // that its rectangular bounds fit the (partly transparent) PNG bounds.
+      for (final key in ['home-mode-rail-icon', 'home-mode-rail-label']) {
+        final content = find.byKey(Key(key));
+        for (final element in content.evaluate()) {
+          final rect = tester
+              .getRect(
+                find.byElementPredicate(
+                  (candidate) => identical(candidate, element),
+                ),
+              )
+              .shift(-origin);
+          for (var step = 1; step < 5; step++) {
+            for (final x in [rect.left - 1, rect.right + 1]) {
+              final y = rect.top + rect.height * step / 5;
+              final index =
+                  ((y * dpr).floor() * image.width + (x * dpr).floor()) * 4;
+              expect(
+                bytes.getUint8(index),
+                greaterThan(210),
+                reason: '$key at ($x, $y) must stay on the white cloud face',
+              );
+              expect(bytes.getUint8(index + 1), greaterThan(230));
+              expect(bytes.getUint8(index + 2), greaterThan(235));
+            }
+          }
+        }
+      }
+    } finally {
+      image.dispose();
+    }
+  });
+}
+
+Future<void> _expectRoundedCloudCaps(WidgetTester tester, double dpr) async {
+  for (final element
+      in find.byKey(const Key('home-cloud-artwork')).evaluate()) {
+    final boundary = element.renderObject! as RenderRepaintBoundary;
+    await tester.runAsync(() async {
+      final image = await boundary.toImage(pixelRatio: dpr);
+      try {
+        final bytes = (await image.toByteData(
+          format: ui.ImageByteFormat.rawRgba,
+        ))!;
+        final rowWidths = <int>[];
+        for (var y = 0; y < image.height; y++) {
+          var painted = 0;
+          for (var x = 0; x < image.width; x++) {
+            if (bytes.getUint8((y * image.width + x) * 4 + 3) > 210) {
+              painted++;
+            }
+          }
+          rowWidths.add(painted);
+        }
+        final top = rowWidths.indexWhere((width) => width > 0);
+        final bottom = rowWidths.lastIndexWhere((width) => width > 0);
+        expect(top, inInclusiveRange(0, (image.height * .12).ceil()));
+        expect(bottom, greaterThan(image.height * .88));
+        // A stretched white strip previously produced a broad, flat ledge
+        // at each end. A rounded cap tapers to a narrow painted tip instead.
+        for (final tip in [top, bottom]) {
+          expect(
+            rowWidths[tip],
+            lessThan(image.width * .28),
+            reason: 'Cloud end must taper, not terminate in a square ledge',
+          );
+        }
+      } finally {
+        image.dispose();
+      }
+    });
+  }
+}
+
 Future<void> _loadGoldenFonts() async {
   final roboto = FontLoader('Roboto')
     ..addFont(rootBundle.load('assets/fonts/Roboto-Regular.ttf'))
+    ..addFont(rootBundle.load('assets/fonts/Roboto-Medium.ttf'))
     ..addFont(rootBundle.load('assets/fonts/Roboto-Bold.ttf'));
   final materialIcons = FontLoader('MaterialIcons')
     ..addFont(rootBundle.load('assets/fonts/MaterialIcons-Regular.otf'));

@@ -13,6 +13,7 @@ import '../../../app/homi_bluetooth_icon.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
 import '../../listening/domain/listening_catalog.dart';
+import 'homi_pairing_guide.dart';
 import 'ios_startup_setup_screen.dart';
 
 enum _ParentSetupStep { privacy, profile, permissions }
@@ -30,6 +31,9 @@ class StartupSetupScreen extends StatefulWidget {
     required this.bluetoothGranted,
     required this.h20BleConnected,
     required this.h20HfpConfigured,
+    this.h20AudioPaired = false,
+    this.onOpenBluetoothSettings,
+    this.h20AudioBlocksMain = false,
     required this.selectedAge,
     required this.aiSubprocessors,
     required this.dataRetentionSummary,
@@ -68,8 +72,19 @@ class StartupSetupScreen extends StatefulWidget {
   final bool bluetoothGranted;
   final bool h20BleConnected;
   final bool h20HfpConfigured;
+
+  /// Android system pairing is separate from a verified MAIN and selected mic.
+  final bool h20AudioPaired;
+
+  /// Opens system Bluetooth settings for the audio guides. Without it the
+  /// connect action only connects.
+  final Future<void> Function()? onOpenBluetoothSettings;
+
+  /// The last round found HOMI audio connected but no BLE MAIN.
+  final bool h20AudioBlocksMain;
   final bool allowPhoneMicFallback;
   final bool allowBleOnlySetup;
+
   final int? selectedAge;
   final String aiSubprocessors;
   final String dataRetentionSummary;
@@ -107,6 +122,8 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
   bool _permissionsCheckedOnce = false;
   bool _choiceInProgress = false;
   bool _connectionInProgress = false;
+  bool _awaitingPairingReturn = false;
+  bool _connectWhenBluetoothReady = false;
   int _connectionGeneration = 0;
 
   bool get _privacyChoiceMade =>
@@ -156,6 +173,20 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _awaitingPairingReturn) {
+      // Back from system Bluetooth settings: check the connection without
+      // asking the parent to tap again.
+      _awaitingPairingReturn = false;
+      if (_connectionInProgress) return;
+      // Resuming also refreshes the adapter state, which briefly blocks
+      // connecting; continue once that check settles.
+      if (_canUseBluetooth) {
+        unawaited(_connectHomi());
+      } else {
+        _connectWhenBluetoothReady = true;
+      }
+      return;
+    }
     if (state == AppLifecycleState.resumed &&
         _step == _ParentSetupStep.permissions &&
         !_connectionInProgress) {
@@ -185,7 +216,12 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
   }
 
   void _onBluetoothPowerChanged() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    setState(() {});
+    if (_connectWhenBluetoothReady && _canUseBluetooth) {
+      _connectWhenBluetoothReady = false;
+      unawaited(_connectHomi());
+    }
   }
 
   @override
@@ -230,6 +266,7 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
         onAndroidOfflineEnglishModelDownloadChanged:
             widget.onAndroidOfflineEnglishModelDownloadChanged,
         onChooseH20Microphone: widget.onChooseH20Microphone,
+        onOpenBluetoothSettings: widget.onOpenBluetoothSettings,
         h20DeviceName: widget.h20DeviceName,
         privacyPolicyUri: widget.privacyPolicyUri,
         termsUri: widget.termsUri,
@@ -280,34 +317,15 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
     );
     return _SetupStepLayout(
       key: const ValueKey<String>('startup-privacy-step'),
-      title: context.tr('Cùng bé bắt đầu\nvới HOMI', '和孩子一起开始 HOMI'),
+      title: context.tr('Cùng bé bắt đầu với HOMI', '和孩子一起开始 HOMI'),
       subtitle: context.tr(
         'Thiết lập vài bước để bé học và luyện nói mỗi ngày.',
         '简单设置，让孩子每天学习和练习说话。',
       ),
-      hero: const _MascotHero(height: 208),
+      hero: const _MascotHero(height: 180),
       panel: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              const Icon(Icons.mic_rounded, color: AppColors.mint),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  context.tr(
-                    'HOMI cần xử lý, gửi và lưu dữ liệu giọng nói để hỗ trợ bé học.',
-                    'HOMI 需要处理、发送和保存语音数据来帮助孩子学习。',
-                  ),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
           _ConsentRow(
             checkbox: Checkbox(
               key: const Key('startup-confirm-adult-role'),
@@ -369,20 +387,6 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
                     ),
                   ],
                 ),
-              ),
-            ),
-            helper: Text(
-              _legalAccepted && !_legalReviewCompleted
-                  ? context.tr(
-                      'Vui lòng đọc nội dung để tiếp tục.',
-                      '请阅读内容后继续。',
-                    )
-                  : context.tr(
-                      'Nhấn vào liên kết để xem chi tiết.',
-                      '点击链接查看详情。',
-                    ),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -611,7 +615,9 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
     final poweredOff = power?.state == Aiv0BluetoothAdapterState.poweredOff;
     final partial =
         _bluetoothAvailable &&
-        (widget.h20BleConnected || widget.h20HfpConfigured) &&
+        (widget.h20BleConnected ||
+            widget.h20HfpConfigured ||
+            widget.h20AudioPaired) &&
         !_h20Ready;
     final failed = _h20SetupRequested && !partial && !_h20Ready;
     final title = _connectionInProgress
@@ -634,7 +640,12 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
         : _h20Ready
         ? context.tr('Cùng bé bắt đầu bài học đầu tiên.', '和孩子一起开始第一课。')
         : partial
-        ? widget.h20BleConnected
+        ? widget.h20AudioPaired && !widget.h20BleConnected
+              ? context.tr(
+                  'Bluetooth đã ghép đôi. Còn kết nối MAIN.',
+                  '蓝牙已配对，仍需连接 MAIN。',
+                )
+              : widget.h20BleConnected
               ? context.tr('HOMI đang chờ kết nối micro.', 'HOMI 正在等待麦克风连接。')
               : context.tr(
                   'HOMI đang chờ kết nối nút MAIN.',
@@ -658,6 +669,10 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
         context.tr('Chưa tìm thấy HOMI', '尚未找到 HOMI'),
       ],
       subtitleAlternatives: [
+        context.tr(
+          'Bluetooth đã ghép đôi. Còn kết nối MAIN.',
+          '蓝牙已配对，仍需连接 MAIN。',
+        ),
         context.tr(
           'Kiểm tra thiết bị đã bật và đặt gần điện thoại.',
           '请确认设备已开启并放在手机附近。',
@@ -709,8 +724,10 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
                   const SizedBox(height: 8),
                   _ConnectionStatusRow(
                     key: const Key('startup-microphone-status'),
-                    label: context.tr('Micro HOMI', 'HOMI 麦克风'),
-                    connected: widget.h20HfpConfigured,
+                    label: widget.h20AudioPaired && !widget.h20HfpConfigured
+                        ? context.tr('Ghép đôi Bluetooth', '蓝牙配对')
+                        : context.tr('Micro HOMI', 'HOMI 麦克风'),
+                    connected: widget.h20HfpConfigured || widget.h20AudioPaired,
                   ),
                 ],
               ),
@@ -720,7 +737,7 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
             if (_canComplete && !_h20Ready && _canUseBluetooth)
               TextButton(
                 key: const Key('startup-setup-h20'),
-                onPressed: _choiceInProgress ? null : _setupH20,
+                onPressed: _choiceInProgress ? null : _connectHomi,
                 child: Text(context.tr('Kết nối HOMI', '连接 HOMI')),
               ),
             if (widget.allowPhoneMicFallback &&
@@ -752,6 +769,7 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
           labels: [
             context.tr('Kết nối HOMI', '连接 HOMI'),
             context.tr('Kết nối lại', '重新连接'),
+            context.tr('Tiếp tục kết nối', '继续连接'),
             context.tr('Đang kết nối…', '正在连接…'),
             context.tr('Bắt đầu bài học', '开始课程'),
           ],
@@ -777,10 +795,12 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
                           !_canUseBluetooth ||
                           _permissionCheckInProgress
                       ? null
-                      : _setupH20,
+                      : _connectHomi,
                   child: Text(
                     partial
-                        ? context.tr('Kết nối lại', '重新连接')
+                        ? widget.h20AudioPaired && !widget.h20BleConnected
+                              ? context.tr('Tiếp tục kết nối', '继续连接')
+                              : context.tr('Kết nối lại', '重新连接')
                         : failed
                         ? context.tr('Thử lại', '重试')
                         : context.tr('Kết nối HOMI', '连接 HOMI'),
@@ -851,6 +871,39 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
     }
   }
 
+  /// MAIN connects over BLE first; HOMI audio comes after. HM-D001 hides
+  /// BLE MAIN while its Classic audio is connected, so a failed round with
+  /// audio up guides pausing audio, and a MAIN-only round guides turning
+  /// audio on. Returning from settings repeats this without another tap.
+  Future<void> _connectHomi() async {
+    if (!_canUseBluetooth || _choiceInProgress) return;
+    await _setupH20();
+    if (!mounted || widget.onOpenBluetoothSettings == null) return;
+    // Device state arrives through the Bloc; read it after the rebuild.
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted || _connectionInProgress) return;
+    final guide = widget.h20AudioBlocksMain
+        ? HomiAudioGuide.pauseAudio
+        : widget.h20BleConnected && !widget.h20HfpConfigured
+        ? HomiAudioGuide.enableAudio
+        : null;
+    if (guide != null) await _showAudioGuide(guide);
+  }
+
+  Future<void> _showAudioGuide(HomiAudioGuide guide) async {
+    final action = await showHomiAudioGuide(context, guide);
+    if (!mounted) return;
+    switch (action) {
+      case HomiGuideAction.openSettings:
+        _awaitingPairingReturn = true;
+        await widget.onOpenBluetoothSettings!();
+      case HomiGuideAction.checkAgain:
+        await _connectHomi();
+      case null:
+        break;
+    }
+  }
+
   Future<void> _setupH20() async {
     if (!_canUseBluetooth || _choiceInProgress) return;
     final generation = ++_connectionGeneration;
@@ -860,7 +913,9 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
       _h20SetupRequested = true;
     });
     try {
-      await widget.onSetupH20().timeout(const Duration(seconds: 45));
+      // A new Android device may need Classic discovery, system pairing and
+      // MAIN verification before the separate HFP input can be selected.
+      await widget.onSetupH20().timeout(const Duration(seconds: 75));
     } on TimeoutException {
       if (mounted && generation == _connectionGeneration) {
         await widget.onCancelH20Setup?.call();
@@ -1419,11 +1474,10 @@ class _MascotHero extends StatelessWidget {
 // Both consent controls share the same checkbox column and label inset.
 // Helper copy sits below the label, so it cannot shift the checkbox's center.
 class _ConsentRow extends StatelessWidget {
-  const _ConsentRow({required this.checkbox, required this.label, this.helper});
+  const _ConsentRow({required this.checkbox, required this.label});
 
   final Widget checkbox;
   final Widget label;
-  final Widget? helper;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -1431,16 +1485,11 @@ class _ConsentRow extends StatelessWidget {
     children: <Widget>[
       Row(
         children: <Widget>[
-          SizedBox(width: 48, child: checkbox),
-          const SizedBox(width: 8),
+          SizedBox(width: 32, child: checkbox),
+          const SizedBox(width: 12),
           Expanded(child: label),
         ],
       ),
-      if (helper != null)
-        Padding(
-          padding: const EdgeInsetsDirectional.only(start: 56),
-          child: helper,
-        ),
     ],
   );
 }
