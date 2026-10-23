@@ -38,6 +38,140 @@ import 'package:flutter/services.dart';
 import 'package:crypto/crypto.dart';
 
 void main() {
+  for (final code in ['ON_DEVICE_SPEECH_UNAVAILABLE', 'NETWORK_ERROR']) {
+    testWidgets(
+      'iOS Core $code never records a wrong answer or advances offline',
+      (tester) async {
+        await _usePhoneSurface(tester);
+        final speech = _UnavailableOfflineIosSpeechInput(code);
+        final progress = _MemoryProgressStore();
+        await tester.pumpWidget(
+          _subject(
+            _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+            _IosLessonMediaService(),
+            controller: _IosLearningAudioDependencies(speech),
+            useOwnedEvaluator: true,
+            progressStore: progress,
+            guideAudioLibrary: _silentGuideAudioLibrary(),
+            voicePromptService: _FakeVoicePromptService(),
+          ),
+        );
+        await _pumpGuidedSpeechTurn(tester);
+        expect(speech.started, isTrue);
+        await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+        await _pumpGuidedSpeechTurn(tester);
+        expect(find.text('Sentence 1'), findsOneWidget);
+        expect(progress.earnedStars, isEmpty);
+        expect(progress.sessionResults, isEmpty);
+        expect(progress.needsPractice, isEmpty);
+        expect(progress.currentSentence, 0);
+        expect(find.textContaining('không tính là sai'), findsOneWidget);
+        await tester.pumpWidget(const SizedBox.shrink());
+        unawaited(speech.dispose());
+        await tester.pump();
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    );
+  }
+
+  testWidgets(
+    'MAIN ignores a late successful retry after an offline Core failure',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final result = Completer<LessonAttemptOutcome>();
+      final progress = _MemoryProgressStore();
+      final evaluator = _ScriptedAttemptEvaluator([
+        const LessonAttemptEvaluationException(
+          'offline',
+          backendUnavailable: true,
+        ),
+        result.future,
+      ]);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _subject(
+            _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+            _GuidedMediaService(),
+            progressStore: progress,
+            attemptEvaluator: evaluator,
+            guideAudioLibrary: _silentGuideAudioLibrary(),
+            voicePromptService: _FakeVoicePromptService(),
+          ),
+        ),
+      );
+      await _pumpGuidedSpeechTurn(tester);
+      await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+      await _pumpGuidedSpeechTurn(tester);
+      final retry = find.byKey(const Key('retry-lesson-evaluation'));
+      await tester.ensureVisible(retry);
+      await tester.tap(retry);
+      await tester.pump();
+      expect(evaluator.evaluationCalls, 2);
+      await registry.pauseForMainAssistant();
+      result.complete(LessonAttemptOutcome.good);
+      await _pumpGuidedSpeechTurn(tester);
+      expect(progress.earnedStars, isEmpty);
+      expect(progress.needsPractice, isEmpty);
+      expect(find.text('Sentence 1'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+  );
+
+  testWidgets(
+    'Core offline failure retains recording and retry does not spend an attempt or Star',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final media = _GuidedMediaService();
+      final progress = _MemoryProgressStore();
+      final evaluator = _ScriptedAttemptEvaluator([
+        const LessonAttemptEvaluationException(
+          'offline',
+          backendUnavailable: true,
+        ),
+        const LessonAttemptEvaluationException(
+          'still offline',
+          backendUnavailable: true,
+        ),
+        LessonAttemptOutcome.good,
+      ]);
+      await tester.pumpWidget(
+        _subject(
+          _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+          media,
+          progressStore: progress,
+          attemptEvaluator: evaluator,
+          guideAudioLibrary: _silentGuideAudioLibrary(),
+          voicePromptService: _FakeVoicePromptService(),
+        ),
+      );
+      await _pumpGuidedSpeechTurn(tester);
+      await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+      await _pumpGuidedSpeechTurn(tester);
+      for (var retry = 0; retry < 2; retry++) {
+        expect(find.text('Sentence 1'), findsOneWidget);
+        expect(progress.earnedStars, isEmpty);
+        expect(progress.needsPractice, isEmpty);
+        expect(progress.sessionResults, isEmpty);
+        expect(media.startedSentenceIds, hasLength(1));
+        final button = find.byKey(const Key('retry-lesson-evaluation'));
+        await tester.ensureVisible(button);
+        await tester.tap(button);
+        await _pumpGuidedSpeechTurn(tester);
+      }
+      expect(evaluator.attemptNumbers, [1, 1, 1]);
+      expect(evaluator.recordingPaths.toSet(), hasLength(1));
+      expect(progress.earnedStars, contains('core:GUIDED-FLOW_S1'));
+      expect(progress.needsPractice, isEmpty);
+      expect(find.byKey(const Key('retry-lesson-evaluation')), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+  );
+
   for (final guided in <bool>[false, true]) {
     for (final cancel in <bool>[false, true]) {
       testWidgets(
@@ -4222,7 +4356,9 @@ ListeningLessonContent _lesson({
 class _ScriptedAttemptEvaluator implements LessonAttemptEvaluator {
   _ScriptedAttemptEvaluator(this._outcomes);
 
-  final List<LessonAttemptOutcome> _outcomes;
+  final List<Object> _outcomes;
+  final List<int> attemptNumbers = [];
+  final List<String> recordingPaths = [];
   int _index = 0;
   int get evaluationCalls => _index;
 
@@ -4240,6 +4376,10 @@ class _ScriptedAttemptEvaluator implements LessonAttemptEvaluator {
   }) async {
     final outcome = _outcomes[_index.clamp(0, _outcomes.length - 1)];
     _index += 1;
+    attemptNumbers.add(attemptNumber);
+    recordingPaths.add(recordingPath);
+    if (outcome is Future<LessonAttemptOutcome>) return await outcome;
+    if (outcome is! LessonAttemptOutcome) throw outcome;
     return outcome;
   }
 }
@@ -5450,4 +5590,17 @@ Future<void> _pumpGuidedSpeechTurn(WidgetTester tester) async {
 Future<void> _usePhoneSurface(WidgetTester tester) async {
   await tester.binding.setSurfaceSize(const Size(390, 844));
   addTearDown(() => tester.binding.setSurfaceSize(null));
+}
+
+class _UnavailableOfflineIosSpeechInput
+    extends _MissingRecordingIosSpeechInput {
+  _UnavailableOfflineIosSpeechInput(this.code);
+  final String code;
+  @override
+  Future<StreamingSpeechCapture> stop() async {
+    throw StreamingSpeechInputException(
+      'Offline recognizer unavailable',
+      code: code,
+    );
+  }
 }

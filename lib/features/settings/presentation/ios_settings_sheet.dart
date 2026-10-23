@@ -1473,6 +1473,12 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
           'HOMI 正在准备语音并通过 Wi-Fi 下载离线翻译模型；您可以继续使用应用。',
         );
       }
+      if (_consent == AndroidOfflineSpeechModelConsent.undecided) {
+        return context.tr(
+          'Home tự kiểm tra tiếng Anh cho Chủ đề; iOS 26 chuẩn bị model Apple khi có Wi-Fi, iOS cũ dùng bộ nhận dạng có sẵn. Bật mục này để chuẩn bị thêm tiếng Việt và bộ dịch.',
+          '首页会自动检查主题英语；iOS 26 在 Wi-Fi 下准备 Apple 模型，旧版使用系统已有的识别能力。开启此项可额外准备越南语和翻译模型。',
+        );
+      }
       return _consent == AndroidOfflineSpeechModelConsent.allowed
           ? context.tr(
               'Đã cho phép chuẩn bị giọng nói và tải gói dịch Việt–Anh/Anh–Việt qua Wi-Fi. Các gói dịch chưa sẵn sàng; cần iPhone thật để tải và dùng offline.',
@@ -1518,6 +1524,13 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
           return context.tr(
             'Đã cho phép. HOMI sẽ tự tải en-US khi có Wi-Fi, không dùng dữ liệu di động.',
             '已允许。连接 Wi-Fi 后 HOMI 将自动下载 en-US，不使用移动数据。',
+          );
+        }
+        if (defaultTargetPlatform == TargetPlatform.android &&
+            _consent == AndroidOfflineSpeechModelConsent.undecided) {
+          return context.tr(
+            'Tiếng Anh cho Chủ đề được tự tải qua Wi-Fi khi vào Home. Bật mục này để tải thêm tiếng Việt và bộ dịch.',
+            '进入首页后会通过 Wi-Fi 自动下载主题学习所需的英语模型。开启此项可额外下载越南语和翻译模型。',
           );
         }
         return _consent == AndroidOfflineSpeechModelConsent.allowed

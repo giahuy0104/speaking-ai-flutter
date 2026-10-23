@@ -45,6 +45,7 @@ class HomeLearningShell extends StatefulWidget {
   const HomeLearningShell({
     required this.controller,
     required this.config,
+    this.onReady,
     this.voiceNavigationController,
     this.speakingSessionController,
     this.themeMode = ThemeMode.system,
@@ -82,6 +83,9 @@ class HomeLearningShell extends StatefulWidget {
 
   final ConversationController controller;
   final AppConfig config;
+
+  /// Starts app-owned background work after Home is visible, once per mount.
+  final VoidCallback? onReady;
   final DeviceConnectionCoordinator? connectionCoordinator;
   final VoiceNavigationController? voiceNavigationController;
   final MainSpeakingSessionController? speakingSessionController;
@@ -201,6 +205,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     _attachVoiceNavigationHandler();
     widget.controller.addListener(_onConversationControllerChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      widget.onReady?.call();
       unawaited(
         _backgroundLearningCoordinator.initialize(
           voiceAccessEnabled: widget.voiceAccessEnabled,

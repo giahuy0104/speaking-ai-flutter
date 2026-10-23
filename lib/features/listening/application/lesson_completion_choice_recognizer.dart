@@ -77,18 +77,20 @@ abstract interface class LessonCompletionChoiceRecognizer {
 class BackendLessonCompletionChoiceRecognizer
     implements LessonCompletionChoiceRecognizer {
   BackendLessonCompletionChoiceRecognizer({
+    this.requestTimeout = const Duration(seconds: 15),
     AppConfig? config,
     http.Client? client,
   }) : _config = config ?? AppConfig.fromEnvironment(),
        _client = client ?? http.Client();
 
+  final Duration requestTimeout;
   final AppConfig _config;
   final http.Client _client;
 
   @override
   Future<String> transcribe(LessonRecording recording) async {
     try {
-      return await _transcribe(recording);
+      return await _transcribe(recording).timeout(requestTimeout);
     } on TimeoutException {
       throw const LessonCompletionRecognitionException(
         'Chưa kết nối được máy chủ. Bạn thử lại nhé.',
