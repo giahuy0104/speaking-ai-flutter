@@ -26,7 +26,8 @@ class NextConversationRepository
         UserAudioHistoryPlaybackRepository,
         ChunkedConversationRepository,
         RealtimeConversationRepository,
-        OfflineIntentCatalogRepository {
+        OfflineIntentCatalogRepository,
+        TranslationTargetRepository {
   NextConversationRepository({
     required AppConfig config,
     required Future<String> Function() clientIdProvider,
@@ -47,6 +48,14 @@ class NextConversationRepository
   final http.Client _client;
   final bool _ownsClient;
   final Future<String> Function() _clientIdProvider;
+  TranslationOutputLanguage _translationTarget =
+      TranslationOutputLanguage.english;
+
+  @override
+  void setTranslationTarget(TranslationOutputLanguage language) {
+    _translationTarget = language;
+  }
+
   Future<String> get _clientId => _clientIdProvider();
   Future<OfflineIntentManifest>? _offlineIntentManifest;
 
@@ -167,6 +176,7 @@ class NextConversationRepository
         http.MultipartRequest('POST', _config.resolve('/api/conversation'))
           ..fields['clientId'] = clientId
           ..fields['context'] = context.apiValue
+          ..fields['targetLanguage'] = _translationTarget.apiValue
           ..fields['childAge'] = childAge.toString()
           ..fields['benchmark'] = jsonEncode(<String, dynamic>{
             ...benchmark.toJson(),
@@ -235,6 +245,7 @@ class NextConversationRepository
     final body = jsonEncode(<String, dynamic>{
       'clientId': clientId,
       'context': context.apiValue,
+      'targetLanguage': _translationTarget.apiValue,
       'childAge': childAge,
       'asrMode': 'batch_chunks',
       'mimeType': capture.mimeType,
@@ -308,7 +319,9 @@ class NextConversationRepository
       uploadToken: audioSession.uploadToken,
       supportsChunkChecksum: audioSession.supportsChunkChecksum,
       supportsMissingChunkRecovery: audioSession.supportsMissingChunkRecovery,
-      supportsBatchPrefetch: audioSession.supportsBatchPrefetch,
+      supportsBatchPrefetch:
+          audioSession.supportsBatchPrefetch &&
+          _translationTarget == TranslationOutputLanguage.english,
       uploadProtocolVersion: audioSession.uploadProtocolVersion,
     );
   }
@@ -347,6 +360,7 @@ class NextConversationRepository
     final body = jsonEncode(<String, dynamic>{
       'clientId': clientId,
       'context': context.apiValue,
+      'targetLanguage': _translationTarget.apiValue,
       'childAge': childAge,
       'sourceText': capture.sourceText,
       'asrMode': capture.asrMode,
@@ -498,6 +512,7 @@ class NextConversationRepository
     required PracticeContext context,
     required int childAge,
   }) async {
+    if (_translationTarget != TranslationOutputLanguage.english) return null;
     final clientId = await _clientId;
     final response = await _client
         .post(
@@ -540,6 +555,7 @@ class NextConversationRepository
     String? previousPrefetchId,
     Map<String, dynamic>? benchmark,
   }) async {
+    if (_translationTarget != TranslationOutputLanguage.english) return null;
     final response = await _client
         .post(
           _config.resolve('/api/audio-sessions/$audioSessionId/preview'),

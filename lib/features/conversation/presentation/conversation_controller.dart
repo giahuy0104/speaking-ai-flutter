@@ -478,6 +478,9 @@ class ConversationController extends ChangeNotifier
   String? transientMessage;
   @override
   DisplayLanguage displayLanguage = DisplayLanguage.vietnamese;
+  TranslationOutputLanguage outputLanguage = TranslationOutputLanguage.english;
+  bool get supportsTranslationTargets =>
+      _repository is TranslationTargetRepository;
   bool bleDiagnosticRunning = false;
   @override
   bool h20HardwareTestModeEnabled = false;
@@ -605,6 +608,7 @@ class ConversationController extends ChangeNotifier
     String sourceText, {
     required PracticeContext targetContext,
   }) {
+    if (outputLanguage != TranslationOutputLanguage.english) return false;
     final exact = _findLocalExactIntent(sourceText, targetContext);
     if (exact == null || exact.englishText.trim().isEmpty) {
       return false;
@@ -801,6 +805,7 @@ class ConversationController extends ChangeNotifier
     bool useDeviceTtsForExact = false,
     int? expectedGeneration,
   }) async {
+    if (outputLanguage != TranslationOutputLanguage.english) return null;
     try {
       final offlineCapture = await _resolveOfflineVietnameseCapture(
         capture: capture,
@@ -871,6 +876,22 @@ class ConversationController extends ChangeNotifier
         }),
       );
     }
+  }
+
+  void setOutputLanguage(TranslationOutputLanguage language) {
+    if (language == outputLanguage ||
+        !supportsTranslationTargets ||
+        isBusy ||
+        sentenceQueueActive) {
+      return;
+    }
+    (_repository as TranslationTargetRepository).setTranslationTarget(language);
+    outputLanguage = language;
+    _previewGeneration += 1;
+    _preview = null;
+    _preferredPlaybackUri = result?.audioUri;
+    _speculativePreloadUri = null;
+    notifyListeners();
   }
 
   @override
@@ -3313,6 +3334,7 @@ class ConversationController extends ChangeNotifier
 
   void _onSpeculativeBatchPreview(ConversationPreview preview) {
     if (sentenceQueueActive ||
+        outputLanguage != TranslationOutputLanguage.english ||
         !_isWebRuntime ||
         (phase != ConversationPhase.recording &&
             phase != ConversationPhase.processing) ||
@@ -3341,6 +3363,7 @@ class ConversationController extends ChangeNotifier
     required PracticeContext previewContext,
     required int generation,
   }) async {
+    if (outputLanguage != TranslationOutputLanguage.english) return;
     try {
       final preview = await _repository.previewStreamingText(
         sourceText: sourceText,
@@ -3745,7 +3768,8 @@ class ConversationController extends ChangeNotifier
       Uri? earlyRulePlaybackUri;
       String? earlyRuleEnglishText;
       _useTranslatedSpeechPlaybackRate();
-      if ((!useAndroidOfflineAudio || androidNetworkTransport == true) &&
+      if (outputLanguage == TranslationOutputLanguage.english &&
+          (!useAndroidOfflineAudio || androidNetworkTransport == true) &&
           streamingCapture != null) {
         final matchedLocalRule = _applyLocalExactPreview(
           streamingCapture.sourceText,
@@ -3849,6 +3873,7 @@ class ConversationController extends ChangeNotifier
       // playback has started (or in finally on error).
       final preview = _preview;
       final preparedPreviewMatchesResult =
+          nextResult.outputLanguage == TranslationOutputLanguage.english &&
           preview?.audioUri != null &&
           preview!.englishText.trim() == nextResult.englishText.trim() &&
           preview.audioUri == nextResult.audioUri;
@@ -3872,6 +3897,7 @@ class ConversationController extends ChangeNotifier
 
       var reusedEarlyRulePlayback = false;
       final canReuseEarlyRulePlayback =
+          nextResult.outputLanguage == TranslationOutputLanguage.english &&
           earlyRulePlayback != null &&
           earlyRulePlaybackRequestedAt != null &&
           earlyRulePlaybackUri != null &&
@@ -3925,8 +3951,9 @@ class ConversationController extends ChangeNotifier
       } else if (!reusedEarlyRulePlayback &&
           nextResult.audioSource == 'device_tts') {
         await _speakOfflineTranslation(
-          nextResult.englishText,
+          nextResult.displayedTranslation,
           turnGeneration: turnGeneration,
+          locale: nextResult.outputLanguage.speechLocale,
         );
       }
       await stoppedAdaptiveWebUpload?.finishPreviewForwarding();
@@ -4512,9 +4539,10 @@ class ConversationController extends ChangeNotifier
         throw const PlaybackException('Không có âm thanh TTS.');
       }
       await _speakOfflineTranslation(
-        currentResult.englishText,
+        currentResult.displayedTranslation,
         turnGeneration: playbackTurnGeneration,
         propagateFailure: sentenceSession != null,
+        locale: currentResult.outputLanguage.speechLocale,
       );
       return;
     }
@@ -4669,8 +4697,9 @@ class ConversationController extends ChangeNotifier
           !(usesHfpInput && canUseHfp) &&
           _voicePromptService != null) {
         await _speakOfflineTranslation(
-          currentResult.englishText,
+          currentResult.displayedTranslation,
           turnGeneration: playbackTurnGeneration,
+          locale: currentResult.outputLanguage.speechLocale,
         );
         return;
       }
@@ -4689,18 +4718,31 @@ class ConversationController extends ChangeNotifier
   }
 
   Future<void> _speakOfflineTranslation(
-    String englishText, {
+    String translatedText, {
     required int turnGeneration,
     bool propagateFailure = false,
+    String locale = 'en-US',
   }) async {
-    final text = englishText.trim();
+    final text = translatedText.trim();
     final promptService = _voicePromptService;
+    final languageName = TranslationOutputLanguage.values
+        .firstWhere(
+          (language) => language.speechLocale == locale,
+          orElse: () => TranslationOutputLanguage.english,
+        )
+        .label;
+    final isEnglish = locale == TranslationOutputLanguage.english.speechLocale;
     if (text.isEmpty || promptService == null) {
       if (propagateFailure) {
-        throw const PlaybackException('Thiết bị chưa có giọng đọc tiếng Anh.');
+        throw PlaybackException(
+          isEnglish
+              ? 'Thiết bị chưa có giọng đọc tiếng Anh.'
+              : 'Thiết bị chưa có giọng đọc $languageName.',
+        );
       }
-      transientMessage =
-          'Đã dịch offline nhưng thiết bị chưa có giọng đọc tiếng Anh.';
+      transientMessage = isEnglish
+          ? 'Đã dịch offline nhưng thiết bị chưa có giọng đọc tiếng Anh.'
+          : 'Đã dịch nhưng thiết bị chưa có giọng đọc $languageName.';
       notifyListeners();
       return;
     }
@@ -4711,24 +4753,30 @@ class ConversationController extends ChangeNotifier
         await (promptService as StyledMediaOutputVoicePromptService)
             .speakAndWaitStyled(
               text,
-              locale: 'en-US',
+              locale: locale,
               speechRate: translatedSpeechPlaybackRate,
               pitch: 1.05,
             );
       } else if (promptService is SelectedMediaOutputVoicePromptService) {
         await (promptService as SelectedMediaOutputVoicePromptService)
-            .speakAndWaitOnSelectedMediaOutput(text, locale: 'en-US');
+            .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
       } else {
-        await promptService.speakAndWait(text, locale: 'en-US');
+        await promptService.speakAndWait(text, locale: locale);
       }
     } catch (error) {
       if (turnGeneration != _conversationTurnGeneration) return;
       if (propagateFailure) {
-        throw const PlaybackException('Không phát được giọng đọc tiếng Anh.');
+        throw PlaybackException(
+          isEnglish
+              ? 'Không phát được giọng đọc tiếng Anh.'
+              : 'Không phát được giọng đọc $languageName.',
+        );
       }
-      transientMessage =
-          'Đã dịch offline nhưng chưa phát được giọng tiếng Anh: '
-          '${_friendlyError(error)}';
+      transientMessage = isEnglish
+          ? 'Đã dịch offline nhưng chưa phát được giọng tiếng Anh: '
+                '${_friendlyError(error)}'
+          : 'Đã dịch nhưng chưa phát được giọng $languageName: '
+                '${_friendlyError(error)}';
       notifyListeners();
     }
   }
