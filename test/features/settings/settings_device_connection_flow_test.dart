@@ -243,7 +243,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text(unknown), findsOneWidget);
-      expect(find.text('HM-D001'), findsNothing);
+      expect(find.text('HM-D001'), findsOneWidget);
       expect(
         tester.getTopLeft(find.text('HM-D001')).dy,
         lessThan(tester.getTopLeft(find.text(unknown)).dy),
