@@ -330,4 +330,72 @@ void main() {
     expect(timed.state.issue, DeviceIssue.timedOut);
     await timed.dispose();
   });
+
+  test(
+    'port changes that leave the device untouched are not republished',
+    () async {
+      final published = <DeviceConnectionState>[];
+      final subscription = service.states.listen(published.add);
+      final bloc = DeviceBloc(service: service);
+      final blocStates = <DeviceState>[];
+      final blocSubscription = bloc.stream.listen(blocStates.add);
+
+      // The conversation controller notifies the port on every change,
+      // most of which do not touch BLE/HFP.
+      for (var i = 0; i < 5; i++) {
+        port.events.add(null);
+      }
+      await drain();
+      expect(published, isEmpty);
+      expect(blocStates, isEmpty);
+
+      port.snapshot = const DeviceSnapshot(mainReady: true, mainId: 'main');
+      port.events.add(null);
+      port.events.add(null);
+      await drain();
+      expect(published, hasLength(1));
+      expect(published.single.snapshot.mainReady, isTrue);
+      expect(blocStates, hasLength(1));
+
+      await subscription.cancel();
+      await blocSubscription.cancel();
+      await bloc.close();
+    },
+  );
+
+  test('device states compare by value', () {
+    const microphone = DeviceMicrophone(
+      id: 'mic',
+      name: 'HM-D001',
+      connected: true,
+    );
+    const a = DeviceConnectionState(
+      stage: DeviceStage.ready,
+      snapshot: DeviceSnapshot(mainReady: true, mainId: 'main'),
+      microphones: [microphone],
+    );
+    final b = DeviceConnectionState(
+      stage: DeviceStage.ready,
+      snapshot: const DeviceSnapshot(mainReady: true, mainId: 'main'),
+      microphones: List.unmodifiable(const [
+        DeviceMicrophone(id: 'mic', name: 'HM-D001', connected: true),
+      ]),
+    );
+    expect(a, b);
+    expect(a.hashCode, b.hashCode);
+    expect(
+      a,
+      isNot(
+        const DeviceConnectionState(
+          stage: DeviceStage.ready,
+          snapshot: DeviceSnapshot(mainReady: true, mainId: 'other'),
+          microphones: [microphone],
+        ),
+      ),
+    );
+    expect(
+      DeviceState.fromConnectionState(a),
+      DeviceState.fromConnectionState(b),
+    );
+  });
 }

@@ -38,13 +38,17 @@ class DeviceConnectionService {
     List<DeviceMicrophone> microphones = const [],
   }) {
     if (_disposed) return;
-    _state = DeviceConnectionState(
+    final next = DeviceConnectionState(
       stage: stage,
       snapshot: _port.snapshot,
       issue: issue,
       attempt: _generation,
       microphones: List.unmodifiable(microphones),
     );
+    // refresh() runs on every port change; skip republishing an unchanged
+    // state so listeners only hear about real transitions.
+    if (next == _state) return;
+    _state = next;
     _states.add(_state);
   }
 

@@ -471,7 +471,19 @@ class ConversationController extends ChangeNotifier
   AsrMode asrMode;
   @override
   int vadSilenceMs = 700;
-  double amplitude = 0;
+
+  /// Live microphone level (0..1). While recording it changes about every
+  /// 90 ms, so it has its own listenable: notifying the whole controller at
+  /// that rate rebuilt the conversation screen and re-ran every controller
+  /// listener (app sync, Home shell, device service) on each sample.
+  ValueListenable<double> get amplitudeListenable => _amplitude;
+  final ValueNotifier<double> _amplitude = ValueNotifier<double>(0);
+  double get amplitude => _amplitude.value;
+  set amplitude(double value) {
+    if (_disposed) return;
+    _amplitude.value = value;
+  }
+
   ConversationResult? result;
   bool? qualityApproved;
   String? errorMessage;
@@ -3225,7 +3237,9 @@ class ConversationController extends ChangeNotifier
           () => unawaited(stopRecording(manual: false)),
         );
       }
-      notifyListeners();
+      // No notifyListeners() per sample: the level reaches the UI through
+      // amplitudeListenable. VAD changes here only drive timers; the state
+      // changes they cause (stop, fallback, messages) notify on their own.
     }, onError: (Object error) => _setError(_friendlyError(error)));
   }
 
@@ -5295,6 +5309,7 @@ class ConversationController extends ChangeNotifier
     unawaited(_playbackService.dispose());
     unawaited(_voicePromptService?.dispose());
     unawaited(_repository.dispose());
+    _amplitude.dispose();
     super.dispose();
   }
 }
